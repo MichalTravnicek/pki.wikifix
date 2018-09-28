@@ -1,0 +1,22 @@
+= Overview =
+
+Patch review is a way to ensure the patches merged into the source repository are correct and good (i.e. clean, good design, conforming to standards). However, doing a patch review sometimes takes a significant amount of effort, which can take away the time to do other things. As a compromise, the review will be done on important or high-risk patches only.
+
+Here are some situations where a patch review is required or highly recommended:
+* Patches submitted by external contributors have to be reviewed and merged by a team member.
+* Patches for areas that are critical or complex, e.g. crypto changes, replication, serial number allocation.
+* Patches for maintenance/stable branch (i.e. anything other than master branch), e.g. 10.5 branch.
+* Patches for unfamiliar areas (i.e. mainly written by someone else).
+* Patches that will affect test automation in a significant way.
+* Patches that were already reviewed but change significantly when cherry-picked into another branch.
+
+Here are some situations where a patch review is not really necessary:
+* Patches that do not change significantly when cherry-picked into another branch.
+* Patches that are simple and low-risk, e.g. typos, log message changes. High-risk patches should still be reviewed even though it's trivial, e.g. crypto changes.
+* Patches that refactor/reorganize the code without changing the functionality. These patches should be done in simple steps so others can understand easily. Do not make major/complex changes in a single patch.
+
+There are various ways to do patch reviews, e.g. in person, over IRC, via email, in the ticket, but the recommended way is with GitHub Pull Request. GitHub PR allows patch reviews to be done conveniently online. All PRs can be found in one place. The patches are displayed in an easy-to-read format. Anybody can provide a comment on the patch in general or on a specific code in the patch. The CI will run automatically. And finally, the patches can be rebased and merged with a single click.
+
+There is no record keeping required for patch review (i.e. there's no need to record an ACK somewhere), but contributors are expected to follow the above guideline.
+
+See also [[Gerrit vs GitHub Pull Request]].
