@@ -40,6 +40,18 @@ It will create the initial files in /var/lib/mysql and store the logs in /var/lo
 $ systemctl enable mysqld.service
 ```
 
+## Backing Up MySQL Database
+
+```
+$ mysqldump <database> > backup.sql
+```
+
+## Restoring MySQL Database
+
+```
+$ mysql < backup.sql
+```
+
 ## See Also
 
 * [How To Install MySQL 8.0 on Fedora 30/29/28](https://tecadmin.net/install-mysql-8-on-fedora/)
