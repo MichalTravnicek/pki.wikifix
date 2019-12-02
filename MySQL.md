@@ -26,9 +26,13 @@ $ dnf localinstall *.rpm
 
 ## Starting MySQL Server
 
+To start the server:
+
 ```
-$ systemctl status mysqld.service
+$ systemctl start mysqld.service
 ```
+
+It will create the initial files in /var/lib/mysql.
 
 ## Enabling MySQL Service
 
