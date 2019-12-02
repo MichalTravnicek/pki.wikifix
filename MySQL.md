@@ -46,3 +46,4 @@ $ systemctl enable mysqld.service
 * [InnoDB Backup](https://dev.mysql.com/doc/refman/8.0/en/innodb-backup.html)
 * [InnoDB Recovery](https://dev.mysql.com/doc/refman/8.0/en/innodb-recovery.html)
 * [Forcing InnoDB Recovery](https://dev.mysql.com/doc/refman/5.7/en/forcing-innodb-recovery.html)
+* [Resetting MySQL root password](https://stackoverflow.com/questions/41645309/mysql-error-access-denied-for-user-rootlocalhost)
