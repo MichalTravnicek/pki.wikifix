@@ -32,7 +32,7 @@ To start the server:
 $ systemctl start mysqld.service
 ```
 
-It will create the initial files in /var/lib/mysql.
+It will create the initial files in /var/lib/mysql and store the logs in /var/log/mysqld.log.
 
 ## Enabling MySQL Service
 
