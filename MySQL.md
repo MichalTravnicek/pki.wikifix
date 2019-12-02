@@ -43,13 +43,13 @@ $ systemctl enable mysqld.service
 ## Backing Up MySQL Database
 
 ```
-$ mysqldump <database> > backup.sql
+$ mysqldump -u root -p <database> > backup.sql
 ```
 
 ## Restoring MySQL Database
 
 ```
-$ mysql < backup.sql
+$ mysql -u root -p <database> < backup.sql
 ```
 
 ## See Also
