@@ -1,0 +1,84 @@
+= Overview =
+
+This document describes the process to install OCSP subsystem. It assumes that CA subsystem is already installed and the CA admin certificate is already exported into /root/.dogtag/pki-tomcat/ca_admin.cert. 
+
+= Installing OCSP =
+
+Prepare a deployment configuration file:
+
+<pre>
+[OCSP]
+pki_admin_cert_file=/root/.dogtag/pki-tomcat/ca_admin.cert
+pki_admin_email=ocspadmin@example.com
+pki_admin_name=ocspadmin
+pki_admin_nickname=ocspadmin
+pki_admin_password=Secret.123
+pki_admin_uid=ocspadmin
+
+pki_client_database_password=Secret.123
+pki_client_database_purge=False
+pki_client_pkcs12_password=Secret.123
+
+pki_ds_base_dn=dc=ocsp,dc=example,dc=com
+pki_ds_database=ocsp
+pki_ds_password=Secret.123
+
+pki_clone_pkcs12_password=Secret.123
+
+pki_security_domain_name=EXAMPLE
+pki_security_domain_user=caadmin
+pki_security_domain_password=Secret.123
+
+pki_token_password=Secret.123
+</pre>
+
+Then execute:
+
+<pre>
+$ pkispawn -f ocsp.cfg -s OCSP
+</pre>
+
+= Verification =
+
+== Validating admin access ==
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ocsp-user-find
+-----------------
+2 entries matched
+-----------------
+  User ID: ocspadmin
+  Full name: ocspadmin
+
+  User ID: CA-server.example.com-8443
+  Full name: CA-server.example.com-8443
+----------------------------
+Number of entries returned 2
+----------------------------
+</pre>
+
+== Validating OCSP client ==
+
+First, publish the CRL in CA to the LDAP server:
+
+* Go to CA Agent UI (https://server.example.com:8443/ca/agent/ca/).
+* Click '''Update Directory Server'''.
+* Select '''Update the certificate revocation list to the directory'''.
+* Click '''Update Directory'''.
+
+Then run OCSPClient as follows:
+
+ $ OCSPClient \
+  -d /etc/pki/pki-tomcat/alias \
+  -h $HOSTNAME \
+  -p 8080 \
+  -t /ocsp/ee/ocsp \
+  -c ca_signing \
+  --serial 1
+ CertID.serialNumber=1
+ CertStatus=Good
+
+= See Also =
+
+* [https://www.dogtagpki.org/wiki/Installing_OCSP Installing OCSP]
+* [https://www.dogtagpki.org/wiki/CRL_Publishing CRL Publishing]
