@@ -1,0 +1,59 @@
+= Installation =
+
+<pre>
+$ dnf install -y 389-ds-base
+</pre>
+
+= Installing DS Instance =
+
+Generate a configuration template:
+
+ $ dscreate create-template ds.tmp
+
+Customize the configuration as follows:
+
+ $ sed \
+     -e 's/;root_password = .*/root_password = Secret.123/g' \
+     -e 's/;suffix = .*/suffix = dc=example,dc=com/g' \
+     ds.tmp > ds.inf
+
+To create the instance:
+
+ $ dscreate from-file ds.inf
+
+To add base entries:
+
+ $ ldapadd -h $HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 << EOF
+ dn: dc=example,dc=com
+ objectClass: domain
+ dc: example
+ 
+ dn: dc=pki,dc=example,dc=com
+ objectClass: domain
+ dc: pki
+ EOF
+
+To remove the instance:
+
+ $ dsctl localhost remove --do-it
+
+
+= Log Files =
+
+DS log files are available in /var/log/dirsrv/slapd-localhost:
+* access
+* audit
+* errors
+
+= Secure Connection =
+
+See [https://www.dogtagpki.org/wiki/DS_SSL DS SSL].
+
+= References =
+
+* [https://www.dogtagpki.org/wiki/DS DS]
+* [https://www.dogtagpki.org/wiki/PKI_LDAP PKI LDAP]
+* [https://www.dogtagpki.org/wiki/PKI_10_Installation PKI 10 Installation]
+* [https://www.dogtagpki.org/wiki/Enabling_SSL_Connection_with_Internal_Database Enabling SSL Connection with Internal Database]
+* [https://directory.fedoraproject.org 389 Directory Server]
+* [https://directory.fedoraproject.org/docs/389ds/design/dsadm-dsconf.html dsctl, dsconf, and dsidm]
