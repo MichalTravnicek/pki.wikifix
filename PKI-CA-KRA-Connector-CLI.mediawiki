@@ -1,0 +1,87 @@
+= Overview =
+
+PKI provides CLI to manage KRA connector configuration in CA. All KRA connector commands should be executed as a CA administrator. 
+
+= Displaying KRA Connector Info =
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-kraconnector-show
+
+Host: kra1.example.com:8443 kra2.example.com:8443
+Enabled: true
+Local: false
+Timeout: 30
+URI: /kra/agent/kra/connector
+Transport Cert:
+
+MIIDiTCCAnGgAwIBAgIBBzANBgkqhkiG9w0BAQsFADAzMRAwDgYDVQQKDAdFWEFN
+UExFMR8wHQYDVQQDDBZDQSBTaWduaW5nIENlcnRpZmljYXRlMB4XDTE2MDYxMzE1
+MjEwMVoXDTE4MDYwMzE1MjEwMVowNjEQMA4GA1UECgwHRVhBTVBMRTEiMCAGA1UE
+AwwZRFJNIFRyYW5zcG9ydCBDZXJ0aWZpY2F0ZTCCASIwDQYJKoZIhvcNAQEBBQAD
+ggEPADCCAQoCggEBAJ1wExpWXLEXVIYt7QlvirJisidZcpkxERAobsMXyxOwye29
+iT6ABcQJSGCYdRixuoAuzVCxImCg5D+9ZWFAVnDN0keREZAMXwcNBaqAEVjHdvtc
+plpvaZKqP6azFXMPRGG6Tbo9j8uc8N6bSaZHNuFq36CE3yQRPOsTTHImcLz4v4aA
+5lk/9x7KTxEyPHQ7KHdv2Q+9C3ycPF6XWf41TvxYovQtGHMEakq2QDPvLDFmrfha
+Mjoi5xCkWs5IXlW9xfyGRho/GHGsHBupjFVM3TIe/feBLoeBWHd0Fjiofz5XQPsU
+amm4mSDII7vCJVPmiaX6xIA/4cKgOcvn35fML5sCAwEAAaOBpDCBoTAfBgNVHSME
+GDAWgBQJPS4RQFKThe9s07hVbsTLcR5tFDBZBggrBgEFBQcBAQRNMEswSQYIKwYB
+BQUHMAGGPWh0dHA6Ly92bS0wNTgtMTAwLmFiYy5pZG0ubGFiLmVuZy5icnEucmVk
+aGF0LmNvbTo4MDgwL2NhL29jc3AwDgYDVR0PAQH/BAQDAgTwMBMGA1UdJQQMMAoG
+CCsGAQUFBwMCMA0GCSqGSIb3DQEBCwUAA4IBAQAA/Ye8MwZ9KwXPf5rHl+2KhpmI
+Ejisjwzg2+l7M+AZ6OU0jU90N+pVJW2UjIAoQ8BDrxAU9f2b6EX8zLs+W8/2bQhr
+HKIX8WHihMO1LHo0vwiy0S/uKoYy9bZGzrMCaoXfGGLhcN38A2tVS2Uhg1WjjtLN
+CZBGMUHm1UFBrjMT1cdwkbHi2kqCvRHQZqYDRttD/2nUNs0ix/Q+tTXAZdO3IwAZ
+MIYMTHHF/Ma78p4lSFvzo2eTAikjIuBu7YhU7xiqZPDQbAU2RstEtPd14BSd3osq
+b6bDthhCTkfakfevWRygGZ/gmolLNrI2aEzTEStu3rmrJylMG5QLFtRNDG37
+</pre>
+
+= Creating KRA Connector =
+
+Specify the KRA connector configuration in an XML file:
+
+<pre>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<kraConnectorInfo>
+    <host>server.example.com</host>
+    <port>8443</port>
+    <transportCert>... base-64 encoded transport certificate ...</transportCert>
+    <uri>/kra/agent/kra/connector</uri>
+    <timeout>30</timeout>
+    <local>false</local>
+    <enable>true</enable>
+</kraConnectorInfo>
+</pre>
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-kraconnector-add --input-file kra-connector.xml
+-------------------
+Added KRA connector
+-------------------
+</pre>
+
+= Adding KRA Host =
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-kraconnector-add --host server.example.com --port 8443
+----------------------------------------
+Added KRA host "server.example.com:8443"
+----------------------------------------
+</pre>
+
+= Deleting KRA Host =
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-kraconnector-del --host server.example.com --port 8443
+------------------------------------------
+Removed KRA host "server.example.com:8443"
+------------------------------------------
+</pre>
+
+= Deleting KRA Connector =
+
+When the last KRA host is removed, the KRA connector will be removed automatically.
+
+= References =
+
+* [https://www.dogtagpki.org/wiki/PKI_CA_CLI PKI CA CLI]
+* [https://www.dogtagpki.org/wiki/Installing_KRA_Clone Installing KRA Clone]
