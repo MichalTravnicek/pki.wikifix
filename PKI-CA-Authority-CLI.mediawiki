@@ -214,29 +214,29 @@ $ wget http://$HOSTNAME:8080/ca/rest/authorities/77d0eaca-27d5-41ef-bfa5-4418529
 
 In PKI 10.5 or later the certificate request can be submitted with the issuer ID:
 
- $ pki -c <font color="red">Secret.123</font> client-cert-request <font color="red">UID=testuser</font> --issuer-id <font color="red">77d0eaca-27d5-41ef-bfa5-44185294cfc7</font>
+ $ pki -c Secret.123 client-cert-request UID=testuser --issuer-id 77d0eaca-27d5-41ef-bfa5-44185294cfc7
 
 or with the issuer DN:
 
- $ pki -c <font color="red">Secret.123</font> client-cert-request <font color="red">UID=testuser</font> --issuer-dn <font color="red">CN=test</font>
+ $ pki -c Secret.123< client-cert-request UID=testuser --issuer-dn CN=test
 
 In PKI 10.4 or older, first generate a CSR:
 
- $ PKCS10Client -d <font color="red">~/.dogtag/nssdb</font> -p <font color="red">Secret.123</font> -a <font color="red">rsa</font> -l <font color="red">1024</font> -o testuser.csr -n <font color="red">UID=testuser</font>
+ $ PKCS10Client -d ~/.dogtag/nssdb -p Secret.123 -a rsa -l 1024 -o testuser.csr -n UID=testuser
 
 Then submit the CSR with the issuer ID:
 
- $ pki ca-cert-request-submit --csr-file testuser.csr --issuer-id <font color="red">77d0eaca-27d5-41ef-bfa5-44185294cfc7</font>
+ $ pki ca-cert-request-submit --csr-file testuser.csr --issuer-id 77d0eaca-27d5-41ef-bfa5-44185294cfc7
 
 or with the issuer DN:
 
- $ pki ca-cert-request-submit --csr-file testuser.csr --issuer-dn <font color="red">CN=test</font>
+ $ pki ca-cert-request-submit --csr-file testuser.csr --issuer-dn CN=test
 
 == Issuing certificate ==
 
 Approve the request:
 
- $ pki -d <font color="red">~/.dogtag/pki-tomcat/ca/alias</font> -c <font color="red">Secret.123</font> -n <font color="red">caadmin</font> ca-cert-request-review <request ID> --action approve
+ $ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-cert-request-review <request ID> --action approve
 
 Display the certificate:
 
