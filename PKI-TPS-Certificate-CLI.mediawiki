@@ -1,0 +1,117 @@
+= Listing Certificates =
+
+To list all certificates:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-cert-find
+-----------------
+4 entries matched
+-----------------
+  Cert ID: c.20160404231946
+  Serial Number: 0xc
+  Subject: UID=test1,O=Token Key User
+  User ID: test1
+  Token ID: F138D19AAF1ADEC1EF56
+  Origin: F138D19AAF1ADEC1EF56
+  Type: userKey
+  Key Type: signing
+  Status: revoked_on_hold
+  Create Time: Mon Apr 04 23:19:46 CEST 2016
+  Modify Time: Wed Apr 06 18:08:19 CEST 2016
+
+  Cert ID: d.20160404231946
+  Serial Number: 0xd
+  Subject: UID=test1,O=Token Key User
+  User ID: test1
+  Token ID: F138D19AAF1ADEC1EF56
+  Origin: F138D19AAF1ADEC1EF56
+  Type: userKey
+  Key Type: encryption
+  Status: revoked_on_hold
+  Create Time: Mon Apr 04 23:19:46 CEST 2016
+  Modify Time: Wed Apr 06 18:08:20 CEST 2016
+
+  Cert ID: e.20160404232009
+  Serial Number: 0xe
+  User ID: test2
+  Subject: UID=test2,O=Token Key User
+  Token ID: 44BEA4ABCEDE277C5FC1
+  Origin: 44BEA4ABCEDE277C5FC1
+  Type: userKey
+  Key Type: signing
+  Status: active
+  Create Time: Mon Apr 04 23:20:09 CEST 2016
+
+  Cert ID: f.20160404232009
+  Serial Number: 0xf
+  Subject: UID=test2,O=Token Key User
+  User ID: test2
+  Token ID: 44BEA4ABCEDE277C5FC1
+  Origin: 44BEA4ABCEDE277C5FC1
+  Type: userKey
+  Key Type: encryption
+  Status: active
+  Create Time: Mon Apr 04 23:20:09 CEST 2016
+----------------------------
+Number of entries returned 4
+----------------------------
+</pre>
+
+To list certificates belonging to a particular token, specify the token ID:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-cert-find --token F138D19AAF1ADEC1EF56
+-----------------
+2 entries matched
+-----------------
+  Cert ID: c.20160404231946
+  Serial Number: 0xc
+  Subject: UID=test1,O=Token Key User
+  User ID: test1
+  Token ID: F138D19AAF1ADEC1EF56
+  Origin: F138D19AAF1ADEC1EF56
+  Type: userKey
+  Key Type: signing
+  Status: revoked_on_hold
+  Create Time: Mon Apr 04 23:19:46 CEST 2016
+  Modify Time: Wed Apr 06 18:08:19 CEST 2016
+
+  Cert ID: d.20160404231946
+  Serial Number: 0xd
+  Subject: UID=test1,O=Token Key User
+  User ID: test1
+  Token ID: F138D19AAF1ADEC1EF56
+  Origin: F138D19AAF1ADEC1EF56
+  Type: userKey
+  Key Type: encryption
+  Status: revoked_on_hold
+  Create Time: Mon Apr 04 23:19:46 CEST 2016
+  Modify Time: Wed Apr 06 18:08:20 CEST 2016
+----------------------------
+Number of entries returned 2
+----------------------------
+</pre>
+
+= Displaying Certificate Details =
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-cert-show c.20160404231946
+------------------------------
+Certificate "c.20160404231946"
+------------------------------
+  Cert ID: c.20160404231946
+  Serial Number: 0xc
+  Subject: UID=test1,O=Token Key User
+  User ID: test1
+  Token ID: F138D19AAF1ADEC1EF56
+  Origin: F138D19AAF1ADEC1EF56
+  Type: userKey
+  Key Type: signing
+  Status: revoked_on_hold
+  Create Time: Mon Apr 04 23:19:46 CEST 2016
+  Modify Time: Wed Apr 06 18:08:19 CEST 2016
+</pre>
+
+= See Also =
+
+* [https://www.dogtagpki.org/wiki/PKI_TPS_CLI PKI TPS CLI]
