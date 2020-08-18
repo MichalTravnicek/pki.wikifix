@@ -1,0 +1,401 @@
+= Creating Database =
+
+To create NSS database without a password:
+
+<pre>
+$ mkdir -p nssdb
+$ certutil -N -d nssdb --empty-password
+</pre>
+
+To create NSS database with a password:
+
+<pre>
+$ mkdir -p nssdb
+$ echo Secret.123 > password.internal
+$ certutil -N -d nssdb -f password.internal
+</pre>
+
+To change NSS database password:
+
+<pre>
+$ certutil -W -d nssdb -f oldpassword.txt -@newpassword.txt
+</pre>
+
+= Modules =
+
+See [https://www.dogtagpki.org/wiki/NSS_Modules NSS Modules].
+
+= Listing Certificates =
+
+== Listing all certificates ==
+
+<pre>
+$ certutil -L -d nssdb -h all
+</pre>
+
+== Listing certificates in internal token ==
+
+<pre>
+$ certutil -L -d nssdb
+</pre>
+
+== Listing certificates in HSM ==
+
+<pre>
+$ certutil -L -d nssdb -h HSM -f password.HSM
+HSM:testcert                                                 CTu,Cu,Cu
+</pre>
+
+= Displaying Certificate Info =
+
+This command will display the details of a certificate in internal token:
+
+<pre>
+$ certutil -L -d nssdb -n testcert
+</pre>
+
+This command will display the details of a certificate in HSM:
+
+<pre>
+$ certutil -L -d nssdb -h HSM -f password.HSM -n HSM:testcert
+</pre>
+
+= Exporting Certificate =
+
+To export a certificate in PEM format:
+
+<pre>
+$ certutil -L -d nssdb -n testcert -a > testcert.crt
+</pre>
+
+To export a certificate in DER format:
+
+<pre>
+$ certutil -L -d nssdb -n testcert -r > testcert.crt
+</pre>
+
+= Decoding Certificate =
+
+<pre>
+$ certutil -L -d nssdb -n testcert -r | dumpasn1
+</pre>
+
+= Importing Certificate =
+
+To add a certificate into the internal token:
+
+<pre>
+$ certutil -A -d nssdb -n testcert -i testcert.pem -t "CT,C,C"
+</pre>
+
+To add a certificate into both the internal token and the HSM:
+
+<pre>
+$ certutil -A -d nssdb -h HSM -f password.HSM -n testcert -i testcert.pem -t "CT,C,C"
+</pre>
+
+To add a certificate only to the HSM:
+
+<pre>
+$ certutil -A -d nssdb -h HSM -f password.HSM -P HSM -n testcert -i testcert.pem -t "CT,C,C"
+</pre>
+
+Do NOT execute the following command, it will mess up the database:
+
+<pre>
+$ certutil -A -d nssdb -h HSM -f password.HSM -n HSM:testcert -i testcert.pem -t "CT,C,C"
+</pre>
+
+In FIPS mode, the certificate has to be added separately into internal token and HSM (see [https://bugzilla.redhat.com/show_bug.cgi?id=1393668 bug #1393668]):
+
+<pre>
+$ certutil -A -d nssdb -h HSM -f password.HSM -n testcert -i testcert.pem -t ""
+$ certutil -A -d nssdb -f password.internal -n testcert -i testcert.pem -t "CT,C,C"
+</pre>
+
+= Exporting Certificate Chain =
+
+Export each certificate in the certificate chain (see [#Exporting_Certificate Exporting Certificate]), then create a PKCS #7 file:
+
+<pre>
+$ openssl crl2pkcs7 -nocrl -certfile ca1.crt -certfile ca2.crt ... -out cert_chain.p7b
+</pre>
+
+Verify with the following command:
+
+<pre>
+$ openssl pkcs7 -print_certs -in cert_chain.p7b
+</pre>
+
+= Importing Certificate Chain =
+
+Each certificate in the certificate chain can be imported individually:
+
+<pre>
+$ certutil -A -d nssdb -a -i -n testcert -i testcert.pem -t CT,C,C
+</pre>
+
+Alternatively, the entire certificate chain can be imported as a PKCS #7 file:
+
+<pre>
+$ openssl pkcs7 -print_certs -in /tmp/cert_chain.p7b -out /tmp/cert_chain.pem
+$ openssl pkcs12 -export -nokeys -in /tmp/cert_chain.pem -out /tmp/cert_chain.p12 -passout file:password.txt
+$ pk12util -d nssdb -k password.txt -i /tmp/cert_chain.p12 -w password.txt
+$ certutil -M -d nssdb -n <nickname> -t CT,C,C
+</pre>
+
+= Exporting into PKCS #12 File =
+
+To export a single certificate:
+
+<pre>
+$ pk12util -d nssdb -k password.internal -n nickname -o output.p12 -w output.password
+</pre>
+
+To export the all keys and certificates in the database:
+
+<pre>
+$ PKCS12Export -d nssdb -p password.internal -o output.p12 -w output.password
+</pre>
+
+= Importing from PKCS #12 File =
+
+<pre>
+$ pk12util -d nssdb -k password.internal -i input.p12 -w input.password
+</pre>
+
+= Exporting from PKCS #12 File =
+
+Export Cert from a PKCS #12 file:
+<pre>
+$ openssl pkcs12 -in path.p12 -out newfile.crt.pem -clcerts -nokeys
+</pre>
+
+Export encrypted RSA key from a pkics#12 (.p12) file:
+<pre>
+$ openssl pkcs12 -in path.p12 -out newfile.key.pem -nocerts -nodes
+</pre>
+
+Convert encrypted RSA key to unencrypted (pkcs#1):
+<pre>
+$ openssl rsa -in newfile.key.pem -out newfile.key.pkcs1
+</pre>
+
+Convert unencrypted RSA private key (pkcs#1) to pkcs#8 key:
+<pre>
+$ openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in newfile.key.pkcs1 -out newfile.key
+</pre>
+
+== Verify the exported cert and key match ==
+
+<pre>
+openssl pkey -in privateKey.key -pubout -outform pem | sha256sum
+openssl x509 -in certificate.crt -pubkey -noout -outform pem | sha256sum 
+</pre>
+
+The output from both commands must match.
+
+= Modifying a Certificate =
+
+== Modifying trust flags in internal token ==
+
+To modifying a certificate's trust attribute in internal token:
+
+<pre>
+$ certutil -M -d nssdb -n testcert -t "CT,C,C"
+</pre>
+
+== Modifying trust flags in HSM ==
+
+To modifying a certificate's trust attribute in HSM:
+
+<pre>
+$ certutil -M -d nssdb -h HSM -f password.HSM -n HSM:testcert -t "CT,C,C"
+</pre>
+
+This command modifies the trust attributes both in internal token and HSM. This command ignores the -f parameter, so the password must be entered manually
+
+== Renaming a certificate ==
+
+To rename a certificate:
+
+* export the certificate into a file
+* delete the certificate from NSS database
+* reimport the certificate with a new nickname
+
+See also [https://bugzilla.mozilla.org/show_bug.cgi?id=448738 NSS Bug 448738].
+
+= Validating Certificate Chain =
+
+To validate a certificate in internal token:
+
+<pre>
+$ certutil -O -d nssdb -n testcert
+</pre>
+
+To validate a certificate in HSM:
+
+<pre>
+$ certutil -O -d nssdb -h HSM -f password.txt -n HSM:testcert
+</pre>
+
+= Deleting Certificate =
+
+== Deleting a certificate in internal token ==
+
+This command deletes a certificate in the internal token:
+
+<pre>
+$ certutil -D -d nssdb -n testcert
+</pre>
+
+== Deleting a certificate in HSM ==
+
+If the certificate is also in HSM, the certificate will not be deleted from HSM, but the trust attribute will change to "u,u,u".
+
+This command deletes a certificate in HSM:
+
+<pre>
+$ certutil -D -d nssdb -h HSM -f password.HSM -n HSM:testcert
+</pre>
+
+This command deletes the certificate in HSM. This command ignores the -f parameter, so the password must be entered manually.
+
+In any case, if the certificate has a key in the token, the key will be orphaned.
+
+These commands do not work:
+
+<pre>
+$ certutil -D -d nssdb -P HSM -n testcert
+$ certutil -D -d nssdb -h HSM -f password.HSM -P HSM -n testcert
+</pre>
+
+= Listing Keys =
+
+== Listing keys in internal token ==
+
+<pre>
+$ certutil -K -d nssdb -f password.internal
+</pre>
+
+== Listing keys in HSM ==
+
+<pre>
+$ certutil -K -d nssdb -h HSM -f password.HSM
+</pre>
+
+= Deleting a Key =
+
+== Deleting a key in internal token ==
+
+To delete a certificate and its key in internal token:
+
+<pre>
+$ certutil -F -d nssdb -f password.internal -n testcert
+</pre>
+
+To delete a key in internal token:
+
+<pre>
+$ certutil -F -d nssdb -f password.internal -k <key ID>
+</pre>
+
+== Deleting a key in HSM ==
+
+To delete a certificate and its key in HSM:
+
+<pre>
+$ pki -d nssdb --token HSM -C password.HSM client-cert-del HSM:testcert
+</pre>
+
+The certutil command does not work:
+
+<pre>
+$ certutil -F -d nssdb -h HSM -f password.HSM -n HSM:testcert
+Incorrect password/PIN entered.
+certutil: could not authenticate to token NSS Certificate DB.: SEC_ERROR_BAD_PASSWORD: The security password entered is incorrect.
+</pre>
+
+= Cloning Database =
+
+To clone an NSS database, export all certificates:
+
+<pre>
+$ certutil -L -d nssdb -h HSM -n testcert -a > testcert.pem
+</pre>
+
+Create the new database with the HSM modules if applicable:
+
+<pre>
+$ mkdir clone
+$ certutil -N -d nssdb
+</pre>
+
+Then reimport all certificates:
+
+<pre>
+$ certutil -A -d nssdb -h HSM -f password.HSM -n testcert -i testcert.pem -t "CT,C,C"
+</pre>
+
+= Generating Key Pair =
+
+Generate a key pair with the following command:
+
+<pre>
+$ openssl rand -out noise.bin 2048
+$ certutil -G -d nssdb -h internal -f password.internal -z nssdb/noise.bin
+
+
+Generating key.  This may take a few moments...
+</pre>
+
+= Generating Certificate Request =
+
+== Creating Noise File ==
+
+<pre>
+$ openssl rand -out noise.bin 2048
+</pre>
+
+== Creating CSR File ==
+
+Generate a CSR with the following command:
+
+<pre>
+$ certutil -R \
+ -d nssdb \
+ -h internal \
+ -f password.internal \
+ -s "UID=testuser,O=EXAMPLE" \
+ -z noise.bin \
+ -o testuser.csr.der
+$ BtoA testuser.csr.der testuser.csr.pem
+$ echo "-----BEGIN NEW CERTIFICATE REQUEST-----" > testuser.csr
+$ cat testuser.csr.pem >> testuser.csr
+$ echo "-----END NEW CERTIFICATE REQUEST-----" >> testuser.csr
+$ rm testuser.csr.der
+$ rm testuser.csr.pem
+</pre>
+
+= Creating Certificates =
+
+See also:
+
+* [https://www.dogtagpki.org/wiki/Creating_Self-Signed_CA_Signing_Certificate_with_NSS Creating Self-Signed CA Signing Certificate with NSS]
+* [https://www.dogtagpki.org/wiki/Creating_Self-Signed_SSL_Server_Certificate_with_NSS Creating Self-Signed SSL Server Certificate with NSS]
+
+= See Also =
+
+* [https://www.dogtagpki.org/wiki/NSS NSS]
+* [https://www.dogtagpki.org/wiki/OpenSSL OpenSSL]
+* [https://www.dogtagpki.org/wiki/HSM HSM]
+* [https://www.dogtagpki.org/wiki/PKCS7 PKCS7]
+* [https://www.dogtagpki.org/wiki/PKCS11 PKCS11]
+* [https://www.dogtagpki.org/wiki/PKCS12 PKCS12]
+* [https://access.redhat.com/documentation/en-US/Red_Hat_Directory_Server/8.1/html/Administration_Guide/Managing_SSL-Using_certutil.html RHDS 8.1 Administration Guide - Using certutil]
+* [http://adam.younglogic.com/2012/05/signing-certutil/ Generating a Signing Cert using certutil]
+* [https://tools.ietf.org/html/rfc5280#section-4.2.1.1 RFC 5280 - Authority Key Identifier]
+* [https://tools.ietf.org/html/rfc5280#section-4.2.1.2 RFC 5280 - Subject Key Identifier]
+* [http://security.stackexchange.com/questions/27797/what-damage-could-be-done-if-a-malicious-certificate-had-an-identical-subject-k What damage could be done if a malicious certificate had an identical “Subject Key Identifier”?]
+* [https://knowledge.digicert.com/solution/SO5291.html Extract cert and private key from pkcs12 file]
+* [https://www.sslshopper.com/certificate-key-matcher.html Verify cert and key pair]
