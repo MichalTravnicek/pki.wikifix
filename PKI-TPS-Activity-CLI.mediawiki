@@ -1,0 +1,56 @@
+= Listing Activities =
+
+To list activities:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin tps-activity-find
+------------------
+10 entries matched
+------------------
+  Activity ID: 20160404231816528000.88
+  Token ID: F138D19AAF1ADEC1EF56
+  User ID: test1
+  IP: 0:0:0:0:0:0:0:1
+  Operation: format
+  Result: success
+  Date: Mon Apr 04 23:18:16 CEST 2016
+
+  Activity ID: 20160404231822633000.90
+  Token ID: 44BEA4ABCEDE277C5FC1
+  User ID: test2
+  IP: 0:0:0:0:0:0:0:1
+  Operation: format
+  Result: success
+  Date: Mon Apr 04 23:18:22 CEST 2016
+
+  ...
+
+-----------------------------
+Number of entries returned 10
+-----------------------------
+</pre>
+
+To page the results, specify the index of the first entry to return with --start parameter and the number of entries to return with --size parameter.
+
+= Displaying Activity Details =
+
+To display activity details, execute the following command with the activity ID:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin tps-activity-show 20160404231834670000.a8
+----------------------------------
+Activity "20160404231834670000.a8"
+----------------------------------
+  Activity ID: 20160404231834670000.a8
+  Token ID: FE2B69CEEF9B7EDBF623
+  User ID: test5
+  IP: 0:0:0:0:0:0:0:1
+  Operation: format
+  Result: success
+  Date: Mon Apr 04 23:18:34 CEST 2016
+  Message: format operation succeeded
+</pre>
+
+= See Also =
+
+* [https://www.dogtagpki.org/wiki/PKI_TPS_CLI PKI TPS CLI]
