@@ -1,0 +1,211 @@
+= Listing Authenticators =
+
+To list authenticators:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-authenticator-find
+-----------------
+1 entries matched
+-----------------
+  Authenticator ID: ldap1
+  Status: Enabled
+----------------------------
+Number of entries returned 1
+----------------------------
+</pre>
+
+To page the results, specify the index of the first entry to return with --start parameter and the number of entries to return with --size parameter.
+
+= Displaying Authenticator Configuration =
+
+To display the authenticator configuration:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-authenticator-show ldap1
+---------------------
+Authenticator "ldap1"
+---------------------
+  Authenticator ID: ldap1
+  Status: Enabled
+  Properties:
+    auths.instance.ldap1.authCredName: uid
+    auths.instance.ldap1.dnpattern:
+    auths.instance.ldap1.externalReg.certs.recoverAttributeName: certsToAdd
+    auths.instance.ldap1.externalReg.cuidAttributeName: tokenCUID
+    auths.instance.ldap1.externalReg.tokenTypeAttributeName: tokenType
+    auths.instance.ldap1.ldap.basedn: dc=example,dc=com
+    auths.instance.ldap1.ldap.ldapauth.authtype: BasicAuth
+    auths.instance.ldap1.ldap.ldapauth.bindDN:
+    auths.instance.ldap1.ldap.ldapauth.bindPWPrompt: ldap1
+    auths.instance.ldap1.ldap.ldapauth.clientCertNickname: subsystemCert cert-pki-tomcat
+    auths.instance.ldap1.ldap.ldapconn.host: server.example.com
+    auths.instance.ldap1.ldap.ldapconn.port: 389
+    auths.instance.ldap1.ldap.ldapconn.secureConn: False
+    auths.instance.ldap1.ldap.ldapconn.version: 3
+    auths.instance.ldap1.ldap.maxConns: 15
+    auths.instance.ldap1.ldap.minConns: 3
+    auths.instance.ldap1.ldapByteAttributes:
+    auths.instance.ldap1.ldapStringAttributes: mail,cn,uid
+    auths.instance.ldap1.ldapStringAttributes._000: #################################
+    auths.instance.ldap1.ldapStringAttributes._001: # For isExternalReg
+    auths.instance.ldap1.ldapStringAttributes._002: #   attributes will be available as
+    auths.instance.ldap1.ldapStringAttributes._003: #       $<attribute>$
+    auths.instance.ldap1.ldapStringAttributes._004: #   attributes example:
+    auths.instance.ldap1.ldapStringAttributes._005: #mail,cn,uid,edipi,pcc,firstname,lastname,exec-edipi,exec-pcc,exec-mail,certsToAdd,tokenCUID,tokenType
+    auths.instance.ldap1.ldapStringAttributes._006: #################################
+    auths.instance.ldap1.pluginName: UidPwdDirAuth
+    auths.instance.ldap1.ui.description.en: This authenticates user against the LDAP directory.
+    auths.instance.ldap1.ui.id.PASSWORD.credMap.authCred: pwd
+    auths.instance.ldap1.ui.id.PASSWORD.credMap.msgCred.extlogin: PASSWORD
+    auths.instance.ldap1.ui.id.PASSWORD.credMap.msgCred.login: password
+    auths.instance.ldap1.ui.id.PASSWORD.description.en: LDAP Password
+    auths.instance.ldap1.ui.id.PASSWORD.name.en: LDAP Password
+    auths.instance.ldap1.ui.id.UID.credMap.authCred: uid
+    auths.instance.ldap1.ui.id.UID.credMap.msgCred.extlogin: UID
+    auths.instance.ldap1.ui.id.UID.credMap.msgCred.login: screen_name
+    auths.instance.ldap1.ui.id.UID.description.en: LDAP User ID
+    auths.instance.ldap1.ui.id.UID.name.en: LDAP User ID
+    auths.instance.ldap1.ui.retries: 3
+    auths.instance.ldap1.ui.title.en: LDAP Authentication
+</pre>
+
+To download the authenticator configuration into a file:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-authenticator-show ldap1 --output ldap1.xml
+-------------------------------------------
+Stored authenticator "ldap1" into ldap1.xml
+-------------------------------------------
+</pre>
+
+The configuration is stored in XML format:
+
+<pre>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Authenticator id="ldap1" xmlns:ns2="http://www.w3.org/2005/Atom">
+    <Link href="https://server.example.com:8443/tps/rest/authenticators/ldap1" rel="self"/>
+    <Properties>
+        <Property name="auths.instance.ldap1.authCredName">uid</Property>
+        <Property name="auths.instance.ldap1.dnpattern"></Property>
+        <Property name="auths.instance.ldap1.externalReg.certs.recoverAttributeName">certsToAdd</Property>
+        <Property name="auths.instance.ldap1.externalReg.cuidAttributeName">tokenCUID</Property>
+        <Property name="auths.instance.ldap1.externalReg.tokenTypeAttributeName">tokenType</Property>
+        <Property name="auths.instance.ldap1.ldap.basedn">dc=example,dc=com</Property>
+        <Property name="auths.instance.ldap1.ldap.ldapauth.authtype">BasicAuth</Property>
+        <Property name="auths.instance.ldap1.ldap.ldapauth.bindDN"></Property>
+        <Property name="auths.instance.ldap1.ldap.ldapauth.bindPWPrompt">ldap1</Property>
+        <Property name="auths.instance.ldap1.ldap.ldapauth.clientCertNickname">subsystemCert cert-pki-tomcat</Property>
+        <Property name="auths.instance.ldap1.ldap.ldapconn.host">server.example.com</Property>
+        <Property name="auths.instance.ldap1.ldap.ldapconn.port">389</Property>
+        <Property name="auths.instance.ldap1.ldap.ldapconn.secureConn">False</Property>
+        <Property name="auths.instance.ldap1.ldap.ldapconn.version">3</Property>
+        <Property name="auths.instance.ldap1.ldap.maxConns">15</Property>
+        <Property name="auths.instance.ldap1.ldap.minConns">3</Property>
+        <Property name="auths.instance.ldap1.ldapByteAttributes"></Property>
+        <Property name="auths.instance.ldap1.ldapStringAttributes">mail,cn,uid</Property>
+        <Property name="auths.instance.ldap1.ldapStringAttributes._000">#################################</Property>
+        <Property name="auths.instance.ldap1.ldapStringAttributes._001"># For isExternalReg</Property>
+        <Property name="auths.instance.ldap1.ldapStringAttributes._002">#   attributes will be available as</Property>
+        <Property name="auths.instance.ldap1.ldapStringAttributes._003">#       $&lt;attribute&gt;$</Property>
+        <Property name="auths.instance.ldap1.ldapStringAttributes._004">#   attributes example:</Property>
+        <Property name="auths.instance.ldap1.ldapStringAttributes._005">#mail,cn,uid,edipi,pcc,firstname,lastname,exec-edipi,exec-pcc,exec-mail,certsToAdd,tokenCUID,tokenType</Property>
+        <Property name="auths.instance.ldap1.ldapStringAttributes._006">#################################</Property>
+        <Property name="auths.instance.ldap1.pluginName">UidPwdDirAuth</Property>
+        <Property name="auths.instance.ldap1.ui.description.en">This authenticates user against the LDAP directory.</Property>
+        <Property name="auths.instance.ldap1.ui.id.PASSWORD.credMap.authCred">pwd</Property>
+        <Property name="auths.instance.ldap1.ui.id.PASSWORD.credMap.msgCred.extlogin">PASSWORD</Property>
+        <Property name="auths.instance.ldap1.ui.id.PASSWORD.credMap.msgCred.login">password</Property>
+        <Property name="auths.instance.ldap1.ui.id.PASSWORD.description.en">LDAP Password</Property>
+        <Property name="auths.instance.ldap1.ui.id.PASSWORD.name.en">LDAP Password</Property>
+        <Property name="auths.instance.ldap1.ui.id.UID.credMap.authCred">uid</Property>
+        <Property name="auths.instance.ldap1.ui.id.UID.credMap.msgCred.extlogin">UID</Property>
+        <Property name="auths.instance.ldap1.ui.id.UID.credMap.msgCred.login">screen_name</Property>
+        <Property name="auths.instance.ldap1.ui.id.UID.description.en">LDAP User ID</Property>
+        <Property name="auths.instance.ldap1.ui.id.UID.name.en">LDAP User ID</Property>
+        <Property name="auths.instance.ldap1.ui.retries">3</Property>
+        <Property name="auths.instance.ldap1.ui.title.en">LDAP Authentication</Property>
+    </Properties>
+    <Status>Enabled</Status>
+</Authenticator>
+</pre>
+
+= Disabling Authenticator =
+
+To disable an authenticator, execute the following command:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-authenticator-mod ldap1 --action disable
+------------------------------
+Modified authenticator "ldap1"
+------------------------------
+</pre>
+
+= Enabling Authenticator =
+
+To enable an authenticator, execute the following command:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-authenticator-mod ldap1 --action enable
+------------------------------
+Modified authenticator "ldap1"
+------------------------------
+</pre>
+
+= Modifying Authenticator Configuration =
+
+To modify an authenticator configuration, make sure the authenticator is disabled. Download the current configuration into a file using the tps-authenticator-show command above, then edit the file:
+
+<pre>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Authenticator id="ldap1" xmlns:ns2="http://www.w3.org/2005/Atom">
+    <Link href="https://server.example.com:8443/tps/rest/authenticators/ldap1" rel="self"/>
+    <Properties>
+        ...
+        <Property name="auths.instance.ldap1.ldap.maxConns">20</Property>
+        <Property name="auths.instance.ldap1.ldap.minConns">5</Property>
+        ...
+    </Properties>
+    <Status>Disabled</Status>
+</Authenticator>
+</pre>
+
+Then upload the new configuration with the following command:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-authenticator-mod ldap1 --input ldap1.xml
+------------------------------
+Modified authenticator "ldap1"
+------------------------------
+</pre>
+
+Finally, make sure the authenticator is enabled again.
+
+= Adding New Authenticator =
+
+To create a new authenticator, download an existing authenticator configuration into a file using the tps-authenticator-show command above. Edit the file, replace the old authenticator ID with the new one, and make the necessary changes.
+
+Then create the new authenticator with the following command:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-authenticator-add --input ldap2.xml
+---------------------------
+Added authenticator "ldap2"
+---------------------------
+</pre>
+
+Make sure the new authenticator is enabled.
+
+= Deleting Authenticator =
+
+To delete an authenticator, make sure the authenticator is disabled, then execute the following command:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-authenticator-del ldap2
+-----------------------------
+Deleted authenticator "ldap2"
+-----------------------------
+</pre>
+
+= See Also =
+
+* [https://www.dogtagpki.org/wiki/PKI_TPS_CLI PKI TPS CLI]
