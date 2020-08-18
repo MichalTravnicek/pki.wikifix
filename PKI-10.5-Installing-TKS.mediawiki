@@ -1,0 +1,53 @@
+= Overview =
+
+This document describes the process to install TKS subsystem. It assumes that CA subsystem is already installed and the CA admin certificate is already exported into /root/.dogtag/pki-tomcat/ca_admin.cert.
+
+= Installing TKS =
+
+Prepare a deployment configuration file:
+
+<pre>
+[TKS]
+pki_admin_cert_file=/root/.dogtag/pki-tomcat/ca_admin.cert
+pki_admin_email=tksadmin@example.com
+pki_admin_name=tksadmin
+pki_admin_nickname=tksadmin
+pki_admin_password=Secret.123
+pki_admin_uid=tksadmin
+
+pki_client_database_password=Secret.123
+pki_client_database_purge=False
+pki_client_pkcs12_password=Secret.123
+
+pki_ds_base_dn=dc=tks,dc=example,dc=com
+pki_ds_database=tks
+pki_ds_password=Secret.123
+
+pki_security_domain_name=EXAMPLE
+pki_security_domain_user=caadmin
+pki_security_domain_password=Secret.123
+</pre>
+
+Then execute:
+
+<pre>
+$ pkispawn -f tks.cfg -s TKS
+</pre>
+
+= Verification =
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tks-user-find
+-----------------
+1 entries matched
+-----------------
+  User ID: tksadmin
+  Full name: tksadmin
+----------------------------
+Number of entries returned 1
+----------------------------
+</pre>
+
+= See Also =
+
+* [https://www.dogtagpki.org/wiki/Installing_TKS Installing TKS]
