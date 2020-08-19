@@ -1,0 +1,130 @@
+= Listing Profiles =
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-find
+-----------------
+7 entries matched
+-----------------
+  Profile ID: userKey
+  Status: Enabled
+
+  Profile ID: soKey
+  Status: Enabled
+
+  Profile ID: soCleanUserToken
+  Status: Enabled
+
+  Profile ID: soUserKey
+  Status: Enabled
+
+  Profile ID: cleanToken
+  Status: Enabled
+
+  Profile ID: soCleanSoToken
+  Status: Enabled
+
+  Profile ID: tokenKey
+  Status: Enabled
+----------------------------
+Number of entries returned 7
+----------------------------
+</pre>
+
+= Displaying Profile Details =
+
+To display a profile:
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-show userKey
+-----------------
+Profile "userKey"
+-----------------
+  Profile ID: userKey
+  Status: Enabled
+  Properties:
+    op.enroll.userKey.auth.enable: true
+    op.enroll.userKey.auth.id: ldap1
+    ...
+</pre>
+
+To save a profile into a file:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-show userKey --output userKey.xml
+-----------------------------------------
+Stored profile "userKey" into userKey.xml
+-----------------------------------------
+</pre>
+
+The profile will be stored in XML format:
+
+<pre>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Profile id="userKey" xmlns:ns2="http://www.w3.org/2005/Atom">
+    <Link href="https://server.example.com:8443/tps/rest/profiles/userKey" rel="self"/>
+    <Properties>
+        <Property name="op.enroll.userKey.auth.enable">true</Property>
+        <Property name="op.enroll.userKey.auth.id">ldap1</Property>
+        ...
+    </Properties>
+    <Status>Enabled</Status>
+</Profile>
+</pre>
+
+= Adding a Profile =
+
+Prepare a profile in a file (or copy from an existing profile):
+
+<pre>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Profile id="test" xmlns:ns2="http://www.w3.org/2005/Atom">
+    <Link href="https://server.example.com:8443/tps/rest/profiles/test" rel="self"/>
+    <Properties>
+        <Property name="op.enroll.test.auth.enable">true</Property>
+        <Property name="op.enroll.test.auth.id">ldap1</Property>
+        ...
+    </Properties>
+    <Status>Enabled</Status>
+</Profile>
+</pre>
+
+Add the profile with the following command.
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-add --input test.xml
+</pre>
+
+= Modify a Profile =
+
+To disable a profile:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-mod test --action disable
+</pre>
+
+To enable a profile:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-mod test --action enable
+</pre>
+
+To update a profile, download the existing profile into a file using the tps-profile-show command, make the modifications in the file, then reupload the file with the following command:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-mod test --input test.xml
+</pre>
+
+= Deleting a Profile =
+
+To delete a profile, make sure it is disabled, then execute the following command:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-del test
+----------------------
+Deleted profile "test"
+----------------------
+</pre>
+
+= References =
+
+* [https://www.dogtagpki.org/wiki/PKI_TPS_CLI PKI TPS CLI]
+* [[PKI TPS Profile Mapping CLI]]
