@@ -1,0 +1,52 @@
+= Overview =
+
+PKI provides tools to upgrade the internal LDAP database. See [https://www.dogtagpki.org/wiki/Database_Upgrade Database Upgrade].
+
+= Displaying Database Status (Not Implemented Yet) =
+
+<pre>
+$ pki-server db-status
+  Hostname: server.example.com
+  Port: 636
+  SSL: yes
+  Client Certificate: subsystemCert pki-tomcat
+</pre>
+
+= Database Upgrade =
+
+The pki-server db-upgrade is a tool to upgrade PKI server LDAP database. Currently the upgrade includes:
+* [https://fedorahosted.org/pki/ticket/1667 Ticket #1667: adding issuerName attribute]
+
+See the [https://git.fedorahosted.org/cgit/pki.git/tree/base/server/python/pki/server/cli/db.py source code] for details.
+
+This tool is used as part of [https://www.dogtagpki.org/wiki/Database_Upgrade_for_PKI_10.2.x Database Upgrade for PKI 10.2.x]. To run the database upgrade:
+
+<pre>
+$ pki-server db-upgrade
+----------------
+Upgrade complete
+----------------
+</pre>
+
+= Schema Upgrade =
+
+The pki-server db-schema-upgrade is a tool to upgrade PKI server LDAP schema. Currently the upgrade includes:
+* re-applying [https://git.fedorahosted.org/cgit/pki.git/tree/base/server/share/conf/schema.ldif /usr/share/pki/server/conf/schema.ldif]
+
+See the [https://git.fedorahosted.org/cgit/pki.git/tree/base/server/python/pki/server/cli/db.py source code] for details.
+
+<pre>
+$ pki-server db-schema-upgrade -D "cn=Directory Manager" -w Secret.123
+----------------
+Upgrade complete
+----------------
+</pre>
+
+See also the following tickets:
+* [https://fedorahosted.org/pki/ticket/2319 Ticket #2319: Add / revise vlv indexes for KRA due to realm changes]
+* [https://fedorahosted.org/pki/ticket/2320 Ticket #2320: Add db migration scripts for schema, vlv and index changes]
+
+= Reference =
+
+* [https://www.dogtagpki.org/wiki/PKI_Server_CLI PKI Server CLI]
+* [https://www.dogtagpki.org/wiki/Database_Upgrade Database Upgrade]
