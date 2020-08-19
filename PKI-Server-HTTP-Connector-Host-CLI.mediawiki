@@ -1,0 +1,39 @@
+= Overview (UNDER CONSTRUCTION) =
+
+PKI provides tools to manage SSL host configuration.
+
+Available since: PKI 10.7.
+
+= Listing SSL Hosts =
+
+<pre>
+$ pki-server http-connector-host-find Secure
+-----------------
+1 entries matched
+-----------------
+  Hostname: _default_
+  SSL Protocol: SSL
+  Certificate Verification: optional
+  Trust Manager: org.dogtagpki.tomcat.PKITrustManager
+</pre>
+
+= Adding SSL Host =
+
+<pre>
+$ pki-server http-connector-host-add Secure _default_ \
+    --sslProtocol SSL \
+    --certVerification optional \
+    --trustManager org.dogtagpki.tomcat.PKITrustManager
+</pre>
+
+= Deleting SSL Host =
+
+<pre>
+$ pki-server http-connector-host-del Secure _default_
+</pre>
+
+= See Also =
+
+* [[PKI Server HTTP Connector CLI]]
+* [[PKI Server HTTP Connector Cert CLI]]
+* [https://tomcat.apache.org/tomcat-8.5-doc/config/http.html The HTTP Connector]
