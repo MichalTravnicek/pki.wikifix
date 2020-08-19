@@ -1,0 +1,117 @@
+= Listing Tokens =
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-token-find
+-----------------
+2 entries matched
+-----------------
+  Token ID: 293EBF0C33CFA80519E1
+  User ID: testuser
+  Type: userKey
+  Status: FORMATTED
+  Next States: DAMAGED, PERM_LOST, SUSPENDED, TERMINATED
+  Applet ID: 1.4.54de790f
+  Key Info: 0101
+  Date Created: Tue Feb 02 19:00:00 CET 2016
+
+  Token ID: F6C2DDE7BECA015AE426
+  User ID: testuser
+  Type: userKey
+  Status: ACTIVE
+  Next States: DAMAGED, PERM_LOST, SUSPENDED, TERMINATED
+  Applet ID: 1.4.54de790f
+  Key Info: 0101
+  Date Created: Tue Feb 02 19:07:36 CET 2016
+  Date Modified: Tue Feb 02 19:08:13 CET 2016
+----------------------------
+Number of entries returned 2
+----------------------------
+</pre>
+
+= Displaying Token Details =
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-token-show F6C2DDE7BECA015AE426
+----------------------------
+Token "F6C2DDE7BECA015AE426"
+----------------------------
+  Token ID: F6C2DDE7BECA015AE426
+  User ID: testuser
+  Type: userKey
+  Status: ACTIVE
+  Next States: DAMAGED, PERM_LOST, SUSPENDED, TERMINATED
+  Applet ID: 1.4.54de790f
+  Key Info: 0101
+  Date Created: Tue Feb 02 19:07:36 CET 2016
+  Date Modified: Tue Feb 02 19:08:13 CET 2016
+</pre>
+
+= Adding Token =
+
+<pre>
+ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-token-add F6C2DDE7BECA015AE426 --user testuser
+----------------------------------
+Added token "F6C2DDE7BECA015AE426"
+----------------------------------
+  Token ID: F6C2DDE7BECA015AE426
+  User ID: testuser
+  Status: UNFORMATTED
+  Date Created: Tue Feb 02 19:07:36 CET 2016
+</pre>
+
+= Formatting and Enrolling Tokens =
+
+See [https://www.dogtagpki.org/wiki/TPS_Client TPS Client]. The TPS format operation changes the token status to FORMATTED. The TPS enroll operation changes the token status to ACTIVE.
+
+= Modifying Token =
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-token-mod F6C2DDE7BECA015AE426 --user test1 --policy "RE_ENROLL=YES"
+----------------------------
+Token "F6C2DDE7BECA015AE426"
+----------------------------
+  Token ID: F6C2DDE7BECA015AE426
+  User ID: test1
+  Type: userKey
+  Status: ACTIVE
+  Next States: DAMAGED, PERM_LOST, SUSPENDED, TERMINATED
+  Applet ID: 1.4.54de790f
+  Key Info: 0101
+  Policy: RE_ENROLL=YES
+  Date Created: Tue Feb 02 19:07:36 CET 2016
+  Date Modified: Tue Feb 02 19:08:13 CET 2016
+</pre>
+
+= Changing Token Status =
+
+The status of a token can be changed to one of the states shown in Next States:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-token-mod F6C2DDE7BECA015AE426 --status SUSPENDED
+-------------------------------------
+Modified token "F6C2DDE7BECA015AE426"
+-------------------------------------
+  Token ID: F6C2DDE7BECA015AE426
+  User ID: testuser
+  Type: userKey
+  Status: SUSPENDED
+  Next States: ACTIVE, PERM_LOST, TERMINATED
+  Applet ID: 1.4.54de790f
+  Key Info: 0101
+  Date Created: Tue Feb 02 19:07:36 CET 2016
+  Date Modified: Tue Feb 02 19:10:37 CET 2016
+</pre>
+
+= Deleting Token =
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-token-del F6C2DDE7BECA015AE426
+------------------------------------
+Deleted token "F6C2DDE7BECA015AE426"
+------------------------------------
+</pre>
+
+= References =
+
+* [https://www.dogtagpki.org/wiki/PKI_TPS_CLI PKI TPS CLI]
+* [https://www.dogtagpki.org/wiki/TPS_Tokens TPS Tokens]
