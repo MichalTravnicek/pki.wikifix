@@ -1,0 +1,45 @@
+= Importing PKCS #7 File =
+
+To import a PKCS #7 file that contains root and intermediate CA certificates only:
+
+<pre>
+$ pki pkcs7-import --input-file cert_chain.p7b
+</pre>
+
+To import a PKCS #7 file that contains a certificate that has a key in the NSS database with its certificate chain:
+
+<pre>
+$ pki pkcs7-import --input-file user_cert.p7b --trust-flags <trust flags> <nickname>
+</pre>
+
+'''Availability:''' Since PKI 10.9.
+
+= Listing Certificates in PKCS #7 File =
+
+To list the certificates in a PKCS #7 file:
+
+<pre>
+$ pki pkcs7-cert-find --pkcs7-file test.p7b
+  Serial Number: 0x1
+  Subject DN: CN=CA Signing Certificate,O=EXAMPLE 
+  Issuer DN: CN=CA Signing Certificate,O=EXAMPLE
+
+  Serial Number: 0x6
+  Subject DN: CN=PKI Administrator,E=caadmin@example.com,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,O=EXAMPLE
+</pre>
+
+= Exporting Certificates from PKCS #7 File =
+
+To export the certificates from a PKCS #7 file:
+
+<pre>
+$ pki pkcs7-cert-export --pkcs7-file test.p7b --output-prefix test- --output-suffix .crt
+Exported test-1.crt: CN=CA Signing Certificate,O=EXAMPLE
+Exported test-2.crt: CN=PKI Administrator,E=caadmin@example.com,O=EXAMPLE
+</pre>
+
+= References =
+
+* [https://www.dogtagpki.org/wiki/PKI_CLI PKI CLI]
+* [https://www.dogtagpki.org/wiki/PKCS7 PKCS7]
