@@ -1,0 +1,218 @@
+= Overview =
+
+The pki-server CLI provides interface to manage system certificates.
+
+= Listing System Certificates =
+
+To list all certificates:
+
+<pre>
+$ pki-server cert-find
+  Cert ID: ca_signing
+  Nickname: caSigningCert cert-pki-tomcat CA
+  Token: Internal Key Storage Token
+  Serial Number: 0x1
+  Subject DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Not Valid Before: Tue Apr 03 23:15:43 2018
+  Not Valid After: Sat Apr 03 23:15:43 2038
+
+  Cert ID: ca_ocsp_signing
+  Nickname: ocspSigningCert cert-pki-tomcat CA
+  Token: Internal Key Storage Token
+  Serial Number: 0x2
+  Subject DN: CN=CA OCSP Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Not Valid Before: Tue Apr 03 23:15:44 2018
+  Not Valid After: Mon Mar 23 23:15:44 2020
+
+  Cert ID: sslserver
+  Nickname: Server-Cert cert-pki-tomcat
+  Token: Internal Key Storage Token
+  Serial Number: 0x3
+  Subject DN: CN=vm-066.abc.idm.lab.eng.brq.redhat.com,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Not Valid Before: Tue Apr 03 23:15:44 2018
+  Not Valid After: Mon Mar 23 23:15:44 2020
+
+  Cert ID: subsystem
+  Nickname: subsystemCert cert-pki-tomcat
+  Token: Internal Key Storage Token
+  Serial Number: 0x4
+  Subject DN: CN=Subsystem Certificate,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Not Valid Before: Tue Apr 03 23:15:44 2018
+  Not Valid After: Mon Mar 23 23:15:44 2020
+
+  Cert ID: ca_audit_signing
+  Nickname: auditSigningCert cert-pki-tomcat CA
+  Token: Internal Key Storage Token
+  Serial Number: 0x5
+  Subject DN: CN=CA Audit Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Not Valid Before: Tue Apr 03 23:15:45 2018
+  Not Valid After: Mon Mar 23 23:15:45 2020
+</pre>
+
+= Displaying System Certificate Info =
+
+To display basic certificate info:
+
+<pre>
+$ pki-server cert-show ca_signing
+  Cert ID: ca_signing
+  Nickname: caSigningCert cert-pki-tomcat CA
+  Token: Internal Key Storage Token
+  Serial Number: 0x1
+  Subject DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Not Valid Before: Tue Apr 03 23:15:43 2018
+  Not Valid After: Sat Apr 03 23:15:43 2038
+</pre>
+
+To pretty print the certificate:
+
+<pre>
+$ pki-server cert-show ca_signing --pretty-print
+  Cert ID: ca_signing
+  Nickname: caSigningCert cert-pki-tomcat CA
+  Token: Internal Key Storage Token
+  Serial Number: 0x1
+  Subject DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Not Valid Before: Tue Apr 03 23:15:43 2018
+  Not Valid After: Sat Apr 03 23:15:43 2038
+
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 1 (0x1)
+        Signature Algorithm: PKCS #1 SHA-256 With RSA Encryption
+        Issuer: "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE"
+        Validity:
+            Not Before: Tue Apr 03 23:15:43 2018
+            Not After : Sat Apr 03 23:15:43 2038
+        Subject: "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE"
+...
+</pre>
+
+= Creating System Certificate =
+
+To create temporary certificate:
+
+<pre>
+$ pki-server cert-create <cert ID> --temp
+</pre>
+
+To create temporary certificate with specific serial number:
+
+<pre>
+$ pki-server cert-create <cert ID> --temp --serial <serial>
+</pre>
+
+To rekey permanent certificate (not supported yet):
+
+<pre>
+$ pki-server cert-create <cert ID>
+</pre>
+
+To renew permanent certificate:
+
+<pre>
+$ pki-server cert-create <cert ID> --renew
+</pre>
+
+By default the new certificate will be stored in /etc/pki/&lt;instance&gt;/certs/&lt;cert ID&gt;.crt. An optional --output &lt;file&gt; parameter can be added to specify a different output file.
+
+= Importing System Certificate =
+
+The following command can be used to import new certificate into the NSS database and update the copy of the certificate in the CS.cfg in all subsystems in the instance:
+
+<pre>
+$ pki-server cert-import <cert ID>
+</pre>
+
+By default it will import the certificate from /etc/pki/&lt;instance&gt;/certs/&lt;cert ID&gt;.crt. An optional --input &lt;file&gt; parameter can be used to specify a different input file.
+
+= Exporting System Certificate =
+
+To export a system certificate and key into a PKCS #12 file, execute the following command:
+
+<pre>
+$ pki-server cert-export ca_signing --pkcs12-file ca_signing.p12 --pkcs12-password Secret.123
+</pre>
+
+By default it will overwrite the output file. To append the certificate and key into an existing file specify the --append parameter.
+
+To export a certificate into a PEM file, execute the following command:
+
+<pre>
+$ pki-server cert-export ca_signing --cert-file ca_signing.crt
+$ cat ca_signing.crt
+-----BEGIN CERTIFICATE-----
+MIIDnTCCAoWgAwIBAgIBATANBgkqhkiG9w0BAQsFADAzMRAwDgYDVQQKDAdFWEFN
+UExFMR8wHQYDVQQDDBZDQSBTaWduaW5nIENlcnRpZmljYXRlMB4XDTE2MDgyMzAx
+MjExNVoXDTM2MDgyMzAxMjExNVowMzEQMA4GA1UECgwHRVhBTVBMRTEfMB0GA1UE
+AwwWQ0EgU2lnbmluZyBDZXJ0aWZpY2F0ZTCCASIwDQYJKoZIhvcNAQEBBQADggEP
+ADCCAQoCggEBAMowizm9ahYpkSZdT2eWQYepMiwgMVtpd8KQwEI8+LtL6+op2kc2
+q3Sl4cuvJSt83exxAiWigLLgBjyV1+flVpbZdpCHxRhUf93nc3AWXvuBedc5PBmS
+Mpay0RN+NyXGuhhDBnITg9MqLa/Od7Dg/3vLDuAa/KavpMnWuA482AerJZAZ/3Lf
+o0uUkic0Frmj33XPbSD+fhNklAUNh+ThOeNv0R++/VQemGEn55pp8091yP70yV8K
+0YINuAMV26oJhsJ8Q8EaIqhQ0a5HYJC5yFl7taJ38dsdML5HyM5p4h6jWZRt/lmK
+IDMoORuZ4O4DeiSozIAUBqr0v1y7v0ib6fsCAwEAAaOBuzCBuDAfBgNVHSMEGDAW
+gBQ+KX+nUGFvp58wii188K8fP3Ey2TAPBgNVHRMBAf8EBTADAQH/MA4GA1UdDwEB
+/wQEAwIBxjAdBgNVHQ4EFgQUPil/p1Bhb6efMIotfPCvHz9xMtkwVQYIKwYBBQUH
+AQEESTBHMEUGCCsGAQUFBzABhjlodHRwOi8vdm0tMDk4LmFiYy5pZG0ubGFiLmVu
+Zy5icnEucmVkaGF0LmNvbTo4MDgwL2NhL29jc3AwDQYJKoZIhvcNAQELBQADggEB
+AGhLTli5ywVP0o0bIsQN+WxVARP6AuBaik4KE53Y5TG39k+pearoU8Dj7OAet+jx
+fJml1BKNwhBnzpIO/FxmZOL81z230dquysybYGBb8hokI+6ViNJFRgrvDkK73fQG
+Q28A4kFwI99OeLEkfbqtkKBYVszmIY8onFDqVEcPJnZ1OiqQ7DBtSnayVwtl0x82
+QE7W81pcFV2ph5xyuA/GE9G1njvLzsbxkPvLRhG2u2JBNkpisgN0mtRvF3hyeQ24
+FG/mYlVFpH5vqCWas2XngcQrZ18/neH4XXoeENdbzA/1ShsswY1l+TsLZ6va3YT4
+UM+xLngEa2wh7PzeJpkchWA=
+-----END CERTIFICATE-----
+</pre>
+
+To export the CSR, specify the --csr-file parameter:
+
+<pre>
+$ pki-server cert-export ca_signing --csr-file ca_signing.csr
+$ cat ca_signing.csr
+-----BEGIN NEW CERTIFICATE REQUEST-----
+MIICqjCCAZICAQAwMzEQMA4GA1UECgwHRVhBTVBMRTEfMB0GA1UEAwwWQ0EgU2ln
+bmluZyBDZXJ0aWZpY2F0ZTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEB
+AMowizm9ahYpkSZdT2eWQYepMiwgMVtpd8KQwEI8+LtL6+op2kc2q3Sl4cuvJSt8
+3exxAiWigLLgBjyV1+flVpbZdpCHxRhUf93nc3AWXvuBedc5PBmSMpay0RN+NyXG
+uhhDBnITg9MqLa/Od7Dg/3vLDuAa/KavpMnWuA482AerJZAZ/3Lfo0uUkic0Frmj
+33XPbSD+fhNklAUNh+ThOeNv0R++/VQemGEn55pp8091yP70yV8K0YINuAMV26oJ
+hsJ8Q8EaIqhQ0a5HYJC5yFl7taJ38dsdML5HyM5p4h6jWZRt/lmKIDMoORuZ4O4D
+eiSozIAUBqr0v1y7v0ib6fsCAwEAAaAyMDAGCSqGSIb3DQEJDjEjMCEwDwYDVR0T
+AQH/BAUwAwEB/zAOBgNVHQ8BAf8EBAMCAcYwDQYJKoZIhvcNAQELBQADggEBAIuj
+lv1iNtL/vFiR5I9YfbmnjGKRA74dtlIQvYPMTxvNKLyUB0TgnctJlZtFB/fMou2r
+Bnz29DnWsBPBpQl6Iz3yiYpXaZUNHJ3vgpYPyGkUnwsJwGhuAw8/VyDYcheKSju0
+BtvPf7V9E6VE94MrPJfA42RCAgPFPapBmsc+lgthviW3QNlNzW/rumA02eRAV5eF
+MzyL8DkIlndhwWj0pd1NICBUioZqd2tB+PfFMQwmdkZyinsYjxRBZDhXopfWjsIW
+HGcgNGD1Ys8pMIKNQTLYBzRpqOzzXoK2zvc7Xy80P2UB8Sd/fFnr1NPoT/r6vJXs
+5b/HYhvgXT9glL9hARA=
+-----END NEW CERTIFICATE REQUEST-----
+</pre>
+
+= Removing System Certificate =
+
+To remove a system certificate while retaining its key:
+
+<pre>
+$ pki-server cert-del <cert ID>
+</pre>
+
+To remove a system certificate and its key:
+
+<pre>
+$ pki-server cert-del <cert ID> --remove-key
+</pre>
+
+= References =
+
+* [https://www.dogtagpki.org/wiki/PKI_Server_CLI PKI Server CLI]
+* [https://www.dogtagpki.org/wiki/PKI_Server_Subsystem_Certificate_CLI PKI Server Subsystem Certificate CLI]
+* [https://www.dogtagpki.org/wiki/Offline_System_Certificate_Renewal Offline System Certificate Renewal]
