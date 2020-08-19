@@ -1,0 +1,262 @@
+= Listing Profile Mappings =
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-mapping-find
+-----------------
+3 entries matched
+-----------------
+  Profile Mapping ID: enrollProfileMappingResolver
+  Status: Enabled
+
+  Profile Mapping ID: formatProfileMappingResolver
+  Status: Enabled
+
+  Profile Mapping ID: pinResetProfileMappingResolver
+  Status: Enabled
+----------------------------
+Number of entries returned 3
+----------------------------
+</pre>
+
+= Displaying Profile Mapping Info =
+
+To display profile mapping configuration:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-mapping-show formatProfileMappingResolver
+---------------------------------------------
+ProfileMapping "formatProfileMappingResolver"
+---------------------------------------------
+  Profile Mapping ID: formatProfileMappingResolver
+  Status: Enabled
+  Properties:
+    mappingResolver.formatProfileMappingResolver.mapping.0.filter.appletMajorVersion:
+    mappingResolver.formatProfileMappingResolver.mapping.0.filter.appletMinorVersion:
+    mappingResolver.formatProfileMappingResolver.mapping.0.filter.tokenATR:
+    mappingResolver.formatProfileMappingResolver.mapping.0.filter.tokenCUID.end:
+    mappingResolver.formatProfileMappingResolver.mapping.0.filter.tokenCUID.start:
+    mappingResolver.formatProfileMappingResolver.mapping.0.filter.tokenType: soCleanUserToken
+    mappingResolver.formatProfileMappingResolver.mapping.0.target.tokenType: soCleanUserToken
+    mappingResolver.formatProfileMappingResolver.mapping.1.filter.appletMajorVersion:
+    mappingResolver.formatProfileMappingResolver.mapping.1.filter.appletMinorVersion:
+    mappingResolver.formatProfileMappingResolver.mapping.1.filter.tokenATR:
+    mappingResolver.formatProfileMappingResolver.mapping.1.filter.tokenCUID.end:
+    mappingResolver.formatProfileMappingResolver.mapping.1.filter.tokenCUID.start:
+    mappingResolver.formatProfileMappingResolver.mapping.1.filter.tokenType: soUserKey
+    mappingResolver.formatProfileMappingResolver.mapping.1.target.tokenType: soUserKey
+    mappingResolver.formatProfileMappingResolver.mapping.2.filter.appletMajorVersion:
+    mappingResolver.formatProfileMappingResolver.mapping.2.filter.appletMinorVersion:
+    mappingResolver.formatProfileMappingResolver.mapping.2.filter.tokenATR:
+    mappingResolver.formatProfileMappingResolver.mapping.2.filter.tokenCUID.end:
+    mappingResolver.formatProfileMappingResolver.mapping.2.filter.tokenCUID.start:
+    mappingResolver.formatProfileMappingResolver.mapping.2.filter.tokenType: soKey
+    mappingResolver.formatProfileMappingResolver.mapping.2.target.tokenType: soKey
+    mappingResolver.formatProfileMappingResolver.mapping.3.filter.appletMajorVersion:
+    mappingResolver.formatProfileMappingResolver.mapping.3.filter.appletMinorVersion:
+    mappingResolver.formatProfileMappingResolver.mapping.3.filter.tokenATR:
+    mappingResolver.formatProfileMappingResolver.mapping.3.filter.tokenCUID.end:
+    mappingResolver.formatProfileMappingResolver.mapping.3.filter.tokenCUID.start:
+    mappingResolver.formatProfileMappingResolver.mapping.3.filter.tokenType: userKey
+    mappingResolver.formatProfileMappingResolver.mapping.3.target.tokenType: userKey
+    mappingResolver.formatProfileMappingResolver.mapping.4.filter.appletMajorVersion:
+    mappingResolver.formatProfileMappingResolver.mapping.4.filter.appletMinorVersion:
+    mappingResolver.formatProfileMappingResolver.mapping.4.filter.tokenATR:
+    mappingResolver.formatProfileMappingResolver.mapping.4.filter.tokenCUID.end:
+    mappingResolver.formatProfileMappingResolver.mapping.4.filter.tokenCUID.start:
+    mappingResolver.formatProfileMappingResolver.mapping.4.filter.tokenType: soCleanSOToken
+    mappingResolver.formatProfileMappingResolver.mapping.4.target.tokenType: soCleanSOToken
+    mappingResolver.formatProfileMappingResolver.mapping.5.filter.appletMajorVersion:
+    mappingResolver.formatProfileMappingResolver.mapping.5.filter.appletMinorVersion:
+    mappingResolver.formatProfileMappingResolver.mapping.5.filter.tokenATR:
+    mappingResolver.formatProfileMappingResolver.mapping.5.filter.tokenCUID.end:
+    mappingResolver.formatProfileMappingResolver.mapping.5.filter.tokenCUID.start:
+    mappingResolver.formatProfileMappingResolver.mapping.5.filter.tokenType: cleanToken
+    mappingResolver.formatProfileMappingResolver.mapping.5.target.tokenType: cleanToken
+    mappingResolver.formatProfileMappingResolver.mapping.6.filter.appletMajorVersion:
+    mappingResolver.formatProfileMappingResolver.mapping.6.filter.appletMinorVersion:
+    mappingResolver.formatProfileMappingResolver.mapping.6.filter.tokenATR:
+    mappingResolver.formatProfileMappingResolver.mapping.6.filter.tokenCUID.end:
+    mappingResolver.formatProfileMappingResolver.mapping.6.filter.tokenCUID.start:
+    mappingResolver.formatProfileMappingResolver.mapping.6.target.tokenType: tokenKey
+    mappingResolver.formatProfileMappingResolver.mapping.order: 0,1,2,3,4,5,6
+</pre>
+
+To download profile mapping configuration into a file:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-mapping-show formatProfileMappingResolver --output formatProfileMappingResolver.xml
+-------------------------------------------------------------------------------------------
+Stored profile mapping "formatProfileMappingResolver" into formatProfileMappingResolver.xml
+-------------------------------------------------------------------------------------------
+</pre>
+
+The configuration will be stored in XML format:
+
+<pre>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ProfileMapping id="formatProfileMappingResolver" xmlns:ns2="http://www.w3.org/2005/Atom">
+    <Link href="https://server.example.com:8443/tps/rest/profile-mappings/formatProfileMappingResolver" rel="self"/>
+    <Properties>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.0.filter.appletMajorVersion"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.0.filter.appletMinorVersion"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.0.filter.tokenATR"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.0.filter.tokenCUID.end"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.0.filter.tokenCUID.start"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.0.filter.tokenType">soCleanUserToken</Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.0.target.tokenType">soCleanUserToken</Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.1.filter.appletMajorVersion"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.1.filter.appletMinorVersion"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.1.filter.tokenATR"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.1.filter.tokenCUID.end"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.1.filter.tokenCUID.start"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.1.filter.tokenType">soUserKey</Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.1.target.tokenType">soUserKey</Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.2.filter.appletMajorVersion"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.2.filter.appletMinorVersion"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.2.filter.tokenATR"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.2.filter.tokenCUID.end"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.2.filter.tokenCUID.start"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.2.filter.tokenType">soKey</Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.2.target.tokenType">soKey</Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.3.filter.appletMajorVersion"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.3.filter.appletMinorVersion"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.3.filter.tokenATR"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.3.filter.tokenCUID.end"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.3.filter.tokenCUID.start"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.3.filter.tokenType">userKey</Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.3.target.tokenType">userKey</Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.4.filter.appletMajorVersion"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.4.filter.appletMinorVersion"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.4.filter.tokenATR"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.4.filter.tokenCUID.end"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.4.filter.tokenCUID.start"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.4.filter.tokenType">soCleanSOToken</Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.4.target.tokenType">soCleanSOToken</Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.5.filter.appletMajorVersion"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.5.filter.appletMinorVersion"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.5.filter.tokenATR"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.5.filter.tokenCUID.end"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.5.filter.tokenCUID.start"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.5.filter.tokenType">cleanToken</Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.5.target.tokenType">cleanToken</Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.6.filter.appletMajorVersion"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.6.filter.appletMinorVersion"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.6.filter.tokenATR"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.6.filter.tokenCUID.end"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.6.filter.tokenCUID.start"></Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.6.target.tokenType">tokenKey</Property>
+        <Property name="mappingResolver.formatProfileMappingResolver.mapping.order">0,1,2,3,4,5,6</Property>
+    </Properties>
+    <Status>Enabled</Status>
+</ProfileMapping>
+</pre>
+
+= Adding Profile Mapping =
+
+To add a new profile mapping, download an existing profile mapping configuration into a file, change the profile mapping ID and make the necessary changes:
+
+<pre>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ProfileMapping id="test" xmlns:ns2="http://www.w3.org/2005/Atom">
+    <Link href="https://server.example.com:8443/tps/rest/profile-mappings/test" rel="self"/>
+    <Properties>
+        <Property name="mappingResolver.test.mapping.0.filter.appletMajorVersion"></Property>
+        <Property name="mappingResolver.test.mapping.0.filter.appletMinorVersion"></Property>
+        <Property name="mappingResolver.test.mapping.0.filter.tokenATR"></Property>
+        <Property name="mappingResolver.test.mapping.0.filter.tokenCUID.end"></Property>
+        <Property name="mappingResolver.test.mapping.0.filter.tokenCUID.start"></Property>
+        <Property name="mappingResolver.test.mapping.0.filter.tokenType">soCleanUserToken</Property>
+        <Property name="mappingResolver.test.mapping.0.target.tokenType">soCleanUserToken</Property>
+        <Property name="mappingResolver.test.mapping.1.filter.appletMajorVersion"></Property>
+        <Property name="mappingResolver.test.mapping.1.filter.appletMinorVersion"></Property>
+        <Property name="mappingResolver.test.mapping.1.filter.tokenATR"></Property>
+        <Property name="mappingResolver.test.mapping.1.filter.tokenCUID.end"></Property>
+        <Property name="mappingResolver.test.mapping.1.filter.tokenCUID.start"></Property>
+        <Property name="mappingResolver.test.mapping.1.filter.tokenType">soUserKey</Property>
+        <Property name="mappingResolver.test.mapping.1.target.tokenType">soUserKey</Property>
+        <Property name="mappingResolver.test.mapping.2.filter.appletMajorVersion"></Property>
+        <Property name="mappingResolver.test.mapping.2.filter.appletMinorVersion"></Property>
+        <Property name="mappingResolver.test.mapping.2.filter.tokenATR"></Property>
+        <Property name="mappingResolver.test.mapping.2.filter.tokenCUID.end"></Property>
+        <Property name="mappingResolver.test.mapping.2.filter.tokenCUID.start"></Property>
+        <Property name="mappingResolver.test.mapping.2.filter.tokenType">soKey</Property>
+        <Property name="mappingResolver.test.mapping.2.target.tokenType">soKey</Property>
+        <Property name="mappingResolver.test.mapping.3.filter.appletMajorVersion"></Property>
+        <Property name="mappingResolver.test.mapping.3.filter.appletMinorVersion"></Property>
+        <Property name="mappingResolver.test.mapping.3.filter.tokenATR"></Property>
+        <Property name="mappingResolver.test.mapping.3.filter.tokenCUID.end"></Property>
+        <Property name="mappingResolver.test.mapping.3.filter.tokenCUID.start"></Property>
+        <Property name="mappingResolver.test.mapping.3.filter.tokenType">userKey</Property>
+        <Property name="mappingResolver.test.mapping.3.target.tokenType">userKey</Property>
+        <Property name="mappingResolver.test.mapping.4.filter.appletMajorVersion"></Property>
+        <Property name="mappingResolver.test.mapping.4.filter.appletMinorVersion"></Property>
+        <Property name="mappingResolver.test.mapping.4.filter.tokenATR"></Property>
+        <Property name="mappingResolver.test.mapping.4.filter.tokenCUID.end"></Property>
+        <Property name="mappingResolver.test.mapping.4.filter.tokenCUID.start"></Property>
+        <Property name="mappingResolver.test.mapping.4.filter.tokenType">soCleanSOToken</Property>
+        <Property name="mappingResolver.test.mapping.4.target.tokenType">soCleanSOToken</Property>
+        <Property name="mappingResolver.test.mapping.5.filter.appletMajorVersion"></Property>
+        <Property name="mappingResolver.test.mapping.5.filter.appletMinorVersion"></Property>
+        <Property name="mappingResolver.test.mapping.5.filter.tokenATR"></Property>
+        <Property name="mappingResolver.test.mapping.5.filter.tokenCUID.end"></Property>
+        <Property name="mappingResolver.test.mapping.5.filter.tokenCUID.start"></Property>
+        <Property name="mappingResolver.test.mapping.5.filter.tokenType">cleanToken</Property>
+        <Property name="mappingResolver.test.mapping.5.target.tokenType">cleanToken</Property>
+        <Property name="mappingResolver.test.mapping.6.filter.appletMajorVersion"></Property>
+        <Property name="mappingResolver.test.mapping.6.filter.appletMinorVersion"></Property>
+        <Property name="mappingResolver.test.mapping.6.filter.tokenATR"></Property>
+        <Property name="mappingResolver.test.mapping.6.filter.tokenCUID.end"></Property>
+        <Property name="mappingResolver.test.mapping.6.filter.tokenCUID.start"></Property>
+        <Property name="mappingResolver.test.mapping.6.target.tokenType">tokenKey</Property>
+        <Property name="mappingResolver.test.mapping.order">0,1,2,3,4,5,6</Property>
+    </Properties>
+    <Status>Enabled</Status>
+</ProfileMapping>
+</pre>
+
+Then add the new profile mapping:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-mapping-add --input test.xml
+----------------------------
+Added profile mapping "test"
+----------------------------
+</pre>
+
+= Enabling Profile Mapping =
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-mapping-mod test --action enable
+</pre>
+
+= Disabling Profile Mapping =
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-mapping-mod test --action disable
+</pre>
+
+= Modifying Profile Mapping =
+
+To update profile mapping configuration, make sure the profile mapping is disabled. Download the current profile mapping configuration into a file using tps-profile-mapping-show command, make the changes, then upload the updated configuration:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-mapping-mod test --input test.xml
+</pre>
+
+Finally, re-enable the profile mapping configuration.
+
+= Deleting Profile Mapping =
+
+To delete a profile mapping, make sure it is disabled, then execute the following command:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-mapping-del test
+------------------------------
+Deleted profile mapping "test"
+------------------------------
+</pre>
+
+= References =
+
+* [https://www.dogtagpki.org/wiki/PKI_TPS_CLI PKI TPS CLI]
+* [[PKI TPS Profile CLI]]
