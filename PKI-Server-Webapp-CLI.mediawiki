@@ -1,0 +1,51 @@
+= Overview =
+
+PKI 10.7 provides a CLI to manage webapps on PKI server.
+
+= Listing Webapps =
+
+<pre>
+$ pki-server webapp-find
+  Webapp ID: ROOT
+  Path: /
+  Descriptor: /etc/pki/pki-tomcat/Catalina/localhost/ROOT.xml
+  Document Base: /usr/share/pki/server/webapps/ROOT
+
+  Webapp ID: ca
+  Path: /ca
+  Descriptor: /etc/pki/pki-tomcat/Catalina/localhost/ca.xml
+  Document Base: /usr/share/pki/ca/webapps/ca
+
+  Webapp ID: pki
+  Path: /pki
+  Descriptor: /etc/pki/pki-tomcat/Catalina/localhost/pki.xml
+  Document Base: /usr/share/pki/server/webapps/pki
+</pre>
+
+= Deploying Webapp =
+
+To deploy the ROOT webapp:
+
+<pre>
+$ pki-server webapp-deploy \
+    --descriptor /etc/pki/pki-tomcat/Catalina/localhost/ROOT.xml \
+    ROOT
+</pre>
+
+To deploy the non-ROOT webapp:
+
+<pre>
+$ pki-server webapp-deploy \
+    --descriptor /usr/share/pki/server/conf/Catalina/localhost/pki.xml \
+    pki
+</pre>
+
+= Undeploying Webapp =
+
+<pre>
+$ pki-server webapp-undeploy pki
+</pre>
+
+= See Also =
+
+* [https://www.dogtagpki.org/wiki/PKI_Server_CLI PKI Server CLI]
