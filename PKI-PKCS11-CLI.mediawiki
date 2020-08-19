@@ -1,0 +1,150 @@
+= Overview =
+
+Since version 10.6 PKI provides a CLI to manage certificates and keys in a PKCS #11 token via an [[NSS Database]]. The CLI is implemented using [https://www.dogtagpki.org/wiki/JSS_KeyStore JSS KeyStore].
+
+By default the [https://www.dogtagpki.org/wiki/PKI_CLI PKI CLI] will use the NSS database at ~/.dogtag/nssdb. To use a different NSS database, specify a -d parameter.
+
+By default the CLI will ask for the token password on the console. To use a password file, specify a -f parameter.
+
+To use this PKCS #11 utilities on an NSS database owned by a PKI server:
+
+ $ pki -d /etc/pki/pki-tomcat/alias -f /etc/pki/pki-tomcat/password.conf <command>
+
+By default the CLI will use the internal token. To use the PKCS #11 utilities with HSM, specify a --token parameter:
+
+ $ pki -d /etc/pki/pki-tomcat/alias -f /etc/pki/pki-tomcat/password.conf --token HSM <command>
+
+= Certificate Management =
+
+== Listing certificates ==
+
+To list all certificates in a token:
+
+<pre>
+$ pki \
+    -d /etc/pki/pki-tomcat/alias \
+    -f /etc/pki/pki-tomcat/password.conf \
+    --token HSM \
+    pkcs11-cert-find
+  Cert ID: HSM:ca_signing
+  Type: X.509
+  Serial Number: 0x1
+  Subject DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+
+  Cert ID: HSM:sslserver
+  Type: X.509
+  Serial Number: 0x3
+  Subject DN: CN=server.example.com.com,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+
+  Cert ID: HSM:ca_ocsp_signing
+  Type: X.509
+  Serial Number: 0x2
+  Subject DN: CN=CA OCSP Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+
+  Cert ID: HSM:ca_audit_signing
+  Type: X.509
+  Serial Number: 0x5
+  Subject DN: CN=CA Audit Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+
+  Cert ID: HSM:subsystem
+  Type: X.509
+  Serial Number: 0x4
+  Subject DN: CN=Subsystem Certificate,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+</pre>
+
+== Displaying certificate details ==
+
+To display a specific certificate in a token:
+
+<pre>
+$ pki \
+    -d /etc/pki/pki-tomcat/alias \
+    -f /etc/pki/pki-tomcat/password.conf \
+    --token HSM \
+    pkcs11-cert-show HSM:ca_signing
+  Cert ID: HSM:ca_signing
+  Type: X.509
+  Serial Number: 0x1
+  Subject DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+</pre>
+
+== Removing a certificate ==
+
+<pre>
+$ pki \
+    -d /etc/pki/pki-tomcat/alias \
+    -f /etc/pki/pki-tomcat/password.conf \
+    --token HSM \
+    pkcs11-cert-del HSM:ca_signing
+</pre>
+
+= Key Management =
+
+== Listing keys ==
+
+To list all keys in a token:
+
+<pre>
+$ pki \
+    -d /etc/pki/pki-tomcat/alias \
+    -f /etc/pki/pki-tomcat/password.conf \
+    --token HSM \
+    pkcs11-key-find
+  Key ID: HSM:8ee6ddc15bdec9b260d5f1b276fb416dd60cb805
+  Type: RSA
+  Algorithm: RSA
+
+  Key ID: HSM:a6de2d573a9fa0d711cac2559f86927052e2548a
+  Type: RSA
+  Algorithm: RSA
+
+  Key ID: HSM:d45332483fb3f2d1b8132ea699f84e9e179544a0
+  Type: RSA
+  Algorithm: RSA
+
+  Key ID: HSM:d7f75b17d2e86644456bcbd926e2af1f7fd7a2ca
+  Type: RSA
+  Algorithm: RSA
+
+  Key ID: HSM:c962205575386a5eb699c5487d9f7ab72bdd0328
+  Type: RSA
+  Algorithm: RSA
+</pre>
+
+== Displaying key details ==
+
+To display a specific key in a token:
+
+<pre>
+$ pki \
+    -d /etc/pki/pki-tomcat/alias \
+    -f /etc/pki/pki-tomcat/password.conf \
+    --token HSM \
+    pkcs11-key-show HSM:8ee6ddc15bdec9b260d5f1b276fb416dd60cb805
+  Key ID: HSM:8ee6ddc15bdec9b260d5f1b276fb416dd60cb805
+  Type: RSA
+  Algorithm: RSA
+</pre>
+
+== Removing a key ==
+
+<pre>
+$ pki \
+    -d /etc/pki/pki-tomcat/alias \
+    -f /etc/pki/pki-tomcat/password.conf \
+    --token HSM \
+    pkcs11-key-del HSM:8ee6ddc15bdec9b260d5f1b276fb416dd60cb805
+</pre>
+
+= References =
+
+* [https://www.dogtagpki.org/wiki/PKI_CLI PKI CLI]
+* [https://www.dogtagpki.org/wiki/PKI_NSS_CLI PKI NSS CLI]
+* [https://www.dogtagpki.org/wiki/PKCS11 PKCS11]
+* [https://www.dogtagpki.org/wiki/JSS_KeyStore JSS KeyStore]
