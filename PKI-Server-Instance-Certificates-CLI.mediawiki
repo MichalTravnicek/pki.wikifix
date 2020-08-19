@@ -1,0 +1,13 @@
+= Exporting Instance Certificates =
+
+To export the system certificates and keys from an instance into a PKCS #12 file, execute the following command:
+
+<pre>
+$ pki-server instance-cert-export --pkcs12-file pki-server.p12 --pkcs12-password Secret.123
+</pre>
+
+By default it will overwrite the output file. To append the certificates and keys into an existing file specify the --append parameter.
+
+= References =
+
+* [[PKI Server Instance CLI]]
