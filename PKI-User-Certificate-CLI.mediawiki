@@ -49,7 +49,7 @@ Certificate "2;6;CN=CA Signing Certificate,O=EXAMPLE;CN=PKI Administrator,E=caad
 == Exporting user certificate ==
 
 <pre>
-% pki <admin authentication> <subsystem>-user-cert-show <user ID> <certificate ID> --output <filename>
+$ pki <admin authentication> <subsystem>-user-cert-show <user ID> <certificate ID> --output <filename>
 </pre>
 
 == Importing user certificate from file ==
@@ -102,8 +102,10 @@ $ pki <admin authentication> <subsystem>-user-cert-add <user ID> --serial <seria
 </pre>
 
 For example:
- 
- pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-user-cert-add caadmin --serial 0x7
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-user-cert-add caadmin --serial 0x7
+</pre>
 
 == Deleting a user certificate ==
 
