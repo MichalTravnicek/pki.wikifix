@@ -1,0 +1,114 @@
+= Overview =
+
+Each PKI subsystem (i.e. CA, KRA, OCSP, TKS, TKS) provides a CLI to manage the system groups. All commands must be executed as an administrator of the corresponding subsystem. However, [https://www.dogtagpki.org/wiki/Default_CA_Admin the default the CA admin certificate] can be used to authenticate as the administrator of each subsystem.
+
+In general the commands follow the following format:
+
+<pre>
+$ pki <admin authentication> <subsystem>-group-<command>
+</pre>
+
+For example, in the command below the CA admin certificate is used to access TPS groups:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-group-find
+</pre>
+
+= Listing groups =
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-group-find
+------------------
+14 entries matched
+------------------
+  Group ID: Certificate Manager Agents
+  Description: Agents for Certificate Manager
+
+  Group ID: Registration Manager Agents
+  Description: Agents for Registration Manager
+
+  Group ID: Subsystem Group
+  Description: Subsystem Group
+
+  Group ID: Trusted Managers
+  Description: Managers trusted by this PKI instance
+
+  Group ID: Administrators
+  Description: People who manage the Certificate System
+
+  Group ID: Auditors
+  Description: People who can read the signed audits
+
+  Group ID: ClonedSubsystems
+  Description: People who can clone the master subsystem
+
+  Group ID: Security Domain Administrators
+  Description: People who are the Security Domain administrators
+
+  Group ID: Enterprise CA Administrators
+  Description: People who are the administrators for the security domain for CA
+
+  Group ID: Enterprise KRA Administrators
+  Description: People who are the administrators for the security domain for KRA
+
+  Group ID: Enterprise OCSP Administrators
+  Description: People who are the administrators for the security domain for OCSP
+
+  Group ID: Enterprise TKS Administrators
+  Description: People who are the administrators for the security domain for TKS
+
+  Group ID: Enterprise RA Administrators
+  Description: People who are the administrators for the security domain for RA
+
+  Group ID: Enterprise TPS Administrators
+  Description: People who are the administrators for the security domain for TPS
+-----------------------------
+Number of entries returned 14
+-----------------------------
+</pre>
+
+= Displaying Group Details =
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-group-show "Certificate Manager Agents"
+----------------------------------
+Group "Certificate Manager Agents"
+----------------------------------
+  Group ID: Certificate Manager Agents
+  Description: Agents for Certificate Manager
+</pre>
+
+= Adding Group =
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-group-add testgroup
+-----------------------
+Added group "testgroup"
+-----------------------
+  Group ID: testgroup
+</pre>
+
+= Modifying Group =
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-group-mod testgroup --description "Test Group"
+--------------------------
+Modified group "testgroup"
+--------------------------
+  Group ID: testgroup
+  Description: Test Group
+</pre>
+
+= Deleting Group =
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-group-del testgroup
+-------------------------
+Deleted group "testgroup"
+-------------------------
+</pre>
+
+= References =
+
+* [https://www.dogtagpki.org/wiki/PKI_CLI PKI CLI]
+* [[PKI Group Member CLI]]
