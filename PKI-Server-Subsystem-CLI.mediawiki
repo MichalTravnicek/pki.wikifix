@@ -1,0 +1,95 @@
+= Overview =
+
+The following commands can be used to manage PKI subsystems in an instance. If not specified the default instance is pki-tomcat.
+
+Each subsystem has a corresponding a web application. The web application files are stored in /usr/share/pki/ca/webapps/&lt;subsystem&gt; unless it's [https://www.dogtagpki.org/wiki/Customization customized].
+
+Each subsystem can be enabled or disabled. When a subsystem is enabled, a deployment descriptor is created in /var/lib/pki/&lt;instance&gt;/conf/Catalina/localhost/&lt;subsystem&gt;.xml, for example:
+
+<pre>
+<Context docBase="/usr/share/pki/ca/webapps/ca" crossContext="true">
+  <Manager secureRandomProvider="Mozilla-JSS" secureRandomAlgorithm="pkcs11prng"/>
+  <Valve className="com.netscape.cms.tomcat.SSLAuthenticatorWithFallback" alwaysUseSession="true" secureRandomProvider="Mozilla-JSS" secureRandomAlgorithm="pkcs11prng"/>
+  <Realm className="com.netscape.cms.tomcat.ProxyRealm"/>
+  <Resources allowLinking="true"/>
+</Context>
+</pre>
+
+When Tomcat detects the new deployment descriptor, it will deploy the web application.
+
+When a subsystem is disabled, the above deployment descriptor is removed. When Tomcat detects that the deployment descriptor is removed, it will undeploy the web application.
+
+All subsystems are enabled by default. However, if a subsystem fails to start due to a selftest failure, it will automatically be disabled to prevent it from running in an inconsistent state.
+
+= Listing Subsystems =
+
+To list all available subsystems in an instance and to show their statuses execute the following command:
+
+<pre>
+$ pki-server subsystem-find
+-----------------
+2 entries matched
+-----------------
+  Subsystem ID: kra
+  Instance ID: pki-tomcat
+  Enabled: False
+
+  Subsystem ID: ca
+  Instance ID: pki-tomcat
+  Enabled: True
+</pre>
+
+= Displaying Subsystem Info =
+
+To display the status of a particular subsystem execute the following command:
+
+<pre>
+$ pki-server subsystem-show ca
+  Subsystem ID: ca
+  Instance ID: pki-tomcat
+  Enabled: True
+</pre>
+
+= Enabling a Subsystem =
+
+To enable a subsystem execute the following command:
+
+<pre>
+$ pki-server subsystem-enable kra
+-----------------------
+Subsystem "kra" enabled
+-----------------------
+  Subsystem ID: kra
+  Instance ID: pki-tomcat
+  Enabled: True
+</pre>
+
+It may take a few seconds for Tomcat to notice this change and deploy the subsystem. It's not necessary to restart the instance.
+
+= Disabling a Subsystem =
+
+To disable a subsystem execute the following command:
+
+<pre>
+$ pki-server subsystem-disable kra
+------------------------
+Subsystem "kra" disabled
+------------------------
+  Subsystem ID: kra
+  Instance ID: pki-tomcat
+  Enabled: False
+</pre>
+
+It may take a few seconds for Tomcat to notice this change and undeploy the subsystem. It's not necessary to restart the instance.
+
+= Subsystem Commands =
+
+* [[PKI Server Subsystem Configuration CLI]]
+* [[PKI Server Subsystem Certificate CLI]]
+* [[PKI Server Subsystem Database CLI]]
+
+= References =
+
+* [https://www.dogtagpki.org/wiki/PKI_Server_CLI PKI Server CLI]
+* [https://tomcat.apache.org/tomcat-7.0-doc/deployer-howto.html Tomcat Web Application Deployment]
+* [https://www.dogtagpki.org/wiki/SelfTest SelfTest]
