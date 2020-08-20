@@ -1,0 +1,126 @@
+= Overview =
+
+PKI provides CLI to manage user certificates. All user certificate commands must be executed as the subsystem administrator.
+
+= Commands =
+
+== Listing user certificates ==
+
+<pre>
+$ pki <admin authentication> <subsystem>-user-find-cert <user ID>
+</pre>
+
+For example:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-user-cert-find caadmin
+-----------------
+1 entries matched
+-----------------
+  Cert ID: 2;6;CN=CA Signing Certificate,O=EXAMPLE;CN=PKI Administrator,E=caadmin@example.com,O=EXAMPLE
+  Version: 2
+  Serial Number: 0x6
+  Issuer: CN=CA Signing Certificate,O=EXAMPLE
+  Subject: CN=PKI Administrator,E=caadmin@example.com,O=EXAMPLE
+----------------------------
+Number of entries returned 1
+</pre>
+
+== Viewing a user certificate ==
+
+<pre>
+$ pki <admin authentication> <subsystem>-user-cert-show <user ID> <certificate ID>
+</pre>
+
+For example:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-user-cert-show caadmin "2;6;CN=CA Signing Certificate,O=EXAMPLE;CN=PKI Administrator,E=caadmin@example.com,O=EXAMPLE"
+----------------------------------------------------------------------------------------------------------
+Certificate "2;6;CN=CA Signing Certificate,O=EXAMPLE;CN=PKI Administrator,E=caadmin@example.com,O=EXAMPLE"
+----------------------------------------------------------------------------------------------------------
+  Cert ID: 2;6;CN=CA Signing Certificate,O=EXAMPLE;CN=PKI Administrator,E=caadmin@example.com,O=EXAMPLE
+  Version: 2
+  Serial Number: 0x6
+  Issuer: CN=CA Signing Certificate,O=EXAMPLE
+  Subject: CN=PKI Administrator,E=caadmin@example.com,O=EXAMPLE
+</pre>
+
+== Exporting user certificate ==
+
+<pre>
+% pki <admin authentication> <subsystem>-user-cert-show <user ID> <certificate ID> --output <filename>
+</pre>
+
+== Importing user certificate from file ==
+
+<pre>
+$ pki <admin authentication> <subsystem>-user-cert-add <user ID> --input <filename>
+</pre>
+
+For example, prepare a certificate file (e.g. caadmin.crt):
+
+<pre>
+-----BEGIN CERTIFICATE-----
+MIIC5jCCAc6gAwIBAgIBCzANBgkqhkiG9w0BAQsFADAzMRAwDgYDVQQKDAdFWEFN
+UExFMR8wHQYDVQQDDBZDQSBTaWduaW5nIENlcnRpZmljYXRlMB4XDTE1MDYwMzE5
+MzYyOFoXDTE1MTEzMDIwMzYyOFowGTEXMBUGCgmSJomT8ixkAQEMB2NhYWRtaW4w
+gZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAN3hMNbCRjI+jThCfhCKolmgh0rb
+XAbX8JAqaeKd8Hii4WqbCEiglTI5bB9Vbydj3vUTfW1Obv6FmVzG9s9OGXCTSevo
+biGDiI0/sJ7QY7CtfGvbYqUcgr5muMw37JbO/Jzg6LqT4UlB699UC0Idn0JQ0X9b
+fEfQZcaKNQyvoOhZAgMBAAGjgaIwgZ8wHwYDVR0jBBgwFoAUzGVi8EBdQVsx9DDT
+Rwy8Trw/B64wTQYIKwYBBQUHAQEEQTA/MD0GCCsGAQUFBzABhjFodHRwOi8vdm0t
+MDY0LmlkbS5sYWIuYm9zLnJlZGhhdC5jb206ODA4MC9jYS9vY3NwMA4GA1UdDwEB
+/wQEAwIF4DAdBgNVHSUEFjAUBggrBgEFBQcDAgYIKwYBBQUHAwQwDQYJKoZIhvcN
+AQELBQADggEBABRf7mDI/6z7sXh8GW4j7hXpZiJmWsjIL4AzfTu//AapbfvetIra
+b84SdnBnZ5oIPOmEENNJ9LrNx+9kjHCEBcvEqwHpTmJQUPokRvdpvThfFtGc+Cox
+ThdRa+hIz66nayph3JvptyfOjS25s+oUyjOojgTiz4r0xm60m3Q15+2El/dITq8J
+MrQYZsF56+qcSkUL/UW6SYa7qwPw6f8lSqCX1QZcpe3ZAcwUFIUwYykrG3azyhZC
+A8YlxDzydJhZY92zl6IlBV5oIMvhrVgCDuf/XVEUJ/YE1YZYy0BEnPnZtk/1t3rs
+/v6wTakOw+5/CQmZecFy1V+BxD0+1MuldCk=
+-----END CERTIFICATE-----
+</pre>
+
+Then execute the following command:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-user-cert-add caadmin --input caadmin.crt
+------------------------------------------------------------------------
+Added certificate "2;11;CN=CA Signing Certificate,O=EXAMPLE;UID=caadmin"
+------------------------------------------------------------------------
+  Cert ID: 2;11;CN=CA Signing Certificate,O=EXAMPLE;UID=caadmin
+  Version: 2
+  Serial Number: 0xb
+  Issuer: CN=CA Signing Certificate,O=EXAMPLE
+  Subject: UID=caadmin
+</pre>
+
+== Adding user certificate from certificate repository ==
+
+<pre>
+$ pki <admin authentication> <subsystem>-user-cert-add <user ID> --serial <serial number>
+</pre>
+
+For example:
+ 
+ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-user-cert-add caadmin --serial 0x7
+
+== Deleting a user certificate ==
+
+<pre>
+$ pki <admin authentication> <subsystem>-user-cert-del <user ID> <cert ID>
+</pre>
+
+For example:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-user-cert-del caadmin "2;11;CN=CA Signing Certificate,O=EXAMPLE;UID=caadmin"
+--------------------------------------------------------------------------
+Deleted certificate "2;11;CN=CA Signing Certificate,O=EXAMPLE;UID=caadmin"
+--------------------------------------------------------------------------
+</pre>
+
+= References =
+* [https://www.dogtagpki.org/wiki/PKI_CLI PKI CLI]
+* [[PKI User CLI]]
+* [https://www.dogtagpki.org/wiki/User_Certificate_Setup User Certificate Setup]
