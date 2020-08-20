@@ -1,0 +1,184 @@
+= Overview =
+
+The pki-server provides commands to manage system certificates. See also [https://github.com/dogtagpki/pki/blob/master/base/server/python/pki/server/cli/subsystem.py subsystem.py].
+
+= Listing Subsystem Certificates =
+
+To list all subsystem certificates:
+
+<pre>
+$ pki-server subsystem-cert-find ca
+-----------------
+5 entries matched
+-----------------
+  Cert ID: signing
+  Nickname: caSigningCert cert-pki-tomcat CA
+  Token: Internal Key Storage Token
+
+  Cert ID: ocsp_signing
+  Nickname: ocspSigningCert cert-pki-tomcat CA
+  Token: Internal Key Storage Token
+
+  Cert ID: sslserver
+  Nickname: Server-Cert cert-pki-tomcat
+  Token: Internal Key Storage Token
+
+  Cert ID: subsystem
+  Nickname: subsystemCert cert-pki-tomcat
+  Token: Internal Key Storage Token
+
+  Cert ID: audit_signing
+  Nickname: auditSigningCert cert-pki-tomcat CA
+  Token: Internal Key Storage Token
+</pre>
+
+= Displaying Subsystem Certificate Info =
+
+To show basic certificate info:
+
+<pre>
+$ pki-server subsystem-cert-show ca signing
+  Cert ID: signing
+  Nickname: caSigningCert cert-pki-tomcat CA
+  Token: Internal Key Storage Token
+</pre>
+
+To show all certificate info:
+
+<pre>
+$ pki-server subsystem-cert-show ca signing --show-all
+  Cert ID: signing
+  Nickname: caSigningCert cert-pki-tomcat CA
+  Token: Internal Key Storage Token
+  Certificate: MIIDnTCCAoWgAwIBAgIBATANBgkqhkiG9w0BAQsFADAzMRAwDgYDVQQKDAdFWEFNU
+ExFMR8wHQYDVQQDDBZDQSBTaWduaW5nIENlcnRpZmljYXRlMB4XDTE2MDgyMzAxMjExNVoXDTM2MDgyM
+zAxMjExNVowMzEQMA4GA1UECgwHRVhBTVBMRTEfMB0GA1UEAwwWQ0EgU2lnbmluZyBDZXJ0aWZpY2F0Z
+TCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMowizm9ahYpkSZdT2eWQYepMiwgMVtpd8KQw
+EI8+LtL6+op2kc2q3Sl4cuvJSt83exxAiWigLLgBjyV1+flVpbZdpCHxRhUf93nc3AWXvuBedc5PBmSM
+pay0RN+NyXGuhhDBnITg9MqLa/Od7Dg/3vLDuAa/KavpMnWuA482AerJZAZ/3Lfo0uUkic0Frmj33XPb
+SD+fhNklAUNh+ThOeNv0R++/VQemGEn55pp8091yP70yV8K0YINuAMV26oJhsJ8Q8EaIqhQ0a5HYJC5y
+Fl7taJ38dsdML5HyM5p4h6jWZRt/lmKIDMoORuZ4O4DeiSozIAUBqr0v1y7v0ib6fsCAwEAAaOBuzCBu
+DAfBgNVHSMEGDAWgBQ+KX+nUGFvp58wii188K8fP3Ey2TAPBgNVHRMBAf8EBTADAQH/MA4GA1UdDwEB/
+wQEAwIBxjAdBgNVHQ4EFgQUPil/p1Bhb6efMIotfPCvHz9xMtkwVQYIKwYBBQUHAQEESTBHMEUGCCsGA
+QUFBzABhjlodHRwOi8vdm0tMDk4LmFiYy5pZG0ubGFiLmVuZy5icnEucmVkaGF0LmNvbTo4MDgwL2NhL
+29jc3AwDQYJKoZIhvcNAQELBQADggEBAGhLTli5ywVP0o0bIsQN+WxVARP6AuBaik4KE53Y5TG39k+pe
+aroU8Dj7OAet+jxfJml1BKNwhBnzpIO/FxmZOL81z230dquysybYGBb8hokI+6ViNJFRgrvDkK73fQGQ
+28A4kFwI99OeLEkfbqtkKBYVszmIY8onFDqVEcPJnZ1OiqQ7DBtSnayVwtl0x82QE7W81pcFV2ph5xyu
+A/GE9G1njvLzsbxkPvLRhG2u2JBNkpisgN0mtRvF3hyeQ24FG/mYlVFpH5vqCWas2XngcQrZ18/neH4X
+XoeENdbzA/1ShsswY1l+TsLZ6va3YT4UM+xLngEa2wh7PzeJpkchWA=
+  Request: MIICqjCCAZICAQAwMzEQMA4GA1UECgwHRVhBTVBMRTEfMB0GA1UEAwwWQ0EgU2lnbmluZ
+yBDZXJ0aWZpY2F0ZTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMowizm9ahYpkSZdT2eWQ
+YepMiwgMVtpd8KQwEI8+LtL6+op2kc2q3Sl4cuvJSt83exxAiWigLLgBjyV1+flVpbZdpCHxRhUf93nc
+3AWXvuBedc5PBmSMpay0RN+NyXGuhhDBnITg9MqLa/Od7Dg/3vLDuAa/KavpMnWuA482AerJZAZ/3Lfo
+0uUkic0Frmj33XPbSD+fhNklAUNh+ThOeNv0R++/VQemGEn55pp8091yP70yV8K0YINuAMV26oJhsJ8Q
+8EaIqhQ0a5HYJC5yFl7taJ38dsdML5HyM5p4h6jWZRt/lmKIDMoORuZ4O4DeiSozIAUBqr0v1y7v0ib6
+fsCAwEAAaAyMDAGCSqGSIb3DQEJDjEjMCEwDwYDVR0TAQH/BAUwAwEB/zAOBgNVHQ8BAf8EBAMCAcYwD
+QYJKoZIhvcNAQELBQADggEBAIujlv1iNtL/vFiR5I9YfbmnjGKRA74dtlIQvYPMTxvNKLyUB0TgnctJl
+ZtFB/fMou2rBnz29DnWsBPBpQl6Iz3yiYpXaZUNHJ3vgpYPyGkUnwsJwGhuAw8/VyDYcheKSju0BtvPf
+7V9E6VE94MrPJfA42RCAgPFPapBmsc+lgthviW3QNlNzW/rumA02eRAV5eFMzyL8DkIlndhwWj0pd1NI
+CBUioZqd2tB+PfFMQwmdkZyinsYjxRBZDhXopfWjsIWHGcgNGD1Ys8pMIKNQTLYBzRpqOzzXoK2zvc7X
+y80P2UB8Sd/fFnr1NPoT/r6vJXs5b/HYhvgXT9glL9hARA=
+</pre>
+
+= Updating Subsystem Certificate =
+
+The CS.cfg of each subsystem stores a copy of the system certificate data and requests in the following properties:
+* &lt;subsystem&gt;.&lt;cert&gt;.cert
+* &lt;subsystem&gt;.&lt;cert&gt;.certreq
+
+In case the above properties are missing or outdated, it can be refreshed with the following command:
+
+<pre>
+$ pki-server subsystem-cert-update ca signing
+---------------------------------------
+Updated "signing" subsystem certificate
+---------------------------------------
+</pre>
+
+= Validating Subsystem Certificate =
+
+To validate a system certificate, specify the subsystem name and the certificate ID:
+
+ $ pki-server subsystem-cert-validate ca signing
+   Cert ID: signing
+   Nickname: caSigningCert cert-pki-tomcat CA
+   Usage: SSLCA
+   Token: Internal Key Storage Token
+   Status: VALID
+ --------------------
+ Validation succeeded
+ --------------------
+
+= Exporting Subsystem Certificates =
+
+To export all subsystem certificates and keys into a PKCS #12 file, execute the following command:
+
+<pre>
+$ pki-server subsystem-cert-export ca --pkcs12-file ca.p12 --pkcs12-password Secret.123
+</pre>
+
+To export a particular subsystem certificate and key into a PKCS #12 file, execute the following command:
+
+<pre>
+$ pki-server subsystem-cert-export ca signing --pkcs12-file ca.p12 --pkcs12-password Secret.123
+</pre>
+
+By default it will overwrite the output file. To append the certificates and keys into an existing file specify the --append parameter.
+
+To export a certificate into a PEM file, execute the following command:
+
+<pre>
+$ pki-server subsystem-cert-export ca signing --cert-file ca_signing.crt
+$ cat ca_signing.crt
+-----BEGIN CERTIFICATE-----
+MIIDnTCCAoWgAwIBAgIBATANBgkqhkiG9w0BAQsFADAzMRAwDgYDVQQKDAdFWEFN
+UExFMR8wHQYDVQQDDBZDQSBTaWduaW5nIENlcnRpZmljYXRlMB4XDTE2MDgyMzAx
+MjExNVoXDTM2MDgyMzAxMjExNVowMzEQMA4GA1UECgwHRVhBTVBMRTEfMB0GA1UE
+AwwWQ0EgU2lnbmluZyBDZXJ0aWZpY2F0ZTCCASIwDQYJKoZIhvcNAQEBBQADggEP
+ADCCAQoCggEBAMowizm9ahYpkSZdT2eWQYepMiwgMVtpd8KQwEI8+LtL6+op2kc2
+q3Sl4cuvJSt83exxAiWigLLgBjyV1+flVpbZdpCHxRhUf93nc3AWXvuBedc5PBmS
+Mpay0RN+NyXGuhhDBnITg9MqLa/Od7Dg/3vLDuAa/KavpMnWuA482AerJZAZ/3Lf
+o0uUkic0Frmj33XPbSD+fhNklAUNh+ThOeNv0R++/VQemGEn55pp8091yP70yV8K
+0YINuAMV26oJhsJ8Q8EaIqhQ0a5HYJC5yFl7taJ38dsdML5HyM5p4h6jWZRt/lmK
+IDMoORuZ4O4DeiSozIAUBqr0v1y7v0ib6fsCAwEAAaOBuzCBuDAfBgNVHSMEGDAW
+gBQ+KX+nUGFvp58wii188K8fP3Ey2TAPBgNVHRMBAf8EBTADAQH/MA4GA1UdDwEB
+/wQEAwIBxjAdBgNVHQ4EFgQUPil/p1Bhb6efMIotfPCvHz9xMtkwVQYIKwYBBQUH
+AQEESTBHMEUGCCsGAQUFBzABhjlodHRwOi8vdm0tMDk4LmFiYy5pZG0ubGFiLmVu
+Zy5icnEucmVkaGF0LmNvbTo4MDgwL2NhL29jc3AwDQYJKoZIhvcNAQELBQADggEB
+AGhLTli5ywVP0o0bIsQN+WxVARP6AuBaik4KE53Y5TG39k+pearoU8Dj7OAet+jx
+fJml1BKNwhBnzpIO/FxmZOL81z230dquysybYGBb8hokI+6ViNJFRgrvDkK73fQG
+Q28A4kFwI99OeLEkfbqtkKBYVszmIY8onFDqVEcPJnZ1OiqQ7DBtSnayVwtl0x82
+QE7W81pcFV2ph5xyuA/GE9G1njvLzsbxkPvLRhG2u2JBNkpisgN0mtRvF3hyeQ24
+FG/mYlVFpH5vqCWas2XngcQrZ18/neH4XXoeENdbzA/1ShsswY1l+TsLZ6va3YT4
+UM+xLngEa2wh7PzeJpkchWA=
+-----END CERTIFICATE-----
+</pre>
+
+To export the CSR, specify the --csr-file parameter:
+
+<pre>
+$ pki-server subsystem-cert-export ca signing --csr-file ca_signing.csr
+$ cat ca_signing.csr
+-----BEGIN NEW CERTIFICATE REQUEST-----
+MIICqjCCAZICAQAwMzEQMA4GA1UECgwHRVhBTVBMRTEfMB0GA1UEAwwWQ0EgU2ln
+bmluZyBDZXJ0aWZpY2F0ZTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEB
+AMowizm9ahYpkSZdT2eWQYepMiwgMVtpd8KQwEI8+LtL6+op2kc2q3Sl4cuvJSt8
+3exxAiWigLLgBjyV1+flVpbZdpCHxRhUf93nc3AWXvuBedc5PBmSMpay0RN+NyXG
+uhhDBnITg9MqLa/Od7Dg/3vLDuAa/KavpMnWuA482AerJZAZ/3Lfo0uUkic0Frmj
+33XPbSD+fhNklAUNh+ThOeNv0R++/VQemGEn55pp8091yP70yV8K0YINuAMV26oJ
+hsJ8Q8EaIqhQ0a5HYJC5yFl7taJ38dsdML5HyM5p4h6jWZRt/lmKIDMoORuZ4O4D
+eiSozIAUBqr0v1y7v0ib6fsCAwEAAaAyMDAGCSqGSIb3DQEJDjEjMCEwDwYDVR0T
+AQH/BAUwAwEB/zAOBgNVHQ8BAf8EBAMCAcYwDQYJKoZIhvcNAQELBQADggEBAIuj
+lv1iNtL/vFiR5I9YfbmnjGKRA74dtlIQvYPMTxvNKLyUB0TgnctJlZtFB/fMou2r
+Bnz29DnWsBPBpQl6Iz3yiYpXaZUNHJ3vgpYPyGkUnwsJwGhuAw8/VyDYcheKSju0
+BtvPf7V9E6VE94MrPJfA42RCAgPFPapBmsc+lgthviW3QNlNzW/rumA02eRAV5eF
+MzyL8DkIlndhwWj0pd1NICBUioZqd2tB+PfFMQwmdkZyinsYjxRBZDhXopfWjsIW
+HGcgNGD1Ys8pMIKNQTLYBzRpqOzzXoK2zvc7Xy80P2UB8Sd/fFnr1NPoT/r6vJXs
+5b/HYhvgXT9glL9hARA=
+-----END NEW CERTIFICATE REQUEST-----
+</pre>
+
+= References =
+
+* [[PKI Server Subsystem CLI]]
+* [[PKI Server Certificate CLI]]
