@@ -1,0 +1,65 @@
+= Preparing KRA Clone =
+
+To export the KRA system certificates for cloning, execute the following command: 
+
+<pre>
+$ pki-server kra-clone-prepare --pkcs12-file kra-clone.p12 --pkcs12-password-file password.txt
+</pre>
+
+See also [https://www.dogtagpki.org/wiki/Installing_KRA_Clone Installing KRA Clone].
+
+= KRA Database Management =
+
+* [[PKI Server Subsystem Database CLI]]
+
+== Listing KRA VLVs ==
+
+To list KRA VLV indexes currently in the database execute the following command:
+
+<pre>
+$ pki-server kra-db-vlv-find
+----------------
+26 entries found
+----------------
+  dn: cn=allKeys-pki-tomcat,cn=kra,cn=ldbm database,cn=plugins,cn=config
+  objectClass: top
+  objectClass: vlvSearch
+  vlvScope: 1
+  vlvFilter: (&(serialno=*)(!(realm=*)))
+  vlvBase: ou=keyRepository,ou=kra,dc=kra,dc=pki,dc=example,dc=com
+  cn: allKeys-pki-tomcat
+
+...
+</pre>
+
+== Adding KRA VLVs ==
+
+To import KRA VLV indexes from [https://github.com/dogtagpki/pki/blob/master/base/kra/shared/conf/vlv.ldif /usr/share/pki/kra/conf/vlv.ldif] into the database execute the following command:
+
+ $ pki-server kra-db-vlv-add
+ KRA VLVs added to the database for pki-tomcat
+
+== Reindexing KRA VLVs ==
+
+To rebuild KRA VLV indexes in the database execute the following command:
+
+ $ pki-server kra-db-vlv-reindex
+ Initiating KRA VLV reindex for pki-tomcat
+ KRA VLV reindex completed for pki-tomcat
+
+== Deleting KRA VLVs ==
+
+To remove KRA VLV indexes currently in the database execute the following command:
+
+ $ pki-server kra-db-vlv-del
+ KRA VLVs deleted from the database for pki-tomcat
+
+= KRA Audit Management =
+
+* [[PKI Server Audit CLI]]
+
+= References =
+
+* [https://www.dogtagpki.org/wiki/PKI_Server_CLI PKI Server CLI]
+* [https://www.dogtagpki.org/wiki/DS_Database_Indexes DS Database Indexes]
+* [https://www.dogtagpki.org/wiki/Database_Upgrade_for_PKI_10.3.x Database Upgrade for PKI 10.3.x]
