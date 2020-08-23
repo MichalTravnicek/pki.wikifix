@@ -1,0 +1,60 @@
+= Listing Selftests =
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-selftest-find
+-----------------
+3 entries matched
+-----------------
+  SelfTest ID: CAPresence
+  Enabled at startup: true
+  Critical at startup: true
+  Enabled on demand: true
+  Critical on demand: true
+
+  SelfTest ID: SystemCertsVerification
+  Enabled at startup: true
+  Critical at startup: true
+  Enabled on demand: true
+  Critical on demand: true
+
+  SelfTest ID: CAValidity
+  Enabled at startup: false
+  Enabled on demand: true
+  Critical on demand: true
+----------------------------
+Number of entries returned 3
+----------------------------
+</pre>
+
+= Displaying Selftest Details =
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-selftest-show SystemCertsVerificateion
+-----------------------------------
+SelfTest "SystemCertsVerificateion"
+-----------------------------------
+  SelfTest ID: SystemCertsVerificateion
+  Enabled at startup: false
+  Enabled on demand: false
+</pre>
+
+= Running Selftests =
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-selftest-run
+  Selftest ID: CAPresence
+  Status: PASSED
+
+  Selftest ID: SystemCertsVerification
+  Status: PASSED
+
+  Selftest ID: CAValidity
+  Status: PASSED
+-------------------
+Selftests completed
+-------------------
+</pre>
+
+= References =
+
+* [https://www.dogtagpki.org/wiki/PKI_CLI PKI CLI]
