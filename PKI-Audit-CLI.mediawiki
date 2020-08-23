@@ -1,0 +1,251 @@
+= Audit Configuration =
+
+== Displaying Audit Configuration ==
+
+To display audit configuration:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin tps-audit-show
+-------------------
+Audit configuration
+-------------------
+  Status: Enabled
+  Signed: false
+  Interval (seconds): 5
+  Buffer size (bytes): 512
+  Events:
+    AUDIT_LOG_SHUTDOWN: mandatory
+    AUDIT_LOG_STARTUP: mandatory
+    AUTHZ_FAIL: enabled
+    AUTHZ_SUCCESS: enabled
+    AUTH_FAIL: enabled
+    AUTH_SUCCESS: enabled
+    CIMC_CERT_VERIFICATION: enabled
+    CONFIG_AUTH: enabled
+    CONFIG_ROLE: enabled
+    CONFIG_SIGNED_AUDIT: enabled
+    CONFIG_TOKEN_AUTHENTICATOR: enabled
+    CONFIG_TOKEN_CONNECTOR: enabled
+    CONFIG_TOKEN_GENERAL: enabled
+    CONFIG_TOKEN_MAPPING_RESOLVER: enabled
+    CONFIG_TOKEN_PROFILE: enabled
+    CONFIG_TOKEN_RECORD: enabled
+    LOGGING_SIGNED_AUDIT_SIGNING: mandatory
+    ROLE_ASSUME: enabled
+    SELFTESTS_EXECUTION: enabled
+    TOKEN_APPLET_UPGRADE_FAILURE: enabled
+    TOKEN_APPLET_UPGRADE_SUCCESS: enabled
+    TOKEN_AUTH_FAILURE: enabled
+    TOKEN_AUTH_SUCCESS: enabled
+    TOKEN_CERT_ENROLLMENT: enabled
+    TOKEN_CERT_RENEWAL: enabled
+    TOKEN_CERT_RETRIEVAL: enabled
+    TOKEN_FORMAT_FAILURE: enabled
+    TOKEN_FORMAT_SUCCESS: enabled
+    TOKEN_KEY_CHANGEOVER_FAILURE: enabled
+    TOKEN_KEY_CHANGEOVER_REQUIRED: enabled
+    TOKEN_KEY_CHANGEOVER_SUCCESS: enabled
+    TOKEN_KEY_RECOVERY: enabled
+    TOKEN_OP_REQUEST: enabled
+    TOKEN_PIN_RESET_FAILURE: enabled
+    TOKEN_PIN_RESET_SUCCESS: enabled
+    TOKEN_STATE_CHANGE: enabled
+</pre>
+
+To download audit configuration into a file:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin tps-audit-show --output audit.xml
+-----------------------------------------
+Stored audit configuration into audit.xml
+-----------------------------------------
+</pre>
+
+The audit configuration is stored in XML format:
+
+<pre>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Audit xmlns:ns2="http://www.w3.org/2005/Atom">
+    <BufferSize>512</BufferSize>
+    <Events>
+        <Event name="AUDIT_LOG_SHUTDOWN">mandatory</Event>
+        <Event name="AUDIT_LOG_STARTUP">mandatory</Event>
+        <Event name="AUTHZ_FAIL">enabled</Event>
+        <Event name="AUTHZ_SUCCESS">enabled</Event>
+        <Event name="AUTH_FAIL">enabled</Event>
+        <Event name="AUTH_SUCCESS">enabled</Event>
+        <Event name="CIMC_CERT_VERIFICATION">enabled</Event>
+        <Event name="CONFIG_AUTH">enabled</Event>
+        <Event name="CONFIG_ROLE">enabled</Event>
+        <Event name="CONFIG_SIGNED_AUDIT">enabled</Event>
+        <Event name="CONFIG_TOKEN_AUTHENTICATOR">enabled</Event>
+        <Event name="CONFIG_TOKEN_CONNECTOR">enabled</Event>
+        <Event name="CONFIG_TOKEN_GENERAL">enabled</Event>
+        <Event name="CONFIG_TOKEN_MAPPING_RESOLVER">enabled</Event>
+        <Event name="CONFIG_TOKEN_PROFILE">enabled</Event>
+        <Event name="CONFIG_TOKEN_RECORD">enabled</Event>
+        <Event name="LOGGING_SIGNED_AUDIT_SIGNING">mandatory</Event>
+        <Event name="ROLE_ASSUME">enabled</Event>
+        <Event name="SELFTESTS_EXECUTION">enabled</Event>
+        <Event name="TOKEN_APPLET_UPGRADE_FAILURE">enabled</Event>
+        <Event name="TOKEN_APPLET_UPGRADE_SUCCESS">enabled</Event>
+        <Event name="TOKEN_AUTH_FAILURE">enabled</Event>
+        <Event name="TOKEN_AUTH_SUCCESS">enabled</Event>
+        <Event name="TOKEN_CERT_ENROLLMENT">enabled</Event>
+        <Event name="TOKEN_CERT_RENEWAL">enabled</Event>
+        <Event name="TOKEN_CERT_RETRIEVAL">enabled</Event>
+        <Event name="TOKEN_FORMAT_FAILURE">enabled</Event>
+        <Event name="TOKEN_FORMAT_SUCCESS">enabled</Event>
+        <Event name="TOKEN_KEY_CHANGEOVER_FAILURE">enabled</Event>
+        <Event name="TOKEN_KEY_CHANGEOVER_REQUIRED">enabled</Event>
+        <Event name="TOKEN_KEY_CHANGEOVER_SUCCESS">enabled</Event>
+        <Event name="TOKEN_KEY_RECOVERY">enabled</Event>
+        <Event name="TOKEN_OP_REQUEST">enabled</Event>
+        <Event name="TOKEN_PIN_RESET_FAILURE">enabled</Event>
+        <Event name="TOKEN_PIN_RESET_SUCCESS">enabled</Event>
+        <Event name="TOKEN_STATE_CHANGE">enabled</Event>
+    </Events>
+    <Interval>5</Interval>
+    <Link href="https://server.example.com:8443/tps/rest/audit" rel="self"/>
+    <Signed>false</Signed>
+    <Status>Enabled</Status>
+</Audit>
+</pre>
+
+== Modifying Audit Configuration ==
+
+To modify the audit configuration, download the current audit configuration into a file using the tps-audit-show command above. Edit the file as needed:
+
+<pre>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Audit xmlns:ns2="http://www.w3.org/2005/Atom">
+    <BufferSize>1024</BufferSize>
+    <Events>
+        ...
+        <Event name="AUTHZ_SUCCESS">disabled</Event>
+        ...
+        <Event name="AUTH_SUCCESS">disabled</Event>
+        ...
+    </Events>
+    <Interval>10</Interval>
+    ...
+    <Signed>true</Signed>
+    ...
+</Audit>
+</pre>
+
+Then upload the new configuration with the following command:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin tps-audit-mod --input audit.xml
+----------------------------
+Modified audit configuration
+----------------------------
+  Status: Enabled
+  Signed: false
+  Interval (seconds): 10
+  Buffer size (bytes): 512
+  Events:
+    AUDIT_LOG_SHUTDOWN: mandatory
+    AUDIT_LOG_STARTUP: mandatory
+    AUTHZ_FAIL: enabled
+    AUTHZ_SUCCESS: disabled
+    AUTH_FAIL: enabled
+    AUTH_SUCCESS: disabled
+    CIMC_CERT_VERIFICATION: enabled
+    CONFIG_AUTH: enabled
+    CONFIG_ROLE: enabled
+    CONFIG_SIGNED_AUDIT: enabled
+    CONFIG_TOKEN_AUTHENTICATOR: enabled
+    CONFIG_TOKEN_CONNECTOR: enabled
+    CONFIG_TOKEN_GENERAL: enabled
+    CONFIG_TOKEN_MAPPING_RESOLVER: enabled
+    CONFIG_TOKEN_PROFILE: enabled
+    CONFIG_TOKEN_RECORD: enabled
+    LOGGING_SIGNED_AUDIT_SIGNING: mandatory
+    ROLE_ASSUME: enabled
+    SELFTESTS_EXECUTION: enabled
+    TOKEN_APPLET_UPGRADE_FAILURE: enabled
+    TOKEN_APPLET_UPGRADE_SUCCESS: enabled
+    TOKEN_AUTH_FAILURE: enabled
+    TOKEN_AUTH_SUCCESS: enabled
+    TOKEN_CERT_ENROLLMENT: enabled
+    TOKEN_CERT_RENEWAL: enabled
+    TOKEN_CERT_RETRIEVAL: enabled
+    TOKEN_FORMAT_FAILURE: enabled
+    TOKEN_FORMAT_SUCCESS: enabled
+    TOKEN_KEY_CHANGEOVER_FAILURE: enabled
+    TOKEN_KEY_CHANGEOVER_REQUIRED: enabled
+    TOKEN_KEY_CHANGEOVER_SUCCESS: enabled
+    TOKEN_KEY_RECOVERY: enabled
+    TOKEN_OP_REQUEST: enabled
+    TOKEN_PIN_RESET_FAILURE: enabled
+    TOKEN_PIN_RESET_SUCCESS: enabled
+    TOKEN_STATE_CHANGE: enabled
+</pre>
+
+Optionally, the updated configuration can be stored into a file using the --output parameter.
+
+= Audit Log Files =
+
+Since 10.4.2 PKI provides CLI to allow Auditors to access the audit log files on the server.
+
+== Setting up Auditor User ==
+
+To access the log files prepare a system user account with a [https://www.dogtagpki.org/wiki/User_Certificate User Certificate].
+
+To add the user into the Auditors group:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-group-member-add Auditors <user>
+</pre>
+
+The user will be able to access the audit logs with the user certificate:
+
+<pre>
+$ pki -n <nickname> ca-audit-file-...
+</pre>
+
+== Listing Audit Log Files ==
+
+To list all available audit log files:
+
+<pre>
+$ pki -n auditor ca-audit-file-find
+-----------------
+3 entries matched
+-----------------
+  File name: ca_audit.20170331225716
+  Size: 2883
+
+  File name: ca_audit.20170401001030
+  Size: 189
+
+  File name: ca_audit
+  Size: 6705
+----------------------------
+Number of entries returned 3
+----------------------------
+</pre>
+
+== Retrieving Audit Log File ==
+
+To retrieve an audit log file and store it locally:
+
+<pre>
+$ pki -n auditor ca-audit-file-retrieve <filename>
+</pre>
+
+To retrieve an audit log file and store it in a different file:
+
+<pre>
+$ pki -n auditor ca-audit-file-retrieve <filename> --output <new filename>
+</pre>
+
+= References =
+
+* [https://www.dogtagpki.org/wiki/PKI_CLI PKI CLI]
+* [https://www.dogtagpki.org/wiki/PKI_Server_Audit PKI Server Audit]
+* [https://github.com/dogtagpki/pki/wiki/PKI-Server-Audit-CLI PKI Server Audit CLI]
+* [https://www.dogtagpki.org/wiki/Verifying_Signed_Audit_Logs Verifying Signed Audit Logs]
+* [https://www.dogtagpki.org/wiki/PKI_10.4_Audit_Review/Search_Design PKI 10.4 Audit Review/Search Design]
