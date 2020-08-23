@@ -1,0 +1,19 @@
+= Checking Certificate Status =
+
+The pki ocsp-cert-status provides a simple way to generate and send OCSP request by downloading the issuer certificate automatically from the server. However, the proper OCSP request should be generated using the proper OCSP client with the issuer certificate already installed on the client.
+
+To check certificate status using the OCSP responder in OCSP subsystem:
+
+<pre>
+$ pki ocsp-cert-status <certificate ID>
+</pre>
+
+To check certificate status using other OCSP responder:
+
+ $ pki ocsp-cert-status <certificate ID> --ocsp http://$HOSTNAME:8080/ocsp/ee/ocsp
+
+See also [https://www.dogtagpki.org/wiki/OCSPClient OCSPClient].
+
+= References =
+
+* [https://www.dogtagpki.org/wiki/PKI_OCSP_CLI PKI OCSP CLI]
