@@ -8,35 +8,44 @@ $ dnf install -y 389-ds-base
 
 Generate a configuration template:
 
- $ dscreate create-template ds.tmp
+<pre>
+$ dscreate create-template ds.tmp
+</pre>
 
 Customize the configuration as follows:
 
- $ sed \
-     -e 's/;root_password = .*/root_password = Secret.123/g' \
-     -e 's/;suffix = .*/suffix = dc=example,dc=com/g' \
-     ds.tmp > ds.inf
+<pre>
+$ sed \
+    -e 's/;root_password = .*/root_password = Secret.123/g' \
+    -e 's/;suffix = .*/suffix = dc=example,dc=com/g' \
+    ds.tmp > ds.inf
+</pre>
 
 To create the instance:
 
- $ dscreate from-file ds.inf
+<pre>
+$ dscreate from-file ds.inf
+</pre>
 
 To add base entries:
 
- $ ldapadd -h $HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 << EOF
- dn: dc=example,dc=com
- objectClass: domain
- dc: example
- 
- dn: dc=pki,dc=example,dc=com
- objectClass: domain
- dc: pki
- EOF
+<pre>
+$ ldapadd -h $HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 << EOF
+dn: dc=example,dc=com
+objectClass: domain
+dc: example
+
+dn: dc=pki,dc=example,dc=com
+objectClass: domain
+dc: pki
+EOF
+</pre>
 
 To remove the instance:
 
- $ dsctl localhost remove --do-it
-
+<pre>
+$ dsctl localhost remove --do-it
+</pre>
 
 = Log Files =
 
