@@ -11,7 +11,7 @@ PKI provides a set of CLIs to manage the lightweight CAs (LWCA).
 To list all authorities:
 
 <pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -n caadmin -c Secret.123 ca-authority-find
+$ pki -n caadmin -c Secret.123 ca-authority-find
 -----------------
 2 entries matched
 -----------------
@@ -39,7 +39,7 @@ Number of entries returned 2
 To search by parent ID:
 
 <pre>
-# pki -d ~/.dogtag/pki-tomcat/ca/alias -n caadmin -c Secret.123 ca-authority-find --parent-id f37225e8-b6d7-49be-abe1-6a2f5f3e0be3
+# pki -n caadmin -c Secret.123 ca-authority-find --parent-id f37225e8-b6d7-49be-abe1-6a2f5f3e0be3
 -----------------
 1 entries matched
 -----------------
@@ -58,7 +58,7 @@ Number of entries returned 1
 To search by issuer DN:
 
 <pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -n caadmin -c Secret.123 ca-authority-find --issuer-dn "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE"
+$ pki -n caadmin -c Secret.123 ca-authority-find --issuer-dn "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE"
 -----------------
 2 entries matched
 -----------------
@@ -88,7 +88,7 @@ Number of entries returned 2
 To display a particular authority given an authority ID:
 
 <pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -n caadmin -c Secret.123 ca-authority-show 4aa054e0-4742-4968-8c38-6c7b8539ceb1
+$ pki -n caadmin -c Secret.123 ca-authority-show 4aa054e0-4742-4968-8c38-6c7b8539ceb1
   Authority DN:   CN=test
   ID:             4aa054e0-4742-4968-8c38-6c7b8539ceb1
   Parent ID:      f37225e8-b6d7-49be-abe1-6a2f5f3e0be3
@@ -102,7 +102,7 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias -n caadmin -c Secret.123 ca-authority-sho
 To display a particular authority given an authority DN (not yet implemented):
 
 <pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -n caadmin -c Secret.123 ca-authority-show --dn CN=test
+$ pki -n caadmin -c Secret.123 ca-authority-show --dn CN=test
   Authority DN:   CN=test
   ID:             4aa054e0-4742-4968-8c38-6c7b8539ceb1
   Parent ID:      f37225e8-b6d7-49be-abe1-6a2f5f3e0be3
@@ -115,7 +115,7 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias -n caadmin -c Secret.123 ca-authority-sho
 To display the host/main authority:
 
 <pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -n caadmin -c Secret.123 ca-authority-show --host-authority
+$ pki -n caadmin -c Secret.123 ca-authority-show --host-authority
   Host authority: true
   Authority DN:   CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
   ID:             f37225e8-b6d7-49be-abe1-6a2f5f3e0be3
@@ -131,7 +131,7 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias -n caadmin -c Secret.123 ca-authority-sho
 To create a sub-authority with the parent ID:
 
 <pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -n caadmin -c Secret.123 ca-authority-create CN=test --parent f37225e8-b6d7-49beabe1-6a2f5f3e0be3
+$ pki -n caadmin -c Secret.123 ca-authority-create CN=test --parent f37225e8-b6d7-49beabe1-6a2f5f3e0be3
   Authority DN:   CN=test
   ID:             4aa054e0-4742-4968-8c38-6c7b8539ceb1
   Parent ID:      f37225e8-b6d7-49be-abe1-6a2f5f3e0be3
@@ -144,7 +144,7 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias -n caadmin -c Secret.123 ca-authority-cre
 To create a sub-authority with the parent DN (not yet implemented):
 
 <pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -n caadmin -c Secret.123 ca-authority-create CN=test --parent-dn "CN=CA Signing Certificate,O=EXAMPLE"
+$ pki -n caadmin -c Secret.123 ca-authority-create CN=test --parent-dn "CN=CA Signing Certificate,O=EXAMPLE"
   Authority DN:   CN=test
   ID:             4aa054e0-4742-4968-8c38-6c7b8539ceb1
   Parent ID:      f37225e8-b6d7-49be-abe1-6a2f5f3e0be3
@@ -157,7 +157,7 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias -n caadmin -c Secret.123 ca-authority-cre
 To create a top-level authority (not yet implemented):
 
 <pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -n caadmin -c Secret.123 ca-authority-create CN=test
+$ pki -n caadmin -c Secret.123 ca-authority-create CN=test
   Authority DN:   CN=test
   ID:             4aa054e0-4742-4968-8c38-6c7b8539ceb1
   Issuer DN:      CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
@@ -171,7 +171,7 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias -n caadmin -c Secret.123 ca-authority-cre
 To enable an authority:
 
 <pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -n caadmin -c Secret.123 ca-authority-enable 4aa054e0-4742-4968-8c38-6c7b8539ceb1
+$ pki -n caadmin -c Secret.123 ca-authority-enable 4aa054e0-4742-4968-8c38-6c7b8539ceb1
   Authority DN:   CN=test
   ID:             4aa054e0-4742-4968-8c38-6c7b8539ceb1
   Parent ID:      f37225e8-b6d7-49be-abe1-6a2f5f3e0be3
@@ -184,7 +184,7 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias -n caadmin -c Secret.123 ca-authority-ena
 To disable an authority:
 
 <pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -n caadmin -c Secret.123 ca-authority-disable 4aa054e0-4742-4968-8c38-6c7b8539ceb1
+$ pki -n caadmin -c Secret.123 ca-authority-disable 4aa054e0-4742-4968-8c38-6c7b8539ceb1
   Authority DN:   CN=test
   ID:             4aa054e0-4742-4968-8c38-6c7b8539ceb1
   Parent ID:      f37225e8-b6d7-49be-abe1-6a2f5f3e0be3
@@ -236,7 +236,7 @@ or with the issuer DN:
 
 Approve the request:
 
- $ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-cert-request-review <request ID> --action approve
+ $ pki -n caadmin ca-cert-request-review <request ID> --action approve
 
 Display the certificate:
 
