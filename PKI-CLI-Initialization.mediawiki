@@ -1,0 +1,77 @@
+= Overview =
+
+The PKI CLI needs an NSS database to store certificates and keys to perform crypto operations such as establishing SSL connection, certificate authentication, encryption/decryption, accessing PKCS #12 file in FIPS mode, etc. NSS database is not required for operations that do not require crypto operations, but it is recommended to create the NSS database before using PKI client for the first time.
+
+= Creating NSS database =
+
+The NSS database can be created (or recreated) by executing the following commands. The password can be specified directly on the command line:
+
+<pre>
+$ pki -c Secret.123 client-init
+</pre>
+
+The password can also be specified in a file:
+
+<pre>
+$ pki -C password.txt client-init
+</pre>
+
+'''Note:''' Since PKI 10.4.1 the PKI CLI support creating an NSS database without a password:
+
+ $ pki client-init
+
+Also since PKI 10.4.1 if the PKI CLI is used without initialization it will create a default NSS database without a password.
+
+By default the NSS database will be created at ~/.dogtag/nssdb. To create NSS database at a different location, specify the path with the -d parameter:
+
+<pre>
+$ pki -d ~/.config/pki/nssdb client-init
+</pre>
+
+= Importing CA Certificate =
+
+Some operations may require SSL connection to the server in which the server will present a server certificate to the client. To authenticate the server certificate, the CA certificate needs to be installed on the client.
+
+If the CA certificate is already available as a file, it can be imported with the following command:
+
+<pre>
+$ pki client-cert-import "CA Signing Certificate" --ca-cert ca.crt
+---------------------------------------------
+Imported certificate "CA Signing Certificate"
+---------------------------------------------
+</pre>
+
+Another option is to download the CA certificate directly from the CA server:
+
+<pre>
+$ pki client-cert-import "CA Signing Certificate" --ca-server
+---------------------------------------------
+Imported certificate "CA Signing Certificate"
+---------------------------------------------
+</pre>
+
+Alternatively, the CA certificate can be imported during the first SSL connection to the server:
+
+<pre>
+$ pki -U https://$HOSTNAME:8443 ca-cert-find
+WARNING: UNTRUSTED ISSUER encountered on 'CN=server.example.com,O=EXAMPLE' indic
+ates a non-trusted CA cert 'CN=CA Signing Certificate,O=EXAMPLE'
+Import CA certificate (Y/n)? y
+CA server URI [http://server.example.com:8080/ca]:
+...
+</pre>
+
+= Importing Admin Certificate =
+
+For PKI admin, the admin certificate created during installation can be imported with the following command:
+
+<pre>
+$ pki client-cert-import \
+ --pkcs12 ~/.dogtag/pki-tomcat/ca_admin_cert.p12 \
+ --pkcs12-password-file ~/.dogtag/pki-tomcat/ca/pkcs12_password.conf
+</pre>
+
+= See Also =
+
+* [https://www.dogtagpki.org/wiki/PKI_CLI PKI CLI]
+* [[PKI Client CLI]]
