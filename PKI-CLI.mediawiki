@@ -1,0 +1,141 @@
+= Overview =
+
+PKI CLI is a client tool that can be used to access various services on PKI server.
+
+= Installation =
+
+When installing PKI server the PKI CLI (and the PKI Client library) will automatically be installed.
+
+To install PKI CLI on a machine that does not have PKI server, execute the following command:
+
+<pre>
+$ yum install pki-tools
+</pre>
+
+= Usage =
+
+In general the PKI CLI takes the following parameters:
+
+<pre>
+$ pki [CLI options] <command> [command arguments/options]
+</pre>
+
+The CLI options should be placed before the command. The command arguments/options should be placed after the command.
+
+To view available commands and options:
+<pre>
+$ pki --help
+</pre>
+
+Some commands may have sub-commands. To view the sub-commands:
+
+<pre>
+$ pki <command>
+</pre>
+
+To view the command usage:
+<pre>
+$ pki <command> --help
+</pre>
+
+To run the command in verbose mode:
+
+<pre>
+$ pki -v <command>
+</pre>
+
+== Options ==
+
+See [https://github.com/dogtagpki/pki/wiki/PKI-CLI-Options PKI CLI Options].
+
+== Configuration ==
+
+See [https://github.com/dogtagpki/pki/wiki/PKI-Environment-Variables PKI Environment Variables].
+
+== Initialization ==
+
+See [https://github.com/dogtagpki/pki/wiki/PKI-CLI-Initialization PKI CLI Initialization].
+
+== Connection ==
+
+See [https://github.com/dogtagpki/pki/wiki/PKI-CLI-Connection PKI CLI Connection].
+
+== Authentication ==
+
+See [https://github.com/dogtagpki/pki/wiki/PKI-CLI-Authentication PKI CLI Authentication].
+
+== Commands ==
+
+* [https://github.com/dogtagpki/pki/wiki/PKI-Client-CLI PKI Client CLI]
+* [https://github.com/dogtagpki/pki/wiki/PKI-CA-Certificate-CLI PKI Certificate CLI]
+* [https://github.com/dogtagpki/pki/wiki/PKI-User-CLI PKI User CLI]
+* [https://github.com/dogtagpki/pki/wiki/PKI-Group-CLI PKI Group CLI]
+* [https://github.com/dogtagpki/pki/wiki/PKI-Security-Domain-CLI PKI Security Domain CLI]
+* [https://github.com/dogtagpki/pki/wiki/PKI-KRA-Key-CLI PKI Key CLI]
+* [https://github.com/dogtagpki/pki/wiki/PKI-CA-CLI PKI CA CLI]
+* [https://github.com/dogtagpki/pki/wiki/PKI-KRA-CLI PKI KRA CLI]
+* [https://github.com/dogtagpki/pki/wiki/PKI-OCSP-CLI PKI OCSP CLI]
+* [https://github.com/dogtagpki/pki/wiki/PKI-TKS-CLI PKI TKS CLI]
+* [https://github.com/dogtagpki/pki/wiki/PKI-TPS-CLI PKI TPS CLI]
+* [https://github.com/dogtagpki/pki/wiki/PKI-NSS-CLI PKI NSS CLI]
+* [https://github.com/dogtagpki/pki/wiki/PKI-PKCS7-CLI PKI PKCS7 CLI]
+* [https://github.com/dogtagpki/pki/wiki/PKI-PKCS11-CLI PKI PKCS11 CLI]
+* [https://github.com/dogtagpki/pki/wiki/PKI-PKCS12-CLI PKI PKCS12 CLI]
+
+== Paging ==
+
+See [https://github.com/dogtagpki/pki/wiki/PKI-CLI-Paging PKI CLI Paging].
+
+= Troubleshooting =
+
+== Running in verbose mode ==
+
+In verbose mode the pki CLI will provide more information to troubleshoot issues.
+
+To run pki CLI in verbose, specify -v as CLI options (i.e. before the command), not as command options (i.e. after the command):
+
+<pre>
+$ pki <CLI options> <command> <command options>
+</pre>
+
+== Recording HTTP messages ==
+
+The PKI CLI communicates to PKI server via HTTP. The HTTP messages can be recorded for troubleshooting.
+
+To record the HTTP messages, specify the --output and --message-format options as follows:
+
+<pre>
+$ mkdir <dir>
+$ pki --output <dir> --message-format <format> <command>
+</pre>
+
+The format is either xml (default) or json. The requests and responses will be stored in http-request-<n> and http-response-<n> files in the output directory.
+
+= Future Enhancements =
+
+== Session ==
+
+Currently each CLI command uses separate connection. So the user would have to provide authentication in each command. Ideally there should be a session that connects multiple CLI commands so the authentication only needs to be done once:
+
+<pre>
+$ pki <authentication> login
+$ pki ca-user-add testuser --fullName "Test User"
+$ pki ca-group-member-add Administrators testuser
+$ pki logout
+</pre>
+
+There are several ways to address this:
+* Store the credentials in a local file and keep the session ID in the cookies. User is responsible to remove it.
+* Implement a shell so the CLI can accept multiple commands.
+* Use Kerberos authentication.
+
+== Shell-mode ==
+
+= References =
+
+* [https://www.dogtagpki.org/wiki/CLI CLI]
+* [https://www.dogtagpki.org/wiki/PKI_CLI_Development PKI CLI Development]
+* [https://www.dogtagpki.org/wiki/PKI_Client PKI Client]
+* [http://www.mozilla.org/projects/security/pki/nss/tools/certutil.html Using the Certificate Database Tool]
+* [http://www.mozilla.org/projects/security/pki/nss/tools/pk12util.html Using the PKCS #12 Tool (pk12util)]
+* [https://www.dogtagpki.org/wiki/PKI_10.4_SSL_Audit_Design PKI 10.4 SSL Audit Design]
