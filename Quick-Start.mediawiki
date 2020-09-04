@@ -1,0 +1,185 @@
+= Overview =
+
+This document describes the process to install basic PKI subsystems.
+
+= Installing DS and PKI Packages =
+
+Install 389-ds-base and dogtag-pki packages:
+
+<pre>
+$ yum install 389-ds-base dogtag-pki
+yum install 389-ds-base dogtag-pki
+Loaded plugins: auto-update-debuginfo, langpacks, presto, refresh-packagekit
+Resolving Dependencies
+...
+
+Complete!
+</pre>
+
+= Creating DS Instance =
+
+See [[DS Installation]].
+
+= Creating CA Subsystem =
+
+Run pkispawn to create CA subsystem in interactive mode:
+
+<pre>
+$ pkispawn
+Subsystem (CA/KRA/OCSP/TKS/TPS) [CA]:
+
+Tomcat:
+  Instance [pki-tomcat]:
+  HTTP port [8080]:
+  Secure HTTP port [8443]:
+  AJP port [8009]:
+  Management port [8005]:
+
+Administrator:
+  Username [caadmin]:
+  Password: Secret.123
+  Verify password: Secret.123<
+  Import certificate (Yes/No) [N]?
+  Export certificate to [/root/.dogtag/pki-tomcat/ca_admin.cert]:
+
+Directory Server:
+  Hostname [server.example.com]:
+  Port [389]:
+  Bind DN [cn=Directory Manager]:
+  Password: Secret.123
+  Base DN [o=pki-tomcat-CA]:
+
+Security Domain:
+  Name [example.com Security Domain]:
+
+Begin installation (Yes/No/Quit)? Y
+
+Installing CA into /var/lib/pki/pki-tomcat.
+Storing deployment configuration into /etc/sysconfig/pki/tomcat/pki-tomcat/ca/deployment.cfg.
+
+    ==========================================================================
+                                INSTALLATION SUMMARY
+    ==========================================================================
+
+      Administrator's username:             caadmin
+      Administrator's PKCS #12 file:
+            /root/.dogtag/pki-tomcat/ca_admin_cert.p12
+
+      To check the status of the subsystem:
+            systemctl status pki-tomcatd@pki-tomcat.service
+
+      To restart the subsystem:
+            systemctl restart pki-tomcatd@pki-tomcat.service
+      The URL for the subsystem is:
+            https://server.example.com:8443/ca
+
+    ==========================================================================
+</pre>
+
+See also [https://www.dogtagpki.org/wiki/Installing_CA Installing CA].
+
+= Creating KRA Subsystem =
+
+Run pkispawn to create KRA subsystem in interactive mode:
+
+<pre>
+$ pkispawn
+Subsystem (CA/KRA/OCSP/TKS/TPS) [CA]: KRA
+
+Tomcat:
+  Instance [pki-tomcat]:
+  HTTP port [8080]:
+  Secure HTTP port [8443]:
+  AJP port [8009]:
+  Management port [8005]:
+
+Administrator:
+  Username [kraadmin]:
+  Password: Secret.123
+  Verify password: Secret.123
+  Import certificate (Yes/No) [Y]?
+  Import certificate from [/root/.dogtag/pki-tomcat/ca_admin.cert]:
+  Export certificate to [/root/.dogtag/pki-tomcat/ca_admin.cert]:
+
+Directory Server:
+  Hostname [server.example.com]:
+  Port [389]:
+  Bind DN [cn=Directory Manager]:
+  Password: Secret.123
+  Base DN [o=pki-tomcat-KRA]:
+
+Security Domain:
+  Hostname [server.example.com]:
+  Secure HTTP port [8443]:
+  Name: example.com Security Domain
+  Username [caadmin]:
+  Password: Secret.123
+
+Begin installation (Yes/No/Quit)? Y
+
+Installing KRA into /var/lib/pki/pki-tomcat.
+Storing deployment configuration into /etc/sysconfig/pki/tomcat/pki-tomcat/kra/deployment.cfg.
+
+    ==========================================================================
+                                INSTALLATION SUMMARY
+    ==========================================================================
+
+      Administrator's username:             kraadmin
+
+      To check the status of the subsystem:
+            systemctl status pki-tomcatd@pki-tomcat.service
+
+      To restart the subsystem:
+            systemctl restart pki-tomcatd@pki-tomcat.service
+      The URL for the subsystem is:
+            https://server.example.com:8443/kra
+
+    ==========================================================================
+</pre>
+
+See also [https://www.dogtagpki.org/wiki/Installing_KRA Installing KRA].
+
+= Accessing PKI Services =
+
+To access PKI services via Web UI open [https://server.example.com:8443/ https://server.example.com:8443/] with a browser.
+
+To access PKI services via command-line, use the [https://www.dogtagpki.org/wiki/PKI_CLI PKI CLI].
+
+By default only the [https://www.dogtagpki.org/wiki/Default_CA_Admin Default CA Admin] and end-entities can access PKI services. Follow [https://www.dogtagpki.org/wiki/User_Certificate_Setup User Certificate Setup] to add additional system users.
+
+= Managing PKI Services =
+
+To manage PKI services via PKI Console:
+<pre>
+$ pkiconsole https://server.example.com:8443/<subsystem>
+</pre>
+
+To manage PKI services via CLI, use the [[PKI Server CLI]].
+
+= Common PKI Tasks =
+
+* [https://www.dogtagpki.org/wiki/CA_Admin_Setup CA Admin Setup]
+* [https://www.dogtagpki.org/wiki/CA_Agent_Setup CA Agent Setup]
+* [https://www.dogtagpki.org/wiki/User_Certificate_Setup User Certificate Setup]
+* [https://www.dogtagpki.org/wiki/Server_Certificate_Setup Server Certificate Setup]
+* [https://www.dogtagpki.org/wiki/Enabling_SSL_Connection_with_Internal_Database Enabling SSL Connection with Internal Database]
+* [https://www.dogtagpki.org/wiki/Enabling_Client_Certificate_Authentication_with_Internal_Database Enabling Client Certificate Authentication with Internal Database]
+
+= Removing PKI Subsystem =
+
+<pre>
+$ pkidestroy
+Subsystem (CA/KRA/OCSP/TKS/TPS) [CA]:
+Instance [pki-tomcat]:
+
+Begin uninstallation (Yes/No/Quit)? Y
+
+Loading deployment configuration from /var/lib/pki/pki-tomcat/ca/registry/ca/deployment.cfg.
+Uninstalling CA from /var/lib/pki/pki-tomcat.
+
+Uninstallation complete.
+</pre>
+
+= References =
+
+* [https://www.dogtagpki.org/wiki/PKI_10_Installation PKI 10 Installation]
