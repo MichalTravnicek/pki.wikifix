@@ -39,7 +39,8 @@ Number of entries returned 2
 To search by parent ID:
 
 <pre>
-# pki -n caadmin -c Secret.123 ca-authority-find --parent-id f37225e8-b6d7-49be-abe1-6a2f5f3e0be3
+$ pki -n caadmin -c Secret.123 ca-authority-find \
+    --parent-id f37225e8-b6d7-49be-abe1-6a2f5f3e0be3
 -----------------
 1 entries matched
 -----------------
@@ -58,7 +59,8 @@ Number of entries returned 1
 To search by issuer DN:
 
 <pre>
-$ pki -n caadmin -c Secret.123 ca-authority-find --issuer-dn "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE"
+$ pki -n caadmin -c Secret.123 ca-authority-find \
+    --issuer-dn "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE"
 -----------------
 2 entries matched
 -----------------
@@ -131,7 +133,8 @@ $ pki -n caadmin -c Secret.123 ca-authority-show --host-authority
 To create a sub-authority with the parent ID:
 
 <pre>
-$ pki -n caadmin -c Secret.123 ca-authority-create CN=test --parent f37225e8-b6d7-49beabe1-6a2f5f3e0be3
+$ pki -n caadmin -c Secret.123 ca-authority-create CN=test \
+    --parent f37225e8-b6d7-49beabe1-6a2f5f3e0be3
   Authority DN:   CN=test
   ID:             4aa054e0-4742-4968-8c38-6c7b8539ceb1
   Parent ID:      f37225e8-b6d7-49be-abe1-6a2f5f3e0be3
@@ -144,7 +147,8 @@ $ pki -n caadmin -c Secret.123 ca-authority-create CN=test --parent f37225e8-b6d
 To create a sub-authority with the parent DN (not yet implemented):
 
 <pre>
-$ pki -n caadmin -c Secret.123 ca-authority-create CN=test --parent-dn "CN=CA Signing Certificate,O=EXAMPLE"
+$ pki -n caadmin -c Secret.123 ca-authority-create CN=test \
+    --parent-dn "CN=CA Signing Certificate,O=EXAMPLE"
   Authority DN:   CN=test
   ID:             4aa054e0-4742-4968-8c38-6c7b8539ceb1
   Parent ID:      f37225e8-b6d7-49be-abe1-6a2f5f3e0be3
@@ -214,7 +218,10 @@ $ wget http://$HOSTNAME:8080/ca/rest/authorities/77d0eaca-27d5-41ef-bfa5-4418529
 
 In PKI 10.5 or later the certificate request can be submitted with the issuer ID:
 
- $ pki -c Secret.123 client-cert-request UID=testuser --issuer-id 77d0eaca-27d5-41ef-bfa5-44185294cfc7
+<pre>
+$ pki -c Secret.123 client-cert-request UID=testuser \
+    --issuer-id 77d0eaca-27d5-41ef-bfa5-44185294cfc7
+</pre>
 
 or with the issuer DN:
 
@@ -222,21 +229,30 @@ or with the issuer DN:
 
 In PKI 10.4 or older, first generate a CSR:
 
- $ PKCS10Client -d ~/.dogtag/nssdb -p Secret.123 -a rsa -l 1024 -o testuser.csr -n UID=testuser
+<pre>
+$ PKCS10Client -d ~/.dogtag/nssdb -p Secret.123 -a rsa -l 1024 -o testuser.csr -n UID=testuser
+</pre>
 
 Then submit the CSR with the issuer ID:
 
- $ pki ca-cert-request-submit --csr-file testuser.csr --issuer-id 77d0eaca-27d5-41ef-bfa5-44185294cfc7
+<pre>
+$ pki ca-cert-request-submit --csr-file testuser.csr \
+    --issuer-id 77d0eaca-27d5-41ef-bfa5-44185294cfc7
+</pre>
 
 or with the issuer DN:
 
- $ pki ca-cert-request-submit --csr-file testuser.csr --issuer-dn CN=test
+<pre>
+$ pki ca-cert-request-submit --csr-file testuser.csr --issuer-dn CN=test
+</pre>
 
 == Issuing certificate ==
 
 Approve the request:
 
- $ pki -n caadmin ca-cert-request-review <request ID> --action approve
+<pre>
+$ pki -n caadmin ca-cert-request-review <request ID> --action approve
+</pre>
 
 Display the certificate:
 
