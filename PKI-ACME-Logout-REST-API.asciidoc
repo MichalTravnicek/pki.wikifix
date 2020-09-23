@@ -1,20 +1,21 @@
 = Overview
 
-The Logout operation will read the session ID provided via cookie, then invalidate the session on the server.
+The PKI ACME Logout operation will read the session ID provided via cookie, then invalidate the session on the server.
 
 = Request
 
 * *URL:* `/acme/login`
 * *Method:* `POST`
-* *Auth required:* Yes
+* *Authentication:* Required
+* *Authorization:* Not required
 
 = Response
 
-== Success Response
-* *Code:* `200 OK`
+== Success
+* *Code:* `200`
 
-== Error Response
-* *Code:* `401 Unauthorized`
+== Unauthenticated
+* *Code:* `401`
 
 = See Also
 
