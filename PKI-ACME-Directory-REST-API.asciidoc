@@ -13,6 +13,24 @@ The PKI ACME Directory operation will return the ACME directory as defined in ht
 
 == Success
 * *Code:* `200`
+* *Content*:
+
+----
+{
+    "meta": {
+        "caaIdentities": [
+            "dogtagpki.org"
+        ],
+        "externalAccountRequired": false,
+        "termsOfService": "https://www.dogtagpki.org/wiki/PKI_ACME_Responder",
+        "website": "https://www.dogtagpki.org"
+    },
+    "newAccount": "https://<hostname>:8443/acme/new-account",
+    "newNonce": "https://<hostname>:8443/acme/new-nonce",
+    "newOrder": "https://<hostname>:8443/acme/new-order",
+    "revokeCert": "https://<hostname>:8443/acme/revoke-cert"
+}
+----
 
 == Unavailable
 * *Code:* `503`
