@@ -1,18 +1,24 @@
 = Overview
 
-The Disable operation will disable ACME user services.
+The PKI ACME Disable operation will disable ACME user services.
 
 = Request
 
 * *URL:* `/acme/disable`
 * *Method:* `POST`
-* *Auth required:* Yes
+* *Authentication:* Required
+* *Required Role:* `Administrators`
 
 = Response
 
-== Success Response
+== Success
+* *Code:* `200`
 
-* *Code:* `200 OK`
+== Unauthenticated
+* *Code:* `401`
+
+== Unauthorized
+* *Code:* `403`
 
 = See Also
 
