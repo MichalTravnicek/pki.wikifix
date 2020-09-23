@@ -1,20 +1,21 @@
 = Overview
 
-The Login operation will authenticate the user, establish a session on the server, return the user profile, and return a cookie containing the session ID.
+The PKI ACME Login operation will authenticate the user, establish a session on the server, return the user profile, and return a cookie containing the session ID.
 
 = Request
 
 * *URL:* `/acme/login`
 * *Method:* `POST`
-* *Auth required:* Yes
+* *Authentication:* Required
+* *Authorization:* Not required
 
-= Success Response
+= Response
 
-* *Code:* `200 OK`
+== Success
+* *Code:* `200`
 
-= Error Response
-
-* *Code:* `401 Unauthorized`
+== Unauthenticated
+* *Code:* `401`
 
 = See Also
 
