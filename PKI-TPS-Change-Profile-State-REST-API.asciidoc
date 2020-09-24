@@ -1,0 +1,31 @@
+= TPS Operation
+
+* op=confirm_config_changes&ptype=Profiles
+* op=agent_change_config_state&ptype=Profiles
+
+= REST Operation
+
+* POST /tps/rest/profiles/<Profile ID>
+
+= Request
+
+* Profile ID
+* Action (submit, approve, reject, disable)
+* Contents
+* ETag
+* Nonce
+
+= Response
+
+* HTTP 200 OK
+* Profile ID
+* Status
+* Contents
+* ETag
+
+= Access Control
+
+* operators: denied
+* agents: allowed
+* admins: allowed
+* default: denied
