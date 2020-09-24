@@ -1,0 +1,31 @@
+= TPS Operation
+
+* op=add_config_parameter&ptype=Profiles
+* op=save_config_changes&ptype=Profiles&new_config=true&pname=...
+
+= REST Operation
+
+* POST /tps/rest/profiles
+
+= Request
+
+* Profile ID
+* Status
+* Contents
+* Nonce
+
+= Response
+
+* HTTP 201 Created
+* Location: <Profile URL>
+* Profile ID
+* Status
+* Contents
+* ETag
+
+= Access Control
+
+* operators: denied
+* agents: denied
+* admins: allowed
+* default: denied
