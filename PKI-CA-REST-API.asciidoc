@@ -27,6 +27,39 @@
 * link:PKI-CA-Assign-Certificate-Request-REST-API[Assign Certificate Request]
 * link:PKI-CA-Unassign-Certificate-Request-REST-API[Unassign Certificate Request]
 
+= Examples
+
+== Client Certificate and Key Extraction
+
+For operations that require client certificate authentication, extract the cert and key from P12 to PEM file:
+
+----
+$ openssl pkcs12 -in ~/.dogtag/pki-tomcat/ca_admin_cert.p12 -out file.crt.pem -clcerts -nokeys
+$ openssl pkcs12 -in ~/.dogtag/pki-tomcat/ca_admin_cert.p12 -out file.key.pem -nocerts -nodes
+----
+
+== Using curl
+
+[GET] To list all cert requests pass both the cert and key as params to curl:
+
+----
+$ curl -v -k -E file.crt.pem --key file.key.pem https://<host>:8443/ca/rest/agent/certrequests
+----
+
+*Note:* Use *-k* if the CA chain is not imported system-wide
+
+[GET] You can also pass a PKCS12 file to curl:
+
+----
+$ curl -k --cert-type P12 --cert ~/.dogtag/pki-tomcat/ca_admin_cert.p12:<password> https://<host>:8443/ca/rest/agent/certrequests
+----
+
+== Using Postman
+
+Go to *File -> Settings -> Certificates (tab) -> (Under Client Certificates) Add Certificate -> Select cert and key*
+
+*Note:* Make sure to provide the correct *hostname* and *port* to ensure that the credentials are pinned with the request.
+
 = See Also
 
 * link:https://www.dogtagpki.org/wiki/PKI_REST_API[PKI REST API]
