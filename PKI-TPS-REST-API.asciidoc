@@ -1,0 +1,127 @@
+= Overview
+
+PKI provides REST API to access TPS services.
+
+== REST URL
+
+Each resource will have a unique URL which will be in the following pattern:
+
+* Single resource: `/tps/rest/<resource name>`
+* Collection of resources: `/tps/rest/<resource collection>/<resource ID>`
+
+== REST Operations
+
+The current TPS operations (eg. op=...) will be mapped into the following HTTP operations:
+
+* GET: searching resources or retrieving individual resource
+* POST: adding an object
+* PATCH: modifying an object
+* DELETE: removing an object
+
+All requests and responses will be sent in XML/JSON format.
+
+These operations will return HTTP 200 (OK) return code upon successful operation. One exception is a successful add operation will return HTTP 201 (Created) and the URL of the newly created resource. Normal application errors will return HTTP 4xx return code. Unexpected server error will return HTTP 5xx return code.
+
+Search operations may support paging. The server will return one page that contains a subset of the search result. The server will also return the total number of entries in the result. The client may request a specific page and also the number of entries per page.
+
+The add and modify operations will return the updated object back, similar to the result of a GET operation. This way the client does not need to send another request to get the object after performing an update.
+
+Some of the TPS operations will not be mapped into REST operations because the are purely used to generate the HTML page which is irrelevant for REST.
+
+== Authentication and Authorization
+
+Authentication will be handled by Tomcat realm, but each resource may require specific authentication methods (e.g. anonymous, username/password, client certificate).
+
+All users (operators, agents, administrators) will access the same resources, but depending on the access rights, some of the above operations might not be available to the user. The TPS service is responsible for determining if the user has the access right before executing the operation. Regardless, the client applications (CLI or Web UI) can still provide customized UI based for specific roles.
+
+== Concurrency Control
+
+Concurrency control can be added later using HTTP ETag. ETag is a unique identifier representing the current state of the resource. If the resource has changed, it will have a different ETag.
+
+With ETag the update operation will have to be done in two steps. In the first step the client will obtain the ETag of the resource. In the second step the client will send the actual update request with the ETag obtained earlier. If the ETag in the request matches the current ETag of the resource, it means the resource has not changed, so the server will execute the update operation.
+
+ETag usually can be obtained from a GET operation, but it can be obtained from a previous update operation too. For example, adding a new user will generate an ETag. This ETag can then be used to modify the user. In this case it's not necessary to perform an additional GET operation to get the ETag.
+
+== Vulnerabilities
+
+Cross-Site Scripting (XSS) is a vulnerability where an attacker can inject client-side code into a page that will be used/viewed by the user. To prevent this attack, the REST services will need to encode/escape the parameters so they will not interfere with the XML output. Web applications that use the XML output may also need to escape the parameters to prevent interference with the HTML output.
+
+Cross-Site Request Forgery (CSRF/one-click/session riding) is a vulnerability where an attacker can trigger a single operation using the user's active session. To prevent this attack, all update operations must be done in two steps. In the first step the client will get a nonce from the server. The nonce can be obtained once during login operation, or before every update operation. In the second step the client will submit the update request with the nonce. If the nonce is valid, the server will execute the operation.
+
+= Token Services
+
+* Search Tokens
+* Add Token
+* Get Token
+* Modify Token
+* Change Token State
+* Remove Token
+
+= Certificate Services
+
+* Search Certificates
+* Get Certificate
+
+= Activity Services
+
+* Search Activities
+
+= Self Test Services
+
+* Get Self Tests
+* Run Self Tests
+
+= User Services
+
+* Search Users
+* Add User
+* Get User
+* Modify User
+* Remove User
+
+= Audit Services
+
+* Get Audit Configuration
+* Modify Audit Configuration
+
+= Profile Services
+
+* Search Profiles
+* Add Profile
+* Get Profile
+* Modify Profile
+* Change Profile State
+* Remove Profile
+
+= Profile Mapping Services
+
+* Search Profile Mappings
+* Add Profile Mapping
+* Get Profile Mapping
+* Modify Profile Mapping
+* Remove Profile Mapping
+
+= Connection Services
+
+* Search Connections
+* Add Connection
+* Get Connection
+* Modify Connection
+* Remove Connection
+
+= Authenticator Services
+
+* Search Authenticators
+* Add Authenticator
+* Get Authenticator
+* Modify Authenticator
+* Remove Authenticator
+
+= Configurator Services
+
+* Get Configuration
+* Modify Configuration
+
+= See Also
+
+* link:https://www.dogtagpki.org/wiki/PKI_REST_API[PKI REST API]
