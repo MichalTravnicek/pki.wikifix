@@ -1,0 +1,29 @@
+= TPS Operation
+
+* op=view_certificate
+* op=view_certificate_all
+
+= REST Operation
+
+* GET /tps/rest/certs
+
+= Request
+
+* Token ID
+* User ID
+* Page number (default: 1)
+* Page size (default: 20)
+
+= Response
+
+* HTTP 200 OK
+* Result size
+* Certificates in the requested page:
+** Certificate ID
+** Serial number
+** Subject
+** Token ID
+** Key type
+** Last status
+** User ID
+** Date modified
