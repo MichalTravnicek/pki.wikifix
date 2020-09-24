@@ -1,0 +1,38 @@
+= TPS Operation
+
+* op=view
+* op=view_admin
+
+= REST Operation
+
+* GET /tps/rest/tokens
+
+= Request
+
+* Token ID
+* User ID
+* Page number (default: 1)
+* Page size (default: 20)
+
+= Response
+
+* HTTP 200 OK
+* Result size
+* Tokens in the requested page:
+** Token ID
+** User ID
+** Status
+** Reason
+** Applet ID
+** Key Info
+** Date Created
+** Date Modified
+** Policy?
+** Token type?
+
+= Access Control
+
+* operators: allowed
+* agents: allowed
+* admins: allowed
+* default: denied
