@@ -1,0 +1,30 @@
+= Overview
+
+PKI Get Applications operation will return a list of PKI subsystems currently deployed on the instance.
+
+= Request
+
+* *URL:* `/pki/rest/apps`
+* *Method:* `GET`
+* *Authentication:* Not required
+* *Content:* None
+
+= Response
+
+* *Code:* `200`
+* *Content:*
+
+----
+[
+    {
+        "id": "acme",
+        "name": "ACME Responder",
+        "path": "/acme"
+    },
+    {
+        "id": "ca",
+        "name": "Certificate Authority",
+        "path": "/ca"
+    }
+]
+----
