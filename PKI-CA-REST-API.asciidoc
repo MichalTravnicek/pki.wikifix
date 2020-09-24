@@ -51,7 +51,9 @@ $ curl -v -k -E file.crt.pem --key file.key.pem https://<host>:8443/ca/rest/agen
 [GET] You can also pass a PKCS12 file to curl:
 
 ----
-$ curl -k --cert-type P12 --cert ~/.dogtag/pki-tomcat/ca_admin_cert.p12:<password> https://<host>:8443/ca/rest/agent/certrequests
+$ curl -k --cert-type P12 \
+    --cert ~/.dogtag/pki-tomcat/ca_admin_cert.p12:<password> \
+    https://<host>:8443/ca/rest/agent/certrequests
 ----
 
 == Using Postman
