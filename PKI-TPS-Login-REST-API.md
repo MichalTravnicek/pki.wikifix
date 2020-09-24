@@ -1,0 +1,6 @@
+= Request
+
+* Operation: GET /tps/rest/account/login
+* Content: None
+
+= Response
