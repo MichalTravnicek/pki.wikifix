@@ -1,0 +1,23 @@
+= Overview =
+
+The issuer-id and issuer-dn are optional and mutually-exclusive parameters to specify the (lightweight) CA which will issue the certificate. By default the request will be issued by the primary/host CA.
+
+= Request
+
+* Operation: POST /ca/rest/certrequests
+* Query Parameters:
+** issuer-id: string
+** issuer-dn: string
+
+= Response
+
+= Examples
+
+* link:https://github.com/dogtagpki/pki/blob/master/base/java-tools/src/com/netscape/cmstools/cert/CertRequestSubmitCLI.java[CertRequestSubmitCLI.java]
+* link:https://github.com/dogtagpki/pki/blob/master/base/java-tools/src/com/netscape/cmstools/client/ClientCertRequestCLI.java[ClientCertRequestCLI.java]
+
+= See Also
+
+* link:PKI-CA-Authority-CLI[PKI CA Authority CLI]
+* link:PKI-CA-Certificate-CLI[PKI CA Certificate CLI]
+* link:PKI-Client-CLI[PKI Client CLI]
