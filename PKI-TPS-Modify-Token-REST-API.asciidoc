@@ -1,0 +1,39 @@
+= TPS Operation
+
+* op=save: Save modification
+
+= REST Operation
+
+* PATCH /tps/rest/tokens/<Token ID>
+
+= Request
+* Token ID
+* User ID
+* Policy
+* Reason?
+* Status?
+* Number of modifications?
+* ETag
+* Nonce
+
+= Response
+
+* HTTP 200 OK
+* Token ID
+* User ID
+* Status
+* Reason
+* Policy
+* Token type
+* Key info
+* Applet ID
+* Date created
+* Date modified
+* ETag
+
+= Access Control
+
+* operators: denied
+* agents: allowed
+* admins: allowed
+* default: denied
