@@ -1,0 +1,59 @@
+= Overview
+
+[options="header"]
+|===
+| Status | Reason | Current State | Allowed Next State
+| uninitialized | | TOKEN_UNINITIALIZED | TOKEN_DAMAGED, TOKEN_PERM_LOST, TOKEN_TEMP_LOST, TOKEN_FOUND, TOKEN_TEMP_LOST_PERM_LOST, TOKEN_TERMINATED 
+| active | | TOKEN_FOUND | TOKEN_DAMAGED, TOKEN_PERM_LOST, TOKEN_TEMP_LOST, TOKEN_TERMINATED
+| lost | keyCompromise | TOKEN_PERM_LOST |
+| lost | destroyed | TOKEN_DAMAGED |
+| lost | onHold | TOKEN_TEMP_LOST | TOKEN_FOUND, TOKEN_TEMP_LOST_PERM_LOST, TOKEN_TERMINATED
+| terminated | | TOKEN_TERMINATED |
+| | | TOKEN_PERM_LOST |
+|===
+
+= TPS Operation
+
+* op=do_confirm_token: Confirmation page to change token state
+* op=do_token: Mark token as physically damaged, permanently lost, temporarily lost, found, or terminated
+
+= REST Operation
+
+* POST /tps/rest/tokens/<Token ID>
+
+= Request
+
+* Token ID
+* Next state:
+** TOKEN_DAMAGED
+** TOKEN_PERM_LOST
+** TOKEN_TEMP_LOST
+** TOKEN_FOUND
+** TOKEN_TEMP_LOST_PERM_LOST
+** TOKEN_TERMINATED
+* ETag
+* Nonce
+
+= Response
+
+* HTTP Status Code:
+** Success: HTTP 200 OK
+** Invalid state transition: 400 Bad Request
+* Token ID
+* User ID
+* Status
+* Type
+* Policy
+* Token type
+* Key info
+* Applet ID
+* Date created
+* Date modified
+* ETag
+
+= Access Control
+
+* operators: denied
+* agents: allowed
+* admins: allowed
+* default: denied
