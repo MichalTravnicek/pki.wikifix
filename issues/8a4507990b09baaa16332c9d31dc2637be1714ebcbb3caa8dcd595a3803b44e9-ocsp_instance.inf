@@ -1,0 +1,77 @@
+[DEFAULT]
+pki_instance_name=pki-master
+pki_https_port=8443
+pki_http_port=8080
+pki_ajp_port=8009
+pki_tomcat_server_port=8005
+pki_user=pkiuser
+pki_group=pkiuser
+pki_audit_group=pkiaudit
+pki_token_name=ipatoken
+pki_token_password=Secret123
+pki_client_pkcs12_password=Secret123
+pki_admin_password=Secret123
+[OCSP]
+pki_ocsp_signing_key_type=rsa
+pki_ocsp_signing_key_size=2048
+pki_ocsp_signing_key_algorithm=SHA512withRSA
+pki_ocsp_signing_signing_algorithm=SHA512withRSA
+pki_ocsp_signing_token=Internal
+pki_ocsp_signing_nickname=ocspsigningcert
+pki_ocsp_signing_subject_dn=cn=PKI OCSP SIGNING CERT,O=redhat
+pki_subsystem_key_type=rsa
+pki_subsystem_key_size=2048
+pki_subsystem_key_algorithm=SHA512withRSA
+pki_subsystem_signing_algorithm=SHA512withRSA
+pki_subsystem_token=Internal
+pki_subsystem_nickname=ocspsubsystemcert
+pki_subsystem_subject_dn=CN=PKI OCSP SUBSYSTEM Signing Certificate, O=Redhat
+pki_audit_signing_key_type=rsa
+pki_audit_signing_key_size=2048
+pki_audit_signing_key_algorithm=SHA512withRSA
+pki_audit_signing_signing_algorithm=SHA512withRSA
+pki_audit_signing_token=Internal
+pki_audit_signing_nickname=ocspauditsigningcert
+pki_audit_signing_subject_dn=CN=PKI OCSP AUDIT Signing Certificate, O=Redhat
+pki_admin_name=ocspadmin
+pki_admin_uid=ocspadmin
+pki_admin_email=saipandi@redhat.com
+pki_admin_dualkey=True
+pki_admin_keysize=2048
+pki_admin_keytype=rsa
+pki_admin_subject_dn=cn=PKI OCSP ADMIN,O=redhat
+pki_admin_nickname=ocspadmincert
+pki_import_admin_cert=True
+pki_client_dir=/tmp/ca
+pki_client_admin_cert_p12=/tmp/ca/ocspadmincert.p12
+pki_agent_name=ocspagent
+pki_agent_keysize=2048
+pki_agent_keytype=rsa
+pki_issuing_ca_hostname=idm-qe-01.lab.eng.rdu2.redhat.com
+pki_issuing_ca_https_port=8443
+pki_issuing_ca_uri=https://idm-qe-01.lab.eng.rdu2.redhat.com:8443
+pki_backup_keys=True
+pki_backup_password=Secret123
+pki_backup_fname=/tmp/ca/ocsp_backup_keys.p12
+pki_client_database_dir=/tmp/ca/db
+pki_client_database_password=Secret123
+pki_client_database_purge=True
+pki_security_domain_hostname=idm-qe-01.lab.eng.rdu2.redhat.com
+pki_security_domain_https_port=8443
+pki_security_domain_user=caadmin
+pki_security_domain_password=Secret123
+pki_security_domain_name=lab.eng.rdu2.redhat.com
+pki_ds_hostname=localhost
+pki_ds_ldap_port=389
+pki_ds_bind_dn=cn=Directory Manager
+pki_ds_password=Secret123
+pki_ds_secure_connection=False
+pki_ds_remove_data=True
+pki_ds_base_dn =dc=pki-ocsp
+pki_ds_database=pki-ocsp-ldap
+pki_restart_configured_instance=True
+pki_skip_configuration=False
+pki_skip_installation=False
+pki_enable_access_log=True
+pki_enable_java_debugger=False
+pki_security_manager=True

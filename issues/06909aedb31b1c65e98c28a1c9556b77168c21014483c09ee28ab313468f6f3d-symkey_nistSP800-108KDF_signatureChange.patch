@@ -1,0 +1,217 @@
+diff -ur symkey-cpp-orig/src/com/netscape/symkey/EncryptData.cpp symkey-cpp-signaturechange/src/com/netscape/symkey/EncryptData.cpp
+--- symkey-cpp-orig/src/com/netscape/symkey/EncryptData.cpp	2013-11-21 13:26:23.000000000 -0500
++++ symkey-cpp-signaturechange/src/com/netscape/symkey/EncryptData.cpp	2013-12-15 02:42:58.000000000 -0500
+@@ -66,12 +66,13 @@
+     sprintf(keyname+index+4,"%.2d", keyVersion[1]);
+ }
+ 
+-
++// AC: KDF SPEC CHANGE: function signature change - added jbyte nistSP800_108KdfOnKeyVersion, jboolean nistSP800_108KdfUseCuidAsKdd, and jbyteArray KDD
+ extern "C"  JNIEXPORT jbyteArray JNICALL Java_com_netscape_symkey_SessionKey_EncryptData
+-(JNIEnv *, jclass, jstring, jstring, jbyteArray, jbyteArray, jbyteArray, jbyteArray, jstring, jstring);
++(JNIEnv *, jclass, jstring, jstring, jbyteArray, jbyteArray, jbyte, jboolean, jbyteArray, jbyteArray, jbyteArray, jstring, jstring);
+ 
++// AC: KDF SPEC CHANGE: function signature change - added jbyte nistSP800_108KdfOnKeyVersion, jboolean nistSP800_108KdfUseCuidAsKdd, and jbyteArray KDD
+ extern "C" JNIEXPORT jbyteArray JNICALL
+-Java_com_netscape_symkey_SessionKey_EncryptData(JNIEnv * env, jclass this2, jstring j_tokenName, jstring j_keyName, jbyteArray  j_in, jbyteArray keyInfo, jbyteArray CUID, jbyteArray kekKeyArray, jstring useSoftToken_s,jstring keySet)
++Java_com_netscape_symkey_SessionKey_EncryptData(JNIEnv * env, jclass this2, jstring j_tokenName, jstring j_keyName, jbyteArray  j_in, jbyteArray keyInfo, jbyte nistSP800_108KdfOnKeyVersion, jboolean nistSP800_108KdfUseCuidAsKdd, jbyteArray CUID, jbyteArray KDD, jbyteArray kekKeyArray, jstring useSoftToken_s,jstring keySet)
+ {
+     jbyte * kek_key =  NULL;
+ 
+diff -ur symkey-cpp-orig/src/com/netscape/symkey/SessionKey.cpp symkey-cpp-signaturechange/src/com/netscape/symkey/SessionKey.cpp
+--- symkey-cpp-orig/src/com/netscape/symkey/SessionKey.cpp	2013-11-21 13:26:23.000000000 -0500
++++ symkey-cpp-signaturechange/src/com/netscape/symkey/SessionKey.cpp	2013-12-15 02:42:58.000000000 -0500
+@@ -572,13 +572,15 @@
+  * Method:    ComputeSessionKey
+  * Signature: ([B[B[B[B)[B
+  */
++// AC: KDF SPEC CHANGE: function signature change - added jbyte nistSP800_108KdfOnKeyVersion, jboolean nistSP800_108KdfUseCuidAsKdd, and jbyteArray KDD
+     JNIEXPORT jbyteArray JNICALL Java_com_netscape_symkey_SessionKey_ComputeSessionKey
+-        (JNIEnv *, jclass, jstring, jstring, jbyteArray, jbyteArray, jbyteArray, jbyteArray, jbyteArray, jstring, jstring, jstring);
++        (JNIEnv *, jclass, jstring, jstring, jbyteArray, jbyteArray, jbyteArray, jbyte, jboolean, jbyteArray, jbyteArray, jbyteArray, jstring, jstring, jstring);
+ #ifdef __cplusplus
+ }
+ #endif
+ #define KEYLENGTH 16
+-extern "C" JNIEXPORT jbyteArray JNICALL Java_com_netscape_symkey_SessionKey_ComputeSessionKey(JNIEnv * env, jclass this2, jstring tokenName, jstring keyName, jbyteArray card_challenge, jbyteArray host_challenge, jbyteArray keyInfo, jbyteArray CUID, jbyteArray macKeyArray, jstring useSoftToken_s, jstring keySet, jstring sharedSecretKeyName)
++// AC: KDF SPEC CHANGE: function signature change - added jbyte nistSP800_108KdfOnKeyVersion, jboolean nistSP800_108KdfUseCuidAsKdd, and jbyteArray KDD
++extern "C" JNIEXPORT jbyteArray JNICALL Java_com_netscape_symkey_SessionKey_ComputeSessionKey(JNIEnv * env, jclass this2, jstring tokenName, jstring keyName, jbyteArray card_challenge, jbyteArray host_challenge, jbyteArray keyInfo, jbyte nistSP800_108KdfOnKeyVersion, jboolean nistSP800_108KdfUseCuidAsKdd, jbyteArray CUID, jbyteArray KDD, jbyteArray macKeyArray, jstring useSoftToken_s, jstring keySet, jstring sharedSecretKeyName)
+ {
+     /* hardcore permanent mac key */
+     jbyte *mac_key = NULL;
+@@ -885,13 +887,15 @@
+  * Method:    ComputeEncSessionKey
+  * Signature: ([B[B[B[B)[B
+  */
++// AC: KDF SPEC CHANGE: function signature change - added jbyte nistSP800_108KdfOnKeyVersion, jboolean nistSP800_108KdfUseCuidAsKdd, and jbyteArray KDD
+     JNIEXPORT jbyteArray JNICALL Java_com_netscape_symkey_SessionKey_ComputeEncSessionKey
+-        (JNIEnv *, jclass, jstring, jstring, jbyteArray, jbyteArray, jbyteArray, jbyteArray, jbyteArray, jstring, jstring);
++        (JNIEnv *, jclass, jstring, jstring, jbyteArray, jbyteArray, jbyteArray, jbyte, jboolean, jbyteArray, jbyteArray, jbyteArray, jstring, jstring);
+ #ifdef __cplusplus
+ }
+ #endif
+ #define KEYLENGTH 16
+-extern "C" JNIEXPORT jbyteArray JNICALL Java_com_netscape_symkey_SessionKey_ComputeEncSessionKey(JNIEnv * env, jclass this2, jstring tokenName, jstring keyName, jbyteArray card_challenge, jbyteArray host_challenge, jbyteArray keyInfo, jbyteArray CUID, jbyteArray encKeyArray, jstring useSoftToken_s, jstring keySet)
++// AC: KDF SPEC CHANGE: function signature change - added jbyte nistSP800_108KdfOnKeyVersion, jboolean nistSP800_108KdfUseCuidAsKdd, and jbyteArray KDD
++extern "C" JNIEXPORT jbyteArray JNICALL Java_com_netscape_symkey_SessionKey_ComputeEncSessionKey(JNIEnv * env, jclass this2, jstring tokenName, jstring keyName, jbyteArray card_challenge, jbyteArray host_challenge, jbyteArray keyInfo, jbyte nistSP800_108KdfOnKeyVersion, jboolean nistSP800_108KdfUseCuidAsKdd, jbyteArray CUID, jbyteArray KDD, jbyteArray encKeyArray, jstring useSoftToken_s, jstring keySet)
+ {
+     /* hardcoded permanent enc key */
+     jbyte *enc_key = NULL;
+@@ -1171,14 +1175,16 @@
+  * Method:    ComputeKekKey
+  * Signature: ([B[B[B[B)[B
+  */
++// AC: KDF SPEC CHANGE: function signature change - added jbyte nistSP800_108KdfOnKeyVersion, jboolean nistSP800_108KdfUseCuidAsKdd, and jbyteArray KDD
+     JNIEXPORT jobject JNICALL Java_com_netscape_symkey_SessionKey_ComputeKekKey
+-        (JNIEnv *, jclass, jstring, jstring, jbyteArray, jbyteArray, jbyteArray, jbyteArray, jbyteArray, jstring, jstring);
++        (JNIEnv *, jclass, jstring, jstring, jbyteArray, jbyteArray, jbyteArray, jbyte, jboolean, jbyteArray, jbyteArray, jbyteArray, jstring, jstring);
+ #ifdef __cplusplus
+ }
+ #endif
+ #define KEYLENGTH 16
+ 
+-extern "C" JNIEXPORT jobject JNICALL Java_com_netscape_symkey_SessionKey_ComputeKekKey(JNIEnv * env, jclass this2, jstring tokenName, jstring keyName, jbyteArray card_challenge, jbyteArray host_challenge, jbyteArray keyInfo, jbyteArray CUID, jbyteArray kekKeyArray, jstring useSoftToken_s, jstring keySet)
++// AC: KDF SPEC CHANGE: function signature change - added jbyte nistSP800_108KdfOnKeyVersion, jboolean nistSP800_108KdfUseCuidAsKdd, and jbyteArray KDD
++extern "C" JNIEXPORT jobject JNICALL Java_com_netscape_symkey_SessionKey_ComputeKekKey(JNIEnv * env, jclass this2, jstring tokenName, jstring keyName, jbyteArray card_challenge, jbyteArray host_challenge, jbyteArray keyInfo, jbyte nistSP800_108KdfOnKeyVersion, jboolean nistSP800_108KdfUseCuidAsKdd, jbyteArray CUID, jbyteArray KDD, jbyteArray kekKeyArray, jstring useSoftToken_s, jstring keySet)
+ {
+     /* hardcoded permanent kek key */
+     jbyte *kek_key = NULL;
+@@ -1497,13 +1503,15 @@
+  * Method:    ComputeCryptogram
+  * Signature: ([B[B[B[B)[B
+  */
++// AC: KDF SPEC CHANGE: function signature change - added jbyte nistSP800_108KdfOnKeyVersion, jboolean nistSP800_108KdfUseCuidAsKdd, and jbyteArray KDD
+     JNIEXPORT jbyteArray JNICALL Java_com_netscape_symkey_SessionKey_ComputeCryptogram
+-        (JNIEnv *, jclass, jstring, jstring, jbyteArray, jbyteArray, jbyteArray, jbyteArray, int, jbyteArray, jstring, jstring);
++        (JNIEnv *, jclass, jstring, jstring, jbyteArray, jbyteArray, jbyteArray, jbyte, jboolean, jbyteArray, jbyteArray, int, jbyteArray, jstring, jstring);
+ #ifdef __cplusplus
+ }
+ #endif
+ #define KEYLENGTH 16
+-extern "C" JNIEXPORT jbyteArray JNICALL Java_com_netscape_symkey_SessionKey_ComputeCryptogram(JNIEnv * env, jclass this2, jstring tokenName, jstring keyName, jbyteArray card_challenge, jbyteArray host_challenge, jbyteArray keyInfo, jbyteArray CUID, int type, jbyteArray authKeyArray, jstring useSoftToken_s, jstring keySet)
++// AC: KDF SPEC CHANGE: function signature change - added jbyte nistSP800_108KdfOnKeyVersion, jboolean nistSP800_108KdfUseCuidAsKdd, and jbyteArray KDD
++extern "C" JNIEXPORT jbyteArray JNICALL Java_com_netscape_symkey_SessionKey_ComputeCryptogram(JNIEnv * env, jclass this2, jstring tokenName, jstring keyName, jbyteArray card_challenge, jbyteArray host_challenge, jbyteArray keyInfo, jbyte nistSP800_108KdfOnKeyVersion, jboolean nistSP800_108KdfUseCuidAsKdd, jbyteArray CUID, jbyteArray KDD, int type, jbyteArray authKeyArray, jstring useSoftToken_s, jstring keySet)
+ {
+ /* hardcore permanent mac key */
+     jbyte *auth_key = NULL;
+diff -ur symkey-cpp-orig/src/com/netscape/symkey/SessionKey.java symkey-cpp-signaturechange/src/com/netscape/symkey/SessionKey.java
+--- symkey-cpp-orig/src/com/netscape/symkey/SessionKey.java	2013-11-21 13:26:23.000000000 -0500
++++ symkey-cpp-signaturechange/src/com/netscape/symkey/SessionKey.java	2013-12-15 02:42:58.000000000 -0500
+@@ -47,7 +47,10 @@
+                                                    byte[] card_challenge,
+                                                    byte[] host_challenge,
+                                                    byte[] keyInfo,
++                                                   byte nistSP800_108KdfOnKeyVersion,    // AC: KDF SPEC CHANGE
++                                                   boolean nistSP800_108KdfUseCuidAsKdd, // AC: KDF SPEC CHANGE
+                                                    byte[] CUID,
++                                                   byte[] KDD,                           // AC: KDF SPEC CHANGE
+                                                    byte[] macKeyArray,
+                                                    String useSoftToken,
+                                                    String keySet,
+@@ -58,27 +61,34 @@
+                                                       byte[] card_challenge,
+                                                       byte[] host_challenge,
+                                                       byte[] keyInfo,
++                                                      byte nistSP800_108KdfOnKeyVersion,    // AC: KDF SPEC CHANGE
++                                                      boolean nistSP800_108KdfUseCuidAsKdd, // AC: KDF SPEC CHANGE
+                                                       byte[] CUID,
++                                                      byte[] KDD,                           // AC: KDF SPEC CHANGE
+                                                       byte[] encKeyArray,
+                                                       String useSoftToken,
+                                                       String keySet );
+-
+-    public static native PK11SymKey ComputeKekSessionKey( String tokenName,
+-                                                          String keyName,
+-                                                          byte[] card_challenge,
+-                                                          byte[] host_challenge,
+-                                                          byte[] keyInfo,
+-                                                          byte[] CUID,
+-                                                          byte[] kekKeyArray,
+-                                                          String useSoftToken,
+-                                                          String keySet );
++    
++    // AC: KDF SPEC CHANGE; unused method with no JNI implementation
++    //public static native PK11SymKey ComputeKekSessionKey( String tokenName,
++    //                                                      String keyName,
++    //                                                      byte[] card_challenge,
++    //                                                      byte[] host_challenge,
++    //                                                      byte[] keyInfo,
++    //                                                      byte[] CUID,
++    //                                                      byte[] kekKeyArray,
++    //                                                      String useSoftToken,
++    //                                                      String keySet );
+ 
+     public static native PK11SymKey ComputeKekKey( String tokenName,
+                                                    String keyName,
+                                                    byte[] card_challenge,
+                                                    byte[] host_challenge,
+                                                    byte[] keyInfo,
++                                                   byte nistSP800_108KdfOnKeyVersion,    // AC: KDF SPEC CHANGE
++                                                   boolean nistSP800_108KdfUseCuidAsKdd, // AC: KDF SPEC CHANGE
+                                                    byte[] CUID,
++                                                   byte[] KDD,                           // AC: KDF SPEC CHANGE
+                                                    byte[] kekKeyArray,
+                                                    String useSoftToken, String keySet );
+ 
+@@ -98,7 +108,10 @@
+                                                    byte[] card_challenge,
+                                                    byte[] host_challenge,
+                                                    byte[] keyInfo,
++                                                   byte nistSP800_108KdfOnKeyVersion,    // AC: KDF SPEC CHANGE
++                                                   boolean nistSP800_108KdfUseCuidAsKdd, // AC: KDF SPEC CHANGE
+                                                    byte[] CUID,
++                                                   byte[] KDD,                           // AC: KDF SPEC CHANGE
+                                                    int type,
+                                                    byte[] authKeyArray,
+                                                    String useSoftToken, String keySet );
+@@ -107,7 +120,10 @@
+                                              String keyName,
+                                              byte[] in,
+                                              byte[] keyInfo,
++                                             byte nistSP800_108KdfOnKeyVersion,    // AC: KDF SPEC CHANGE
++                                             boolean nistSP800_108KdfUseCuidAsKdd, // AC: KDF SPEC CHANGE
+                                              byte[] CUID,
++                                             byte[] KDD,                           // AC: KDF SPEC CHANGE
+                                              byte[] kekKeyArray,
+                                              String useSoftToken, String keySet );
+ 
+@@ -115,8 +131,16 @@
+                                               String newTokenName,
+                                               String oldMasterKeyName,
+                                               String newMasterKeyName,
+-                                              String keyInfo,
++                                              byte[] oldKeyInfo,          // AC: KDF SPEC CHANGE
++                                              
++                                              // AC: BUGFIX for key versions higher than 09:  We need to specialDecode keyInfo parameters before sending them into symkey!  This means the parameters must be jbyteArray's
++                                              //     -- Changed parameter "jstring keyInfo" to "jbyteArray newKeyInfo"
++                                              byte[] newKeyInfo,          
++                                              
++                                              byte nistSP800_108KdfOnKeyVersion,    // AC: KDF SPEC CHANGE
++                                              boolean nistSP800_108KdfUseCuidAsKdd, // AC: KDF SPEC CHANGE
+                                               byte[] CUIDValue,
++                                              byte[] KDD,                           // AC: KDF SPEC CHANGE
+                                               byte[] kekKeyArray,
+                                               String useSoftToken, String keySet );
+ 
+diff -ur symkey-cpp-orig/src/com/netscape/symkey/SymKey.cpp symkey-cpp-signaturechange/src/com/netscape/symkey/SymKey.cpp
+--- symkey-cpp-orig/src/com/netscape/symkey/SymKey.cpp	2013-11-21 13:26:23.000000000 -0500
++++ symkey-cpp-signaturechange/src/com/netscape/symkey/SymKey.cpp	2013-12-15 02:42:58.000000000 -0500
+@@ -935,10 +935,16 @@
+  * Method:    DiversifyKey
+  * Signature: (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[B)[B
+  */
++// AC: KDF SPEC CHANGE: function signature change - added jstring oldKeyInfo, jbyte nistSP800_108KdfOnKeyVersion, jboolean nistSP800_108KdfUseCuidAsKdd, and jbyteArray KDD
++// AC: BUGFIX for key versions higher than 09:  We need to specialDecode keyInfo parameters before sending them into symkey!  This means the parameters must be jbyteArray's
++//     -- Changed parameter "jstring keyInfo" to "jbyteArray newKeyInfo"
+ extern "C" JNIEXPORT jbyteArray JNICALL Java_com_netscape_symkey_SessionKey_DiversifyKey
+-(JNIEnv *, jclass, jstring, jstring, jstring, jstring, jstring, jbyteArray, jbyteArray, jstring, jstring);
++(JNIEnv *, jclass, jstring, jstring, jstring, jstring, jbyteArray, jbyteArray, jbyte, jboolean, jbyteArray, jbyteArray, jbyteArray, jstring, jstring);
+ 
+-extern "C" JNIEXPORT jbyteArray JNICALL Java_com_netscape_symkey_SessionKey_DiversifyKey( JNIEnv * env, jclass this2, jstring tokenName,jstring newTokenName, jstring oldMasterKeyName, jstring newMasterKeyName, jstring keyInfo, jbyteArray CUIDValue, jbyteArray kekKeyArray, jstring useSoftToken_s, jstring keySet)
++// AC: KDF SPEC CHANGE: function signature change - added jstring oldKeyInfo, jbyte nistSP800_108KdfOnKeyVersion, jboolean nistSP800_108KdfUseCuidAsKdd, and jbyteArray KDD
++// AC: BUGFIX for key versions higher than 09:  We need to specialDecode keyInfo parameters before sending them into symkey!  This means the parameters must be jbyteArray's
++//     -- Changed parameter "jstring keyInfo" to "jbyteArray newKeyInfo"
++extern "C" JNIEXPORT jbyteArray JNICALL Java_com_netscape_symkey_SessionKey_DiversifyKey( JNIEnv * env, jclass this2, jstring tokenName,jstring newTokenName, jstring oldMasterKeyName, jstring newMasterKeyName, jbyteArray oldKeyInfo, jbyteArray newKeyInfo, jbyte nistSP800_108KdfOnKeyVersion, jboolean nistSP800_108KdfUseCuidAsKdd, jbyteArray CUIDValue, jbyteArray KDD, jbyteArray kekKeyArray, jstring useSoftToken_s, jstring keySet)
+ {
+     PK11SymKey *encKey = NULL;
+     PK11SymKey *macKey = NULL;

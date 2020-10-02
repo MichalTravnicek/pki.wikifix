@@ -1,0 +1,577 @@
+From 944cba64d0981389870459c427f41499cc523920 Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Sat, 7 Jan 2017 02:32:47 +0100
+Subject: [PATCH] Added global TCP Keep-Alive option.
+
+A new tcp.keepAlive parameter has been added for CS.cfg to
+configure the TCP Keep-Alive option for all LDAP connections
+created by PKI server. By default the option is enabled.
+
+The LdapJssSSLSocketFactory has been modified to support both
+plain and secure sockets. For clarity, the socket factory has been
+renamed to PKISocketFactory.
+
+All codes that create LDAP connections have been modified to use
+PKISocketFactory such that the TCP Keep-Alive option can be applied
+globally.
+
+https://fedorahosted.org/pki/ticket/2564
+---
+ base/common/src/com/netscape/certsrv/apps/CMS.java |   5 +
+ .../src/com/netscape/certsrv/apps/ICMSEngine.java  |   8 ++
+ .../publish/publishers/LdapCaCertPublisher.java    |  22 ++--
+ .../cms/publish/publishers/LdapCrlPublisher.java   |  22 ++--
+ .../publish/publishers/LdapUserCertPublisher.java  |  22 ++--
+ .../cms/servlet/admin/PublisherAdminServlet.java   |  11 +-
+ .../src/com/netscape/cmscore/apps/CMSEngine.java   |  15 ++-
+ .../cmscore/ldapconn/LdapAnonConnection.java       |   2 +-
+ .../cmscore/ldapconn/LdapBoundConnection.java      |   8 +-
+ ...SSLSocketFactory.java => PKISocketFactory.java} | 140 +++++++++++++--------
+ .../netscape/cmscore/app/CMSEngineDefaultStub.java |   5 +
+ 11 files changed, 160 insertions(+), 100 deletions(-)
+ rename base/server/cmscore/src/com/netscape/cmscore/ldapconn/{LdapJssSSLSocketFactory.java => PKISocketFactory.java} (57%)
+
+diff --git a/base/common/src/com/netscape/certsrv/apps/CMS.java b/base/common/src/com/netscape/certsrv/apps/CMS.java
+index 2e1dcbd22156bfc93107c3b2ead2eb2ab05ded4c..d2210df8a47e1c7e71d647bdf794f542eae544ea 100644
+--- a/base/common/src/com/netscape/certsrv/apps/CMS.java
++++ b/base/common/src/com/netscape/certsrv/apps/CMS.java
+@@ -91,6 +91,7 @@ import com.netscape.cmsutil.password.IPasswordStore;
+ import netscape.ldap.LDAPConnection;
+ import netscape.ldap.LDAPException;
+ import netscape.ldap.LDAPSSLSocketFactoryExt;
++import netscape.ldap.LDAPSocketFactory;
+ import netscape.security.util.ObjectIdentifier;
+ import netscape.security.x509.Extension;
+ import netscape.security.x509.GeneralName;
+@@ -1345,6 +1346,10 @@ public final class CMS {
+         return _engine.getLdapJssSSLSocketFactory();
+     }
+ 
++    public static LDAPSocketFactory getLDAPSocketFactory(boolean secure) {
++        return _engine.getLDAPSocketFactory(secure);
++    }
++
+     /**
+      * Creates a LDAP Auth Info object.
+      *
+diff --git a/base/common/src/com/netscape/certsrv/apps/ICMSEngine.java b/base/common/src/com/netscape/certsrv/apps/ICMSEngine.java
+index 82a9117c41e2919038301883575158e9efe8ab5d..97fc4679eccef3d27dff01402e72625bb38a0fea 100644
+--- a/base/common/src/com/netscape/certsrv/apps/ICMSEngine.java
++++ b/base/common/src/com/netscape/certsrv/apps/ICMSEngine.java
+@@ -75,6 +75,7 @@ import com.netscape.cmsutil.password.IPasswordStore;
+ import netscape.ldap.LDAPConnection;
+ import netscape.ldap.LDAPException;
+ import netscape.ldap.LDAPSSLSocketFactoryExt;
++import netscape.ldap.LDAPSocketFactory;
+ import netscape.security.util.ObjectIdentifier;
+ import netscape.security.x509.Extension;
+ import netscape.security.x509.GeneralName;
+@@ -648,6 +649,13 @@ public interface ICMSEngine extends ISubsystem {
+     public LDAPSSLSocketFactoryExt getLdapJssSSLSocketFactory();
+ 
+     /**
++     * Creates an LDAP socket factory.
++     *
++     * @return LDAP SSL socket factory
++     */
++    public LDAPSocketFactory getLDAPSocketFactory(boolean secure);
++
++    /**
+      * Creates a LDAP Auth Info object.
+      *
+      * @return LDAP authentication info
+diff --git a/base/server/cms/src/com/netscape/cms/publish/publishers/LdapCaCertPublisher.java b/base/server/cms/src/com/netscape/cms/publish/publishers/LdapCaCertPublisher.java
+index f740ef3c42efa2fcb1c2adc69ac04e5f64e5f632..c7f818a3f10d3630b800a5b559742d87c914750a 100644
+--- a/base/server/cms/src/com/netscape/cms/publish/publishers/LdapCaCertPublisher.java
++++ b/base/server/cms/src/com/netscape/cms/publish/publishers/LdapCaCertPublisher.java
+@@ -22,6 +22,15 @@ import java.security.cert.X509Certificate;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import com.netscape.certsrv.apps.CMS;
++import com.netscape.certsrv.base.EBaseException;
++import com.netscape.certsrv.base.IConfigStore;
++import com.netscape.certsrv.base.IExtendedPluginInfo;
++import com.netscape.certsrv.ldap.ELdapException;
++import com.netscape.certsrv.ldap.ELdapServerDownException;
++import com.netscape.certsrv.logging.ILogger;
++import com.netscape.certsrv.publish.ILdapPublisher;
++
+ import netscape.ldap.LDAPAttribute;
+ import netscape.ldap.LDAPConnection;
+ import netscape.ldap.LDAPEntry;
+@@ -32,15 +41,6 @@ import netscape.ldap.LDAPSSLSocketFactoryExt;
+ import netscape.ldap.LDAPSearchResults;
+ import netscape.ldap.LDAPv2;
+ 
+-import com.netscape.certsrv.apps.CMS;
+-import com.netscape.certsrv.base.EBaseException;
+-import com.netscape.certsrv.base.IConfigStore;
+-import com.netscape.certsrv.base.IExtendedPluginInfo;
+-import com.netscape.certsrv.ldap.ELdapException;
+-import com.netscape.certsrv.ldap.ELdapServerDownException;
+-import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.publish.ILdapPublisher;
+-
+ /**
+  * Interface for publishing a CA certificate to
+  *
+@@ -179,9 +179,11 @@ public class LdapCaCertPublisher
+                 int portVal = Integer.parseInt(port);
+                 int version = Integer.parseInt(mConfig.getString("version", "2"));
+                 String cert_nick = mConfig.getString("clientCertNickname", null);
+-                LDAPSSLSocketFactoryExt sslSocket = null;
++                LDAPSSLSocketFactoryExt sslSocket;
+                 if (cert_nick != null) {
+                     sslSocket = CMS.getLdapJssSSLSocketFactory(cert_nick);
++                } else {
++                    sslSocket = CMS.getLdapJssSSLSocketFactory();
+                 }
+                 String mgr_dn = mConfig.getString("bindDN", null);
+                 String mgr_pwd = mConfig.getString("bindPWD", null);
+diff --git a/base/server/cms/src/com/netscape/cms/publish/publishers/LdapCrlPublisher.java b/base/server/cms/src/com/netscape/cms/publish/publishers/LdapCrlPublisher.java
+index 80ffa3c4bc687735e909c927a623262ee810c390..64df1431b3598c90c85a03eef2dd4f65cc078ba9 100644
+--- a/base/server/cms/src/com/netscape/cms/publish/publishers/LdapCrlPublisher.java
++++ b/base/server/cms/src/com/netscape/cms/publish/publishers/LdapCrlPublisher.java
+@@ -22,6 +22,15 @@ import java.security.cert.X509CRL;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import com.netscape.certsrv.apps.CMS;
++import com.netscape.certsrv.base.EBaseException;
++import com.netscape.certsrv.base.IConfigStore;
++import com.netscape.certsrv.base.IExtendedPluginInfo;
++import com.netscape.certsrv.ldap.ELdapException;
++import com.netscape.certsrv.ldap.ELdapServerDownException;
++import com.netscape.certsrv.logging.ILogger;
++import com.netscape.certsrv.publish.ILdapPublisher;
++
+ import netscape.ldap.LDAPAttribute;
+ import netscape.ldap.LDAPConnection;
+ import netscape.ldap.LDAPConstraints;
+@@ -33,15 +42,6 @@ import netscape.ldap.LDAPSSLSocketFactoryExt;
+ import netscape.ldap.LDAPSearchResults;
+ import netscape.ldap.LDAPv2;
+ 
+-import com.netscape.certsrv.apps.CMS;
+-import com.netscape.certsrv.base.EBaseException;
+-import com.netscape.certsrv.base.IConfigStore;
+-import com.netscape.certsrv.base.IExtendedPluginInfo;
+-import com.netscape.certsrv.ldap.ELdapException;
+-import com.netscape.certsrv.ldap.ELdapServerDownException;
+-import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.publish.ILdapPublisher;
+-
+ /**
+  * For publishing master or global CRL.
+  * Publishes (replaces) the CRL in the CA's LDAP entry.
+@@ -170,9 +170,11 @@ public class LdapCrlPublisher implements ILdapPublisher, IExtendedPluginInfo {
+                 int portVal = Integer.parseInt(port);
+                 int version = Integer.parseInt(mConfig.getString("version", "2"));
+                 String cert_nick = mConfig.getString("clientCertNickname", null);
+-                LDAPSSLSocketFactoryExt sslSocket = null;
++                LDAPSSLSocketFactoryExt sslSocket;
+                 if (cert_nick != null) {
+                     sslSocket = CMS.getLdapJssSSLSocketFactory(cert_nick);
++                } else {
++                    sslSocket = CMS.getLdapJssSSLSocketFactory();
+                 }
+                 String mgr_dn = mConfig.getString("bindDN", null);
+                 String mgr_pwd = mConfig.getString("bindPWD", null);
+diff --git a/base/server/cms/src/com/netscape/cms/publish/publishers/LdapUserCertPublisher.java b/base/server/cms/src/com/netscape/cms/publish/publishers/LdapUserCertPublisher.java
+index a01cf80d1a6e988d48cceb49e0fe014fb6e62bb3..e87fca93336b191acfc1b50b14d8be6be2a7a677 100644
+--- a/base/server/cms/src/com/netscape/cms/publish/publishers/LdapUserCertPublisher.java
++++ b/base/server/cms/src/com/netscape/cms/publish/publishers/LdapUserCertPublisher.java
+@@ -23,15 +23,6 @@ import java.util.Enumeration;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
+-import netscape.ldap.LDAPAttribute;
+-import netscape.ldap.LDAPConnection;
+-import netscape.ldap.LDAPEntry;
+-import netscape.ldap.LDAPException;
+-import netscape.ldap.LDAPModification;
+-import netscape.ldap.LDAPSSLSocketFactoryExt;
+-import netscape.ldap.LDAPSearchResults;
+-import netscape.ldap.LDAPv2;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+@@ -42,6 +33,15 @@ import com.netscape.certsrv.logging.AuditFormat;
+ import com.netscape.certsrv.logging.ILogger;
+ import com.netscape.certsrv.publish.ILdapPublisher;
+ 
++import netscape.ldap.LDAPAttribute;
++import netscape.ldap.LDAPConnection;
++import netscape.ldap.LDAPEntry;
++import netscape.ldap.LDAPException;
++import netscape.ldap.LDAPModification;
++import netscape.ldap.LDAPSSLSocketFactoryExt;
++import netscape.ldap.LDAPSearchResults;
++import netscape.ldap.LDAPv2;
++
+ /**
+  * Interface for mapping a X509 certificate to a LDAP entry
+  *
+@@ -134,9 +134,11 @@ public class LdapUserCertPublisher implements ILdapPublisher, IExtendedPluginInf
+                 int portVal = Integer.parseInt(port);
+                 int version = Integer.parseInt(mConfig.getString("version", "2"));
+                 String cert_nick = mConfig.getString("clientCertNickname", null);
+-                LDAPSSLSocketFactoryExt sslSocket = null;
++                LDAPSSLSocketFactoryExt sslSocket;
+                 if (cert_nick != null) {
+                     sslSocket = CMS.getLdapJssSSLSocketFactory(cert_nick);
++                } else {
++                    sslSocket = CMS.getLdapJssSSLSocketFactory();
+                 }
+                 String mgr_dn = mConfig.getString("bindDN", null);
+                 String mgr_pwd = mConfig.getString("bindPWD", null);
+diff --git a/base/server/cms/src/com/netscape/cms/servlet/admin/PublisherAdminServlet.java b/base/server/cms/src/com/netscape/cms/servlet/admin/PublisherAdminServlet.java
+index 423fad3606b33068a65839b9430cf9d490d579ae..22dd8c1d58e2bcc25b33a309dd1f39abd65387b1 100644
+--- a/base/server/cms/src/com/netscape/cms/servlet/admin/PublisherAdminServlet.java
++++ b/base/server/cms/src/com/netscape/cms/servlet/admin/PublisherAdminServlet.java
+@@ -27,9 +27,6 @@ import javax.servlet.ServletException;
+ import javax.servlet.http.HttpServletRequest;
+ import javax.servlet.http.HttpServletResponse;
+ 
+-import netscape.ldap.LDAPConnection;
+-import netscape.ldap.LDAPException;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.authority.IAuthority;
+ import com.netscape.certsrv.authority.ICertAuthority;
+@@ -67,6 +64,9 @@ import com.netscape.certsrv.publish.RulePlugin;
+ import com.netscape.certsrv.security.ICryptoSubsystem;
+ import com.netscape.cmsutil.password.IPasswordStore;
+ 
++import netscape.ldap.LDAPConnection;
++import netscape.ldap.LDAPException;
++
+ /**
+  * A class representing an publishing servlet for the
+  * Publishing subsystem. This servlet is responsible
+@@ -770,14 +770,13 @@ public class PublisherAdminServlet extends AdminServlet {
+                 }
+             } else {
+                 try {
++                    conn = new LDAPConnection(
++                            CMS.getLDAPSocketFactory(secure));
+                     if (secure) {
+-                        conn = new LDAPConnection(
+-                                    CMS.getLdapJssSSLSocketFactory());
+                         params.put(Constants.PR_CONN_INITED,
+                                 "Create ssl LDAPConnection" +
+                                         dashes(70 - 25) + " Success");
+                     } else {
+-                        conn = new LDAPConnection();
+                         params.put(Constants.PR_CONN_INITED,
+                                 "Create LDAPConnection" +
+                                         dashes(70 - 21) + " Success");
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/apps/CMSEngine.java b/base/server/cmscore/src/com/netscape/cmscore/apps/CMSEngine.java
+index 9b87f6e2437a398ffd6c4956a8e91809918ab8b9..ab10be91b8ba21f8fb66eb62f3348d3a0f85c50d 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/apps/CMSEngine.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/apps/CMSEngine.java
+@@ -144,7 +144,7 @@ import com.netscape.cmscore.ldapconn.LdapAuthInfo;
+ import com.netscape.cmscore.ldapconn.LdapBoundConnFactory;
+ import com.netscape.cmscore.ldapconn.LdapBoundConnection;
+ import com.netscape.cmscore.ldapconn.LdapConnInfo;
+-import com.netscape.cmscore.ldapconn.LdapJssSSLSocketFactory;
++import com.netscape.cmscore.ldapconn.PKISocketFactory;
+ import com.netscape.cmscore.logging.Auditor;
+ import com.netscape.cmscore.logging.LogSubsystem;
+ import com.netscape.cmscore.logging.Logger;
+@@ -174,6 +174,7 @@ import com.netscape.cmsutil.util.Utils;
+ import netscape.ldap.LDAPConnection;
+ import netscape.ldap.LDAPException;
+ import netscape.ldap.LDAPSSLSocketFactoryExt;
++import netscape.ldap.LDAPSocketFactory;
+ import netscape.security.extensions.CertInfo;
+ import netscape.security.pkcs.ContentInfo;
+ import netscape.security.pkcs.PKCS7;
+@@ -480,9 +481,7 @@ public class CMSEngine implements ICMSEngine {
+         String host = info.getHost();
+         int port = info.getPort();
+ 
+-        LDAPConnection conn = info.getSecure() ?
+-                new LDAPConnection(CMS.getLdapJssSSLSocketFactory()) :
+-                new LDAPConnection();
++        LDAPConnection conn = new LDAPConnection(CMS.getLDAPSocketFactory(info.getSecure()));
+ 
+         System.out.println("testLDAPConnection connecting to " + host + ":" + port);
+ 
+@@ -1029,11 +1028,15 @@ public class CMSEngine implements ICMSEngine {
+ 
+     public LDAPSSLSocketFactoryExt getLdapJssSSLSocketFactory(
+             String certNickname) {
+-        return new LdapJssSSLSocketFactory(certNickname);
++        return new PKISocketFactory(certNickname);
+     }
+ 
+     public LDAPSSLSocketFactoryExt getLdapJssSSLSocketFactory() {
+-        return new LdapJssSSLSocketFactory();
++        return new PKISocketFactory(true);
++    }
++
++    public LDAPSocketFactory getLDAPSocketFactory(boolean secure) {
++        return new PKISocketFactory(secure);
+     }
+ 
+     public ILdapAuthInfo getLdapAuthInfo() {
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/ldapconn/LdapAnonConnection.java b/base/server/cmscore/src/com/netscape/cmscore/ldapconn/LdapAnonConnection.java
+index 52cdc4b1eaa6aa9cec851e69dc04168a74fa6632..5d5e142d243d0e894cdc44b2c0604924b32164aa 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/ldapconn/LdapAnonConnection.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/ldapconn/LdapAnonConnection.java
+@@ -40,7 +40,7 @@ public class LdapAnonConnection extends LDAPConnection {
+      */
+     public LdapAnonConnection(LdapConnInfo connInfo)
+             throws LDAPException {
+-        super(connInfo.getSecure() ? new LdapJssSSLSocketFactory() : null);
++        super(new PKISocketFactory(connInfo.getSecure()));
+ 
+         // Set option to automatically follow referrals.
+         // rebind info is also anonymous.
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/ldapconn/LdapBoundConnection.java b/base/server/cmscore/src/com/netscape/cmscore/ldapconn/LdapBoundConnection.java
+index 787967a5f0ba2081c5c61239302eccd3337768b5..a3263447286808bf645988f4bc325a979211f7d4 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/ldapconn/LdapBoundConnection.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/ldapconn/LdapBoundConnection.java
+@@ -19,6 +19,8 @@ package com.netscape.cmscore.ldapconn;
+ 
+ import java.util.Properties;
+ 
++import com.netscape.certsrv.apps.CMS;
++
+ import netscape.ldap.LDAPConnection;
+ import netscape.ldap.LDAPException;
+ import netscape.ldap.LDAPRebind;
+@@ -26,8 +28,6 @@ import netscape.ldap.LDAPRebindAuth;
+ import netscape.ldap.LDAPSocketFactory;
+ import netscape.ldap.LDAPv2;
+ 
+-import com.netscape.certsrv.apps.CMS;
+-
+ /**
+  * A LDAP connection that is bound to a server host, port, secure type.
+  * and authentication.
+@@ -56,8 +56,8 @@ public class LdapBoundConnection extends LDAPConnection {
+         // this LONG line to satisfy super being the first call. (yuk)
+         super(
+                 authInfo.getAuthType() == LdapAuthInfo.LDAP_AUTHTYPE_SSLCLIENTAUTH ?
+-                        new LdapJssSSLSocketFactory(authInfo.getParms()[0]) :
+-                        (connInfo.getSecure() ? new LdapJssSSLSocketFactory() : null));
++                        new PKISocketFactory(authInfo.getParms()[0]) :
++                        new PKISocketFactory(connInfo.getSecure()));
+ 
+         // Set option to automatically follow referrals.
+         // Use the same credentials to follow referrals; this is the easiest
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/ldapconn/LdapJssSSLSocketFactory.java b/base/server/cmscore/src/com/netscape/cmscore/ldapconn/PKISocketFactory.java
+similarity index 57%
+rename from base/server/cmscore/src/com/netscape/cmscore/ldapconn/LdapJssSSLSocketFactory.java
+rename to base/server/cmscore/src/com/netscape/cmscore/ldapconn/PKISocketFactory.java
+index b54d1e2f2c021b203026272c4125285b31f28674..d0c23ed4c4f7df0a98d79813b1597a920dea8e54 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/ldapconn/LdapJssSSLSocketFactory.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/ldapconn/PKISocketFactory.java
+@@ -24,90 +24,124 @@ import java.net.UnknownHostException;
+ import java.util.Iterator;
+ import java.util.Vector;
+ 
+-import netscape.ldap.LDAPException;
+-import netscape.ldap.LDAPSSLSocketFactoryExt;
+-
+ import org.mozilla.jss.ssl.SSLClientCertificateSelectionCallback;
+ import org.mozilla.jss.ssl.SSLHandshakeCompletedEvent;
+ import org.mozilla.jss.ssl.SSLHandshakeCompletedListener;
+ import org.mozilla.jss.ssl.SSLSocket;
+ 
+ import com.netscape.certsrv.apps.CMS;
+-import com.netscape.certsrv.logging.ILogger;
++import com.netscape.certsrv.base.IConfigStore;
++
++import netscape.ldap.LDAPException;
++import netscape.ldap.LDAPSSLSocketFactoryExt;
+ 
+ /**
+  * Uses HCL ssl socket.
+  *
+  * @author Lily Hsiao lhsiao@netscape.com
+  */
+-public class LdapJssSSLSocketFactory implements LDAPSSLSocketFactoryExt {
+-    private String mClientAuthCertNickname = null;
+-    private boolean mClientAuth = false;
++public class PKISocketFactory implements LDAPSSLSocketFactoryExt {
+ 
+-    public LdapJssSSLSocketFactory() {
++    private boolean secure;
++    private String mClientAuthCertNickname;
++    private boolean mClientAuth;
++    private boolean keepAlive;
++
++    public PKISocketFactory() {
++        init();
++    }
++
++    public PKISocketFactory(boolean secure) {
++        this.secure = secure;
++        init();
+     }
+ 
+-    public LdapJssSSLSocketFactory(String certNickname) {
++    public PKISocketFactory(String certNickname) {
++        this.secure = true;
+         mClientAuthCertNickname = certNickname;
++        init();
++    }
++
++    public void init() {
++        try {
++            IConfigStore cs = CMS.getConfigStore();
++            keepAlive = cs.getBoolean("tcp.keepAlive", true);
++            CMS.debug("TCP Keep-Alive: " + keepAlive);
++
++        } catch (Exception e) {
++            CMS.debug(e);
++            throw new RuntimeException("Unable to read TCP configuration: " + e, e);
++        }
++    }
++
++    public SSLSocket makeSSLSocket(String host, int port) throws UnknownHostException, IOException {
++
++        /*
++         * let inherit TLS range and cipher settings
++         */
++
++        SSLSocket s;
++
++        if (mClientAuthCertNickname == null) {
++            s = new SSLSocket(host, port);
++
++        } else {
++            // Let's create a selection callback in the case the client auth
++            // No longer manually set the cert name.
++            // This two step process, used in the JSS client auth test suite,
++            // appears to be needed to get this working.
++
++            Socket js = new Socket(InetAddress.getByName(host), port);
++            s = new SSLSocket(js, host,
++                    null,
++                    new SSLClientCertificateSelectionCB(mClientAuthCertNickname));
++        }
++
++        s.setUseClientMode(true);
++        s.enableV2CompatibleHello(false);
++
++        SSLHandshakeCompletedListener listener = null;
++
++        listener = new ClientHandshakeCB(this);
++        s.addHandshakeCompletedListener(listener);
++
++        if (mClientAuthCertNickname != null) {
++            mClientAuth = true;
++            CMS.debug("LdapJssSSLSocket: set client auth cert nickname " +
++                    mClientAuthCertNickname);
++
++            //We have already established the manual cert selection callback
++            //Doing it this way will provide some debugging info on the candidate certs
++        }
++        s.forceHandshake();
++
++        return s;
+     }
+ 
+     public Socket makeSocket(String host, int port) throws LDAPException {
+-        SSLSocket s = null;
++
++        Socket s = null;
+ 
+         try {
+-            /*
+-             * let inherit TLS range and cipher settings
+-             */
++            if (!secure) {
++                s = new Socket(host, port);
+ 
+-            if (mClientAuthCertNickname == null) {
+-                s = new SSLSocket(host, port);
++            } else {
++                s = makeSSLSocket(host, port);
+             }
+-            else {
+-                //Let's create a selection callback in the case the client auth
+-                //No longer manually set the cert name.
+-                //This two step process, used in the JSS client auth test suite,
+-                //appears to be needed to get this working.
+ 
+-                Socket js = new Socket(InetAddress.getByName(host), port);
+-                s = new SSLSocket(js, host,
+-                        null,
+-                        new SSLClientCertificateSelectionCB(mClientAuthCertNickname));
+-            }
+-
+-            s.setUseClientMode(true);
+-            s.enableV2CompatibleHello(false);
+-
+-            SSLHandshakeCompletedListener listener = null;
+-
+-            listener = new ClientHandshakeCB(this);
+-            s.addHandshakeCompletedListener(listener);
+-
+-            if (mClientAuthCertNickname != null) {
+-                mClientAuth = true;
+-                CMS.debug("LdapJssSSLSocket: set client auth cert nickname " +
+-                        mClientAuthCertNickname);
+-
+-                //We have already established the manual cert selection callback
+-                //Doing it this way will provide some debugging info on the candidate certs
+-            }
+-            s.forceHandshake();
+-
+-        } catch (UnknownHostException e) {
+-            log(ILogger.LL_FAILURE,
+-                    CMS.getLogMessage("CMSCORE_LDAPCONN_UNKNOWN_HOST"));
+-            throw new LDAPException(
+-                    "Cannot Create JSS SSL Socket - Unknown host: " + e);
++            s.setKeepAlive(keepAlive);
+ 
+-        } catch (IOException e) {
++        } catch (Exception e) {
++            CMS.debug(e);
+             if (s != null) {
+                 try {
+                     s.close();
+                 } catch (IOException e1) {
+-                    e1.printStackTrace();
++                    CMS.debug(e1);
+                 }
+             }
+-            log(ILogger.LL_FAILURE, CMS.getLogMessage("CMSCORE_LDAPCONN_IO_ERROR", e.toString()));
+-            throw new LDAPException("IO Error creating JSS SSL Socket: " + e);
++            throw new LDAPException("Unable to create socket: " + e);
+         }
+ 
+         return s;
+diff --git a/base/server/test/com/netscape/cmscore/app/CMSEngineDefaultStub.java b/base/server/test/com/netscape/cmscore/app/CMSEngineDefaultStub.java
+index de4eb8bb6701e6cf46fac41732c7a70104e7553e..d6305cbb9aa85df89b7ff1bb9de49ded48364d98 100644
+--- a/base/server/test/com/netscape/cmscore/app/CMSEngineDefaultStub.java
++++ b/base/server/test/com/netscape/cmscore/app/CMSEngineDefaultStub.java
+@@ -60,6 +60,7 @@ import com.netscape.cmsutil.password.IPasswordStore;
+ import netscape.ldap.LDAPConnection;
+ import netscape.ldap.LDAPException;
+ import netscape.ldap.LDAPSSLSocketFactoryExt;
++import netscape.ldap.LDAPSocketFactory;
+ import netscape.security.util.ObjectIdentifier;
+ import netscape.security.x509.Extension;
+ import netscape.security.x509.GeneralName;
+@@ -344,6 +345,10 @@ public class CMSEngineDefaultStub implements ICMSEngine {
+         return null;
+     }
+ 
++    public LDAPSocketFactory getLDAPSocketFactory(boolean secure) {
++        return null;
++    }
++
+     public ILdapAuthInfo getLdapAuthInfo() {
+         return null;
+     }
+-- 
+2.5.5
+

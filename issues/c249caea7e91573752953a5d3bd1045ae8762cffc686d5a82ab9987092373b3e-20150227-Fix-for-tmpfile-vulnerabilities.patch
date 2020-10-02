@@ -1,0 +1,636 @@
+From df2c8634c9c35aeb807910e0f91b34623d6a608c Mon Sep 17 00:00:00 2001
+From: Matthew Harmsen <mharmsen@pki.usersys.redhat.com>
+Date: Fri, 27 Feb 2015 15:27:48 -0700
+Subject: [PATCH] Fix for tmpfile vulnerabilities
+
+- Bugzilla Bug #1183176 - (CVE-2015-0234) CVE-2015-0234 pki-core 10.x:
+  multiple /tmp/file vulnerabilities
+---
+ base/common/python/pki/cert.py                     |  6 ++-
+ base/common/python/pki/profile.py                  |  6 ++-
+ .../src/com/netscape/kra/NetkeyKeygenService.java  |  6 ++-
+ base/setup/pkicommon.pm                            |  8 +--
+ base/tps-client/lib/perl/PKI/TPS/AdminPanel.pm     |  7 ++-
+ base/tps-client/lib/perl/PKI/TPS/CAInfoPanel.pm    |  4 +-
+ base/tps-client/lib/perl/PKI/TPS/Config.pm         |  9 +++-
+ base/tps-client/lib/perl/PKI/TPS/DatabasePanel.pm  | 13 +++--
+ base/tps-client/lib/perl/PKI/TPS/DonePanel.pm      | 10 ++--
+ base/tps-client/lib/perl/PKI/TPS/NamePanel.pm      | 13 +++--
+ base/tps-client/setup/create.pl                    |  5 +-
+ base/tps-client/src/engine/RA.cpp                  | 60 ++++++++++++++++++++--
+ base/tps-client/src/include/main/MemoryMgr.h       |  4 +-
+ base/tps-client/src/main/Memory.cpp                | 18 ++++++-
+ .../tps-client/src/modules/tokendb/mod_tokendb.cpp | 13 ++++-
+ base/tps-client/src/tus/tus_db.c                   | 13 ++++-
+ .../netscape/security/extensions/KerberosName.java |  4 +-
+ 17 files changed, 160 insertions(+), 39 deletions(-)
+
+diff --git a/base/common/python/pki/cert.py b/base/common/python/pki/cert.py
+index 1fe323f..04dc12f 100644
+--- a/base/common/python/pki/cert.py
++++ b/base/common/python/pki/cert.py
+@@ -23,6 +23,7 @@ Authors:
+ """
+ import copy
+ import json
++import tempfile
+ import types
+ 
+ import pki
+@@ -1037,7 +1038,8 @@ def main():
+     # The pem file used for authentication. Created from a p12 file using the
+     # command -
+     # openssl pkcs12 -in <p12_file_path> -out /tmp/auth.pem -nodes
+-    connection.set_authentication_cert("/tmp/auth.pem")
++    tmp_auth_pem = tempfile.mkstemp(suffix='.pem', prefix='auth')
++    connection.set_authentication_cert(tmp_auth_pem[1])
+ 
+     #Instantiate the CertClient
+     cert_client = CertClient(connection)
+@@ -1203,4 +1205,4 @@ def main():
+ 
+ 
+ if __name__ == "__main__":
+-    main()
+\ No newline at end of file
++    main()
+diff --git a/base/common/python/pki/profile.py b/base/common/python/pki/profile.py
+index 050f854..5edb01e 100644
+--- a/base/common/python/pki/profile.py
++++ b/base/common/python/pki/profile.py
+@@ -19,6 +19,7 @@
+ 
+ import json
+ import os
++import tempfile
+ import types
+ 
+ 
+@@ -1156,7 +1157,8 @@ def main():
+     # The pem file used for authentication. Created from a p12 file using the
+     # command -
+     # openssl pkcs12 -in <p12_file_path> -out /tmp/auth.pem -nodes
+-    connection.set_authentication_cert("/tmp/auth.pem")
++    tmp_auth_pem = tempfile.mkstemp(suffix='.pem', prefix='auth')
++    connection.set_authentication_cert(tmp_auth_pem[1])
+ 
+     #Initialize the ProfileClient class
+     profile_client = ProfileClient(connection)
+@@ -1417,4 +1419,4 @@ def main():
+ 
+ 
+ if __name__ == "__main__":
+-    main()
+\ No newline at end of file
++    main()
+diff --git a/base/kra/src/com/netscape/kra/NetkeyKeygenService.java b/base/kra/src/com/netscape/kra/NetkeyKeygenService.java
+index f409eea..bd922a1 100644
+--- a/base/kra/src/com/netscape/kra/NetkeyKeygenService.java
++++ b/base/kra/src/com/netscape/kra/NetkeyKeygenService.java
+@@ -19,6 +19,8 @@ package com.netscape.kra;
+ 
+ import java.io.ByteArrayInputStream;
+ import java.io.ByteArrayOutputStream;
++// import java.io.File;
++// import java.io.FileOutputStream;
+ import java.io.FilterOutputStream;
+ import java.io.IOException;
+ import java.io.PrintStream;
+@@ -542,8 +544,8 @@ public class NetkeyKeygenService implements IService {
+                 /* This is for using with my decryption tool and ASN1
+                    decoder to see if the private key is indeed PKCS#8 format
+                    { // cfu debug
+-                   String oFilePath = "/tmp/wrappedPrivKey.bin";
+-                   File file = new File(oFilePath);
++                   File tmpfile = File.createTempFile("wrappedPrivKey", ".bin");
++                   String oFilePath = tmpfile.getAbsolutePath();
+                    FileOutputStream ostream = new FileOutputStream(oFilePath);
+                    ostream.write(wrapped);
+                    ostream.close();
+diff --git a/base/setup/pkicommon.pm b/base/setup/pkicommon.pm
+index bbe8a6b..79b1d21 100755
+--- a/base/setup/pkicommon.pm
++++ b/base/setup/pkicommon.pm
+@@ -79,6 +79,8 @@ our @EXPORT = qw(
+ 
+ use File::Slurp qw(read_file write_file);
+ 
++use File::Temp qw(tempfile tempdir);
++
+ ##############################################################
+ # This file contains shared data and subroutines for
+ # the "pkicreate" and "pkiremove" Perl scripts.
+@@ -835,17 +837,17 @@ sub setup_platform_dependent_parameters
+         $lib_prefix = "";
+         $obj_ext    = ".dll";
+         $path_sep   = ";";
+-        $tmp_dir    = "c:\\temp";
++        $tmp_dir    = tempdir();
+     } elsif ($^O eq "hpux") {
+         $lib_prefix = "lib";
+         $obj_ext    = ".sl";
+         $path_sep   = ":";
+-        $tmp_dir    = "/tmp";
++        $tmp_dir    = tempdir();
+     } else {
+         $lib_prefix = "lib";
+         $obj_ext    = ".so";
+         $path_sep   = ":";
+-        $tmp_dir    = "/tmp";
++        $tmp_dir    = tempdir();
+     }
+ 
+     return;
+diff --git a/base/tps-client/lib/perl/PKI/TPS/AdminPanel.pm b/base/tps-client/lib/perl/PKI/TPS/AdminPanel.pm
+index d62d611..fc791c7 100755
+--- a/base/tps-client/lib/perl/PKI/TPS/AdminPanel.pm
++++ b/base/tps-client/lib/perl/PKI/TPS/AdminPanel.pm
+@@ -23,6 +23,7 @@
+ 
+ use strict;
+ use warnings;
++use File::Temp qw(tempfile);
+ use PKI::TPS::GlobalVar;
+ use PKI::TPS::Common;
+ use URI::URL;
+@@ -135,7 +136,8 @@ sub update
+     my $ca_host = $cainfo_url->host;
+     my $https_ee_port = $cainfo_url->port;
+     my $content = "";
+-    my $tmpfile = "/tmp/admin-$$";
++    my $template = "admin-$$-XXXXXX";
++    my (undef, $tmpfile) = tempfile($template, DIR => "/tmp");
+     if (($tokenname eq "") || ($tokenname eq "NSS Certificate DB")) {
+         system("/usr/bin/sslget -e \"$params\" -d \"$instanceDir/alias\" -p \"$db_password\" -v -n \"$nickname\" -r \"/ca/ee/ca/profileSubmit\" $ca_host:$https_ee_port > $tmpfile");
+         $content = `cat $tmpfile`;
+@@ -167,7 +169,8 @@ sub update
+     my $bindpwd = `grep \"tokendbBindPass:\" \"$instanceDir/conf/password.conf\" | cut -c17-`;
+     $bindpwd =~ s/\n$//g;
+ 
+-    my $tmp = "/tmp/addAgents-$$.ldif";
++    $template = "addAgents-$$-XXXXXX";
++    my (undef, $tmp) = tempfile($template, DIR => "/tmp", SUFFIX => '.ldif');
+ 
+     my $flavor = "pki";
+     $flavor =~ s/\n//g;
+diff --git a/base/tps-client/lib/perl/PKI/TPS/CAInfoPanel.pm b/base/tps-client/lib/perl/PKI/TPS/CAInfoPanel.pm
+index 27d0a00..69332e2 100755
+--- a/base/tps-client/lib/perl/PKI/TPS/CAInfoPanel.pm
++++ b/base/tps-client/lib/perl/PKI/TPS/CAInfoPanel.pm
+@@ -23,6 +23,7 @@
+ 
+ use strict;
+ use warnings;
++use File::Temp qw(tempfile);
+ use PKI::TPS::GlobalVar;
+ use PKI::TPS::Common;
+ use URI::URL;
+@@ -152,7 +153,8 @@ sub update
+     my $instanceDir = $::config->get("service.instanceDir");
+     my $db_password = `grep \"internal:\" \"$instanceDir/conf/password.conf\" | cut -c10-`;
+     $db_password =~ s/\n$//g;
+-    my $tmpfile = "/tmp/ca-$$";
++    my $template = "ca-$$-XXXXXX";
++    my (undef, $tmpfile) = tempfile($template, DIR => "/tmp");
+     system("/usr/bin/sslget -d \"$instanceDir/alias\" -p \"$db_password\" -v -n \"$serverCertNickName\" -r \"/ca/ee/ca/getCertChain\" $host:$https_ee_port > $tmpfile");
+     my $cmd = `cat $tmpfile`;
+     system("rm $tmpfile");
+diff --git a/base/tps-client/lib/perl/PKI/TPS/Config.pm b/base/tps-client/lib/perl/PKI/TPS/Config.pm
+index 7195dcc..80ac866 100755
+--- a/base/tps-client/lib/perl/PKI/TPS/Config.pm
++++ b/base/tps-client/lib/perl/PKI/TPS/Config.pm
+@@ -26,6 +26,7 @@ package PKI::TPS::Config;
+ use strict;
+ use warnings;
+ use Exporter;
++#use File::Temp qw(tempfile);
+ 
+ $PKI::TPS::Config::VERSION = '1.00';
+ 
+@@ -150,7 +151,9 @@ sub commit_with_backup
+ # Test Program
+ #######################################################
+ #my $config = PKI::TPS::Config->new();
+-#$config->load_file("/tmp/CS.cfg");
++#my $template = "CS-XXXXXX";
++#my (undef, $tmpfile) = tempfile($template, DIR => "/tmp", SUFFIX => ".cfg");
++#$config->load_file($tmpfile);
+ #print $config->get("tokendb.indexAdminTemplate") . "\n";
+ #$config->put("tokendb.indexAdminTemplate", "Testing");
+ #print $config->get("tokendb.indexAdminTemplate") . "\n";
+@@ -162,7 +165,9 @@ sub commit_with_backup
+ # Test Program
+ #######################################################
+ #my $config = PKI::TPS::Config->new();
+-#$config->load_file("/tmp/CS.cfg");
++#my $template = "CS-XXXXXX";
++#my (undef, $tmpfile) = tempfile($template, DIR => "/tmp", SUFFIX => ".cfg");
++#$config->load_file($tmpfile);
+ #print $config->get("tokendb.indexAdminTemplate") . "\n";
+ #$config->put("tokendb.indexAdminTemplate", "Testing");
+ #print $config->get("tokendb.indexAdminTemplate") . "\n";
+diff --git a/base/tps-client/lib/perl/PKI/TPS/DatabasePanel.pm b/base/tps-client/lib/perl/PKI/TPS/DatabasePanel.pm
+index d8fee06..7b8b563 100755
+--- a/base/tps-client/lib/perl/PKI/TPS/DatabasePanel.pm
++++ b/base/tps-client/lib/perl/PKI/TPS/DatabasePanel.pm
+@@ -23,6 +23,7 @@
+ 
+ use strict;
+ use warnings;
++use File::Temp qw(tempfile);
+ use PKI::TPS::GlobalVar;
+ use PKI::TPS::Common;
+ use Mozilla::LDAP::Conn;
+@@ -139,7 +140,8 @@ sub update
+     $flavor =~ s/\n//g;
+ 
+     # creating database
+-    my $tmp = "/tmp/database-$$.ldif";
++    my $template = "database-$$-XXXXXX";
++    my (undef, $tmp) = tempfile($template, DIR => "/tmp", SUFFIX => ".ldif");
+     system("sed -e 's/\$DATABASE/$database/' " .
+               "-e 's/\$BASEDN/$basedn/' " .
+               "-e 's/\$OBJECTCLASS/$objectclass/' " .
+@@ -171,7 +173,8 @@ sub update
+     }
+ 
+     # populate database
+-    $tmp = "/tmp/addTokens-$$.ldif";
++    $template = "addTokens-$$-XXXXXX";
++    (undef, $tmp) = tempfile($template, DIR => "/tmp", SUFFIX => ".ldif");
+     system("sed -e 's/\$TOKENDB_ROOT/$basedn/g' " .
+               "/usr/share/$flavor/tps/scripts/addTokens.ldif > $tmp");
+     if (! &PKI::TPS::Common::import_ldif($conn, $tmp, \$msg)) {
+@@ -187,7 +190,8 @@ sub update
+     system("rm $tmp");
+ 
+     # add regular indexes
+-    $tmp = "/tmp/addIndexes-$$.ldif";
++    $template = "addIndexes-$$-XXXXXX";
++    (undef, $tmp) = tempfile($template, DIR => "/tmp", SUFFIX => ".ldif");
+     system("sed -e 's/userRoot/$database/g' " .
+               "/usr/share/$flavor/tps/scripts/addIndexes.ldif > $tmp");
+     if (! &PKI::TPS::Common::import_ldif($conn, $tmp, \$msg)) {
+@@ -203,7 +207,8 @@ sub update
+     system("rm $tmp");
+ 
+     # add VLV indexes
+-    $tmp = "/tmp/addVLVIndexes-$$.ldif";
++    $template = "addVLVIndexes-$$-XXXXXX";
++    (undef, $tmp) = tempfile($template, DIR => "/tmp", SUFFIX => ".ldif");
+     system("sed -e 's/userRoot/$database/g;s/\$TOKENDB_ROOT/$basedn/g' " .
+               "/usr/share/$flavor/tps/scripts/addVLVIndexes.ldif > $tmp");
+     if (! &PKI::TPS::Common::import_ldif($conn, $tmp, \$msg)) {
+diff --git a/base/tps-client/lib/perl/PKI/TPS/DonePanel.pm b/base/tps-client/lib/perl/PKI/TPS/DonePanel.pm
+index 06c3064..4932002 100755
+--- a/base/tps-client/lib/perl/PKI/TPS/DonePanel.pm
++++ b/base/tps-client/lib/perl/PKI/TPS/DonePanel.pm
+@@ -23,6 +23,7 @@
+ 
+ use strict;
+ use warnings;
++use File::Temp qw(tempfile);
+ use PKI::TPS::GlobalVar;
+ use PKI::TPS::Common;
+ use URI::URL;
+@@ -155,7 +156,8 @@ sub register_tps
+ 
+     my $host = $url_info->host;
+     my $port = $url_info->port;
+-    my $tmpfile = "/tmp/donepanel-$$";
++    my $template = "donepanel-$$-XXXXXX";
++    my (undef, $tmpfile) = tempfile($template, DIR => "/tmp");
+     if (($tokenname eq "") || ($tokenname eq "NSS Certificate DB")) {
+         system("/usr/bin/sslget -e \"$params\" -d \"$instanceDir/alias\" -p \"$db_password\" -v -n \"$nickname\" -r \"$uri\" $host:$port > $tmpfile");
+     } else {
+@@ -208,7 +210,8 @@ sub get_kra_transport_cert
+ 
+     my $host = $krainfo_url->host;
+     my $port = $krainfo_url->port;
+-    my $tmpfile = "/tmp/donepanel-$$";
++    my $template = "donepanel-$$-XXXXXX";
++    my (undef, $tmpfile) = tempfile($template, DIR => "/tmp");
+     if (($tokenname eq "") || ($tokenname eq "NSS Certificate DB")) {
+         system("/usr/bin/sslget -e \"$params\" -d \"$instanceDir/alias\" -p \"$db_password\" -v -r \"/kra/admin/kra/getTransportCert\" $host:$port > $tmpfile");
+     } else {
+@@ -266,7 +269,8 @@ sub send_kra_transport_cert
+ 
+     my $host = $tksinfo_url->host;
+     my $port = $tksinfo_url->port;
+-    my $tmpfile = "/tmp/donepanel-$$";
++    my $template = "donepanel-$$-XXXXXX";
++    my (undef, $tmpfile) = tempfile($template, DIR => "/tmp");
+     if (($tokenname eq "") || ($tokenname eq "NSS Certificate DB")) {
+         system("/usr/bin/sslget -e \"$params\" -d \"$instanceDir/alias\" -p \"$db_password\" -v -r \"/tks/admin/tks/importTransportCert\" $host:$port > $tmpfile");
+     } else {
+diff --git a/base/tps-client/lib/perl/PKI/TPS/NamePanel.pm b/base/tps-client/lib/perl/PKI/TPS/NamePanel.pm
+index d3ca4c1..70af2fd 100755
+--- a/base/tps-client/lib/perl/PKI/TPS/NamePanel.pm
++++ b/base/tps-client/lib/perl/PKI/TPS/NamePanel.pm
+@@ -24,6 +24,7 @@
+ use strict;
+ use warnings;
+ use FileHandle;
++use File::Temp qw(tempfile);
+ use PKI::TPS::GlobalVar;
+ use PKI::TPS::Common;
+ use PKI::TPS::CertInfo;
+@@ -193,17 +194,20 @@ sub update
+         &PKI::TPS::Wizard::debug_log("NamePanel: update got key type $keytype");
+         my $req = "";
+         my $debug_req;
+-        my $filename = "/tmp/random.$$";
++        my $template = "random-XXXXXX";
++        my (undef, $filename) = tempfile($template, DIR => "/tmp", SUFFIX => ".$$");
+         `dd if\=/dev/urandom of\=\"$filename\" count\=256 bs\=1`;
+         if ($keytype eq "rsa") {
+             #XXX temporary
+             &PKI::TPS::Wizard::debug_log("NamePanel: update "."certutil -R -s $cert_dn -k $keytype -g $keysize -d $instanceDir/alias $hw -f $instanceDir/conf/.pwfile -a -z $filename");
+-            my $tmpfile = "/tmp/req$$";
++            my $template = "req$$-XXXXXX";
++            my (undef, $tmpfile) = tempfile($template, DIR => "/tmp");
+             system("certutil -R -s \"$cert_dn\" -k $keytype -g $keysize -d $instanceDir/alias $hw -f $instanceDir/conf/.pwfile -a -z $filename > $tmpfile");
+             $req = `cat $tmpfile`;
+             system("rm $tmpfile");
+         } elsif ($keytype eq "ecc") {
+-            my $tmpfile = "/tmp/req$$";
++            my $template = "req$$-XXXXXX";
++            my (undef, $tmpfile) = tempfile($template, DIR => "/tmp");
+             # try first without specific flags
+             system("certutil -d $instanceDir/alias $hw -f $instanceDir/conf/.pwfile -R -s \"$cert_dn\" -k ec -q $keysize -a -z $filename> $tmpfile");
+             $req = `cat $tmpfile`;
+@@ -280,7 +284,8 @@ GEN_CERT:
+                 my $db_password = "";
+                 &PKI::TPS::Wizard::debug_log("NamePanel: greping password");
+                  
+-                my $tmpfile = "/tmp/grep$$"; 
++                my $template = "grep$$-XXXXXX";
++                my (undef, $tmpfile) = tempfile($template, DIR => "/tmp");
+                 system ("grep \"internal:\" \"$instanceDir/conf/password.conf\" | cut -c10- > $tmpfile");
+                 $db_password = `cat $tmpfile`;
+                 $db_password =~ s/\n$//g;
+diff --git a/base/tps-client/setup/create.pl b/base/tps-client/setup/create.pl
+index 11efe36..8fde655 100755
+--- a/base/tps-client/setup/create.pl
++++ b/base/tps-client/setup/create.pl
+@@ -28,6 +28,7 @@
+ #
+ ##############################################################
+ 
++use File::Temp qw(tempdir);
+ use FindBin;
+ 
+ ##############################################################
+@@ -432,9 +433,9 @@ ASK_TUS_PWD:
+   }
+         
+   if (&IsWindows()) {
+-    $tmpDir = "c:\\temp";
++    $tmpDir = tempdir();
+   } else {
+-    $tmpDir = "/tmp";
++    $tmpDir = tempdir();
+   }
+   print ("\n");
+ }
+diff --git a/base/tps-client/src/engine/RA.cpp b/base/tps-client/src/engine/RA.cpp
+index 82f53c1..493f46a 100644
+--- a/base/tps-client/src/engine/RA.cpp
++++ b/base/tps-client/src/engine/RA.cpp
+@@ -217,6 +217,11 @@ enum token_ui_states  {
+ #define TPS_PUBLIC
+ #endif /* !XP_WIN32 */
+ 
++#define TMP_DEBUG_LOG    "/tmp/debug-XXXXXX.log"
++#define TMP_ERROR_LOG    "/tmp/error-XXXXXX.log"
++#define TMP_SELFTEST_LOG "/tmp/selftest-XXXXXX.log"
++#define TMP_AUDIT_LOG    "/tmp/audit-XXXXXX.log"
++
+ /**
+  * Constructs a Registration Authority object.
+  */
+@@ -421,9 +426,18 @@ TPS_PUBLIC int RA::Initialize(char *cfg_path, RA_Context *ctx)
+         m_ctx = ctx;
+ 
+ 	if (m_cfg->GetConfigAsBool(CFG_DEBUG_ENABLE, 0)) {
++                char tmp_debug_log[32];
++                int tmp_debug_fd = -1;
++
++                memset(tmp_debug_log, 0, sizeof(tmp_debug_log));
++
++                strncpy(tmp_debug_log, TMP_DEBUG_LOG, strlen(TMP_DEBUG_LOG));
++
++                tmp_debug_fd = mkstemps(tmp_debug_log, 4);
++
+                 m_debug_log = GetLogFile(m_cfg->GetConfigAsString(CFG_DEBUG_FILE_TYPE, "LogFile"));
+                 status = m_debug_log->startup(ctx, CFG_DEBUG_PREFIX, 
+-                             m_cfg->GetConfigAsString(CFG_DEBUG_FILENAME, "/tmp/debug.log"),
++                             m_cfg->GetConfigAsString(CFG_DEBUG_FILENAME, tmp_debug_log),
+                              false);
+                 if (status != PR_SUCCESS) 
+                     goto loser;
+@@ -438,9 +452,18 @@ TPS_PUBLIC int RA::Initialize(char *cfg_path, RA_Context *ctx)
+         m_selftest_log_level = m_cfg->GetConfigAsInt(CFG_SELFTEST_LEVEL, (int) LL_PER_SERVER);
+ 
+ 	if (m_cfg->GetConfigAsBool(CFG_ERROR_ENABLE, 0)) {
++                char tmp_error_log[32];
++                int tmp_error_fd = -1;
++
++                memset(tmp_error_log, 0, sizeof(tmp_error_log));
++
++                strncpy(tmp_error_log, TMP_ERROR_LOG, strlen(TMP_ERROR_LOG));
++
++                tmp_error_fd = mkstemps(tmp_error_log, 4);
++
+                 m_error_log = GetLogFile(m_cfg->GetConfigAsString(CFG_ERROR_FILE_TYPE, "LogFile"));
+                 status = m_error_log->startup(ctx, CFG_ERROR_PREFIX,
+-                             m_cfg->GetConfigAsString(CFG_ERROR_FILENAME, "/tmp/error.log"),
++                             m_cfg->GetConfigAsString(CFG_ERROR_FILENAME, tmp_error_log),
+                              false);
+                 if (status != PR_SUCCESS)
+                     goto loser;
+@@ -452,9 +475,18 @@ TPS_PUBLIC int RA::Initialize(char *cfg_path, RA_Context *ctx)
+ 	}
+ 
+ 	if (m_cfg->GetConfigAsBool(CFG_SELFTEST_ENABLE, 0)) {
++                char tmp_selftest_log[32];
++                int tmp_selftest_fd = -1;
++
++                memset(tmp_selftest_log, 0, sizeof(tmp_selftest_log));
++
++                strncpy(tmp_selftest_log, TMP_SELFTEST_LOG, strlen(TMP_SELFTEST_LOG));
++
++                tmp_selftest_fd = mkstemps(tmp_selftest_log, 4);
++
+                 m_selftest_log = GetLogFile(m_cfg->GetConfigAsString(CFG_SELFTEST_FILE_TYPE, "LogFile"));
+                 status = m_selftest_log->startup(ctx, CFG_SELFTEST_PREFIX,
+-                             m_cfg->GetConfigAsString(CFG_SELFTEST_FILENAME, "/tmp/selftest.log"),
++                             m_cfg->GetConfigAsString(CFG_SELFTEST_FILENAME, tmp_selftest_log),
+                              false);
+                 if (status != PR_SUCCESS)
+                     goto loser;
+@@ -619,6 +651,15 @@ int RA::InitializeInChild(RA_Context *ctx, int nSignedAuditInitCount) {
+     m_flush_interval = m_cfg->GetConfigAsInt(CFG_AUDIT_FLUSH_INTERVAL, 5);
+ 
+     if (m_audit_enabled  && (nSignedAuditInitCount > 1 )) {
++        char tmp_audit_log[32];
++        int tmp_audit_fd = -1;
++
++        memset(tmp_audit_log, 0, sizeof(tmp_audit_log));
++
++        strncpy(tmp_audit_log, TMP_AUDIT_LOG, strlen(TMP_AUDIT_LOG));
++
++        tmp_audit_fd = mkstemps(tmp_audit_log, 4);
++
+         // is audit logSigning on?
+         m_audit_signed = m_cfg->GetConfigAsBool(CFG_AUDIT_SIGNED, false);
+         RA::Debug("RA:: InitializeInChild", "Audit signing is %s",
+@@ -628,7 +669,7 @@ int RA::InitializeInChild(RA_Context *ctx, int nSignedAuditInitCount) {
+         status = m_audit_log->startup(ctx, CFG_AUDIT_PREFIX,
+                                       m_cfg->GetConfigAsString((m_audit_signed)? 
+                                       CFG_SIGNED_AUDIT_FILENAME:CFG_AUDIT_FILENAME,
+-                                      "/tmp/audit.log"),
++                                      tmp_audit_log),
+                                       m_audit_signed);
+         if (status != PR_SUCCESS) 
+             goto loser;
+@@ -2785,12 +2826,21 @@ TPS_PUBLIC int RA::setup_audit_log(bool enable_signing, bool signing_changed)
+ 
+     // open new log file if required
+     if (m_audit_log == NULL) {
++        char tmp_audit_log[32];
++        int tmp_audit_fd = -1;
++
++        memset(tmp_audit_log, 0, sizeof(tmp_audit_log));
++
++        strncpy(tmp_audit_log, TMP_AUDIT_LOG, strlen(TMP_AUDIT_LOG));
++
++        tmp_audit_fd = mkstemps(tmp_audit_log, 4);
++
+         RA::Debug(LL_PER_PDU, "RA::setup_audit_log","Opening audit log file");
+         m_audit_log = GetLogFile(m_cfg->GetConfigAsString(CFG_AUDIT_FILE_TYPE, "LogFile"));
+         status = m_audit_log->startup(m_ctx, CFG_AUDIT_PREFIX,
+                                   m_cfg->GetConfigAsString((enable_signing)?
+                                   CFG_SIGNED_AUDIT_FILENAME:CFG_AUDIT_FILENAME,
+-                                  "/tmp/audit.log"),
++                                  tmp_audit_log),
+                                   enable_signing);
+         if (status != PR_SUCCESS)
+            goto loser;
+diff --git a/base/tps-client/src/include/main/MemoryMgr.h b/base/tps-client/src/include/main/MemoryMgr.h
+index 7e2f71d..9318b0d 100644
+--- a/base/tps-client/src/include/main/MemoryMgr.h
++++ b/base/tps-client/src/include/main/MemoryMgr.h
+@@ -40,7 +40,7 @@
+ /* Uncomment the following to enable memory profiling */
+ 
+ /* #define MEM_PROFILING  */
+-#define MEM_AUDIT_FILE "/tmp/mem-audit.log" 
+-#define MEM_DUMP_FILE  "/tmp/mem-dump.log"
++#define MEM_AUDIT_FILE "/tmp/mem-audit-XXXXXX.log"
++#define MEM_DUMP_FILE  "/tmp/mem-dump-XXXXXX.log"
+ 
+ #endif /* RA_MEMORY_MGR_H */
+diff --git a/base/tps-client/src/main/Memory.cpp b/base/tps-client/src/main/Memory.cpp
+index 1ee5027..973fa69 100644
+--- a/base/tps-client/src/main/Memory.cpp
++++ b/base/tps-client/src/main/Memory.cpp
+@@ -96,9 +96,23 @@ static PRFileDesc *m_dump_f = NULL;
+ 
+ void MEM_init(char *audit_file, char *dump_file)
+ {
+-       m_audit_f = PR_Open(audit_file, PR_RDWR|PR_CREATE_FILE|PR_APPEND, 
++       char tmp_audit_file[32];
++       char tmp_dump_file[32];
++       int tmp_audit_fd = -1;
++       int tmp_dump_fd = -1;
++
++       memset(tmp_audit_file, 0, sizeof(tmp_audit_file));
++       memset(tmp_dump_file, 0, sizeof(tmp_dump_file));
++
++       strncpy(tmp_audit_file, audit_file, strlen(audit_file));
++       strncpy(tmp_dump_file, dump_file, strlen(dump_file));
++
++       tmp_audit_fd = mkstemps(tmp_audit_file, 4);
++       tmp_dump_fd = mkstemps(tmp_dump_file, 4);
++
++       m_audit_f = PR_Open(tmp_audit_file, PR_RDWR|PR_CREATE_FILE|PR_APPEND,
+ 		       00200|00400);
+-       m_dump_f = PR_Open(dump_file,  PR_RDWR|PR_CREATE_FILE|PR_APPEND,
++       m_dump_f = PR_Open(tmp_dump_file,  PR_RDWR|PR_CREATE_FILE|PR_APPEND,
+ 		       00200|00400);
+ 
+        int i;
+diff --git a/base/tps-client/src/modules/tokendb/mod_tokendb.cpp b/base/tps-client/src/modules/tokendb/mod_tokendb.cpp
+index 27fa7f81..b9bd842 100644
+--- a/base/tps-client/src/modules/tokendb/mod_tokendb.cpp
++++ b/base/tps-client/src/modules/tokendb/mod_tokendb.cpp
+@@ -2462,7 +2462,18 @@ mod_tokendb_initialize( apr_pool_t *p,
+     /* Load the Tokendb module. */
+ 
+ #ifdef DEBUG_Tokendb
+-    debug_fd = PR_Open( "/tmp/tus-debug.log",
++#define TMP_TUS_DEBUG_LOG "/tmp/tus-debug-XXXXXX.log"
++
++    char tmp_tus_debug_log[32];
++    int tmp_tus_debug_fd = -1;
++
++    memset(tmp_tus_debug_log, 0, sizeof(tmp_tus_debug_log));
++
++    strncpy(tmp_tus_debug_log, TMP_TUS_DEBUG_LOG, strlen(TMP_TUS_DEBUG_LOG);
++
++    tmp_tus_debug_fd = mkstemps(tmp_tus_debug_log, 4);
++
++    debug_fd = PR_Open( tmp_tus_debug_log,
+                         PR_RDWR | PR_CREATE_FILE | PR_APPEND,
+                         00400 | 00200 );
+ #endif
+diff --git a/base/tps-client/src/tus/tus_db.c b/base/tps-client/src/tus/tus_db.c
+index 51e3193..a4d810e 100644
+--- a/base/tps-client/src/tus/tus_db.c
++++ b/base/tps-client/src/tus/tus_db.c
+@@ -891,7 +891,18 @@ static int tus_check_conn()
+ /*#define DEBUG_TOKENDB*/
+ 
+ #ifdef DEBUG_TOKENDB
+-    debug_fd = PR_Open("/tmp/debugTUSdb.log",
++#define TMP_DEBUG_TUSDB_LOG "/tmp/debugTUSdb-XXXXXX.log"
++
++    char tmp_debug_tusdb_log[32];
++    int tmp_debug_tusdb_fd = -1;
++
++    memset(tmp_debug_tusdb_log, 0, sizeof(tmp_debug_tusdb_log));
++
++    strncpy(tmp_debug_tusdb_log, TMP_DEBUG_TUSDB_LOG, strlen(TMP_DEBUG_TUSDB_LOG));
++
++    tmp_debug_tusdb_fd = mkstemps(tmp_debug_tusdb_log, 4);
++
++    debug_fd = PR_Open(tmp_debug_tusdb_log,
+            PR_RDWR | PR_CREATE_FILE | PR_APPEND,
+                    400 | 200);
+ #endif
+diff --git a/base/util/src/netscape/security/extensions/KerberosName.java b/base/util/src/netscape/security/extensions/KerberosName.java
+index 21d329f..ec5a0f6 100644
+--- a/base/util/src/netscape/security/extensions/KerberosName.java
++++ b/base/util/src/netscape/security/extensions/KerberosName.java
+@@ -18,6 +18,7 @@
+ package netscape.security.extensions;
+ 
+ import java.io.ByteArrayOutputStream;
++import java.io.File;
+ import java.io.FileOutputStream;
+ import java.io.IOException;
+ import java.io.OutputStream;
+@@ -126,7 +127,8 @@ public class KerberosName {
+ 
+         System.out.println(k.toString());
+         try {
+-            FileOutputStream os = new FileOutputStream("/tmp/out.der");
++            File tmpfile = File.createTempFile("out", ".der");
++            FileOutputStream os = new FileOutputStream(tmpfile.getAbsolutePath());
+             k.encode(os);
+             os.close();
+         } catch (Exception e) {
+-- 
+2.1.0
+

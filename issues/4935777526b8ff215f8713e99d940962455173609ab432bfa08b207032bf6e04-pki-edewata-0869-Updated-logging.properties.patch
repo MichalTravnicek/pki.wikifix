@@ -1,0 +1,117 @@
+From 5b1ee4c4a84da0d1cdc194a01875553a44c646d7 Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Thu, 17 Nov 2016 00:27:58 +0100
+Subject: [PATCH] Updated logging.properties.
+
+To reduce maintenance the logging.properties is no longer copied
+into the instance folder during deployment. Instead, a link will
+be created in /etc/pki/<instance> pointing to the default file
+in /usr/share/pki/server/conf.
+
+The default logging.properties has been updated to only log
+messages with level WARNING or higher on the console.
+
+https://fedorahosted.org/pki/ticket/1897
+---
+ base/common/share/etc/logging.properties           |  1 +
+ .../deployment/scriptlets/instance_layout.py       | 16 +++++++++++++--
+ base/server/share/conf/logging.properties          | 24 +++++-----------------
+ 3 files changed, 20 insertions(+), 21 deletions(-)
+
+diff --git a/base/common/share/etc/logging.properties b/base/common/share/etc/logging.properties
+index bd5b5b627903e0daa2c8b70a0569a5cc78321765..fe879c46e1df792f2aac2835492967e845abc794 100644
+--- a/base/common/share/etc/logging.properties
++++ b/base/common/share/etc/logging.properties
+@@ -26,3 +26,4 @@ java.util.logging.ConsoleHandler.formatter = java.util.logging.SimpleFormatter
+ java.util.logging.SimpleFormatter.format = %4$s: %5$s%6$s%n
+ 
+ .level = WARNING
++.handlers = java.util.logging.ConsoleHandler
+diff --git a/base/server/python/pki/server/deployment/scriptlets/instance_layout.py b/base/server/python/pki/server/deployment/scriptlets/instance_layout.py
+index c470c7f948b1746709b1e776d942121450b0691c..07eecbdd7e086b33bd10673785d44161c0f5dd0b 100644
+--- a/base/server/python/pki/server/deployment/scriptlets/instance_layout.py
++++ b/base/server/python/pki/server/deployment/scriptlets/instance_layout.py
+@@ -55,6 +55,13 @@ class PkiScriptlet(pkiscriptlet.AbstractBasePkiScriptlet):
+                 deployer.mdict['pki_instance_configuration_path'],
+                 ignore_cb=file_ignore_callback_src_server)
+ 
++            # Link /etc/pki/<instance>/logging.properties
++            # to /usr/share/pki/server/conf/logging.properties.
++            deployer.symlink.create(
++                os.path.join(deployer.mdict['pki_source_server_path'], "logging.properties"),
++                os.path.join(deployer.mdict['pki_instance_configuration_path'],
++                             "logging.properties"))
++
+             # create /etc/sysconfig/<instance>
+             deployer.file.copy_with_slot_substitution(
+                 deployer.mdict['pki_source_tomcat_conf'],
+@@ -219,5 +226,10 @@ def file_ignore_callback_src_server(src, names):
+     config.pki_log.info(log.FILE_EXCLUDE_CALLBACK_2, src, names,
+                         extra=config.PKI_INDENTATION_LEVEL_1)
+ 
+-    excludes = {'schema.ldif', 'database.ldif', 'manager.ldif', 'pki.xml'}
+-    return excludes
++    return {
++        'schema.ldif',
++        'database.ldif',
++        'manager.ldif',
++        'pki.xml',
++        'logging.properties'
++    }
+diff --git a/base/server/share/conf/logging.properties b/base/server/share/conf/logging.properties
+index dfdc0a40ffabc2dae05673bea2e01349ce101f7f..7c1ac37ec300375c96c0d415856622a429235b7f 100644
+--- a/base/server/share/conf/logging.properties
++++ b/base/server/share/conf/logging.properties
+@@ -21,28 +21,11 @@
+ 
+ handlers = 1catalina.org.apache.juli.FileHandler, 2localhost.org.apache.juli.FileHandler, 3manager.org.apache.juli.FileHandler, 4host-manager.org.apache.juli.FileHandler, java.util.logging.ConsoleHandler
+ 
+-.handlers = 1catalina.org.apache.juli.FileHandler, java.util.logging.ConsoleHandler
+-
+ ############################################################
+ # Handler specific properties.
+ # Describes specific configuration info for Handlers.
+ ############################################################
+ 
+-# Change the following settings to allow for more granular debugging:
+-#
+-#     * 1catalina.org.apache.juli.FileHandler.level = ALL
+-#     * 2localhost.org.apache.juli.FileHandler.level = ALL
+-#
+-# and add the following lines to the end of this file:
+-#
+-#     * org.apache.catalina.loader.level = FINEST
+-#     * org.apache.catalina.loader.WebappClassLoader.level = FINEST
+-#     * org.apache.catalina.loader.StandardClassLoader.level = FINEST
+-#     * com.netscape.cms.servlet.base.level = FINEST
+-#     * com.netscape.cms.servlet.base.CMSStartServlet.level = FINEST
+-#     * java.net.URLClassLoader.level = FINEST
+-#
+-
+ 1catalina.org.apache.juli.FileHandler.level = FINE
+ 1catalina.org.apache.juli.FileHandler.directory = ${catalina.base}/logs
+ 1catalina.org.apache.juli.FileHandler.prefix = catalina.
+@@ -59,15 +42,18 @@ handlers = 1catalina.org.apache.juli.FileHandler, 2localhost.org.apache.juli.Fil
+ 4host-manager.org.apache.juli.FileHandler.directory = ${catalina.base}/logs
+ 4host-manager.org.apache.juli.FileHandler.prefix = host-manager.
+ 
+-java.util.logging.ConsoleHandler.level = FINE
++java.util.logging.ConsoleHandler.level = ALL
+ java.util.logging.ConsoleHandler.formatter = java.util.logging.SimpleFormatter
+-
++java.util.logging.SimpleFormatter.format = %4$s: %5$s%6$s%n
+ 
+ ############################################################
+ # Facility specific properties.
+ # Provides extra control for each logger.
+ ############################################################
+ 
++.level = WARNING
++.handlers = java.util.logging.ConsoleHandler
++
+ org.apache.catalina.core.ContainerBase.[Catalina].[localhost].level = INFO
+ org.apache.catalina.core.ContainerBase.[Catalina].[localhost].handlers = 2localhost.org.apache.juli.FileHandler
+ 
+-- 
+2.5.5
+

@@ -1,0 +1,693 @@
+From 5e53c639d1e0508a4f8307d1dcd9c01a0994bd5e Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Tue, 12 Jan 2016 12:28:10 +1100
+Subject: [PATCH] Remove vestiges of NISAuth plugin
+
+Fixes: https://fedorahosted.org/pki/ticket/1674
+---
+ base/ca/shared/webapps/ca/ee/ca/NISUserEnroll.html | 508 ---------------------
+ .../webapps/ca/ee/ca/policyEnrollment/index.html   |   9 -
+ .../netscape/admin/certsrv/certsrv-help.properties |   2 -
+ .../netscape/admin/certsrv/ug/AuthBaseDialog.java  |   2 -
+ .../admin/certsrv/ug/AuthConfigDialog.java         |   3 -
+ base/kra/shared/conf/CS.cfg.in                     |   1 -
+ base/ocsp/shared/conf/CS.cfg.in                    |   2 -
+ base/server/cmsbundle/src/LogMessages.properties   |   2 -
+ base/server/cmsbundle/src/UserMessages.properties  |   2 -
+ .../src/com/netscape/cmscore/apps/Setup.java       |   1 -
+ base/tks/shared/conf/CS.cfg.in                     |   1 -
+ base/tps/shared/conf/CS.cfg.in                     |   1 -
+ 12 files changed, 534 deletions(-)
+ delete mode 100644 base/ca/shared/webapps/ca/ee/ca/NISUserEnroll.html
+
+diff --git a/base/ca/shared/webapps/ca/ee/ca/NISUserEnroll.html b/base/ca/shared/webapps/ca/ee/ca/NISUserEnroll.html
+deleted file mode 100644
+index d671b4b22ab33d6333742448d20399d8cacbcd79..0000000000000000000000000000000000000000
+--- a/base/ca/shared/webapps/ca/ee/ca/NISUserEnroll.html
++++ /dev/null
+@@ -1,508 +0,0 @@
+-<!-- --- BEGIN COPYRIGHT BLOCK ---
+-     This program is free software; you can redistribute it and/or modify
+-     it under the terms of the GNU General Public License as published by
+-     the Free Software Foundation; version 2 of the License.
+-
+-     This program is distributed in the hope that it will be useful,
+-     but WITHOUT ANY WARRANTY; without even the implied warranty of
+-     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-     GNU General Public License for more details.
+-
+-     You should have received a copy of the GNU General Public License along
+-     with this program; if not, write to the Free Software Foundation, Inc.,
+-     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+-
+-     Copyright (C) 2007 Red Hat, Inc.
+-     All rights reserved.
+-     --- END COPYRIGHT BLOCK --- -->
+-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+-<html>
+-<head>
+-<TITLE>NIS Based User Enrollment Form</TITLE>
+-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+-<SCRIPT LANGUAGE="JavaScript"></SCRIPT>
+-<SCRIPT LANGUAGE="JavaScript" SRC="../cms-funcs.js"> </SCRIPT>
+-<SCRIPT LANGUAGE="JavaScript" SRC="../helpfun.js"> </SCRIPT>
+-<SCRIPT LANGUAGE="JavaScript" SRC="/ca/ee/dynamicVars.js"> </SCRIPT>
+-<SCRIPT>
+-//<!--
+-
+-// Notice to administrators
+-//
+-// A link to this HTML form conditionally appears in the
+-// main enrollment menu frame. This link will only appear if
+-// a plugin of type 'NISAuth' has been configured in the console.
+-
+-var crmfObject;
+-function validate(form)
+-{
+-    with (form) {
+-        if (uid.value == "") {
+-            alert("You must supply your uid");
+-            return false;
+-        }
+-        if (pwd.value == "") {
+-            alert("You must supply your password");
+-            return false;
+-        }
+-
+-        /////////////////////////////////////////////////////////////////
+-        // To enable dual key feature, this page must be customized with
+-        // appropriate Javascript call. For example,
+-        //
+-        //      crmfObject = crypto.generateCRMFRequest(
+-        //              "CN=undefined",
+-        //              "regToken", "authenticator",
+-        //              null,
+-        //              "setCRMFRequest();",
+-        //              512, null, "rsa-ex",
+-        //              1024, null, "rsa-sign");
+-        //
+-        // To enable key archival feature, this page must be customized with
+-        // KRA's transport certificate. The transport certificate can be
+-        // retrieved in the following ways:
+-        // (1) Access "List Certificates" menu option in end-entity page
+-        // (2) Access https://<host>:<agent_port>/kra/displayTransportCert
+-        // (3) Use certutil command in <instance-dir>/config directory
+-        //     (i.e. certutil -L -d . -n "kraTransportCert <instance-id>" -a)
+-        //
+-        // Once the transport certificate is obtained, the following
+-        // javascript should be modified so that the transport certificate
+-        // and appropriate key type are selected. For example,
+-        //
+-        //      var keyGenAlg = "rsa-ex";
+-        //      crmfObject = crypto.generateCRMFRequest(
+-        //              "CN=undefined",
+-        //              "regToken", "authenticator",
+-        //              keyTransportCert,
+-        //              "setCRMFRequest();",
+-        //              512, null, keyGenAlg);
+-        /////////////////////////////////////////////////////////////////
+-
+-        // generate keys for nsm.
+-        if (navigator.appName == "Netscape" && (navMajorVersion() > 3) && 
+-			 typeof(crypto.version) != "undefined") {
+-			//certNickname.value = uid.value;
+-        	crmfObject = crypto.generateCRMFRequest(
+-				"CN=undefined", 
+-               	"regToken", "authenticator", 
+-			null,
+-                "setCRMFRequest();", 
+-                1024, null, "rsa-dual-use");
+-        }
+-        return true;
+-    }
+-}
+-
+-function setCRMFRequest()
+-{
+-	with (document.forms[0]) {
+-		CRMFRequest.value = crmfObject.request;
+-		submit();
+-	}
+-}
+-
+-//-->
+-</SCRIPT>
+-</head>
+-
+-<OBJECT
+-	classid="clsid:127698e4-e730-4e5c-a2b1-21490a70c8a1"
+-	CODEBASE="/xenroll.dll"
+-	id=Enroll    >
+-</OBJECT>
+-
+-
+-<SCRIPT LANGUAGE=VBS>
+-<!--
+-Function escapeDNComponent(comp)
+-		escapeDNComponent = comp
+-End Function
+-
+-Function doubleQuotes(comp)
+-		doubleQuotes = False
+-End Function
+-
+-Function formulateDN()
+-		Dim dn
+-		Dim TheForm
+-		Set TheForm = Document.ReqForm
+-
+-		dn = Empty
+-
+-		If (TheForm.uid.Value <> Empty) Then
+-			If doubleQuotes(TheForm.uid.Value) = True Then
+-				MsgBox "Double quotes are not allowed in the uid field"
+-				Exit Function
+-			End If
+-			If (dn <> Empty) Then
+-				dn = dn & ","
+-			End If
+-			dn = dn & "0.9.2342.19200300.100.1.1=" & escapeDNComponent(TheForm.uid.Value)
+-		End If
+-
+-		formulateDN = dn
+-End Function
+-
+-Sub Send_OnClick
+-  Dim TheForm
+-  Dim szName
+-  Dim options
+-  Set TheForm = Document.ReqForm
+-
+-
+-  ' Do a few sanity checks
+-  If (TheForm.uid.Value = Empty) Then 
+-    ret = MsgBox("You must supply your NIS uid for certificate enrollment", 0, "MSIE Certificate Request")
+-	Exit Sub
+-  End If
+-
+-  If (TheForm.pwd.Value = Empty) Then
+-	ret = MsgBox("You must supply your NIS password for certificate enrollment", 0, "MSIE Certificate Request")
+-	Exit Sub
+-  End If
+-
+-'  If (TheForm.SSLClient.value = Empty AND
+-'      TheForm.SMIME.value = Empty AND
+-'      TheForm.ObjectSigning.value = Empty) Then
+-'	ret = MsgBox("You must select atleast one certificate type", 0, 
+-'		"MSIE Certificate Request")
+-'	Exit Sub
+-'  End If
+-	
+-
+-  ' Contruct the X500 distinguished name
+-  szName = formulateDN()
+-
+-  On Error Resume Next
+-  Enroll.HashAlgorithm = "MD5"
+-  Enroll.KeySpec = 1
+-  Enroll.GenKeyFlags = 1        ' key exportable
+-
+-   ' Pick the provider that is selected
+-   set options = TheForm.all.cryptprovider.options
+-   index = options.selectedIndex
+-   Enroll.providerType = options(index).value
+-   Enroll.providerName = options(index).text
+-
+-  szCertReq = Enroll.createPKCS10(szName, "1.3.6.1.5.5.7.3.2")
+-  theError = Err.Number
+-  On Error Goto 0
+-  '
+-  ' If the user has cancelled things the we simply ignore whatever
+-  ' they were doing ... need to think what should be done here
+-  '
+-  If (szCertReq = Empty AND theError = 0) Then
+-    Exit Sub
+-  End If
+-
+-  If (szCertReq = Empty OR theError <> 0) Then
+-    '
+-    ' There was an error in the key pair generation. The error value
+-    ' is found in the variable 'theError' which we snarfed above before
+-    ' we did the 'On Error Goto 0' which cleared it again.
+-    '
+-    sz = "The error '" & Hex(theError) & "' occurred." & chr(13) & chr(10) & "Your credentials could not be generated."
+-    result = MsgBox(sz, 0, "Credentials Enrollment")
+-    Exit Sub
+-  End If
+-
+-  TheForm.pkcs10Request.Value = szCertReq
+-  TheForm.Submit
+-  Exit Sub
+-
+-End Sub
+--->
+-</SCRIPT>
+-
+-<body bgcolor="#FFFFFF" onload=checkClientTime()>
+-
+-
+-<font size="+1" face="PrimaSans BT, Verdana, Arial, Helvetica, sans-serif">
+-NIS Based User Enrollment <br>
+-</font>
+-  <font size="-1" face="PrimaSans BT, Verdana, Arial, Helvetica, sans-serif"> 
+-  Use this form to submit a request for a personal certificate through your
+-  organization's NIS. With NIS based enrollment, you need only 
+-  supply your user ID and password for the NIS; the directory 
+-  supplies the rest of the information needed for certificate issuance. 
+-  If the user ID and password are correct your certificate will be issued
+-  automatically.
+-  </font>
+-
+-<table border="0" cellspacing="0" cellpadding="2" background="/pki/images/hr.gif" width="100%">
+-  <tr> 
+-    <td>&nbsp;</td>
+-  </tr>
+-</table>
+-<table border="0" cellspacing="0" cellpadding="2">
+-  <tr valign="TOP"> 
+-    <td><font size="-1" face="PrimaSans BT, Verdana, sans-serif"> <b>
+-	Important:
+-	</b></font></td>
+-    <td><font size="-1" face="PrimaSans BT, Verdana, sans-serif">
+-	Be sure to request your certificate on the same computer on which you 
+-	plan to use your certificate.  </font></td>
+-  </tr>
+-</table>
+-<table border="0" cellspacing="0" cellpadding="0" background="/pki/images/hr.gif" width="100%">
+-  <tr> 
+-    <td>&nbsp;</td>
+-  </tr>
+-</table>
+-
+-<script lang="javascript">
+-	if (navigator.appName == "Netscape" && (navMajorVersion() <= 3)) {
+-		// short cut for Nav 3.x or eariler, crypto is not defined
+-        	document.write(
+-			'<form name="ReqForm" method="post" action="/enrollment">');
+-        } else
+-	if ((navigator.appName == "Netscape" && 
+-		 typeof(crypto.version) != "undefined")) {
+-        document.write(
+-			'<form name="ReqForm" method="post" action="/enrollment">');
+-	} else {
+-        document.write(
+-			'<form name="ReqForm" method="post" action="/enrollment" '+
+-			'onSubmit="return validate(document.forms[0])">');
+-	}
+-</script>
+-
+-  <font size="-1" face="PrimaSans BT, Verdana, Arial, Helvetica, sans-serif">
+-  <b>User's Identity</b><br>
+-Enter your user ID and password for your organization's NIS. This 
+-information will be used to verify your identity and to obtain
+-information from the directory to fill in the certificate.
+-  <br>
+-
+-<table border="0" width="100%" cellspacing="2" cellpadding="2">
+-    <tr> 
+-      <td width="30%" valign="TOP"> 
+-        <div align="RIGHT">
+-          <font size="-1" face="PrimaSans BT, Verdana, Arial, Helvetica, sans-serif">User ID: </font> 
+-        </div>
+-      </td>
+-      <td valign="TOP"> 
+-        <input type="TEXT" name="uid" size="30">
+-      </td>
+-    </tr>
+-</table>
+-
+-<table border="0" width="100%" cellspacing="2" cellpadding="2">
+-    <tr> 
+-      <td width="30%" valign="TOP"> 
+-        <div align="RIGHT">
+-          <font size="-1" face="PrimaSans BT, Verdana, Arial, Helvetica, sans-serif">Password: </font> 
+-        </div>
+-      </td>
+-      <td valign="TOP"> 
+-        <input type="PASSWORD" name="pwd" AutoComplete=off size="30">
+-      </td>
+-    </tr>
+-    <tr>
+-    </tr>
+-</table>
+-
+-<table border="0" width="100%" cellspacing="2" cellpadding="2">
+-    <tr> 
+-      <td valign="TOP"> 
+-		<!-- for Netscape Certificate Type Extension -->
+-		<input type="HIDDEN" name="email" value="true">
+-		<input type="HIDDEN" name="ssl_client" value="true">
+-		<!-- for Key Usage Extension -->
+-		<input type="HIDDEN" name="digital_signature" value=true>
+-		<input type="HIDDEN" name="non_repudiation" value=true>
+-		<input type="HIDDEN" name="key_encipherment" value=true>
+-      </td>
+-    </tr>
+-    <tr> 
+-      <td valign="TOP" colspan="2">
+-		<font size="-1" face="PrimaSans BT, Verdana, Arial, Helvetica, sans-serif">
+-</td></tr>
+-</table>
+-
+-
+-<script>
+-		if (navigator.appName == "Netscape" && 
+-			(navMajorVersion() <= 3 || typeof(crypto.version) == 'undefined')) {
+-
+-        document.writeln('<b>Public/Private Key Information</b><br>');
+-		document.writeln(
+-		  'When your submit this form, your browser generates a private and '+
+-		  'public key. The browser retains the private key and submits the '+
+-		  'public key along with your request for a certificate. '+
+-		  'The public key becomes part of your certificate. '+
+-		  '<P>'+
+-		  'Select the length of the key to generate. The longer the key '+ 
+-		  'length the greater the strength. You may want to check with your '+
+-		  'system administrator about the length of key to specify.');
+-
+-			// short cut for Nav 3.x or eariler, crypto is not defined
+-			document.writeln('Select the length of the key to generate. '+
+-				'The longer the key length, the greater the strength. '+
+-				'You may want to check with your system administrator about '+
+-				'the length of key to specify.');
+-		} 
+-		//else if (navigator.appName == 'Netscape' && crypto.version == "undefined") {
+-			//document.writeln('Select the length of the key to generate. '+
+-			//	'The longer the key length, the greater the strength. '+
+-			//	'You may want to check with your system administrator about '+
+-			//	'the length of key to specify.');
+-		//}
+-
+-//<!--
+-        if (navigator.appName == "Netscape") {
+-            document.writeln('<table border="0" width="100%" cellspacing="2" cellpadding="2">');
+-			if (navMajorVersion() <= 3 || 
+-				typeof(crypto.version) == "undefined") {
+-				document.writeln('<td width="30%" valign=TOP>');
+-				document.writeln('<div align=right>');
+-				document.writeln('<font size=-1 face="PrimaSans BT, Verdana, Arial, Helvetica, sans-serif">');
+-				document.writeln('Key Length: ');
+-				document.writeln('</font>');
+-				document.writeln('</div>');
+-				document.writeln('</td>');
+-				document.write('<td valign=TOP>');
+-                document.write('<KEYGEN name="subjectKeyGenInfo">');
+-        	} 
+-			//else {
+-                //alert('nsm');
+-                //document.writeln('<SELECT NAME=\"keyLength\">');
+-                //document.writeln('<OPTION VALUE=512>512 bits');
+-                //document.writeln('<OPTION VALUE=768>768 bits');
+-                //document.writeln('<OPTION VALUE=1024>1024 bits');
+-                //document.writeln('</SELECT>');
+-			//}
+-			document.write('</td></table>');
+-        }
+-	if (navigator.appName == "Microsoft Internet Explorer") {
+-        document.writeln('<b>Public/Private Key Information</b><br>');
+-                document.writeln(
+-                  'When you submit this form, your browser generates a private and '+
+-                  'public key. The browser retains the private key and submits the '+
+-                  'public key along with your request for a certificate. '+
+-                  'The public key becomes part of your certificate. '+
+-                  '<P>'+
+-                  'The Microsoft Base Cryptographic provider offers 512-bit key encryption which is adequate for most applications today, but you may select the Enhanced option if your browser offers this choice and you require the higher encryption strength. You may want to check with your '+
+-                  'system administrator about the provider to specify.');
+-
+-           document.writeln('<p>');
+-           document.writeln('<td>');
+-           document.writeln('<font size=-1 face="PrimaSans BT, Verdana, Arial, Helvetica, sans-serif">');
+-           document.writeln('Cryptographic Provider:');
+-           document.writeln('</font>');
+-           document.writeln('</td>');
+-           document.writeln('<td>');
+-	   document.writeln('<SELECT NAME=\"cryptprovider\"></SELECT>');
+-           document.writeln('</td>');
+-           document.writeln('<p>');
+-	}
+-//-->
+-
+-document.writeln('<table border="0" width="100%" cellspacing="0" cellpadding="6" bgcolor="#cccccc" background="/pki/images/gray90.gif"> <tr> <td width=100%> <div align="RIGHT">');
+-//<!--
+-			if (navigator.appName == "Netscape" && navMajorVersion() <= 3) {
+-				// short cut for Nav 3.x or eariler, crypto is not defined
+-				document.writeln(
+-					'<input type="submit" value="Submit" '+
+-					'name="submit" width="72">');
+-			} else if (navigator.appName == "Netscape" && 
+-			 		typeof(crypto.version) == "undefined") {
+-				document.writeln(
+-					'<input type="submit" value="Submit" '+
+-					'name="submit" width="72">');
+-			}
+-			else if ((navigator.appName == "Microsoft Internet Explorer") ||
+-					 (navigator.appName == "")) {
+-				document.writeln(
+-					'<input type="submit" value="Submit" '+
+-					'name="Send" width="72">');
+-			}
+-			else {
+-				// alert('nsm');
+-				document.writeln(
+-					'<input type="button" value="Submit" '+
+-					'name="submitbutton" '+
+-					'onclick="validate(form)" width="72">');
+-			}
+-			document.write('<img src="/pki/images/spacer.gif" width="6" height="6">' +
+-			'<input type="reset" value="Reset" name="reset" width="72">' +
+-			'<input type="hidden" name="certType" value="client">' +
+-			'<input type="hidden" name="authenticator" ' +
+-			  '  value="NISAuth">');
+-
+-				if (navigator.appName == 'Netscape') {
+-					if ((navMajorVersion() > 3) && 
+-						(typeof(crypto.version) != 'undefined')) {
+-						//alert('cmmf response');
+-						document.write(
+-						  '<input type=hidden name=CRMFRequest value="">');
+-						document.write(
+-						  '<input type=hidden name=cmmfResponse value=true>');
+-						//document.write(
+-						  //'<input type=hidden name=certNickname value="">');
+-					}
+-					else {
+-						document.write(
+-						'<input type="hidden" name="importCert" value="off">');
+-					}
+-				}
+-				else if ((navigator.appName == "Microsoft Internet Explorer")||
+-						 (navigator.appName == "")) {
+-					// navigator.appName == "" is for IE 3.
+-					//alert('pkcs10Request');
+-					document.write(
+-					 '<input type="hidden" name="pkcs10Request" value="">');
+-				}
+-//-->
+-              document.writeln('</div> </td> </tr> </table>');
+-</script>
+-  </form>
+-<SCRIPT LANGUAGE=VBS>
+-<!--
+-
+-FindProviders
+-
+-Function FindProviders
+-	Dim i, j
+-	Dim providers()
+-	i = 0
+-	j = 1
+-	Dim el
+-	Dim temp
+-	Dim first
+-	Dim TheForm
+-	Set TheForm = document.ReqForm
+-	On Error Resume Next
+-	first = 0
+-
+-	Do While True
+-	temp = ""
+-	Enroll.providerType = j
+-	temp = Enroll.enumProviders(i,0)
+-	If Len(temp) = 0 Then
+-	If j < 1 Then 
+-	  j = j + 1
+-	  i = 0 
+-	Else
+-	  Exit Do
+-	End If
+-	Else
+-	set el = document.createElement("OPTION")
+-	el.text = temp
+-	el.value = j 
+-	TheForm.cryptprovider.add(el)
+-	If first = 0  Then
+-	  first = 1
+-	  TheForm.cryptprovider.selectedIndex = 0
+-	End If
+-	i = i + 1
+-	End If
+-	Loop
+-
+-End Function
+-
+--->
+-</SCRIPT>
+-</body>
+-</html>
+diff --git a/base/ca/shared/webapps/ca/ee/ca/policyEnrollment/index.html b/base/ca/shared/webapps/ca/ee/ca/policyEnrollment/index.html
+index 74c3080f0d97da38075aaa737002018288291cd7..75fffe901d938ee7a94717137e1fae5b6efb2c7a 100644
+--- a/base/ca/shared/webapps/ca/ee/ca/policyEnrollment/index.html
++++ b/base/ca/shared/webapps/ca/ee/ca/policyEnrollment/index.html
+@@ -177,15 +177,6 @@ function initEnrollMenu()
+     	count++;
+ 	}
+ 
+-	// NISAuth - authenticates against NIS
+-	if ( isAuthMgrEnabled("NISAuth") ) {
+-		item = 'nisuser';
+-		menuItems[count] = top.EnrollMenu[count] = 
+-			new menuItem(item, 'NISUserEnroll.html', 'NIS');
+-    
+-    	count++;
+-	}
+-
+ 	// Kerberos - authenticates against a Kerberos server
+ 	if ( isAuthMgrEnabled("KerberosAuth") ) {
+ 		item = 'kerberos';
+diff --git a/base/console/src/com/netscape/admin/certsrv/certsrv-help.properties b/base/console/src/com/netscape/admin/certsrv/certsrv-help.properties
+index 1faf8ef6833fb5b8d3ed12990d18ce5e72d4b615..c5b97af2a5e0bb7a2dfa8fbb0a1bd10b989f7e92 100644
+--- a/base/console/src/com/netscape/admin/certsrv/certsrv-help.properties
++++ b/base/console/src/com/netscape/admin/certsrv/certsrv-help.properties
+@@ -315,7 +315,6 @@ authentication-certsrv-register-authplugin-dbox-help = cert
+ authentication-certsrv-auth-dialog-help = cert
+ ;OOTB Auth plugins
+ configuration-authrules-kerberosauth = cert
+-configuration-authrules-nisauth = cert
+ configuration-authrules-portalauth = cert
+ configuration-authrules-uidpwddirauth = cert
+ configuration-authrules-uidpwdpindirauth = cert
+@@ -323,7 +322,6 @@ configuration-authrules-uidpwdpindirauth = cert
+ ;authentication implementations 1/1/2000
+ authentication-certsrv-impl-ldap = cert
+ authentication-certsrv-impl-ldappin = cert
+-authentication-certsrv-impl-nis = cert
+ authentication-certsrv-impl-portal= cert
+ 
+ ;Certificate server status 
+diff --git a/base/console/src/com/netscape/admin/certsrv/ug/AuthBaseDialog.java b/base/console/src/com/netscape/admin/certsrv/ug/AuthBaseDialog.java
+index 78d89bb9c9d06c51a675de1207552394e510c385..c3c4b2cc3eea5488c46c68550939ab29a187ac4a 100644
+--- a/base/console/src/com/netscape/admin/certsrv/ug/AuthBaseDialog.java
++++ b/base/console/src/com/netscape/admin/certsrv/ug/AuthBaseDialog.java
+@@ -114,8 +114,6 @@ public class AuthBaseDialog extends JDialog
+                 mAuthName.setText("UserDnEnrollment");
+             else if (!userDirExist && str.equals("UserPwdDirAuth"))
+                 mAuthName.setText("UserDirAuth");
+-            else if (str.equals("NISAuth"))
+-                mAuthName.setText("NISAuth");
+             // Inserted by beomsuk
+             else if (!portalExist && str.equals("PortalEnroll"))
+                 mAuthName.setText("PortalEnrollment");
+diff --git a/base/console/src/com/netscape/admin/certsrv/ug/AuthConfigDialog.java b/base/console/src/com/netscape/admin/certsrv/ug/AuthConfigDialog.java
+index 22454e241ac71317644b64c1c7895c83eab33d60..da14c676b6b1eb8a65dbb0d646031644f07e6b38 100644
+--- a/base/console/src/com/netscape/admin/certsrv/ug/AuthConfigDialog.java
++++ b/base/console/src/com/netscape/admin/certsrv/ug/AuthConfigDialog.java
+@@ -78,9 +78,6 @@ public class AuthConfigDialog extends CMSBaseConfigDialog
+ 		else if (implName.equals("UserPwdDirAuth")) {
+ 			instanceName = "UserDirAuth";
+ 		}
+-		else if (implName.equals("NISAuth")) {
+-			instanceName = "NISAuth";
+-		}
+ 		else if (implName.equals("PortalEnroll")) {
+ 			instanceName = "PortalEnrollment";
+ 		}
+diff --git a/base/kra/shared/conf/CS.cfg.in b/base/kra/shared/conf/CS.cfg.in
+index 64a369e0a3822b9284f694c961ba9d178bb7e376..9435daa1823dc07358ab2ae9395bd95b1352dc3a 100644
+--- a/base/kra/shared/conf/CS.cfg.in
++++ b/base/kra/shared/conf/CS.cfg.in
+@@ -144,7 +144,6 @@ auths.impl._001=## authentication manager implementations
+ auths.impl._002=##
+ auths.impl.AgentCertAuth.class=com.netscape.cms.authentication.AgentCertAuthentication
+ auths.impl.CMCAuth.class=com.netscape.cms.authentication.CMCAuth
+-auths.impl.NISAuth.class=com.netscape.cms.authentication.NISAuth
+ auths.impl.PortalEnroll.class=com.netscape.cms.authentication.PortalEnroll
+ auths.impl.TokenAuth.class=com.netscape.cms.authentication.TokenAuthentication
+ auths.impl.UdnPwdDirAuth.class=com.netscape.cms.authentication.UdnPwdDirAuthentication
+diff --git a/base/ocsp/shared/conf/CS.cfg.in b/base/ocsp/shared/conf/CS.cfg.in
+index cea8e651215755dacd898d0b115192968d323309..9968bb06d7265dfe36744233a8b70e2f2cb0b518 100644
+--- a/base/ocsp/shared/conf/CS.cfg.in
++++ b/base/ocsp/shared/conf/CS.cfg.in
+@@ -131,8 +131,6 @@ auths.impl._001=## authentication manager implementations
+ auths.impl._002=##
+ auths.impl.AgentCertAuth.class=com.netscape.cms.authentication.AgentCertAuthentication
+ auths.impl.CMCAuth.class=com.netscape.cms.authentication.CMCAuth
+-auths.impl.NISAuth.class=com.netscape.cms.authentication.NISAuth
+-auths.impl.PortalEnroll.class=com.netscape.cms.authentication.PortalEnroll
+ auths.impl.TokenAuth.class=com.netscape.cms.authentication.TokenAuthentication
+ auths.impl.UdnPwdDirAuth.class=com.netscape.cms.authentication.UdnPwdDirAuthentication
+ auths.impl.UidPwdDirAuth.class=com.netscape.cms.authentication.UidPwdDirAuthentication
+diff --git a/base/server/cmsbundle/src/LogMessages.properties b/base/server/cmsbundle/src/LogMessages.properties
+index e0e926ccb43a94c01bcb40cad81f7f04ee437f45..1be16736213cf7473f3fc85dcef601bfbead5b9d 100644
+--- a/base/server/cmsbundle/src/LogMessages.properties
++++ b/base/server/cmsbundle/src/LogMessages.properties
+@@ -42,8 +42,6 @@ CMS_AUTH_CREATE_CERTINFO_ERROR=Could not create certinfo for {0}. Error - {1}
+ CMS_AUTH_READ_ENTRIES=Read entries from password file - {0}
+ CMS_AUTH_USER_NOT_FOUND=User not found in password file.
+ CMS_AUTH_INVALID_FINGER_PRINT=Invalid fingerprint.
+-CMS_AUTH_INVALID_NIS_SERVER=Invalid NIS Server - {0}
+-CMS_AUTH_INVALID_NIS_SERVER_NAME=Invalid NIS Server Name - {0}
+ CMS_AUTH_INVALID_DOMAIN=Invalid Domain Name - {0}
+ CMS_AUTH_EMPTY_PASSWORD=UID {0} attempted a login with an empty password.
+ CMS_AUTH_EMPTY_PIN=UID {0} attempted a login with an empty pin.
+diff --git a/base/server/cmsbundle/src/UserMessages.properties b/base/server/cmsbundle/src/UserMessages.properties
+index 7c5c77d5b589886d0a8c6323436a1fdcdd4ce8f9..75aac4d7960cba03e83b6af37795b75eb9950450 100644
+--- a/base/server/cmsbundle/src/UserMessages.properties
++++ b/base/server/cmsbundle/src/UserMessages.properties
+@@ -306,8 +306,6 @@ CMS_ADMIN_SRVLT_CERT_VALIDATE_FAILED=Imported cert has not been verified to be v
+ # ProfileSubmitServlet
+ #######################################################
+ CMS_POP_VERIFICATION_ERROR=Proof-of-Possession Verification Failed
+-CMS_AUTHENTICATION_NIS_NAME=NIS Authentication
+-CMS_AUTHENTICATION_NIS_TEXT=This plugin authenticates a user using NIS.
+ CMS_AUTHENTICATION_AGENT_NAME=Agent Authentication
+ CMS_AUTHENTICATION_AGENT_TEXT=This plugin authenticates agents using a certificate.
+ CMS_AUTHENTICATION_SSL_CLIENT_NAME=SSL Client Authentication
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/apps/Setup.java b/base/server/cmscore/src/com/netscape/cmscore/apps/Setup.java
+index fecf024de4374161f2bdf2f69b0a2b4f8b7bcdf6..cddcfca50a0e6e5230edbc7284bfdfc0da08ae54 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/apps/Setup.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/apps/Setup.java
+@@ -41,7 +41,6 @@ public class Setup {
+             { "auths.impl.UidPwdDirAuth.class", "com.netscape.cms.authentication.UidPwdDirAuthentication" },
+             { "auths.impl.UidPwdPinDirAuth.class", "com.netscape.cms.authentication.UidPwdPinDirAuthentication" },
+             { "auths.impl.UdnPwdDirAuth.class", "com.netscape.cms.authentication.UdnPwdDirAuthentication" },
+-            { "auths.impl.NISAuth.class", "com.netscape.cms.authentication.NISAuth" },
+             { "auths.impl.CMCAuth.class", "com.netscape.cms.authentication.CMCAuth" },
+             { "auths.impl.AgentCertAuth.class", "com.netscape.cms.authentication.AgentCertAuthentication" },
+             { "auths.impl.PortalEnroll.class", "com.netscape.cms.authentication.PortalEnroll"
+diff --git a/base/tks/shared/conf/CS.cfg.in b/base/tks/shared/conf/CS.cfg.in
+index e63f07d134719d1c1326fbe939c12157c0109bad..ae77fbe24b0f4c4e0c432ea49b262a9686a3751c 100644
+--- a/base/tks/shared/conf/CS.cfg.in
++++ b/base/tks/shared/conf/CS.cfg.in
+@@ -122,7 +122,6 @@ auths.impl._001=## authentication manager implementations
+ auths.impl._002=##
+ auths.impl.AgentCertAuth.class=com.netscape.cms.authentication.AgentCertAuthentication
+ auths.impl.CMCAuth.class=com.netscape.cms.authentication.CMCAuth
+-auths.impl.NISAuth.class=com.netscape.cms.authentication.NISAuth
+ auths.impl.PortalEnroll.class=com.netscape.cms.authentication.PortalEnroll
+ auths.impl.TokenAuth.class=com.netscape.cms.authentication.TokenAuthentication
+ auths.impl.UdnPwdDirAuth.class=com.netscape.cms.authentication.UdnPwdDirAuthentication
+diff --git a/base/tps/shared/conf/CS.cfg.in b/base/tps/shared/conf/CS.cfg.in
+index 48fd8fe43d5f2e5016e27cbb231f462c6e6a7b1d..41af0259824a950d835964ef6f357e4a60a30cd6 100644
+--- a/base/tps/shared/conf/CS.cfg.in
++++ b/base/tps/shared/conf/CS.cfg.in
+@@ -28,7 +28,6 @@ auths.impl._001=## authentication manager implementations
+ auths.impl._002=##
+ auths.impl.AgentCertAuth.class=com.netscape.cms.authentication.AgentCertAuthentication
+ auths.impl.CMCAuth.class=com.netscape.cms.authentication.CMCAuth
+-auths.impl.NISAuth.class=com.netscape.cms.authentication.NISAuth
+ auths.impl.PortalEnroll.class=com.netscape.cms.authentication.PortalEnroll
+ auths.impl.SSLclientCertAuth.class=com.netscape.cms.authentication.SSLclientCertAuthentication
+ auths.impl.TokenAuth.class=com.netscape.cms.authentication.TokenAuthentication
+-- 
+2.5.0
+

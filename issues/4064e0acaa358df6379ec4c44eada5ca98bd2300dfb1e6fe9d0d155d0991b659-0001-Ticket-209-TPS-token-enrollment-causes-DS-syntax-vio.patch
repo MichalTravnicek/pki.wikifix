@@ -1,0 +1,2000 @@
+From 53c76813297ef19cb1ed9e25597d23c586eaab5d Mon Sep 17 00:00:00 2001
+From: Nathan Kinder <nkinder@redhat.com>
+Date: Thu, 24 Jan 2013 14:48:58 -0800
+Subject: [PATCH] Ticket 209 - TPS token enrollment causes DS syntax violations
+
+This patch addresses a number of LDAP syntax violations that we
+make in our common UG code as well as the TPS subsystem.  In all
+of these cases, we are storing empty values for attributes that
+use the "Directory String" syntax.  RFC 4517 states that a
+"Directory String" value is 1 or more UTF8 characters.
+
+The fix is to avoid storing empty attribute values for "Directory
+String" attributes.  If we detect that we have an empty value, we
+simply skip adding that attribute to the Directory Server.  We
+also need to be careful that we don't have any code which can't
+handle getting a NULL back when trying to retrieve an attribute
+that may not exist in the DS instance.
+
+With these changes, I am able to install and configure the CA, KRA,
+TKS, and TPS subsystems and enroll a token using tpsclient without
+any syntax errors from DS (with syntax checking enabled).
+---
+ .../com/netscape/cmscore/usrgrp/UGSubsystem.java   |  13 +-
+ base/tps/src/engine/RA.cpp                         |  12 +-
+ base/tps/src/modules/tokendb/mod_tokendb.cpp       | 589 ++++++++--------
+ base/tps/src/processor/RA_Enroll_Processor.cpp     |  46 +-
+ base/tps/src/processor/RA_Pin_Reset_Processor.cpp  |  26 +-
+ base/tps/src/processor/RA_Processor.cpp            |  14 +-
+ base/tps/src/tus/tus_db.c                          | 765 ++++++++++++---------
+ 7 files changed, 833 insertions(+), 632 deletions(-)
+
+diff --git a/base/common/src/com/netscape/cmscore/usrgrp/UGSubsystem.java b/base/common/src/com/netscape/cmscore/usrgrp/UGSubsystem.java
+index 034357b..af77241 100644
+--- a/base/common/src/com/netscape/cmscore/usrgrp/UGSubsystem.java
++++ b/base/common/src/com/netscape/cmscore/usrgrp/UGSubsystem.java
+@@ -654,7 +654,18 @@ public final class UGSubsystem implements IUGSubsystem {
+         attrs.add(new LDAPAttribute("uid", id.getUserID()));
+         attrs.add(new LDAPAttribute("sn", id.getFullName()));
+         attrs.add(new LDAPAttribute("cn", id.getFullName()));
+-        attrs.add(new LDAPAttribute("mail", id.getEmail()));
++
++        if (id.getEmail() != null) {
++            // Older versions of DS used the DirectoryString syntax
++            // for the mail attribute, which requires a value if
++            // syntax checking is enabled.  Current versions of DS
++            // use the IA5String syntax, which allows an empty value.
++            // In either case, we have no need of an empty mail
++            // attribute, so we avoid setting an empty value.
++            if (! id.getEmail().equals("")) {
++                attrs.add(new LDAPAttribute("mail", id.getEmail()));
++            }
++        }
+ 
+         if (id.getPhone() != null) {
+             // DS syntax checking requires a value for PrintableString syntax
+diff --git a/base/tps/src/engine/RA.cpp b/base/tps/src/engine/RA.cpp
+index 82f53c1..45a48ba 100644
+--- a/base/tps/src/engine/RA.cpp
++++ b/base/tps/src/engine/RA.cpp
+@@ -3747,13 +3747,23 @@ int RA::get_token_state(char *state, char *reason)
+     } else if (strcasecmp(state, STATE_ACTIVE) == 0) {
+         ret = TOKEN_FOUND;
+     } else if (strcasecmp(state, STATE_LOST) == 0) {
+-        if (strcasecmp(reason, "keyCompromise") == 0) {
++        if (reason == NULL) {
++             /* If we can't determine a reason, assume its permanently lost.
++             * This shouldn't happen, but it's possible if the database has
++             * been manually modified. */
++            RA::Debug("RA::get_token_state", "reason is NULL");
++            ret =  TOKEN_PERM_LOST;
++        } else if (strcasecmp(reason, "keyCompromise") == 0) {
+             /* perm lost or temp -> perm lost */
+             ret =  TOKEN_PERM_LOST;
+         } else if (strcasecmp(reason, "destroyed") == 0) {
+             ret = TOKEN_DAMAGED;
+         } else if (strcasecmp(reason, "onHold") == 0) {
+             ret = TOKEN_TEMP_LOST;
++        } else {
++            /* This shouldn't happen.  Assume it is permanently lost. */
++            RA::Debug("RA::get_token_state", "unrecognized reason: \"%s\"", reason);
++            ret = TOKEN_PERM_LOST;
+         }
+     } else if (strcasecmp(state, "terminated") == 0) {
+         ret = TOKEN_TERMINATED;
+diff --git a/base/tps/src/modules/tokendb/mod_tokendb.cpp b/base/tps/src/modules/tokendb/mod_tokendb.cpp
+index 737df94..941dd82 100644
+--- a/base/tps/src/modules/tokendb/mod_tokendb.cpp
++++ b/base/tps/src/modules/tokendb/mod_tokendb.cpp
+@@ -3840,10 +3840,12 @@ mod_tokendb_handler( request_rec *rq )
+                      e = get_next_entry( e ) ) {
+                     char *attr_status = get_cert_status( e );
+ 
+-                    if( strcmp( attr_status, "revoked" ) == 0 ) {
++                    if( (attr_status == NULL) || (strcmp( attr_status, "revoked" ) == 0) ) {
+                         if( attr_status != NULL ) {
+                             PL_strfree( attr_status );
+                             attr_status = NULL;
++                        } else {
++                            tokendbDebug("tokenStatus is NULL\n");
+                         }
+ 
+                         continue;
+@@ -3853,78 +3855,84 @@ mod_tokendb_handler( request_rec *rq )
+                     char *attr_tokenType = get_cert_tokenType( e );
+                     char *attr_keyType = get_cert_type( e );
+ 
+-                    PR_snprintf( ( char * ) configname, 256,
+-                                 "op.enroll.%s.keyGen.%s.recovery."
+-                                 "destroyed.revokeCert",
+-                                 attr_tokenType, attr_keyType );
++                    /* Check if these are NULL so we don't dereference them. */
++                    if ((attr_serial == NULL) || (attr_tokenType == NULL) ||
++                        (attr_keyType == NULL)) {
++                        tokendbDebug("tokenSerial, tokenType, or tokenKeyType is NULL\n");
++                    } else {
++                        PR_snprintf( ( char * ) configname, 256,
++                                     "op.enroll.%s.keyGen.%s.recovery."
++                                     "destroyed.revokeCert",
++                                     attr_tokenType, attr_keyType );
+ 
+-                    bool revokeCert = RA::GetConfigStore()->
+-                                      GetConfigAsBool( configname, true );
++                        bool revokeCert = RA::GetConfigStore()->
++                                          GetConfigAsBool( configname, true );
+ 
+-                    PR_snprintf( ( char * ) configname, 256,
+-                                 "op.enroll.%s.keyGen.%s.recovery."
+-                                 "destroyed.revokeCert.reason",
+-                                 attr_tokenType, attr_keyType );
++                        PR_snprintf( ( char * ) configname, 256,
++                                     "op.enroll.%s.keyGen.%s.recovery."
++                                     "destroyed.revokeCert.reason",
++                                     attr_tokenType, attr_keyType );
+ 
+-                    char *revokeReason = ( char * )
+-                                         ( RA::GetConfigStore()->
+-                                         GetConfigAsString( configname,
++                        char *revokeReason = ( char * )
++                                             ( RA::GetConfigStore()->
++                                             GetConfigAsString( configname,
+                                                             "0" ) );
+ 
+-                    if( revokeCert ) {
+-                        char *attr_cn = get_cert_cn( e );
++                        if( revokeCert ) {
++                            char *attr_cn = get_cert_cn( e );
+ 
+-                        PR_snprintf( ( char * ) configname, 256,
+-                                     "op.enroll.%s.keyGen.%s.ca.conn",
+-                                     attr_tokenType, attr_keyType ); 
+-
+-                        char *connid = ( char * )
+-                                       ( RA::GetConfigStore()->
+-                                         GetConfigAsString( configname ) );
++                            PR_snprintf( ( char * ) configname, 256,
++                                         "op.enroll.%s.keyGen.%s.ca.conn",
++                                         attr_tokenType, attr_keyType ); 
+ 
+-                        PR_snprintf( serial, 100, "0x%s", attr_serial );
++                            char *connid = ( char * )
++                                           ( RA::GetConfigStore()->
++                                             GetConfigAsString( configname ) );
+ 
+-                        statusNum = certEnroll->RevokeCertificate(revokeReason,
+-                                    serial, connid, statusString );
++                            PR_snprintf( serial, 100, "0x%s", attr_serial );
+ 
+-                        if (statusNum != 0) { // revocation errors
+-                            if( strcmp( revokeReason, "6" ) == 0 ) {
+-                                PR_snprintf((char *)msg, 256, "Errors in marking certificate on_hold '%s' : %s", attr_cn, statusString);
+-                                RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "failure", msg, cuidUserId, attr_tokenType);
++                            statusNum = certEnroll->RevokeCertificate(revokeReason,
++                                        serial, connid, statusString );
+ 
+-                                RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid, 
+-                                  "Failure", "revoked_on_hold", serial, connid, statusString); 
+-                            } else {
+-                                PR_snprintf((char *)msg, 256, "Errors in revoking certificate '%s' : %s", attr_cn, statusString);
+-                                RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "failure", msg, cuidUserId, attr_tokenType);
++                            if (statusNum != 0) { // revocation errors
++                                if( strcmp( revokeReason, "6" ) == 0 ) {
++                                    PR_snprintf((char *)msg, 256, "Errors in marking certificate on_hold '%s' : %s", attr_cn, statusString);
++                                    RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "failure", msg, cuidUserId, attr_tokenType);
+ 
+-                                RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid, 
+-                                  "Failure", "revoke", serial, connid, statusString); 
+-                            }
+-                        } else {
+-                            // update certificate status
+-                            if( strcmp( revokeReason, "6" ) == 0 ) {
+-                                PR_snprintf((char *)msg, 256, "Certificate '%s' is marked as revoked_on_hold", attr_cn);
+-                                RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "success", msg, cuidUserId, attr_tokenType);
+-                                update_cert_status( attr_cn, "revoked_on_hold" );
++                                    RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid, 
++                                      "Failure", "revoked_on_hold", serial, connid, statusString); 
++                                } else {
++                                    PR_snprintf((char *)msg, 256, "Errors in revoking certificate '%s' : %s", attr_cn, statusString);
++                                    RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "failure", msg, cuidUserId, attr_tokenType);
+ 
+-                                RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid, 
+-                                  "Success", "revoked_on_hold", serial, connid, ""); 
++                                    RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid, 
++                                      "Failure", "revoke", serial, connid, statusString); 
++                                }
+                             } else {
+-                                PR_snprintf((char *)msg, 256, "Certificate '%s' is marked as revoked", attr_cn);
+-                                RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "success", msg, cuidUserId, attr_tokenType);
+-                                update_cert_status( attr_cn, "revoked" );
++                                // update certificate status
++                                if( strcmp( revokeReason, "6" ) == 0 ) {
++                                    PR_snprintf((char *)msg, 256, "Certificate '%s' is marked as revoked_on_hold", attr_cn);
++                                    RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "success", msg, cuidUserId, attr_tokenType);
++                                    update_cert_status( attr_cn, "revoked_on_hold" );
++
++                                    RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid, 
++                                      "Success", "revoked_on_hold", serial, connid, ""); 
++                                } else {
++                                    PR_snprintf((char *)msg, 256, "Certificate '%s' is marked as revoked", attr_cn);
++                                    RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "success", msg, cuidUserId, attr_tokenType);
++                                    update_cert_status( attr_cn, "revoked" );
+ 
+-                                RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid, 
+-                                  "Success", "revoke", serial, connid, ""); 
++                                    RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid, 
++                                      "Success", "revoke", serial, connid, ""); 
++                                }
+                             }
+-                        }
+ 
+-                        if( attr_cn != NULL ) {
+-                            PL_strfree( attr_cn );
+-                            attr_cn = NULL;
++                            if( attr_cn != NULL ) {
++                                PL_strfree( attr_cn );
++                                attr_cn = NULL;
++                            }
++                            do_free(statusString);
+                         }
+-                        do_free(statusString);
+                     }
+ 
+                     if( attr_status != NULL ) {
+@@ -4061,10 +4069,12 @@ mod_tokendb_handler( request_rec *rq )
+                      e = get_next_entry( e ) ) { 
+                     char *attr_status = get_cert_status( e );
+ 
+-                    if( strcmp( attr_status, "revoked" ) == 0 ) {
++                    if( (attr_status == NULL) || (strcmp( attr_status, "revoked" ) == 0) ) {
+                         if( attr_status != NULL ) {
+                             PL_strfree( attr_status );
+                             attr_status = NULL;
++                        } else {
++                            tokendbDebug("tokenStatus is NULL\n");
+                         }
+ 
+                         continue;
+@@ -4074,80 +4084,86 @@ mod_tokendb_handler( request_rec *rq )
+                     char *attr_tokenType = get_cert_tokenType( e );
+                     char *attr_keyType = get_cert_type( e );
+ 
+-                    PR_snprintf( ( char * ) configname, 256,
+-                                 "op.enroll.%s.keyGen.%s.recovery."
+-                                 "keyCompromise.revokeCert",
+-                                 attr_tokenType, attr_keyType );
++                    /* Check if these are NULL so we don't dereference them. */
++                    if ((attr_serial == NULL) || (attr_tokenType == NULL) ||
++                        (attr_keyType == NULL)) {
++                        tokendbDebug("tokenSerial, tokenType, or tokenKeyType is NULL\n");
++                    } else {
++                        PR_snprintf( ( char * ) configname, 256,
++                                     "op.enroll.%s.keyGen.%s.recovery."
++                                     "keyCompromise.revokeCert",
++                                     attr_tokenType, attr_keyType );
+ 
+-                    bool revokeCert = RA::GetConfigStore()->
+-                                      GetConfigAsBool( configname, true );
++                        bool revokeCert = RA::GetConfigStore()->
++                                          GetConfigAsBool( configname, true );
+ 
+-                    PR_snprintf( ( char * ) configname, 256,
+-                                 "op.enroll.%s.keyGen.%s.recovery."
+-                                 "keyCompromise.revokeCert.reason",
+-                                 attr_tokenType, attr_keyType );
++                        PR_snprintf( ( char * ) configname, 256,
++                                     "op.enroll.%s.keyGen.%s.recovery."
++                                     "keyCompromise.revokeCert.reason",
++                                     attr_tokenType, attr_keyType );
+ 
+-                    char *revokeReason = ( char * )
+-                                         ( RA::GetConfigStore()->
+-                                           GetConfigAsString( configname,
++                        char *revokeReason = ( char * )
++                                             ( RA::GetConfigStore()->
++                                               GetConfigAsString( configname,
+                                                               "1" ) );
+ 
+-                    if( revokeCert ) {
+-                        char *attr_cn = get_cert_cn( e );
++                        if( revokeCert ) {
++                            char *attr_cn = get_cert_cn( e );
+ 
+-                        PR_snprintf( ( char * ) configname, 256,
+-                                     "op.enroll.%s.keyGen.%s.ca.conn",
+-                                     attr_tokenType, attr_keyType ); 
+-
+-                        char *connid = ( char * )
+-                                       ( RA::GetConfigStore()->
+-                                         GetConfigAsString( configname ) );
+-
+-                        PR_snprintf( serial, 100, "0x%s", attr_serial );
+-
+-                        statusNum = certEnroll->
+-                                    RevokeCertificate( revokeReason,
+-                                                       serial,
+-                                                       connid,
+-                                                       statusString );
+-                        if (statusNum != 0) { // revocation errors
+-                            if( strcmp( revokeReason, "6" ) == 0 ) {
+-                                PR_snprintf((char *)msg, 256, "Errors in marking certificate on_hold '%s' : %s", attr_cn, statusString);
+-                                RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "failure", msg, cuidUserId, attr_tokenType);
++                            PR_snprintf( ( char * ) configname, 256,
++                                         "op.enroll.%s.keyGen.%s.ca.conn",
++                                         attr_tokenType, attr_keyType ); 
+ 
+-                                RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid,
+-                                  "Failure", "revoked_on_hold", serial, connid, statusString);
+-                            } else {
+-                                PR_snprintf((char *)msg, 256, "Errors in revoking certificate '%s' : %s", attr_cn, statusString);
+-                                RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "failure", msg, cuidUserId, attr_tokenType);
++                            char *connid = ( char * )
++                                           ( RA::GetConfigStore()->
++                                             GetConfigAsString( configname ) );
+ 
+-                                RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid,
+-                                  "Failure", "revoke", serial, connid, statusString);
+-                            }
+-                        } else {
+-                            // update certificate status
+-                            if( strcmp( revokeReason, "6" ) == 0 ) {
+-                                PR_snprintf((char *)msg, 256, "Certificate '%s' is marked as revoked_on_hold", attr_cn);
+-                                RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "success", msg, cuidUserId, attr_tokenType);
+-                                update_cert_status( attr_cn, "revoked_on_hold" );
++                            PR_snprintf( serial, 100, "0x%s", attr_serial );
+ 
+-                                RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid,
+-                                  "Success", "revoked_on_hold", serial, connid, "");                 
++                            statusNum = certEnroll->
++                                        RevokeCertificate( revokeReason,
++                                                           serial,
++                                                           connid,
++                                                           statusString );
++                            if (statusNum != 0) { // revocation errors
++                                if( strcmp( revokeReason, "6" ) == 0 ) {
++                                    PR_snprintf((char *)msg, 256, "Errors in marking certificate on_hold '%s' : %s", attr_cn, statusString);
++                                    RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "failure", msg, cuidUserId, attr_tokenType);
++
++                                    RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid,
++                                      "Failure", "revoked_on_hold", serial, connid, statusString);
++                                } else {
++                                    PR_snprintf((char *)msg, 256, "Errors in revoking certificate '%s' : %s", attr_cn, statusString);
++                                    RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "failure", msg, cuidUserId, attr_tokenType);
++
++                                    RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid,
++                                      "Failure", "revoke", serial, connid, statusString);
++                                }
+                             } else {
+-                                PR_snprintf((char *)msg, 256, "Certificate '%s' is marked as revoked", attr_cn);
+-                                RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "success", msg, cuidUserId, attr_tokenType);
+-                                update_cert_status( attr_cn, "revoked" );
++                                // update certificate status
++                                if( strcmp( revokeReason, "6" ) == 0 ) {
++                                    PR_snprintf((char *)msg, 256, "Certificate '%s' is marked as revoked_on_hold", attr_cn);
++                                    RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "success", msg, cuidUserId, attr_tokenType);
++                                    update_cert_status( attr_cn, "revoked_on_hold" );
+ 
+-                                RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid,
+-                                  "Success", "revoke", serial, connid, "");        
++                                    RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid,
++                                      "Success", "revoked_on_hold", serial, connid, "");                 
++                                } else {
++                                    PR_snprintf((char *)msg, 256, "Certificate '%s' is marked as revoked", attr_cn);
++                                    RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "success", msg, cuidUserId, attr_tokenType);
++                                    update_cert_status( attr_cn, "revoked" );
++
++                                    RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid,
++                                      "Success", "revoke", serial, connid, "");        
++                                }
+                             }
+-                        }
+ 
+-                        if( attr_cn != NULL ) {
+-                            PL_strfree( attr_cn );
+-                            attr_cn = NULL;
++                            if( attr_cn != NULL ) {
++                                PL_strfree( attr_cn );
++                                attr_cn = NULL;
++                            }
++                            do_free(statusString);
+                         }
+-                        do_free(statusString);
+                     }
+ 
+                     if( attr_status != NULL ) {
+@@ -4296,11 +4312,14 @@ mod_tokendb_handler( request_rec *rq )
+                      e != NULL;
+                      e = get_next_entry( e ) ) { 
+                     char *attr_status = get_cert_status( e );
+-                    if( strcmp( attr_status, "revoked" ) == 0 || 
+-                        strcmp( attr_status, "revoked_on_hold" ) == 0 ) {
++                    if( (attr_status == NULL) ||
++                        (strcmp( attr_status, "revoked" ) == 0) || 
++                        (strcmp( attr_status, "revoked_on_hold" ) == 0) ) {
+                         if( attr_status != NULL ) {
+                             PL_strfree( attr_status );
+                             attr_status = NULL; 
++                        } else {
++                            tokendbDebug("tokenStatus is NULL\n");
+                         }
+ 
+                         continue;
+@@ -4310,78 +4329,84 @@ mod_tokendb_handler( request_rec *rq )
+                     char *attr_tokenType = get_cert_tokenType( e );
+                     char *attr_keyType = get_cert_type( e );
+ 
+-                    PR_snprintf( ( char * ) configname, 256,
+-                                 "op.enroll.%s.keyGen.%s.recovery."
+-                                 "onHold.revokeCert",
+-                                 attr_tokenType, attr_keyType );
+-
+-                    bool revokeCert = RA::GetConfigStore()->
+-                                      GetConfigAsBool( configname, true );
+-
+-                    PR_snprintf( ( char * ) configname, 256,
+-                                 "op.enroll.%s.keyGen.%s.recovery.onHold."
+-                                 "revokeCert.reason",
+-                                 attr_tokenType, attr_keyType );
+-
+-                    char *revokeReason = ( char * )
+-                                         ( RA::GetConfigStore()->
+-                                           GetConfigAsString( configname,
+-                                                              "0" ) );
++                    /* Check if these are NULL so we don't dereference them. */
++                    if ((attr_serial == NULL) || (attr_tokenType == NULL) ||
++                        (attr_keyType == NULL)) {
++                        tokendbDebug("tokenSerial, tokenType, or tokenKeyType is NULL\n");
++                    } else {
++                        PR_snprintf( ( char * ) configname, 256,
++                                     "op.enroll.%s.keyGen.%s.recovery."
++                                     "onHold.revokeCert",
++                                     attr_tokenType, attr_keyType );
+ 
+-                    if( revokeCert ) {
+-                        char *attr_cn = get_cert_cn( e );
++                        bool revokeCert = RA::GetConfigStore()->
++                                          GetConfigAsBool( configname, true );
+ 
+                         PR_snprintf( ( char * ) configname, 256,
+-                                     "op.enroll.%s.keyGen.%s.ca.conn",
++                                     "op.enroll.%s.keyGen.%s.recovery.onHold."
++                                     "revokeCert.reason",
+                                      attr_tokenType, attr_keyType );
+ 
+-                        char *connid = ( char * )
+-                                       ( RA::GetConfigStore()->
+-                                         GetConfigAsString( configname ) );
++                        char *revokeReason = ( char * )
++                                             ( RA::GetConfigStore()->
++                                               GetConfigAsString( configname,
++                                                                  "0" ) );
+ 
+-                        PR_snprintf( serial, 100, "0x%s", attr_serial );
++                        if( revokeCert ) {
++                            char *attr_cn = get_cert_cn( e );
+ 
+-                        statusNum = certEnroll->
+-                                    RevokeCertificate( revokeReason,
+-                                                       serial,
+-                                                       connid,
+-                                                       statusString );
++                            PR_snprintf( ( char * ) configname, 256,
++                                         "op.enroll.%s.keyGen.%s.ca.conn",
++                                         attr_tokenType, attr_keyType );
+ 
+-                        if (statusNum != 0) { // revocation errors
+-                            if( strcmp( revokeReason, "6" ) == 0 ) {
+-                                PR_snprintf((char *)msg, 256, "Errors in marking certificate on_hold '%s' : %s", attr_cn, statusString);
+-                                RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "failure", msg, cuidUserId, attr_tokenType);
++                            char *connid = ( char * )
++                                           ( RA::GetConfigStore()->
++                                             GetConfigAsString( configname ) );
+ 
+-                                RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid,
+-                                  "Failure", "revoked_on_hold", serial, connid, statusString);
+-                            } else {
+-                                PR_snprintf((char *)msg, 256, "Errors in revoking certificate '%s' : %s", attr_cn, statusString);
+-                                RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "failure", msg, cuidUserId, attr_tokenType);
++                            PR_snprintf( serial, 100, "0x%s", attr_serial );
+ 
+-                                RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid,
+-                                  "Failure", "revoke", serial, connid, statusString);
+-                            }
+-                            revocation_errors = true;
+-                        } else {
+-                            // update certificate status
+-                            if( strcmp( revokeReason, "6" ) == 0 ) {
+-                                PR_snprintf((char *)msg, 256, "Certificate '%s' is marked as revoked_on_hold", attr_cn);
+-                                RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "success", msg, cuidUserId, attr_tokenType);
+-                                update_cert_status( attr_cn, "revoked_on_hold" );
++                            statusNum = certEnroll->
++                                        RevokeCertificate( revokeReason,
++                                                           serial,
++                                                           connid,
++                                                           statusString );
+ 
+-                                RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid,
+-                                  "Success", "revoked_on_hold", serial, connid, "");
++                            if (statusNum != 0) { // revocation errors
++                                if( strcmp( revokeReason, "6" ) == 0 ) {
++                                    PR_snprintf((char *)msg, 256, "Errors in marking certificate on_hold '%s' : %s", attr_cn, statusString);
++                                    RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "failure", msg, cuidUserId, attr_tokenType);
++
++                                    RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid,
++                                      "Failure", "revoked_on_hold", serial, connid, statusString);
++                                } else {
++                                    PR_snprintf((char *)msg, 256, "Errors in revoking certificate '%s' : %s", attr_cn, statusString);
++                                    RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "failure", msg, cuidUserId, attr_tokenType);
++
++                                    RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid,
++                                      "Failure", "revoke", serial, connid, statusString);
++                                }
++                                revocation_errors = true;
+                             } else {
+-                                PR_snprintf((char *)msg, 256, "Certificate '%s' is marked as revoked", attr_cn);
+-                                RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "success", msg, cuidUserId, attr_tokenType);
+-                                update_cert_status( attr_cn, "revoked" );
++                                // update certificate status
++                                if( strcmp( revokeReason, "6" ) == 0 ) {
++                                    PR_snprintf((char *)msg, 256, "Certificate '%s' is marked as revoked_on_hold", attr_cn);
++                                    RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "success", msg, cuidUserId, attr_tokenType);
++                                    update_cert_status( attr_cn, "revoked_on_hold" );
+ 
+-                                RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid,
+-                                  "Success", "revoke", serial, connid, "");
++                                    RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid,
++                                      "Success", "revoked_on_hold", serial, connid, "");
++                                } else {
++                                    PR_snprintf((char *)msg, 256, "Certificate '%s' is marked as revoked", attr_cn);
++                                    RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "success", msg, cuidUserId, attr_tokenType);
++                                    update_cert_status( attr_cn, "revoked" );
++
++                                    RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid,
++                                      "Success", "revoke", serial, connid, "");
++                                }
+                             }
+-                        }
+ 
+-                        do_free(statusString);
++                            do_free(statusString);
++                        }
+                     }
+ 
+                     if( attr_status != NULL ) {
+@@ -4521,11 +4546,14 @@ mod_tokendb_handler( request_rec *rq )
+                      e != NULL;
+                      e = get_next_entry( e ) ) { 
+                     char *attr_status = get_cert_status( e );
+-                    if( strcmp( attr_status, "active" ) == 0 || 
+-                        strcmp( attr_status, "revoked" ) == 0 ) {
++                    if( (attr_status == NULL) ||
++                        (strcmp( attr_status, "active" ) == 0) || 
++                        (strcmp( attr_status, "revoked" ) == 0) ) {
+                         if( attr_status != NULL ) {
+                             PL_strfree( attr_status );
+                             attr_status = NULL;
++                        } else {
++                            tokendbDebug("tokenStatus is NULL\n");
+                         }
+ 
+                         continue;
+@@ -4535,53 +4563,59 @@ mod_tokendb_handler( request_rec *rq )
+                     char *attr_tokenType = get_cert_tokenType( e );
+                     char *attr_keyType = get_cert_type( e );
+ 
+-                    PR_snprintf( ( char * ) configname, 256,
+-                                 "op.enroll.%s.keyGen.%s.recovery."
+-                                 "onHold.revokeCert",
+-                                 attr_tokenType, attr_keyType );
+-
+-                    bool revokeCert = RA::GetConfigStore()->
+-                                      GetConfigAsBool( configname, true );
+-                    if( revokeCert ) {
+-                        char *attr_cn = get_cert_cn( e );
+-
++                    /* Check if these are NULL so we don't dereference them. */
++                    if ((attr_serial == NULL) || (attr_tokenType == NULL) ||
++                        (attr_keyType == NULL)) {
++                        tokendbDebug("tokenSerial, tokenType, or tokenKeyType is NULL\n");
++                    } else {
+                         PR_snprintf( ( char * ) configname, 256,
+-                                     "op.enroll.%s.keyGen.%s.ca.conn",
++                                     "op.enroll.%s.keyGen.%s.recovery."
++                                     "onHold.revokeCert",
+                                      attr_tokenType, attr_keyType );
+ 
+-                         char *connid = ( char * )
+-                                         ( RA::GetConfigStore()->
+-                                           GetConfigAsString( configname ) );
++                        bool revokeCert = RA::GetConfigStore()->
++                                          GetConfigAsBool( configname, true );
++                        if( revokeCert ) {
++                            char *attr_cn = get_cert_cn( e );
++
++                            PR_snprintf( ( char * ) configname, 256,
++                                         "op.enroll.%s.keyGen.%s.ca.conn",
++                                         attr_tokenType, attr_keyType );
++
++                             char *connid = ( char * )
++                                             ( RA::GetConfigStore()->
++                                               GetConfigAsString( configname ) );
+                          
+ 
+-                        PR_snprintf( serial, 100, "0x%s", attr_serial );
++                            PR_snprintf( serial, 100, "0x%s", attr_serial );
+ 
+-                         int statusNum = certEnroll->
+-                                          UnrevokeCertificate( serial,
+-                                                               connid,
+-                                                               statusString );
++                             int statusNum = certEnroll->
++                                              UnrevokeCertificate( serial,
++                                                                   connid,
++                                                                   statusString );
+ 
+-                        if (statusNum == 0) {
+-                            PR_snprintf((char *)msg, 256, "Certificate '%s' is marked as active", attr_cn);
+-                            RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "success", msg, cuidUserId, attr_tokenType);
+-                            update_cert_status( attr_cn, "active" );
++                            if (statusNum == 0) {
++                                PR_snprintf((char *)msg, 256, "Certificate '%s' is marked as active", attr_cn);
++                                RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "success", msg, cuidUserId, attr_tokenType);
++                                update_cert_status( attr_cn, "active" );
+ 
+-                            RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid,
+-                              "Success", "unrevoke", serial, connid, "");
+-                        } else {
+-                            PR_snprintf((char *)msg, 256, "Errors in unrevoking Certificate '%s': %s", attr_cn, statusString);
+-                            RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "failure", msg, cuidUserId, attr_tokenType);
++                                RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid,
++                                  "Success", "unrevoke", serial, connid, "");
++                            } else {
++                                PR_snprintf((char *)msg, 256, "Errors in unrevoking Certificate '%s': %s", attr_cn, statusString);
++                                RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "failure", msg, cuidUserId, attr_tokenType);
+ 
+-                            RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid,
+-                              "Failure", "unrevoke", serial, connid, statusString);
+-                        }
++                                RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid,
++                                  "Failure", "unrevoke", serial, connid, statusString);
++                            }
+                         
+-                        if( attr_cn != NULL ) {
+-                            PL_strfree( attr_cn );
+-                            attr_cn = NULL;
+-                        }
++                            if( attr_cn != NULL ) {
++                                PL_strfree( attr_cn );
++                                attr_cn = NULL;
++                            }
+ 
+-                        do_free(statusString);
++                            do_free(statusString);
++                        }
+                     }
+ 
+                     if( attr_serial != NULL ) {
+@@ -4677,11 +4711,14 @@ mod_tokendb_handler( request_rec *rq )
+                      e != NULL;
+                      e = get_next_entry( e ) ) { 
+                     char *attr_status = get_cert_status( e );
+-                    if( strcmp( attr_status, "revoked" ) == 0 ) {
++                    if( (attr_status == NULL) || (strcmp( attr_status, "revoked" ) == 0) ) {
+                         if( attr_status != NULL ) {
+                             PL_strfree( attr_status );
+                             attr_status = NULL;
++                        } else {
++                            tokendbDebug("tokenStatus is NULL\n");
+                         }
++
+                         continue;
+                     }
+ 
+@@ -4689,85 +4726,91 @@ mod_tokendb_handler( request_rec *rq )
+                     char *attr_tokenType = get_cert_tokenType( e );
+                     char *attr_keyType = get_cert_type( e );
+ 
+-                    PR_snprintf( ( char * ) configname, 256,
+-                                 "op.enroll.%s.keyGen.%s.recovery."
+-                                 "keyCompromise.revokeCert",
+-                                 attr_tokenType, attr_keyType );
+-
+-                    bool revokeCert = RA::GetConfigStore()->
+-                                      GetConfigAsBool( configname, true );
+-
+-                    PR_snprintf( ( char * ) configname, 256,
+-                                 "op.enroll.%s.keyGen.%s.recovery."
+-                                 "keyCompromise.revokeCert.reason",
+-                                 attr_tokenType, attr_keyType );
+-
+-                    char *revokeReason = ( char * )
+-                                         ( RA::GetConfigStore()->
+-                                           GetConfigAsString( configname,
+-                                                              "1" ) );
++                    /* Check if these are NULL so we don't dereference them. */
++                    if ((attr_serial == NULL) || (attr_tokenType == NULL) ||
++                        (attr_keyType == NULL)) {
++                        tokendbDebug("tokenSerial, tokenType, or tokenKeyType is NULL\n");
++                    } else {
++                        PR_snprintf( ( char * ) configname, 256,
++                                     "op.enroll.%s.keyGen.%s.recovery."
++                                     "keyCompromise.revokeCert",
++                                     attr_tokenType, attr_keyType );
+ 
+-                    if( revokeCert ) {
+-                        char *attr_cn = get_cert_cn( e );
++                        bool revokeCert = RA::GetConfigStore()->
++                                          GetConfigAsBool( configname, true );
+ 
+                         PR_snprintf( ( char * ) configname, 256,
+-                                     "op.enroll.%s.keyGen.%s.ca.conn",
++                                     "op.enroll.%s.keyGen.%s.recovery."
++                                     "keyCompromise.revokeCert.reason",
+                                      attr_tokenType, attr_keyType );
+ 
+-                        char *connid = ( char * )
+-                                       ( RA::GetConfigStore()->
+-                                         GetConfigAsString( configname ) );
++                        char *revokeReason = ( char * )
++                                             ( RA::GetConfigStore()->
++                                               GetConfigAsString( configname,
++                                                                  "1" ) );
+ 
+-                        PR_snprintf( serial, 100, "0x%s", attr_serial );
++                        if( revokeCert ) {
++                            char *attr_cn = get_cert_cn( e );
+ 
+-                        int statusNum = 0;
+-                        if(( strcmp( attr_status, "revoked_on_hold" ) == 0 ) && (strcmp(revokeReason, "6" ) != 0)) {
+-                            statusNum = certEnroll->
+-                                        UnrevokeCertificate( serial,
+-                                                             connid,
+-                                                             statusString );
+-                            if (statusNum == 0) {
+-                                PR_snprintf((char *)msg, 256, "Certificate '%s' is marked as active", attr_cn);
+-                                RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "initiated", msg, cuidUserId, attr_tokenType);
+-                                update_cert_status( attr_cn, "active" );
++                            PR_snprintf( ( char * ) configname, 256,
++                                         "op.enroll.%s.keyGen.%s.ca.conn",
++                                         attr_tokenType, attr_keyType );
+ 
+-                                RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid,
+-                                  "Success", "unrevoke", serial, connid, "");
++                            char *connid = ( char * )
++                                           ( RA::GetConfigStore()->
++                                             GetConfigAsString( configname ) );
+ 
+-                                do_free(statusString);
++                            PR_snprintf( serial, 100, "0x%s", attr_serial );
++
++                            int statusNum = 0;
++                            if(( strcmp( attr_status, "revoked_on_hold" ) == 0 ) && (strcmp(revokeReason, "6" ) != 0)) {
+                                 statusNum = certEnroll->
+-                                        RevokeCertificate( revokeReason,
+-                                                           serial,
+-                                                           connid,
+-                                                           statusString );
++                                            UnrevokeCertificate( serial,
++                                                                 connid,
++                                                                 statusString );
+                                 if (statusNum == 0) {
+-                                    PR_snprintf((char *)msg, 256, "Certificate '%s' is marked as revoked", attr_cn);
+-                                    RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "success", msg, cuidUserId, attr_tokenType);
+-                                    update_cert_status( attr_cn, "revoked" );
++                                    PR_snprintf((char *)msg, 256, "Certificate '%s' is marked as active", attr_cn);
++                                    RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "initiated", msg, cuidUserId, attr_tokenType);
++                                    update_cert_status( attr_cn, "active" );
+ 
+                                     RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid,
+-                                      "Success", "revoke", serial, connid, "");
++                                      "Success", "unrevoke", serial, connid, "");
++
++                                    do_free(statusString);
++                                    statusNum = certEnroll->
++                                            RevokeCertificate( revokeReason,
++                                                               serial,
++                                                               connid,
++                                                               statusString );
++                                    if (statusNum == 0) {
++                                        PR_snprintf((char *)msg, 256, "Certificate '%s' is marked as revoked", attr_cn);
++                                        RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "success", msg, cuidUserId, attr_tokenType);
++                                        update_cert_status( attr_cn, "revoked" );
++
++                                        RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid,
++                                          "Success", "revoke", serial, connid, "");
++                                    } else {
++                                        PR_snprintf((char *)msg, 256, "Errors in revoking Certificate '%s' : %s", attr_cn, statusString);
++                                        RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "failure", msg, cuidUserId, attr_tokenType);
++
++                                        RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid,
++                                          "Failure", "revoke", serial, connid, statusString);
++                                    }
+                                 } else {
+-                                    PR_snprintf((char *)msg, 256, "Errors in revoking Certificate '%s' : %s", attr_cn, statusString);
++                                    PR_snprintf((char *)msg, 256, "Errors in unrevoking Certificate '%s' : %s", attr_cn, statusString);
+                                     RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "failure", msg, cuidUserId, attr_tokenType);
+ 
+                                     RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid,
+-                                      "Failure", "revoke", serial, connid, statusString);
++                                      "Failure", "unrevoke", serial, connid, statusString);
+                                 }
+-                            } else {
+-                                PR_snprintf((char *)msg, 256, "Errors in unrevoking Certificate '%s' : %s", attr_cn, statusString);
+-                                RA::tdb_activity(rq->connection->client_ip, cuid, "do_token", "failure", msg, cuidUserId, attr_tokenType);
+ 
+-                                RA::Audit(EV_CONFIG_TOKEN, AUDIT_MSG_CERT_STATUS_CHANGE, userid,
+-                                  "Failure", "unrevoke", serial, connid, statusString);
++                                do_free(statusString);
+                             }
+ 
+-                            do_free(statusString);
+-                        }
+-
+-                        if( attr_cn != NULL ) {
+-                            PL_strfree( attr_cn );
+-                            attr_cn = NULL;
++                            if( attr_cn != NULL ) {
++                                PL_strfree( attr_cn );
++                                attr_cn = NULL;
++                            }
+                         }
+                     }
+ 
+diff --git a/base/tps/src/processor/RA_Enroll_Processor.cpp b/base/tps/src/processor/RA_Enroll_Processor.cpp
+index 6922dc2..59c6131 100644
+--- a/base/tps/src/processor/RA_Enroll_Processor.cpp
++++ b/base/tps/src/processor/RA_Enroll_Processor.cpp
+@@ -3232,7 +3232,7 @@ bool RA_Enroll_Processor::GenerateCertsAfterRecoveryPolicy(AuthParams *login, RA
+               attr_values = NULL;
+             }
+             tokenid = RA::ra_get_token_id(e);
+-            RA::Debug(LL_PER_CONNECTION,FN, "tokenID = %s", tokenid);
++            RA::Debug(LL_PER_CONNECTION,FN, "tokenID = %s", tokenid ? tokenid : "NULL");
+             int cmp_result = PL_strcasecmp(tokenid, cuid);
+             free(tokenid);
+             if (cmp_result == 0) {
+@@ -3260,7 +3260,13 @@ bool RA_Enroll_Processor::GenerateCertsAfterRecoveryPolicy(AuthParams *login, RA
+ 
+                             // if the previous one is lost, then check lost reason
+                             origTokenType = PL_strdup(tokenType);
+-                            if (PL_strcasecmp(reason, "keyCompromise") == 0) {
++                            if (reason == NULL) {
++                                r = false;
++                                o_status = STATUS_ERROR_NO_SUCH_LOST_REASON;
++                                RA::Debug(LL_PER_CONNECTION,FN,
++                                  "NULL lost reason for this cuid=%s", cuid);
++                                goto loser;
++                            } else if (PL_strcasecmp(reason, "keyCompromise") == 0) {
+                                 r = ProcessRecovery(login, reason, session, origins, ktypes,
+                                   tokenType, pkcs11objx, pkcs11obj_enable,
+                                   extensions, channel, wrapped_challenge,
+@@ -3332,7 +3338,13 @@ bool RA_Enroll_Processor::GenerateCertsAfterRecoveryPolicy(AuthParams *login, RA
+                     goto loser;
+                 } else if (strcmp(tokenStatus, "lost") == 0) {
+                     char *reason = RA::ra_get_token_reason(e);
+-                    if (strcmp(reason, "keyCompromise") == 0) {
++                    if (reason == NULL) {
++                        RA::Debug(LL_PER_CONNECTION,FN,
++                            "NULL lost reason for this cuid=%s", cuid);
++                        r = false;
++                        o_status = STATUS_ERROR_NO_SUCH_LOST_REASON;
++                        goto loser;
++                    } else if (strcmp(reason, "keyCompromise") == 0) {
+                         r = false;
+                         o_status = STATUS_ERROR_UNUSABLE_TOKEN_KEYCOMPROMISE;
+                         RA::Debug(LL_PER_CONNECTION,FN,
+@@ -3703,6 +3715,15 @@ bool RA_Enroll_Processor::ProcessRenewal(AuthParams *login, RA_Session *session,
+                        e != NULL;
+                        e = RA::ra_get_next_entry( e ) ) {
+                     attr_status = RA::ra_get_cert_status( e );
++
++                    // status shouldn't be NULL.
++                    if ( attr_status == NULL) {
++                        RA::Debug("RA_Enroll_Processor::ProcessRenewal",
++                            "token status is NULL.");
++                        r = false;
++                        goto loser;
++                    }
++
+                     if( (strcmp( attr_status, "revoked" ) == 0) ||
+                         (strcmp( attr_status, "renewed" ) == 0) ) {
+                         if (attr_status != NULL) {
+@@ -5200,6 +5221,7 @@ int RA_Enroll_Processor::UnrevokeRecoveredCert(const LDAPMessage *e, char *&stat
+     //Default to error return
+     int statusNum = 0;
+     char serial[100]="";
++    bool revokeCert = false;
+ 
+     RA::Debug("RA_Enroll_Processor::ProcessRecovery",
+                       "About to unrevoke recovered certificate.");
+@@ -5212,6 +5234,21 @@ int RA_Enroll_Processor::UnrevokeRecoveredCert(const LDAPMessage *e, char *&stat
+     char *attr_tokenType = RA::ra_get_cert_tokenType( (LDAPMessage *) e );
+     char *attr_keyType = RA::ra_get_cert_type( (LDAPMessage *) e );
+ 
++    // Bail if serial, token type,  or key type are NULL.
++    if (attr_tokenType == NULL) {
++        RA::Debug("RA_Enroll_Processor::UnrevokeRecoveredCert",
++            "token type is NULL.");
++        goto loser;
++    } else if (attr_keyType == NULL) {
++        RA::Debug("RA_Enroll_Processor::UnrevokeRecoveredCert",
++            "key type is NULL.");
++        goto loser;
++    } else if (attr_serial == NULL) {
++        RA::Debug("RA_Enroll_Processor::UnrevokeRecoveredCert",
++            "token serial is NULL.");
++        goto loser;
++    }
++
+     // does the config say we have to revoke this cert?
+     PR_snprintf( ( char * ) configname, 256,
+                   "op.enroll.%s.keyGen.%s.recovery."
+@@ -5220,7 +5257,7 @@ int RA_Enroll_Processor::UnrevokeRecoveredCert(const LDAPMessage *e, char *&stat
+ 
+     RA::Debug("RA_Enroll_Processor::UnrevokeRecoveredCert",
+         "Recovered Cert Unrevoke config value %s \n", configname);
+-    bool revokeCert = RA::GetConfigStore()->
++    revokeCert = RA::GetConfigStore()->
+         GetConfigAsBool( configname, false );
+     if( revokeCert ) {
+         // Assume the worst
+@@ -5245,6 +5282,7 @@ int RA_Enroll_Processor::UnrevokeRecoveredCert(const LDAPMessage *e, char *&stat
+        } 
+     }
+ 
++  loser:
+     if (attr_serial) {
+         PL_strfree(attr_serial);
+     }
+diff --git a/base/tps/src/processor/RA_Pin_Reset_Processor.cpp b/base/tps/src/processor/RA_Pin_Reset_Processor.cpp
+index b776b55..c13fd4b 100644
+--- a/base/tps/src/processor/RA_Pin_Reset_Processor.cpp
++++ b/base/tps/src/processor/RA_Pin_Reset_Processor.cpp
+@@ -864,16 +864,21 @@ locale),
+ 	     */
+       if (RA::ra_is_token_pin_resetable(cuid)) {
+ 	policy = RA::ra_get_token_policy(cuid);
++
+         RA::Error("RA_Pin_Reset_Processor::Process",
+-                        "Policy %s is %s", cuid, policy);
+-	tmp_policy = PL_strstr(policy, "PIN_RESET=YES");
+-	if (tmp_policy != NULL) {
+-	  tmp_policy[10] = 'N';
+-	  tmp_policy[11] = 'O';
+-	  for (i = 12; tmp_policy[i] != '\0'; i++)
+-	    tmp_policy[i] = tmp_policy[i+1];
+-	  rc = RA::ra_update_token_policy(cuid, policy);
+-          if (rc != 0) { 
++                        "Policy %s is %s", cuid, policy ? policy : "NULL");
++        if (policy != NULL) {
++          tmp_policy = PL_strstr(policy, "PIN_RESET=YES");
++          if (tmp_policy != NULL) {
++            tmp_policy[10] = 'N';
++            tmp_policy[11] = 'O';
++
++            for (i = 12; tmp_policy[i] != '\0'; i++) {
++              tmp_policy[i] = tmp_policy[i+1];
++            }
++
++            rc = RA::ra_update_token_policy(cuid, policy);
++            if (rc != 0) { 
+               RA::Audit(EV_PIN_RESET, AUDIT_MSG_PROC,
+                   userid != NULL ? userid : "",
+                   cuid != NULL ? cuid : "",
+@@ -883,8 +888,9 @@ locale),
+                  final_applet_version != NULL ? final_applet_version : "",
+                  keyVersion != NULL? keyVersion : "",
+                  "failed to reset token policy");
++            }
+           }
+-	}
++        }
+       }
+     }
+ 
+diff --git a/base/tps/src/processor/RA_Processor.cpp b/base/tps/src/processor/RA_Processor.cpp
+index 435e628..b37e4e0 100644
+--- a/base/tps/src/processor/RA_Processor.cpp
++++ b/base/tps/src/processor/RA_Processor.cpp
+@@ -2470,15 +2470,27 @@ bool RA_Processor::RevokeCertificates(RA_Session *session, char *cuid,char *audi
+             CertEnroll *certEnroll = new CertEnroll();
+             for (e = RA::ra_get_first_entry(result); e != NULL; e = RA::ra_get_next_entry(e)) {
+                 char *attr_status = RA::ra_get_cert_status(e);
+-                if (strcmp(attr_status, "revoked") == 0) {
++                if ((attr_status == NULL) || (strcmp(attr_status, "revoked") == 0)) {
+                     if (attr_status != NULL) {
+                         PL_strfree(attr_status);
+                         attr_status = NULL;
++                    } else {
++                        RA::Debug("RA_Processor::RevokeCertificates", "Token status is NULL.");
+                     }
++
+                     rc = RA::ra_delete_certificate_entry(e);
+                     continue;
+                 }
++
+                 char *attr_serial= RA::ra_get_cert_serial(e);
++                if (attr_serial == NULL) {
++                  // Skip this certificate is the serial is NULL.  This
++                  // shouldn't happen.
++                  RA::Debug("RA_Processor::RevokeCertificates", "Serial is NULL.");
++                  rc = RA::ra_delete_certificate_entry(e);
++                  continue;
++                }
++
+                 /////////////////////////////////////////////////
+                 // Raidzilla Bug #57803:
+                 // If the certificate is not originally created for this
+diff --git a/base/tps/src/tus/tus_db.c b/base/tps/src/tus/tus_db.c
+index 0fb9e36..b0e5499 100644
+--- a/base/tps/src/tus/tus_db.c
++++ b/base/tps/src/tus/tus_db.c
+@@ -1385,109 +1385,101 @@ TPS_PUBLIC int update_tus_db_entry (const char *agentid, char *cn, const char *u
+     if (PR_snprintf(dn, 255, "cn=%s,%s", cn, baseDN) < 0)
+         return -1;
+ 
+-        if (keyInfo == NULL && token_type == NULL)
+-            mods = allocate_modifications(5);
+-        else if (keyInfo == NULL || token_type == NULL)
+-            mods = allocate_modifications(6);
+-        else
+-            mods = allocate_modifications(7);
+-        if (mods == NULL)
+-            return -1;
++    if (keyInfo == NULL && token_type == NULL)
++        mods = allocate_modifications(5);
++    else if (keyInfo == NULL || token_type == NULL)
++        mods = allocate_modifications(6);
++    else
++        mods = allocate_modifications(7);
++    if (mods == NULL)
++        return -1;
+ 
+-        if ((v = create_modification_date_change()) == NULL) {
++    if ((v = create_modification_date_change()) == NULL) {
++        if( mods != NULL ) {
++            free_modifications( mods, 0 );
++            mods = NULL;
++        }
++        return -1;
++    }
++
++    mods[0]->mod_op = LDAP_MOD_REPLACE;
++    mods[0]->mod_type = tokenAttributes[I_TOKEN_M_DATE];
++    mods[0]->mod_values = v;
++    k = 1;
++
++    if (applet_version != NULL && PL_strlen(applet_version) > 0) {
++        len = PL_strlen(applet_version);
++        if ((v = allocate_values(1, len+1)) == NULL) {
+             if( mods != NULL ) {
+                 free_modifications( mods, 0 );
+                 mods = NULL;
+             }
+             return -1;
+         }
++        PL_strcpy(v[0], applet_version);
+ 
+-        mods[0]->mod_op = LDAP_MOD_REPLACE;
+-        mods[0]->mod_type = tokenAttributes[I_TOKEN_M_DATE];
+-        mods[0]->mod_values = v;
+-        k = 1;
+-        if (applet_version != NULL && PL_strlen(applet_version) > 0) {
+-            len = PL_strlen(applet_version);
+-            if ((v = allocate_values(1, len+1)) == NULL) {
+-                if( mods != NULL ) {
+-                    free_modifications( mods, 0 );
+-                    mods = NULL;
+-                }
+-                return -1;
+-            }
+-            PL_strcpy(v[0], applet_version);
+-
+-            mods[k]->mod_op = LDAP_MOD_REPLACE;
+-            mods[k]->mod_type = tokenAttributes[I_TOKEN_APPLET];
+-            mods[k]->mod_values = v;
+-            k++;
+-        }
++        mods[k]->mod_op = LDAP_MOD_REPLACE;
++        mods[k]->mod_type = tokenAttributes[I_TOKEN_APPLET];
++        mods[k]->mod_values = v;
++        k++;
++    }
+ 
+     /* for userid */
+-    if (uid != NULL && PL_strlen(uid) > 0)
++    if (uid != NULL && PL_strlen(uid) > 0) {
+         len = PL_strlen(uid);
+-    else
+-        len = 0;
+-    if ((v = allocate_values(1, len+1)) == NULL) {
+-        if( mods != NULL ) {
+-            free_modifications( mods, 0 );
+-            mods = NULL;
++        if ((v = allocate_values(1, len+1)) == NULL) {
++            if( mods != NULL ) {
++                free_modifications( mods, 0 );
++                mods = NULL;
++            }
++            return -1;
+         }
+-        return -1;
+-    }
+-    mods[k]->mod_op = LDAP_MOD_REPLACE;
+-    mods[k]->mod_type = "tokenUserID";
+-    if (uid != NULL && PL_strlen(uid) > 0)
+         PL_strcpy(v[0], uid);
+-    else
+-        v[0] = "";
+-    mods[k]->mod_values = v;
+-    k++;
+ 
+-        if (status != NULL && PL_strlen(status) > 0) {
+-            len = PL_strlen(status);
+-            if ((v = allocate_values(1, len+1)) == NULL) {
+-                if( mods != NULL ) {
+-                    free_modifications( mods, 0 );
+-                    mods = NULL;
+-                }
+-                return -1;
+-            }
+-            PL_strcpy(v[0], status);
++        mods[k]->mod_op = LDAP_MOD_REPLACE;
++        mods[k]->mod_type = "tokenUserID";
++        mods[k]->mod_values = v;
++        k++;
++    }
+ 
+-            mods[k]->mod_op = LDAP_MOD_REPLACE;
+-            mods[k]->mod_type = tokenAttributes[I_TOKEN_STATUS];
+-            mods[k]->mod_values = v;
+-            k++;
++    if (status != NULL && PL_strlen(status) > 0) {
++        len = PL_strlen(status);
++        if ((v = allocate_values(1, len+1)) == NULL) {
++            if( mods != NULL ) {
++                free_modifications( mods, 0 );
++                mods = NULL;
++            }
++            return -1;
+         }
++        PL_strcpy(v[0], status);
++
++        mods[k]->mod_op = LDAP_MOD_REPLACE;
++        mods[k]->mod_type = tokenAttributes[I_TOKEN_STATUS];
++        mods[k]->mod_values = v;
++        k++;
++    }
+ 
+     /* for tokenReason */
+-    if (reason != NULL && PL_strlen(reason) > 0)
++    if (reason != NULL && PL_strlen(reason) > 0) {
+         len = PL_strlen(reason);
+-    else
+-        len = 0;
+-    if ((v = allocate_values(1, len+1)) == NULL) {
+-        if( mods != NULL ) {
+-            free_modifications( mods, 0 );
+-            mods = NULL;
++        if ((v = allocate_values(1, len+1)) == NULL) {
++            if( mods != NULL ) {
++                free_modifications( mods, 0 );
++                mods = NULL;
++            }
++            return -1;
+         }
+-        return -1;
+-    }
+-    mods[k]->mod_op = LDAP_MOD_REPLACE;
+-    mods[k]->mod_type = "tokenReason";
+-    if (reason != NULL && PL_strlen(reason) > 0)
+         PL_strcpy(v[0], reason);
+-    else
+-        v[0] = "";
+-    mods[k]->mod_values = v;
+-    k++;
++
++        mods[k]->mod_op = LDAP_MOD_REPLACE;
++        mods[k]->mod_type = "tokenReason";
++        mods[k]->mod_values = v;
++        k++;
++    }
+ 
+     /* for keyinfo */
+-    if (keyInfo != NULL) {
+-        if (keyInfo != NULL && PL_strlen(keyInfo) > 0)
+-            len = PL_strlen(keyInfo);
+-        else
+-            len = 0;
++    if (keyInfo != NULL && PL_strlen(keyInfo) > 0) {
++        len = PL_strlen(keyInfo);
+         if ((v = allocate_values(1, len+1)) == NULL) {
+             if( mods != NULL ) {
+                 free_modifications( mods, 0 );
+@@ -1495,22 +1487,17 @@ TPS_PUBLIC int update_tus_db_entry (const char *agentid, char *cn, const char *u
+             }
+             return -1;
+         }
++        PL_strcpy(v[0], keyInfo);
++
+         mods[k]->mod_op = LDAP_MOD_REPLACE;
+         mods[k]->mod_type = tokenAttributes[I_TOKEN_KEY_INFO];
+-        if (keyInfo != NULL && PL_strlen(keyInfo) > 0)
+-            PL_strcpy(v[0], keyInfo);
+-        else
+-            v[0] = "";
+         mods[k]->mod_values = v;
+         k++;
+     }
+ 
+     /* for token_type */
+-    if (token_type != NULL) {
+-        if (token_type != NULL && PL_strlen(token_type) > 0)
+-            len = PL_strlen(token_type);
+-        else
+-            len = 0;
++    if (token_type != NULL && PL_strlen(token_type) > 0) {
++        len = PL_strlen(token_type);
+         if ((v = allocate_values(1, len+1)) == NULL) {
+             if( mods != NULL ) {
+                 free_modifications( mods, 0 );
+@@ -1518,35 +1505,33 @@ TPS_PUBLIC int update_tus_db_entry (const char *agentid, char *cn, const char *u
+             }
+             return -1;
+         }
++        PL_strcpy(v[0], token_type);
++
+         mods[k]->mod_op = LDAP_MOD_REPLACE;
+         mods[k]->mod_type = TOKEN_TYPE;
+-        if (len > 0)
+-            PL_strcpy(v[0], token_type);
+-        else
+-            v[0] = "";
+         mods[k]->mod_values = v;
+         k++;
+     }
+ 
+-        for (tries = 0; tries < MAX_RETRIES; tries++) {
+-            if ((rc = ldap_modify_ext_s(ld, dn, mods, NULL, NULL)) == LDAP_SUCCESS) {
++    for (tries = 0; tries < MAX_RETRIES; tries++) {
++        if ((rc = ldap_modify_ext_s(ld, dn, mods, NULL, NULL)) == LDAP_SUCCESS) {
++            break;
++        } else if (rc == LDAP_SERVER_DOWN || rc == LDAP_CONNECT_ERROR) {
++            struct berval credential;
++            credential.bv_val = bindPass;
++            credential.bv_len= strlen(bindPass);
++            rc = ldap_sasl_bind_s(ld, bindDN, LDAP_SASL_SIMPLE, &credential, NULL, NULL, NULL);
++            if (rc != LDAP_SUCCESS) {
++                bindStatus = rc;
+                 break;
+-            } else if (rc == LDAP_SERVER_DOWN || rc == LDAP_CONNECT_ERROR) {
+-                struct berval credential;
+-                credential.bv_val = bindPass;
+-                credential.bv_len= strlen(bindPass);
+-                rc = ldap_sasl_bind_s(ld, bindDN, LDAP_SASL_SIMPLE, &credential, NULL, NULL, NULL);
+-                if (rc != LDAP_SUCCESS) {
+-                    bindStatus = rc;
+-                    break;
+-                }
+             }
+         }
++    }
+ 
+-        if( mods != NULL ) {
+-            free_modifications( mods, 0 );
+-            mods = NULL;
+-        }
++    if( mods != NULL ) {
++        free_modifications( mods, 0 );
++        mods = NULL;
++    }
+ 
+     return rc;
+ }
+@@ -1678,6 +1663,7 @@ int add_certificate (char *tokenid, char *origin, char *tokenType, char *userid,
+     LDAPMod  a15;
+     LDAPMod  a16;
+     LDAPMod  *mods[17];
++    int next = 0;
+     int  rc = 0, tries = 0;
+     char dn[2049];
+     char cdate[256];
+@@ -1685,19 +1671,19 @@ int add_certificate (char *tokenid, char *origin, char *tokenType, char *userid,
+     char x_not_before[2048];
+     char x_not_after[2048];
+     char serialnumber[2048];
+-    char *serial_values[2];
+-    char *cn_values[2];
+-    char *issuer_values[2];
+-    char *subject_values[2];
+-    char *cdate_values[2];
+-    char *id_values[2];
+-    char *userid_values[2];
+-    char *type_values[2];
+-    char *key_type_values[2];
+-    char *origin_values[2];
+-    char *status_values[2];
+-    char *not_before_values[2];
+-    char *not_after_values[2];
++    char *serial_values[2] = {"", NULL};
++    char *cn_values[2] = {"", NULL};
++    char *issuer_values[2] = {"", NULL};
++    char *subject_values[2] = {"", NULL};
++    char *cdate_values[2] = {"", NULL};
++    char *id_values[2] = {"", NULL};
++    char *userid_values[2] = {"", NULL};
++    char *type_values[2] = {"", NULL};
++    char *key_type_values[2] = {"", NULL};
++    char *origin_values[2] = {"", NULL};
++    char *status_values[2] = {"", NULL};
++    char *not_before_values[2] = {"", NULL};
++    char *not_after_values[2] = {"", NULL};
+     PRThread *ct;
+     struct berval berval;
+     struct berval *cert_values[2]; 
+@@ -1732,77 +1718,120 @@ int add_certificate (char *tokenid, char *origin, char *tokenType, char *userid,
+     a01.mod_op = 0;
+     a01.mod_type = TOKEN_ID;
+     a01.mod_values = cn_values;
++    mods[next] = &a01;
++    next++;
+ 
+     a02.mod_op = 0;
+     a02.mod_type = "objectClass";
+     a02.mod_values = objectClass_values;
++    mods[next] = &a02;
++    next++;
+ 
+     cdate_values[0] = cdate;
+     cdate_values[1] = NULL;
+     a03.mod_op = 0;
+     a03.mod_type = TOKEN_C_DATE;
+     a03.mod_values = cdate_values;
++    mods[next] = &a03;
++    next++;
+ 
+     a04.mod_op = 0;
+     a04.mod_type = TOKEN_M_DATE;
+     a04.mod_values = cdate_values;
+-
+-    id_values[0] = tokenid;
+-    id_values[1] = NULL;
+-    a05.mod_op = 0;
+-    a05.mod_type = TOKEN_CUID;
+-    a05.mod_values = id_values;
++    mods[next] = &a05;
++    next++;
++
++    /* Any of the below values might be empty since the caller could
++     * have passed in NULL or an empty string.  DS will not allow
++     * this if syntax checking is enabled since these attributes all
++     * use the Directory String syntax, which doesn't allow empty
++     * values.
++     *
++     * If we don't have a value for an attribute, we don't add the
++     * attribute as a part of the entry. */
++    if (tokenid && *tokenid != '\0') {
++        id_values[0] = tokenid;
++        a05.mod_op = 0;
++        a05.mod_type = TOKEN_CUID;
++        a05.mod_values = id_values;
++        mods[next] = &a05;
++        next++;
++    }
+     
+-    userid_values[0] = userid;
+-    userid_values[1] = NULL;
+-    a06.mod_op = 0;
+-    a06.mod_type = TOKEN_USER;
+-    a06.mod_values = userid_values;
+-
+-    berval.bv_len = certificate->derCert.len;
+-    berval.bv_val = ( char * ) certificate->derCert.data;
+-    cert_values[0] = &berval;
+-    cert_values[1] = NULL;
+-
+-    a07.mod_op = LDAP_MOD_BVALUES;
+-    a07.mod_type = TOKEN_CERT;
+-    a07.mod_values = ( char ** ) cert_values;
+-
+-    subject_values[0] = certificate->subjectName;
+-    subject_values[1] = NULL;
+-    a08.mod_op = 0;
+-    a08.mod_type = TOKEN_SUBJECT;
+-    a08.mod_values = subject_values;
++    if (userid && *userid != '\0') {
++        userid_values[0] = userid;
++        a06.mod_op = 0;
++        a06.mod_type = TOKEN_USER;
++        a06.mod_values = userid_values;
++        mods[next] = &a06;
++        next++;
++    }
++
++    if (certificate && certificate->derCert.data && *certificate->derCert.data != '\0') {
++        berval.bv_len = certificate->derCert.len;
++        berval.bv_val = ( char * ) certificate->derCert.data;
++        cert_values[0] = &berval;
+ 
+-    issuer_values[0] = certificate->issuerName;
+-    issuer_values[1] = NULL;
+-    a09.mod_op = 0;
+-    a09.mod_type = TOKEN_ISSUER;
+-    a09.mod_values = issuer_values;
+-
+-    serial_values[0] = serialnumber;
+-    serial_values[1] = NULL;
+-    a10.mod_op = 0;
+-    a10.mod_type = TOKEN_SERIAL;
+-    a10.mod_values = serial_values;
+-
+-    type_values[0] = tokenType;
+-    type_values[1] = NULL;
+-    a11.mod_op = 0;
+-    a11.mod_type = TOKEN_TYPE;
+-    a11.mod_values = type_values;
+-
+-    key_type_values[0] = ktype;
+-    key_type_values[1] = NULL;
+-    a12.mod_op = 0;
+-    a12.mod_type = TOKEN_KEY_TYPE;
+-    a12.mod_values = key_type_values;
+-
+-    status_values[0] = ( char * ) status;
+-    status_values[1] = NULL;
+-    a13.mod_op = 0;
+-    a13.mod_type = TOKEN_STATUS;
+-    a13.mod_values = status_values;
++        a07.mod_op = LDAP_MOD_BVALUES;
++        a07.mod_type = TOKEN_CERT;
++        a07.mod_values = ( char ** ) cert_values;
++        mods[next] = &a07;
++        next++;
++    }
++
++    if (certificate && certificate->subjectName && *certificate->subjectName != '\0') {
++        subject_values[0] = certificate->subjectName;
++        a08.mod_op = 0;
++        a08.mod_type = TOKEN_SUBJECT;
++        a08.mod_values = subject_values;
++        mods[next] = &a08;
++        next++;
++    }
++
++    if (certificate && certificate->issuerName && *certificate->issuerName != '\0') {
++        issuer_values[0] = certificate->issuerName;
++        a09.mod_op = 0;
++        a09.mod_type = TOKEN_ISSUER;
++        a09.mod_values = issuer_values;
++        mods[next] = &a09;
++        next++;
++    }
++
++    if (serialnumber && *serialnumber != '\0') {
++        serial_values[0] = serialnumber;
++        a10.mod_op = 0;
++        a10.mod_type = TOKEN_SERIAL;
++        a10.mod_values = serial_values;
++        mods[next] = &a10;
++        next++;
++    }
++
++    if (tokenType && *tokenType != '\0') {
++        type_values[0] = tokenType;
++        a11.mod_op = 0;
++        a11.mod_type = TOKEN_TYPE;
++        a11.mod_values = type_values;
++        mods[next] = &a11;
++        next++;
++    }
++
++    if (ktype && *ktype != '\0') {
++        key_type_values[0] = ktype;
++        a12.mod_op = 0;
++        a12.mod_type = TOKEN_KEY_TYPE;
++        a12.mod_values = key_type_values;
++        mods[next] = &a12;
++        next++;
++    }
++
++    if (status && *status != '\0') {
++        status_values[0] = ( char * ) status;
++        a13.mod_op = 0;
++        a13.mod_type = TOKEN_STATUS;
++        a13.mod_values = status_values;
++        mods[next] = &a13;
++        next++;
++    }
+ 
+     CERT_GetCertTimes (certificate, &not_before, &not_after);
+ 
+@@ -1811,46 +1840,40 @@ int add_certificate (char *tokenid, char *origin, char *tokenType, char *userid,
+             time.tm_year, (time.tm_month + 1), time.tm_mday,
+             time.tm_hour, time.tm_min, time.tm_sec);
+ 
+-    not_before_values[0] = x_not_before;
+-    not_before_values[1] = NULL;
+-    a14.mod_op = 0;
+-    a14.mod_type = TOKEN_NOT_BEFORE;
+-    a14.mod_values = not_before_values;
++    if (x_not_before && *x_not_before != '\0') {
++        not_before_values[0] = x_not_before;
++        a14.mod_op = 0;
++        a14.mod_type = TOKEN_NOT_BEFORE;
++        a14.mod_values = not_before_values;
++        mods[next] = &a14;
++        next++;
++    }
+ 
+     PR_ExplodeTime(not_after, PR_LocalTimeParameters, &time);
+     PR_snprintf(x_not_after, 16, "%04d%02d%02d%02d%02d%02dZ",
+             time.tm_year, (time.tm_month + 1), time.tm_mday,
+             time.tm_hour, time.tm_min, time.tm_sec);
+ 
+-    not_after_values[0] = x_not_after;
+-    not_after_values[1] = NULL;
+-    a15.mod_op = 0;
+-    a15.mod_type = TOKEN_NOT_AFTER;
+-    a15.mod_values = not_after_values;
++    if (x_not_after && *x_not_after != '\0') {
++        not_after_values[0] = x_not_after;
++        a15.mod_op = 0;
++        a15.mod_type = TOKEN_NOT_AFTER;
++        a15.mod_values = not_after_values;
++        mods[next] = &a15;
++        next++;
++    }
+ 
+-    origin_values[0] = origin;
+-    origin_values[1] = NULL;
+-    a16.mod_op = 0;
+-    a16.mod_type = TOKEN_ORIGIN;
+-    a16.mod_values = origin_values;
++    if (origin && *origin != '\0') {
++        origin_values[0] = origin;
++        a16.mod_op = 0;
++        a16.mod_type = TOKEN_ORIGIN;
++        a16.mod_values = origin_values;
++        mods[next] = &a16;
++        next++;
++    }
+ 
+-    mods[0]  = &a01;
+-    mods[1]  = &a02;
+-    mods[2]  = &a03;
+-    mods[3]  = &a04;
+-    mods[4]  = &a05;
+-    mods[5]  = &a06;
+-    mods[6]  = &a07;
+-    mods[7]  = &a08;
+-    mods[8]  = &a09;
+-    mods[9]  = &a10;
+-    mods[10]  = &a11;
+-    mods[11]  = &a12;
+-    mods[12]  = &a13;
+-    mods[13]  = &a14;
+-    mods[14]  = &a15;
+-    mods[15]  = &a16;
+-    mods[16]  = NULL;
++    /* NULL terminate the mods array. */
++    mods[next] = NULL;
+ 
+     if (PR_snprintf(dn, 2048, "cn=%s,%s", cn_values[0], certBaseDN) < 0)
+         return -1;
+@@ -1888,37 +1911,24 @@ int add_activity (const char *ip, const char *id, const char *op, const char *re
+     LDAPMod  a10;
+     LDAPMod  a11;
+     LDAPMod  *mods[12];
++    int next = 0;
+     int  rc = 0, tries = 0;
+     char dn[256];
+     char cdate[256];
+     char zcdate[256];
+-    char *cn_values[2];
++    char *cn_values[2] = { "", NULL };
+     char *objectClass_values[] = { "top", "tokenActivity", NULL };
+-    char *cdate_values[2];
+-    char *id_values[2];
+-    char *result_values[2];
+-    char *op_values[2];
+-    char *msg_values[2];
+-    char *ip_values[2];
+-    char *userid_values[2];
+-    char *token_type_values[2];
++    char *cdate_values[2] = { "", NULL };
++    char *id_values[2] = { "", NULL };
++    char *result_values[2] = { "", NULL };
++    char *op_values[2] = { "", NULL };
++    char *msg_values[2] = { "", NULL };
++    char *ip_values[2] = { "", NULL };
++    char *userid_values[2] = { "", NULL };
++    char *token_type_values[2] = { "", NULL };
+     PRThread *ct;
+ 
+     tus_check_conn();
+-    id_values[0] =  (char *) id;
+-    id_values[1] = NULL;
+-    result_values[0] = ( char * ) result;
+-    result_values[1] = NULL;
+-    op_values[0] = ( char * ) op;
+-    op_values[1] = NULL;
+-    msg_values[0] = ( char * ) msg;
+-    msg_values[1] = NULL;
+-    ip_values[0] = (char *) ip;
+-    ip_values[1] = NULL;
+-    userid_values[0] = (char *) userid;
+-    userid_values[1] = NULL;
+-    token_type_values[0] = (char *) token_type;
+-    token_type_values[1] = NULL;
+ 
+     ct = PR_GetCurrentThread();
+     now = PR_Now();
+@@ -1938,60 +1948,102 @@ int add_activity (const char *ip, const char *id, const char *op, const char *re
+     a01.mod_op = 0;
+     a01.mod_type = TOKEN_ID;
+     a01.mod_values = cn_values;
++    mods[next] = &a01;
++    next++;
+ 
+     a02.mod_op = 0;
+     a02.mod_type = "objectClass";
+     a02.mod_values = objectClass_values;
++    mods[next] = &a02;
++    next++;
+ 
+     cdate_values[0] = cdate;
+     cdate_values[1] = NULL;
+     a03.mod_op = 0;
+     a03.mod_type = TOKEN_C_DATE;
+     a03.mod_values = cdate_values;
++    mods[next] = &a03;
++    next++;
+ 
+     a04.mod_op = 0;
+     a04.mod_type = TOKEN_M_DATE;
+     a04.mod_values = cdate_values;
+-
+-    a05.mod_op = 0;
+-    a05.mod_type = TOKEN_CUID;
+-    a05.mod_values = id_values;
++    mods[next] = &a04;
++    next++;
++
++    /* Any of the below values might be empty since the caller could
++     * have passed in NULL or an empty string.  DS will not allow
++     * this if syntax checking is enabled since these attributes all
++     * use the Directory String syntax, which doesn't allow empty
++     * values.
++     *
++     * If we don't have a value for an attribute, we don't add the
++     * attribute as a part of the entry. */
++    if (id && *id != '\0') {
++        id_values[0] = id;
++        a05.mod_op = 0;
++        a05.mod_type = TOKEN_CUID;
++        a05.mod_values = id_values;
++        mods[next] = &a05;
++        next++;
++    }
+     
+-    a06.mod_op = 0;
+-    a06.mod_type = TOKEN_OP;
+-    a06.mod_values = op_values;
+-
+-    a07.mod_op = 0;
+-    a07.mod_type = TOKEN_MSG;
+-    a07.mod_values = msg_values;
+-
+-    a08.mod_op = 0;
+-    a08.mod_type = TOKEN_RESULT;
+-    a08.mod_values = result_values;
+-
+-    a09.mod_op = 0;
+-    a09.mod_type = TOKEN_IP;
+-    a09.mod_values = ip_values;
+-
+-    a10.mod_op = 0;
+-    a10.mod_type = TOKEN_USER;
+-    a10.mod_values = userid_values;
+-
+-    a11.mod_op = 0;
+-    a11.mod_type = TOKEN_TYPE;
+-    a11.mod_values = token_type_values;
+-    mods[0]  = &a01;
+-    mods[1]  = &a02;
+-    mods[2]  = &a03;
+-    mods[3]  = &a04;
+-    mods[4]  = &a05;
+-    mods[5]  = &a06;
+-    mods[6]  = &a07;
+-    mods[7]  = &a08;
+-    mods[8]  = &a09;
+-    mods[9]  = &a10;
+-    mods[10]  = &a11;
+-    mods[11]  = NULL;
++    if (op && *op != '\0') {
++        op_values[0] = (char *) op;
++        a06.mod_op = 0;
++        a06.mod_type = TOKEN_OP;
++        a06.mod_values = op_values;
++        mods[next] = &a06;
++        next++;
++    }
++
++    if (msg && *msg != '\0') {
++        msg_values[0] = (char *) msg;
++        a07.mod_op = 0;
++        a07.mod_type = TOKEN_MSG;
++        a07.mod_values = msg_values;
++        mods[next] = &a07;
++        next++;
++    }
++
++    if (result && *result != '\0') {
++        result_values[0] = (char *) result;
++        a08.mod_op = 0;
++        a08.mod_type = TOKEN_RESULT;
++        a08.mod_values = result_values;
++        mods[next] = &a08;
++        next++;
++    }
++
++    if (ip && *ip != '\0') {
++        ip_values[0] = ip;
++        a09.mod_op = 0;
++        a09.mod_type = TOKEN_IP;
++        a09.mod_values = ip_values;
++        mods[next] = &a09;
++        next++;
++    }
++
++    if (userid && *userid != '\0') {
++        userid_values[0] = userid;
++        a10.mod_op = 0;
++        a10.mod_type = TOKEN_USER;
++        a10.mod_values = userid_values;
++        mods[next] = &a10;
++        next++;
++    }
++
++    if (token_type && *token_type != '\0') {
++        token_type_values[0] = token_type;
++        a11.mod_op = 0;
++        a11.mod_type = TOKEN_TYPE;
++        a11.mod_values = token_type_values;
++        mods[next] = &a11;
++        next++;
++    }
++
++    /* NULL terminate the mods array. */
++    mods[next] = NULL;
+ 
+     if (PR_snprintf(dn, 255, "cn=%s,%s", zcdate, activityBaseDN) < 0)
+         return -1;
+@@ -2091,14 +2143,14 @@ int add_new_tus_db_entry (const char *userid, char *cn, const char *uid, int fla
+     LDAPMod  a13;
+     LDAPMod  a14;
+     LDAPMod  a15;
+-    LDAPMod  a16;
+-    LDAPMod  *mods[17];
++    LDAPMod  *mods[16];
++    int next = 0;
+     int  rc = 0, tries = 0;
+     char dn[256];
+     char cdate[256];
+-    char *cn_values[2];
++    char *cn_values[2] = { "", NULL };
+     char *objectClass_values[] = { "top", "tokenRecord", NULL };
+-    char *cdate_values[2];
++    char *cdate_values[2] = { "", NULL };
+     char *modified_values[] = { "0", NULL };
+     char *uid_values[] = { "", NULL };
+     char *status_values[] = { "", NULL };
+@@ -2108,108 +2160,137 @@ int add_new_tus_db_entry (const char *userid, char *cn, const char *uid, int fla
+     char *renewals_values[] = { "0", NULL };
+     char *recoveries_values[] = { "0", NULL };
+     char *key_info_values[] = { "", NULL };
+-    char *reason_values[] = { "", NULL };
+-    char *policy_values[2];
++    char *policy_values[] = {"", NULL};
+     char *token_type_values[]= {"", NULL };
+ 
+     tus_check_conn();
+-    cn_values[0] = cn;
+-    cn_values[1] = NULL;
+-
+-    policy_values[0] = defaultPolicy;
+-    policy_values[1] = NULL;
++    /* This is a required attribute.  If the caller passed in NULL
++     * or an empty string, DS will complain.  Return an error to
++     * the caller instead of sending an invalid entry to DS. */
++    if (cn && *cn != '\0') {
++        cn_values[0] = cn;
++        cn_values[1] = NULL;
++    } else {
++        if (debug_fd) {
++            PR_fprintf(debug_fd, "add_new_tus_db_entry: unable to add tokenRecord (cn is NULL).\n");
++        }
+ 
+-    if (uid != NULL) uid_values[0] = ( char * ) uid;
+-    if (key_info != NULL) key_info_values[0] = key_info;
+-    status_values[0] = ( char * ) status;
+-    token_type_values[0] = ( char *) token_type;
++        return -1;
++    }
+ 
+     a01.mod_op = 0;
+     a01.mod_type = TOKEN_ID;
+     a01.mod_values = cn_values;
++    mods[next] = &a01;
++    next++;
+ 
+     a02.mod_op = 0;
+     a02.mod_type = "objectClass";
+     a02.mod_values = objectClass_values;
++    mods[next] = &a02;
++    next++;
+ 
+     cdate_values[0] = cdate;
+     cdate_values[1] = NULL;
+     a03.mod_op = 0;
+     a03.mod_type = TOKEN_C_DATE;
+     a03.mod_values = cdate_values;
++    mods[next] = &a03;
++    next++;
+ 
+     a04.mod_op = 0;
+     a04.mod_type = TOKEN_M_DATE;
+     a04.mod_values = cdate_values;
++    mods[next] = &a04;
++    next++;
+ 
++    /* These next 5 attributes are all using the Integer syntax,
++     * and we initialize the values to 0.  This means that there
++     * is no chance of an empty value, so we don't need to check. */
+     a05.mod_op = 0;
+     a05.mod_type = TOKEN_MODS;
+     a05.mod_values = modified_values;
+     
+     a06.mod_op = 0;
+-    a06.mod_type = TOKEN_USER;
+-    a06.mod_values = uid_values;
++    a06.mod_type = TOKEN_RESETS;
++    a06.mod_values = resets_values;
+ 
+     a07.mod_op = 0;
+-    a07.mod_type = TOKEN_STATUS;
+-    a07.mod_values = status_values;
++    a07.mod_type = TOKEN_ENROLLMENTS;
++    a07.mod_values = enrollments_values;
+ 
+     a08.mod_op = 0;
+-    a08.mod_type = TOKEN_APPLET;
+-    if (applet_version != NULL) {
+-        aid_values[0] = applet_version;
+-    }
+-    a08.mod_values = aid_values;
++    a08.mod_type = TOKEN_RENEWALS;
++    a08.mod_values = renewals_values;
+ 
+     a09.mod_op = 0;
+-    a09.mod_type = TOKEN_RESETS;
+-    a09.mod_values = resets_values;
+-
+-    a10.mod_op = 0;
+-    a10.mod_type = TOKEN_ENROLLMENTS;
+-    a10.mod_values = enrollments_values;
+-
+-    a11.mod_op = 0;
+-    a11.mod_type = TOKEN_RENEWALS;
+-    a11.mod_values = renewals_values;
+-
+-    a12.mod_op = 0;
+-    a12.mod_type = TOKEN_RECOVERIES;
+-    a12.mod_values = recoveries_values;
+-
+-    a13.mod_op = 0;
+-    a13.mod_type = TOKEN_KEY_INFO;
+-    a13.mod_values = key_info_values;
+-
+-    a14.mod_op = 0;
+-    a14.mod_type = TOKEN_POLICY;
+-    a14.mod_values = policy_values;
+-
+-    a15.mod_op = 0;
+-    a15.mod_type = TOKEN_REASON;
+-    a15.mod_values = reason_values;
+-
+-    a16.mod_op = 0;
+-    a16.mod_type = TOKEN_TYPE;
+-    a16.mod_values = token_type_values;
+-
+-    mods[0]  = &a01;
+-    mods[1]  = &a02;
+-    mods[2]  = &a03;
+-    mods[3]  = &a04;
+-    mods[4]  = &a05;
+-    mods[5]  = &a06;
+-    mods[6]  = &a07;
+-    mods[7]  = &a08;
+-    mods[8]  = &a09;
+-    mods[9]  = &a10;
+-    mods[10] = &a11;
+-    mods[11] = &a12;
+-    mods[12] = &a13;
+-    mods[13] = &a14;
+-    mods[14] = &a15;
+-    mods[15] = &a16;
+-    mods[16] = NULL;
++    a09.mod_type = TOKEN_RECOVERIES;
++    a09.mod_values = recoveries_values;
++
++    /* Any of the below values might be empty since the caller could
++     * have passed in NULL or an empty string.  DS will not allow
++     * this if syntax checking is enabled since these attributes all
++     * use the Directory String syntax, which doesn't allow empty
++     * values.
++     *
++     * If we don't have a value for an attribute, we don't add the
++     * attribute as a part of the entry. */
++    if (uid && *uid != '\0') {
++        uid_values[0] = (char *) uid;
++        a10.mod_op = 0;
++        a10.mod_type = TOKEN_USER;
++        a10.mod_values = uid_values;
++        mods[next] = &a10;
++        next++;
++    }
++
++    if (status && *status != '\0') {
++        status_values[0] = (char *) status;
++        a11.mod_op = 0;
++        a11.mod_type = TOKEN_STATUS;
++        a11.mod_values = status_values;
++        mods[next] = &a11;
++        next++;
++    }
++
++    if (applet_version && *applet_version!= '\0') {
++        aid_values[0] = applet_version;
++        a12.mod_op = 0;
++        a12.mod_type = TOKEN_APPLET;
++        a12.mod_values = aid_values;
++        mods[next] = &a12;
++        next++;
++    }
++
++    if (key_info && *key_info != '\0') {
++        key_info_values[0] = key_info;
++        a13.mod_op = 0;
++        a13.mod_type = TOKEN_KEY_INFO;
++        a13.mod_values = key_info_values;
++        mods[next] = &a13;
++        next++;
++    }
++
++    if (defaultPolicy && *defaultPolicy != '\0') {
++        policy_values[0] = defaultPolicy;
++        a14.mod_op = 0;
++        a14.mod_type = TOKEN_POLICY;
++        a14.mod_values = policy_values;
++        mods[next] = &a14;
++        next++;
++    }
++
++    if (token_type && *token_type != '\0') {
++        token_type_values[0] = (char *) token_type;
++        a15.mod_op = 0;
++        a15.mod_type = TOKEN_TYPE;
++        a15.mod_values = token_type_values;
++        mods[next] = &a15;
++        next++;
++    }
++
++    /* NULL terminate the mods array. */
++    mods[next] = NULL;
+ 
+     now = PR_Now();
+     PR_ExplodeTime(now, PR_LocalTimeParameters, &time);
+-- 
+1.8.1
+

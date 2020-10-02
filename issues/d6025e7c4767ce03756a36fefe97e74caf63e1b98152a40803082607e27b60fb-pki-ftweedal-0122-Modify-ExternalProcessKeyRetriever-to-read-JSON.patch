@@ -1,0 +1,122 @@
+From 7183cece34b766b5e1db6837291151b4d58aa9c9 Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Sat, 4 Jun 2016 20:49:38 +1000
+Subject: [PATCH] Modify ExternalProcessKeyRetriever to read JSON
+
+The ExternalProcessKeyRetriever currently uses a hackish format
+where the certificate and PKIArchiveOptions data are separated by a
+null byte.  Update the code to expect JSON instead.
+
+No backwards compatibility is provided because at time of writing
+the ExternalProcessKeyRetriever is only used in a FreeIPA feature
+still under development.
+
+Fixes: https://fedorahosted.org/pki/ticket/2351
+---
+ base/ca/src/CMakeLists.txt                         | 15 +++++++++
+ .../netscape/ca/ExternalProcessKeyRetriever.java   | 37 +++++++++++++---------
+ 2 files changed, 37 insertions(+), 15 deletions(-)
+
+diff --git a/base/ca/src/CMakeLists.txt b/base/ca/src/CMakeLists.txt
+index 1817dacfbacaeb2635db2550e32ff62c26d628ef..2a43c8dbb4f88c22df244bb752ea963b2f0d646c 100644
+--- a/base/ca/src/CMakeLists.txt
++++ b/base/ca/src/CMakeLists.txt
+@@ -38,6 +38,20 @@ find_file(COMMONS_LANG_JAR
+         /usr/share/java
+ )
+ 
++find_file(JACKSON_CORE_JAR
++    NAMES
++        jackson-core-asl.jar
++    PATHS
++        /usr/share/java/jackson
++)
++
++find_file(JACKSON_MAPPER_JAR
++    NAMES
++        jackson-mapper-asl.jar
++    PATHS
++        /usr/share/java/jackson
++)
++
+ find_file(JAXRS_API_JAR
+     NAMES
+         jaxrs-api.jar
+@@ -81,6 +95,7 @@ javac(pki-ca-classes
+         org/dogtagpki/server/ca/*.java
+     CLASSPATH
+         ${COMMONS_CODEC_JAR} ${COMMONS_IO_JAR} ${COMMONS_LANG_JAR}
++        ${JACKSON_CORE_JAR} ${JACKSON_MAPPER_JAR}
+         ${JSS_JAR} ${SYMKEY_JAR}
+         ${LDAPJDK_JAR}
+         ${SERVLET_JAR} ${TOMCAT_CATALINA_JAR}
+diff --git a/base/ca/src/com/netscape/ca/ExternalProcessKeyRetriever.java b/base/ca/src/com/netscape/ca/ExternalProcessKeyRetriever.java
+index 6aee9716e1e5953018ed4c3f3316c9b7d4c88a45..a1b77485284d699bbb524bfc64b3c348663c4c1e 100644
+--- a/base/ca/src/com/netscape/ca/ExternalProcessKeyRetriever.java
++++ b/base/ca/src/com/netscape/ca/ExternalProcessKeyRetriever.java
+@@ -18,6 +18,8 @@
+ 
+ package com.netscape.ca;
+ 
++import java.io.IOException;
++import java.io.InputStream;
+ import java.lang.Process;
+ import java.lang.ProcessBuilder;
+ import java.util.Collection;
+@@ -26,6 +28,9 @@ import java.util.Stack;
+ import org.apache.commons.io.IOUtils;
+ import org.apache.commons.lang.ArrayUtils;
+ 
++import org.codehaus.jackson.map.ObjectMapper;
++import org.codehaus.jackson.JsonNode;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.EPropertyNotFound;
+@@ -65,21 +70,7 @@ public class ExternalProcessKeyRetriever implements KeyRetriever {
+                 int exitValue = p.waitFor();
+                 if (exitValue != 0)
+                     continue;
+-
+-                /* Read a PEM-encoded certificate and a base64-encoded
+-                 * PKIArchiveOptions containing the wrapped private key,
+-                 * separated by a null byte.
+-                 */
+-                byte[] output = IOUtils.toByteArray(p.getInputStream());
+-                int splitIndex = ArrayUtils.indexOf(output, (byte) 0);
+-                if (splitIndex == ArrayUtils.INDEX_NOT_FOUND) {
+-                    CMS.debug("Invalid output: null byte not found");
+-                    continue;
+-                }
+-                return new Result(
+-                    ArrayUtils.subarray(output, 0, splitIndex),
+-                    ArrayUtils.subarray(output, splitIndex + 1, output.length)
+-                );
++                return parseResult(p.getInputStream());
+             } catch (Throwable e) {
+                 CMS.debug("Caught exception while executing command: " + e);
+             } finally {
+@@ -89,4 +80,20 @@ public class ExternalProcessKeyRetriever implements KeyRetriever {
+         CMS.debug("Failed to retrieve key from any host.");
+         return null;
+     }
++
++    /* Read a PEM-encoded certificate and a base64-encoded
++     * PKIArchiveOptions containing the wrapped private key.
++     * Data is expected to be a JSON object with keys "certificate"
++     * and "wrapped_key".
++     */
++    private Result parseResult(InputStream in) throws IOException {
++        JsonNode root = (new ObjectMapper()).readTree(in);
++        String cert = root.path("certificate").getTextValue();
++        byte[] pao = root.path("wrapped_key").getBinaryValue();
++        if (cert == null)
++            throw new RuntimeException("missing \"certificate\" field");
++        if (pao == null)
++            throw new RuntimeException("missing \"wrapped_key\" field");
++        return new Result(cert.getBytes(), pao);
++    }
+ }
+-- 
+2.5.5
+

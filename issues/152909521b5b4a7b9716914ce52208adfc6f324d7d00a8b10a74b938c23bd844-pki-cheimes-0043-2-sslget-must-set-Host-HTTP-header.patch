@@ -1,0 +1,80 @@
+From 6de1a9e02372d34a3386259265f14f7117e73498 Mon Sep 17 00:00:00 2001
+From: Christian Heimes <cheimes@redhat.com>
+Date: Wed, 25 Nov 2015 20:42:17 +0100
+Subject: [PATCH] sslget must set Host HTTP header
+
+The sslget tool sends a TLS SNI header. Apache doesn't like server name
+indication without a matching HTTP header. Requests without a Host
+header are refused with
+
+HTTP/1.1 400 Bad Request
+Hostname example.org provided via SNI, but no hostname provided in HTTP request
+
+sslget now sets a Host HTTP header for all requests.
+
+https://fedorahosted.org/pki/ticket/1704
+
+Signed-off-by: Christian Heimes <cheimes@redhat.com>
+---
+ base/native-tools/src/sslget/sslget.c | 23 ++++++++++-------------
+ 1 file changed, 10 insertions(+), 13 deletions(-)
+
+diff --git a/base/native-tools/src/sslget/sslget.c b/base/native-tools/src/sslget/sslget.c
+index c453096babaadd2fa5b5554652e6803417a868fa..bd631c6fb44e67dd4811afcdb26714370040fba7 100644
+--- a/base/native-tools/src/sslget/sslget.c
++++ b/base/native-tools/src/sslget/sslget.c
+@@ -299,14 +299,6 @@ printSecurityInfo(PRFileDesc *fd)
+ 
+ PRBool useModelSocket = PR_TRUE;
+ 
+-static const char outHeader[] = {
+-    "HTTP/1.0 200 OK\r\n"
+-    "Server: Netscape-Enterprise/2.0a\r\n"
+-    "Date: Tue, 26 Aug 1997 22:10:05 GMT\r\n"
+-    "Content-type: text/plain\r\n"
+-    "\r\n"
+-};
+-
+ 
+ PRInt32
+ do_writes(
+@@ -703,18 +695,23 @@ client_main(
+ 
+ 
+ SECStatus
+-createRequest(char * url, char *post)
++createRequest(
++    char * url,
++    char *post,
++    const char *hostName,
++    unsigned short port)
+ {
+ 	char * newstr;
+ 
+     if (post == NULL) {
+         newstr = PR_smprintf(
+-			"GET %s HTTP/1.0\r\n\r\n",
+-			url);
++			"GET %s HTTP/1.0\r\nHost: %s:%u\r\n\r\n",
++			url, hostName, (PRUintn)port);
+     } else {
+         int len = strlen(post);
+         newstr = PR_smprintf(
+-			"POST %s HTTP/1.0\r\nContent-Length: %d\r\nContent-Type: application/x-www-form-urlencoded\r\n\r\n%s", url, len, post);
++			"POST %s HTTP/1.0\r\nHost: %s:%u\r\nContent-Length: %d\r\nContent-Type: application/x-www-form-urlencoded\r\n\r\n%s",
++                        url, hostName, (PRUintn)port, len, post);
+     }
+ 
+     bigBuf.data = (unsigned char *)newstr;
+@@ -833,7 +830,7 @@ main(int argc, char **argv)
+ 	Usage(progName);
+     }
+ 
+-    createRequest(url, post);
++    createRequest(url, post, hostName, port);
+ 
+ 	if (passwdfile) {
+ 		fp = fopen(passwdfile,"r");
+-- 
+2.4.3
+

@@ -1,0 +1,2454 @@
+From 5d34d8f5c4517f685445360df7fef400f7a5c6cc Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Fri, 4 Nov 2016 19:18:15 +0100
+Subject: [PATCH] Moved policy framework classes to org.dogtagpki.legacy.
+
+To discourage their usage, the classes in the policy framework have
+been moved into org.dogtagpki.legacy.
+
+https://fedorahosted.org/pki/ticket/6
+---
+ .../src/com/netscape/ca/CertificateAuthority.java  |  3 ++-
+ .../dogtagpki/legacy}/ca/CAPolicy.java             |  7 ++++---
+ base/common/src/com/netscape/certsrv/apps/CMS.java |  8 ++++----
+ .../src/com/netscape/certsrv/apps/ICMSEngine.java  |  8 ++++----
+ .../netscape/certsrv/ca/ICertificateAuthority.java |  2 +-
+ .../certsrv/kra/IKeyRecoveryAuthority.java         |  2 +-
+ .../certsrv/ra/IRegistrationAuthority.java         |  3 ++-
+ .../dogtagpki/legacy}/policy/EPolicyException.java |  2 +-
+ .../legacy}/policy/IEnrollmentPolicy.java          |  2 +-
+ .../dogtagpki/legacy}/policy/IExpression.java      |  2 +-
+ .../policy/IGeneralNameAsConstraintsConfig.java    |  2 +-
+ .../legacy}/policy/IGeneralNameConfig.java         |  2 +-
+ .../dogtagpki/legacy}/policy/IGeneralNameUtil.java |  2 +-
+ .../policy/IGeneralNamesAsConstraintsConfig.java   |  2 +-
+ .../legacy}/policy/IGeneralNamesConfig.java        |  2 +-
+ .../legacy}/policy/IKeyArchivalPolicy.java         |  2 +-
+ .../legacy}/policy/IKeyRecoveryPolicy.java         |  2 +-
+ .../legacy}/policy/IPolicyPredicateParser.java     |  2 +-
+ .../dogtagpki/legacy}/policy/IPolicyProcessor.java |  2 +-
+ .../dogtagpki/legacy}/policy/IPolicyRule.java      |  2 +-
+ .../dogtagpki/legacy}/policy/IPolicySet.java       |  2 +-
+ .../dogtagpki/legacy}/policy/IRenewalPolicy.java   |  2 +-
+ .../legacy}/policy/IRevocationPolicy.java          |  2 +-
+ .../legacy}/policy/ISubjAltNameConfig.java         |  2 +-
+ .../src/com/netscape/kra/KeyRecoveryAuthority.java |  3 ++-
+ .../dogtagpki/legacy}/kra/KRAPolicy.java           |  7 ++++---
+ .../cms/servlet/admin/PolicyAdminServlet.java      |  5 +++--
+ .../netscape/cms/servlet/cert/EnrollServlet.java   |  3 ++-
+ .../legacy/server}/policy/APolicyRule.java         |  9 +++++----
+ .../server}/policy/constraints/AgentPolicy.java    |  9 +++++----
+ .../constraints/AttributePresentConstraints.java   |  7 ++++---
+ .../policy/constraints/DSAKeyConstraints.java      |  9 +++++----
+ .../policy/constraints/DefaultRevocation.java      |  9 +++++----
+ .../policy/constraints/IssuerConstraints.java      |  9 +++++----
+ .../constraints/KeyAlgorithmConstraints.java       |  9 +++++----
+ .../policy/constraints/ManualAuthentication.java   |  9 +++++----
+ .../policy/constraints/RSAKeyConstraints.java      |  9 +++++----
+ .../policy/constraints/RenewalConstraints.java     |  9 +++++----
+ .../constraints/RenewalValidityConstraints.java    |  9 +++++----
+ .../policy/constraints/RevocationConstraints.java  |  9 +++++----
+ .../constraints/SigningAlgorithmConstraints.java   | 11 ++++++-----
+ .../policy/constraints/SubCANameConstraints.java   |  9 +++++----
+ .../policy/constraints/UniqueSubjectName.java      |  2 +-
+ .../constraints/UniqueSubjectNameConstraints.java  |  9 +++++----
+ .../policy/constraints/ValidityConstraints.java    |  9 +++++----
+ .../policy/extensions/AuthInfoAccessExt.java       |  9 +++++----
+ .../extensions/AuthorityKeyIdentifierExt.java      |  9 +++++----
+ .../policy/extensions/BasicConstraintsExt.java     | 11 ++++++-----
+ .../extensions/CRLDistributionPointsExt.java       |  7 ++++---
+ .../policy/extensions/CertificatePoliciesExt.java  |  9 +++++----
+ .../extensions/CertificateRenewalWindowExt.java    |  7 ++++---
+ .../extensions/CertificateScopeOfUseExt.java       |  9 +++++----
+ .../policy/extensions/ExtendedKeyUsageExt.java     |  7 ++++---
+ .../server}/policy/extensions/GenericASN1Ext.java  |  7 ++++---
+ .../policy/extensions/IssuerAltNameExt.java        | 11 ++++++-----
+ .../server}/policy/extensions/KeyUsageExt.java     |  9 +++++----
+ .../server}/policy/extensions/NSCCommentExt.java   |  9 +++++----
+ .../server}/policy/extensions/NSCertTypeExt.java   |  9 +++++----
+ .../policy/extensions/NameConstraintsExt.java      | 11 ++++++-----
+ .../server}/policy/extensions/OCSPNoCheckExt.java  |  7 ++++---
+ .../policy/extensions/PolicyConstraintsExt.java    |  9 +++++----
+ .../policy/extensions/PolicyMappingsExt.java       |  9 +++++----
+ .../server}/policy/extensions/PresenceExt.java     |  5 +++--
+ .../extensions/PrivateKeyUsagePeriodExt.java       |  9 +++++----
+ .../extensions/RemoveBasicConstraintsExt.java      |  7 ++++---
+ .../server}/policy/extensions/SubjAltNameExt.java  |  7 ++++---
+ .../policy/extensions/SubjectAltNameExt.java       | 13 ++++++------
+ .../extensions/SubjectDirectoryAttributesExt.java  |  7 ++++---
+ .../policy/extensions/SubjectKeyIdentifierExt.java | 11 ++++++-----
+ .../src/com/netscape/cmscore/apps/CMSEngine.java   | 10 +++++-----
+ .../legacy/core}/policy/AndExpression.java         |  7 ++++---
+ .../legacy/core}/policy/GeneralNameUtil.java       | 15 +++++++-------
+ .../core}/policy/GenericPolicyProcessor.java       | 23 +++++++++++-----------
+ .../core}/policy/JavaScriptRequestProxy.java       |  5 +++--
+ .../legacy/core}/policy/OrExpression.java          |  7 ++++---
+ .../legacy/core}/policy/PolicyPredicateParser.java |  7 ++++---
+ .../dogtagpki/legacy/core}/policy/PolicySet.java   |  9 +++++----
+ .../legacy/core}/policy/SimpleExpression.java      |  7 ++++---
+ .../netscape/cmscore/app/CMSEngineDefaultStub.java |  8 ++++----
+ 79 files changed, 296 insertions(+), 241 deletions(-)
+ rename base/ca/src/{com/netscape => org/dogtagpki/legacy}/ca/CAPolicy.java (96%)
+ rename base/common/src/{com/netscape/certsrv => org/dogtagpki/legacy}/policy/EPolicyException.java (99%)
+ rename base/common/src/{com/netscape/certsrv => org/dogtagpki/legacy}/policy/IEnrollmentPolicy.java (96%)
+ rename base/common/src/{com/netscape/certsrv => org/dogtagpki/legacy}/policy/IExpression.java (98%)
+ rename base/common/src/{com/netscape/certsrv => org/dogtagpki/legacy}/policy/IGeneralNameAsConstraintsConfig.java (97%)
+ rename base/common/src/{com/netscape/certsrv => org/dogtagpki/legacy}/policy/IGeneralNameConfig.java (98%)
+ rename base/common/src/{com/netscape/certsrv => org/dogtagpki/legacy}/policy/IGeneralNameUtil.java (98%)
+ rename base/common/src/{com/netscape/certsrv => org/dogtagpki/legacy}/policy/IGeneralNamesAsConstraintsConfig.java (97%)
+ rename base/common/src/{com/netscape/certsrv => org/dogtagpki/legacy}/policy/IGeneralNamesConfig.java (97%)
+ rename base/common/src/{com/netscape/certsrv => org/dogtagpki/legacy}/policy/IKeyArchivalPolicy.java (96%)
+ rename base/common/src/{com/netscape/certsrv => org/dogtagpki/legacy}/policy/IKeyRecoveryPolicy.java (96%)
+ rename base/common/src/{com/netscape/certsrv => org/dogtagpki/legacy}/policy/IPolicyPredicateParser.java (97%)
+ rename base/common/src/{com/netscape/certsrv => org/dogtagpki/legacy}/policy/IPolicyProcessor.java (99%)
+ rename base/common/src/{com/netscape/certsrv => org/dogtagpki/legacy}/policy/IPolicyRule.java (98%)
+ rename base/common/src/{com/netscape/certsrv => org/dogtagpki/legacy}/policy/IPolicySet.java (98%)
+ rename base/common/src/{com/netscape/certsrv => org/dogtagpki/legacy}/policy/IRenewalPolicy.java (96%)
+ rename base/common/src/{com/netscape/certsrv => org/dogtagpki/legacy}/policy/IRevocationPolicy.java (96%)
+ rename base/common/src/{com/netscape/certsrv => org/dogtagpki/legacy}/policy/ISubjAltNameConfig.java (97%)
+ rename base/kra/src/{com/netscape => org/dogtagpki/legacy}/kra/KRAPolicy.java (94%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/APolicyRule.java (98%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/constraints/AgentPolicy.java (96%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/constraints/AttributePresentConstraints.java (98%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/constraints/DSAKeyConstraints.java (97%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/constraints/DefaultRevocation.java (93%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/constraints/IssuerConstraints.java (97%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/constraints/KeyAlgorithmConstraints.java (97%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/constraints/ManualAuthentication.java (93%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/constraints/RSAKeyConstraints.java (97%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/constraints/RenewalConstraints.java (97%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/constraints/RenewalValidityConstraints.java (98%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/constraints/RevocationConstraints.java (97%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/constraints/SigningAlgorithmConstraints.java (98%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/constraints/SubCANameConstraints.java (97%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/constraints/UniqueSubjectName.java (95%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/constraints/UniqueSubjectNameConstraints.java (98%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/constraints/ValidityConstraints.java (98%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/extensions/AuthInfoAccessExt.java (98%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/extensions/AuthorityKeyIdentifierExt.java (98%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/extensions/BasicConstraintsExt.java (98%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/extensions/CRLDistributionPointsExt.java (99%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/extensions/CertificatePoliciesExt.java (98%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/extensions/CertificateRenewalWindowExt.java (98%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/extensions/CertificateScopeOfUseExt.java (98%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/extensions/ExtendedKeyUsageExt.java (98%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/extensions/GenericASN1Ext.java (99%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/extensions/IssuerAltNameExt.java (96%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/extensions/KeyUsageExt.java (98%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/extensions/NSCCommentExt.java (97%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/extensions/NSCertTypeExt.java (98%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/extensions/NameConstraintsExt.java (98%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/extensions/OCSPNoCheckExt.java (97%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/extensions/PolicyConstraintsExt.java (98%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/extensions/PolicyMappingsExt.java (98%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/extensions/PresenceExt.java (98%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/extensions/PrivateKeyUsagePeriodExt.java (97%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/extensions/RemoveBasicConstraintsExt.java (96%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/extensions/SubjAltNameExt.java (98%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/extensions/SubjectAltNameExt.java (97%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/extensions/SubjectDirectoryAttributesExt.java (99%)
+ rename base/server/cms/src/{com/netscape/cms => org/dogtagpki/legacy/server}/policy/extensions/SubjectKeyIdentifierExt.java (98%)
+ rename base/server/cmscore/src/{com/netscape/cmscore => org/dogtagpki/legacy/core}/policy/AndExpression.java (92%)
+ rename base/server/cmscore/src/{com/netscape/cmscore => org/dogtagpki/legacy/core}/policy/GeneralNameUtil.java (98%)
+ rename base/server/cmscore/src/{com/netscape/cmscore => org/dogtagpki/legacy/core}/policy/GenericPolicyProcessor.java (99%)
+ rename base/server/cmscore/src/{com/netscape/cmscore => org/dogtagpki/legacy/core}/policy/JavaScriptRequestProxy.java (93%)
+ rename base/server/cmscore/src/{com/netscape/cmscore => org/dogtagpki/legacy/core}/policy/OrExpression.java (93%)
+ rename base/server/cmscore/src/{com/netscape/cmscore => org/dogtagpki/legacy/core}/policy/PolicyPredicateParser.java (98%)
+ rename base/server/cmscore/src/{com/netscape/cmscore => org/dogtagpki/legacy/core}/policy/PolicySet.java (98%)
+ rename base/server/cmscore/src/{com/netscape/cmscore => org/dogtagpki/legacy/core}/policy/SimpleExpression.java (98%)
+
+diff --git a/base/ca/src/com/netscape/ca/CertificateAuthority.java b/base/ca/src/com/netscape/ca/CertificateAuthority.java
+index 6a1f9b67988f44fc0ac6857e19533838d26e73cc..92bf64412c0edcf5540830438e6c356dbb4811bc 100644
+--- a/base/ca/src/com/netscape/ca/CertificateAuthority.java
++++ b/base/ca/src/com/netscape/ca/CertificateAuthority.java
+@@ -52,6 +52,8 @@ import java.util.concurrent.CountDownLatch;
+ import javax.servlet.http.HttpServletRequest;
+ import javax.servlet.http.HttpSession;
+ 
++import org.dogtagpki.legacy.ca.CAPolicy;
++import org.dogtagpki.legacy.policy.IPolicyProcessor;
+ import org.mozilla.jss.CryptoManager;
+ import org.mozilla.jss.asn1.ASN1Util;
+ import org.mozilla.jss.asn1.GeneralizedTime;
+@@ -104,7 +106,6 @@ import com.netscape.certsrv.ldap.ELdapException;
+ import com.netscape.certsrv.ldap.ILdapConnFactory;
+ import com.netscape.certsrv.logging.ILogger;
+ import com.netscape.certsrv.ocsp.IOCSPService;
+-import com.netscape.certsrv.policy.IPolicyProcessor;
+ import com.netscape.certsrv.profile.IEnrollProfile;
+ import com.netscape.certsrv.profile.IProfile;
+ import com.netscape.certsrv.profile.IProfileSubsystem;
+diff --git a/base/ca/src/com/netscape/ca/CAPolicy.java b/base/ca/src/org/dogtagpki/legacy/ca/CAPolicy.java
+similarity index 96%
+rename from base/ca/src/com/netscape/ca/CAPolicy.java
+rename to base/ca/src/org/dogtagpki/legacy/ca/CAPolicy.java
+index dda7e52d514276e2d7476382775cfd82461dea60..75c2945882c7ce9c2fceb7228d848a7432ace7ae 100644
+--- a/base/ca/src/com/netscape/ca/CAPolicy.java
++++ b/base/ca/src/org/dogtagpki/legacy/ca/CAPolicy.java
+@@ -15,20 +15,21 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.ca;
++package org.dogtagpki.legacy.ca;
++
++import org.dogtagpki.legacy.core.policy.GenericPolicyProcessor;
++import org.dogtagpki.legacy.policy.IPolicyProcessor;
+ 
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.ca.ICertificateAuthority;
+-import com.netscape.certsrv.policy.IPolicyProcessor;
+ import com.netscape.certsrv.profile.IProfile;
+ import com.netscape.certsrv.profile.IProfileSubsystem;
+ import com.netscape.certsrv.request.IPolicy;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cmscore.policy.GenericPolicyProcessor;
+ import com.netscape.cmscore.util.Debug;
+ 
+ /**
+diff --git a/base/common/src/com/netscape/certsrv/apps/CMS.java b/base/common/src/com/netscape/certsrv/apps/CMS.java
+index bc82a986089e932604f860f067b46593bc17ab2c..2e1dcbd22156bfc93107c3b2ead2eb2ab05ded4c 100644
+--- a/base/common/src/com/netscape/certsrv/apps/CMS.java
++++ b/base/common/src/com/netscape/certsrv/apps/CMS.java
+@@ -29,6 +29,10 @@ import java.util.Hashtable;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.IGeneralNameAsConstraintsConfig;
++import org.dogtagpki.legacy.policy.IGeneralNamesAsConstraintsConfig;
++import org.dogtagpki.legacy.policy.IGeneralNamesConfig;
++import org.dogtagpki.legacy.policy.ISubjAltNameConfig;
+ import org.mozilla.jss.CryptoManager.CertificateUsage;
+ import org.mozilla.jss.util.PasswordCallback;
+ 
+@@ -73,10 +77,6 @@ import com.netscape.certsrv.notification.IEmailTemplate;
+ import com.netscape.certsrv.notification.IMailNotification;
+ import com.netscape.certsrv.ocsp.IOCSPAuthority;
+ import com.netscape.certsrv.password.IPasswordCheck;
+-import com.netscape.certsrv.policy.IGeneralNameAsConstraintsConfig;
+-import com.netscape.certsrv.policy.IGeneralNamesAsConstraintsConfig;
+-import com.netscape.certsrv.policy.IGeneralNamesConfig;
+-import com.netscape.certsrv.policy.ISubjAltNameConfig;
+ import com.netscape.certsrv.profile.IProfileSubsystem;
+ import com.netscape.certsrv.ra.IRegistrationAuthority;
+ import com.netscape.certsrv.registry.IPluginRegistry;
+diff --git a/base/common/src/com/netscape/certsrv/apps/ICMSEngine.java b/base/common/src/com/netscape/certsrv/apps/ICMSEngine.java
+index f781c41301360692431969987cb754ba7a6ce5f4..82a9117c41e2919038301883575158e9efe8ab5d 100644
+--- a/base/common/src/com/netscape/certsrv/apps/ICMSEngine.java
++++ b/base/common/src/com/netscape/certsrv/apps/ICMSEngine.java
+@@ -29,6 +29,10 @@ import java.util.Hashtable;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.IGeneralNameAsConstraintsConfig;
++import org.dogtagpki.legacy.policy.IGeneralNamesAsConstraintsConfig;
++import org.dogtagpki.legacy.policy.IGeneralNamesConfig;
++import org.dogtagpki.legacy.policy.ISubjAltNameConfig;
+ import org.mozilla.jss.CryptoManager.CertificateUsage;
+ import org.mozilla.jss.util.PasswordCallback;
+ 
+@@ -64,10 +68,6 @@ import com.netscape.certsrv.notification.IEmailResolverKeys;
+ import com.netscape.certsrv.notification.IEmailTemplate;
+ import com.netscape.certsrv.notification.IMailNotification;
+ import com.netscape.certsrv.password.IPasswordCheck;
+-import com.netscape.certsrv.policy.IGeneralNameAsConstraintsConfig;
+-import com.netscape.certsrv.policy.IGeneralNamesAsConstraintsConfig;
+-import com.netscape.certsrv.policy.IGeneralNamesConfig;
+-import com.netscape.certsrv.policy.ISubjAltNameConfig;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.cmsutil.net.ISocketFactory;
+ import com.netscape.cmsutil.password.IPasswordStore;
+diff --git a/base/common/src/com/netscape/certsrv/ca/ICertificateAuthority.java b/base/common/src/com/netscape/certsrv/ca/ICertificateAuthority.java
+index 3389d1da90fccd67216cf36b4863f2fb7768416c..8ddc601e565f0b3ca901266cfe10928b3f9e4438 100644
+--- a/base/common/src/com/netscape/certsrv/ca/ICertificateAuthority.java
++++ b/base/common/src/com/netscape/certsrv/ca/ICertificateAuthority.java
+@@ -23,6 +23,7 @@ import java.util.Map;
+ 
+ import javax.servlet.http.HttpServletRequest;
+ 
++import org.dogtagpki.legacy.policy.IPolicyProcessor;
+ import org.mozilla.jss.crypto.SignatureAlgorithm;
+ 
+ import com.netscape.certsrv.authentication.IAuthToken;
+@@ -33,7 +34,6 @@ import com.netscape.certsrv.dbs.IDBSubsystem;
+ import com.netscape.certsrv.dbs.certdb.ICertificateRepository;
+ import com.netscape.certsrv.dbs.crldb.ICRLRepository;
+ import com.netscape.certsrv.dbs.replicadb.IReplicaIDRepository;
+-import com.netscape.certsrv.policy.IPolicyProcessor;
+ import com.netscape.certsrv.publish.IPublisherProcessor;
+ import com.netscape.certsrv.request.IRequestListener;
+ import com.netscape.certsrv.request.IRequestNotifier;
+diff --git a/base/common/src/com/netscape/certsrv/kra/IKeyRecoveryAuthority.java b/base/common/src/com/netscape/certsrv/kra/IKeyRecoveryAuthority.java
+index 1074e47359b2d3c999d383ffa8a910cde41a5483..72af053d8f04c162c62bc23a14a928d60b5e7247 100644
+--- a/base/common/src/com/netscape/certsrv/kra/IKeyRecoveryAuthority.java
++++ b/base/common/src/com/netscape/certsrv/kra/IKeyRecoveryAuthority.java
+@@ -21,13 +21,13 @@ import java.util.Enumeration;
+ import java.util.Hashtable;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.IPolicyProcessor;
+ import org.mozilla.jss.crypto.CryptoToken;
+ 
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.dbs.keydb.IKeyRepository;
+ import com.netscape.certsrv.dbs.replicadb.IReplicaIDRepository;
+-import com.netscape.certsrv.policy.IPolicyProcessor;
+ import com.netscape.certsrv.request.IRequestListener;
+ import com.netscape.certsrv.request.IRequestQueue;
+ import com.netscape.certsrv.request.RequestId;
+diff --git a/base/common/src/com/netscape/certsrv/ra/IRegistrationAuthority.java b/base/common/src/com/netscape/certsrv/ra/IRegistrationAuthority.java
+index 0be193d879c843c1e89ddec7ee6266366ea83778..ee24a6ecc8a759beb489d51fff5ee7581c60e3ab 100644
+--- a/base/common/src/com/netscape/certsrv/ra/IRegistrationAuthority.java
++++ b/base/common/src/com/netscape/certsrv/ra/IRegistrationAuthority.java
+@@ -19,9 +19,10 @@ package com.netscape.certsrv.ra;
+ 
+ import java.util.Enumeration;
+ 
++import org.dogtagpki.legacy.policy.IPolicyProcessor;
++
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.ISubsystem;
+-import com.netscape.certsrv.policy.IPolicyProcessor;
+ import com.netscape.certsrv.publish.IPublisherProcessor;
+ import com.netscape.certsrv.request.IRequestListener;
+ import com.netscape.certsrv.request.IRequestQueue;
+diff --git a/base/common/src/com/netscape/certsrv/policy/EPolicyException.java b/base/common/src/org/dogtagpki/legacy/policy/EPolicyException.java
+similarity index 99%
+rename from base/common/src/com/netscape/certsrv/policy/EPolicyException.java
+rename to base/common/src/org/dogtagpki/legacy/policy/EPolicyException.java
+index 1026bfb6a7c4e7b21835dea6798c6d2536b42a99..c6f18da9959bbc3f4564a051f41a6e6fe2dee128 100644
+--- a/base/common/src/com/netscape/certsrv/policy/EPolicyException.java
++++ b/base/common/src/org/dogtagpki/legacy/policy/EPolicyException.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.certsrv.policy;
++package org.dogtagpki.legacy.policy;
+ 
+ import java.util.Locale;
+ 
+diff --git a/base/common/src/com/netscape/certsrv/policy/IEnrollmentPolicy.java b/base/common/src/org/dogtagpki/legacy/policy/IEnrollmentPolicy.java
+similarity index 96%
+rename from base/common/src/com/netscape/certsrv/policy/IEnrollmentPolicy.java
+rename to base/common/src/org/dogtagpki/legacy/policy/IEnrollmentPolicy.java
+index ce746a6f9fb3c211582934df330ac9789bb213fd..0e39d43d28dd2d686c09b2b3d63f3e6f6ecff203 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IEnrollmentPolicy.java
++++ b/base/common/src/org/dogtagpki/legacy/policy/IEnrollmentPolicy.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.certsrv.policy;
++package org.dogtagpki.legacy.policy;
+ 
+ /**
+  * Interface for an enrollment policy rule. This provides general
+diff --git a/base/common/src/com/netscape/certsrv/policy/IExpression.java b/base/common/src/org/dogtagpki/legacy/policy/IExpression.java
+similarity index 98%
+rename from base/common/src/com/netscape/certsrv/policy/IExpression.java
+rename to base/common/src/org/dogtagpki/legacy/policy/IExpression.java
+index b6640b37d1d5f52122f5b17c5c17fd60f9186aa4..b871440c8860b785522259daec7b8bb06294ab02 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IExpression.java
++++ b/base/common/src/org/dogtagpki/legacy/policy/IExpression.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.certsrv.policy;
++package org.dogtagpki.legacy.policy;
+ 
+ import com.netscape.certsrv.request.IRequest;
+ 
+diff --git a/base/common/src/com/netscape/certsrv/policy/IGeneralNameAsConstraintsConfig.java b/base/common/src/org/dogtagpki/legacy/policy/IGeneralNameAsConstraintsConfig.java
+similarity index 97%
+rename from base/common/src/com/netscape/certsrv/policy/IGeneralNameAsConstraintsConfig.java
+rename to base/common/src/org/dogtagpki/legacy/policy/IGeneralNameAsConstraintsConfig.java
+index 330e935f63830664e503c49e39f924946844e81c..d04cb4ba048f105e09e4838b60d8082580459c71 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IGeneralNameAsConstraintsConfig.java
++++ b/base/common/src/org/dogtagpki/legacy/policy/IGeneralNameAsConstraintsConfig.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.certsrv.policy;
++package org.dogtagpki.legacy.policy;
+ 
+ import java.util.Vector;
+ 
+diff --git a/base/common/src/com/netscape/certsrv/policy/IGeneralNameConfig.java b/base/common/src/org/dogtagpki/legacy/policy/IGeneralNameConfig.java
+similarity index 98%
+rename from base/common/src/com/netscape/certsrv/policy/IGeneralNameConfig.java
+rename to base/common/src/org/dogtagpki/legacy/policy/IGeneralNameConfig.java
+index 1e5d0e6b518b646b7fe416bc5b73a2a603f59487..462350e8444e3ecab979ce88e00475fb2cfb2f97 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IGeneralNameConfig.java
++++ b/base/common/src/org/dogtagpki/legacy/policy/IGeneralNameConfig.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.certsrv.policy;
++package org.dogtagpki.legacy.policy;
+ 
+ import java.util.Vector;
+ 
+diff --git a/base/common/src/com/netscape/certsrv/policy/IGeneralNameUtil.java b/base/common/src/org/dogtagpki/legacy/policy/IGeneralNameUtil.java
+similarity index 98%
+rename from base/common/src/com/netscape/certsrv/policy/IGeneralNameUtil.java
+rename to base/common/src/org/dogtagpki/legacy/policy/IGeneralNameUtil.java
+index 725c3e942e33bfb0378f29165a21f17aa8f5f7da..55a7d906ef1ab5f3eaa2001e8a9f80de9137879a 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IGeneralNameUtil.java
++++ b/base/common/src/org/dogtagpki/legacy/policy/IGeneralNameUtil.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.certsrv.policy;
++package org.dogtagpki.legacy.policy;
+ 
+ /**
+  * Class that can be used to form general names from configuration file.
+diff --git a/base/common/src/com/netscape/certsrv/policy/IGeneralNamesAsConstraintsConfig.java b/base/common/src/org/dogtagpki/legacy/policy/IGeneralNamesAsConstraintsConfig.java
+similarity index 97%
+rename from base/common/src/com/netscape/certsrv/policy/IGeneralNamesAsConstraintsConfig.java
+rename to base/common/src/org/dogtagpki/legacy/policy/IGeneralNamesAsConstraintsConfig.java
+index 698800645bc8582ccfed87ed8325ed395dc3ac70..bcb646ca82b1e7686df716c4585dbf3543dcf855 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IGeneralNamesAsConstraintsConfig.java
++++ b/base/common/src/org/dogtagpki/legacy/policy/IGeneralNamesAsConstraintsConfig.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.certsrv.policy;
++package org.dogtagpki.legacy.policy;
+ 
+ import java.util.Vector;
+ 
+diff --git a/base/common/src/com/netscape/certsrv/policy/IGeneralNamesConfig.java b/base/common/src/org/dogtagpki/legacy/policy/IGeneralNamesConfig.java
+similarity index 97%
+rename from base/common/src/com/netscape/certsrv/policy/IGeneralNamesConfig.java
+rename to base/common/src/org/dogtagpki/legacy/policy/IGeneralNamesConfig.java
+index 77ea0350ed6ca6682dfac5e333ac261d1d8f387a..f749ca70608f8ad868ddaa55efc3516f10fbb500 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IGeneralNamesConfig.java
++++ b/base/common/src/org/dogtagpki/legacy/policy/IGeneralNamesConfig.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.certsrv.policy;
++package org.dogtagpki.legacy.policy;
+ 
+ import java.util.Vector;
+ 
+diff --git a/base/common/src/com/netscape/certsrv/policy/IKeyArchivalPolicy.java b/base/common/src/org/dogtagpki/legacy/policy/IKeyArchivalPolicy.java
+similarity index 96%
+rename from base/common/src/com/netscape/certsrv/policy/IKeyArchivalPolicy.java
+rename to base/common/src/org/dogtagpki/legacy/policy/IKeyArchivalPolicy.java
+index bdd6efdc00c3083453a8847fdca5f41bb5895ea2..80029a0a8697cc0a63102d1e050cc70c28a6c002 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IKeyArchivalPolicy.java
++++ b/base/common/src/org/dogtagpki/legacy/policy/IKeyArchivalPolicy.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.certsrv.policy;
++package org.dogtagpki.legacy.policy;
+ 
+ /**
+  * Interface for a key recovery policy rule.
+diff --git a/base/common/src/com/netscape/certsrv/policy/IKeyRecoveryPolicy.java b/base/common/src/org/dogtagpki/legacy/policy/IKeyRecoveryPolicy.java
+similarity index 96%
+rename from base/common/src/com/netscape/certsrv/policy/IKeyRecoveryPolicy.java
+rename to base/common/src/org/dogtagpki/legacy/policy/IKeyRecoveryPolicy.java
+index 62989472c4723c2e1086eb5d0d09169e7f328063..6bf068fcbd0d4523d40e45187c032f5e7bd68968 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IKeyRecoveryPolicy.java
++++ b/base/common/src/org/dogtagpki/legacy/policy/IKeyRecoveryPolicy.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.certsrv.policy;
++package org.dogtagpki.legacy.policy;
+ 
+ /**
+  * Interface for a key recovery policy rule.
+diff --git a/base/common/src/com/netscape/certsrv/policy/IPolicyPredicateParser.java b/base/common/src/org/dogtagpki/legacy/policy/IPolicyPredicateParser.java
+similarity index 97%
+rename from base/common/src/com/netscape/certsrv/policy/IPolicyPredicateParser.java
+rename to base/common/src/org/dogtagpki/legacy/policy/IPolicyPredicateParser.java
+index f262be0cd106ba597d5fea8917170012463558d1..d6560691f1e0d35f4512b9a1f6b7926339b10b92 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IPolicyPredicateParser.java
++++ b/base/common/src/org/dogtagpki/legacy/policy/IPolicyPredicateParser.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.certsrv.policy;
++package org.dogtagpki.legacy.policy;
+ 
+ /**
+  * Interface for policy predicate parsers.
+diff --git a/base/common/src/com/netscape/certsrv/policy/IPolicyProcessor.java b/base/common/src/org/dogtagpki/legacy/policy/IPolicyProcessor.java
+similarity index 99%
+rename from base/common/src/com/netscape/certsrv/policy/IPolicyProcessor.java
+rename to base/common/src/org/dogtagpki/legacy/policy/IPolicyProcessor.java
+index d2e70e9025f5484981accf2e7cf2556e0bdab9fb..02ed2ed0a54df9ae7e2ad1e6cc1f9cb2ebe258e6 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IPolicyProcessor.java
++++ b/base/common/src/org/dogtagpki/legacy/policy/IPolicyProcessor.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.certsrv.policy;
++package org.dogtagpki.legacy.policy;
+ 
+ import java.util.Enumeration;
+ import java.util.Hashtable;
+diff --git a/base/common/src/com/netscape/certsrv/policy/IPolicyRule.java b/base/common/src/org/dogtagpki/legacy/policy/IPolicyRule.java
+similarity index 98%
+rename from base/common/src/com/netscape/certsrv/policy/IPolicyRule.java
+rename to base/common/src/org/dogtagpki/legacy/policy/IPolicyRule.java
+index 8deb10e2572737c4d815b2f4ec2219106927dce9..33d4ebe8c1ac245dce78da8a61704fa36063bdaa 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IPolicyRule.java
++++ b/base/common/src/org/dogtagpki/legacy/policy/IPolicyRule.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.certsrv.policy;
++package org.dogtagpki.legacy.policy;
+ 
+ import java.util.Vector;
+ 
+diff --git a/base/common/src/com/netscape/certsrv/policy/IPolicySet.java b/base/common/src/org/dogtagpki/legacy/policy/IPolicySet.java
+similarity index 98%
+rename from base/common/src/com/netscape/certsrv/policy/IPolicySet.java
+rename to base/common/src/org/dogtagpki/legacy/policy/IPolicySet.java
+index cc1da3fdce508fa1dbc365320dcad0e6c7764648..a9ad891e8d02b73b300dac8ea7c8fc8d3acafa44 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IPolicySet.java
++++ b/base/common/src/org/dogtagpki/legacy/policy/IPolicySet.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.certsrv.policy;
++package org.dogtagpki.legacy.policy;
+ 
+ import java.util.Enumeration;
+ 
+diff --git a/base/common/src/com/netscape/certsrv/policy/IRenewalPolicy.java b/base/common/src/org/dogtagpki/legacy/policy/IRenewalPolicy.java
+similarity index 96%
+rename from base/common/src/com/netscape/certsrv/policy/IRenewalPolicy.java
+rename to base/common/src/org/dogtagpki/legacy/policy/IRenewalPolicy.java
+index bfd44c446b3f59cbda739623910171b82da86448..b842a468019e6ed5dcd61cf3f715d0971649a472 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IRenewalPolicy.java
++++ b/base/common/src/org/dogtagpki/legacy/policy/IRenewalPolicy.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.certsrv.policy;
++package org.dogtagpki.legacy.policy;
+ 
+ /**
+  * Interface for a renewal policy rule.
+diff --git a/base/common/src/com/netscape/certsrv/policy/IRevocationPolicy.java b/base/common/src/org/dogtagpki/legacy/policy/IRevocationPolicy.java
+similarity index 96%
+rename from base/common/src/com/netscape/certsrv/policy/IRevocationPolicy.java
+rename to base/common/src/org/dogtagpki/legacy/policy/IRevocationPolicy.java
+index 940d240cf65c1eaba4c8ef303b4ac7e58a7b6bd3..add95422509f16896947c09a8d47e94c09691ca1 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IRevocationPolicy.java
++++ b/base/common/src/org/dogtagpki/legacy/policy/IRevocationPolicy.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.certsrv.policy;
++package org.dogtagpki.legacy.policy;
+ 
+ /**
+  * Interface for a revocation policy rule.
+diff --git a/base/common/src/com/netscape/certsrv/policy/ISubjAltNameConfig.java b/base/common/src/org/dogtagpki/legacy/policy/ISubjAltNameConfig.java
+similarity index 97%
+rename from base/common/src/com/netscape/certsrv/policy/ISubjAltNameConfig.java
+rename to base/common/src/org/dogtagpki/legacy/policy/ISubjAltNameConfig.java
+index 57d523cf92266c381481f5e6e87bc7a02ac8be29..fe9c1cc439365cbd4c18b9c5307d69c6f49e4584 100644
+--- a/base/common/src/com/netscape/certsrv/policy/ISubjAltNameConfig.java
++++ b/base/common/src/org/dogtagpki/legacy/policy/ISubjAltNameConfig.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.certsrv.policy;
++package org.dogtagpki.legacy.policy;
+ 
+ /**
+  * Class that can be used to form general names from configuration file.
+diff --git a/base/kra/src/com/netscape/kra/KeyRecoveryAuthority.java b/base/kra/src/com/netscape/kra/KeyRecoveryAuthority.java
+index a3041770aea454b2657bf1807d7f7b7be13e83d0..97100b53c6d404efe04f88478bd5c099b1413c18 100644
+--- a/base/kra/src/com/netscape/kra/KeyRecoveryAuthority.java
++++ b/base/kra/src/com/netscape/kra/KeyRecoveryAuthority.java
+@@ -28,6 +28,8 @@ import java.util.Hashtable;
+ import java.util.StringTokenizer;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.kra.KRAPolicy;
++import org.dogtagpki.legacy.policy.IPolicyProcessor;
+ import org.mozilla.jss.CryptoManager;
+ import org.mozilla.jss.NoSuchTokenException;
+ import org.mozilla.jss.crypto.CryptoToken;
+@@ -46,7 +48,6 @@ import com.netscape.certsrv.kra.IKeyRecoveryAuthority;
+ import com.netscape.certsrv.kra.IKeyService;
+ import com.netscape.certsrv.listeners.EListenersException;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.IPolicyProcessor;
+ import com.netscape.certsrv.request.ARequestNotifier;
+ import com.netscape.certsrv.request.IPolicy;
+ import com.netscape.certsrv.request.IRequest;
+diff --git a/base/kra/src/com/netscape/kra/KRAPolicy.java b/base/kra/src/org/dogtagpki/legacy/kra/KRAPolicy.java
+similarity index 94%
+rename from base/kra/src/com/netscape/kra/KRAPolicy.java
+rename to base/kra/src/org/dogtagpki/legacy/kra/KRAPolicy.java
+index a2392d77ca9f626fbd273d5acb0dc2cca8819257..ae769a546cff12af7c29d2aa1dbac2cacaba79d9 100644
+--- a/base/kra/src/com/netscape/kra/KRAPolicy.java
++++ b/base/kra/src/org/dogtagpki/legacy/kra/KRAPolicy.java
+@@ -15,18 +15,19 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.kra;
++package org.dogtagpki.legacy.kra;
++
++import org.dogtagpki.legacy.core.policy.GenericPolicyProcessor;
++import org.dogtagpki.legacy.policy.IPolicyProcessor;
+ 
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.kra.IKeyRecoveryAuthority;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.IPolicyProcessor;
+ import com.netscape.certsrv.request.IPolicy;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cmscore.policy.GenericPolicyProcessor;
+ import com.netscape.cmscore.util.Debug;
+ 
+ /**
+diff --git a/base/server/cms/src/com/netscape/cms/servlet/admin/PolicyAdminServlet.java b/base/server/cms/src/com/netscape/cms/servlet/admin/PolicyAdminServlet.java
+index 776c9d2900eec1169f75fc28b23ceeee23fbc3a8..1fe9c870cbcca0175b6d2fa58f8de1056a86ff5e 100644
+--- a/base/server/cms/src/com/netscape/cms/servlet/admin/PolicyAdminServlet.java
++++ b/base/server/cms/src/com/netscape/cms/servlet/admin/PolicyAdminServlet.java
+@@ -28,6 +28,9 @@ import javax.servlet.ServletException;
+ import javax.servlet.http.HttpServletRequest;
+ import javax.servlet.http.HttpServletResponse;
+ 
++import org.dogtagpki.legacy.policy.IPolicyProcessor;
++import org.dogtagpki.legacy.policy.IPolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.authority.IAuthority;
+ import com.netscape.certsrv.base.EBaseException;
+@@ -39,8 +42,6 @@ import com.netscape.certsrv.common.OpDef;
+ import com.netscape.certsrv.common.ScopeDef;
+ import com.netscape.certsrv.kra.IKeyRecoveryAuthority;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.IPolicyProcessor;
+-import com.netscape.certsrv.policy.IPolicyRule;
+ import com.netscape.certsrv.ra.IRegistrationAuthority;
+ 
+ /**
+diff --git a/base/server/cms/src/com/netscape/cms/servlet/cert/EnrollServlet.java b/base/server/cms/src/com/netscape/cms/servlet/cert/EnrollServlet.java
+index a0b97500746124e8b9790c742ad36cca729fe6c4..91caccf6cbf5cfc5afb05cfac754ade876abdf5b 100644
+--- a/base/server/cms/src/com/netscape/cms/servlet/cert/EnrollServlet.java
++++ b/base/server/cms/src/com/netscape/cms/servlet/cert/EnrollServlet.java
+@@ -33,6 +33,8 @@ import javax.servlet.ServletOutputStream;
+ import javax.servlet.http.HttpServletRequest;
+ import javax.servlet.http.HttpServletResponse;
+ 
++import org.dogtagpki.legacy.policy.IPolicyProcessor;
++
+ import netscape.security.pkcs.PKCS10;
+ import netscape.security.x509.AlgorithmId;
+ import netscape.security.x509.CertificateAlgorithmId;
+@@ -58,7 +60,6 @@ import com.netscape.certsrv.dbs.certdb.ICertRecordList;
+ import com.netscape.certsrv.dbs.certdb.ICertificateRepository;
+ import com.netscape.certsrv.logging.AuditFormat;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.IPolicyProcessor;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.RequestStatus;
+ import com.netscape.certsrv.usrgrp.IGroup;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/APolicyRule.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/APolicyRule.java
+similarity index 98%
+rename from base/server/cms/src/com/netscape/cms/policy/APolicyRule.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/APolicyRule.java
+index 0551927db3b8b1f7c2e3b13f63bfd9b99172ce75..d1108d2303a217e399fbde0e49f5f29975caa3dd 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/APolicyRule.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/APolicyRule.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy;
++package org.dogtagpki.legacy.server.policy;
+ 
+ import java.io.IOException;
+ import java.security.InvalidKeyException;
+@@ -24,14 +24,15 @@ import java.security.NoSuchAlgorithmException;
+ import java.security.cert.CertificateException;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.EPolicyException;
++import org.dogtagpki.legacy.policy.IExpression;
++import org.dogtagpki.legacy.policy.IPolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.EPolicyException;
+-import com.netscape.certsrv.policy.IExpression;
+-import com.netscape.certsrv.policy.IPolicyRule;
+ import com.netscape.certsrv.request.AgentApprovals;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/AgentPolicy.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/AgentPolicy.java
+similarity index 96%
+rename from base/server/cms/src/com/netscape/cms/policy/constraints/AgentPolicy.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/AgentPolicy.java
+index c935bf66390c0dcf5ed21e57ebd585daae0a1e28..75de9974895e011a795edd31327751f648e98011 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/AgentPolicy.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/AgentPolicy.java
+@@ -15,19 +15,20 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.constraints;
++package org.dogtagpki.legacy.server.policy.constraints;
+ 
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.EPolicyException;
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.ISubsystem;
+-import com.netscape.certsrv.policy.EPolicyException;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+ import com.netscape.certsrv.request.AgentApprovals;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ /**
+  * AgentPolicy is an enrollment policy wraps another policy module.
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/AttributePresentConstraints.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/AttributePresentConstraints.java
+similarity index 98%
+rename from base/server/cms/src/com/netscape/cms/policy/constraints/AttributePresentConstraints.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/AttributePresentConstraints.java
+index 0755a3a01b3a5b2e3cf754834ab28708283f7a61..d71bb6c38af15d3c245eaf88fc07581b99e45dc8 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/AttributePresentConstraints.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/AttributePresentConstraints.java
+@@ -15,13 +15,16 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.constraints;
++package org.dogtagpki.legacy.server.policy.constraints;
+ 
+ import java.util.Enumeration;
+ import java.util.Hashtable;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+@@ -29,10 +32,8 @@ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.ldap.ILdapConnFactory;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.ldap.LDAPAttribute;
+ import netscape.ldap.LDAPConnection;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/DSAKeyConstraints.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/DSAKeyConstraints.java
+similarity index 97%
+rename from base/server/cms/src/com/netscape/cms/policy/constraints/DSAKeyConstraints.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/DSAKeyConstraints.java
+index 0b8c82fbe45abab88be6577829cd9f98407b412a..4a5c6e7c1c4c61e5bfb00bd4beb3dda13910e957 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/DSAKeyConstraints.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/DSAKeyConstraints.java
+@@ -15,24 +15,25 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.constraints;
++package org.dogtagpki.legacy.server.policy.constraints;
+ 
+ import java.math.BigInteger;
+ import java.security.interfaces.DSAParams;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.EPolicyException;
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.EPolicyException;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.provider.DSAPublicKey;
+ import netscape.security.x509.CertificateX509Key;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/DefaultRevocation.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/DefaultRevocation.java
+similarity index 93%
+rename from base/server/cms/src/com/netscape/cms/policy/constraints/DefaultRevocation.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/DefaultRevocation.java
+index 19c4ae1931e63df4eb380a6ad77465c909ac73e5..b46a3e77c0238598b603a6945ace24086c57bfb6 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/DefaultRevocation.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/DefaultRevocation.java
+@@ -15,19 +15,20 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.constraints;
++package org.dogtagpki.legacy.server.policy.constraints;
+ 
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.EPolicyException;
++import org.dogtagpki.legacy.policy.IRevocationPolicy;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+-import com.netscape.certsrv.policy.EPolicyException;
+-import com.netscape.certsrv.policy.IRevocationPolicy;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ /**
+  * This is the default revocation policy. Currently this does
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/IssuerConstraints.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/IssuerConstraints.java
+similarity index 97%
+rename from base/server/cms/src/com/netscape/cms/policy/constraints/IssuerConstraints.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/IssuerConstraints.java
+index 645a63cb554138870e941f68226a692283a946e2..87ea1945be73bc98712eafd9a8f775882afea8cf 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/IssuerConstraints.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/IssuerConstraints.java
+@@ -15,21 +15,22 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.constraints;
++package org.dogtagpki.legacy.server.policy.constraints;
+ 
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.EPolicyException;
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.EPolicyException;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.x509.X500Name;
+ import netscape.security.x509.X509CertInfo;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/KeyAlgorithmConstraints.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/KeyAlgorithmConstraints.java
+similarity index 97%
+rename from base/server/cms/src/com/netscape/cms/policy/constraints/KeyAlgorithmConstraints.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/KeyAlgorithmConstraints.java
+index c8f8d8469c2b5a90d90fae58d11029b7bff032a3..acd0b985f679df4aa9ea92a8fd06470e36fb309d 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/KeyAlgorithmConstraints.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/KeyAlgorithmConstraints.java
+@@ -15,22 +15,23 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.constraints;
++package org.dogtagpki.legacy.server.policy.constraints;
+ 
+ import java.util.Enumeration;
+ import java.util.Locale;
+ import java.util.StringTokenizer;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.EPolicyException;
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+-import com.netscape.certsrv.policy.EPolicyException;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.x509.CertificateX509Key;
+ import netscape.security.x509.X509CertInfo;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/ManualAuthentication.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/ManualAuthentication.java
+similarity index 93%
+rename from base/server/cms/src/com/netscape/cms/policy/constraints/ManualAuthentication.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/ManualAuthentication.java
+index 80396497ca60b5922c6f2f3887e07dfd3520496f..d1277a06729fa1152819108e72b1d84b55c7204d 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/ManualAuthentication.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/ManualAuthentication.java
+@@ -15,18 +15,19 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.constraints;
++package org.dogtagpki.legacy.server.policy.constraints;
+ 
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.EPolicyException;
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.authentication.IAuthToken;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.ISubsystem;
+-import com.netscape.certsrv.policy.EPolicyException;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ /**
+  * ManualAuthentication is an enrollment policy that queues
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/RSAKeyConstraints.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/RSAKeyConstraints.java
+similarity index 97%
+rename from base/server/cms/src/com/netscape/cms/policy/constraints/RSAKeyConstraints.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/RSAKeyConstraints.java
+index 9e6df7c70ee0830bd7bc7f01d26af62054eb09c5..b83b264df92cd8ab2d9c3a226017c5fa1510e2a1 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/RSAKeyConstraints.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/RSAKeyConstraints.java
+@@ -15,23 +15,24 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.constraints;
++package org.dogtagpki.legacy.server.policy.constraints;
+ 
+ import java.util.Enumeration;
+ import java.util.Locale;
+ import java.util.StringTokenizer;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.EPolicyException;
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+-import com.netscape.certsrv.policy.EPolicyException;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.provider.RSAPublicKey;
+ import netscape.security.util.BigInt;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/RenewalConstraints.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/RenewalConstraints.java
+similarity index 97%
+rename from base/server/cms/src/com/netscape/cms/policy/constraints/RenewalConstraints.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/RenewalConstraints.java
+index b38563bfcf1cb0f031e3d922435d99d954af14ef..618fd8f7a8c52ac1e35b3adbb61872b0e6691d61 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/RenewalConstraints.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/RenewalConstraints.java
+@@ -15,22 +15,23 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.constraints;
++package org.dogtagpki.legacy.server.policy.constraints;
+ 
+ import java.util.Date;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.EPolicyException;
++import org.dogtagpki.legacy.policy.IRenewalPolicy;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+-import com.netscape.certsrv.policy.EPolicyException;
+-import com.netscape.certsrv.policy.IRenewalPolicy;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.x509.CertificateValidity;
+ import netscape.security.x509.X509CertImpl;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/RenewalValidityConstraints.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/RenewalValidityConstraints.java
+similarity index 98%
+rename from base/server/cms/src/com/netscape/cms/policy/constraints/RenewalValidityConstraints.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/RenewalValidityConstraints.java
+index df5774bd6f4bf23a6adca37b15246f3e65c78377..d90642f7ab1dd4af8c7122bad17c9586d670a75f 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/RenewalValidityConstraints.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/RenewalValidityConstraints.java
+@@ -15,21 +15,22 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.constraints;
++package org.dogtagpki.legacy.server.policy.constraints;
+ 
+ import java.util.Date;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.EPolicyException;
++import org.dogtagpki.legacy.policy.IRenewalPolicy;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+-import com.netscape.certsrv.policy.EPolicyException;
+-import com.netscape.certsrv.policy.IRenewalPolicy;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ import com.netscape.cmsutil.util.Utils;
+ 
+ import netscape.security.x509.CertificateValidity;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/RevocationConstraints.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/RevocationConstraints.java
+similarity index 97%
+rename from base/server/cms/src/com/netscape/cms/policy/constraints/RevocationConstraints.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/RevocationConstraints.java
+index bbdb9af67e793c198261c3108fcbc2af86b375e9..1a87ca4b8893706d8f7236d23c24ded9a9e6067d 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/RevocationConstraints.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/RevocationConstraints.java
+@@ -15,22 +15,23 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.constraints;
++package org.dogtagpki.legacy.server.policy.constraints;
+ 
+ import java.util.Date;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.EPolicyException;
++import org.dogtagpki.legacy.policy.IRevocationPolicy;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+-import com.netscape.certsrv.policy.EPolicyException;
+-import com.netscape.certsrv.policy.IRevocationPolicy;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.x509.CertificateValidity;
+ import netscape.security.x509.RevocationReason;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/SigningAlgorithmConstraints.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/SigningAlgorithmConstraints.java
+similarity index 98%
+rename from base/server/cms/src/com/netscape/cms/policy/constraints/SigningAlgorithmConstraints.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/SigningAlgorithmConstraints.java
+index 59fde827d9bb485a3f02dd9a282505000947b579..f2a976cf37d7f5861e3257a116271ca98dd6b872 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/SigningAlgorithmConstraints.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/SigningAlgorithmConstraints.java
+@@ -15,12 +15,17 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.constraints;
++package org.dogtagpki.legacy.server.policy.constraints;
+ 
+ import java.util.Locale;
+ import java.util.StringTokenizer;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.EPolicyException;
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.policy.IPolicyProcessor;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.authority.IAuthority;
+ import com.netscape.certsrv.authority.ICertAuthority;
+@@ -29,12 +34,8 @@ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.EPolicyException;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+-import com.netscape.certsrv.policy.IPolicyProcessor;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.x509.AlgorithmId;
+ import netscape.security.x509.CertificateAlgorithmId;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/SubCANameConstraints.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/SubCANameConstraints.java
+similarity index 97%
+rename from base/server/cms/src/com/netscape/cms/policy/constraints/SubCANameConstraints.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/SubCANameConstraints.java
+index 8cf6b0f373902f67318a0a19d106e207179af392..3354efdfac849e37790086c6c2a64707cfb396de 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/SubCANameConstraints.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/SubCANameConstraints.java
+@@ -15,11 +15,15 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.constraints;
++package org.dogtagpki.legacy.server.policy.constraints;
+ 
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.policy.IPolicyProcessor;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.authority.ICertAuthority;
+ import com.netscape.certsrv.base.EBaseException;
+@@ -28,12 +32,9 @@ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.ca.ICertificateAuthority;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+-import com.netscape.certsrv.policy.IPolicyProcessor;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.certsrv.security.ISigningUnit;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.x509.CertificateSubjectName;
+ import netscape.security.x509.X500Name;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/UniqueSubjectName.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/UniqueSubjectName.java
+similarity index 95%
+rename from base/server/cms/src/com/netscape/cms/policy/constraints/UniqueSubjectName.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/UniqueSubjectName.java
+index bacace981d04e4efd72f759cae4cc98e24646828..3042cae66e22f41b4bc554d86e5820cca12bb930 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/UniqueSubjectName.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/UniqueSubjectName.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.constraints;
++package org.dogtagpki.legacy.server.policy.constraints;
+ 
+ /**
+  * This class is used to help migrate CMS4.1 to CMS4.2.
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/UniqueSubjectNameConstraints.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/UniqueSubjectNameConstraints.java
+similarity index 98%
+rename from base/server/cms/src/com/netscape/cms/policy/constraints/UniqueSubjectNameConstraints.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/UniqueSubjectNameConstraints.java
+index 3ebbcc7b0c9d87c3379d26efee2572e006e61f73..61a5eb14898a6642c645cb412b96d7b27ebe6864 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/UniqueSubjectNameConstraints.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/UniqueSubjectNameConstraints.java
+@@ -15,13 +15,17 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.constraints;
++package org.dogtagpki.legacy.server.policy.constraints;
+ 
+ import java.io.IOException;
+ import java.util.Enumeration;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.policy.IPolicyProcessor;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.authority.ICertAuthority;
+ import com.netscape.certsrv.base.EBaseException;
+@@ -31,11 +35,8 @@ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.ca.ICertificateAuthority;
+ import com.netscape.certsrv.dbs.certdb.ICertRecord;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+-import com.netscape.certsrv.policy.IPolicyProcessor;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.x509.CertificateExtensions;
+ import netscape.security.x509.CertificateSubjectName;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/ValidityConstraints.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/ValidityConstraints.java
+similarity index 98%
+rename from base/server/cms/src/com/netscape/cms/policy/constraints/ValidityConstraints.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/ValidityConstraints.java
+index ff17c8308c0493a98a4db0ea49cf6e1283c59965..f37b2e6ad066ed465136ced59846e1056b94b7f6 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/ValidityConstraints.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/constraints/ValidityConstraints.java
+@@ -15,21 +15,22 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.constraints;
++package org.dogtagpki.legacy.server.policy.constraints;
+ 
+ import java.util.Date;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.EPolicyException;
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+-import com.netscape.certsrv.policy.EPolicyException;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.x509.CertificateValidity;
+ import netscape.security.x509.X509CertInfo;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/AuthInfoAccessExt.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/AuthInfoAccessExt.java
+similarity index 98%
+rename from base/server/cms/src/com/netscape/cms/policy/extensions/AuthInfoAccessExt.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/AuthInfoAccessExt.java
+index 0699dcc7b70c34207e185c204756e7b36c0b719a..5e10d01bb1c081516c01393d348daac112ced4fe 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/AuthInfoAccessExt.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/AuthInfoAccessExt.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.extensions;
++package org.dogtagpki.legacy.server.policy.extensions;
+ 
+ import java.io.IOException;
+ import java.io.Serializable;
+@@ -24,17 +24,18 @@ import java.util.Enumeration;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.policy.IGeneralNameUtil;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+-import com.netscape.certsrv.policy.IGeneralNameUtil;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.extensions.AuthInfoAccessExtension;
+ import netscape.security.util.ObjectIdentifier;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/AuthorityKeyIdentifierExt.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/AuthorityKeyIdentifierExt.java
+similarity index 98%
+rename from base/server/cms/src/com/netscape/cms/policy/extensions/AuthorityKeyIdentifierExt.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/AuthorityKeyIdentifierExt.java
+index 5a72a6a053c83205b4a9f48210a039e0d672c124..f1b93fc46513f508109040e59025896485d4c1c7 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/AuthorityKeyIdentifierExt.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/AuthorityKeyIdentifierExt.java
+@@ -15,13 +15,17 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.extensions;
++package org.dogtagpki.legacy.server.policy.extensions;
+ 
+ import java.io.IOException;
+ import java.security.cert.CertificateException;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.policy.IPolicyProcessor;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.authority.ICertAuthority;
+ import com.netscape.certsrv.base.EBaseException;
+@@ -30,11 +34,8 @@ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.ca.ICertificateAuthority;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+-import com.netscape.certsrv.policy.IPolicyProcessor;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.x509.AuthorityKeyIdentifierExtension;
+ import netscape.security.x509.CertificateExtensions;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/BasicConstraintsExt.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/BasicConstraintsExt.java
+similarity index 98%
+rename from base/server/cms/src/com/netscape/cms/policy/extensions/BasicConstraintsExt.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/BasicConstraintsExt.java
+index 55ee29036082b1d8f8b43f3f8c2b08d2053737e3..873fb08d1c4649a83410c9598a7a1b9e6b2ad805 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/BasicConstraintsExt.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/BasicConstraintsExt.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.extensions;
++package org.dogtagpki.legacy.server.policy.extensions;
+ 
+ import java.io.IOException;
+ import java.security.cert.CertificateException;
+@@ -23,6 +23,11 @@ import java.security.cert.X509Certificate;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.EPolicyException;
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.policy.IPolicyProcessor;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.authority.ICertAuthority;
+ import com.netscape.certsrv.base.EBaseException;
+@@ -32,13 +37,9 @@ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.EPolicyException;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+-import com.netscape.certsrv.policy.IPolicyProcessor;
+ import com.netscape.certsrv.ra.IRegistrationAuthority;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.x509.BasicConstraintsExtension;
+ import netscape.security.x509.CertificateChain;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/CRLDistributionPointsExt.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/CRLDistributionPointsExt.java
+similarity index 99%
+rename from base/server/cms/src/com/netscape/cms/policy/extensions/CRLDistributionPointsExt.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/CRLDistributionPointsExt.java
+index 123a6e38fdae6110adb530147287f116242073b6..a437936193a3bbac882f3a1d2b84ff7c0fba0b99 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/CRLDistributionPointsExt.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/CRLDistributionPointsExt.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.extensions;
++package org.dogtagpki.legacy.server.policy.extensions;
+ 
+ import java.io.IOException;
+ import java.security.cert.CertificateException;
+@@ -24,16 +24,17 @@ import java.util.Locale;
+ import java.util.StringTokenizer;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.util.BitArray;
+ import netscape.security.x509.CRLDistributionPoint;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/CertificatePoliciesExt.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/CertificatePoliciesExt.java
+similarity index 98%
+rename from base/server/cms/src/com/netscape/cms/policy/extensions/CertificatePoliciesExt.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/CertificatePoliciesExt.java
+index 78c828435dede4cc48cfff67dfa7aa7c56ade0f3..34d37cbd057d2779f2dedaad4cad628d69e02df6 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/CertificatePoliciesExt.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/CertificatePoliciesExt.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.extensions;
++package org.dogtagpki.legacy.server.policy.extensions;
+ 
+ import java.io.IOException;
+ import java.security.cert.CertificateException;
+@@ -23,17 +23,18 @@ import java.util.Locale;
+ import java.util.StringTokenizer;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.policy.IPolicyProcessor;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+-import com.netscape.certsrv.policy.IPolicyProcessor;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.util.ObjectIdentifier;
+ import netscape.security.x509.CPSuri;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/CertificateRenewalWindowExt.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/CertificateRenewalWindowExt.java
+similarity index 98%
+rename from base/server/cms/src/com/netscape/cms/policy/extensions/CertificateRenewalWindowExt.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/CertificateRenewalWindowExt.java
+index cfc793c22ef3143b492a206dc69db7fe5151ed8e..341f1063662859d66c5c4254e5993f5f30029f37 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/CertificateRenewalWindowExt.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/CertificateRenewalWindowExt.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.extensions;
++package org.dogtagpki.legacy.server.policy.extensions;
+ 
+ import java.io.IOException;
+ import java.security.cert.CertificateException;
+@@ -23,16 +23,17 @@ import java.util.Date;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.extensions.CertificateRenewalWindowExtension;
+ import netscape.security.x509.CertificateExtensions;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/CertificateScopeOfUseExt.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/CertificateScopeOfUseExt.java
+similarity index 98%
+rename from base/server/cms/src/com/netscape/cms/policy/extensions/CertificateScopeOfUseExt.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/CertificateScopeOfUseExt.java
+index 3a4c1eb19299254a58d8578726953a689fe23abd..ef3cff81da59ae86f3c8da0fc222e188e4ce1b97 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/CertificateScopeOfUseExt.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/CertificateScopeOfUseExt.java
+@@ -15,24 +15,25 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.extensions;
++package org.dogtagpki.legacy.server.policy.extensions;
+ 
+ import java.io.IOException;
+ import java.security.cert.CertificateException;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.policy.IGeneralNameUtil;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+-import com.netscape.certsrv.policy.IGeneralNameUtil;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.extensions.CertificateScopeEntry;
+ import netscape.security.extensions.CertificateScopeOfUseExtension;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/ExtendedKeyUsageExt.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/ExtendedKeyUsageExt.java
+similarity index 98%
+rename from base/server/cms/src/com/netscape/cms/policy/extensions/ExtendedKeyUsageExt.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/ExtendedKeyUsageExt.java
+index 84e3a54a246ce314ee51f59c68129d4d85d61390..6a95a9d48873ef34c81dfd85c086388fb49fbe5a 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/ExtendedKeyUsageExt.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/ExtendedKeyUsageExt.java
+@@ -15,23 +15,24 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.extensions;
++package org.dogtagpki.legacy.server.policy.extensions;
+ 
+ import java.io.IOException;
+ import java.security.cert.CertificateException;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.extensions.ExtendedKeyUsageExtension;
+ import netscape.security.util.ObjectIdentifier;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/GenericASN1Ext.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/GenericASN1Ext.java
+similarity index 99%
+rename from base/server/cms/src/com/netscape/cms/policy/extensions/GenericASN1Ext.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/GenericASN1Ext.java
+index 2f52f9752b8cb8daf0e4ea89c9e54d57377dd8e6..35a1cca4c0577bc5c3577d233d7bc86adf14ada4 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/GenericASN1Ext.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/GenericASN1Ext.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.extensions;
++package org.dogtagpki.legacy.server.policy.extensions;
+ 
+ import java.io.File;
+ import java.io.FileInputStream;
+@@ -27,16 +27,17 @@ import java.util.Hashtable;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.extensions.GenericASN1Extension;
+ import netscape.security.util.ObjectIdentifier;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/IssuerAltNameExt.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/IssuerAltNameExt.java
+similarity index 96%
+rename from base/server/cms/src/com/netscape/cms/policy/extensions/IssuerAltNameExt.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/IssuerAltNameExt.java
+index 71eefa041bcc5ebbd5dadfc15645fbc94650eebe..0c986a8c32312b933b9ea31540fe38b0b0d1dc74 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/IssuerAltNameExt.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/IssuerAltNameExt.java
+@@ -15,25 +15,26 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.extensions;
++package org.dogtagpki.legacy.server.policy.extensions;
+ 
+ import java.io.IOException;
+ import java.security.cert.CertificateException;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.policy.IGeneralNamesConfig;
++import org.dogtagpki.legacy.policy.IPolicyProcessor;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+-import com.netscape.certsrv.policy.IGeneralNamesConfig;
+-import com.netscape.certsrv.policy.IPolicyProcessor;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.x509.CertificateExtensions;
+ import netscape.security.x509.CertificateVersion;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/KeyUsageExt.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/KeyUsageExt.java
+similarity index 98%
+rename from base/server/cms/src/com/netscape/cms/policy/extensions/KeyUsageExt.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/KeyUsageExt.java
+index f864ab93c80a8a67807548b681d910aa49f1d971..0a879fb0bede4e0395de2b4a0bb3eebde7e0b7bc 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/KeyUsageExt.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/KeyUsageExt.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.extensions;
++package org.dogtagpki.legacy.server.policy.extensions;
+ 
+ import java.io.IOException;
+ import java.security.cert.CertificateException;
+@@ -23,6 +23,10 @@ import java.security.cert.X509Certificate;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.policy.IPolicyProcessor;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.authority.ICertAuthority;
+ import com.netscape.certsrv.base.EBaseException;
+@@ -31,11 +35,8 @@ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.ca.ICertificateAuthority;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+-import com.netscape.certsrv.policy.IPolicyProcessor;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.x509.CertificateChain;
+ import netscape.security.x509.CertificateExtensions;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/NSCCommentExt.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/NSCCommentExt.java
+similarity index 97%
+rename from base/server/cms/src/com/netscape/cms/policy/extensions/NSCCommentExt.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/NSCCommentExt.java
+index c0b0656bf75bdca078531da6a12e2da9bb4524e4..808cd6491f04676c812e0f4c107bc267dc09b244 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/NSCCommentExt.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/NSCCommentExt.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.extensions;
++package org.dogtagpki.legacy.server.policy.extensions;
+ 
+ import java.io.BufferedReader;
+ import java.io.FileInputStream;
+@@ -26,17 +26,18 @@ import java.security.cert.CertificateException;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.EPolicyException;
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.EPolicyException;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.x509.CertificateExtensions;
+ import netscape.security.x509.CertificateVersion;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/NSCertTypeExt.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/NSCertTypeExt.java
+similarity index 98%
+rename from base/server/cms/src/com/netscape/cms/policy/extensions/NSCertTypeExt.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/NSCertTypeExt.java
+index ed38f6fc8977c9d8776fbe2eaad6afc37dd3e194..d90fa9a6e24998f451d9179ab0d48a0168e46980 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/NSCertTypeExt.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/NSCertTypeExt.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.extensions;
++package org.dogtagpki.legacy.server.policy.extensions;
+ 
+ import java.io.IOException;
+ import java.security.cert.CertificateException;
+@@ -23,6 +23,10 @@ import java.security.cert.X509Certificate;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.policy.IPolicyProcessor;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.authentication.IAuthToken;
+ import com.netscape.certsrv.authority.ICertAuthority;
+@@ -32,11 +36,8 @@ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.ca.ICertificateAuthority;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+-import com.netscape.certsrv.policy.IPolicyProcessor;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.extensions.NSCertTypeExtension;
+ import netscape.security.x509.CertificateChain;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/NameConstraintsExt.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/NameConstraintsExt.java
+similarity index 98%
+rename from base/server/cms/src/com/netscape/cms/policy/extensions/NameConstraintsExt.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/NameConstraintsExt.java
+index 41a11c59b38b7136bc8aff678f75da266bd2b91c..84f16a615f89c112d5b8cf2fc34b7b7621a01855 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/NameConstraintsExt.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/NameConstraintsExt.java
+@@ -15,25 +15,26 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.extensions;
++package org.dogtagpki.legacy.server.policy.extensions;
+ 
+ import java.io.IOException;
+ import java.security.cert.CertificateException;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.policy.IGeneralNameAsConstraintsConfig;
++import org.dogtagpki.legacy.policy.IPolicyProcessor;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+-import com.netscape.certsrv.policy.IGeneralNameAsConstraintsConfig;
+-import com.netscape.certsrv.policy.IPolicyProcessor;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.x509.CertificateExtensions;
+ import netscape.security.x509.CertificateVersion;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/OCSPNoCheckExt.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/OCSPNoCheckExt.java
+similarity index 97%
+rename from base/server/cms/src/com/netscape/cms/policy/extensions/OCSPNoCheckExt.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/OCSPNoCheckExt.java
+index 1cb60a72b28756c6224cd6678835802682de3aac..95279b522dd0f7b5e2bdc5b0c2f15cd05909a12c 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/OCSPNoCheckExt.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/OCSPNoCheckExt.java
+@@ -15,23 +15,24 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.extensions;
++package org.dogtagpki.legacy.server.policy.extensions;
+ 
+ import java.io.IOException;
+ import java.security.cert.CertificateException;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.extensions.OCSPNoCheckExtension;
+ import netscape.security.x509.CertificateExtensions;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/PolicyConstraintsExt.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/PolicyConstraintsExt.java
+similarity index 98%
+rename from base/server/cms/src/com/netscape/cms/policy/extensions/PolicyConstraintsExt.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/PolicyConstraintsExt.java
+index 1d5b3cac3f950e8a04663c5888ec686c3ff109b2..1be149caf166cc2fc11151f7482cf9c1301648a0 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/PolicyConstraintsExt.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/PolicyConstraintsExt.java
+@@ -15,24 +15,25 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.extensions;
++package org.dogtagpki.legacy.server.policy.extensions;
+ 
+ import java.io.IOException;
+ import java.security.cert.CertificateException;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.policy.IPolicyProcessor;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+-import com.netscape.certsrv.policy.IPolicyProcessor;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.x509.CertificateExtensions;
+ import netscape.security.x509.CertificateVersion;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/PolicyMappingsExt.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/PolicyMappingsExt.java
+similarity index 98%
+rename from base/server/cms/src/com/netscape/cms/policy/extensions/PolicyMappingsExt.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/PolicyMappingsExt.java
+index 5e20a2d26ceb88c156d6c30aa34a421590786c3e..a8f7db30d6c48672f31c0a518f935ccf15702e22 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/PolicyMappingsExt.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/PolicyMappingsExt.java
+@@ -15,24 +15,25 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.extensions;
++package org.dogtagpki.legacy.server.policy.extensions;
+ 
+ import java.io.IOException;
+ import java.security.cert.CertificateException;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.policy.IPolicyProcessor;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+-import com.netscape.certsrv.policy.IPolicyProcessor;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.util.ObjectIdentifier;
+ import netscape.security.x509.CertificateExtensions;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/PresenceExt.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/PresenceExt.java
+similarity index 98%
+rename from base/server/cms/src/com/netscape/cms/policy/extensions/PresenceExt.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/PresenceExt.java
+index 3b2502f4fdf24a012c8b64c318418621fcb67086..780b69ce4e892253c8b023331d8a51d493f7fd95 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/PresenceExt.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/PresenceExt.java
+@@ -15,18 +15,19 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.extensions;
++package org.dogtagpki.legacy.server.policy.extensions;
+ 
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ /**
+  * Checks extension presence.
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/PrivateKeyUsagePeriodExt.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/PrivateKeyUsagePeriodExt.java
+similarity index 97%
+rename from base/server/cms/src/com/netscape/cms/policy/extensions/PrivateKeyUsagePeriodExt.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/PrivateKeyUsagePeriodExt.java
+index 17a772e2c8fb1c227f581fe76db1b0dcd8cef14a..c34c8642cc46610aea734bb480eb795a5c11af05 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/PrivateKeyUsagePeriodExt.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/PrivateKeyUsagePeriodExt.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.extensions;
++package org.dogtagpki.legacy.server.policy.extensions;
+ 
+ import java.io.IOException;
+ import java.security.cert.CertificateException;
+@@ -24,17 +24,18 @@ import java.util.Date;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.EPolicyException;
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.EPolicyException;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.x509.CertificateExtensions;
+ import netscape.security.x509.CertificateVersion;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/RemoveBasicConstraintsExt.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/RemoveBasicConstraintsExt.java
+similarity index 96%
+rename from base/server/cms/src/com/netscape/cms/policy/extensions/RemoveBasicConstraintsExt.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/RemoveBasicConstraintsExt.java
+index f9aca133d64107c4a51b2a5c1ac7a778f2ecc1a6..d55cfbb95775e6d1f249956b6086bf9a8e02b5cd 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/RemoveBasicConstraintsExt.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/RemoveBasicConstraintsExt.java
+@@ -15,22 +15,23 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.extensions;
++package org.dogtagpki.legacy.server.policy.extensions;
+ 
+ import java.io.IOException;
+ import java.security.cert.CertificateException;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.x509.BasicConstraintsExtension;
+ import netscape.security.x509.CertificateExtensions;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/SubjAltNameExt.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/SubjAltNameExt.java
+similarity index 98%
+rename from base/server/cms/src/com/netscape/cms/policy/extensions/SubjAltNameExt.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/SubjAltNameExt.java
+index 1e06b5dd4024ca88fa0cffcb7203ff98b842c641..22002457f89b79f3b9faf6e42f9438f70a57784e 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/SubjAltNameExt.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/SubjAltNameExt.java
+@@ -15,13 +15,16 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.extensions;
++package org.dogtagpki.legacy.server.policy.extensions;
+ 
+ import java.io.IOException;
+ import java.security.cert.CertificateException;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.authentication.IAuthToken;
+ import com.netscape.certsrv.base.EBaseException;
+@@ -29,10 +32,8 @@ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.x509.CertificateExtensions;
+ import netscape.security.x509.CertificateVersion;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/SubjectAltNameExt.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/SubjectAltNameExt.java
+similarity index 97%
+rename from base/server/cms/src/com/netscape/cms/policy/extensions/SubjectAltNameExt.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/SubjectAltNameExt.java
+index 3634cc6293887503fd0d261ea912fb166f673153..a6ea5164c55aa5df3fc4e28309a2a9231d5a91f1 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/SubjectAltNameExt.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/SubjectAltNameExt.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.extensions;
++package org.dogtagpki.legacy.server.policy.extensions;
+ 
+ import java.io.IOException;
+ import java.security.cert.CertificateException;
+@@ -23,19 +23,20 @@ import java.util.Enumeration;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.policy.IGeneralNameUtil;
++import org.dogtagpki.legacy.policy.IPolicyProcessor;
++import org.dogtagpki.legacy.policy.ISubjAltNameConfig;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+-import com.netscape.certsrv.policy.IGeneralNameUtil;
+-import com.netscape.certsrv.policy.IPolicyProcessor;
+-import com.netscape.certsrv.policy.ISubjAltNameConfig;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.x509.CertificateExtensions;
+ import netscape.security.x509.CertificateVersion;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/SubjectDirectoryAttributesExt.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/SubjectDirectoryAttributesExt.java
+similarity index 99%
+rename from base/server/cms/src/com/netscape/cms/policy/extensions/SubjectDirectoryAttributesExt.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/SubjectDirectoryAttributesExt.java
+index f939c3675c78fe60ee4a4a9361ffe9353ad30528..a667108b863bda4cc6c31bce1ec17645196feee6 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/SubjectDirectoryAttributesExt.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/SubjectDirectoryAttributesExt.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.extensions;
++package org.dogtagpki.legacy.server.policy.extensions;
+ 
+ import java.io.IOException;
+ import java.security.cert.CertificateException;
+@@ -23,16 +23,17 @@ import java.util.Enumeration;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.util.DerValue;
+ import netscape.security.util.ObjectIdentifier;
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/SubjectKeyIdentifierExt.java b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/SubjectKeyIdentifierExt.java
+similarity index 98%
+rename from base/server/cms/src/com/netscape/cms/policy/extensions/SubjectKeyIdentifierExt.java
+rename to base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/SubjectKeyIdentifierExt.java
+index 1144f8bad0f30a167588999988ce0c7197ae5a2c..9b5ce8c16bd6eb5246be0d6950e825c51faf3a56 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/SubjectKeyIdentifierExt.java
++++ b/base/server/cms/src/org/dogtagpki/legacy/server/policy/extensions/SubjectKeyIdentifierExt.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cms.policy.extensions;
++package org.dogtagpki.legacy.server.policy.extensions;
+ 
+ import java.io.IOException;
+ import java.security.MessageDigest;
+@@ -24,18 +24,19 @@ import java.security.cert.CertificateException;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.EPolicyException;
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.policy.IPolicyProcessor;
++import org.dogtagpki.legacy.server.policy.APolicyRule;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.EPolicyException;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+-import com.netscape.certsrv.policy.IPolicyProcessor;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+ 
+ import netscape.security.x509.CertificateExtensions;
+ import netscape.security.x509.CertificateVersion;
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/apps/CMSEngine.java b/base/server/cmscore/src/com/netscape/cmscore/apps/CMSEngine.java
+index c62087e92198d5319d195395a5e2310442780a40..e37ba25e0446108e266a1b068a7ba2a6e60fb769 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/apps/CMSEngine.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/apps/CMSEngine.java
+@@ -47,6 +47,11 @@ import javax.servlet.http.HttpServlet;
+ 
+ import org.apache.commons.lang.StringUtils;
+ import org.apache.xerces.parsers.DOMParser;
++import org.dogtagpki.legacy.core.policy.GeneralNameUtil;
++import org.dogtagpki.legacy.policy.IGeneralNameAsConstraintsConfig;
++import org.dogtagpki.legacy.policy.IGeneralNamesAsConstraintsConfig;
++import org.dogtagpki.legacy.policy.IGeneralNamesConfig;
++import org.dogtagpki.legacy.policy.ISubjAltNameConfig;
+ import org.mozilla.jss.CryptoManager;
+ import org.mozilla.jss.CryptoManager.CertificateUsage;
+ import org.mozilla.jss.crypto.CryptoToken;
+@@ -106,10 +111,6 @@ import com.netscape.certsrv.notification.IEmailResolverKeys;
+ import com.netscape.certsrv.notification.IEmailTemplate;
+ import com.netscape.certsrv.notification.IMailNotification;
+ import com.netscape.certsrv.password.IPasswordCheck;
+-import com.netscape.certsrv.policy.IGeneralNameAsConstraintsConfig;
+-import com.netscape.certsrv.policy.IGeneralNamesAsConstraintsConfig;
+-import com.netscape.certsrv.policy.IGeneralNamesConfig;
+-import com.netscape.certsrv.policy.ISubjAltNameConfig;
+ import com.netscape.certsrv.profile.IEnrollProfile;
+ import com.netscape.certsrv.ra.IRegistrationAuthority;
+ import com.netscape.certsrv.request.IRequest;
+@@ -152,7 +153,6 @@ import com.netscape.cmscore.notification.EmailFormProcessor;
+ import com.netscape.cmscore.notification.EmailResolverKeys;
+ import com.netscape.cmscore.notification.EmailTemplate;
+ import com.netscape.cmscore.notification.ReqCertSANameEmailResolver;
+-import com.netscape.cmscore.policy.GeneralNameUtil;
+ import com.netscape.cmscore.registry.PluginRegistry;
+ import com.netscape.cmscore.request.CertRequestConstants;
+ import com.netscape.cmscore.request.RequestSubsystem;
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/policy/AndExpression.java b/base/server/cmscore/src/org/dogtagpki/legacy/core/policy/AndExpression.java
+similarity index 92%
+rename from base/server/cmscore/src/com/netscape/cmscore/policy/AndExpression.java
+rename to base/server/cmscore/src/org/dogtagpki/legacy/core/policy/AndExpression.java
+index e6e5b496c3dbe0923b550f2ea88411c505b20b36..482ed525109903a6fdc72623294c72ea752f4392 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/policy/AndExpression.java
++++ b/base/server/cmscore/src/org/dogtagpki/legacy/core/policy/AndExpression.java
+@@ -15,10 +15,11 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cmscore.policy;
++package org.dogtagpki.legacy.core.policy;
++
++import org.dogtagpki.legacy.policy.EPolicyException;
++import org.dogtagpki.legacy.policy.IExpression;
+ 
+-import com.netscape.certsrv.policy.EPolicyException;
+-import com.netscape.certsrv.policy.IExpression;
+ import com.netscape.certsrv.request.IRequest;
+ 
+ /**
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/policy/GeneralNameUtil.java b/base/server/cmscore/src/org/dogtagpki/legacy/core/policy/GeneralNameUtil.java
+similarity index 98%
+rename from base/server/cmscore/src/com/netscape/cmscore/policy/GeneralNameUtil.java
+rename to base/server/cmscore/src/org/dogtagpki/legacy/core/policy/GeneralNameUtil.java
+index 6bd60e0093da4b7a29398a745f41db51c8fa6a23..8296f7f6e0b40b525b1f149fa3ffae52d381613b 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/policy/GeneralNameUtil.java
++++ b/base/server/cmscore/src/org/dogtagpki/legacy/core/policy/GeneralNameUtil.java
+@@ -15,7 +15,7 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cmscore.policy;
++package org.dogtagpki.legacy.core.policy;
+ 
+ import java.io.ByteArrayInputStream;
+ import java.io.IOException;
+@@ -23,16 +23,17 @@ import java.util.Enumeration;
+ import java.util.StringTokenizer;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.IGeneralNameAsConstraintsConfig;
++import org.dogtagpki.legacy.policy.IGeneralNameConfig;
++import org.dogtagpki.legacy.policy.IGeneralNameUtil;
++import org.dogtagpki.legacy.policy.IGeneralNamesAsConstraintsConfig;
++import org.dogtagpki.legacy.policy.IGeneralNamesConfig;
++import org.dogtagpki.legacy.policy.ISubjAltNameConfig;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.EPropertyNotFound;
+ import com.netscape.certsrv.base.IConfigStore;
+-import com.netscape.certsrv.policy.IGeneralNameAsConstraintsConfig;
+-import com.netscape.certsrv.policy.IGeneralNameConfig;
+-import com.netscape.certsrv.policy.IGeneralNameUtil;
+-import com.netscape.certsrv.policy.IGeneralNamesAsConstraintsConfig;
+-import com.netscape.certsrv.policy.IGeneralNamesConfig;
+-import com.netscape.certsrv.policy.ISubjAltNameConfig;
+ import com.netscape.cmscore.util.Debug;
+ import com.netscape.cmsutil.util.Utils;
+ 
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/policy/GenericPolicyProcessor.java b/base/server/cmscore/src/org/dogtagpki/legacy/core/policy/GenericPolicyProcessor.java
+similarity index 99%
+rename from base/server/cmscore/src/com/netscape/cmscore/policy/GenericPolicyProcessor.java
+rename to base/server/cmscore/src/org/dogtagpki/legacy/core/policy/GenericPolicyProcessor.java
+index 2a37e71f4c0fddfa4569e061f64761127c9a450f..44506e6ff5be5b869805c771da394d56f150a929 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/policy/GenericPolicyProcessor.java
++++ b/base/server/cmscore/src/org/dogtagpki/legacy/core/policy/GenericPolicyProcessor.java
+@@ -15,13 +15,24 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cmscore.policy;
++package org.dogtagpki.legacy.core.policy;
+ 
+ import java.util.Enumeration;
+ import java.util.Hashtable;
+ import java.util.StringTokenizer;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.EPolicyException;
++import org.dogtagpki.legacy.policy.IEnrollmentPolicy;
++import org.dogtagpki.legacy.policy.IExpression;
++import org.dogtagpki.legacy.policy.IKeyArchivalPolicy;
++import org.dogtagpki.legacy.policy.IKeyRecoveryPolicy;
++import org.dogtagpki.legacy.policy.IPolicyProcessor;
++import org.dogtagpki.legacy.policy.IPolicyRule;
++import org.dogtagpki.legacy.policy.IPolicySet;
++import org.dogtagpki.legacy.policy.IRenewalPolicy;
++import org.dogtagpki.legacy.policy.IRevocationPolicy;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.authority.IAuthority;
+ import com.netscape.certsrv.base.EBaseException;
+@@ -29,16 +40,6 @@ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.common.Constants;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.EPolicyException;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+-import com.netscape.certsrv.policy.IExpression;
+-import com.netscape.certsrv.policy.IKeyArchivalPolicy;
+-import com.netscape.certsrv.policy.IKeyRecoveryPolicy;
+-import com.netscape.certsrv.policy.IPolicyProcessor;
+-import com.netscape.certsrv.policy.IPolicyRule;
+-import com.netscape.certsrv.policy.IPolicySet;
+-import com.netscape.certsrv.policy.IRenewalPolicy;
+-import com.netscape.certsrv.policy.IRevocationPolicy;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cmscore.base.PropConfigStore;
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/policy/JavaScriptRequestProxy.java b/base/server/cmscore/src/org/dogtagpki/legacy/core/policy/JavaScriptRequestProxy.java
+similarity index 93%
+rename from base/server/cmscore/src/com/netscape/cmscore/policy/JavaScriptRequestProxy.java
+rename to base/server/cmscore/src/org/dogtagpki/legacy/core/policy/JavaScriptRequestProxy.java
+index e9a7371d96145c7082582e0f17a6fed1f7dc528c..7b285b76ba43fe5bcf6b866acf818e781339b98c 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/policy/JavaScriptRequestProxy.java
++++ b/base/server/cmscore/src/org/dogtagpki/legacy/core/policy/JavaScriptRequestProxy.java
+@@ -15,9 +15,10 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cmscore.policy;
++package org.dogtagpki.legacy.core.policy;
++
++import org.dogtagpki.legacy.policy.IPolicyRule;
+ 
+-import com.netscape.certsrv.policy.IPolicyRule;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ 
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/policy/OrExpression.java b/base/server/cmscore/src/org/dogtagpki/legacy/core/policy/OrExpression.java
+similarity index 93%
+rename from base/server/cmscore/src/com/netscape/cmscore/policy/OrExpression.java
+rename to base/server/cmscore/src/org/dogtagpki/legacy/core/policy/OrExpression.java
+index 7da07a8bcf92a0735d825b06aa41a971cc1e1a9b..3615a177b87f07143db5bda8eb937e9b53e792f0 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/policy/OrExpression.java
++++ b/base/server/cmscore/src/org/dogtagpki/legacy/core/policy/OrExpression.java
+@@ -15,10 +15,11 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cmscore.policy;
++package org.dogtagpki.legacy.core.policy;
++
++import org.dogtagpki.legacy.policy.EPolicyException;
++import org.dogtagpki.legacy.policy.IExpression;
+ 
+-import com.netscape.certsrv.policy.EPolicyException;
+-import com.netscape.certsrv.policy.IExpression;
+ import com.netscape.certsrv.request.IRequest;
+ 
+ /**
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/policy/PolicyPredicateParser.java b/base/server/cmscore/src/org/dogtagpki/legacy/core/policy/PolicyPredicateParser.java
+similarity index 98%
+rename from base/server/cmscore/src/com/netscape/cmscore/policy/PolicyPredicateParser.java
+rename to base/server/cmscore/src/org/dogtagpki/legacy/core/policy/PolicyPredicateParser.java
+index 08f74e2f58edd07cc03dbae076af1d1da17685ef..b681be702b369b1ec00178ee10a678ce75bbe711 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/policy/PolicyPredicateParser.java
++++ b/base/server/cmscore/src/org/dogtagpki/legacy/core/policy/PolicyPredicateParser.java
+@@ -15,13 +15,14 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cmscore.policy;
++package org.dogtagpki.legacy.core.policy;
+ 
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.EPolicyException;
++import org.dogtagpki.legacy.policy.IExpression;
++
+ import com.netscape.certsrv.apps.CMS;
+-import com.netscape.certsrv.policy.EPolicyException;
+-import com.netscape.certsrv.policy.IExpression;
+ import com.netscape.cmscore.util.Debug;
+ 
+ /**
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/policy/PolicySet.java b/base/server/cmscore/src/org/dogtagpki/legacy/core/policy/PolicySet.java
+similarity index 98%
+rename from base/server/cmscore/src/com/netscape/cmscore/policy/PolicySet.java
+rename to base/server/cmscore/src/org/dogtagpki/legacy/core/policy/PolicySet.java
+index 4c16961309113ec753595d38799d96dbe79a8541..4949fcc1749281e280650b94328d9b248702c2fb 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/policy/PolicySet.java
++++ b/base/server/cmscore/src/org/dogtagpki/legacy/core/policy/PolicySet.java
+@@ -15,16 +15,17 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cmscore.policy;
++package org.dogtagpki.legacy.core.policy;
+ 
+ import java.util.Enumeration;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.IExpression;
++import org.dogtagpki.legacy.policy.IPolicyRule;
++import org.dogtagpki.legacy.policy.IPolicySet;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.IExpression;
+-import com.netscape.certsrv.policy.IPolicyRule;
+-import com.netscape.certsrv.policy.IPolicySet;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cmscore.util.Debug;
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/policy/SimpleExpression.java b/base/server/cmscore/src/org/dogtagpki/legacy/core/policy/SimpleExpression.java
+similarity index 98%
+rename from base/server/cmscore/src/com/netscape/cmscore/policy/SimpleExpression.java
+rename to base/server/cmscore/src/org/dogtagpki/legacy/core/policy/SimpleExpression.java
+index fa8b7df082d136fe4d88922c54cf2d1f8806e24d..15372d3af9170a18a7be026b872be1828b2044b8 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/policy/SimpleExpression.java
++++ b/base/server/cmscore/src/org/dogtagpki/legacy/core/policy/SimpleExpression.java
+@@ -15,14 +15,15 @@
+ // (C) 2007 Red Hat, Inc.
+ // All rights reserved.
+ // --- END COPYRIGHT BLOCK ---
+-package com.netscape.cmscore.policy;
++package org.dogtagpki.legacy.core.policy;
+ 
+ import java.util.Enumeration;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.EPolicyException;
++import org.dogtagpki.legacy.policy.IExpression;
++
+ import com.netscape.certsrv.apps.CMS;
+-import com.netscape.certsrv.policy.EPolicyException;
+-import com.netscape.certsrv.policy.IExpression;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.cmscore.util.AssertionException;
+ import com.netscape.cmscore.util.Debug;
+diff --git a/base/server/test/com/netscape/cmscore/app/CMSEngineDefaultStub.java b/base/server/test/com/netscape/cmscore/app/CMSEngineDefaultStub.java
+index d2b7fe8b730df76ea20b3868b1ee4181b5dc4e6f..de4eb8bb6701e6cf46fac41732c7a70104e7553e 100644
+--- a/base/server/test/com/netscape/cmscore/app/CMSEngineDefaultStub.java
++++ b/base/server/test/com/netscape/cmscore/app/CMSEngineDefaultStub.java
+@@ -12,6 +12,10 @@ import java.util.Hashtable;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import org.dogtagpki.legacy.policy.IGeneralNameAsConstraintsConfig;
++import org.dogtagpki.legacy.policy.IGeneralNamesAsConstraintsConfig;
++import org.dogtagpki.legacy.policy.IGeneralNamesConfig;
++import org.dogtagpki.legacy.policy.ISubjAltNameConfig;
+ import org.mozilla.jss.CryptoManager.CertificateUsage;
+ import org.mozilla.jss.util.PasswordCallback;
+ 
+@@ -49,10 +53,6 @@ import com.netscape.certsrv.notification.IEmailResolverKeys;
+ import com.netscape.certsrv.notification.IEmailTemplate;
+ import com.netscape.certsrv.notification.IMailNotification;
+ import com.netscape.certsrv.password.IPasswordCheck;
+-import com.netscape.certsrv.policy.IGeneralNameAsConstraintsConfig;
+-import com.netscape.certsrv.policy.IGeneralNamesAsConstraintsConfig;
+-import com.netscape.certsrv.policy.IGeneralNamesConfig;
+-import com.netscape.certsrv.policy.ISubjAltNameConfig;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.cmsutil.net.ISocketFactory;
+ import com.netscape.cmsutil.password.IPasswordStore;
+-- 
+2.5.5
+

@@ -1,0 +1,115 @@
+From cbbaf433c3b423271233ebf08d52fe95682b9e8f Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Thu, 25 Aug 2016 12:55:14 +1000
+Subject: [PATCH] Revoke lightweight CA certificate on deletion
+
+Fixes: https://fedorahosted.org/pki/ticket/1638
+---
+ .../src/com/netscape/ca/CertificateAuthority.java  | 39 +++++++++++++++++++++-
+ .../dogtagpki/server/ca/rest/AuthorityService.java |  2 +-
+ .../netscape/certsrv/ca/ICertificateAuthority.java |  2 +-
+ 3 files changed, 40 insertions(+), 3 deletions(-)
+
+diff --git a/base/ca/src/com/netscape/ca/CertificateAuthority.java b/base/ca/src/com/netscape/ca/CertificateAuthority.java
+index a5397da0c0dcea654a15f16e5becc5c430a1bb29..ab48409d8c3d481b5dc2d0c00b97cc2487f49189 100644
+--- a/base/ca/src/com/netscape/ca/CertificateAuthority.java
++++ b/base/ca/src/com/netscape/ca/CertificateAuthority.java
+@@ -124,6 +124,7 @@ import com.netscape.certsrv.util.IStatsSubsystem;
+ import com.netscape.cms.servlet.cert.CertEnrollmentRequestFactory;
+ import com.netscape.cms.servlet.cert.EnrollmentProcessor;
+ import com.netscape.cms.servlet.cert.RenewalProcessor;
++import com.netscape.cms.servlet.cert.RevocationProcessor;
+ import com.netscape.cms.servlet.processors.CAProcessor;
+ import com.netscape.cmscore.base.ArgBlock;
+ import com.netscape.cmscore.dbs.CRLRepository;
+@@ -178,6 +179,7 @@ import netscape.security.x509.CertificateChain;
+ import netscape.security.x509.CertificateIssuerName;
+ import netscape.security.x509.CertificateSubjectName;
+ import netscape.security.x509.CertificateVersion;
++import netscape.security.x509.RevocationReason;
+ import netscape.security.x509.X500Name;
+ import netscape.security.x509.X500Signer;
+ import netscape.security.x509.X509CRLImpl;
+@@ -2964,7 +2966,8 @@ public class CertificateAuthority
+         authorityKeyHosts.add(thisClone);
+     }
+ 
+-    public synchronized void deleteAuthority() throws EBaseException {
++    public synchronized void deleteAuthority(HttpServletRequest httpReq)
++            throws EBaseException {
+         if (isHostAuthority())
+             throw new CATypeException("Cannot delete the host CA");
+ 
+@@ -2984,10 +2987,44 @@ public class CertificateAuthority
+ 
+         shutdown();
+ 
++        revokeAuthority(httpReq);
+         deleteAuthorityEntry(authorityID);
+         deleteAuthorityNSSDB();
+     }
+ 
++    /** Revoke the authority's certificate
++     *
++     * TODO: revocation reason, invalidity date parameters
++     */
++    private void revokeAuthority(HttpServletRequest httpReq)
++            throws EBaseException {
++        CMS.debug("revokeAuthority: checking serial " + authoritySerial);
++        ICertRecord certRecord = mCertRepot.readCertificateRecord(authoritySerial);
++        String curStatus = certRecord.getStatus();
++        CMS.debug("revokeAuthority: current cert status: " + curStatus);
++        if (curStatus.equals(CertRecord.STATUS_REVOKED)
++                || curStatus.equals(CertRecord.STATUS_REVOKED_EXPIRED)) {
++            return;  // already revoked
++        }
++
++        CMS.debug("revokeAuthority: revoking cert");
++        RevocationProcessor processor = new RevocationProcessor(
++                "CertificateAuthority.revokeAuthority", httpReq.getLocale());
++        processor.setSerialNumber(new CertId(authoritySerial));
++        processor.setRevocationReason(RevocationReason.UNSPECIFIED);
++        processor.setAuthority(this);
++        try {
++            processor.createCRLExtension();
++        } catch (IOException e) {
++            throw new ECAException("Unable to create CRL extensions", e);
++        }
++        processor.addCertificateToRevoke(mCaCert);
++        processor.createRevocationRequest();
++        processor.auditChangeRequest(ILogger.SUCCESS);
++        processor.processRevocationRequest();
++        processor.auditChangeRequestProcessed(ILogger.SUCCESS);
++    }
++
+     /** Delete keys and certs of this authority from NSSDB.
+      */
+     private void deleteAuthorityNSSDB() throws ECAException {
+diff --git a/base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java b/base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java
+index 246a3f08c0919807fb39ff0b49d5e37ef30e992c..584ab6e59638beada6c89a1882a176b4743a861d 100644
+--- a/base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java
++++ b/base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java
+@@ -329,7 +329,7 @@ public class AuthorityService extends PKIService implements AuthorityResource {
+         Map<String, String> auditParams = new LinkedHashMap<>();
+ 
+         try {
+-            ca.deleteAuthority();
++            ca.deleteAuthority(servletRequest);
+             audit(ILogger.SUCCESS, OpDef.OP_DELETE, aidString, null);
+             return createNoContentResponse();
+         } catch (CATypeException e) {
+diff --git a/base/common/src/com/netscape/certsrv/ca/ICertificateAuthority.java b/base/common/src/com/netscape/certsrv/ca/ICertificateAuthority.java
+index 308bfba126cf56d4cccae59a9a1550e34b926f08..5218a4cb11773d7922630f2c203670d82a0c82c4 100644
+--- a/base/common/src/com/netscape/certsrv/ca/ICertificateAuthority.java
++++ b/base/common/src/com/netscape/certsrv/ca/ICertificateAuthority.java
+@@ -606,6 +606,6 @@ public interface ICertificateAuthority extends ISubsystem {
+     /**
+      * Delete this lightweight CA.
+      */
+-    public void deleteAuthority()
++    public void deleteAuthority(HttpServletRequest httpReq)
+         throws EBaseException;
+ }
+-- 
+2.5.5
+

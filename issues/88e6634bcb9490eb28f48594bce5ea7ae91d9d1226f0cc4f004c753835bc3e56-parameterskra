@@ -1,0 +1,123 @@
+[DEFAULT]
+
+pki_instance_name=pki-saili
+pki_https_port=30002
+pki_http_port=30010
+pki_ajp_port=30004
+pki_tomcat_server_port=30005
+pki_user=pkiuser
+pki_group=pkiuser
+pki_audit_group=pkiaudit
+pki_token_name=saili
+pki_token_password=Secret123
+pki_client_pkcs12_password=Secret123
+pki_ee_port=30009
+pki_agent_port=30006
+pki_admin_port=30007
+pki_ee_secure_client_auth_port=30008
+pki_client_dir=/tmp/saili
+
+
+[KRA]
+
+pki_subsystem_key_type=rsa
+pki_subsystem_key_size=2048 
+pki_subsystem_key_algorithm=SHA512withRSA
+pki_subsystem_signing_algorithm=SHA512withRSA
+pki_subsystem_token=saili
+pki_subsystem_nickname=krasystemcert
+pki_subsystem_subject_dn=CN=PKI Subsystem,O=redhat
+
+pki_storage_key_type=rsa
+pki_storage_key_size=2048
+pki_storage_key_algorithm=SHA512withRSA
+pki_storage_signing_algorithm=SHA512withRSA
+pki_storage_token=saili
+pki_storage_nickname=krastoragecert
+pki_storage_subject_dn=CN=PKI Storage,O=redhat
+
+pki_transport_key_type=rsa
+pki_tarnsport_key_size=2048 
+pki_transport_key_algorithm=SHA512withRSA
+pki_transport_signing_algorithm=SHA512withRSA
+pki_transport_token=saili
+pki_transport_nickname=kratransportcert
+pki_transport_subject_dn=CN=PKI Transport,O=redhat
+
+pki_ssl_server_key_type=rsa
+pki_ssl_server_key_size=2048
+pki_ssl_server_key_algorithm=SHA512withRSA
+pki_ssl_server_signing_algorithm=SHA512withRSA
+pki_ssl_server_token=saili
+pki_ssl_server_nickname=krasslcert
+pki_ssl_server_subject_dn=CN=PKI SSL Server KRA,O=redhat
+
+pki_admin_name=kradmin1 
+pki_admin_uid=kraadmin1
+pki_admin_password=Secret123   
+pki_admin_email=saipandi@redhat.com
+pki_admin_dualkey=True        
+pki_admin_keysize=2048 
+pki_admin_keytype=rsa
+pki_admin_subject_dn=CN=PKI DRMAdministrator,O=redhat
+pki_admin_nickname=kraadmincert
+
+pki_import_admin_cert=True       
+pki_client_admin_cert_p12=/tmp/saili/kraadmincert.p12
+   
+
+##BACKUP PARAMETERS
+pki_backup_keys=True 
+pki_backup_password=Secret123
+
+
+## Agent Parameters
+
+pki_agent_name=kraagent1
+pki_agent_keysize=2048
+pki_agent_keytype=rsa
+
+
+##CLIENT DIRECTORY PARAMETERS
+
+pki_client_database_dir=/tmp/saili/db
+pki_client_database_password=Secret123
+pki_client_database_purge=True
+
+##Security Domain Parameters
+
+pki_security_domain_hostname=blade03.idm.lab.eng.rdu2.redhat.com
+pki_security_domain_https_port=30002
+pki_security_domain_user=1002 
+pki_security_domain_password=Secret123	
+pki_security_domain_name=idm.lab.eng.rdu2.redhat.com
+
+
+##INTERNAL DATABASE PARAMETERS
+
+pki_ds_hostname=localhost
+pki_ds_ldap_port= 389 
+#pki_ds_ldaps_port= 	1600
+pki_ds_bind_dn=CN=Directory Manager 
+pki_ds_password=Secret123
+pki_ds_secure_connection= False
+pki_ds_remove_data= True
+pki_ds_base_dn=dc=pki-kra
+pki_ds_database=slapd-ipa
+
+##ISSUING CA PARAMETERS
+
+pki_issuing_ca_hostname=blade03.idm.lab.eng.rdu2.redhat.com
+pki_issuing_ca_https_port=30002
+pki_issuing_ca_uri=https://blade03.idm.lab.eng.rdu2.redhat.com:30002
+
+#MISCELLANEOUS PARAMETERS
+
+pki_restart_configured_instance=True
+pki_skip_configuration=False
+pki_skip_installation=False
+pki_enable_access_log=True
+pki_enable_java_debugger=False
+pki_security_manager=True
+
+          

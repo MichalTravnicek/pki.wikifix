@@ -1,0 +1,40 @@
+From fca5fd053434d112998c814bc6d9424b6a5bac98 Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Wed, 21 Sep 2016 20:18:37 +1000
+Subject: [PATCH] Do not attempt LWCA key retrieval for host authority
+
+During two-step installation of externally-signed CA, installation
+can fail because host authority's private key cannot be located (a
+temporary condition), causing LWCA key replication to fire, which
+throws NullPointerException because the host authority's AuthorityID
+has not been set yet.
+
+Do not start key retrieval if the CA's AuthorityID is null (a
+condition which implies that the CA is the host authority).
+
+Fixes: https://fedorahosted.org/pki/ticket/2466
+---
+ base/ca/src/com/netscape/ca/CertificateAuthority.java | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/base/ca/src/com/netscape/ca/CertificateAuthority.java b/base/ca/src/com/netscape/ca/CertificateAuthority.java
+index 1f77fd81fc850af9996329dbec7d6a973ba62942..a4f102435ae7a1f2ab1e27814a52b5689639d0f7 100644
+--- a/base/ca/src/com/netscape/ca/CertificateAuthority.java
++++ b/base/ca/src/com/netscape/ca/CertificateAuthority.java
+@@ -1569,7 +1569,12 @@ public class CertificateAuthority
+                 CMS.debug("CA signing key and cert not (yet) present in NSSDB");
+                 signingUnitException = e;
+                 if (retrieveKeys == true) {
+-                    if (!keyRetrieverThreads.containsKey(authorityID)) {
++                    if (authorityID == null) {
++                        // Only the host authority should ever see a
++                        // null authorityID, e.g. during two-step
++                        // installation of externally-signed CA.
++                        CMS.debug("null authorityID -> host authority; not starting KeyRetriever");
++                    } else if (!keyRetrieverThreads.containsKey(authorityID)) {
+                         CMS.debug("Starting KeyRetrieverRunner thread");
+                         Thread t = new Thread(
+                             new KeyRetrieverRunner(authorityID, mNickname, authorityKeyHosts),
+-- 
+2.5.5
+

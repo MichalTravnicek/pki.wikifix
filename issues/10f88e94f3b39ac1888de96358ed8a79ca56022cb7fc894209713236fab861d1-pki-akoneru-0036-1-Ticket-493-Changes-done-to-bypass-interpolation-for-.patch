@@ -1,0 +1,40 @@
+From 06f3d6cb23e5201ec5f494bc48758c7d46318ffc Mon Sep 17 00:00:00 2001
+From: Abhishek Koneru <akoneru@redhat.com>
+Date: Thu, 7 Mar 2013 11:05:31 -0500
+Subject: [PATCH] Ticket 493 - Changes done to bypass interpolation for using
+ a % as part of a value. All occurences of % will be
+ replaced by a %% in interactive pkispawn/pkidestroy. If a
+ file is passed, then the values with a '%' need to have an
+ escape character %
+
+---
+ base/deploy/src/scriptlets/pkiparser.py |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/base/deploy/src/scriptlets/pkiparser.py b/base/deploy/src/scriptlets/pkiparser.py
+index aec12501665653a1ce9069a0839f5cd138524227..01a80bdbd59325e3c83e67fc9a3f002223ee2643 100644
+--- a/base/deploy/src/scriptlets/pkiparser.py
++++ b/base/deploy/src/scriptlets/pkiparser.py
+@@ -276,7 +276,8 @@ class PKIConfigParser:
+                 else:
+                     done = True
+                     break
+-
++        
++        value = value.replace("%", "%%")
+         if section:
+             self.set_property(section, property, value)
+ 
+@@ -300,7 +301,8 @@ class PKIConfigParser:
+                 break
+             else:
+                 print ' ' * self.indent  + 'Passwords do not match.'
+-
++                
++        password = password.replace("%", "%%")
+         if section:
+             self.set_property(section, property, password)
+ 
+-- 
+1.7.10.2
+

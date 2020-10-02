@@ -1,0 +1,586 @@
+From 4a60760fc1173130c425353f137d7e7d3e7d33dc Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Wed, 4 Feb 2015 12:34:44 -0500
+Subject: [PATCH] Fixed revocation checking on shared instance.
+
+The revocation checking on shared instance has been modified to
+use OCSP. The authentication code has been modified such that if
+the RA subsystem is missing it will throw an exception and then
+fail the authentication. The CMSEngine.isRevoked() has been
+modified to pass exceptions to the caller.
+
+https://fedorahosted.org/pki/ticket/1202
+https://fedorahosted.org/pki/ticket/1250
+---
+ base/common/src/com/netscape/certsrv/apps/CMS.java |   2 +-
+ .../src/com/netscape/certsrv/apps/ICMSEngine.java  |   3 +-
+ .../cms/src/com/netscape/cms/realm/PKIRealm.java   |   4 +
+ .../com/netscape/cms/servlet/ocsp/OCSPServlet.java |   3 +
+ .../src/com/netscape/cmscore/apps/CMSEngine.java   | 202 ++++++++++++---------
+ .../authentication/CertUserDBAuthentication.java   |  44 +++--
+ .../ChallengePhraseAuthentication.java             |  18 +-
+ .../SSLClientCertAuthentication.java               |  18 +-
+ base/server/config/pkislots.cfg                    |   1 +
+ .../python/pki/server/deployment/pkiparser.py      |   2 +
+ base/server/share/conf/server.xml                  |   6 +-
+ 11 files changed, 167 insertions(+), 136 deletions(-)
+
+diff --git a/base/common/src/com/netscape/certsrv/apps/CMS.java b/base/common/src/com/netscape/certsrv/apps/CMS.java
+index 8b4bac2c0985637ceab6d55bf3d2b9a00b848412..0f329854ebb6d68885a16cd7bec1da98c2a576b9 100644
+--- a/base/common/src/com/netscape/certsrv/apps/CMS.java
++++ b/base/common/src/com/netscape/certsrv/apps/CMS.java
+@@ -1617,7 +1617,7 @@ public final class CMS {
+         return _engine.createArgBlock(httpReq);
+     }
+ 
+-    public static boolean isRevoked(X509Certificate[] certificates) {
++    public static boolean isRevoked(X509Certificate[] certificates) throws EBaseException {
+         return _engine.isRevoked(certificates);
+     }
+ 
+diff --git a/base/common/src/com/netscape/certsrv/apps/ICMSEngine.java b/base/common/src/com/netscape/certsrv/apps/ICMSEngine.java
+index 74fa090038b892713c872025470e4c4d9cb87760..d72c2fc65bba221edc1fc98fe05badc5dee17b3f 100644
+--- a/base/common/src/com/netscape/certsrv/apps/ICMSEngine.java
++++ b/base/common/src/com/netscape/certsrv/apps/ICMSEngine.java
+@@ -1105,8 +1105,9 @@ public interface ICMSEngine extends ISubsystem {
+      * @param certificates certificates
+      * @return true if certificate is revoked in the local
+      *         certificate repository
++     * @throws EBaseException
+      */
+-    public boolean isRevoked(X509Certificate[] certificates);
++    public boolean isRevoked(X509Certificate[] certificates) throws EBaseException;
+ 
+     /**
+      * Sets list of verified certificates
+diff --git a/base/server/cms/src/com/netscape/cms/realm/PKIRealm.java b/base/server/cms/src/com/netscape/cms/realm/PKIRealm.java
+index bd64de148cfd1fc5db759aa23e685eea3a4963a8..1be8035725f20bab95dd2ef2e7ac363a4125eb61 100644
+--- a/base/server/cms/src/com/netscape/cms/realm/PKIRealm.java
++++ b/base/server/cms/src/com/netscape/cms/realm/PKIRealm.java
+@@ -11,6 +11,7 @@ import netscape.security.x509.X509CertImpl;
+ import org.apache.catalina.realm.RealmBase;
+ 
+ import com.netscape.certsrv.apps.CMS;
++import com.netscape.certsrv.authentication.EInvalidCredentials;
+ import com.netscape.certsrv.authentication.IAuthManager;
+ import com.netscape.certsrv.authentication.IAuthSubsystem;
+ import com.netscape.certsrv.authentication.IAuthToken;
+@@ -87,6 +88,9 @@ public class PKIRealm extends RealmBase {
+ 
+             return getPrincipal(username, authToken);
+ 
++        } catch (EInvalidCredentials e) {
++            logDebug(e.getMessage());
++
+         } catch (Throwable e) {
+             e.printStackTrace();
+         }
+diff --git a/base/server/cms/src/com/netscape/cms/servlet/ocsp/OCSPServlet.java b/base/server/cms/src/com/netscape/cms/servlet/ocsp/OCSPServlet.java
+index 940bf657c6febdb9ec01757daa2f1a49ac2ee2be..9c0bde537c267b27f21ae4aabd9e2243f624f633 100644
+--- a/base/server/cms/src/com/netscape/cms/servlet/ocsp/OCSPServlet.java
++++ b/base/server/cms/src/com/netscape/cms/servlet/ocsp/OCSPServlet.java
+@@ -204,7 +204,10 @@ public class OCSPServlet extends CMSServlet {
+                     throw new Exception("OCSPServlet: Decoded OCSP request "
+                                        + "is empty or malformed");
+                 }
++                CMS.debug("Validating OCSP request: " + ocspReq);
+                 response = ((IOCSPService) mAuthority).validate(ocspReq);
++                CMS.debug("OCSP response: " + response.getResponseStatus().getValue());
++
+             } catch (Exception e) {
+                 ;
+                 CMS.debug("OCSPServlet: " + e.toString());
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/apps/CMSEngine.java b/base/server/cmscore/src/com/netscape/cmscore/apps/CMSEngine.java
+index 04ff5ec46cab59eaf8e32e709677fcae66a33420..e910e2da93437e8fe4597c91ea371e7ac522c40f 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/apps/CMSEngine.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/apps/CMSEngine.java
+@@ -18,6 +18,7 @@
+ package com.netscape.cmscore.apps;
+ 
+ import java.io.BufferedReader;
++import java.io.ByteArrayInputStream;
+ import java.io.ByteArrayOutputStream;
+ import java.io.File;
+ import java.io.FileReader;
+@@ -53,9 +54,11 @@ import netscape.security.x509.AlgorithmId;
+ import netscape.security.x509.CertificateChain;
+ import netscape.security.x509.Extension;
+ import netscape.security.x509.GeneralName;
++import netscape.security.x509.X500Name;
+ import netscape.security.x509.X509CRLImpl;
+ import netscape.security.x509.X509CertImpl;
+ import netscape.security.x509.X509CertInfo;
++import netscape.security.x509.X509Key;
+ 
+ import org.apache.xerces.parsers.DOMParser;
+ import org.mozilla.jss.CryptoManager.CertificateUsage;
+@@ -120,7 +123,6 @@ import com.netscape.certsrv.profile.IEnrollProfile;
+ import com.netscape.certsrv.ra.IRegistrationAuthority;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.IRequestQueue;
+-import com.netscape.certsrv.request.RequestStatus;
+ import com.netscape.cmscore.authentication.AuthSubsystem;
+ import com.netscape.cmscore.authentication.VerifiedCert;
+ import com.netscape.cmscore.authentication.VerifiedCerts;
+@@ -143,6 +145,7 @@ import com.netscape.cmscore.dbs.CRLIssuingPointRecord;
+ import com.netscape.cmscore.dbs.CertificateRepository;
+ import com.netscape.cmscore.dbs.DBSubsystem;
+ import com.netscape.cmscore.dbs.RepositoryRecord;
++import com.netscape.cmscore.dbs.RevocationInfo;
+ import com.netscape.cmscore.jobs.JobsScheduler;
+ import com.netscape.cmscore.ldapconn.LdapAnonConnFactory;
+ import com.netscape.cmscore.ldapconn.LdapAuthInfo;
+@@ -160,7 +163,6 @@ import com.netscape.cmscore.notification.EmailTemplate;
+ import com.netscape.cmscore.notification.ReqCertSANameEmailResolver;
+ import com.netscape.cmscore.policy.GeneralNameUtil;
+ import com.netscape.cmscore.registry.PluginRegistry;
+-import com.netscape.cmscore.request.CertRequestConstants;
+ import com.netscape.cmscore.request.RequestSubsystem;
+ import com.netscape.cmscore.security.JssSubsystem;
+ import com.netscape.cmscore.security.PWCBsdr;
+@@ -172,6 +174,16 @@ import com.netscape.cmscore.time.SimpleTimeSource;
+ import com.netscape.cmscore.usrgrp.UGSubsystem;
+ import com.netscape.cmscore.util.Debug;
+ import com.netscape.cmsutil.net.ISocketFactory;
++import com.netscape.cmsutil.ocsp.BasicOCSPResponse;
++import com.netscape.cmsutil.ocsp.CertStatus;
++import com.netscape.cmsutil.ocsp.GoodInfo;
++import com.netscape.cmsutil.ocsp.OCSP;
++import com.netscape.cmsutil.ocsp.OCSPRequest;
++import com.netscape.cmsutil.ocsp.OCSPResponse;
++import com.netscape.cmsutil.ocsp.ResponseBytes;
++import com.netscape.cmsutil.ocsp.ResponseData;
++import com.netscape.cmsutil.ocsp.RevokedInfo;
++import com.netscape.cmsutil.ocsp.SingleResponse;
+ import com.netscape.cmsutil.password.IPasswordStore;
+ import com.netscape.cmsutil.util.Utils;
+ 
+@@ -1793,22 +1805,16 @@ public class CMSEngine implements ICMSEngine {
+         return certDB;
+     }
+ 
+-    private IRequestQueue getReqQueue() {
+-        IRequestQueue queue = null;
++    private IRequestQueue getReqQueue() throws EBaseException {
+ 
+-        try {
+-            IRegistrationAuthority ra = (IRegistrationAuthority)
+-                    SubsystemRegistry.getInstance().get("ra");
++        IRegistrationAuthority ra = (IRegistrationAuthority)CMS.getSubsystem("ra");
+ 
+-            if (ra != null) {
+-                queue = ra.getRequestQueue();
+-            }
+-
+-        } catch (Exception e) {
+-            log(ILogger.LL_FAILURE, CMS.getLogMessage("CMSCORE_AUTH_AGENT_REQUEST_QUEUE"));
++        if (ra == null) {
++            CMS.debug("Registration Authority subsystem not found");
++            throw new EBaseException("Registration Authority subsystem not found");
+         }
+ 
+-        return queue;
++        return ra.getRequestQueue();
+     }
+ 
+     private VerifiedCerts mVCList = null;
+@@ -1821,92 +1827,110 @@ public class CMSEngine implements ICMSEngine {
+         }
+     }
+ 
+-    public boolean isRevoked(X509Certificate[] certificates) {
+-        boolean revoked = false;
++    public boolean isRevoked(X509Certificate[] certificates) throws EBaseException {
+ 
+-        if (certificates != null) {
+-            X509CertImpl cert = (X509CertImpl) certificates[0];
++        IConfigStore revocationChecking = mConfig.getSubStore("auths.revocationChecking");
+ 
+-            int result = VerifiedCert.UNKNOWN;
++        boolean enabled = revocationChecking.getBoolean("enabled", false);
++        if (!enabled) {
++            return false;
++        }
+ 
+-            if (mVCList != null) {
+-                result = mVCList.check(cert);
++        if (certificates == null) {
++            CMS.debug("Certificate is missing");
++            throw new EBaseException("Certificate is missing");
++        }
++
++        X509CertImpl cert = (X509CertImpl) certificates[0];
++        int result = VerifiedCert.UNKNOWN;
++
++        if (mVCList != null) {
++            CMS.debug("Checking cert status in verified cert list");
++            result = mVCList.check(cert);
++        }
++
++        CMS.debug("Status: " + result);
++
++        if (result == VerifiedCert.REVOKED) return true;
++        if (result == VerifiedCert.NOT_REVOKED || result == VerifiedCert.CHECKED) return false;
++
++        String url = revocationChecking.getString("url");
++
++        if (url == null) {
++            CMS.debug("Checking cert status in local database");
++
++            CertificateRepository certDB = (CertificateRepository)getCertDB();
++            RevocationInfo revocationInfo = certDB.isCertificateRevoked(cert);
++
++            if (revocationInfo != null) {
++                CMS.debug("Cert is revoked");
++                if (mVCList != null) {
++                    mVCList.update(cert, VerifiedCert.REVOKED);
++                }
++
++                return true;
++
++            } else {
++                CMS.debug("Cert is good");
++                if (mVCList != null) {
++                    mVCList.update(cert, VerifiedCert.NOT_REVOKED);
++                }
+             }
+-            if (result != VerifiedCert.REVOKED &&
+-                    result != VerifiedCert.NOT_REVOKED &&
+-                    result != VerifiedCert.CHECKED) {
+-
+-                CertificateRepository certDB = (CertificateRepository) getCertDB();
+-
+-                if (certDB != null) {
+-                    try {
+-                        if (certDB.isCertificateRevoked(cert) != null) {
+-                            revoked = true;
+-                            if (mVCList != null)
+-                                mVCList.update(cert, VerifiedCert.REVOKED);
+-                        } else {
+-                            if (mVCList != null)
+-                                mVCList.update(cert, VerifiedCert.NOT_REVOKED);
+-                        }
+-                    } catch (EBaseException e) {
+-                        log(ILogger.LL_FAILURE, CMS.getLogMessage("CMSCORE_AUTH_AGENT_REVO_STATUS"));
++
++        } else {
++            CMS.debug("Checking cert status via OCSP");
++
++            X509Key issuerKey = (X509Key)cert.getPublicKey();
++            X500Name issuerName = (X500Name)cert.getSubjectDN();
++            BigInteger serialNumber = cert.getSerialNumber();
++
++            boolean verbose = revocationChecking.getBoolean("debug", false);
++
++            try {
++                OCSP ocsp = new OCSP();
++                ocsp.setVerbose(verbose);
++
++                OCSPRequest request = ocsp.createRequest(issuerName, issuerKey, serialNumber);
++                OCSPResponse response = ocsp.submitRequest(url, request);
++
++                ResponseBytes bytes = response.getResponseBytes();
++                BasicOCSPResponse basic = (BasicOCSPResponse)BasicOCSPResponse.getTemplate().decode(
++                        new ByteArrayInputStream(bytes.getResponse().toByteArray()));
++
++                ResponseData rd = basic.getResponseData();
++                SingleResponse sr = rd.getResponseAt(0);
++                CertStatus status = sr.getCertStatus();
++
++                if (status instanceof RevokedInfo) {
++                    CMS.debug("Cert is revoked");
++                    if (mVCList != null) {
++                        mVCList.update(cert, VerifiedCert.REVOKED);
++                    }
++
++                    return true;
++
++                } else if (status instanceof GoodInfo) {
++                    CMS.debug("Cert is good");
++                    if (mVCList != null) {
++                        mVCList.update(cert, VerifiedCert.NOT_REVOKED);
+                     }
++
+                 } else {
+-                    IRequestQueue queue = getReqQueue();
+-
+-                    if (queue != null) {
+-                        IRequest checkRevReq = null;
+-
+-                        try {
+-                            checkRevReq = queue.newRequest(CertRequestConstants.GETREVOCATIONINFO_REQUEST);
+-                            checkRevReq.setExtData(IRequest.REQ_TYPE,
+-                                    CertRequestConstants.GETREVOCATIONINFO_REQUEST);
+-                            checkRevReq.setExtData(IRequest.REQUESTOR_TYPE,
+-                                    IRequest.REQUESTOR_RA);
+-
+-                            X509CertImpl agentCerts[] = new X509CertImpl[certificates.length];
+-
+-                            for (int i = 0; i < certificates.length; i++) {
+-                                agentCerts[i] = (X509CertImpl) certificates[i];
+-                            }
+-                            checkRevReq.setExtData(IRequest.ISSUED_CERTS, agentCerts);
+-
+-                            queue.processRequest(checkRevReq);
+-
+-                            RequestStatus status = checkRevReq.getRequestStatus();
+-
+-                            if (status == RequestStatus.COMPLETE) {
+-                                Enumeration<String> enum1 = checkRevReq.getExtDataKeys();
+-
+-                                while (enum1.hasMoreElements()) {
+-                                    String name = enum1.nextElement();
+-
+-                                    if (name.equals(IRequest.REVOKED_CERTS)) {
+-                                        revoked = true;
+-                                        if (mVCList != null)
+-                                            mVCList.update(cert, VerifiedCert.REVOKED);
+-                                    }
+-                                }
+-                                if (revoked == false) {
+-                                    if (mVCList != null)
+-                                        mVCList.update(cert, VerifiedCert.NOT_REVOKED);
+-                                }
+-
+-                            } else {
+-                                if (mVCList != null)
+-                                    mVCList.update(cert, VerifiedCert.CHECKED);
+-                            }
+-                        } catch (EBaseException e) {
+-                            log(ILogger.LL_FAILURE, CMS.getLogMessage("CMSCORE_AUTH_AGENT_PROCESS_CHECKING"));
+-                        }
++                    CMS.debug("Cert is unknown");
++                    if (mVCList != null) {
++                        mVCList.update(cert, VerifiedCert.CHECKED);
+                     }
+                 }
+-            } else if (result == VerifiedCert.REVOKED) {
+-                revoked = true;
++
++            } catch (Exception e) {
++                CMS.debug(e);
++                if (mVCList != null) {
++                    mVCList.update(cert, VerifiedCert.CHECKED);
++                }
+             }
+         }
+ 
+-        return revoked;
++        return false;
+     }
+ 
+     private void log(int level, String msg) {
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/authentication/CertUserDBAuthentication.java b/base/server/cmscore/src/com/netscape/cmscore/authentication/CertUserDBAuthentication.java
+index 573b736d4b5c97293cf61865cf00d25d9c88c1bb..587f3583f38c14ad6ecf0f58ee82b738ef4d58e9 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/authentication/CertUserDBAuthentication.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/authentication/CertUserDBAuthentication.java
+@@ -134,44 +134,53 @@ public class CertUserDBAuthentication implements IAuthManager, ICertUserDBAuthen
+      */
+     public IAuthToken authenticate(IAuthCredentials authCred)
+             throws EMissingCredential, EInvalidCredentials, EBaseException {
+-        CMS.debug("CertUserDBAuth: started");
++
+         AuthToken authToken = new AuthToken(this);
+-        CMS.debug("CertUserDBAuth: Retrieving client certificate");
+-        X509Certificate[] x509Certs =
+-                (X509Certificate[]) authCred.get(CRED_CERT);
+ 
++        X509Certificate[] x509Certs = (X509Certificate[]) authCred.get(CRED_CERT);
+         if (x509Certs == null) {
+-            CMS.debug("CertUserDBAuth: no client certificate found");
++            CMS.debug("CertUserDBAuth: Missing client certificate");
+             log(ILogger.LL_FAILURE, CMS.getLogMessage("CMSCORE_AUTH_MISSING_CERT"));
+             throw new EMissingCredential(CMS.getUserMessage("CMS_AUTHENTICATION_NULL_CREDENTIAL", CRED_CERT));
+         }
+-        CMS.debug("CertUserDBAuth: Got client certificate");
++
++        X509CertImpl cert0 = (X509CertImpl) x509Certs[0];
++        if (cert0 == null) {
++            CMS.debug("CertUserDBAuth: Missing client certificate");
++            log(ILogger.LL_FAILURE, CMS.getLogMessage("CMSCORE_AUTH_NO_CERT"));
++            throw new EInvalidCredentials(CMS.getUserMessage("CMS_AUTHENTICATION_NO_CERT"));
++        }
++
++        CMS.debug("CertUserDBAuth: Authenticating certificate " + cert0.getSerialNumber());
+ 
+         if (mRevocationCheckingEnabled) {
+-            X509CertImpl cert0 = (X509CertImpl) x509Certs[0];
+-            if (cert0 == null) {
+-                log(ILogger.LL_FAILURE, CMS.getLogMessage("CMSCORE_AUTH_NO_CERT"));
+-                throw new EInvalidCredentials(CMS.getUserMessage("CMS_AUTHENTICATION_NO_CERT"));
+-            }
++            CMS.debug("CertUserDBAuth: Checking certificate revocation");
++
+             if (CMS.isRevoked(x509Certs)) {
++                CMS.debug("CertUserDBAuth: Certificate is revoked");
+                 log(ILogger.LL_FAILURE, CMS.getLogMessage("CMSCORE_AUTH_REVOKED_CERT"));
+                 throw new EInvalidCredentials(CMS.getUserMessage("CMS_AUTHENTICATION_INVALID_CREDENTIAL"));
+             }
++
++        } else {
++            CMS.debug("CertUserDBAuth: Certificate revocation checking is disabled");
+         }
+ 
+-        CMS.debug("Authentication: client certificate found");
+-
+-        // map cert to user
+-        User user = null;
++        CMS.debug("CertUserDBAuth: Mapping certificate to user");
+         Certificates certs = new Certificates(x509Certs);
+ 
++        User user;
+         try {
+             user = (User) mCULocator.locateUser(certs);
++
+         } catch (EUsrGrpException e) {
++            CMS.debug("CertUserDBAuth: Unable to map certificate to user: " + e);
+             log(ILogger.LL_FAILURE, CMS.getLogMessage("CMSCORE_AUTH_AGENT_AUTH_FAILED", x509Certs[0].getSerialNumber()
+                     .toString(16), x509Certs[0].getSubjectDN().toString(), e.toString()));
+             throw new EInvalidCredentials(CMS.getUserMessage("CMS_AUTHENTICATION_INVALID_CREDENTIAL"));
++
+         } catch (netscape.ldap.LDAPException e) {
++            CMS.debug(e);
+             log(ILogger.LL_FAILURE, CMS.getLogMessage("CMSCORE_AUTH_CANNOT_AGENT_AUTH", e.toString()));
+             throw new EBaseException(CMS.getUserMessage("CMS_BASE_INTERNAL_ERROR", e.toString()));
+         }
+@@ -179,12 +188,12 @@ public class CertUserDBAuthentication implements IAuthManager, ICertUserDBAuthen
+         // any unexpected error occurs like internal db down,
+         // UGSubsystem only returns null for user.
+         if (user == null) {
+-            CMS.debug("Authentication: cannot map certificate to user");
++            CMS.debug("CertUserDBAuth: User not found");
+             log(ILogger.LL_FAILURE, CMS.getLogMessage("CMSCORE_AUTH_AGENT_USER_NOT_FOUND"));
+             throw new EInvalidCredentials(CMS.getUserMessage("CMS_AUTHENTICATION_INVALID_CREDENTIAL"));
+         }
+ 
+-        CMS.debug("Authentication: mapped certificate to user");
++        CMS.debug("CertUserDBAuth: Mapped certificate to user " + user.getUserID());
+ 
+         authToken.set(TOKEN_USERDN, user.getUserDN());
+         authToken.set(TOKEN_USER_DN, user.getUserDN());
+@@ -193,7 +202,6 @@ public class CertUserDBAuthentication implements IAuthManager, ICertUserDBAuthen
+         authToken.set(CRED_CERT, certs);
+ 
+         log(ILogger.LL_INFO, CMS.getLogMessage("CMS_AUTH_AUTHENTICATED", user.getUserID()));
+-        CMS.debug("authenticated " + user.getUserDN());
+ 
+         return authToken;
+     }
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/authentication/ChallengePhraseAuthentication.java b/base/server/cmscore/src/com/netscape/cmscore/authentication/ChallengePhraseAuthentication.java
+index 11b6104bf93096da03f622c291eabc4016271228..d0d6e0f507bdcb7b1ccea3a05c2eefca0dc73eb6 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/authentication/ChallengePhraseAuthentication.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/authentication/ChallengePhraseAuthentication.java
+@@ -379,22 +379,16 @@ public class ChallengePhraseAuthentication implements IAuthManager {
+                 level, msg);
+     }
+ 
+-    private IRequestQueue getReqQueue() {
+-        IRequestQueue queue = null;
++    private IRequestQueue getReqQueue() throws EBaseException {
+ 
+-        try {
+-            IRegistrationAuthority ra = (IRegistrationAuthority)
+-                    SubsystemRegistry.getInstance().get("ra");
++        IRegistrationAuthority ra = (IRegistrationAuthority)CMS.getSubsystem("ra");
+ 
+-            if (ra != null) {
+-                queue = ra.getRequestQueue();
+-            }
+-        } catch (Exception e) {
+-            log(ILogger.LL_FAILURE,
+-                    " cannot get access to the request queue.");
++        if (ra == null) {
++            CMS.debug("Registration Authority subsystem not found");
++            throw new EBaseException("Registration Authority subsystem not found");
+         }
+ 
+-        return queue;
++        return ra.getRequestQueue();
+     }
+ 
+     private String hashPassword(String pwd) {
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/authentication/SSLClientCertAuthentication.java b/base/server/cmscore/src/com/netscape/cmscore/authentication/SSLClientCertAuthentication.java
+index 235362395ed5f903e4df1789d8909c767614f487..6cbee2a20a6520785140b173de2b0dd1651a8490 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/authentication/SSLClientCertAuthentication.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/authentication/SSLClientCertAuthentication.java
+@@ -246,22 +246,16 @@ public class SSLClientCertAuthentication implements IAuthManager {
+                 level, msg);
+     }
+ 
+-    private IRequestQueue getReqQueue() {
+-        IRequestQueue queue = null;
++    private IRequestQueue getReqQueue() throws EBaseException {
+ 
+-        try {
+-            IRegistrationAuthority ra =
+-                    (IRegistrationAuthority) CMS.getSubsystem("ra");
++        IRegistrationAuthority ra = (IRegistrationAuthority)CMS.getSubsystem("ra");
+ 
+-            if (ra != null) {
+-                queue = ra.getRequestQueue();
+-            }
+-        } catch (Exception e) {
+-            log(ILogger.LL_FAILURE,
+-                    " cannot get access to the request queue.");
++        if (ra == null) {
++            CMS.debug("Registration Authority subsystem not found");
++            throw new EBaseException("Registration Authority subsystem not found");
+         }
+ 
+-        return queue;
++        return ra.getRequestQueue();
+     }
+ 
+     /**
+diff --git a/base/server/config/pkislots.cfg b/base/server/config/pkislots.cfg
+index 38ed6b9f27bb9b956023b6c812ca9b8b7c6b9134..d4f411ceecdb54922b2713c2da7f9ff29a908b6b 100644
+--- a/base/server/config/pkislots.cfg
++++ b/base/server/config/pkislots.cfg
+@@ -31,6 +31,7 @@ PKI_INSTANCE_NAME_SLOT=[PKI_INSTANCE_NAME]
+ PKI_INSTANCE_INITSCRIPT_SLOT=[PKI_INSTANCE_INITSCRIPT]
+ PKI_INSTANCE_PATH_SLOT=[PKI_INSTANCE_PATH]
+ PKI_INSTANCE_ROOT_SLOT=[PKI_INSTANCE_ROOT]
++PKI_ISSUING_CA_URI_SLOT=[PKI_ISSUING_CA_URI]
+ PKI_LOCKDIR_SLOT=[PKI_LOCKDIR]
+ PKI_HOSTNAME_SLOT=[PKI_HOSTNAME]
+ PKI_OPEN_AJP_PORT_COMMENT_SLOT=[PKI_OPEN_AJP_PORT_COMMENT]
+diff --git a/base/server/python/pki/server/deployment/pkiparser.py b/base/server/python/pki/server/deployment/pkiparser.py
+index 1e391208485a30e6f5f9f11a7e1c66f8624759b6..bbc1e27847d7e07cfc2850faa432dfe6e5a24910 100644
+--- a/base/server/python/pki/server/deployment/pkiparser.py
++++ b/base/server/python/pki/server/deployment/pkiparser.py
+@@ -766,6 +766,8 @@ class PKIConfigParser:
+                     self.mdict['pki_ca_hostname']
+                 self.mdict['PKI_CA_PORT_SLOT'] = \
+                     self.mdict['pki_ca_port']
++                self.mdict['PKI_ISSUING_CA_URI_SLOT'] = \
++                    self.mdict['pki_issuing_ca_uri']
+                 self.mdict['PKI_CERT_DB_PASSWORD_SLOT'] = \
+                     self.mdict['pki_pin']
+                 self.mdict['PKI_CFG_PATH_NAME_SLOT'] = \
+diff --git a/base/server/share/conf/server.xml b/base/server/share/conf/server.xml
+index b9e8860b2179e1432ebef7d06ff9f2c70985c1b5..55ef5f53d8c6d1828b8727aa3c4470b2c60094a9 100644
+--- a/base/server/share/conf/server.xml
++++ b/base/server/share/conf/server.xml
+@@ -169,7 +169,7 @@ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+         case of the same security domain.
+         In case of an ocsp signing certificate, one must import the cert
+         into the subsystem's nss db and set trust. e.g.:
+-          certutil -d . -A -n "ocspSigningCert cert-pki-ca" -t "C,," -a -i ocspCert.b64
++          certutil -d . -A -n "ocspSigningCert cert-[PKI_INSTANCE_NAME] CA" -t "C,," -a -i ocspCert.b64
+         ocspCacheSize - sets max cache entries
+         ocspMinCacheEntryDuration - sets minimum seconds to next fetch attempt
+         ocspMaxCacheEntryDuration - sets maximum seconds to next fetch attempt
+@@ -181,8 +181,8 @@ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+            enableLookups="false" disableUploadTimeout="true"
+            sslImplementationName="org.apache.tomcat.util.net.jss.JSSImplementation"
+            enableOCSP="false"
+-           ocspResponderURL="http://[PKI_HOSTNAME]:9080/ca/ocsp"
+-           ocspResponderCertNickname="ocspSigningCert cert-pki-ca"
++           ocspResponderURL="http://[PKI_HOSTNAME]:[PKI_UNSECURE_PORT]/ca/ocsp"
++           ocspResponderCertNickname="ocspSigningCert cert-[PKI_INSTANCE_NAME] CA"
+            ocspCacheSize="1000"
+            ocspMinCacheEntryDuration="60"
+            ocspMaxCacheEntryDuration="120"
+-- 
+1.8.4.2
+

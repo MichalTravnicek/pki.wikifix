@@ -1,0 +1,497 @@
+From e9ab0ec6c6a8ca3f75cbfb8af37a993158ae1680 Mon Sep 17 00:00:00 2001
+From: Andrew Wnuk <awnuk@redhat.com>
+Date: Fri, 27 Sep 2013 19:32:35 -0400
+Subject: [PATCH] DRM Transport Key Rotation
+
+This patch provides basic support for DRM Transport Key Rotation described
+in http://pki.fedoraproject.org/wiki/DRM_Transport_Key_Rotation
+
+This patch provides implementation for tickets:
+ - 729 - CA to include transport certificate when submitting archival request to DRM
+ - 730 - DRM to detect presence of transport certificate attribute in submitted archival
+         request and validate transport certificate against DRM's transport key list
+ - 731 - DRM to provide handling for alternative transport key based on detected
+         and validated transport certificate arriving as a part of extended archival request
+---
+ base/common/src/UserMessages.properties            |  1 +
+ .../netscape/certsrv/profile/IEnrollProfile.java   |  7 +++
+ .../netscape/certsrv/security/IEncryptionUnit.java | 34 ++++++++++++
+ .../certsrv/security/ITransportKeyUnit.java        | 21 ++++++++
+ .../cms/profile/common/CAEnrollProfile.java        |  6 +++
+ .../netscape/cms/profile/common/EnrollProfile.java |  6 +++
+ base/kra/src/com/netscape/kra/EncryptionUnit.java  | 39 +++++++++++---
+ .../src/com/netscape/kra/EnrollmentService.java    | 25 ++++++++-
+ base/kra/src/com/netscape/kra/KRAService.java      | 13 +++--
+ base/kra/src/com/netscape/kra/StorageKeyUnit.java  |  8 +++
+ .../kra/src/com/netscape/kra/TransportKeyUnit.java | 63 +++++++++++++++++++++-
+ 11 files changed, 211 insertions(+), 12 deletions(-)
+
+diff --git a/base/common/src/UserMessages.properties b/base/common/src/UserMessages.properties
+index a2114fc..1eaa150 100644
+--- a/base/common/src/UserMessages.properties
++++ b/base/common/src/UserMessages.properties
+@@ -420,6 +420,7 @@ CMS_KRA_PUBLIC_KEY_NOT_MATCHED=Public Key does not match
+ CMS_KRA_INVALID_KEYRECORD=Invalid Key record
+ CMS_KRA_INVALID_OWNER_NAME=Invalid Owner Name
+ CMS_KRA_INVALID_PUBLIC_KEY=Invalid Public Key
++CMS_KRA_INVALID_TRANSPORT_CERT=Invalid Transport Certificate
+ CMS_KRA_INVALID_PRIVATE_KEY=Invalid Private Key
+ CMS_KRA_INVALID_STATE=Invalid State
+ CMS_KRA_INVALID_M=Invalid M
+diff --git a/base/common/src/com/netscape/certsrv/profile/IEnrollProfile.java b/base/common/src/com/netscape/certsrv/profile/IEnrollProfile.java
+index cc61f0a..a2767ee 100644
+--- a/base/common/src/com/netscape/certsrv/profile/IEnrollProfile.java
++++ b/base/common/src/com/netscape/certsrv/profile/IEnrollProfile.java
+@@ -148,6 +148,13 @@ public interface IEnrollProfile extends IProfile {
+     public static final String REQUEST_ISSUED_CERT = "req_issued_cert";
+ 
+     /**
++     * Name of request attribute that stores the transport certificate.
++     * <p>
++     * The value is of type String including base64 encoded certificate.
++     */
++    public static final String REQUEST_TRANSPORT_CERT = "req_transport_cert";
++
++    /**
+      * Set Default X509CertInfo in the request.
+      *
+      * @param request profile-based certificate request.
+diff --git a/base/common/src/com/netscape/certsrv/security/IEncryptionUnit.java b/base/common/src/com/netscape/certsrv/security/IEncryptionUnit.java
+index 6b96dbc..55bd563 100644
+--- a/base/common/src/com/netscape/certsrv/security/IEncryptionUnit.java
++++ b/base/common/src/com/netscape/certsrv/security/IEncryptionUnit.java
+@@ -85,6 +85,24 @@ public interface IEncryptionUnit extends IToken {
+             throws EBaseException;
+ 
+     /**
++     * Unwraps data. This method rebuilds the private key by
++     * unwrapping the private key data.
++     *
++     * @param sessionKey session key that unwrap the private key
++     * @param symmAlgOID symmetric algorithm
++     * @param symmAlgParams symmetric algorithm parameters
++     * @param privateKey private key data
++     * @param pubKey public key
++     * @param transportCert transport certificate
++     * @return private key object
++     * @exception EBaseException failed to unwrap
++     */
++    public PrivateKey unwrap(byte encSymmKey[], String symmAlgOID,
++            byte symmAlgParams[], byte encValue[], PublicKey pubKey,
++            org.mozilla.jss.crypto.X509Certificate transportCert)
++            throws EBaseException;
++
++    /**
+      * Unwraps symmetric key data. This method rebuilds the symmetric key by
+      * unwrapping the private data blob.
+      *
+@@ -172,4 +190,20 @@ public interface IEncryptionUnit extends IToken {
+             String symmAlgOID,
+             byte symmAlgParams[], byte privateKey[])
+             throws EBaseException;
++
++    /**
++     * Decrypts the external private key (private key from the end-user).
++     *
++     * @param sessionKey session key that protects the user private
++     * @param symmAlgOID symmetric algorithm
++     * @param symmAlgParams symmetric algorithm parameters
++     * @param privateKey private key data
++     * @param transportCert transport certificate
++     * @return private key data
++     * @exception EBaseException failed to decrypt
++     */
++    public byte[] decryptExternalPrivate(byte sessionKey[],
++            String symmAlgOID, byte symmAlgParams[], byte privateKey[],
++            org.mozilla.jss.crypto.X509Certificate transportCert)
++            throws EBaseException;
+ }
+diff --git a/base/common/src/com/netscape/certsrv/security/ITransportKeyUnit.java b/base/common/src/com/netscape/certsrv/security/ITransportKeyUnit.java
+index e7bf77b..1208a7d 100644
+--- a/base/common/src/com/netscape/certsrv/security/ITransportKeyUnit.java
++++ b/base/common/src/com/netscape/certsrv/security/ITransportKeyUnit.java
+@@ -42,6 +42,27 @@ public interface ITransportKeyUnit extends IEncryptionUnit {
+     public org.mozilla.jss.crypto.X509Certificate getCertificate();
+ 
+     /**
++     * Retrieves new transport certificate.
++     *
++     * @return certificate
++     */
++    public org.mozilla.jss.crypto.X509Certificate getNewCertificate();
++
++    /**
++     * Verifies transport certificate.
++     *
++     * @return certificate
++     */
++    public org.mozilla.jss.crypto.X509Certificate verifyCertificate(String transportCert);
++
++    /**
++     * Retrieves private key associated with certificate
++     *
++     * @return certificate
++     */
++    public PrivateKey getPrivateKey(org.mozilla.jss.crypto.X509Certificate cert);
++
++    /**
+      * Unwraps symmetric key . This method
+      * unwraps the symmetric key.
+      *
+diff --git a/base/common/src/com/netscape/cms/profile/common/CAEnrollProfile.java b/base/common/src/com/netscape/cms/profile/common/CAEnrollProfile.java
+index b154b3e..d0bfdb8 100644
+--- a/base/common/src/com/netscape/cms/profile/common/CAEnrollProfile.java
++++ b/base/common/src/com/netscape/cms/profile/common/CAEnrollProfile.java
+@@ -141,6 +141,12 @@ public class CAEnrollProfile extends EnrollProfile {
+                                     auditArchiveID);
+ 
+                             audit(auditMessage);
++                            if (request.getError(getLocale(request)) != null &&
++                                (request.getError(getLocale(request))).equals(CMS.getUserMessage("CMS_KRA_INVALID_TRANSPORT_CERT"))) {
++                                CMS.debug("CAEnrollProfile: execute set request status: REJECTED");
++                                request.setRequestStatus(RequestStatus.REJECTED);
++                                ca.getRequestQueue().updateRequest(request);
++                            }
+                             throw new ERejectException(
+                                     request.getError(getLocale(request)));
+                         }
+diff --git a/base/common/src/com/netscape/cms/profile/common/EnrollProfile.java b/base/common/src/com/netscape/cms/profile/common/EnrollProfile.java
+index 5b34579..ca665ba 100644
+--- a/base/common/src/com/netscape/cms/profile/common/EnrollProfile.java
++++ b/base/common/src/com/netscape/cms/profile/common/EnrollProfile.java
+@@ -865,6 +865,12 @@ public abstract class EnrollProfile extends BasicProfile
+                     //req.set(REQUEST_ARCHIVE_OPTIONS, opt);
+                     req.setExtData(REQUEST_ARCHIVE_OPTIONS,
+                             toByteArray(opt));
++                    try {
++                        String transportCert = CMS.getConfigStore().getString("ca.connector.KRA.transportCert", "");
++                        req.setExtData(IEnrollProfile.REQUEST_TRANSPORT_CERT, transportCert);
++                    } catch (EBaseException ee) {
++                        CMS.debug("EnrollProfile: fillCertReqMsg - Exception reading transportCert: "+ ee);
++                    }
+                 }
+             }
+ 
+diff --git a/base/kra/src/com/netscape/kra/EncryptionUnit.java b/base/kra/src/com/netscape/kra/EncryptionUnit.java
+index 78f6e27..c082a78 100644
+--- a/base/kra/src/com/netscape/kra/EncryptionUnit.java
++++ b/base/kra/src/com/netscape/kra/EncryptionUnit.java
+@@ -70,12 +70,16 @@ public abstract class EncryptionUnit implements IEncryptionUnit {
+ 
+     public abstract CryptoToken getToken();
+ 
++    public abstract CryptoToken getToken(org.mozilla.jss.crypto.X509Certificate cert);
++
+     public abstract CryptoToken getInternalToken();
+ 
+     public abstract PublicKey getPublicKey();
+ 
+     public abstract PrivateKey getPrivateKey();
+ 
++    public abstract PrivateKey getPrivateKey(org.mozilla.jss.crypto.X509Certificate cert);
++
+     /**
+      * Protects the private key so that it can be stored in
+      * internal database.
+@@ -218,19 +222,29 @@ public abstract class EncryptionUnit implements IEncryptionUnit {
+      * Decrypts the user private key.
+      */
+     public byte[] decryptExternalPrivate(byte encSymmKey[],
+-            String symmAlgOID, byte symmAlgParams[],
+-            byte encValue[])
++            String symmAlgOID, byte symmAlgParams[], byte encValue[])
++            throws EBaseException {
++        return decryptExternalPrivate(encSymmKey, symmAlgOID, symmAlgParams,
++                                      encValue, null);
++    }
++
++    /**
++     * Decrypts the user private key.
++     */
++    public byte[] decryptExternalPrivate(byte encSymmKey[],
++            String symmAlgOID, byte symmAlgParams[], byte encValue[],
++            org.mozilla.jss.crypto.X509Certificate transCert)
+             throws EBaseException {
+         try {
+ 
+             CMS.debug("EncryptionUnit.decryptExternalPrivate");
+-            CryptoToken token = getToken();
++            CryptoToken token = getToken(transCert);
+ 
+             // (1) unwrap the session
+             KeyWrapper rsaWrap = token.getKeyWrapper(
+                     KeyWrapAlgorithm.RSA);
+ 
+-            rsaWrap.initUnwrap(getPrivateKey(), null);
++            rsaWrap.initUnwrap(getPrivateKey(transCert), null);
+             SymmetricKey sk = rsaWrap.unwrapSymmetric(encSymmKey,
+                     SymmetricKey.DES3, SymmetricKey.Usage.DECRYPT,
+                     0);
+@@ -346,14 +360,27 @@ public abstract class EncryptionUnit implements IEncryptionUnit {
+         String symmAlgOID, byte symmAlgParams[],
+         byte encValue[], PublicKey pubKey)
+         throws EBaseException {
++        return unwrap (encSymmKey, symmAlgOID, symmAlgParams,
++                       encValue, pubKey, null);
++    }
++
++    /**
++     * External unwrapping. Unwraps the data using
++     * the transport private key.
++     */
++    public PrivateKey unwrap(byte encSymmKey[],
++        String symmAlgOID, byte symmAlgParams[],
++        byte encValue[], PublicKey pubKey,
++        org.mozilla.jss.crypto.X509Certificate transCert)
++        throws EBaseException {
+         try {
+-            CryptoToken token = getToken();
++            CryptoToken token = getToken(transCert);
+ 
+             // (1) unwrap the session
+             KeyWrapper rsaWrap = token.getKeyWrapper(
+                     KeyWrapAlgorithm.RSA);
+ 
+-            rsaWrap.initUnwrap(getPrivateKey(), null);
++            rsaWrap.initUnwrap(getPrivateKey(transCert), null);
+             SymmetricKey sk = rsaWrap.unwrapSymmetric(encSymmKey,
+                     SymmetricKey.DES3, SymmetricKey.Usage.UNWRAP,
+                     0);
+diff --git a/base/kra/src/com/netscape/kra/EnrollmentService.java b/base/kra/src/com/netscape/kra/EnrollmentService.java
+index 666619c..3ce37d6 100644
+--- a/base/kra/src/com/netscape/kra/EnrollmentService.java
++++ b/base/kra/src/com/netscape/kra/EnrollmentService.java
+@@ -169,6 +169,17 @@ public class EnrollmentService implements IService {
+         if (CMS.debugOn())
+             CMS.debug("EnrollmentServlet: KRA services enrollment request");
+ 
++        String transportCert = request.getExtDataInString(IEnrollProfile.REQUEST_TRANSPORT_CERT);
++        if (transportCert != null && transportCert.length() > 0) {
++            CMS.debug("EnrollmentService: serviceRequest: transportCert=" + transportCert);
++            request.deleteExtData(IEnrollProfile.REQUEST_TRANSPORT_CERT);
++        } else {
++            CMS.debug("EnrollmentService: serviceRequest: Missing transport certificate");
++        }
++        org.mozilla.jss.crypto.X509Certificate tCert =  mTransportUnit.verifyCertificate(transportCert);
++        CMS.debug("EnrollmentService: tCert=" + ((tCert != null)?tCert.getSerialNumber().toString()+":"+
++                   tCert.getSubjectDN().toString()+":":"Invalid transport certificate"));
++
+         SessionContext sContext = SessionContext.getContext();
+         String agentId = (String) sContext.get(SessionContext.USER_ID);
+         AuthToken authToken = (AuthToken) sContext.get(SessionContext.AUTH_TOKEN);
+@@ -214,6 +225,10 @@ public class EnrollmentService implements IService {
+             ArchiveOptions opts = new ArchiveOptions(aOpts[i].mAO);
+ 
+           if (allowEncDecrypt_archival == true) {
++            if (tCert == null) {
++                 CMS.debug("EnrollmentService: Invalid transport certificate: "+transportCert);
++                 throw new EKRAException(CMS.getUserMessage("CMS_KRA_INVALID_TRANSPORT_CERT"));
++            }
+             if (statsSub != null) {
+                 statsSub.startTiming("decrypt_user_key");
+             }
+@@ -224,7 +239,8 @@ public class EnrollmentService implements IService {
+                         opts.getEncSymmKey(),
+                         opts.getSymmAlgOID(),
+                         opts.getSymmAlgParams(),
+-                        opts.getEncValue());
++                        opts.getEncValue(),
++                        tCert);
+             if (statsSub != null) {
+                 statsSub.endTiming("decrypt_user_key");
+             }
+@@ -282,6 +298,10 @@ public class EnrollmentService implements IService {
+             PublicKey pubkey = null;
+             org.mozilla.jss.crypto.PrivateKey entityPrivKey = null;
+             if ( allowEncDecrypt_archival == false) {
++                if (tCert == null) {
++                    CMS.debug("EnrollmentService: Invalid transport certificate: "+transportCert);
++                    throw new EKRAException(CMS.getUserMessage("CMS_KRA_INVALID_TRANSPORT_CERT"));
++                }
+                 try {
+                     pubkey = X509Key.parsePublicKey (new DerValue(publicKeyData));
+                 } catch (Exception e) {
+@@ -295,7 +315,8 @@ public class EnrollmentService implements IService {
+                         opts.getSymmAlgOID(),
+                         opts.getSymmAlgParams(),
+                         opts.getEncValue(),
+-                        pubkey);
++                        pubkey,
++                        tCert);
+             } // !allowEncDecrypt_archival
+ 
+             /* Bugscape #54948 - verify public and private key before archiving key */
+diff --git a/base/kra/src/com/netscape/kra/KRAService.java b/base/kra/src/com/netscape/kra/KRAService.java
+index 987d17b..216f2ff 100644
+--- a/base/kra/src/com/netscape/kra/KRAService.java
++++ b/base/kra/src/com/netscape/kra/KRAService.java
+@@ -25,6 +25,7 @@ import com.netscape.certsrv.kra.IKeyRecoveryAuthority;
+ import com.netscape.certsrv.logging.ILogger;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.IService;
++import com.netscape.certsrv.request.RequestStatus;
+ import com.netscape.cmscore.util.Debug;
+ 
+ /**
+@@ -93,9 +94,15 @@ public class KRAService implements IService {
+         } catch (EBaseException e) {
+             r.setExtData(IRequest.RESULT, IRequest.RES_ERROR);
+             r.setExtData(IRequest.ERROR, e);
+-            //	return true;
+-            // #546508
+-            return false;
++            CMS.debug("KRAService serviceRequest EBaseException:" + e.getMessage());
++            if ((e.getMessage()).equals(CMS.getUserMessage("CMS_KRA_INVALID_TRANSPORT_CERT"))) {
++                r.setRequestStatus(RequestStatus.REJECTED);
++                return true;
++            } else {
++                // return true;
++                // #546508
++                return false;
++            }
+         }
+     }
+ }
+diff --git a/base/kra/src/com/netscape/kra/StorageKeyUnit.java b/base/kra/src/com/netscape/kra/StorageKeyUnit.java
+index 387e20b..30a0317 100644
+--- a/base/kra/src/com/netscape/kra/StorageKeyUnit.java
++++ b/base/kra/src/com/netscape/kra/StorageKeyUnit.java
+@@ -696,6 +696,10 @@ public class StorageKeyUnit extends EncryptionUnit implements
+         }
+     }
+ 
++    public CryptoToken getToken(org.mozilla.jss.crypto.X509Certificate cert) {
++        return getToken();
++    }
++
+     /**
+      * Returns the certificate blob.
+      */
+@@ -723,6 +727,10 @@ public class StorageKeyUnit extends EncryptionUnit implements
+         }
+     }
+ 
++    public PrivateKey getPrivateKey(org.mozilla.jss.crypto.X509Certificate cert) {
++        return getPrivateKey();
++    }
++
+     /**
+      * Verifies the integrity of the given key pairs.
+      */
+diff --git a/base/kra/src/com/netscape/kra/TransportKeyUnit.java b/base/kra/src/com/netscape/kra/TransportKeyUnit.java
+index e207721..2efdac7 100644
+--- a/base/kra/src/com/netscape/kra/TransportKeyUnit.java
++++ b/base/kra/src/com/netscape/kra/TransportKeyUnit.java
+@@ -45,12 +45,14 @@ public class TransportKeyUnit extends EncryptionUnit implements
+         ISubsystem, ITransportKeyUnit {
+ 
+     public static final String PROP_NICKNAME = "nickName";
++    public static final String PROP_NEW_NICKNAME = "newNickName";
+     public static final String PROP_SIGNING_ALGORITHM = "signingAlgorithm";
+ 
+     // private RSAPublicKey mPublicKey = null;
+     // private RSAPrivateKey mPrivateKey = null;
+     private IConfigStore mConfig = null;
+     private org.mozilla.jss.crypto.X509Certificate mCert = null;
++    private org.mozilla.jss.crypto.X509Certificate mNewCert = null;
+     private CryptoManager mManager = null;
+ 
+     /**
+@@ -91,6 +93,11 @@ public class TransportKeyUnit extends EncryptionUnit implements
+             Signature signer = token.getSignatureContext(sigalg);
+             signer.initSign(getPrivateKey());
+ 
++            String newNickName = getNewNickName();
++            if (newNickName != null && newNickName.length() > 0) {
++                mNewCert = mManager.findCertByNickname(newNickName);
++            }
++
+         } catch (org.mozilla.jss.CryptoManager.NotInitializedException e) {
+             throw new EBaseException(CMS.getUserMessage("CMS_BASE_INTERNAL_ERROR", e.toString()));
+ 
+@@ -117,6 +124,10 @@ public class TransportKeyUnit extends EncryptionUnit implements
+         return getPrivateKey().getOwningToken();
+     }
+ 
++    public CryptoToken getToken(org.mozilla.jss.crypto.X509Certificate cert) {
++        return getPrivateKey(cert).getOwningToken();
++    }
++
+     /**
+      * Starts up this subsystem.
+      */
+@@ -144,6 +155,15 @@ public class TransportKeyUnit extends EncryptionUnit implements
+         mConfig.putString(PROP_NICKNAME, str);
+     }
+ 
++    private String getNewNickName() {
++        String newNickName = null;
++        try {
++            newNickName = mConfig.getString(PROP_NEW_NICKNAME);
++        } catch (Exception e) {
++        }
++        return newNickName;
++    }
++
+     public String getSigningAlgorithm() throws EBaseException {
+         return mConfig.getString(PROP_SIGNING_ALGORITHM);
+     }
+@@ -171,13 +191,54 @@ public class TransportKeyUnit extends EncryptionUnit implements
+         return mCert;
+     }
+ 
++    public org.mozilla.jss.crypto.X509Certificate getNewCertificate() {
++        return mNewCert;
++    }
++
++    public org.mozilla.jss.crypto.X509Certificate verifyCertificate(String transportCert) {
++        org.mozilla.jss.crypto.X509Certificate cert = null;
++        if (transportCert != null && transportCert.length() > 0) {
++            String certB64 = null;
++            if (mCert != null) {
++                try {
++                    certB64 = ((CMS.BtoA(mCert.getEncoded())).replaceAll("\n", "")).replaceAll("\r", "");
++                    if (transportCert.equals(certB64)) {
++                        cert = mCert;
++                        CMS.debug("TransportKeyUnit:  Transport certificate verified");
++                    }
++                } catch (Exception e) {
++                }
++            }
++            if (cert == null && mNewCert != null) {
++                try {
++                    certB64 = ((CMS.BtoA(mNewCert.getEncoded())).replaceAll("\n", "")).replaceAll("\r", "");
++                    if (transportCert.equals(certB64)) {
++                        cert = mNewCert;
++                        CMS.debug("TransportKeyUnit:  New transport certificate verified");
++                    }
++                } catch (Exception e) {
++                }
++            }
++        } else {
++            cert = mCert;
++        }
++        return cert;
++    }
++
+     public PublicKey getPublicKey() {
+         return mCert.getPublicKey();
+     }
+ 
+     public PrivateKey getPrivateKey() {
++        return getPrivateKey(mCert);
++    }
++
++    public PrivateKey getPrivateKey(org.mozilla.jss.crypto.X509Certificate cert) {
++        if (cert == null) {
++            cert = mCert;
++        }
+         try {
+-            return mManager.findPrivKeyByCert(mCert);
++            return mManager.findPrivKeyByCert(cert);
+         } catch (TokenException e) {
+             return null;
+         } catch (ObjectNotFoundException e) {
+-- 
+1.8.1.4
+

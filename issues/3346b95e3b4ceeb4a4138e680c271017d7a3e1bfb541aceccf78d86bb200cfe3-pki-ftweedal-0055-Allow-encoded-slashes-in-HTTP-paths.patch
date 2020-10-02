@@ -1,0 +1,41 @@
+From e9f5d53a53c955279e0b56a5721e552cb39b0bd4 Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Thu, 5 Nov 2015 00:17:24 -0500
+Subject: [PATCH] Allow encoded slashes in HTTP paths
+
+Properly formed GET-based OCSP requests can contain URL-encoded
+slashes in the HTTP path[1] but our Tomcat configuration does not
+permit this (returns 400 Bad Request).  Change catalina.properties
+to allow URL-encoded slashes in HTTP paths.
+
+[1] https://tools.ietf.org/html/rfc6960#appendix-A.1
+
+Fixes: https://fedorahosted.org/pki/ticket/1658
+---
+ base/ca/shared/conf/catalina.properties   | 2 ++
+ base/ocsp/shared/conf/catalina.properties | 2 ++
+ 2 files changed, 4 insertions(+)
+
+diff --git a/base/ca/shared/conf/catalina.properties b/base/ca/shared/conf/catalina.properties
+index 70cb7c05e78e0c4ab4b64a74d3f9eaadf96a1420..7e104e52d14852a785b49013520e5102ff356c64 100644
+--- a/base/ca/shared/conf/catalina.properties
++++ b/base/ca/shared/conf/catalina.properties
+@@ -85,3 +85,5 @@ tomcat.util.buf.StringCache.byte.enabled=true
+ #tomcat.util.buf.StringCache.char.enabled=true
+ #tomcat.util.buf.StringCache.trainThreshold=500000
+ #tomcat.util.buf.StringCache.cacheSize=5000
++
++org.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH=true
+diff --git a/base/ocsp/shared/conf/catalina.properties b/base/ocsp/shared/conf/catalina.properties
+index 70cb7c05e78e0c4ab4b64a74d3f9eaadf96a1420..7e104e52d14852a785b49013520e5102ff356c64 100644
+--- a/base/ocsp/shared/conf/catalina.properties
++++ b/base/ocsp/shared/conf/catalina.properties
+@@ -85,3 +85,5 @@ tomcat.util.buf.StringCache.byte.enabled=true
+ #tomcat.util.buf.StringCache.char.enabled=true
+ #tomcat.util.buf.StringCache.trainThreshold=500000
+ #tomcat.util.buf.StringCache.cacheSize=5000
++
++org.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH=true
+-- 
+2.4.3
+

@@ -1,0 +1,84 @@
+From b4b92d145a8a8b6e6caefaf608114ed034891b53 Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Thu, 25 Sep 2014 01:39:40 -0400
+Subject: [PATCH] Fix BasicConstraints min/max path length check
+
+The BasicConstraintsExtConstraint min/max path length validity check
+ensures that the max length is greater than the min length, however,
+when a negative value is used to represent "no max", the check
+fails.
+
+Only compare the min and max length if both values are set to
+non-negative integers.  Also run the check when either value is
+modified, since setting the min path length could invalidate the
+configuration.
+
+Ticket #1035
+---
+ .../constraint/BasicConstraintsExtConstraint.java  | 45 +++++++++++++---------
+ 1 file changed, 26 insertions(+), 19 deletions(-)
+
+diff --git a/base/server/cms/src/com/netscape/cms/profile/constraint/BasicConstraintsExtConstraint.java b/base/server/cms/src/com/netscape/cms/profile/constraint/BasicConstraintsExtConstraint.java
+index ca2668f7db305122f330fca058b27801820a75b4..05ab0e2fdc1609b7dc734ac08ba6d5120c7c617b 100644
+--- a/base/server/cms/src/com/netscape/cms/profile/constraint/BasicConstraintsExtConstraint.java
++++ b/base/server/cms/src/com/netscape/cms/profile/constraint/BasicConstraintsExtConstraint.java
+@@ -195,30 +195,37 @@ public class BasicConstraintsExtConstraint extends EnrollConstraint {
+ 
+     public void setConfig(String name, String value)
+             throws EPropertyException {
++        IConfigStore cs = mConfig.getSubStore("params");
+ 
+-        if (mConfig.getSubStore("params") == null) {
++        if (cs == null) {
+             CMS.debug("BasicConstraintsExt: mConfig.getSubStore is null");
+-            //
+         } else {
+-
+             CMS.debug("BasicConstraintsExt: setConfig name " + name + " value " + value);
+-
+-            if (name.equals(CONFIG_MAX_PATH_LEN)) {
+-
+-                String minPathLen = getConfig(CONFIG_MIN_PATH_LEN);
+-
+-                int minLen = getInt(minPathLen);
+-
+-                int maxLen = getInt(value);
+-
+-                if (minLen >= maxLen) {
+-                    CMS.debug("BasicConstraintExt:  minPathLen >= maxPathLen!");
+-
+-                    throw new EPropertyException("bad value");
+-                }
+-
++            String origValue = getConfig(name);
++            cs.putString(name, value);
++            try {
++                validateConfig();
++            } catch (EPropertyException e) {
++                cs.putString(name, origValue);
++                throw e;
+             }
+-            mConfig.getSubStore("params").putString(name, value);
++        }
++    }
++
++    private void validateConfig() throws EPropertyException {
++        int minLen = -1;
++        int maxLen = -1;
++        try {
++            minLen = getConfigInt(CONFIG_MIN_PATH_LEN);
++            maxLen = getConfigInt(CONFIG_MAX_PATH_LEN);
++        } catch (NumberFormatException e) {
++            // one of the path len configs is empty - treat as unset
++        }
++        if (maxLen >= 0 && maxLen >= 0 && minLen >= maxLen) {
++            CMS.debug("BasicConstraintExt:  minPathLen >= maxPathLen!");
++            throw new EPropertyException(
++                "Max path length (" + maxLen +
++                ") must be greater than min path length (" + minLen + ").");
+         }
+     }
+ }
+-- 
+1.9.3
+

@@ -1,0 +1,55 @@
+From 96079be3caea27ab1ecd5e6486a31c5c36294444 Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Mon, 16 May 2016 12:20:21 +1000
+Subject: [PATCH] Lightweight CAs: remove NSSDB material when processing
+ deletion
+
+When processing a CA deletion that occurred on another clone, remove
+the CA's certificate and key from the local NSSDB.
+
+Fixes: https://fedorahosted.org/pki/ticket/2328
+---
+ base/ca/src/com/netscape/ca/CertificateAuthority.java | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/base/ca/src/com/netscape/ca/CertificateAuthority.java b/base/ca/src/com/netscape/ca/CertificateAuthority.java
+index 8ef6fd4b6dc97b9108f470a38f45eec864f24015..9dc3ad060f78512bba3786a641b62182d9122553 100644
+--- a/base/ca/src/com/netscape/ca/CertificateAuthority.java
++++ b/base/ca/src/com/netscape/ca/CertificateAuthority.java
+@@ -2850,9 +2850,13 @@ public class CertificateAuthority
+ 
+         shutdown();
+ 
+-        // delete ldap entry
+         deleteAuthorityEntry(authorityID);
++        deleteAuthorityNSSDB();
++    }
+ 
++    /** Delete keys and certs of this authority from NSSDB.
++     */
++    private void deleteAuthorityNSSDB() throws ECAException {
+         CryptoManager cryptoManager;
+         try {
+             cryptoManager = CryptoManager.getInstance();
+@@ -3146,6 +3150,18 @@ public class CertificateAuthority
+         attr = entry.getAttribute("authorityID");
+         if (attr != null) {
+             aid = new AuthorityID(attr.getStringValueArray()[0]);
++            CertificateAuthority ca = (CertificateAuthority) getCA(aid);
++            if (ca == null)
++                return;  // shouldn't happen
++
++            try {
++                ca.deleteAuthorityNSSDB();
++            } catch (ECAException e) {
++                // log and carry on
++                CMS.debug(
++                    "Caught exception attempting to delete NSSDB material "
++                    + "for authority '" + aid + "': " + e);
++            }
+             forgetAuthority(aid);
+         }
+     }
+-- 
+2.5.5
+

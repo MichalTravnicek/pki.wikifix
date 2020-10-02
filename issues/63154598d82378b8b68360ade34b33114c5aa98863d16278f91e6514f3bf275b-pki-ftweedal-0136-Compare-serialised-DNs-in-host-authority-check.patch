@@ -1,0 +1,44 @@
+From 6afdc9944cc147f9d4aab2d5274eaa4dd3fe9243 Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Thu, 22 Sep 2016 12:00:35 +1000
+Subject: [PATCH] Compare serialised DNs in host authority check
+
+CA startup creates an LWCA entry for the host authority if it
+determines that one has not already been created.  It determines if
+an LWCA entry corresponds to the host CA by comparing the DN from
+LDAP with the DN from the host authority's certificate.
+
+If the DN from the host authority's certificate contains values
+encoded as PrintableString, it will compare unequal to the DN from
+LDAP, which parses to UTF8String AVA values.  This causes the
+addition of a spurious host authority entry every time the server
+starts.
+
+Serialise DNs before comparing, to avoid these false negatives.
+
+Fixes: https://fedorahosted.org/pki/ticket/2475
+---
+ base/ca/src/com/netscape/ca/CertificateAuthority.java | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/base/ca/src/com/netscape/ca/CertificateAuthority.java b/base/ca/src/com/netscape/ca/CertificateAuthority.java
+index 1f77fd81fc850af9996329dbec7d6a973ba62942..6b504f58c142f416392c190a3b9574854280fcfe 100644
+--- a/base/ca/src/com/netscape/ca/CertificateAuthority.java
++++ b/base/ca/src/com/netscape/ca/CertificateAuthority.java
+@@ -3251,7 +3251,12 @@ public class CertificateAuthority
+         if (descAttr != null)
+             desc = (String) descAttr.getStringValues().nextElement();
+ 
+-        if (dn.equals(mName)) {
++        /* Determine if it is the host authority's entry, by
++         * comparing DNs.  DNs must be serialised in case different
++         * encodings are used for AVA values, e.g. PrintableString
++         * from LDAP vs UTF8String in certificate.
++         */
++        if (dn.toString().equals(mName.toString())) {
+             CMS.debug("Found host authority");
+             foundHostAuthority = true;
+             this.authorityID = aid;
+-- 
+2.5.5
+

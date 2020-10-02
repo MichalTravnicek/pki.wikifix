@@ -1,0 +1,156 @@
+==================================================
+Test procedure used to verify PKI TRAC Ticket #965
+==================================================
+
+- installed a default CA server using 'pkispawn' on a Fedora 20 machine
+
+- created a client NSS database for use by 'pki' client:
+
+  # certutil -N -d <CERT_DB_DIR>
+
+- imported the CA server Admin P12 file into this client NSS database:
+
+  # pk12util -i /root/.dogtag/pki-tomcat/ca_admin_cert.p12 -d <CERT_DB_DIR>
+
+- obtained the Nickname of the CA server Admin certificate
+
+  # certutil -L -d <CERT_DB_DIR>
+    (e. g. - "PKI Administrator for example.com")
+
+    NOTE:  May be prompted during execution of the first test command
+           regarding a WARNING from an untrusted issuer.  Merely
+           answer 'Y' to import the CA Certificate, and press <return>
+           presuming that the correct URL is displayed.
+
+- execute the 'user-find' command:
+
+  # pki -d . -c <password> -n "PKI Administrator for example.com" user-find
+  -----------------
+  3 entries matched
+  -----------------
+    User ID: CA-server.example.com-8443
+    Full name: CA-server.example.com-8443
+
+    User ID: caadmin
+    Full name: caadmin
+
+    User ID: pkidbuser
+    Full name: pkidbuser
+  ----------------------------
+  Number of entries returned 3
+  ----------------------------
+
+- execute the 'user-show' command:
+
+  # pki -d . -c <password> -n "PKI Administrator for example.com" user-show caadmin
+  --------------
+  User "caadmin"
+  --------------
+    User ID: caadmin
+    Full name: caadmin
+    Email: caadmin@example.com
+    Type: adminType
+    State: 1
+
+- launched 'pkiconsole' to deny authorization for these commands:
+
+  # pkiconsole https://server.example.com:8443/ca
+
+       User ID: caadmin
+      Password: <password>
+
+      Select 'Configuration' tab
+        Highlight 'Access Control List' from left-side menu
+          Select 'Access Control List' tab
+            Highlight 'certServer.ca.users' Resource Name
+            Press the 'Edit' button
+              Highlight 'allow (execute) group='Administrators' Under 'ACI entries'
+              Press the 'Edit' button
+                Select the 'Deny' radio button right of 'Access'
+                press the 'OK' button on the 'ACI Editor'
+              Press the 'OK' button on the 'Access Control Editor'
+
+      NOTE:  Leave 'pkiconsole' running . . .
+
+- execute the 'user-find' command again:
+
+  # pki -d . -c <password> -n "PKI Administrator for example.com" user-find
+  ForbiddenException: Authorization failed on resource: certServer.ca.users, operation: execute
+
+- execute the 'user-show' command again:
+
+  # pki -d . -c <password> -n "PKI Administrator for example.com" user-show caadmin
+  ForbiddenException: Authorization failed on resource: certServer.ca.users, operation: execute
+
+- Built and applied my patch and restarted the CA server:
+
+  # systemctl daemon-reload
+  # systemctl restart pki-tomcatd@pki-tomcat.service
+
+- Created a tail of the 'ca_audit' log:
+
+  # tail -f /var/log/pki/pki-tomcat/ca/signedAudit/ca_audit
+
+- execute the 'user-find' command one more time:
+
+  # pki -d . -c <password> -n "PKI Administrator for example.com" user-find
+  ForbiddenException: Authorization Error
+
+  # tail -f /var/log/pki/pki-tomcat/ca/signedAudit/ca_audit
+  0.http-bio-8443-exec-3 - [25/Jul/2014:18:37:14 PDT] [14] [6] Authorization failed on resource: certServer.ca.users, operation: execute
+  
+
+- execute the 'user-show' command one more time:
+
+  # pki -d . -c <password> -n "PKI Administrator for example.com" user-show caadmin
+  ForbiddenException: Authorization Error
+
+  # tail -f /var/log/pki/pki-tomcat/ca/signedAudit/ca_audit
+  0.http-bio-8443-exec-9 - [25/Jul/2014:18:38:48 PDT] [14] [6] Authorization failed on resource: certServer.ca.users, operation: execute
+
+- re-allow authorization using the running 'pkiconsole':
+
+      Select 'Configuration' tab
+        Highlight 'Access Control List' from left-side menu
+          Select 'Access Control List' tab
+            Highlight 'certServer.ca.users' Resource Name
+            Press the 'Edit' button
+              Highlight 'allow (execute) group='Administrators' Under 'ACI entries'
+              Press the 'Edit' button
+                Select the 'Allow' radio button right of 'Access'
+                press the 'OK' button on the 'ACI Editor'
+              Press the 'OK' button on the 'Access Control Editor'
+
+- execute the 'user-find' command one last time:
+
+  # pki -d . -c <password> -n "PKI Administrator for example.com" user-find
+  -----------------
+  3 entries matched
+  -----------------
+    User ID: CA-server.example.com-8443
+    Full name: CA-server.example.com-8443
+
+    User ID: caadmin
+    Full name: caadmin
+
+    User ID: pkidbuser
+    Full name: pkidbuser
+  ----------------------------
+  Number of entries returned 3
+  ----------------------------
+
+  NOTE:  Nothing appears in 'ca_audit' related to this command.
+
+- execute the 'user-show' command one more time:
+
+  # pki -d . -c <password> -n "PKI Administrator for example.com" user-show caadmin
+  --------------
+  User "caadmin"
+  --------------
+    User ID: caadmin
+    Full name: caadmin
+    Email: caadmin@example.com
+    Type: adminType
+    State: 1
+
+  NOTE:  Nothing appears in 'ca_audit' related to this command.

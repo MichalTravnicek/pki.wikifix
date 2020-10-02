@@ -1,0 +1,37 @@
+From 6f2ed2f3cad8c13de7fe690f089212d4633bf6eb Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Tue, 20 May 2014 15:12:29 +1000
+Subject: [PATCH] Correct debug message in 'pkiconfig.py'
+
+The instructions for enabling external debugging shown during
+installation is incorrect.  Fix the message.
+
+Ticket #937
+---
+ base/server/python/pki/server/deployment/pkiconfig.py | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/base/server/python/pki/server/deployment/pkiconfig.py b/base/server/python/pki/server/deployment/pkiconfig.py
+index 2e9463b9d082e611007810729110bd7a14a7b995..bb89cc5fc561b62959498ef7eb7ed1b8aae9f5a8 100644
+--- a/base/server/python/pki/server/deployment/pkiconfig.py
++++ b/base/server/python/pki/server/deployment/pkiconfig.py
+@@ -132,11 +132,13 @@ def prepare_for_an_external_java_debugger(instance):
+     print
+     print PKI_DEPLOYMENT_INTERRUPT_BANNER
+     print
+-    print "The following 'JAVA_OPTS' MUST be enabled (uncommented) in"
++    print "The following 'JAVA_OPTS' MUST be edited in"
+     print "'%s':" % instance
+     print
+-    print "    JAVA_OPTS=\"-Xdebug -Xrunjdwp:transport=dt_socket,\""
+-    print "              \"address=8000,server=y,suspend\""
++    print "    JAVA_OPTS=\"-DRESTEASY_LIB=/usr/share/java/resteasy \""
++    print "              \"-Xdebug -Xrunjdwp:transport=dt_socket,\""
++    print "              \"address=8000,server=y,suspend=n \""
++    print "              \"-Djava.awt.headless=true -Xmx128M\""
+     print
+     raw_input("Enable external java debugger 'JAVA_OPTS' "\
+               "and press return to continue  . . . ")
+-- 
+1.9.0
+

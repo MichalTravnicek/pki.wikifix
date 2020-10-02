@@ -1,0 +1,51 @@
+From baf904216848a5d775948853764d2657ea6405e9 Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Tue, 17 May 2016 14:47:11 +1000
+Subject: [PATCH] Return 410 Gone if target CA of request has been deleted
+
+When processing a request whose target CA has been deleted in
+between request submission and request approval, the server does not
+handle the CANotFoundException, resulting in response status 500.
+
+Catch the CANotFoundException and respond with status 410 Gone.
+
+Fixes: https://fedorahosted.org/pki/ticket/2332
+---
+ base/ca/src/org/dogtagpki/server/ca/rest/CertRequestService.java | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/base/ca/src/org/dogtagpki/server/ca/rest/CertRequestService.java b/base/ca/src/org/dogtagpki/server/ca/rest/CertRequestService.java
+index 80aaf6f7899d92675c15c6f944b7a3a491784145..d154e8eec31c3c74883e606d95eaa2094f36ff2f 100644
+--- a/base/ca/src/org/dogtagpki/server/ca/rest/CertRequestService.java
++++ b/base/ca/src/org/dogtagpki/server/ca/rest/CertRequestService.java
+@@ -41,6 +41,7 @@ import com.netscape.certsrv.base.BadRequestDataException;
+ import com.netscape.certsrv.base.BadRequestException;
+ import com.netscape.certsrv.base.ConflictingOperationException;
+ import com.netscape.certsrv.base.EBaseException;
++import com.netscape.certsrv.base.HTTPGoneException;
+ import com.netscape.certsrv.base.PKIException;
+ import com.netscape.certsrv.base.ResourceNotFoundException;
+ import com.netscape.certsrv.base.ServiceUnavailableException;
+@@ -49,6 +50,7 @@ import com.netscape.certsrv.ca.AuthorityID;
+ import com.netscape.certsrv.ca.CADisabledException;
+ import com.netscape.certsrv.ca.CAMissingCertException;
+ import com.netscape.certsrv.ca.CAMissingKeyException;
++import com.netscape.certsrv.ca.CANotFoundException;
+ import com.netscape.certsrv.ca.ICertificateAuthority;
+ import com.netscape.certsrv.cert.CertEnrollmentRequest;
+ import com.netscape.certsrv.cert.CertRequestInfo;
+@@ -252,6 +254,11 @@ public class CertRequestService extends PKIService implements CertRequestResourc
+         } catch (BadRequestDataException e) {
+             CMS.debug("changeRequestState: bad request data: " + e);
+             throw new BadRequestException(e.toString());
++        } catch (CANotFoundException e) {
++            // The target CA does not exist (deleted between
++            // request submission and approval).
++            CMS.debug("changeRequestState: CA not found: " + e);
++            throw new HTTPGoneException(e.toString());
+         } catch (CADisabledException e) {
+             CMS.debug("changeRequestState: CA disabled: " + e);
+             throw new ConflictingOperationException(e.toString());
+-- 
+2.5.5
+

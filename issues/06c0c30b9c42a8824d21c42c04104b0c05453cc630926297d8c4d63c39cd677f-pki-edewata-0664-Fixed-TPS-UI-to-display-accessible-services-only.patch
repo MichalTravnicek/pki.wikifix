@@ -1,0 +1,129 @@
+From abd5d67dafed8836debb630d375d301fb3538541 Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Tue, 22 Dec 2015 22:01:10 +0100
+Subject: [PATCH] Fixed TPS UI to display accessible services only.
+
+The TPS UI has been modified to display the accessible services
+based on the user's roles. A TPS admin has access to all services.
+A TPS agent has access to tokens, certificates, activities, and
+profiles. A TPS operator has access to tokens, certificates, and
+activities only.
+
+https://fedorahosted.org/pki/ticket/1476
+---
+ base/tps/shared/webapps/tps/js/tps.js     | 16 +++++++++++++++-
+ base/tps/shared/webapps/tps/ui/home.html  |  4 ++--
+ base/tps/shared/webapps/tps/ui/index.html | 23 ++++++++++++++++++-----
+ 3 files changed, 35 insertions(+), 8 deletions(-)
+
+diff --git a/base/tps/shared/webapps/tps/js/tps.js b/base/tps/shared/webapps/tps/js/tps.js
+index f6e3897846f8108dd23ae04314bfdbc4a454b1ad..cf1cc0b836812c2aa28e0544aa24d07cfb61e0f0 100644
+--- a/base/tps/shared/webapps/tps/js/tps.js
++++ b/base/tps/shared/webapps/tps/js/tps.js
+@@ -118,18 +118,32 @@ var PropertiesTable = Table.extend({
+ 
+ var HomePage = Page.extend({
+     load: function() {
++        var self = this;
++        self.update();
++    },
++    update: function() {
++        if (!tps.user) return;
+         var roles = tps.user.Roles.Role;
+         var home_accounts = self.$("[name=home-accounts]");
+         var home_system = self.$("[name=home-system]");
+ 
+         if (_.contains(roles, "Administrators")) {
+             home_accounts.show();
++        } else {
++            home_accounts.hide();
++        }
++
++        if (_.contains(roles, "Administrators")) {
++            home_system.show();
+             $("li", home_system).show();
+ 
+         } else if (_.contains(roles, "TPS Agents")) {
+-            home_accounts.hide();
++            home_system.show();
+             $("li", home_system).hide();
+             $("[name=profiles]", home_system).show();
++
++        } else {
++            home_system.hide();
+         }
+     }
+ });
+diff --git a/base/tps/shared/webapps/tps/ui/home.html b/base/tps/shared/webapps/tps/ui/home.html
+index eb6874e50840be1081be91e9402972ce34f58684..6ad28507619fd669c1f83069faf0a0092668fc21 100644
+--- a/base/tps/shared/webapps/tps/ui/home.html
++++ b/base/tps/shared/webapps/tps/ui/home.html
+@@ -36,7 +36,7 @@
+     </div>
+ </div>
+ 
+-<div name="home-accounts" class="panel panel-default">
++<div name="home-accounts" class="panel panel-default" style="display: none;">
+     <div class="panel-heading">
+         <h3 class="panel-title">Account Management</h3>
+     </div>
+@@ -48,7 +48,7 @@
+     </div>
+ </div>
+ 
+-<div name="home-system" class="panel panel-default">
++<div name="home-system" class="panel panel-default" style="display: none;">
+     <div class="panel-heading">
+         <h3 class="panel-title">System Management</h3>
+     </div>
+diff --git a/base/tps/shared/webapps/tps/ui/index.html b/base/tps/shared/webapps/tps/ui/index.html
+index 4bf0ea94bc1ed268f34e3c3edb847e3eee0802bc..5e07f1ed39fc9a5a3fd876681589cff6a0d6c251 100644
+--- a/base/tps/shared/webapps/tps/ui/index.html
++++ b/base/tps/shared/webapps/tps/ui/index.html
+@@ -58,13 +58,24 @@ $(function() {
+ 
+             if (_.contains(roles, "Administrators")) {
+                 accounts_menu.show();
++            } else {
++                accounts_menu.hide();
++            }
++
++            if (_.contains(roles, "Administrators")) {
++                system_menu.show();
+                 $("li", system_menu).show();
+ 
+             } else if (_.contains(roles, "TPS Agents")) {
+-                accounts_menu.hide();
++                system_menu.show();
+                 $("li", system_menu).hide();
+                 $("[name=profiles]", system_menu).show();
++
++            } else {
++                system_menu.hide();
+             }
++
++            homePage.update();
+         },
+         error: function(jqXHR, textStatus, errorThrown) {
+             window.location.href = "/tps";
+@@ -75,11 +86,13 @@ $(function() {
+ 
+     var router = new Backbone.Router();
+ 
++    var homePage = new HomePage({
++        el: content,
++        url: "home.html"
++    });
++
+     router.route("", "home", function() {
+-        new HomePage({
+-            el: content,
+-            url: "home.html"
+-        }).open();
++        homePage.open();
+     });
+ 
+     router.route("activities", "activities", function() {
+-- 
+2.4.3
+

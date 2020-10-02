@@ -1,0 +1,50 @@
+From a40139d5f21139d31b62d3c35002b454131245f1 Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Mon, 30 May 2016 12:17:12 +1000
+Subject: [PATCH] Fix LDAP schema violation when instance name contains '_'
+
+The instance name is used in NSSDB key nicknames, which are stored
+in the authorityKeyNickname attribute for mapping lightweight CAs to
+their keys.  The schema was PrintableString, which does not permit
+'_', causing LDAP syntax errors if the instance name contains '_'.
+
+To avoid this issue, change the attribute syntax to IA5String.
+Existing instances should be largely unaffected.  The schema update
+can be successfully applied even for existing attributes, because
+PrintableString and IA5String share the same underlying
+representation in 389DS.
+
+Fixes: https://fedorahosted.org/pki/ticket/2343
+---
+ base/server/share/conf/schema-authority.ldif | 2 +-
+ base/server/share/conf/schema.ldif           | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/base/server/share/conf/schema-authority.ldif b/base/server/share/conf/schema-authority.ldif
+index fd3c4fa225b036142a9aa4e99c65697365160dfd..1102b53378be55181c4d5dd5f073cbede34bc974 100644
+--- a/base/server/share/conf/schema-authority.ldif
++++ b/base/server/share/conf/schema-authority.ldif
+@@ -1,6 +1,6 @@
+ dn: cn=schema
+ attributeTypes: ( authorityID-oid NAME 'authorityID' DESC 'Authority ID' SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 SINGLE-VALUE X-ORIGIN 'user defined' )
+-attributeTypes: ( authorityKeyNickname-oid NAME 'authorityKeyNickname' DESC 'Authority key nickname' SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 SINGLE-VALUE X-ORIGIN 'user-defined' )
++attributeTypes: ( authorityKeyNickname-oid NAME 'authorityKeyNickname' DESC 'Authority key nickname' SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE X-ORIGIN 'user-defined' )
+ attributeTypes: ( authorityParentID-oid NAME 'authorityParentID' DESC 'Authority Parent ID' SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 SINGLE-VALUE X-ORIGIN 'user defined' )
+ attributeTypes: ( authorityEnabled-oid NAME 'authorityEnabled' DESC 'Authority Enabled' SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE X-ORIGIN 'user defined' )
+ attributeTypes: ( authorityDN-oid NAME 'authorityDN' DESC 'Authority DN' SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 SINGLE-VALUE X-ORIGIN 'user defined' )
+diff --git a/base/server/share/conf/schema.ldif b/base/server/share/conf/schema.ldif
+index 2fbc86bf181d81a2b2b32f0130543124c33607ae..828d94b31afe54a97dd1c8a416afeb41ad4ca432 100644
+--- a/base/server/share/conf/schema.ldif
++++ b/base/server/share/conf/schema.ldif
+@@ -677,7 +677,7 @@ dn: cn=schema
+ changetype: modify
+ add: attributeTypes
+ attributeTypes: ( authorityID-oid NAME 'authorityID' DESC 'Authority ID' SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 SINGLE-VALUE X-ORIGIN 'user defined' )
+-attributeTypes: ( authorityKeyNickname-oid NAME 'authorityKeyNickname' DESC 'Authority key nickname' SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 SINGLE-VALUE X-ORIGIN 'user-defined' )
++attributeTypes: ( authorityKeyNickname-oid NAME 'authorityKeyNickname' DESC 'Authority key nickname' SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE X-ORIGIN 'user-defined' )
+ attributeTypes: ( authorityParentID-oid NAME 'authorityParentID' DESC 'Authority Parent ID' SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 SINGLE-VALUE X-ORIGIN 'user defined' )
+ attributeTypes: ( authorityEnabled-oid NAME 'authorityEnabled' DESC 'Authority Enabled' SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE X-ORIGIN 'user defined' )
+ attributeTypes: ( authorityDN-oid NAME 'authorityDN' DESC 'Authority DN' SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 SINGLE-VALUE X-ORIGIN 'user defined' )
+-- 
+2.5.5
+

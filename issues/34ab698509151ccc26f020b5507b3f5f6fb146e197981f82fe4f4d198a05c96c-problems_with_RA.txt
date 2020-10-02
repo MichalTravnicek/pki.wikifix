@@ -1,0 +1,2238 @@
+Additional info:-
+
+Both the CA and RA are VMs and are on the same LAN, the CA is 10.0.0.10 and the RA is 10.0.0.11.  I have more luck with the pkisilent command but that also gives some errors, that is included below as well.
+
+
+This is the output from the error.log file for the RA instance when trying via the web wizard, note that the RA is trying to access itself on port 9445 which is not open, is this normal when the CA is not local and the CA now uses 8443?:-
+
+
+Trying with the web wizard:-
+
+Error_log output...
+
+
+[Mon Nov 18 10:44:13.500734 2013] [:info] [pid 1344:tid 139785188329216] Connection to child 24 established (server ra1.srv.example.com:12890, client 127.0.0.1)
+[Mon Nov 18 10:44:13.502661 2013] [:info] [pid 1344:tid 139785188329216] Initial (No.1) HTTPS request received for child 24 (server ra1.srv.example.com:12890)
+[Mon Nov 18 10:44:13.502732 2013] [authz_core:debug] [pid 1344:tid 139785188329216] mod_authz_core.c(802): [client 127.0.0.1:50117] AH01626: authorization result of Require all granted
+: granted, referer: https://ra1.srv.example.com:12890/ra/admin/console/config/wizard
+[Mon Nov 18 10:44:13.502744 2013] [authz_core:debug] [pid 1344:tid 139785188329216] mod_authz_core.c(802): [client 127.0.0.1:50117] AH01626: authorization result of <RequireAny>: grant
+ed, referer: https://ra1.srv.example.com:12890/ra/admin/console/config/wizard
+GET /ca/admin/ca/getStatus HTTP/1.0
+
+port: 8443
+addr='ca1.srv.example.com'
+family='2'
+IP='10.0.0.10'
+exit after PR_Connect with error -5966:
+GET /ca/admin/ca/getStatus HTTP/1.0
+
+port: 9445
+addr='ra1.srv.example.com'
+family='2'
+IP='127.0.0.1'
+exit after PR_Connect with error -5961:
+[Mon Nov 18 10:44:13 2013] -e: Use of uninitialized value $PKI::RA::Wizard::symbol{"securityDomain"} in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 41
+6.
+[Mon Nov 18 10:44:13.751763 2013] [:info] [pid 1344:tid 139785188329216] Subsequent (No.2) HTTPS request received for child 24 (server ra1.srv.example.com:12890)
+[Mon Nov 18 10:44:13.751817 2013] [authz_core:debug] [pid 1344:tid 139785188329216] mod_authz_core.c(802): [client 127.0.0.1:50117] AH01626: authorization result of Require all granted
+: granted, referer: https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.751824 2013] [authz_core:debug] [pid 1344:tid 139785188329216] mod_authz_core.c(802): [client 127.0.0.1:50117] AH01626: authorization result of <RequireAny>: grant
+ed, referer: https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.751841 2013] [core:info] [pid 1344:tid 139785188329216] [client 127.0.0.1:50117] AH00128: File does not exist: /var/lib/pki-ra/docroot/img/bkgrnd_greydots.png, ref
+erer: https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.756584 2013] [:info] [pid 1344:tid 139785188329216] Subsequent (No.3) HTTPS request received for child 24 (server ra1.srv.example.com:12890)
+[Mon Nov 18 10:44:13.756617 2013] [authz_core:debug] [pid 1344:tid 139785188329216] mod_authz_core.c(802): [client 127.0.0.1:50117] AH01626: authorization result of Require all granted
+: granted, referer: https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.756623 2013] [authz_core:debug] [pid 1344:tid 139785188329216] mod_authz_core.c(802): [client 127.0.0.1:50117] AH01626: authorization result of <RequireAny>: grant
+ed, referer: https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.756632 2013] [core:info] [pid 1344:tid 139785188329216] [client 127.0.0.1:50117] AH00128: File does not exist: /var/lib/pki-ra/docroot/img/corner_mainnav_bottom_ch
+opped.png, referer: https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.756889 2013] [:info] [pid 1344:tid 139785188329216] Subsequent (No.4) HTTPS request received for child 24 (server ra1.srv.example.com:12890)
+[Mon Nov 18 10:44:13.756913 2013] [authz_core:debug] [pid 1344:tid 139785188329216] mod_authz_core.c(802): [client 127.0.0.1:50117] AH01626: authorization result of Require all granted
+: granted, referer: https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.756934 2013] [authz_core:debug] [pid 1344:tid 139785188329216] mod_authz_core.c(802): [client 127.0.0.1:50117] AH01626: authorization result of <RequireAny>: grant
+ed, referer: https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.756942 2013] [core:info] [pid 1344:tid 139785188329216] [client 127.0.0.1:50117] AH00128: File does not exist: /var/lib/pki-ra/docroot/img/corner_mainnav_top_chopp
+ed.png, referer: https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.757180 2013] [:info] [pid 1344:tid 139785188329216] Subsequent (No.5) HTTPS request received for child 24 (server ra1.srv.example.com:12890)
+[Mon Nov 18 10:44:13.757203 2013] [authz_core:debug] [pid 1344:tid 139785188329216] mod_authz_core.c(802): [client 127.0.0.1:50117] AH01626: authorization result of Require all granted
+: granted, referer: https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.757208 2013] [authz_core:debug] [pid 1344:tid 139785188329216] mod_authz_core.c(802): [client 127.0.0.1:50117] AH01626: authorization result of <RequireAny>: grant
+ed, referer: https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.757215 2013] [core:info] [pid 1344:tid 139785188329216] [client 127.0.0.1:50117] AH00128: File does not exist: /var/lib/pki-ra/docroot/img/corner_mainnav_tl.png, r
+eferer: https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.757448 2013] [:info] [pid 1344:tid 139785188329216] Subsequent (No.6) HTTPS request received for child 24 (server ra1.srv.example.com:12890)
+[Mon Nov 18 10:44:13.757471 2013] [authz_core:debug] [pid 1344:tid 139785188329216] mod_authz_core.c(802): [client 127.0.0.1:50117] AH01626: authorization result of Require all granted
+: granted, referer: https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.757476 2013] [authz_core:debug] [pid 1344:tid 139785188329216] mod_authz_core.c(802): [client 127.0.0.1:50117] AH01626: authorization result of <RequireAny>: grant
+ed, referer: https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.757483 2013] [core:info] [pid 1344:tid 139785188329216] [client 127.0.0.1:50117] AH00128: File does not exist: /var/lib/pki-ra/docroot/img/corner_mainnav_bl_hi.png
+, referer: https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.757731 2013] [:info] [pid 1344:tid 139785188329216] Subsequent (No.7) HTTPS request received for child 24 (server ra1.srv.example.com:12890)
+[Mon Nov 18 10:44:13.757754 2013] [authz_core:debug] [pid 1344:tid 139785188329216] mod_authz_core.c(802): [client 127.0.0.1:50117] AH01626: authorization result of Require all granted
+: granted, referer: https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.757759 2013] [authz_core:debug] [pid 1344:tid 139785188329216] mod_authz_core.c(802): [client 127.0.0.1:50117] AH01626: authorization result of <RequireAny>: grant
+ed, referer: https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.757766 2013] [core:info] [pid 1344:tid 139785188329216] [client 127.0.0.1:50117] AH00128: File does not exist: /var/lib/pki-ra/docroot/img/corner_mainnav_tl_hi.png
+, referer: https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.757995 2013] [:info] [pid 1344:tid 139785188329216] Subsequent (No.8) HTTPS request received for child 24 (server ra1.srv.example.com:12890)
+[Mon Nov 18 10:44:13.758016 2013] [authz_core:debug] [pid 1344:tid 139785188329216] mod_authz_core.c(802): [client 127.0.0.1:50117] AH01626: authorization result of Require all granted
+: granted, referer: https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.758021 2013] [authz_core:debug] [pid 1344:tid 139785188329216] mod_authz_core.c(802): [client 127.0.0.1:50117] AH01626: authorization result of <RequireAny>: grant
+ed, referer: https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.758034 2013] [core:info] [pid 1344:tid 139785188329216] [client 127.0.0.1:50117] AH00128: File does not exist: /var/lib/pki-ra/docroot/img/greybar_tr.gif, referer:
+ https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.758261 2013] [:info] [pid 1344:tid 139785188329216] Subsequent (No.9) HTTPS request received for child 24 (server ra1.srv.example.com:12890)
+[Mon Nov 18 10:44:13.758282 2013] [authz_core:debug] [pid 1344:tid 139785188329216] mod_authz_core.c(802): [client 127.0.0.1:50117] AH01626: authorization result of Require all granted
+: granted, referer: https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.758287 2013] [authz_core:debug] [pid 1344:tid 139785188329216] mod_authz_core.c(802): [client 127.0.0.1:50117] AH01626: authorization result of <RequireAny>: grant
+ed, referer: https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.758294 2013] [core:info] [pid 1344:tid 139785188329216] [client 127.0.0.1:50117] AH00128: File does not exist: /var/lib/pki-ra/docroot/img/greybar_br.gif, referer:
+ https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.758518 2013] [:info] [pid 1344:tid 139785188329216] Subsequent (No.10) HTTPS request received for child 24 (server ra1.srv.example.com:12890)
+[Mon Nov 18 10:44:13.758539 2013] [authz_core:debug] [pid 1344:tid 139785188329216] mod_authz_core.c(802): [client 127.0.0.1:50117] AH01626: authorization result of Require all granted
+: granted, referer: https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.758544 2013] [authz_core:debug] [pid 1344:tid 139785188329216] mod_authz_core.c(802): [client 127.0.0.1:50117] AH01626: authorization result of <RequireAny>: grant
+ed, referer: https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.758551 2013] [core:info] [pid 1344:tid 139785188329216] [client 127.0.0.1:50117] AH00128: File does not exist: /var/lib/pki-ra/docroot/img/corner_sidenav_top.gif,
+referer: https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.758802 2013] [:info] [pid 1344:tid 139785188329216] Subsequent (No.11) HTTPS request received for child 24 (server ra1.srv.example.com:12890)
+[Mon Nov 18 10:44:13.758824 2013] [authz_core:debug] [pid 1344:tid 139785188329216] mod_authz_core.c(802): [client 127.0.0.1:50117] AH01626: authorization result of Require all granted
+: granted, referer: https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.758829 2013] [authz_core:debug] [pid 1344:tid 139785188329216] mod_authz_core.c(802): [client 127.0.0.1:50117] AH01626: authorization result of <RequireAny>: grant
+ed, referer: https://ra1.srv.example.com:12890/pki/css/pki-360.css
+[Mon Nov 18 10:44:13.758836 2013] [core:info] [pid 1344:tid 139785188329216] [client 127.0.0.1:50117] AH00128: File does not exist: /var/lib/pki-ra/docroot/img/corner_sidenav_bottom.gi
+f, referer: https://ra1.srv.example.com:12890/pki/css/pki-360.css
+
+
+
+
+
+Output of debug......
+
+
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard: in handler
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard: uri='/ra/admin/console/config/wizard'
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard: http parameter name='p' value='1'
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard: http parameter name='choice' value='existingdomain'
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard: http parameter name='sdomainURL' value='https://ca1.srv.example.com:8443'
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard: http parameter name='op' value='next'
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard: before argparsing
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard: setting up test objects
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard: found 2 certtags
+Mon Nov 18 10:44:13 GMT 2013 - SecurityPanel: update
+Mon Nov 18 10:44:13 GMT 2013 - SecurityPanel: sdomainURL not found
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard: update returns status '0'
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard: about to find out about sub panel
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard: after looking into about sub panel
+Mon Nov 18 10:44:13 GMT 2013 - SecurityPanel: display
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard: executing file ra/admin/console/config/wizard.vm
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_email}=
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_name}=RA Administrator
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_pwd}=
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_pwd_again}=
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_uid}=admin
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{certs}=ARRAY(0x7f2265d1e958)
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{check_clonesubsystem}=
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{check_newsubsystem}=
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{csstate}=1
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{custom_size}=4096
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{dbg}=
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{defTok}=NSS Certificate DB
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{default_ecc_keysize}=256
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{default_keysize}=4096
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{disableClone}=1
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{errorString}=Security Domain HTTPS Admin URL not found
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{firstpanel}=0
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{firsttime}=false
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{fullsystemname}=Registration Authority
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{http_port}=12888
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{https_port}=12889
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{import}=true
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{instanceID}=&lt;security_domain_instance_name&gt;
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{lastpanel}=0
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{machineName}=localhost
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{name}=Registration Authority
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{non_clientauth_https_port}=12890
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{oms}=ARRAY(0x7f2265b06aa8)
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{p}=1
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panel}=ra/admin/console/config/securitydomainpanel.vm
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panelname}=Security Domain
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panels}=ARRAY(0x7f2265aac3f8)
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{pn}=PKI::RA::DonePanel=HASH(0x7f2265b662c8)
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{ppcerts}=ARRAY(0x7f22180a2680)
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{productversion}=10.0.6
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{redirect}=https://ca1.srv.example.com:8443/ca/admin/ca/securityDomainLog
+in?url=https%3A%2F%2Fra1.srv.example.com%3A12890%2Fra%2Fadmin%2Fconsole%2Fconfig%2Fwizard%3Fp%3D3%26subsystem%3DRA
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainAdminURL}=https://ra1.srv.example.com:9445
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainName}=Security Domain
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainURL}=
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{securityDomain}=
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{select}=custom
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{showApplyButton}=false
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sms}=ARRAY(0x7f2265b072a0)
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{statusCommand}=systemctl status pki-tomcatd@&lt;security_domain_instance_name
+&gt;.service
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{subpanelno}=2
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{subsystemName}=Registration Authority
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{systemname}=Registration Authority
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{title}=Security Domain
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{urls}=ARRAY(0x7f2214143878)
+Mon Nov 18 10:44:13 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{urls_size}=2
+
+
+
+
+
+
+
+
+
+
+
+
+And now with the pkisilent command, which goes further but still has errors:-
+
+pkisilent ConfigureRA -cs_hostname "ra1.srv.example.com" -cs_port "12890" -cs_clientauth_port "12889" -sd_hostname "ca1.srv.example.com" -sd_ssl_port "8443" -sd_agent_port "8443" -sd_admin_port "8443" -sd_admin_name "caadmin" -sd_admin_password "admin_pass123" -ca_hostname "ca1.srv.example.com" -ca_port "8080" -ca_ssl_port "8443" -ca_admin_port "8443" -client_certdb_dir "/tmp/" -client_certdb_pwd "client_pass123" -preop_pin "pin_replaced" -domain_name "example.com" -admin_user "reg_admin" -admin_email "support@example.com" -admin_password "password123" -token_name "internal" -key_size "4096" -key_type "rsa" -agent_key_size 4096 -agent_key_type "rsa" -agent_cert_subject "cn=agent.ra1.srv.example.com" -subsystem_name "ra1\ subsystem" -ra_server_cert_subject_name "cn=ra\ system,o=example" -ra_server_cert_nickname "ra1_location1_example" -ra_subsystem_cert_subject_name "cn=ra.example.com,o=example" -ra_subsystem_cert_nickname "ra1_subsystem_location1_cert"
+
+[Fatal Error] :1:50: White spaces are required between publicId and systemId.
+org.xml.sax.SAXParseException; lineNumber: 1; columnNumber: 50; White spaces are required between publicId and systemId.
+        at org.apache.xerces.parsers.DOMParser.parse(Unknown Source)
+        at org.apache.xerces.jaxp.DocumentBuilderImpl.parse(Unknown Source)
+        at javax.xml.parsers.DocumentBuilder.parse(DocumentBuilder.java:121)
+        at com.netscape.pkisilent.common.ParseXML.parse(ParseXML.java:52)
+        at com.netscape.pkisilent.ConfigureRA.CertSubjectPanel(ConfigureRA.java:400)
+        at com.netscape.pkisilent.ConfigureRA.ConfigureRAInstance(ConfigureRA.java:646)
+        at com.netscape.pkisilent.ConfigureRA.main(ConfigureRA.java:868)
+        at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+        at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+        at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+        at java.lang.reflect.Method.invoke(Method.java:606)
+        at com.netscape.pkisilent.PKISilent.main(PKISilent.java:54)
+
+
+[Fatal Error] :1:50: White spaces are required between publicId and systemId.
+org.xml.sax.SAXParseException; lineNumber: 1; columnNumber: 50; White spaces are required between publicId and systemId.
+        at org.apache.xerces.parsers.DOMParser.parse(Unknown Source)
+        at org.apache.xerces.jaxp.DocumentBuilderImpl.parse(Unknown Source)
+        at javax.xml.parsers.DocumentBuilder.parse(DocumentBuilder.java:121)
+        at com.netscape.pkisilent.common.ParseXML.parse(ParseXML.java:52)
+        at com.netscape.pkisilent.ConfigureRA.AdminCertReqPanel(ConfigureRA.java:489)
+        at com.netscape.pkisilent.ConfigureRA.ConfigureRAInstance(ConfigureRA.java:662)
+        at com.netscape.pkisilent.ConfigureRA.main(ConfigureRA.java:868)
+        at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+        at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+        at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+        at java.lang.reflect.Method.invoke(Method.java:606)
+        at com.netscape.pkisilent.PKISilent.main(PKISilent.java:54)
+java.security.cert.CertificateEncodingException: Security library failed to decode certificate package: (-8183) security library: improperly formatted DER-encoded message.
+        at org.mozilla.jss.CryptoManager.importCertPackageNative(Native Method)
+        at org.mozilla.jss.CryptoManager.importCertPackage(CryptoManager.java:1042)
+        at com.netscape.pkisilent.common.ComCrypto.importCert(ComCrypto.java:248)
+        at com.netscape.pkisilent.ConfigureRA.AdminCertImportPanel(ConfigureRA.java:539)
+        at com.netscape.pkisilent.ConfigureRA.ConfigureRAInstance(ConfigureRA.java:670)
+        at com.netscape.pkisilent.ConfigureRA.main(ConfigureRA.java:868)
+        at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+        at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+        at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+        at java.lang.reflect.Method.invoke(Method.java:606)
+        at com.netscape.pkisilent.PKISilent.main(PKISilent.java:54)
+#######################################################################
+CRYPTO INIT WITH CERTDB:/tmp/
+tokenpwd:<removed>
+Sleeping for 5 secs..
+#############################################
+Attempting to connect to: ra1.srv.example.com:12890
+in TestCertApprovalCallback.approve()
+Peer cert details:
+     subject: CN=ra1.srv.example.com,O=2013-11-15 14:50:51
+     issuer:  CN=ra1.srv.example.com,O=2013-11-15 14:50:51
+     serial:  0
+Connected.
+Posting Query = https://ra1.srv.example.com:12890//ra/admin/console/config/login?pin=pinreplaced&xml=true
+RESPONSE STATUS:  HTTP/1.1 302 Found
+RESPONSE HEADER:  Date: Mon, 18 Nov 2013 11:14:49 GMT
+RESPONSE HEADER:  Server: Apache
+RESPONSE HEADER:  Set-Cookie: pin=pinreplaced; path=/; expires=Tue, 18-Nov-2014 11:14:49 GMT
+RESPONSE HEADER:  Location: wizard
+RESPONSE HEADER:  Content-Length: 0
+RESPONSE HEADER:  Keep-Alive: timeout=15, max=100
+RESPONSE HEADER:  Connection: Keep-Alive
+RESPONSE HEADER:  Content-Type: text/html
+xml returned:
+cookie list: pin=pinreplaced; path=/; expires=Tue, 18-Nov-2014 11:14:49 GMT
+#############################################
+Attempting to connect to: ra1.srv.example.com:12890
+Connected.
+Posting Query = https://ra1.srv.example.com:12890//ra/admin/console/config/wizard?p=0&op=next&xml=true
+RESPONSE STATUS:  HTTP/1.1 200 OK
+RESPONSE HEADER:  Date: Mon, 18 Nov 2013 11:14:50 GMT
+RESPONSE HEADER:  Server: Apache
+RESPONSE HEADER:  Connection: close
+RESPONSE HEADER:  Content-Type: text/html
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+    <admin_email/>
+    <admin_name>RA Administrator</admin_name>
+    <admin_pwd/>
+    <admin_pwd_again/>
+    <admin_uid>admin</admin_uid>
+    <certs>
+        <element>
+            <certinfo>
+                <dn>cn=ra\ system,o=example, O=RA Domain</dn>
+                <tag>sslserver</tag>
+                <friendly>SSL Server Certificate</friendly>
+            </certinfo>
+        </element>
+        <element>
+            <certinfo>
+                <dn>cn=ra.example.com,o=example, O=RA Domain</dn>
+                <tag>subsystem</tag>
+                <friendly>Subsystem Certificate</friendly>
+            </certinfo>
+        </element>
+    </certs>
+    <check_clonesubsystem/>
+    <check_newsubsystem/>
+    <csstate>1</csstate>
+    <custom_size>4096</custom_size>
+    <dbg/>
+    <defTok>NSS Certificate DB</defTok>
+    <default_ecc_keysize>256</default_ecc_keysize>
+    <default_keysize>4096</default_keysize>
+    <disableClone>1</disableClone>
+    <errorString/>
+    <firstpanel>0</firstpanel>
+    <firsttime>false</firsttime>
+    <fullsystemname>Registration Authority</fullsystemname>
+    <http_port>12888</http_port>
+    <https_port>12889</https_port>
+    <import>true</import>
+    <instanceID>&amp;lt;security_domain_instance_name&amp;gt;</instanceID>
+    <lastpanel>0</lastpanel>
+    <machineName>localhost</machineName>
+    <name>Registration Authority</name>
+    <non_clientauth_https_port>12890</non_clientauth_https_port>
+    <oms/>
+    <p>1</p>
+    <panel>ra/admin/console/config/securitydomainpanel.vm</panel>
+    <panelname>Security Domain</panelname>
+    <panels>
+        <element>PKI::RA::WelcomePanel=HASH(0x7f2265aac428)</element>
+        <element>PKI::RA::SecurityDomainPanel=HASH(0x7f2265abcb50)</element>
+        <element>PKI::RA::DisplayCertChainPanel=HASH(0x7f2265ac4210)</element>
+        <element>PKI::RA::SubsystemTypePanel=HASH(0x7f2265ada048)</element>
+        <element>PKI::RA::CAInfoPanel=HASH(0x7f2265ae16e0)</element>
+        <element>PKI::RA::DatabasePanel=HASH(0x7f2265af0580)</element>
+        <element>PKI::RA::ModulePanel=HASH(0x7f2265af62d8)</element>
+        <element>PKI::RA::ConfigHSMLoginPanel=HASH(0x7f2265b093c8)</element>
+        <element>PKI::RA::SizePanel=HASH(0x7f2265b0f018)</element>
+        <element>PKI::RA::NamePanel=HASH(0x7f2265b1cee0)</element>
+        <element>PKI::RA::CertRequestPanel=HASH(0x7f2265b44ed8)</element>
+        <element>PKI::RA::AdminPanel=HASH(0x7f2265b529e0)</element>
+        <element>PKI::RA::ImportAdminCertPanel=HASH(0x7f2265b5e7c8)</element>
+        <element>PKI::RA::DonePanel=HASH(0x7f2265b662c8)</element>
+    </panels>
+    <pn>PKI::RA::DonePanel=HASH(0x7f2265b662c8)</pn>
+    <ppcerts/>
+    <productversion>10.0.6</productversion>
+    <redirect>https://ca1.srv.example.com:8443/ca/admin/ca/securityDomainLogin?url=https%3A%2F%2Fra1.srv.example.com%3A12890%2Fra%2Fadmin%2Fconsole%2Fconfig%2Fwizard%3Fp%3D3%26subsystem%3DRA</redirect>
+    <sdomainAdminURL>https://ra1.srv.example.com:9445</sdomainAdminURL>
+    <sdomainName>Security Domain</sdomainName>
+    <sdomainURL/>
+    <securityDomain/>
+    <select>custom</select>
+    <showApplyButton>false</showApplyButton>
+    <sms>
+        <element>PKI::RA::GlobalVar=HASH(0x7f22180a2290)</element>
+        <element>PKI::RA::GlobalVar=HASH(0x7f221807a990)</element>
+        <element>PKI::RA::GlobalVar=HASH(0x7f2214143230)</element>
+    </sms>
+    <statusCommand>systemctl status pki-tomcatd@&amp;lt;security_domain_instance_name&amp;gt;.service</statusCommand>
+    <subpanelno>2</subpanelno>
+    <subsystemName>Registration Authority</subsystemName>
+    <systemname>Registration Authority </systemname>
+    <title>Security Domain</title>
+    <urls>
+        <element>External CA</element>
+    </urls>
+    <urls_size>2</urls_size>
+    <wizardname>RA Configuration Wizard</wizardname>
+</xml>
+Sleeping for 5 secs..
+#############################################
+Attempting to connect to: ra1.srv.example.com:12890
+Connected.
+Posting Query = https://ra1.srv.example.com:12890//ra/admin/console/config/wizard?p=1&choice=existingdomain&sdomainURL=https%3A%2F%2Fca1.srv.example.com%3A8443&op=next&xml=true
+RESPONSE STATUS:  HTTP/1.1 200 OK
+RESPONSE HEADER:  Date: Mon, 18 Nov 2013 11:14:55 GMT
+RESPONSE HEADER:  Server: Apache
+RESPONSE HEADER:  Connection: close
+RESPONSE HEADER:  Content-Type: text/html
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+    <admin_email/>
+    <admin_name>RA Administrator</admin_name>
+    <admin_pwd/>
+    <admin_pwd_again/>
+    <admin_uid>admin</admin_uid>
+    <certs>
+        <element>
+            <certinfo>
+                <dn>cn=ra\ system,o=example, O=RA Domain</dn>
+                <tag>sslserver</tag>
+                <friendly>SSL Server Certificate</friendly>
+            </certinfo>
+        </element>
+        <element>
+            <certinfo>
+                <dn>cn=ra.example.com,o=example, O=RA Domain</dn>
+                <tag>subsystem</tag>
+                <friendly>Subsystem Certificate</friendly>
+            </certinfo>
+        </element>
+    </certs>
+    <check_clonesubsystem/>
+    <check_newsubsystem/>
+    <csstate>1</csstate>
+    <custom_size>4096</custom_size>
+    <dbg/>
+    <defTok>NSS Certificate DB</defTok>
+    <default_ecc_keysize>256</default_ecc_keysize>
+    <default_keysize>4096</default_keysize>
+    <disableClone>1</disableClone>
+    <errorString>Security Domain HTTPS Admin URL not found</errorString>
+    <firstpanel>0</firstpanel>
+    <firsttime>false</firsttime>
+    <fullsystemname>Registration Authority</fullsystemname>
+    <http_port>12888</http_port>
+    <https_port>12889</https_port>
+    <import>true</import>
+    <instanceID>&amp;lt;security_domain_instance_name&amp;gt;</instanceID>
+    <lastpanel>0</lastpanel>
+    <machineName>localhost</machineName>
+    <name>Registration Authority</name>
+    <non_clientauth_https_port>12890</non_clientauth_https_port>
+    <oms/>
+    <p>1</p>
+    <panel>ra/admin/console/config/securitydomainpanel.vm</panel>
+    <panelname>Security Domain</panelname>
+    <panels>
+        <element>PKI::RA::WelcomePanel=HASH(0x7f2265aac428)</element>
+        <element>PKI::RA::SecurityDomainPanel=HASH(0x7f2265abcb50)</element>
+        <element>PKI::RA::DisplayCertChainPanel=HASH(0x7f2265ac4210)</element>
+        <element>PKI::RA::SubsystemTypePanel=HASH(0x7f2265ada048)</element>
+        <element>PKI::RA::CAInfoPanel=HASH(0x7f2265ae16e0)</element>
+        <element>PKI::RA::DatabasePanel=HASH(0x7f2265af0580)</element>
+        <element>PKI::RA::ModulePanel=HASH(0x7f2265af62d8)</element>
+        <element>PKI::RA::ConfigHSMLoginPanel=HASH(0x7f2265b093c8)</element>
+        <element>PKI::RA::SizePanel=HASH(0x7f2265b0f018)</element>
+        <element>PKI::RA::NamePanel=HASH(0x7f2265b1cee0)</element>
+        <element>PKI::RA::CertRequestPanel=HASH(0x7f2265b44ed8)</element>
+        <element>PKI::RA::AdminPanel=HASH(0x7f2265b529e0)</element>
+        <element>PKI::RA::ImportAdminCertPanel=HASH(0x7f2265b5e7c8)</element>
+        <element>PKI::RA::DonePanel=HASH(0x7f2265b662c8)</element>
+    </panels>
+    <pn>PKI::RA::DonePanel=HASH(0x7f2265b662c8)</pn>
+    <ppcerts/>
+    <productversion>10.0.6</productversion>
+    <redirect>https://ca1.srv.example.com:8443/ca/admin/ca/securityDomainLogin?url=https%3A%2F%2Fra1.srv.example.com%3A12890%2Fra%2Fadmin%2Fconsole%2Fconfig%2Fwizard%3Fp%3D3%26subsystem%3DRA</redirect>
+    <sdomainAdminURL>https://ra1.srv.example.com:9445</sdomainAdminURL>
+    <sdomainName>Security Domain</sdomainName>
+    <sdomainURL/>
+    <securityDomain/>
+    <select>custom</select>
+    <showApplyButton>false</showApplyButton>
+    <sms>
+        <element>PKI::RA::GlobalVar=HASH(0x7f22180a2290)</element>
+        <element>PKI::RA::GlobalVar=HASH(0x7f221807a990)</element>
+        <element>PKI::RA::GlobalVar=HASH(0x7f2214143230)</element>
+    </sms>
+    <statusCommand>systemctl status pki-tomcatd@&amp;lt;security_domain_instance_name&amp;gt;.service</statusCommand>
+    <subpanelno>2</subpanelno>
+    <subsystemName>Registration Authority</subsystemName>
+    <systemname>Registration Authority </systemname>
+    <title>Security Domain</title>
+    <urls>
+        <element>External CA</element>
+    </urls>
+    <urls_size>2</urls_size>
+    <wizardname>RA Configuration Wizard</wizardname>
+</xml>
+Sleeping for 5 secs..
+#############################################
+Attempting to connect to: ra1.srv.example.com:12890
+Connected.
+Posting Query = https://ra1.srv.example.com:12890//ra/admin/console/config/wizard?p=2&op=next&xml=true
+RESPONSE STATUS:  HTTP/1.1 500 Internal Server Error
+RESPONSE HEADER:  Date: Mon, 18 Nov 2013 11:15:00 GMT
+RESPONSE HEADER:  Server: Apache
+RESPONSE HEADER:  Content-Length: 528
+RESPONSE HEADER:  Connection: close
+RESPONSE HEADER:  Content-Type: text/html; charset=iso-8859-1
+Sleeping for 5 secs..
+#############################################
+Attempting to connect to: ca1.srv.example.com:8443
+in TestCertApprovalCallback.approve()
+Peer cert details:
+     subject: CN=ca1.srv.example.com,O=example.com
+     issuer:  CN=CA Signing Certificate,O=example.com
+     serial:  3
+item 1 reason=-8172 depth=1
+ cert details:
+     subject: CN=CA Signing Certificate,O=example.com
+     issuer:  CN=CA Signing Certificate,O=example.com
+     serial:  1
+importing certificate.
+Connected.
+Posting Query = https://ca1.srv.example.com:8443//ca/admin/ca/securityDomainLogin?url=https%3A%2F%2Fra1.srv.example.com%3A12890%2Fra%2Fadmin%2Fconsole%2Fconfig%2Fwizard%3Fp%3D3%26subsystem%3DRA
+RESPONSE STATUS:  HTTP/1.1 200 OK
+RESPONSE HEADER:  Server: Apache-Coyote/1.1
+RESPONSE HEADER:  Content-Type: text/html;charset=UTF-8
+RESPONSE HEADER:  Date: Mon, 18 Nov 2013 11:15:05 GMT
+RESPONSE HEADER:  Connection: close
+#############################################
+Attempting to connect to: ca1.srv.example.com:8443
+Connected.
+Posting Query = https://ca1.srv.example.com:8443//ca/admin/ca/getCookie?uid=caadmin&pwd=<REMOVED>%2F%2Fra1.srv.example.com%3A12890%2Fra%2Fadmin%2Fconsole%2Fconfig%2Fwizard%3Fp%3D3%26subsystem%3DRA
+RESPONSE STATUS:  HTTP/1.1 200 OK
+RESPONSE HEADER:  Server: Apache-Coyote/1.1
+RESPONSE HEADER:  Content-Type: text/html
+RESPONSE HEADER:  Date: Mon, 18 Nov 2013 11:15:05 GMT
+RESPONSE HEADER:  Connection: close
+Sleeping for 5 secs..
+RA_SESSION_ID=-6183806669352290205
+RA_URL=https://ra1.srv.example.com:12890/ra/admin/console/config/wizard?p=3&subsystem=RA
+#############################################
+Attempting to connect to: ra1.srv.example.com:12890
+Connected.
+Posting Query = https://ra1.srv.example.com:12890//ra/admin/console/config/wizard?p=3&subsystem=RA&session_id=-6183806669352290205&xml=true
+RESPONSE STATUS:  HTTP/1.1 200 OK
+RESPONSE HEADER:  Date: Mon, 18 Nov 2013 11:15:10 GMT
+RESPONSE HEADER:  Server: Apache
+RESPONSE HEADER:  Connection: close
+RESPONSE HEADER:  Content-Type: text/html
+Sleeping for 5 secs..
+Sleeping for 5 secs..
+#############################################
+Attempting to connect to: ra1.srv.example.com:12890
+Connected.
+Posting Query = https://ra1.srv.example.com:12890//ra/admin/console/config/wizard?p=3&choice=newsubsystem&subsystemName=ra1%5C+subsystem&op=next&xml=true
+RESPONSE STATUS:  HTTP/1.1 200 OK
+RESPONSE HEADER:  Date: Mon, 18 Nov 2013 11:15:21 GMT
+RESPONSE HEADER:  Server: Apache
+RESPONSE HEADER:  Connection: close
+RESPONSE HEADER:  Content-Type: text/html
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+    <admin_email/>
+    <admin_name>RA Administrator</admin_name>
+    <admin_pwd/>
+    <admin_pwd_again/>
+    <admin_uid>admin</admin_uid>
+    <certs>
+        <element>
+            <certinfo>
+                <dn>cn=ra\ system,o=example, O=RA Domain</dn>
+                <tag>sslserver</tag>
+                <friendly>SSL Server Certificate</friendly>
+            </certinfo>
+        </element>
+        <element>
+            <certinfo>
+                <dn>cn=ra.example.com,o=example, O=RA Domain</dn>
+                <tag>subsystem</tag>
+                <friendly>Subsystem Certificate</friendly>
+            </certinfo>
+        </element>
+    </certs>
+    <check_clonesubsystem/>
+    <check_newsubsystem/>
+    <csstate>1</csstate>
+    <custom_size>4096</custom_size>
+    <dbg/>
+    <defTok>NSS Certificate DB</defTok>
+    <default_ecc_keysize>256</default_ecc_keysize>
+    <default_keysize>4096</default_keysize>
+    <disableClone>1</disableClone>
+    <errorString>no CA found. CA, TKS, and optionally DRM must be installed prior to RA installation</errorString>
+    <firstpanel>0</firstpanel>
+    <firsttime>false</firsttime>
+    <fullsystemname>Registration Authority</fullsystemname>
+    <http_port>12888</http_port>
+    <https_port>12889</https_port>
+    <import>true</import>
+    <instanceID>&amp;lt;security_domain_instance_name&amp;gt;</instanceID>
+    <lastpanel>0</lastpanel>
+    <machineName>localhost</machineName>
+    <name>Registration Authority</name>
+    <non_clientauth_https_port>12890</non_clientauth_https_port>
+    <oms/>
+    <p>4</p>
+    <panel>ra/admin/console/config/cainfopanel.vm</panel>
+    <panelname>Security Domain</panelname>
+    <panels>
+        <element>PKI::RA::WelcomePanel=HASH(0x7f2265aac428)</element>
+        <element>PKI::RA::SecurityDomainPanel=HASH(0x7f2265abcb50)</element>
+        <element>PKI::RA::DisplayCertChainPanel=HASH(0x7f2265ac4210)</element>
+        <element>PKI::RA::SubsystemTypePanel=HASH(0x7f2265ada048)</element>
+        <element>PKI::RA::CAInfoPanel=HASH(0x7f2265ae16e0)</element>
+        <element>PKI::RA::DatabasePanel=HASH(0x7f2265af0580)</element>
+        <element>PKI::RA::ModulePanel=HASH(0x7f2265af62d8)</element>
+        <element>PKI::RA::ConfigHSMLoginPanel=HASH(0x7f2265b093c8)</element>
+        <element>PKI::RA::SizePanel=HASH(0x7f2265b0f018)</element>
+        <element>PKI::RA::NamePanel=HASH(0x7f2265b1cee0)</element>
+        <element>PKI::RA::CertRequestPanel=HASH(0x7f2265b44ed8)</element>
+        <element>PKI::RA::AdminPanel=HASH(0x7f2265b529e0)</element>
+        <element>PKI::RA::ImportAdminCertPanel=HASH(0x7f2265b5e7c8)</element>
+        <element>PKI::RA::DonePanel=HASH(0x7f2265b662c8)</element>
+    </panels>
+    <pn>PKI::RA::DonePanel=HASH(0x7f2265b662c8)</pn>
+    <ppcerts/>
+    <productversion>10.0.6</productversion>
+    <redirect>https://ca1.srv.example.com:8443/ca/admin/ca/securityDomainLogin?url=https%3A%2F%2Fra1.srv.example.com%3A12890%2Fra%2Fadmin%2Fconsole%2Fconfig%2Fwizard%3Fp%3D3%26subsystem%3DRA</redirect>
+    <sdomainAdminURL>https://ra1.srv.example.com:9445</sdomainAdminURL>
+    <sdomainName>Security Domain</sdomainName>
+    <sdomainURL/>
+    <securityDomain/>
+    <select>custom</select>
+    <showApplyButton>false</showApplyButton>
+    <sms>
+        <element>PKI::RA::GlobalVar=HASH(0x7f22180a2290)</element>
+        <element>PKI::RA::GlobalVar=HASH(0x7f221807a990)</element>
+        <element>PKI::RA::GlobalVar=HASH(0x7f2214143230)</element>
+    </sms>
+    <statusCommand>systemctl status pki-tomcatd@&amp;lt;security_domain_instance_name&amp;gt;.service</statusCommand>
+    <subpanelno>5</subpanelno>
+    <subsystemName>Registration Authority</subsystemName>
+    <systemname>Registration Authority </systemname>
+    <title>CA Information</title>
+    <urls/>
+    <urls_size>0</urls_size>
+    <wizardname>RA Configuration Wizard</wizardname>
+</xml>
+Sleeping for 5 secs..
+#############################################
+Attempting to connect to: ra1.srv.example.com:12890
+Connected.
+Posting Query = https://ra1.srv.example.com:12890//ra/admin/console/config/wizard?p=4&urls=0&op=next&xml=true
+RESPONSE STATUS:  HTTP/1.1 200 OK
+RESPONSE HEADER:  Date: Mon, 18 Nov 2013 11:15:26 GMT
+RESPONSE HEADER:  Server: Apache
+RESPONSE HEADER:  Connection: close
+RESPONSE HEADER:  Content-Type: text/html
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+    <admin_email/>
+    <admin_name>RA Administrator</admin_name>
+    <admin_pwd/>
+    <admin_pwd_again/>
+    <admin_uid>admin</admin_uid>
+    <certs>
+        <element>
+            <certinfo>
+                <dn>cn=ra\ system,o=example, O=RA Domain</dn>
+                <tag>sslserver</tag>
+                <friendly>SSL Server Certificate</friendly>
+            </certinfo>
+        </element>
+        <element>
+            <certinfo>
+                <dn>cn=ra.example.com,o=example, O=RA Domain</dn>
+                <tag>subsystem</tag>
+                <friendly>Subsystem Certificate</friendly>
+            </certinfo>
+        </element>
+    </certs>
+    <check_clonesubsystem/>
+    <check_newsubsystem/>
+    <csstate>1</csstate>
+    <custom_size>4096</custom_size>
+    <dbg/>
+    <defTok>NSS Certificate DB</defTok>
+    <default_ecc_keysize>256</default_ecc_keysize>
+    <default_keysize>4096</default_keysize>
+    <disableClone>1</disableClone>
+    <errorString>no CA found. CA, TKS, and optionally DRM must be installed prior to RA installation</errorString>
+    <firstpanel>0</firstpanel>
+    <firsttime>false</firsttime>
+    <fullsystemname>Registration Authority</fullsystemname>
+    <http_port>12888</http_port>
+    <https_port>12889</https_port>
+    <import>true</import>
+    <instanceID>&amp;lt;security_domain_instance_name&amp;gt;</instanceID>
+    <lastpanel>0</lastpanel>
+    <machineName>localhost</machineName>
+    <name>Registration Authority</name>
+    <non_clientauth_https_port>12890</non_clientauth_https_port>
+    <oms/>
+    <p>4</p>
+    <panel>ra/admin/console/config/cainfopanel.vm</panel>
+    <panelname>Security Domain</panelname>
+    <panels>
+        <element>PKI::RA::WelcomePanel=HASH(0x7f2265aac428)</element>
+        <element>PKI::RA::SecurityDomainPanel=HASH(0x7f2265abcb50)</element>
+        <element>PKI::RA::DisplayCertChainPanel=HASH(0x7f2265ac4210)</element>
+        <element>PKI::RA::SubsystemTypePanel=HASH(0x7f2265ada048)</element>
+        <element>PKI::RA::CAInfoPanel=HASH(0x7f2265ae16e0)</element>
+        <element>PKI::RA::DatabasePanel=HASH(0x7f2265af0580)</element>
+        <element>PKI::RA::ModulePanel=HASH(0x7f2265af62d8)</element>
+        <element>PKI::RA::ConfigHSMLoginPanel=HASH(0x7f2265b093c8)</element>
+        <element>PKI::RA::SizePanel=HASH(0x7f2265b0f018)</element>
+        <element>PKI::RA::NamePanel=HASH(0x7f2265b1cee0)</element>
+        <element>PKI::RA::CertRequestPanel=HASH(0x7f2265b44ed8)</element>
+        <element>PKI::RA::AdminPanel=HASH(0x7f2265b529e0)</element>
+        <element>PKI::RA::ImportAdminCertPanel=HASH(0x7f2265b5e7c8)</element>
+        <element>PKI::RA::DonePanel=HASH(0x7f2265b662c8)</element>
+    </panels>
+    <pn>PKI::RA::DonePanel=HASH(0x7f2265b662c8)</pn>
+    <ppcerts/>
+    <productversion>10.0.6</productversion>
+    <redirect>https://ca1.srv.example.com:8443/ca/admin/ca/securityDomainLogin?url=https%3A%2F%2Fra1.srv.example.com%3A12890%2Fra%2Fadmin%2Fconsole%2Fconfig%2Fwizard%3Fp%3D3%26subsystem%3DRA</redirect>
+    <sdomainAdminURL>https://ra1.srv.example.com:9445</sdomainAdminURL>
+    <sdomainName>Security Domain</sdomainName>
+    <sdomainURL/>
+    <securityDomain/>
+    <select>custom</select>
+    <showApplyButton>false</showApplyButton>
+    <sms>
+        <element>PKI::RA::GlobalVar=HASH(0x7f22180a2290)</element>
+        <element>PKI::RA::GlobalVar=HASH(0x7f221807a990)</element>
+        <element>PKI::RA::GlobalVar=HASH(0x7f2214143230)</element>
+    </sms>
+    <statusCommand>systemctl status pki-tomcatd@&amp;lt;security_domain_instance_name&amp;gt;.service</statusCommand>
+    <subpanelno>5</subpanelno>
+    <subsystemName>Registration Authority</subsystemName>
+    <systemname>Registration Authority </systemname>
+    <title>CA Information</title>
+    <urls/>
+    <urls_size>0</urls_size>
+    <wizardname>RA Configuration Wizard</wizardname>
+</xml>
+Sleeping for 5 secs..
+#############################################
+Attempting to connect to: ra1.srv.example.com:12890
+Connected.
+Posting Query = https://ra1.srv.example.com:12890//ra/admin/console/config/wizard?p=5&op=next&xml=true
+RESPONSE STATUS:  HTTP/1.1 200 OK
+RESPONSE HEADER:  Date: Mon, 18 Nov 2013 11:15:31 GMT
+RESPONSE HEADER:  Server: Apache
+RESPONSE HEADER:  Connection: close
+RESPONSE HEADER:  Content-Type: text/html
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+    <admin_email/>
+    <admin_name>RA Administrator</admin_name>
+    <admin_pwd/>
+    <admin_pwd_again/>
+    <admin_uid>admin</admin_uid>
+    <certs>
+        <element>
+            <certinfo>
+                <dn>cn=ra\ system,o=example, O=RA Domain</dn>
+                <tag>sslserver</tag>
+                <friendly>SSL Server Certificate</friendly>
+            </certinfo>
+        </element>
+        <element>
+            <certinfo>
+                <dn>cn=ra.example.com,o=example, O=RA Domain</dn>
+                <tag>subsystem</tag>
+                <friendly>Subsystem Certificate</friendly>
+            </certinfo>
+        </element>
+    </certs>
+    <check_clonesubsystem/>
+    <check_newsubsystem/>
+    <csstate>1</csstate>
+    <custom_size>4096</custom_size>
+    <dbg/>
+    <defTok>NSS Certificate DB</defTok>
+    <default_ecc_keysize>256</default_ecc_keysize>
+    <default_keysize>4096</default_keysize>
+    <disableClone>1</disableClone>
+    <errorString/>
+    <firstpanel>0</firstpanel>
+    <firsttime>false</firsttime>
+    <fullsystemname>Registration Authority</fullsystemname>
+    <http_port>12888</http_port>
+    <https_port>12889</https_port>
+    <import>true</import>
+    <instanceID>&amp;lt;security_domain_instance_name&amp;gt;</instanceID>
+    <lastpanel>0</lastpanel>
+    <machineName>localhost</machineName>
+    <name>Registration Authority</name>
+    <non_clientauth_https_port>12890</non_clientauth_https_port>
+    <oms/>
+    <p>6</p>
+    <panel>ra/admin/console/config/modulepanel.vm</panel>
+    <panelname>Security Domain</panelname>
+    <panels>
+        <element>PKI::RA::WelcomePanel=HASH(0x7f2265aac428)</element>
+        <element>PKI::RA::SecurityDomainPanel=HASH(0x7f2265abcb50)</element>
+        <element>PKI::RA::DisplayCertChainPanel=HASH(0x7f2265ac4210)</element>
+        <element>PKI::RA::SubsystemTypePanel=HASH(0x7f2265ada048)</element>
+        <element>PKI::RA::CAInfoPanel=HASH(0x7f2265ae16e0)</element>
+        <element>PKI::RA::DatabasePanel=HASH(0x7f2265af0580)</element>
+        <element>PKI::RA::ModulePanel=HASH(0x7f2265af62d8)</element>
+        <element>PKI::RA::ConfigHSMLoginPanel=HASH(0x7f2265b093c8)</element>
+        <element>PKI::RA::SizePanel=HASH(0x7f2265b0f018)</element>
+        <element>PKI::RA::NamePanel=HASH(0x7f2265b1cee0)</element>
+        <element>PKI::RA::CertRequestPanel=HASH(0x7f2265b44ed8)</element>
+        <element>PKI::RA::AdminPanel=HASH(0x7f2265b529e0)</element>
+        <element>PKI::RA::ImportAdminCertPanel=HASH(0x7f2265b5e7c8)</element>
+        <element>PKI::RA::DonePanel=HASH(0x7f2265b662c8)</element>
+    </panels>
+    <pn>PKI::RA::DonePanel=HASH(0x7f2265b662c8)</pn>
+    <ppcerts/>
+    <productversion>10.0.6</productversion>
+    <redirect>https://ca1.srv.example.com:8443/ca/admin/ca/securityDomainLogin?url=https%3A%2F%2Fra1.srv.example.com%3A12890%2Fra%2Fadmin%2Fconsole%2Fconfig%2Fwizard%3Fp%3D3%26subsystem%3DRA</redirect>
+    <sdomainAdminURL>https://ra1.srv.example.com:9445</sdomainAdminURL>
+    <sdomainName>Security Domain</sdomainName>
+    <sdomainURL/>
+    <securityDomain/>
+    <select>custom</select>
+    <showApplyButton>false</showApplyButton>
+    <sms>
+        <element>PKI::RA::GlobalVar=HASH(0x7f22180a2890)</element>
+        <element>PKI::RA::GlobalVar=HASH(0x7f22180a2c38)</element>
+        <element>PKI::RA::GlobalVar=HASH(0x7f22141435d8)</element>
+    </sms>
+    <statusCommand>systemctl status pki-tomcatd@&amp;lt;security_domain_instance_name&amp;gt;.service</statusCommand>
+    <subpanelno>7</subpanelno>
+    <subsystemName>Registration Authority</subsystemName>
+    <systemname>Registration Authority </systemname>
+    <title>Security Modules</title>
+    <urls/>
+    <urls_size>0</urls_size>
+    <wizardname>RA Configuration Wizard</wizardname>
+</xml>
+Sleeping for 5 secs..
+#############################################
+Attempting to connect to: ra1.srv.example.com:12890
+Connected.
+Posting Query = https://ra1.srv.example.com:12890//ra/admin/console/config/wizard?p=6&choice=NSS+Certificate+DB&op=next&xml=true
+RESPONSE STATUS:  HTTP/1.1 200 OK
+RESPONSE HEADER:  Date: Mon, 18 Nov 2013 11:15:36 GMT
+RESPONSE HEADER:  Server: Apache
+RESPONSE HEADER:  Connection: close
+RESPONSE HEADER:  Content-Type: text/html
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+    <admin_email/>
+    <admin_name>RA Administrator</admin_name>
+    <admin_pwd/>
+    <admin_pwd_again/>
+    <admin_uid>admin</admin_uid>
+    <certs>
+        <element>
+            <certinfo>
+                <dn>cn=ra\ system,o=example</dn>
+                <tag>sslserver</tag>
+                <friendly>SSL Server Certificate</friendly>
+            </certinfo>
+        </element>
+        <element>
+            <certinfo>
+                <dn>cn=ra.example.com,o=example</dn>
+                <tag>subsystem</tag>
+                <friendly>Subsystem Certificate</friendly>
+            </certinfo>
+        </element>
+    </certs>
+    <check_clonesubsystem/>
+    <check_newsubsystem/>
+    <csstate>1</csstate>
+    <custom_size>4096</custom_size>
+    <dbg/>
+    <defTok>NSS Certificate DB</defTok>
+    <default_ecc_keysize>256</default_ecc_keysize>
+    <default_keysize>4096</default_keysize>
+    <disableClone>1</disableClone>
+    <errorString/>
+    <firstpanel>0</firstpanel>
+    <firsttime>false</firsttime>
+    <fullsystemname>Registration Authority</fullsystemname>
+    <http_port>12888</http_port>
+    <https_port>12889</https_port>
+    <import>true</import>
+    <instanceID>&amp;lt;security_domain_instance_name&amp;gt;</instanceID>
+    <lastpanel>0</lastpanel>
+    <machineName>localhost</machineName>
+    <name>Registration Authority</name>
+    <non_clientauth_https_port>12890</non_clientauth_https_port>
+    <oms/>
+    <p>8</p>
+    <panel>ra/admin/console/config/sizepanel.vm</panel>
+    <panelname>Security Domain</panelname>
+    <panels>
+        <element>PKI::RA::WelcomePanel=HASH(0x7f2265aac428)</element>
+        <element>PKI::RA::SecurityDomainPanel=HASH(0x7f2265abcb50)</element>
+        <element>PKI::RA::DisplayCertChainPanel=HASH(0x7f2265ac4210)</element>
+        <element>PKI::RA::SubsystemTypePanel=HASH(0x7f2265ada048)</element>
+        <element>PKI::RA::CAInfoPanel=HASH(0x7f2265ae16e0)</element>
+        <element>PKI::RA::DatabasePanel=HASH(0x7f2265af0580)</element>
+        <element>PKI::RA::ModulePanel=HASH(0x7f2265af62d8)</element>
+        <element>PKI::RA::ConfigHSMLoginPanel=HASH(0x7f2265b093c8)</element>
+        <element>PKI::RA::SizePanel=HASH(0x7f2265b0f018)</element>
+        <element>PKI::RA::NamePanel=HASH(0x7f2265b1cee0)</element>
+        <element>PKI::RA::CertRequestPanel=HASH(0x7f2265b44ed8)</element>
+        <element>PKI::RA::AdminPanel=HASH(0x7f2265b529e0)</element>
+        <element>PKI::RA::ImportAdminCertPanel=HASH(0x7f2265b5e7c8)</element>
+        <element>PKI::RA::DonePanel=HASH(0x7f2265b662c8)</element>
+    </panels>
+    <pn>PKI::RA::DonePanel=HASH(0x7f2265b662c8)</pn>
+    <ppcerts/>
+    <productversion>10.0.6</productversion>
+    <redirect>https://ca1.srv.example.com:8443/ca/admin/ca/securityDomainLogin?url=https%3A%2F%2Fra1.srv.example.com%3A12890%2Fra%2Fadmin%2Fconsole%2Fconfig%2Fwizard%3Fp%3D3%26subsystem%3DRA</redirect>
+    <sdomainAdminURL>https://ra1.srv.example.com:9445</sdomainAdminURL>
+    <sdomainName>Security Domain</sdomainName>
+    <sdomainURL/>
+    <securityDomain/>
+    <select>custom</select>
+    <showApplyButton>false</showApplyButton>
+    <sms>
+        <element>PKI::RA::GlobalVar=HASH(0x7f22180a2890)</element>
+        <element>PKI::RA::GlobalVar=HASH(0x7f22180a2c38)</element>
+        <element>PKI::RA::GlobalVar=HASH(0x7f22141435d8)</element>
+    </sms>
+    <statusCommand>systemctl status pki-tomcatd@&amp;lt;security_domain_instance_name&amp;gt;.service</statusCommand>
+    <subpanelno>9</subpanelno>
+    <subsystemName>Registration Authority</subsystemName>
+    <systemname>Registration Authority </systemname>
+    <title>Key Pairs</title>
+    <urls/>
+    <urls_size>0</urls_size>
+    <wizardname>RA Configuration Wizard</wizardname>
+</xml>
+Sleeping for 5 secs..
+#############################################
+Attempting to connect to: ra1.srv.example.com:12890
+Connected.
+Posting Query = https://ra1.srv.example.com:12890//ra/admin/console/config/wizard?p=8&keytype=rsa&choice=default&custom_size=4096&sslserver_keytype=rsa&sslserver_choice=custom&sslserver_custom_size=4096&subsystem_keytype=rsa&subsystem_choice=custom&subsystem_custom_size=4096&op=next&xml=true
+RESPONSE STATUS:  HTTP/1.1 200 OK
+RESPONSE HEADER:  Date: Mon, 18 Nov 2013 11:15:42 GMT
+RESPONSE HEADER:  Server: Apache
+RESPONSE HEADER:  Connection: close
+RESPONSE HEADER:  Content-Type: text/html
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+    <admin_email/>
+    <admin_name>RA Administrator</admin_name>
+    <admin_pwd/>
+    <admin_pwd_again/>
+    <admin_uid>admin</admin_uid>
+    <certs>
+        <element>
+            <certinfo>
+                <dn>cn=ra\ system,o=example, O=RA Domain</dn>
+                <tag>sslserver</tag>
+                <friendly>SSL Server Certificate</friendly>
+            </certinfo>
+        </element>
+        <element>
+            <certinfo>
+                <dn>cn=ra.example.com,o=example, O=RA Domain</dn>
+                <tag>subsystem</tag>
+                <friendly>Subsystem Certificate</friendly>
+            </certinfo>
+        </element>
+    </certs>
+    <check_clonesubsystem/>
+    <check_newsubsystem/>
+    <csstate>1</csstate>
+    <custom_size>4096</custom_size>
+    <dbg/>
+    <defTok>NSS Certificate DB</defTok>
+    <default_ecc_keysize>256</default_ecc_keysize>
+    <default_keysize>4096</default_keysize>
+    <disableClone>1</disableClone>
+    <errorString/>
+    <firstpanel>0</firstpanel>
+    <firsttime>false</firsttime>
+    <fullsystemname>Registration Authority</fullsystemname>
+    <http_port>12888</http_port>
+    <https_port>12889</https_port>
+    <import>true</import>
+    <instanceID>&amp;lt;security_domain_instance_name&amp;gt;</instanceID>
+    <lastpanel>0</lastpanel>
+    <machineName>localhost</machineName>
+    <name>Registration Authority</name>
+    <non_clientauth_https_port>12890</non_clientauth_https_port>
+    <oms/>
+    <p>9</p>
+    <panel>ra/admin/console/config/namepanel.vm</panel>
+    <panelname>Security Domain</panelname>
+    <panels>
+        <element>PKI::RA::WelcomePanel=HASH(0x7f2265aac428)</element>
+        <element>PKI::RA::SecurityDomainPanel=HASH(0x7f2265abcb50)</element>
+        <element>PKI::RA::DisplayCertChainPanel=HASH(0x7f2265ac4210)</element>
+        <element>PKI::RA::SubsystemTypePanel=HASH(0x7f2265ada048)</element>
+        <element>PKI::RA::CAInfoPanel=HASH(0x7f2265ae16e0)</element>
+        <element>PKI::RA::DatabasePanel=HASH(0x7f2265af0580)</element>
+        <element>PKI::RA::ModulePanel=HASH(0x7f2265af62d8)</element>
+        <element>PKI::RA::ConfigHSMLoginPanel=HASH(0x7f2265b093c8)</element>
+        <element>PKI::RA::SizePanel=HASH(0x7f2265b0f018)</element>
+        <element>PKI::RA::NamePanel=HASH(0x7f2265b1cee0)</element>
+        <element>PKI::RA::CertRequestPanel=HASH(0x7f2265b44ed8)</element>
+        <element>PKI::RA::AdminPanel=HASH(0x7f2265b529e0)</element>
+        <element>PKI::RA::ImportAdminCertPanel=HASH(0x7f2265b5e7c8)</element>
+        <element>PKI::RA::DonePanel=HASH(0x7f2265b662c8)</element>
+    </panels>
+    <pn>PKI::RA::DonePanel=HASH(0x7f2265b662c8)</pn>
+    <ppcerts/>
+    <productversion>10.0.6</productversion>
+    <redirect>https://ca1.srv.example.com:8443/ca/admin/ca/securityDomainLogin?url=https%3A%2F%2Fra1.srv.example.com%3A12890%2Fra%2Fadmin%2Fconsole%2Fconfig%2Fwizard%3Fp%3D3%26subsystem%3DRA</redirect>
+    <sdomainAdminURL>https://ra1.srv.example.com:9445</sdomainAdminURL>
+    <sdomainName>Security Domain</sdomainName>
+    <sdomainURL/>
+    <securityDomain/>
+    <select>custom</select>
+    <showApplyButton>false</showApplyButton>
+    <sms>
+        <element>PKI::RA::GlobalVar=HASH(0x7f22180a2890)</element>
+        <element>PKI::RA::GlobalVar=HASH(0x7f22180a2c38)</element>
+        <element>PKI::RA::GlobalVar=HASH(0x7f22141435d8)</element>
+    </sms>
+    <statusCommand>systemctl status pki-tomcatd@&amp;lt;security_domain_instance_name&amp;gt;.service</statusCommand>
+    <subpanelno>10</subpanelno>
+    <subsystemName>Registration Authority</subsystemName>
+    <systemname>Registration Authority </systemname>
+    <title>Subject Names</title>
+    <urls>
+        <element>External CA</element>
+    </urls>
+    <urls_size>2</urls_size>
+    <wizardname>RA Configuration Wizard</wizardname>
+</xml>
+Sleeping for 5 secs..
+#############################################
+Attempting to connect to: ra1.srv.example.com:12890
+Connected.
+Posting Query = https://ra1.srv.example.com:12890//ra/admin/console/config/wizard?p=9&sslserver=cn%3Dra%5C+system%2Co%3Dexample&sslserver_nick=ra1_location1_example&subsystem=cn%3Dra.example.com%2Co%3Dexample&subsystem_nick=ra1_subsystem_location1_cert&urls=0&op=next&xml=true
+RESPONSE STATUS:  HTTP/1.1 500 Internal Server Error
+RESPONSE HEADER:  Date: Mon, 18 Nov 2013 11:15:47 GMT
+RESPONSE HEADER:  Server: Apache
+RESPONSE HEADER:  Content-Length: 528
+RESPONSE HEADER:  Connection: close
+RESPONSE HEADER:  Content-Type: text/html; charset=iso-8859-1
+ERROR: unable to parse xml
+ERROR XML =
+Sleeping for 5 secs..
+#############################################
+Attempting to connect to: ra1.srv.example.com:12890
+Connected.
+Posting Query = https://ra1.srv.example.com:12890//ra/admin/console/config/wizard?p=10&sslserver=&sslserver_cc=&subsystem=&subsystem_cc=&op=next&xml=true
+RESPONSE STATUS:  HTTP/1.1 200 OK
+RESPONSE HEADER:  Date: Mon, 18 Nov 2013 11:15:52 GMT
+RESPONSE HEADER:  Server: Apache
+RESPONSE HEADER:  Connection: close
+RESPONSE HEADER:  Content-Type: text/html
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+    <admin_email/>
+    <admin_name>RA Administrator</admin_name>
+    <admin_pwd/>
+    <admin_pwd_again/>
+    <admin_uid>admin</admin_uid>
+    <certs>
+        <element>
+            <certinfo>
+                <dn>cn=ra\ system,o=example, O=RA Domain</dn>
+                <tag>sslserver</tag>
+                <friendly>SSL Server Certificate</friendly>
+            </certinfo>
+        </element>
+        <element>
+            <certinfo>
+                <dn>cn=ra.example.com,o=example, O=RA Domain</dn>
+                <tag>subsystem</tag>
+                <friendly>Subsystem Certificate</friendly>
+            </certinfo>
+        </element>
+    </certs>
+    <check_clonesubsystem/>
+    <check_newsubsystem/>
+    <csstate>1</csstate>
+    <custom_size>4096</custom_size>
+    <dbg/>
+    <defTok>NSS Certificate DB</defTok>
+    <default_ecc_keysize>256</default_ecc_keysize>
+    <default_keysize>4096</default_keysize>
+    <disableClone>1</disableClone>
+    <errorString/>
+    <firstpanel>0</firstpanel>
+    <firsttime>false</firsttime>
+    <fullsystemname>Registration Authority</fullsystemname>
+    <http_port>12888</http_port>
+    <https_port>12889</https_port>
+    <import>true</import>
+    <instanceID>&amp;lt;security_domain_instance_name&amp;gt;</instanceID>
+    <lastpanel>0</lastpanel>
+    <machineName>localhost</machineName>
+    <name>Registration Authority</name>
+    <non_clientauth_https_port>12890</non_clientauth_https_port>
+    <oms/>
+    <p>11</p>
+    <panel>ra/admin/console/config/adminpanel.vm</panel>
+    <panelname>Security Domain</panelname>
+    <panels>
+        <element>PKI::RA::WelcomePanel=HASH(0x7f2265aac428)</element>
+        <element>PKI::RA::SecurityDomainPanel=HASH(0x7f2265abcb50)</element>
+        <element>PKI::RA::DisplayCertChainPanel=HASH(0x7f2265ac4210)</element>
+        <element>PKI::RA::SubsystemTypePanel=HASH(0x7f2265ada048)</element>
+        <element>PKI::RA::CAInfoPanel=HASH(0x7f2265ae16e0)</element>
+        <element>PKI::RA::DatabasePanel=HASH(0x7f2265af0580)</element>
+        <element>PKI::RA::ModulePanel=HASH(0x7f2265af62d8)</element>
+        <element>PKI::RA::ConfigHSMLoginPanel=HASH(0x7f2265b093c8)</element>
+        <element>PKI::RA::SizePanel=HASH(0x7f2265b0f018)</element>
+        <element>PKI::RA::NamePanel=HASH(0x7f2265b1cee0)</element>
+        <element>PKI::RA::CertRequestPanel=HASH(0x7f2265b44ed8)</element>
+        <element>PKI::RA::AdminPanel=HASH(0x7f2265b529e0)</element>
+        <element>PKI::RA::ImportAdminCertPanel=HASH(0x7f2265b5e7c8)</element>
+        <element>PKI::RA::DonePanel=HASH(0x7f2265b662c8)</element>
+    </panels>
+    <pn>PKI::RA::DonePanel=HASH(0x7f2265b662c8)</pn>
+    <ppcerts/>
+    <productversion>10.0.6</productversion>
+    <redirect>https://ca1.srv.example.com:8443/ca/admin/ca/securityDomainLogin?url=https%3A%2F%2Fra1.srv.example.com%3A12890%2Fra%2Fadmin%2Fconsole%2Fconfig%2Fwizard%3Fp%3D3%26subsystem%3DRA</redirect>
+    <sdomainAdminURL>https://ra1.srv.example.com:9445</sdomainAdminURL>
+    <sdomainName>Security Domain</sdomainName>
+    <sdomainURL/>
+    <securityDomain/>
+    <select>custom</select>
+    <showApplyButton>false</showApplyButton>
+    <sms>
+        <element>PKI::RA::GlobalVar=HASH(0x7f22180a2890)</element>
+        <element>PKI::RA::GlobalVar=HASH(0x7f22180a2c38)</element>
+        <element>PKI::RA::GlobalVar=HASH(0x7f22141435d8)</element>
+    </sms>
+    <statusCommand>systemctl status pki-tomcatd@&amp;lt;security_domain_instance_name&amp;gt;.service</statusCommand>
+    <subpanelno>12</subpanelno>
+    <subsystemName>Registration Authority</subsystemName>
+    <systemname>Registration Authority </systemname>
+    <title>Administrator</title>
+    <urls>
+        <element>External CA</element>
+    </urls>
+    <urls_size>2</urls_size>
+    <wizardname>RA Configuration Wizard</wizardname>
+</xml>
+Sleeping for 5 secs..
+CRYPTO INIT WITH CERTDB:/tmp/
+Crypto manager already initialized
+Debug : initialize crypto Manager
+INITIALIZATION ERROR: org.mozilla.jss.crypto.AlreadyInitializedException
+cdir = /tmp/
+Debug : before getInstance
+Debug : before get token
+Debug : before login password
+Debug : after login password
+CRMF_REQUEST = MIIC --REMOVED-- A
+
+#############################################
+Attempting to connect to: ra1.srv.example.com:12890
+Connected.
+Posting Query = https://ra1.srv.example.com:12890//ra/admin/console/config/wizard?p=11&uid=reg_admin&name=RA+Administrator&email=support%40example.com&__pwd=%3<REMOVED>
+RESPONSE STATUS:  HTTP/1.1 500 Internal Server Error
+RESPONSE HEADER:  Date: Mon, 18 Nov 2013 11:15:59 GMT
+RESPONSE HEADER:  Server: Apache
+RESPONSE HEADER:  Content-Length: 528
+RESPONSE HEADER:  Connection: close
+RESPONSE HEADER:  Content-Type: text/html; charset=iso-8859-1
+ERROR: unable to parse xml
+ERROR XML =
+ERROR: Tag=serialNumberhas no values
+Sleeping for 5 secs..
+#############################################
+Attempting to connect to: ca1.srv.example.com:8443
+Connected.
+Posting Query = https://ca1.srv.example.com:8443//ca/admin/ca/getBySerial?serialNumber=null&importCert=true
+RESPONSE STATUS:  HTTP/1.1 200 OK
+RESPONSE HEADER:  Server: Apache-Coyote/1.1
+RESPONSE HEADER:  Content-Type: text/html
+RESPONSE HEADER:  Content-Length: 2824
+RESPONSE HEADER:  Date: Mon, 18 Nov 2013 11:16:04 GMT
+RESPONSE HEADER:  Connection: keep-alive
+Imported Cert=PCEt --REMOVED-- g==
+ 
+CRYPTO INIT WITH CERTDB:/tmp/
+Crypto manager already initialized
+importCert string: importing with nickname: null
+Already logged into to DB
+ERROR:exception importing cert Security library failed to decode certificate package: (-8183) security library: improperly formatted DER-encoded message.
+ERROR: AdminCertImportPanel() during cert import
+ERROR: ConfigureRA: AdminCertImportPanel() failure
+ERROR: unable to create RA
+
+######################################################################
+
+
+
+
+Error_log output....
+
+
+[Mon Nov 18 10:48:33.074065 2013] [:info] [pid 1344:tid 139785163151104] Connection to child 27 established (server ra1.srv.example.com:12890, client 127.0.0.1)
+[Mon Nov 18 10:48:33.082853 2013] [:info] [pid 1344:tid 139785163151104] Initial (No.1) HTTPS request received for child 27 (server ra1.srv.example.com:12890)
+[Mon Nov 18 10:48:33.082937 2013] [authz_core:debug] [pid 1344:tid 139785163151104] mod_authz_core.c(802): [client 127.0.0.1:50119] AH01626: authorization result of Require all granted
+: granted
+[Mon Nov 18 10:48:33.082947 2013] [authz_core:debug] [pid 1344:tid 139785163151104] mod_authz_core.c(802): [client 127.0.0.1:50119] AH01626: authorization result of <RequireAny>: grant
+ed
+[Mon Nov 18 10:48:33.090987 2013] [:info] [pid 1344:tid 139785163151104] Connection to child 27 closed (server ra1.srv.example.com:12890, client 127.0.0.1)
+[Mon Nov 18 10:48:33.091274 2013] [:info] [pid 1344:tid 139785154758400] Connection to child 28 established (server ra1.srv.example.com:12890, client 127.0.0.1)
+[Mon Nov 18 10:48:33.131716 2013] [:info] [pid 1344:tid 139785154758400] Initial (No.1) HTTPS request received for child 28 (server ra1.srv.example.com:12890)
+[Mon Nov 18 10:48:33.131811 2013] [authz_core:debug] [pid 1344:tid 139785154758400] mod_authz_core.c(802): [client 127.0.0.1:50120] AH01626: authorization result of Require all granted
+: granted
+[Mon Nov 18 10:48:33.131827 2013] [authz_core:debug] [pid 1344:tid 139785154758400] mod_authz_core.c(802): [client 127.0.0.1:50120] AH01626: authorization result of <RequireAny>: grant
+ed
+GET /ca/admin/ca/getStatus HTTP/1.0
+
+port: 9445
+addr='ra1.srv.example.com'
+family='2'
+IP='127.0.0.1'
+exit after PR_Connect with error -5961:
+[Mon Nov 18 10:48:33 2013] -e: Use of uninitialized value $PKI::RA::Wizard::symbol{"securityDomain"} in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 41
+6.
+[Mon Nov 18 10:48:33 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 429.
+[Mon Nov 18 10:48:33 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 429.
+[Mon Nov 18 10:48:33 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 449.
+[Mon Nov 18 10:48:33 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 450.
+[Mon Nov 18 10:48:33 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 451.
+[Mon Nov 18 10:48:33 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 452.
+[Mon Nov 18 10:48:33 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 453.
+[Mon Nov 18 10:48:33 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 497.
+[Mon Nov 18 10:48:33.322014 2013] [:info] [pid 1344:tid 139785154758400] Connection to child 28 closed (server ra1.srv.example.com:12890, client 127.0.0.1)
+[Mon Nov 18 10:48:38.496329 2013] [:info] [pid 1344:tid 139785146365696] Connection to child 29 established (server ra1.srv.example.com:12890, client 127.0.0.1)
+[Mon Nov 18 10:48:38.536772 2013] [:info] [pid 1344:tid 139785146365696] Initial (No.1) HTTPS request received for child 29 (server ra1.srv.example.com:12890)
+[Mon Nov 18 10:48:38.536876 2013] [authz_core:debug] [pid 1344:tid 139785146365696] mod_authz_core.c(802): [client 127.0.0.1:50122] AH01626: authorization result of Require all granted
+: granted
+[Mon Nov 18 10:48:38.536894 2013] [authz_core:debug] [pid 1344:tid 139785146365696] mod_authz_core.c(802): [client 127.0.0.1:50122] AH01626: authorization result of <RequireAny>: grant
+ed
+GET /ca/admin/ca/getStatus HTTP/1.0
+
+port: 8443
+addr='ca1.srv.example.com'
+family='2'
+IP='10.0.0.10'
+exit after PR_Connect with error -5966:
+GET /ca/admin/ca/getStatus HTTP/1.0
+
+port: 9445
+addr='ra1.srv.example.com'
+family='2'
+IP='127.0.0.1'
+exit after PR_Connect with error -5961:
+[Mon Nov 18 10:48:38 2013] -e: Use of uninitialized value $PKI::RA::Wizard::symbol{"securityDomain"} in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 41
+6.
+[Mon Nov 18 10:48:38 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 429.
+[Mon Nov 18 10:48:38 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 429.
+[Mon Nov 18 10:48:38 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 449.
+[Mon Nov 18 10:48:38 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 450.
+[Mon Nov 18 10:48:38 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 451.
+[Mon Nov 18 10:48:38 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 452.
+[Mon Nov 18 10:48:38 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 453.
+[Mon Nov 18 10:48:38 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 497.
+[Mon Nov 18 10:48:38.740671 2013] [:info] [pid 1344:tid 139785146365696] Connection to child 29 closed (server ra1.srv.example.com:12890, client 127.0.0.1)
+[Mon Nov 18 10:48:43.764715 2013] [:info] [pid 1344:tid 139785137972992] Connection to child 30 established (server ra1.srv.example.com:12890, client 127.0.0.1)
+[Mon Nov 18 10:48:43.805726 2013] [:info] [pid 1344:tid 139785137972992] Initial (No.1) HTTPS request received for child 30 (server ra1.srv.example.com:12890)
+[Mon Nov 18 10:48:43.805821 2013] [authz_core:debug] [pid 1344:tid 139785137972992] mod_authz_core.c(802): [client 127.0.0.1:50124] AH01626: authorization result of Require all granted
+: granted
+[Mon Nov 18 10:48:43.805837 2013] [authz_core:debug] [pid 1344:tid 139785137972992] mod_authz_core.c(802): [client 127.0.0.1:50124] AH01626: authorization result of <RequireAny>: grant
+ed
+certutil:  unable to open "/var/lib/pki-ra/conf/caCert.der" for reading (-5950, 2).
+rm: cannot remove '/var/lib/pki-ra/conf/caCert.txt': No such file or directory
+rm: cannot remove '/var/lib/pki-ra/conf/caCert.der': No such file or directory
+rm: cannot remove '/var/lib/pki-ra/conf/caCert_pp.txt': No such file or directory
+GET /ca/admin/ca/getDomainXML HTTP/1.0
+
+port: 8443
+addr='ca1.srv.example.com'
+family='2'
+IP='10.0.0.10'
+exit after PR_Connect with error -5966:
+[Mon Nov 18 10:48:43 2013] -e: Use of uninitialized value $content in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/DisplayCertChainPanel.pm line 224.
+[Mon Nov 18 10:48:43.866728 2013] [perl:error] [pid 1344:tid 139785137972992] [client 127.0.0.1:50124] Could not find httpd.xml in /usr/sbin/ at /var/lib/pki-ra/lib/perl/PKI/RA/Display
+CertChainPanel.pm line 227.\n
+[Mon Nov 18 10:48:43.867857 2013] [:info] [pid 1344:tid 139785137972992] Connection to child 30 closed (server ra1.srv.example.com:12890, client 127.0.0.1)
+[Mon Nov 18 10:48:53.977002 2013] [:info] [pid 1344:tid 139785129580288] Connection to child 31 established (server ra1.srv.example.com:12890, client 127.0.0.1)
+[Mon Nov 18 10:48:54.017712 2013] [:info] [pid 1344:tid 139785129580288] Initial (No.1) HTTPS request received for child 31 (server ra1.srv.example.com:12890)
+[Mon Nov 18 10:48:54.017808 2013] [authz_core:debug] [pid 1344:tid 139785129580288] mod_authz_core.c(802): [client 127.0.0.1:50127] AH01626: authorization result of Require all granted
+: granted
+[Mon Nov 18 10:48:54.017824 2013] [authz_core:debug] [pid 1344:tid 139785129580288] mod_authz_core.c(802): [client 127.0.0.1:50127] AH01626: authorization result of <RequireAny>: grant
+ed
+[Mon Nov 18 10:48:54 2013] -e: Use of uninitialized value $host in string eq at /var/lib/pki-ra/lib/perl/PKI/RA/SubsystemTypePanel.pm line 122.
+[Mon Nov 18 10:48:54 2013] -e: Use of uninitialized value $PKI::RA::Wizard::symbol{"securityDomain"} in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 41
+6.
+[Mon Nov 18 10:48:54 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 429.
+[Mon Nov 18 10:48:54 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 429.
+[Mon Nov 18 10:48:54 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 449.
+[Mon Nov 18 10:48:54 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 450.
+[Mon Nov 18 10:48:54 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 451.
+[Mon Nov 18 10:48:54 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 452.
+[Mon Nov 18 10:48:54 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 453.
+[Mon Nov 18 10:48:54 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 497.
+[Mon Nov 18 10:48:54 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 429.
+[Mon Nov 18 10:48:54.193882 2013] [:info] [pid 1344:tid 139785129580288] Connection to child 31 closed (server ra1.srv.example.com:12890, client 127.0.0.1)
+[Mon Nov 18 10:49:04.196770 2013] [:info] [pid 1344:tid 139785221900032] Connection to child 20 established (server ra1.srv.example.com:12890, client 127.0.0.1)
+[Mon Nov 18 10:49:04.237714 2013] [:info] [pid 1344:tid 139785221900032] Initial (No.1) HTTPS request received for child 20 (server ra1.srv.example.com:12890)
+[Mon Nov 18 10:49:04.237806 2013] [authz_core:debug] [pid 1344:tid 139785221900032] mod_authz_core.c(802): [client 127.0.0.1:50128] AH01626: authorization result of Require all granted
+: granted
+[Mon Nov 18 10:49:04.237822 2013] [authz_core:debug] [pid 1344:tid 139785221900032] mod_authz_core.c(802): [client 127.0.0.1:50128] AH01626: authorization result of <RequireAny>: grant
+ed
+[Mon Nov 18 10:49:04 2013] -e: Use of uninitialized value $host in string eq at /var/lib/pki-ra/lib/perl/PKI/RA/CAInfoPanel.pm line 186.
+[Mon Nov 18 10:49:04 2013] -e: Use of uninitialized value $PKI::RA::Wizard::symbol{"securityDomain"} in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 41
+6.
+[Mon Nov 18 10:49:04 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 429.
+[Mon Nov 18 10:49:04 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 429.
+[Mon Nov 18 10:49:04 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 449.
+[Mon Nov 18 10:49:04 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 450.
+[Mon Nov 18 10:49:04 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 451.
+[Mon Nov 18 10:49:04 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 452.
+[Mon Nov 18 10:49:04 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 453.
+[Mon Nov 18 10:49:04 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 497.
+[Mon Nov 18 10:49:04 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 429.
+[Mon Nov 18 10:49:04.433811 2013] [:info] [pid 1344:tid 139785221900032] Connection to child 20 closed (server ra1.srv.example.com:12890, client 127.0.0.1)
+[Mon Nov 18 10:49:09.465974 2013] [:info] [pid 1344:tid 139785453569792] Connection to child 1 established (server ra1.srv.example.com:12890, client 127.0.0.1)
+[Mon Nov 18 10:49:09.506721 2013] [:info] [pid 1344:tid 139785453569792] Initial (No.1) HTTPS request received for child 1 (server ra1.srv.example.com:12890)
+[Mon Nov 18 10:49:09.506828 2013] [authz_core:debug] [pid 1344:tid 139785453569792] mod_authz_core.c(802): [client 127.0.0.1:50129] AH01626: authorization result of Require all granted
+: granted
+[Mon Nov 18 10:49:09.506846 2013] [authz_core:debug] [pid 1344:tid 139785453569792] mod_authz_core.c(802): [client 127.0.0.1:50129] AH01626: authorization result of <RequireAny>: grant
+ed
+[Mon Nov 18 10:49:09 2013] -e: Use of uninitialized value $host in string eq at /var/lib/pki-ra/lib/perl/PKI/RA/CAInfoPanel.pm line 116.
+[Mon Nov 18 10:49:09 2013] -e: Use of uninitialized value $host in string eq at /var/lib/pki-ra/lib/perl/PKI/RA/CAInfoPanel.pm line 186.
+[Mon Nov 18 10:49:09 2013] -e: Use of uninitialized value $PKI::RA::Wizard::symbol{"securityDomain"} in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 41
+6.
+[Mon Nov 18 10:49:09 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 429.
+[Mon Nov 18 10:49:09 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 429.
+[Mon Nov 18 10:49:09 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 449.
+[Mon Nov 18 10:49:09 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 450.
+[Mon Nov 18 10:49:09 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 451.
+[Mon Nov 18 10:49:09 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 452.
+[Mon Nov 18 10:49:09 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 453.
+[Mon Nov 18 10:49:09 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 497.
+[Mon Nov 18 10:49:09 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 429.
+[Mon Nov 18 10:49:09.688204 2013] [:info] [pid 1344:tid 139785453569792] Connection to child 1 closed (server ra1.srv.example.com:12890, client 127.0.0.1)
+[Mon Nov 18 10:49:14.698088 2013] [:info] [pid 1344:tid 139785121187584] Connection to child 32 established (server ra1.srv.example.com:12890, client 127.0.0.1)
+[Mon Nov 18 10:49:14.738754 2013] [:info] [pid 1344:tid 139785121187584] Initial (No.1) HTTPS request received for child 32 (server ra1.srv.example.com:12890)
+[Mon Nov 18 10:49:14.738831 2013] [authz_core:debug] [pid 1344:tid 139785121187584] mod_authz_core.c(802): [client 127.0.0.1:50130] AH01626: authorization result of Require all granted
+: granted
+[Mon Nov 18 10:49:14.738844 2013] [authz_core:debug] [pid 1344:tid 139785121187584] mod_authz_core.c(802): [client 127.0.0.1:50130] AH01626: authorization result of <RequireAny>: grant
+ed
+[Mon Nov 18 10:49:14 2013] -e: DBD::SQLite::db do failed: table requests already exists at /var/lib/pki-ra/lib/perl/PKI/RA/DatabasePanel.pm line 88, <F> line 23.
+[Mon Nov 18 10:49:14 2013] -e: DBD::SQLite::db do failed: table users already exists at /var/lib/pki-ra/lib/perl/PKI/RA/DatabasePanel.pm line 88, <F> line 24.
+[Mon Nov 18 10:49:14 2013] -e: DBD::SQLite::db do failed: table groups already exists at /var/lib/pki-ra/lib/perl/PKI/RA/DatabasePanel.pm line 88, <F> line 25.
+[Mon Nov 18 10:49:14 2013] -e: DBD::SQLite::db do failed: table roles already exists at /var/lib/pki-ra/lib/perl/PKI/RA/DatabasePanel.pm line 88, <F> line 26.
+[Mon Nov 18 10:49:14 2013] -e: DBD::SQLite::db do failed: table pins already exists at /var/lib/pki-ra/lib/perl/PKI/RA/DatabasePanel.pm line 88, <F> line 27.
+[Mon Nov 18 10:49:14 2013] -e: DBD::SQLite::db do failed: table certificates already exists at /var/lib/pki-ra/lib/perl/PKI/RA/DatabasePanel.pm line 88, <F> line 28.
+[Mon Nov 18 10:49:14 2013] -e: Use of uninitialized value $pwd in string ne at /var/lib/pki-ra/lib/perl/PKI/RA/ModulePanel.pm line 148.
+[Mon Nov 18 10:49:14 2013] -e: Use of uninitialized value $file in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/ModulePanel.pm line 214.
+[Mon Nov 18 10:49:14 2013] -e: Use of uninitialized value $name in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/ModulePanel.pm line 231.
+[Mon Nov 18 10:49:14 2013] -e: Use of uninitialized value $file in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/ModulePanel.pm line 214.
+[Mon Nov 18 10:49:14 2013] -e: Use of uninitialized value $name in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/ModulePanel.pm line 231.
+[Mon Nov 18 10:49:14 2013] -e: Use of uninitialized value $PKI::RA::Wizard::symbol{"securityDomain"} in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 41
+6.
+[Mon Nov 18 10:49:14 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 429.
+[Mon Nov 18 10:49:14 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 429.
+[Mon Nov 18 10:49:14 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 449.
+[Mon Nov 18 10:49:14 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 450.
+[Mon Nov 18 10:49:14 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 451.
+[Mon Nov 18 10:49:14 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 452.
+[Mon Nov 18 10:49:14 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 453.
+[Mon Nov 18 10:49:14 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 497.
+[Mon Nov 18 10:49:14 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 429.
+[Mon Nov 18 10:49:14.982697 2013] [:info] [pid 1344:tid 139785121187584] Connection to child 32 closed (server ra1.srv.example.com:12890, client 127.0.0.1)
+[Mon Nov 18 10:49:19.995714 2013] [:info] [pid 1344:tid 139785112794880] Connection to child 33 established (server ra1.srv.example.com:12890, client 127.0.0.1)
+[Mon Nov 18 10:49:20.036717 2013] [:info] [pid 1344:tid 139785112794880] Initial (No.1) HTTPS request received for child 33 (server ra1.srv.example.com:12890)
+[Mon Nov 18 10:49:20.036794 2013] [authz_core:debug] [pid 1344:tid 139785112794880] mod_authz_core.c(802): [client 127.0.0.1:50131] AH01626: authorization result of Require all granted
+: granted
+[Mon Nov 18 10:49:20.036807 2013] [authz_core:debug] [pid 1344:tid 139785112794880] mod_authz_core.c(802): [client 127.0.0.1:50131] AH01626: authorization result of <RequireAny>: grant
+ed
+[Mon Nov 18 10:49:20 2013] -e: Use of uninitialized value $domain_name in string eq at /var/lib/pki-ra/lib/perl/PKI/RA/SizePanel.pm line 180.
+[Mon Nov 18 10:49:20 2013] -e: Use of uninitialized value $PKI::RA::Wizard::symbol{"securityDomain"} in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 41
+6.
+[Mon Nov 18 10:49:20 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 429.
+[Mon Nov 18 10:49:20 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 429.
+[Mon Nov 18 10:49:20 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 449.
+[Mon Nov 18 10:49:20 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 450.
+[Mon Nov 18 10:49:20 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 451.
+[Mon Nov 18 10:49:20 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 452.
+[Mon Nov 18 10:49:20 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 453.
+[Mon Nov 18 10:49:20 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 497.
+[Mon Nov 18 10:49:20 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 429.
+[Mon Nov 18 10:49:20.234459 2013] [:info] [pid 1344:tid 139785112794880] Connection to child 33 closed (server ra1.srv.example.com:12890, client 127.0.0.1)
+[Mon Nov 18 10:49:25.244099 2013] [:info] [pid 1344:tid 139785104402176] Connection to child 34 established (server ra1.srv.example.com:12890, client 127.0.0.1)
+[Mon Nov 18 10:49:25.285786 2013] [:info] [pid 1344:tid 139785104402176] Initial (No.1) HTTPS request received for child 34 (server ra1.srv.example.com:12890)
+[Mon Nov 18 10:49:25.285893 2013] [authz_core:debug] [pid 1344:tid 139785104402176] mod_authz_core.c(802): [client 127.0.0.1:50132] AH01626: authorization result of Require all granted
+: granted
+[Mon Nov 18 10:49:25.285912 2013] [authz_core:debug] [pid 1344:tid 139785104402176] mod_authz_core.c(802): [client 127.0.0.1:50132] AH01626: authorization result of <RequireAny>: grant
+ed
+[Mon Nov 18 10:49:25 2013] -e: Use of uninitialized value $genKeyPair in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/SizePanel.pm line 80.
+[Mon Nov 18 10:49:25 2013] -e: Use of uninitialized value $genKeyPair in string eq at /var/lib/pki-ra/lib/perl/PKI/RA/SizePanel.pm line 82.
+[Mon Nov 18 10:49:25 2013] -e: Use of uninitialized value $domain_name in string eq at /var/lib/pki-ra/lib/perl/PKI/RA/NamePanel.pm line 432.
+[Mon Nov 18 10:49:25 2013] -e: Use of uninitialized value $host in string eq at /var/lib/pki-ra/lib/perl/PKI/RA/NamePanel.pm line 483.
+[Mon Nov 18 10:49:25 2013] -e: Use of uninitialized value $PKI::RA::Wizard::symbol{"securityDomain"} in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 41
+6.
+[Mon Nov 18 10:49:25 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 429.
+[Mon Nov 18 10:49:25 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 429.
+[Mon Nov 18 10:49:25 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 449.
+[Mon Nov 18 10:49:25 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 450.
+[Mon Nov 18 10:49:25 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 451.
+[Mon Nov 18 10:49:25 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 452.
+[Mon Nov 18 10:49:25 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 453.
+[Mon Nov 18 10:49:25 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 497.
+[Mon Nov 18 10:49:25.538987 2013] [:info] [pid 1344:tid 139785104402176] Connection to child 34 closed (server ra1.srv.example.com:12890, client 127.0.0.1)
+[Mon Nov 18 10:49:30.567753 2013] [:info] [pid 1344:tid 139785096009472] Connection to child 35 established (server ra1.srv.example.com:12890, client 127.0.0.1)
+[Mon Nov 18 10:49:30.608720 2013] [:info] [pid 1344:tid 139785096009472] Initial (No.1) HTTPS request received for child 35 (server ra1.srv.example.com:12890)
+[Mon Nov 18 10:49:30.608828 2013] [authz_core:debug] [pid 1344:tid 139785096009472] mod_authz_core.c(802): [client 127.0.0.1:50133] AH01626: authorization result of Require all granted
+: granted
+[Mon Nov 18 10:49:30.608849 2013] [authz_core:debug] [pid 1344:tid 139785096009472] mod_authz_core.c(802): [client 127.0.0.1:50133] AH01626: authorization result of <RequireAny>: grant
+ed
+[Mon Nov 18 10:49:30 2013] -e: Use of uninitialized value $host in string eq at /var/lib/pki-ra/lib/perl/PKI/RA/NamePanel.pm line 99.
+[Mon Nov 18 10:49:30 2013] -e: Use of uninitialized value $host in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/NamePanel.pm line 108.
+[Mon Nov 18 10:49:30.724677 2013] [perl:error] [pid 1344:tid 139785096009472] [client 127.0.0.1:50133] Can't locate object method "host" via package "URI::_generic" at /usr/share/perl5
+/URI/WithBase.pm line 50.\n
+[Mon Nov 18 10:49:30.728795 2013] [:info] [pid 1344:tid 139785096009472] Connection to child 35 closed (server ra1.srv.example.com:12890, client 127.0.0.1)
+[Mon Nov 18 10:49:35.773016 2013] [:info] [pid 1344:tid 139785087616768] Connection to child 36 established (server ra1.srv.example.com:12890, client 127.0.0.1)
+[Mon Nov 18 10:49:35.813743 2013] [:info] [pid 1344:tid 139785087616768] Initial (No.1) HTTPS request received for child 36 (server ra1.srv.example.com:12890)
+[Mon Nov 18 10:49:35.813837 2013] [authz_core:debug] [pid 1344:tid 139785087616768] mod_authz_core.c(802): [client 127.0.0.1:50134] AH01626: authorization result of Require all granted
+: granted
+[Mon Nov 18 10:49:35.813854 2013] [authz_core:debug] [pid 1344:tid 139785087616768] mod_authz_core.c(802): [client 127.0.0.1:50134] AH01626: authorization result of <RequireAny>: grant
+ed
+[Mon Nov 18 10:49:35 2013] -e: Use of uninitialized value $PKI::RA::Wizard::symbol{"securityDomain"} in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 41
+6.
+[Mon Nov 18 10:49:36 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 429.
+[Mon Nov 18 10:49:36 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 429.
+[Mon Nov 18 10:49:36 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 449.
+[Mon Nov 18 10:49:36 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 450.
+[Mon Nov 18 10:49:36 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 451.
+[Mon Nov 18 10:49:36 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 452.
+[Mon Nov 18 10:49:36 2013] -e: Use of uninitialized value $v in substitution (s///) at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 453.
+[Mon Nov 18 10:49:36 2013] -e: Use of uninitialized value in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/wizard.pm line 497.
+[Mon Nov 18 10:49:36.028351 2013] [:info] [pid 1344:tid 139785087616768] Connection to child 36 closed (server ra1.srv.example.com:12890, client 127.0.0.1)
+[Mon Nov 18 10:49:49.331643 2013] [:info] [pid 1344:tid 139785079224064] Connection to child 37 established (server ra1.srv.example.com:12890, client 127.0.0.1)
+[Mon Nov 18 10:49:49.371744 2013] [:info] [pid 1344:tid 139785079224064] Initial (No.1) HTTPS request received for child 37 (server ra1.srv.example.com:12890)
+[Mon Nov 18 10:49:49.371842 2013] [authz_core:debug] [pid 1344:tid 139785079224064] mod_authz_core.c(802): [client 127.0.0.1:50135] AH01626: authorization result of Require all granted
+: granted
+[Mon Nov 18 10:49:49.371860 2013] [authz_core:debug] [pid 1344:tid 139785079224064] mod_authz_core.c(802): [client 127.0.0.1:50135] AH01626: authorization result of <RequireAny>: grant
+ed
+[Mon Nov 18 10:49:49 2013] -e: Use of uninitialized value $cainfo in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/AdminPanel.pm line 102.
+[Mon Nov 18 10:49:49 2013] -e: Use of uninitialized value $cainfo in concatenation (.) or string at /var/lib/pki-ra/lib/perl/PKI/RA/AdminPanel.pm line 104.
+[Mon Nov 18 10:49:49.494101 2013] [perl:error] [pid 1344:tid 139785079224064] [client 127.0.0.1:50135] Can't locate object method "host" via package "URI::_generic" at /usr/share/perl5
+/URI/WithBase.pm line 50.\n
+[Mon Nov 18 10:49:49.498757 2013] [:info] [pid 1344:tid 139785079224064] Connection to child 37 closed (server ra1.srv.example.com:12890, client 127.0.0.1)
+
+
+
+
+
+
+
+
+
+
+And the debug output....
+
+
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard: in handler
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard: in handler
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard: uri='/ra/admin/console/config/wizard'
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard: http parameter name='p' value='0'
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard: http parameter name='op' value='next'
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard: http parameter name='xml' value='true'
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard: before argparsing
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard: setting up test objects
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard: found 2 certtags
+Mon Nov 18 10:48:33 GMT 2013 - WelcomePanel: update
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard: update returns status '1'
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard: about to find out about sub panel
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard: no sub panel and is not subpanel
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard: after looking into about sub panel
+Mon Nov 18 10:48:33 GMT 2013 - SecurityPanel: display
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard: executing file ra/admin/console/config/wizard.vm
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_email}=
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_name}=RA Administrator
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_pwd}=
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_pwd_again}=
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_uid}=admin
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{certs}=ARRAY(0x7f2265d1e958)
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{check_clonesubsystem}=
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{check_newsubsystem}=
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{csstate}=1
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{custom_size}=4096
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{dbg}=
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{defTok}=NSS Certificate DB
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{default_ecc_keysize}=256
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{default_keysize}=4096
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{disableClone}=1
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{errorString}=
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{firstpanel}=0
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{firsttime}=false
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{fullsystemname}=Registration Authority
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{http_port}=12888
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{https_port}=12889
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{import}=true
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{instanceID}=&lt;security_domain_instance_name&gt;
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{lastpanel}=0
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{machineName}=localhost
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{name}=Registration Authority
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{non_clientauth_https_port}=12890
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{oms}=ARRAY(0x7f2265b06aa8)
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{p}=1
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panel}=ra/admin/console/config/securitydomainpanel.vm
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panelname}=Security Domain
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panels}=ARRAY(0x7f2265aac3f8)
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{pn}=PKI::RA::DonePanel=HASH(0x7f2265b662c8)
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{ppcerts}=ARRAY(0x7f22180a1eb8)
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{productversion}=10.0.6
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{redirect}=https://ca1.srv.example.com:8443/ca/admin/ca/securityDomainLog
+in?url=https%3A%2F%2Fra1.srv.example.com%3A12890%2Fra%2Fadmin%2Fconsole%2Fconfig%2Fwizard%3Fp%3D3%26subsystem%3DRA
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainAdminURL}=https://ra1.srv.example.com:9445
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainName}=Security Domain
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainURL}=
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{securityDomain}=
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{select}=custom
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{showApplyButton}=false
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sms}=ARRAY(0x7f2265b072a0)
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{statusCommand}=systemctl status pki-tomcatd@&lt;security_domain_instance_name
+&gt;.service
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{subpanelno}=2
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{subsystemName}=Registration Authority
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{systemname}=Registration Authority
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{title}=Security Domain
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{urls}=ARRAY(0x7f2214143878)
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{urls_size}=2
+Mon Nov 18 10:48:33 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{wizardname}=RA Configuration Wizard
+Mon Nov 18 10:48:33 GMT 2013 - CertInfo: get_cert_dn
+Mon Nov 18 10:48:33 GMT 2013 - CertInfo: get_cert_tag
+Mon Nov 18 10:48:33 GMT 2013 - CertInfo: get_user_friendly_name
+Mon Nov 18 10:48:33 GMT 2013 - CertInfo: get_cert_dn
+Mon Nov 18 10:48:33 GMT 2013 - CertInfo: get_cert_tag
+Mon Nov 18 10:48:33 GMT 2013 - CertInfo: get_user_friendly_name
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard: in handler
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard: uri='/ra/admin/console/config/wizard'
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard: http parameter name='p' value='1'
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard: http parameter name='choice' value='existingdomain'
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard: http parameter name='sdomainURL' value='https://ca1.srv.example.com:8443'
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard: http parameter name='op' value='next'
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard: http parameter name='xml' value='true'
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard: before argparsing
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard: setting up test objects
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard: found 2 certtags
+Mon Nov 18 10:48:38 GMT 2013 - SecurityPanel: update
+Mon Nov 18 10:48:38 GMT 2013 - SecurityPanel: sdomainURL not found
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard: update returns status '0'
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard: about to find out about sub panel
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard: after looking into about sub panel
+Mon Nov 18 10:48:38 GMT 2013 - SecurityPanel: display
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard: executing file ra/admin/console/config/wizard.vm
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_email}=
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_name}=RA Administrator
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_pwd}=
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_pwd_again}=
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_uid}=admin
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{certs}=ARRAY(0x7f2265d1e958)
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{check_clonesubsystem}=
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{check_newsubsystem}=
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{csstate}=1
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{custom_size}=4096
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{dbg}=
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{defTok}=NSS Certificate DB
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{default_ecc_keysize}=256
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{default_keysize}=4096
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{disableClone}=1
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{errorString}=Security Domain HTTPS Admin URL not found
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{firstpanel}=0
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{firsttime}=false
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{fullsystemname}=Registration Authority
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{http_port}=12888
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{https_port}=12889
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{import}=true
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{instanceID}=&lt;security_domain_instance_name&gt;
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{lastpanel}=0
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{machineName}=localhost
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{name}=Registration Authority
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{non_clientauth_https_port}=12890
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{oms}=ARRAY(0x7f2265b06aa8)
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{p}=1
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panel}=ra/admin/console/config/securitydomainpanel.vm
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panelname}=Security Domain
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panels}=ARRAY(0x7f2265aac3f8)
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{pn}=PKI::RA::DonePanel=HASH(0x7f2265b662c8)
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{ppcerts}=ARRAY(0x7f22180a27b8)
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{productversion}=10.0.6
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{redirect}=https://ca1.srv.example.com:8443/ca/admin/ca/securityDomainLog
+in?url=https%3A%2F%2Fra1.srv.example.com%3A12890%2Fra%2Fadmin%2Fconsole%2Fconfig%2Fwizard%3Fp%3D3%26subsystem%3DRA
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainAdminURL}=https://ra1.srv.example.com:9445
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainName}=Security Domain
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainURL}=
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{securityDomain}=
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{select}=custom
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{showApplyButton}=false
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sms}=ARRAY(0x7f2265b072a0)
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{statusCommand}=systemctl status pki-tomcatd@&lt;security_domain_instance_name
+&gt;.service
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{subpanelno}=2
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{subsystemName}=Registration Authority
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{systemname}=Registration Authority
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{title}=Security Domain
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{urls}=ARRAY(0x7f2214143878)
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{urls_size}=2
+Mon Nov 18 10:48:38 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{wizardname}=RA Configuration Wizard
+Mon Nov 18 10:48:38 GMT 2013 - CertInfo: get_cert_dn
+Mon Nov 18 10:48:38 GMT 2013 - CertInfo: get_cert_tag
+Mon Nov 18 10:48:38 GMT 2013 - CertInfo: get_user_friendly_name
+Mon Nov 18 10:48:38 GMT 2013 - CertInfo: get_cert_dn
+Mon Nov 18 10:48:38 GMT 2013 - CertInfo: get_cert_tag
+Mon Nov 18 10:48:38 GMT 2013 - CertInfo: get_user_friendly_name
+Mon Nov 18 10:48:43 GMT 2013 - RA wizard: in handler
+Mon Nov 18 10:48:43 GMT 2013 - RA wizard: uri='/ra/admin/console/config/wizard'
+Mon Nov 18 10:48:43 GMT 2013 - RA wizard: http parameter name='p' value='2'
+Mon Nov 18 10:48:43 GMT 2013 - RA wizard: http parameter name='op' value='next'
+Mon Nov 18 10:48:43 GMT 2013 - RA wizard: http parameter name='xml' value='true'
+Mon Nov 18 10:48:43 GMT 2013 - RA wizard: before argparsing
+Mon Nov 18 10:48:43 GMT 2013 - RA wizard: setting up test objects
+Mon Nov 18 10:48:43 GMT 2013 - RA wizard: found 2 certtags
+Mon Nov 18 10:48:43 GMT 2013 - DisplayCertChainPanel: update
+Mon Nov 18 10:48:43 GMT 2013 - content =
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard: in handler
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard: uri='/ra/admin/console/config/wizard'
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard: http parameter name='p' value='3'
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard: http parameter name='subsystem' value='RA'
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard: http parameter name='session_id' value='-7414022536813528767'
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard: http parameter name='xml' value='true'
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard: before argparsing
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard: setting up test objects
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard: found 2 certtags
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard: after looking into about sub panel
+Mon Nov 18 10:48:54 GMT 2013 - SubsystemTypePanel: display
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard: executing file ra/admin/console/config/wizard.vm
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_email}=
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_name}=RA Administrator
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_pwd}=
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_pwd_again}=
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_uid}=admin
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{certs}=ARRAY(0x7f2265d1e958)
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{check_clonesubsystem}=
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{check_newsubsystem}=checked
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{csstate}=1
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{custom_size}=4096
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{dbg}=
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{defTok}=NSS Certificate DB
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{default_ecc_keysize}=256
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{default_keysize}=4096
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{disableClone}=1
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{errorString}=
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{firstpanel}=0
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{firsttime}=false
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{fullsystemname}=Registration Authority
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{http_port}=12888
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{https_port}=12889
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{import}=true
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{instanceID}=&lt;security_domain_instance_name&gt;
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{lastpanel}=0
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{machineName}=ra1.srv.example.com
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{name}=Registration Authority
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{non_clientauth_https_port}=12890
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{oms}=ARRAY(0x7f2265b06aa8)
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{p}=3
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panel}=ra/admin/console/config/createsubsystempanel.vm
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panelname}=Security Domain
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panels}=ARRAY(0x7f2265aac3f8)
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{pn}=PKI::RA::DonePanel=HASH(0x7f2265b662c8)
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{ppcerts}=ARRAY(0x7f22180a2788)
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{productversion}=10.0.6
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{redirect}=https://ca1.srv.example.com:8443/ca/admin/ca/securityDomainLog
+in?url=https%3A%2F%2Fra1.srv.example.com%3A12890%2Fra%2Fadmin%2Fconsole%2Fconfig%2Fwizard%3Fp%3D3%26subsystem%3DRA
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainAdminURL}=https://ra1.srv.example.com:9445
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainName}=Security Domain
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainURL}=
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{securityDomain}=
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{select}=custom
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{showApplyButton}=false
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sms}=ARRAY(0x7f2265b072a0)
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{statusCommand}=systemctl status pki-tomcatd@&lt;security_domain_instance_name
+&gt;.service
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{subpanelno}=4
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{subsystemName}=Registration Authority
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{systemname}=Registration Authority
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{title}=Subsystem Type
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{urls}=ARRAY(0x7f22180a27d0)
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{urls_size}=0
+Mon Nov 18 10:48:54 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{wizardname}=RA Configuration Wizard
+Mon Nov 18 10:48:54 GMT 2013 - CertInfo: get_cert_dn
+Mon Nov 18 10:48:54 GMT 2013 - CertInfo: get_cert_tag
+Mon Nov 18 10:48:54 GMT 2013 - CertInfo: get_user_friendly_name
+Mon Nov 18 10:48:54 GMT 2013 - CertInfo: get_cert_dn
+Mon Nov 18 10:48:54 GMT 2013 - CertInfo: get_cert_tag
+Mon Nov 18 10:48:54 GMT 2013 - CertInfo: get_user_friendly_name
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard: in handler
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard: uri='/ra/admin/console/config/wizard'
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard: http parameter name='p' value='3'
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard: http parameter name='choice' value='newsubsystem'
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard: http parameter name='subsystemName' value='ra1\ subsystem'
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard: http parameter name='op' value='next'
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard: http parameter name='xml' value='true'
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard: before argparsing
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard: setting up test objects
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard: found 2 certtags
+Mon Nov 18 10:49:04 GMT 2013 - SubsystemTypePanel: update
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard: update returns status '1'
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard: about to find out about sub panel
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard: no sub panel and is not subpanel
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard: after looking into about sub panel
+Mon Nov 18 10:49:04 GMT 2013 - CAInfoPanel: display
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard: executing file ra/admin/console/config/wizard.vm
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_email}=
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_name}=RA Administrator
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_pwd}=
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_pwd_again}=
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_uid}=admin
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{certs}=ARRAY(0x7f2265d1e958)
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{check_clonesubsystem}=
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{check_newsubsystem}=
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{csstate}=1
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{custom_size}=4096
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{dbg}=
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{defTok}=NSS Certificate DB
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{default_ecc_keysize}=256
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{default_keysize}=4096
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{disableClone}=1
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{errorString}=no CA found. CA, TKS, and optionally DRM must be installed prior
+ to RA installation
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{firstpanel}=0
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{firsttime}=false
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{fullsystemname}=Registration Authority
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{http_port}=12888
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{https_port}=12889
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{import}=true
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{instanceID}=&lt;security_domain_instance_name&gt;
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{lastpanel}=0
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{machineName}=localhost
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{name}=Registration Authority
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{non_clientauth_https_port}=12890
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{oms}=ARRAY(0x7f2265b06aa8)
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{p}=4
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panel}=ra/admin/console/config/cainfopanel.vm
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panelname}=Security Domain
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panels}=ARRAY(0x7f2265aac3f8)
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{pn}=PKI::RA::DonePanel=HASH(0x7f2265b662c8)
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{ppcerts}=ARRAY(0x7f22180a2848)
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{productversion}=10.0.6
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{redirect}=https://ca1.srv.example.com:8443/ca/admin/ca/securityDomainLog
+in?url=https%3A%2F%2Fra1.srv.example.com%3A12890%2Fra%2Fadmin%2Fconsole%2Fconfig%2Fwizard%3Fp%3D3%26subsystem%3DRA
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainAdminURL}=https://ra1.srv.example.com:9445
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainName}=Security Domain
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainURL}=
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{securityDomain}=
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{select}=custom
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{showApplyButton}=false
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sms}=ARRAY(0x7f2265b072a0)
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{statusCommand}=systemctl status pki-tomcatd@&lt;security_domain_instance_name
+&gt;.service
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{subpanelno}=5
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{subsystemName}=Registration Authority
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{systemname}=Registration Authority
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{title}=CA Information
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{urls}=ARRAY(0x7f2265a4b7c0)
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{urls_size}=0
+Mon Nov 18 10:49:04 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{wizardname}=RA Configuration Wizard
+Mon Nov 18 10:49:04 GMT 2013 - CertInfo: get_cert_dn
+Mon Nov 18 10:49:04 GMT 2013 - CertInfo: get_cert_tag
+Mon Nov 18 10:49:04 GMT 2013 - CertInfo: get_user_friendly_name
+Mon Nov 18 10:49:04 GMT 2013 - CertInfo: get_cert_dn
+Mon Nov 18 10:49:04 GMT 2013 - CertInfo: get_cert_tag
+Mon Nov 18 10:49:04 GMT 2013 - CertInfo: get_user_friendly_name
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard: in handler
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard: uri='/ra/admin/console/config/wizard'
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard: http parameter name='p' value='4'
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard: http parameter name='urls' value='0'
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard: http parameter name='op' value='next'
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard: http parameter name='xml' value='true'
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard: before argparsing
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard: setting up test objects
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard: found 2 certtags
+Mon Nov 18 10:49:09 GMT 2013 - CAInfoPanel: update
+Mon Nov 18 10:49:09 GMT 2013 - CAInfoPanel: update - got urls = 0
+Mon Nov 18 10:49:09 GMT 2013 - CAInfoPanel: update - selected ca= 0
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard: update returns status '0'
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard: about to find out about sub panel
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard: after looking into about sub panel
+Mon Nov 18 10:49:09 GMT 2013 - CAInfoPanel: display
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard: executing file ra/admin/console/config/wizard.vm
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_email}=
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_name}=RA Administrator
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_pwd}=
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_pwd_again}=
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_uid}=admin
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{certs}=ARRAY(0x7f2265d1e958)
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{check_clonesubsystem}=
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{check_newsubsystem}=
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{csstate}=1
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{custom_size}=4096
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{dbg}=
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{defTok}=NSS Certificate DB
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{default_ecc_keysize}=256
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{default_keysize}=4096
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{disableClone}=1
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{errorString}=no CA found. CA, TKS, and optionally DRM must be installed prior
+ to RA installation
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{firstpanel}=0
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{firsttime}=false
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{fullsystemname}=Registration Authority
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{http_port}=12888
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{https_port}=12889
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{import}=true
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{instanceID}=&lt;security_domain_instance_name&gt;
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{lastpanel}=0
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{machineName}=localhost
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{name}=Registration Authority
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{non_clientauth_https_port}=12890
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{oms}=ARRAY(0x7f2265b06aa8)
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{p}=4
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panel}=ra/admin/console/config/cainfopanel.vm
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panelname}=Security Domain
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panels}=ARRAY(0x7f2265aac3f8)
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{pn}=PKI::RA::DonePanel=HASH(0x7f2265b662c8)
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{ppcerts}=ARRAY(0x7f22140bf3f8)
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{productversion}=10.0.6
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{redirect}=https://ca1.srv.example.com:8443/ca/admin/ca/securityDomainLog
+in?url=https%3A%2F%2Fra1.srv.example.com%3A12890%2Fra%2Fadmin%2Fconsole%2Fconfig%2Fwizard%3Fp%3D3%26subsystem%3DRA
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainAdminURL}=https://ra1.srv.example.com:9445
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainName}=Security Domain
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainURL}=
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{securityDomain}=
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{select}=custom
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{showApplyButton}=false
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sms}=ARRAY(0x7f2265b072a0)
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{statusCommand}=systemctl status pki-tomcatd@&lt;security_domain_instance_name
+&gt;.service
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{subpanelno}=5
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{subsystemName}=Registration Authority
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{systemname}=Registration Authority
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{title}=CA Information
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{urls}=ARRAY(0x7f22180a2080)
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{urls_size}=0
+Mon Nov 18 10:49:09 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{wizardname}=RA Configuration Wizard
+Mon Nov 18 10:49:09 GMT 2013 - CertInfo: get_cert_dn
+Mon Nov 18 10:49:09 GMT 2013 - CertInfo: get_cert_tag
+Mon Nov 18 10:49:09 GMT 2013 - CertInfo: get_user_friendly_name
+Mon Nov 18 10:49:09 GMT 2013 - CertInfo: get_cert_dn
+Mon Nov 18 10:49:09 GMT 2013 - CertInfo: get_cert_tag
+Mon Nov 18 10:49:09 GMT 2013 - CertInfo: get_user_friendly_name
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard: in handler
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard: uri='/ra/admin/console/config/wizard'
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard: http parameter name='p' value='5'
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard: http parameter name='op' value='next'
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard: http parameter name='xml' value='true'
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard: before argparsing
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard: setting up test objects
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard: found 2 certtags
+Mon Nov 18 10:49:14 GMT 2013 - DatabasePanel: update
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard: update returns status '1'
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard: about to find out about sub panel
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard: no sub panel and is not subpanel
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard: after looking into about sub panel
+Mon Nov 18 10:49:14 GMT 2013 - ModulePanel -> display
+Mon Nov 18 10:49:14 GMT 2013 - ModulePanel -> getModules
+Mon Nov 18 10:49:14 GMT 2013 - ModulePanel -> getModules count =3
+Mon Nov 18 10:49:14 GMT 2013 - ModulePanel -> getModules: got module NSS Internal PKCS #11 Module from config
+Mon Nov 18 10:49:14 GMT 2013 - ModulePanel -> getModules Library file = **Internal ONLY module**
+Mon Nov 18 10:49:14 GMT 2013 - Ready to login to tokens for NSS Internal PKCS #11 Module
+Mon Nov 18 10:49:14 GMT 2013 - Logging in Module NSS Internal PKCS #11 Module Token NSS Generic Crypto Services
+Mon Nov 18 10:49:14 GMT 2013 - ModulePanel -> isLoggedIn pwd not found from pwdconf for token: NSS Generic Crypto Services
+Mon Nov 18 10:49:14 GMT 2013 - Logging in Module NSS Internal PKCS #11 Module Token NSS Certificate DB
+Mon Nov 18 10:49:14 GMT 2013 - ModulePanel -> isLoggedIn retrieved pwd from pwdconf
+Mon Nov 18 10:49:14 GMT 2013 - ModulePanel -> getModules: got module nfast from config
+Mon Nov 18 10:49:14 GMT 2013 - ModulePanel -> getModules Library file =
+Mon Nov 18 10:49:14 GMT 2013 - Ready to login to tokens for
+Mon Nov 18 10:49:14 GMT 2013 - ModulePanel -> getModules: got module lunasa from config
+Mon Nov 18 10:49:14 GMT 2013 - ModulePanel -> getModules Library file =
+Mon Nov 18 10:49:14 GMT 2013 - Ready to login to tokens for
+Mon Nov 18 10:49:14 GMT 2013 - ModulePanel -> getModules: found module NSS Internal PKCS #11 Module supported
+Mon Nov 18 10:49:14 GMT 2013 - ModulePanel -> set sms, oms
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard: executing file ra/admin/console/config/wizard.vm
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_email}=
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_name}=RA Administrator
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_pwd}=
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_pwd_again}=
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_uid}=admin
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{certs}=ARRAY(0x7f2265d1e958)
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{check_clonesubsystem}=
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{check_newsubsystem}=
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{csstate}=1
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{custom_size}=4096
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{dbg}=
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{defTok}=NSS Certificate DB
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{default_ecc_keysize}=256
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{default_keysize}=4096
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{disableClone}=1
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{errorString}=
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{firstpanel}=0
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{firsttime}=false
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{fullsystemname}=Registration Authority
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{http_port}=12888
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{https_port}=12889
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{import}=true
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{instanceID}=&lt;security_domain_instance_name&gt;
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{lastpanel}=0
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{machineName}=localhost
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{name}=Registration Authority
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{non_clientauth_https_port}=12890
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{oms}=ARRAY(0x7f221807ab88)
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{p}=6
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panel}=ra/admin/console/config/modulepanel.vm
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panelname}=Security Domain
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panels}=ARRAY(0x7f2265aac3f8)
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{pn}=PKI::RA::DonePanel=HASH(0x7f2265b662c8)
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{ppcerts}=ARRAY(0x7f22180a28f0)
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{productversion}=10.0.6
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{redirect}=https://ca1.srv.example.com:8443/ca/admin/ca/securityDomainLog
+in?url=https%3A%2F%2Fra1.srv.example.com%3A12890%2Fra%2Fadmin%2Fconsole%2Fconfig%2Fwizard%3Fp%3D3%26subsystem%3DRA
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainAdminURL}=https://ra1.srv.example.com:9445
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainName}=Security Domain
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainURL}=
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{securityDomain}=
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{select}=custom
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{showApplyButton}=false
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sms}=ARRAY(0x7f222c26e8c8)
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{statusCommand}=systemctl status pki-tomcatd@&lt;security_domain_instance_name
+&gt;.service
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{subpanelno}=7
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{subsystemName}=Registration Authority
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{systemname}=Registration Authority
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{title}=Security Modules
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{urls}=ARRAY(0x7f22180a2080)
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{urls_size}=0
+Mon Nov 18 10:49:14 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{wizardname}=RA Configuration Wizard
+Mon Nov 18 10:49:14 GMT 2013 - CertInfo: get_cert_dn
+Mon Nov 18 10:49:14 GMT 2013 - CertInfo: get_cert_tag
+Mon Nov 18 10:49:14 GMT 2013 - CertInfo: get_user_friendly_name
+Mon Nov 18 10:49:14 GMT 2013 - CertInfo: get_cert_dn
+Mon Nov 18 10:49:14 GMT 2013 - CertInfo: get_cert_tag
+Mon Nov 18 10:49:14 GMT 2013 - CertInfo: get_user_friendly_name
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard: in handler
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard: uri='/ra/admin/console/config/wizard'
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard: http parameter name='p' value='6'
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard: http parameter name='choice' value='NSS Certificate DB'
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard: http parameter name='op' value='next'
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard: http parameter name='xml' value='true'
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard: before argparsing
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard: setting up test objects
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard: found 2 certtags
+Mon Nov 18 10:49:20 GMT 2013 - ModulePanel -> update  defTok not changed
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard: update returns status '1'
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard: about to find out about sub panel
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard: has sub panel
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard: after looking into about sub panel
+Mon Nov 18 10:49:20 GMT 2013 - SizePanel: display
+Mon Nov 18 10:49:20 GMT 2013 - SizePanel: display is panel done? true
+Mon Nov 18 10:49:20 GMT 2013 - CertInfo: start new
+Mon Nov 18 10:49:20 GMT 2013 - CertInfo: end new
+Mon Nov 18 10:49:20 GMT 2013 - CertInfo: start new
+Mon Nov 18 10:49:20 GMT 2013 - CertInfo: end new
+Mon Nov 18 10:49:20 GMT 2013 - SizePanel: display keysize select= custom
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard: executing file ra/admin/console/config/wizard.vm
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_email}=
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_name}=RA Administrator
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_pwd}=
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_pwd_again}=
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_uid}=admin
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{certs}=ARRAY(0x7f2265d1e958)
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{check_clonesubsystem}=
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{check_newsubsystem}=
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{csstate}=1
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{custom_size}=4096
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{dbg}=
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{defTok}=NSS Certificate DB
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{default_ecc_keysize}=256
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{default_keysize}=4096
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{disableClone}=1
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{errorString}=
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{firstpanel}=0
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{firsttime}=false
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{fullsystemname}=Registration Authority
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{http_port}=12888
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{https_port}=12889
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{import}=true
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{instanceID}=&lt;security_domain_instance_name&gt;
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{lastpanel}=0
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{machineName}=localhost
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{name}=Registration Authority
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{non_clientauth_https_port}=12890
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{oms}=ARRAY(0x7f221807ab88)
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{p}=8
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panel}=ra/admin/console/config/sizepanel.vm
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panelname}=Security Domain
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panels}=ARRAY(0x7f2265aac3f8)
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{pn}=PKI::RA::DonePanel=HASH(0x7f2265b662c8)
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{ppcerts}=ARRAY(0x7f22140c7e20)
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{productversion}=10.0.6
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{redirect}=https://ca1.srv.example.com:8443/ca/admin/ca/securityDomainLog
+in?url=https%3A%2F%2Fra1.srv.example.com%3A12890%2Fra%2Fadmin%2Fconsole%2Fconfig%2Fwizard%3Fp%3D3%26subsystem%3DRA
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainAdminURL}=https://ra1.srv.example.com:9445
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainName}=Security Domain
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainURL}=
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{securityDomain}=
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{select}=custom
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{showApplyButton}=false
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sms}=ARRAY(0x7f222c26e8c8)
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{statusCommand}=systemctl status pki-tomcatd@&lt;security_domain_instance_name
+&gt;.service
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{subpanelno}=9
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{subsystemName}=Registration Authority
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{systemname}=Registration Authority
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{title}=Key Pairs
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{urls}=ARRAY(0x7f22180a2080)
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{urls_size}=0
+Mon Nov 18 10:49:20 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{wizardname}=RA Configuration Wizard
+Mon Nov 18 10:49:20 GMT 2013 - CertInfo: get_cert_dn
+Mon Nov 18 10:49:20 GMT 2013 - CertInfo: get_cert_tag
+Mon Nov 18 10:49:20 GMT 2013 - CertInfo: get_user_friendly_name
+Mon Nov 18 10:49:20 GMT 2013 - CertInfo: get_cert_dn
+Mon Nov 18 10:49:20 GMT 2013 - CertInfo: get_cert_tag
+Mon Nov 18 10:49:20 GMT 2013 - CertInfo: get_user_friendly_name
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard: in handler
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard: uri='/ra/admin/console/config/wizard'
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard: http parameter name='p' value='8'
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard: http parameter name='keytype' value='rsa'
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard: http parameter name='choice' value='default'
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard: http parameter name='custom_size' value='4096'
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard: http parameter name='sslserver_keytype' value='rsa'
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard: http parameter name='sslserver_choice' value='custom'
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard: http parameter name='sslserver_custom_size' value='4096'
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard: http parameter name='subsystem_keytype' value='rsa'
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard: http parameter name='subsystem_choice' value='custom'
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard: http parameter name='subsystem_custom_size' value='4096'
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard: http parameter name='op' value='next'
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard: http parameter name='xml' value='true'
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard: before argparsing
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard: setting up test objects
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard: found 2 certtags
+Mon Nov 18 10:49:25 GMT 2013 - SizePanel: update
+Mon Nov 18 10:49:25 GMT 2013 - SizePanel: update generateKeyPair value=
+Mon Nov 18 10:49:25 GMT 2013 - SizePanel: update generateKeyPair value not found, turn to off
+Mon Nov 18 10:49:25 GMT 2013 - SizePanel: update sslserver _choice=custom sslserver _keytype=rsa customsize= 4096
+Mon Nov 18 10:49:25 GMT 2013 - SizePanel: update in custom, customsize = 4096
+Mon Nov 18 10:49:25 GMT 2013 - SizePanel: update subsystem _choice=custom subsystem _keytype=rsa customsize= 4096
+Mon Nov 18 10:49:25 GMT 2013 - SizePanel: update in custom, customsize = 4096
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard: update returns status '1'
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard: about to find out about sub panel
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard: no sub panel and is not subpanel
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard: after looking into about sub panel
+Mon Nov 18 10:49:25 GMT 2013 - NamePanel: display
+Mon Nov 18 10:49:25 GMT 2013 - NamePanel: display certtag=sslserver
+Mon Nov 18 10:49:25 GMT 2013 - CertInfo: start new
+Mon Nov 18 10:49:25 GMT 2013 - CertInfo: end new
+Mon Nov 18 10:49:25 GMT 2013 - NamePanel: display certtag=subsystem
+Mon Nov 18 10:49:25 GMT 2013 - CertInfo: start new
+Mon Nov 18 10:49:25 GMT 2013 - CertInfo: end new
+Mon Nov 18 10:49:25 GMT 2013 - NamePanel: getting CA info
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard: executing file ra/admin/console/config/wizard.vm
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_email}=
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_name}=RA Administrator
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_pwd}=
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_pwd_again}=
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_uid}=admin
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{certs}=ARRAY(0x7f2265d1e958)
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{check_clonesubsystem}=
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{check_newsubsystem}=
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{csstate}=1
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{custom_size}=4096
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{dbg}=
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{defTok}=NSS Certificate DB
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{default_ecc_keysize}=256
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{default_keysize}=4096
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{disableClone}=1
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{errorString}=
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{firstpanel}=0
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{firsttime}=false
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{fullsystemname}=Registration Authority
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{http_port}=12888
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{https_port}=12889
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{import}=true
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{instanceID}=&lt;security_domain_instance_name&gt;
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{lastpanel}=0
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{machineName}=localhost
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{name}=Registration Authority
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{non_clientauth_https_port}=12890
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{oms}=ARRAY(0x7f221807ab88)
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{p}=9
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panel}=ra/admin/console/config/namepanel.vm
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panelname}=Security Domain
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panels}=ARRAY(0x7f2265aac3f8)
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{pn}=PKI::RA::DonePanel=HASH(0x7f2265b662c8)
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{ppcerts}=ARRAY(0x7f22180a2080)
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{productversion}=10.0.6
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{redirect}=https://ca1.srv.example.com:8443/ca/admin/ca/securityDomainLog
+in?url=https%3A%2F%2Fra1.srv.example.com%3A12890%2Fra%2Fadmin%2Fconsole%2Fconfig%2Fwizard%3Fp%3D3%26subsystem%3DRA
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainAdminURL}=https://ra1.srv.example.com:9445
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainName}=Security Domain
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainURL}=
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{securityDomain}=
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{select}=custom
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{showApplyButton}=false
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sms}=ARRAY(0x7f222c26e8c8)
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{statusCommand}=systemctl status pki-tomcatd@&lt;security_domain_instance_name
+&gt;.service
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{subpanelno}=10
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{subsystemName}=Registration Authority
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{systemname}=Registration Authority
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{title}=Subject Names
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{urls}=ARRAY(0x7f22180a2a40)
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{urls_size}=2
+Mon Nov 18 10:49:25 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{wizardname}=RA Configuration Wizard
+Mon Nov 18 10:49:25 GMT 2013 - CertInfo: get_cert_dn
+Mon Nov 18 10:49:25 GMT 2013 - CertInfo: get_cert_tag
+Mon Nov 18 10:49:25 GMT 2013 - CertInfo: get_user_friendly_name
+Mon Nov 18 10:49:25 GMT 2013 - CertInfo: get_cert_dn
+Mon Nov 18 10:49:25 GMT 2013 - CertInfo: get_cert_tag
+Mon Nov 18 10:49:25 GMT 2013 - CertInfo: get_user_friendly_name
+Mon Nov 18 10:49:30 GMT 2013 - RA wizard: in handler
+Mon Nov 18 10:49:30 GMT 2013 - RA wizard: uri='/ra/admin/console/config/wizard'
+Mon Nov 18 10:49:30 GMT 2013 - RA wizard: http parameter name='p' value='9'
+Mon Nov 18 10:49:30 GMT 2013 - RA wizard: http parameter name='sslserver' value='cn=ra\ system,o=example'
+Mon Nov 18 10:49:30 GMT 2013 - RA wizard: http parameter name='sslserver_nick' value='ra1_location1_example'
+Mon Nov 18 10:49:30 GMT 2013 - RA wizard: http parameter name='subsystem' value='cn=ra.example.com,o=example'
+Mon Nov 18 10:49:30 GMT 2013 - RA wizard: http parameter name='subsystem_nick' value='ra1_subsystem_location1_cert'
+Mon Nov 18 10:49:30 GMT 2013 - RA wizard: http parameter name='urls' value='0'
+Mon Nov 18 10:49:30 GMT 2013 - RA wizard: http parameter name='op' value='next'
+Mon Nov 18 10:49:30 GMT 2013 - RA wizard: http parameter name='xml' value='true'
+Mon Nov 18 10:49:30 GMT 2013 - RA wizard: before argparsing
+Mon Nov 18 10:49:30 GMT 2013 - RA wizard: setting up test objects
+Mon Nov 18 10:49:30 GMT 2013 - RA wizard: found 2 certtags
+Mon Nov 18 10:49:30 GMT 2013 - NamePanel: update
+Mon Nov 18 10:49:30 GMT 2013 - NamePanel: update - selected ca= 0
+Mon Nov 18 10:49:30 GMT 2013 - NamePanel: update got token name = NSS Certificate DB
+Mon Nov 18 10:49:30 GMT 2013 - NamePanel: update begins for certag= sslserver
+Mon Nov 18 10:49:30 GMT 2013 - NamePanel: update nickname for sslserver set to ra1_location1_example
+Mon Nov 18 10:49:30 GMT 2013 - NamePanel: update nickname for sslserver being updated in config file
+Mon Nov 18 10:49:30 GMT 2013 - NamePanel: update do not generate new keys
+Mon Nov 18 10:49:30 GMT 2013 - NamePanel: update External CA selected
+Mon Nov 18 10:49:30 GMT 2013 - NamePanel: update no cert found...need manual enrollment
+Mon Nov 18 10:49:30 GMT 2013 - NamePanel: update begins for certag= subsystem
+Mon Nov 18 10:49:30 GMT 2013 - NamePanel: update nickname for subsystem set to ra1_subsystem_location1_cert
+Mon Nov 18 10:49:30 GMT 2013 - NamePanel: update nickname for subsystem being updated in config file
+Mon Nov 18 10:49:30 GMT 2013 - NamePanel: update do not generate new keys
+Mon Nov 18 10:49:30 GMT 2013 - NamePanel: update External CA not selected...need automatic enrollment
+Mon Nov 18 10:49:30 GMT 2013 - NamePanel: update found existing request: MII ---REMOVED
+Mon Nov 18 10:49:30 GMT 2013 - NamePanel: greping password
+Mon Nov 18 10:49:30 GMT 2013 - NamePanel: profileId=caInternalAuthSubsystemCert
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard: in handler
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard: uri='/ra/admin/console/config/wizard'
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard: http parameter name='p' value='10'
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard: http parameter name='sslserver' value=''
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard: http parameter name='sslserver_cc' value=''
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard: http parameter name='subsystem' value=''
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard: http parameter name='subsystem_cc' value=''
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard: http parameter name='op' value='next'
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard: http parameter name='xml' value='true'
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard: before argparsing
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard: setting up test objects
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard: found 2 certtags
+Mon Nov 18 10:49:35 GMT 2013 - CertRequestPanel: update
+Mon Nov 18 10:49:35 GMT 2013 - CertRequestPanel: update: useExternalCA is on
+Mon Nov 18 10:49:35 GMT 2013 - CertRequestPanel: update External CA selected, retrieve/process user input
+Mon Nov 18 10:49:35 GMT 2013 - CertRequestPanel: update got token name = NSS Certificate DB
+Mon Nov 18 10:49:35 GMT 2013 - CertRequestPanel: update: for certag= sslserver
+Mon Nov 18 10:49:35 GMT 2013 - CertRequestPanel: update: no certchain included for certtag sslserver
+Mon Nov 18 10:49:35 GMT 2013 - CertRequestPanel: update: no cert
+Mon Nov 18 10:49:35 GMT 2013 - CertRequestPanel: update: subsystem cert is pre-generated by the security domain
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard: update returns status '1'
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard: about to find out about sub panel
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard: no sub panel and is not subpanel
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard: after looking into about sub panel
+Mon Nov 18 10:49:35 GMT 2013 - AdminPanel: display
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard: executing file ra/admin/console/config/wizard.vm
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_email}=
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_name}=RA Administrator
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_pwd}=
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_pwd_again}=
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{admin_uid}=admin
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{certs}=ARRAY(0x7f2265d1e958)
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{check_clonesubsystem}=
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{check_newsubsystem}=
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{csstate}=1
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{custom_size}=4096
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{dbg}=
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{defTok}=NSS Certificate DB
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{default_ecc_keysize}=256
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{default_keysize}=4096
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{disableClone}=1
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{errorString}=
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{firstpanel}=0
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{firsttime}=false
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{fullsystemname}=Registration Authority
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{http_port}=12888
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{https_port}=12889
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{import}=true
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{instanceID}=&lt;security_domain_instance_name&gt;
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{lastpanel}=0
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{machineName}=localhost
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{name}=Registration Authority
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{non_clientauth_https_port}=12890
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{oms}=ARRAY(0x7f221807ab88)
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{p}=11
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panel}=ra/admin/console/config/adminpanel.vm
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panelname}=Security Domain
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{panels}=ARRAY(0x7f2265aac3f8)
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{pn}=PKI::RA::DonePanel=HASH(0x7f2265b662c8)
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{ppcerts}=ARRAY(0x7f22140bf3f8)
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{productversion}=10.0.6
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{redirect}=https://ca1.srv.example.com:8443/ca/admin/ca/securityDomainLog
+in?url=https%3A%2F%2Fra1.srv.example.com%3A12890%2Fra%2Fadmin%2Fconsole%2Fconfig%2Fwizard%3Fp%3D3%26subsystem%3DRA
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainAdminURL}=https://ra1.srv.example.com:9445
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainName}=Security Domain
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sdomainURL}=
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{securityDomain}=
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{select}=custom
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{showApplyButton}=false
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{sms}=ARRAY(0x7f222c26e8c8)
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{statusCommand}=systemctl status pki-tomcatd@&lt;security_domain_instance_name
+&gt;.service
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{subpanelno}=12
+Mon Nov 18 10:49:35 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{subsystemName}=Registration Authority
+Mon Nov 18 10:49:36 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{systemname}=Registration Authority
+Mon Nov 18 10:49:36 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{title}=Administrator
+Mon Nov 18 10:49:36 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{urls}=ARRAY(0x7f22180a2a40)
+Mon Nov 18 10:49:36 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{urls_size}=2
+Mon Nov 18 10:49:36 GMT 2013 - RA wizard:/config/wizard?p=9&SecToken=NSS%20Generic%20Crypto%20Services sym{wizardname}=RA Configuration Wizard
+Mon Nov 18 10:49:36 GMT 2013 - CertInfo: get_cert_dn
+Mon Nov 18 10:49:36 GMT 2013 - CertInfo: get_cert_tag
+Mon Nov 18 10:49:36 GMT 2013 - CertInfo: get_user_friendly_name
+Mon Nov 18 10:49:36 GMT 2013 - CertInfo: get_cert_dn
+Mon Nov 18 10:49:36 GMT 2013 - CertInfo: get_cert_tag
+Mon Nov 18 10:49:36 GMT 2013 - CertInfo: get_user_friendly_name
+Mon Nov 18 10:49:49 GMT 2013 - RA wizard: in handler
+Mon Nov 18 10:49:49 GMT 2013 - RA wizard: uri='/ra/admin/console/config/wizard'
+Mon Nov 18 10:49:49 GMT 2013 - RA wizard: http parameter name='p' value='11'
+Mon Nov 18 10:49:49 GMT 2013 - RA wizard: http parameter name='uid' value='reg_admin'
+Mon Nov 18 10:49:49 GMT 2013 - RA wizard: http parameter name='name' value='RA Administrator'
+Mon Nov 18 10:49:49 GMT 2013 - RA wizard: http parameter name='email' value='support@example.com'
+Mon Nov 18 10:49:49 GMT 2013 - RA wizard: http parameter name='__pwd' value='(sensitive)'
+Mon Nov 18 10:49:49 GMT 2013 - RA wizard: http parameter name='__admin_password_again' value='(sensitive)'
+Mon Nov 18 10:49:49 GMT 2013 - RA wizard: http parameter name='cert_request' value='MIICb...REMOVED
+'
+Mon Nov 18 10:49:49 GMT 2013 - RA wizard: http parameter name='display' value='0'
+Mon Nov 18 10:49:49 GMT 2013 - RA wizard: http parameter name='profileId' value='caAdminCert'
+Mon Nov 18 10:49:49 GMT 2013 - RA wizard: http parameter name='cert_request_type' value='crmf'
+Mon Nov 18 10:49:49 GMT 2013 - RA wizard: http parameter name='import' value='true'
+Mon Nov 18 10:49:49 GMT 2013 - RA wizard: http parameter name='clone' value='0'
+Mon Nov 18 10:49:49 GMT 2013 - RA wizard: http parameter name='securitydomain' value='example.com'
+Mon Nov 18 10:49:49 GMT 2013 - RA wizard: http parameter name='subject' value='cn=agent.ra1.srv.example.com'
+Mon Nov 18 10:49:49 GMT 2013 - RA wizard: http parameter name='requestor_name' value='RA-ra1.srv.example.com-12889'
+Mon Nov 18 10:49:49 GMT 2013 - RA wizard: http parameter name='sessionID' value='-7414022536813528767'
+Mon Nov 18 10:49:49 GMT 2013 - RA wizard: http parameter name='auth_hostname' value='ca1.srv.example.com'
+Mon Nov 18 10:49:49 GMT 2013 - RA wizard: http parameter name='auth_port' value='8443'
+Mon Nov 18 10:49:49 GMT 2013 - RA wizard: http parameter name='op' value='next'
+Mon Nov 18 10:49:49 GMT 2013 - RA wizard: http parameter name='xml' value='true'
+Mon Nov 18 10:49:49 GMT 2013 - RA wizard: before argparsing
+Mon Nov 18 10:49:49 GMT 2013 - RA wizard: setting up test objects
+Mon Nov 18 10:49:49 GMT 2013 - RA wizard: found 2 certtags
+Mon Nov 18 10:49:49 GMT 2013 - AdminPanel: update
+Mon Nov 18 10:49:49 GMT 2013 - AdminPanel: preop.ca.url=https://:
+Mon Nov 18 10:49:49 GMT 2013 - AdminPanel: config.sdomainEEURL=
+Mon Nov 18 10:49:49 GMT 2013 - AdminPanel: Connecting to CA:
+

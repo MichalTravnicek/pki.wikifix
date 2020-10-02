@@ -1,0 +1,339 @@
+Description: support only tomcat instances
+
+should be upstreamable
+
+--- a/base/server/scripts/operations
++++ b/base/server/scripts/operations
+@@ -87,33 +87,19 @@ PKI_OCSP_PATH="/usr/share/pki/ocsp"
+ PKI_RA_PATH="/usr/share/pki/ra"
+ PKI_TKS_PATH="/usr/share/pki/tks"
+ PKI_TPS_PATH="/usr/share/pki/tps"
+-if [ '${PKI_TYPE}' == "apache" ] ; then
+-    if [ ! -d ${PKI_RA_PATH} ]  &&
+-       [ ! -d ${PKI_TPS_PATH} ] ; then
+-        echo "This machine is missing all PKI '${PKI_TYPE}' subsystems!"
+-        if [ "${command}" != "status" ]; then
+-            # 5 program is not installed
+-            exit 5
+-        else
+-            exit ${default_error}
+-        fi
+-    fi
+-elif [ '${PKI_TYPE}' == "tomcat" ] ; then
+-    if [ ! -d ${PKI_CA_PATH} ]   &&
+-       [ ! -d ${PKI_KRA_PATH} ]  &&
+-       [ ! -d ${PKI_OCSP_PATH} ] &&
+-       [ ! -d ${PKI_TKS_PATH} ] ; then
+-        echo "This machine is missing all PKI '${PKI_TYPE}' subsystems!"
+-        if [ "${command}" != "status" ]; then
+-            # 5 program is not installed
+-            exit 5
+-        else
+-            exit ${default_error}
+-        fi
++if [ ! -d ${PKI_CA_PATH} ]   &&
++   [ ! -d ${PKI_KRA_PATH} ]  &&
++   [ ! -d ${PKI_OCSP_PATH} ] &&
++   [ ! -d ${PKI_TKS_PATH} ] ; then
++    echo "This machine is missing all PKI '${PKI_TYPE}' subsystems!"
++    if [ "${command}" != "status" ]; then
++        # 5 program is not installed
++        exit 5
++    else
++        exit ${default_error}
+     fi
+ fi
+ 
+-PKI_INSTANCE_TYPES="apache tomcat"
+ PKI_REGISTRY_ENTRIES=""
+ PKI_SUBSYSTEMS=""
+ TOTAL_PKI_REGISTRY_ENTRIES=0
+@@ -150,30 +136,14 @@ usage()
+         echo -n "|stop|restart"
+     fi
+     echo -n "|status} "
+-    echo -n "instance-type "
+     echo -n "[instance-name]"
+     echo
+     echo
+ }
+ 
+-list_instance_types()
+-{
+-    echo
+-    for PKI_INSTANCE_TYPE in $PKI_INSTANCE_TYPES; do
+-        echo "    $PKI_INSTANCE_TYPE"
+-    done
+-    echo
+-}
+-
+ list_instances()
+ {
+     echo
+-    for INSTANCE in /etc/sysconfig/pki/apache/*; do
+-        if [ -d "${INSTANCE}" ] ; then
+-            instance_name=`basename ${INSTANCE}`
+-            echo "    $instance_name"
+-        fi
+-    done
+     for INSTANCE in /etc/sysconfig/pki/tomcat/*; do
+         if [ -d "${INSTANCE}" ] ; then
+             instance_name=`basename ${INSTANCE}`
+@@ -199,17 +169,6 @@ get_subsystems()
+                 fi
+             done
+             ;;
+-        apache)
+-            for SUBSYSTEM in ra; do
+-                if [ -d ${PKI_INSTANCE_PATH}/conf/${SUBSYSTEM} ]; then
+-                    if [ '${PKI_SUBSYSTEMS}' == "" ] ; then
+-                        PKI_SUBSYSTEMS="${SUBSYSTEM}"
+-                    else
+-                        PKI_SUBSYSTEMS="${PKI_SUBSYSTEMS} ${SUBSYSTEM}"
+-                    fi
+-                fi
+-            done
+-            ;;
+         *)
+             echo "Unknown web server type ($PKI_WEB_SERVER_TYPE)"
+             exit ${default_error}
+@@ -218,14 +177,12 @@ get_subsystems()
+ }
+ 
+ # Check arguments
+-if [ $# -lt 2 ] ; then
++if [ $# -lt 1 ] ; then
+     #     [insufficient arguments]
+     echo "$PROG_NAME:  Insufficient arguments!"
+     echo
+     usage
+-    echo "where valid instance types include:"
+-    list_instance_types
+-    echo "and where valid instance names include:"
++    echo "Where valid instance names include:"
+     list_instances
+     exit 3
+ elif [ ${default_error} -eq 2 ] ; then
+@@ -233,18 +190,14 @@ elif [ ${default_error} -eq 2 ] ; then
+     echo "$PROG_NAME:  Invalid arguments!"
+     echo
+     usage
+-    echo "where valid instance types include:"
+-    list_instance_types
+-    echo "and where valid instance names include:"
++    echo "Where valid instance names include:"
+     list_instances
+     exit 2
+-elif [ $# -gt 3 ] ; then
++elif [ $# -gt 2 ] ; then
+     echo "$PROG_NAME:  Excess arguments!"
+     echo
+     usage
+-    echo "where valid instance types include:"
+-    list_instance_types
+-    echo "and where valid instance names include:"
++    echo "Where valid instance names include:"
+     list_instances
+     if [ "${command}" != "status" ]; then
+         # 2 excess arguments
+@@ -266,12 +219,7 @@ if [ -n "${pki_instance_id}" ]; then
+         fi
+     done
+     if [ $valid -eq 0 ]; then
+-        if [ "${pki_instance_type}" != "apache" ] &&
+-           [ "${pki_instance_type}" != "tomcat" ]; then
+-            echo -n "unknown instance type (${pki_instance_type})"
+-        else
+-            echo -n "${pki_instance_id} is an invalid '${PKI_TYPE}' instance"
+-        fi
++        echo -n "${pki_instance_id} is an invalid '${PKI_TYPE}' instance"
+         echo
+ 
+         if [ "${command}" != "status" ]; then
+@@ -296,9 +244,6 @@ check_pki_configuration_status()
+                 fi
+             done
+             ;;
+-        apache)
+-            # TBD
+-            ;;
+         *)
+             echo "Unknown web server type ($PKI_WEB_SERVER_TYPE)"
+             exit ${default_error}
+@@ -339,14 +284,6 @@ get_pki_status_definitions()
+             get_pki_status_definitions_tomcat
+             return $?
+             ;;
+-        ra)
+-            get_pki_status_definitions_ra
+-            return $?
+-            ;;
+-        tps)
+-            get_pki_status_definitions_tps
+-            return $?
+-            ;;
+         *)
+             echo "Unknown web server type ($PKI_WEB_SERVER_TYPE)"
+             exit ${default_error}
+@@ -354,115 +291,6 @@ get_pki_status_definitions()
+     esac
+ }
+ 
+-get_pki_status_definitions_ra()
+-{
+-    # establish well-known strings
+-    total_ports=0
+-    PKI_UNSECURE_PORT=""
+-    CLIENTAUTH_PORT=""
+-    NON_CLIENTAUTH_PORT=""
+-
+-    # check to see that an instance-specific "httpd.conf" file exists
+-    if [ ! -f ${PKI_HTTPD_CONF} ] ; then
+-        echo "File '${PKI_HTTPD_CONF}' does not exist!"
+-        exit ${default_error}
+-    fi
+-
+-    # check to see that an instance-specific "nss.conf" file exists
+-    if [ ! -f ${PKI_NSS_CONF} ] ; then
+-        echo "File '${PKI_NSS_CONF}' does not exist!"
+-        exit ${default_error}
+-    fi
+-
+-    # Iterate over Listen statements
+-    for port in `sed -n 's/^[ \t]*Listen[ \t][ \t]*\([^ \t][^ \t]*\)/\1/p' ${PKI_HTTPD_CONF}`; do
+-        PKI_UNSECURE_PORT=$port
+-        if [ $total_ports -eq 0 ]; then
+-            echo "    Unsecure URL               = http://${PKI_HOSTNAME}:${PKI_UNSECURE_PORT}"
+-        else
+-            echo "ERROR: extra Unsecure URL  = http://${PKI_HOSTNAME}:${PKI_UNSECURE_PORT}"
+-        fi
+-        total_ports=`expr ${total_ports} + 1`
+-
+-    done
+-
+-    # Iterate over Listen statements
+-    for port in `sed -n 's/^[ \t]*Listen[ \t][ \t]*\([^ \t][^ \t]*\)/\1/p' ${PKI_NSS_CONF}`; do
+-        PKI_UNSECURE_PORT=$port
+-        if [ $total_ports -eq 1 ]; then
+-            CLIENTAUTH_PORT=$port
+-            echo "    Secure Clientauth URL      = https://${PKI_HOSTNAME}:${CLIENTAUTH_PORT}"
+-        fi
+-        if [ $total_ports -eq 2 ]; then
+-            NON_CLIENTAUTH_PORT=$port
+-            echo "    Secure Non-Clientauth URL  = https://${PKI_HOSTNAME}:${NON_CLIENTAUTH_PORT}"
+-        fi
+-        total_ports=`expr ${total_ports} + 1`
+-
+-    done
+-
+-    return 0;
+-}
+-
+-get_pki_status_definitions_tps()
+-{
+-    # establish well-known strings
+-    total_ports=0
+-    PKI_UNSECURE_PORT=""
+-    CLIENTAUTH_PORT=""
+-    NON_CLIENTAUTH_PORT=""
+-
+-    # check to see that an instance-specific "httpd.conf" file exists
+-    if [ ! -f ${PKI_HTTPD_CONF} ] ; then
+-        echo "File '${PKI_HTTPD_CONF}' does not exist!"
+-        exit ${default_error}
+-    fi
+-
+-    # check to see that an instance-specific "nss.conf" file exists
+-    if [ ! -f ${PKI_NSS_CONF} ] ; then
+-        echo "File '${PKI_NSS_CONF}' does not exist!"
+-        exit ${default_error}
+-    fi
+-
+-    # Iterate over Listen statements
+-    for port in `sed -n 's/^[ \t]*Listen[ \t][ \t]*\([^ \t][^ \t]*\)/\1/p' ${PKI_HTTPD_CONF}`; do
+-        PKI_UNSECURE_PORT=$port
+-        if [ $total_ports -eq 0 ]; then
+-            echo "    Unsecure URL               = http://${PKI_HOSTNAME}:${PKI_UNSECURE_PORT}/cgi-bin/so/enroll.cgi"
+-            echo "                                 (ESC Security Officer Enrollment)"
+-            echo "    Unsecure URL               = http://${PKI_HOSTNAME}:${PKI_UNSECURE_PORT}/cgi-bin/home/index.cgi"
+-            echo "                                 (ESC Phone Home)"
+-        else
+-            echo "ERROR: extra Unsecure URL  = http://${PKI_HOSTNAME}:${PKI_UNSECURE_PORT}"
+-        fi
+-        total_ports=`expr ${total_ports} + 1`
+-
+-    done
+-
+-    # Iterate over Listen statements
+-    for port in `sed -n 's/^[ \t]*Listen[ \t][ \t]*\([^ \t][^ \t]*\)/\1/p' ${PKI_NSS_CONF}`; do
+-        PKI_UNSECURE_PORT=$port
+-        if [ $total_ports -eq 1 ]; then
+-            CLIENTAUTH_PORT=$port
+-            echo "    Secure Clientauth URL      = https://${PKI_HOSTNAME}:${CLIENTAUTH_PORT}/cgi-bin/sow/welcome.cgi"
+-            echo "                                 (ESC Security Officer Workstation)"
+-            echo "    Secure Clientauth URL      = https://${PKI_HOSTNAME}:${CLIENTAUTH_PORT}/tus"
+-            echo "                                 (TPS Roles - Operator/Administrator/Agent)"
+-        fi
+-        if [ $total_ports -eq 2 ]; then
+-            NON_CLIENTAUTH_PORT=$port
+-            echo "    Secure Non-Clientauth URL  = https://${PKI_HOSTNAME}:${NON_CLIENTAUTH_PORT}/cgi-bin/so/enroll.cgi"
+-            echo "                                 (ESC Security Officer Enrollment)"
+-            echo "    Secure Non-Clientauth URL  = https://${PKI_HOSTNAME}:${NON_CLIENTAUTH_PORT}/cgi-bin/home/index.cgi"
+-            echo "                                 (ESC Phone Home)"
+-        fi
+-        total_ports=`expr ${total_ports} + 1`
+-
+-    done
+-
+-    return 0;
+-}
+-
+ get_pki_status_definitions_tomcat()
+ {
+     # establish well-known strings
+--- a/base/server/scripts/pkidaemon
++++ b/base/server/scripts/pkidaemon
+@@ -24,8 +24,8 @@ SERVICE_NAME="pkidaemon"
+ SERVICE_PROG="/bin/systemctl"
+ 
+ command="$1"
+-pki_instance_type="$2"
+-pki_instance_id="$3"
++pki_instance_type="tomcat"
++pki_instance_id="$2"
+ 
+ PKI_REGISTRY="/etc/sysconfig/pki/${pki_instance_type}"
+ PKI_TYPE="${pki_instance_type}"
+@@ -38,9 +38,7 @@ print_usage()
+ {
+     echo
+     usage
+-    echo "where valid instance types include:"
+-    list_instance_types
+-    echo "and where valid instance names include:"
++    echo "Where valid instance names include:"
+     list_instances
+     exit ${default_error}
+ }
+@@ -75,9 +73,7 @@ case $command in
+         echo "unknown action ($command)"
+         echo
+         usage
+-        echo "where valid instance types include:"
+-        list_instance_types
+-        echo "and where valid instance names include:"
++        echo "Where valid instance names include:"
+         list_instances
+         exit ${default_error}
+         ;;
+--- a/base/server/share/lib/systemd/system/pki-tomcatd@.service
++++ b/base/server/share/lib/systemd/system/pki-tomcatd@.service
+@@ -7,7 +7,7 @@ Type=simple
+ EnvironmentFile=/etc/tomcat/tomcat.conf
+ Environment="NAME=%i"
+ EnvironmentFile=-/etc/sysconfig/%i
+-ExecStartPre=/usr/bin/pkidaemon start tomcat %i
++ExecStartPre=/usr/bin/pkidaemon start %i
+ ExecStart=/usr/libexec/tomcat/server start
+ ExecStop=/usr/libexec/tomcat/server stop
+ SuccessExitStatus=143

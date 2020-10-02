@@ -1,0 +1,2263 @@
+Index: java-tools/src/com/netscape/cmstools/PKCS10Client.java
+===================================================================
+--- java-tools/src/com/netscape/cmstools/PKCS10Client.java	(revision 2507)
++++ java-tools/src/com/netscape/cmstools/PKCS10Client.java	(working copy)
+@@ -31,6 +31,8 @@
+ 
+ import java.net.URLEncoder;
+ import java.security.KeyPair;
++import java.security.PublicKey;
++import java.security.PrivateKey;
+ import java.security.MessageDigest;
+ import java.security.NoSuchAlgorithmException;
+ import org.mozilla.jss.util.Password;
+@@ -39,10 +41,9 @@
+ import org.mozilla.jss.pkcs10.*;
+ import org.mozilla.jss.crypto.KeyPairGenerator;
+ import org.mozilla.jss.crypto.KeyPairAlgorithm;
+-//import netscape.security.provider.RSAPublicKey;
+ import netscape.security.pkcs.PKCS10;
+-//import java.security.Signature;
+ import netscape.security.x509.X500Name;
++import netscape.security.x509.X509Key;
+ import netscape.security.util.BigInt;
+ import netscape.security.x509.X500Signer;
+ import java.io.ByteArrayOutputStream;
+@@ -52,10 +53,11 @@
+ import org.mozilla.jss.pkix.primitive.*;
+ import org.mozilla.jss.pkix.crmf.*;
+ import com.netscape.cmsutil.util.*;
++import com.netscape.cmsutil.crypto.*;
+ 
+ 
+ /**
+- * Generates a 1024-bit RSA key pair in the security database, constructs a
++ * Generates an ECC or RSA key pair in the security database, constructs a
+  * PKCS#10 certificate request with the public key, and outputs the request
+  * to a file.
+  * <p>
+@@ -74,33 +76,98 @@
+ {
+         
+     private static void printUsage() {
+-        System.out.println("Usage: PKCS10Client -p <certdb password> -d <location of certdb> -o <output file which saves the base64 PKCS10> -s <subjectDN>\n");
++        System.out.println("Usage: PKCS10Client -d <location of certdb> -h <token name> -p <token password> -a <algorithm: 'rsa' or 'ec'> -l <rsa key length> -c <ec curve name> -o <output file which saves the base64 PKCS10> -n <subjectDN>\n");
++        System.out.println("    Optionally, for ECC key generation per definition in JSS pkcs11.PK11KeyPairGenerator:\n");
++        System.out.println("    -t <true for temporary(session); false for permanent(token); default is false>\n");
++        System.out.println("    -s <1 for sensitive; 0 for non-sensitive; -1 temporaryPairMode dependent; default is -1>\n");
++        System.out.println("    -e <1 for extractable; 0 for non-extractable; -1 token dependent; default is -1>\n");
++        System.out.println("    Also optional for ECC key generation:\n");
++        System.out.println("    -x <true for SSL cert that does ECDH ECDSA; false otherwise; default false>\n");
++        System.out.println("   available ECC curve names (if provided by the crypto module): nistp256 (secp256r1),nistp384 (secp384r1),nistp521 (secp521r1),nistk163 (sect163k1),sect163r1,nistb163 (sect163r2),sect193r1,sect193r2,nistk233 (sect233k1),nistb233 (sect233r1),sect239k1,nistk283 (sect283k1),nistb283 (sect283r1),nistk409 (sect409k1),nistb409 (sect409r1),nistk571 (sect571k1),nistb571 (sect571r1),secp160k1,secp160r1,secp160r2,secp192k1,nistp192 (secp192r1, prime192v1),secp224k1,nistp224 (secp224r1),secp256k1,prime192v2,prime192v3,prime239v1,prime239v2,prime239v3,c2pnb163v1,c2pnb163v2,c2pnb163v3,c2pnb176v1,c2tnb191v1,c2tnb191v2,c2tnb191v3,c2pnb208w1,c2tnb239v1,c2tnb239v2,c2tnb239v3,c2pnb272w1,c2pnb304w1,c2tnb359w1,c2pnb368w1,c2tnb431r1,secp112r1,secp112r2,secp128r1,secp128r2,sect113r1,sect113r2,sect131r1,sect131r2\n");
+     }
+ 
+     public static void main(String args[]) 
+     {
+-        String dbdir = null, ofilename = null, password = null, subjectName = null;
++        String dbdir = null, ofilename = null, password = null, subjectName = null, type = null, tokenName = null;
+ 
+-        if (args.length != 8) {
++        String alg = "rsa";
++        String ecc_curve = "nistp256";
++        boolean ec_temporary = false; /* session if true; token if false */
++        int ec_sensitive = -1; /* -1, 0, or 1 */
++        int ec_extractable = -1; /* -1, 0, or 1 */
++        boolean ec_ssl_ecdh = false;
++        int rsa_keylen = 2048;
++
++        if (args.length < 4) {
+             printUsage();
+             System.exit(1);
+         }
+ 
+-        for (int i=0; i<args.length; i++) { 
++        for (int i=0; i<args.length; i+=2) { 
+             String name = args[i];
++
+             if (name.equals("-p")) {
+                 password = args[i+1];
+             } else if (name.equals("-d")) {
+                 dbdir = args[i+1];
++            } else if (name.equals("-a")) {
++                alg = args[i+1];
++                if (!alg.equals("rsa") && !alg.equals("ec")) {
++                    System.out.println("PKCS10Client: ERROR: invalid algorithm: " + alg);
++                    System.exit(1);
++                }
++            } else if (name.equals("-x")) {
++                String temp = args[i+1];
++                if (temp.equals("true"))
++                    ec_ssl_ecdh = true;
++                else
++                    ec_ssl_ecdh = false;
++            } else if (name.equals("-t")) {
++                String temp = args[i+1];
++                if (temp.equals("true"))
++                    ec_temporary = true;
++                else
++                    ec_temporary = false;
++            } else if (name.equals("-s")) {
++                String ec_sensitive_s = args[i+1];
++                ec_sensitive = Integer.parseInt(ec_sensitive_s);
++                if ((ec_sensitive != 0) && 
++                    (ec_sensitive != 1) &&
++                    (ec_sensitive != -1)) {
++                      System.out.println("PKCS10Client: Illegal input parameters for -s.");
++                      printUsage();
++                      System.exit(1);
++                    }
++            } else if (name.equals("-e")) {
++                String ec_extractable_s = args[i+1];
++                ec_extractable = Integer.parseInt(ec_extractable_s);
++                if ((ec_extractable != 0) && 
++                    (ec_extractable != 1) &&
++                    (ec_extractable != -1)) {
++                      System.out.println("PKCS10Client: Illegal input parameters for -e.");
++                      printUsage();
++                      System.exit(1);
++                    }
++            } else if (name.equals("-c")) {
++                ecc_curve = args[i+1];
++            } else if (name.equals("-l")) {
++                rsa_keylen = Integer.parseInt(args[i+1]);
+             } else if (name.equals("-o")) {
+                 ofilename = args[i+1];
+-            } else if (name.equals("-s")) {
++            } else if (name.equals("-n")) {
+                 subjectName = args[i+1];
++            } else if (name.equals("-h")) {
++                tokenName = args[i+1];
++            } else {
++                System.out.println("Unrecognized argument(" + i + "): "
++                    + name);
++                printUsage();
++                System.exit(1);
+             }
+         }
+  
+         if (password == null || ofilename == null || subjectName == null) {
+-            System.out.println("Illegal input parameters.");
++            System.out.println("PKCS10Client: Illegal input parameters.");
+             printUsage();
+             System.exit(1);
+         }
+@@ -108,25 +175,63 @@
+         if (dbdir == null)
+             dbdir = ".";
+ 
+-	try { 
++        try { 
+             // initialize CryptoManager
+-            if (dbdir == null)
+-                dbdir = ".";
+             String mPrefix = "";
+             CryptoManager.InitializationValues vals =
+               new CryptoManager.InitializationValues(dbdir, mPrefix,
+               mPrefix, "secmod.db");
+ 
+             CryptoManager.initialize(vals);
++            CryptoToken token = null;
+             CryptoManager cm = CryptoManager.getInstance();
+-            CryptoToken token = cm.getInternalKeyStorageToken();
++            if ((tokenName == null) || (tokenName.equals(""))) {
++                token = cm.getInternalKeyStorageToken();
++                tokenName = "NSS Certificate DB";
++            } else {
++                token = cm.getTokenByName(tokenName);
++            }
++            cm.setThreadToken(token);
++
+             Password pass = new Password(password.toCharArray());
+ 
+-            token.login(pass);
+-            KeyPairGenerator kg = token.getKeyPairGenerator(KeyPairAlgorithm.RSA); 
+-            kg.initialize(1024);
+-            KeyPair pair = kg.genKeyPair(); 
++            try {
++                token.login(pass);
++                System.out.println("PKCS10Client: token "+ tokenName + " logged in...");
++            } catch (Exception e) {
++                System.out.println("PKCS10Client: login Exception: " + e.toString());
++                System.exit(1);
++            }
+ 
++            KeyPair pair = null;
++            if (alg.equals("rsa")) {
++                KeyPairGenerator kg = token.getKeyPairGenerator(KeyPairAlgorithm.RSA); 
++                kg.initialize(rsa_keylen);
++                pair = kg.genKeyPair(); 
++            }  else if (alg.equals("ec")) {
++                // used with SSL server cert that does ECDH ECDSA
++                org.mozilla.jss.crypto.KeyPairGeneratorSpi.Usage usages_mask_ECDH[] = {
++                    org.mozilla.jss.crypto.KeyPairGeneratorSpi.Usage.SIGN,
++                    org.mozilla.jss.crypto.KeyPairGeneratorSpi.Usage.SIGN_RECOVER
++                };
++
++                // used for other certs including SSL server cert that does ECDHE ECDSA
++                org.mozilla.jss.crypto.KeyPairGeneratorSpi.Usage usages_mask[] = {
++                  org.mozilla.jss.crypto.KeyPairGeneratorSpi.Usage.DERIVE
++                };
++
++                pair = CryptoUtil.generateECCKeyPair(tokenName,  ecc_curve ,
++                       null,
++                       usages_mask, ec_temporary /*temporary*/,
++                       ec_sensitive /*sensitive*/, ec_extractable /*extractable*/);
++                if (pair == null) {
++                    System.out.println("PKCS10Client: pair null.");
++                    System.exit(1);
++                }
++            }
++
++            System.out.println("PKCS10Client: key pair generated."); //key pair generated");
++
+             // Add idPOPLinkWitness control
+             String secretValue = "testing";
+             byte[] key1 = null;
+@@ -156,27 +261,71 @@
+             attributes.addElement(attr);
+             Name n = getJssName(subjectName);
+             SubjectPublicKeyInfo subjectPub = new SubjectPublicKeyInfo(pair.getPublic()); 
++            System.out.println("PKCS10Client: pair.getPublic() called.");
+             CertificationRequestInfo certReqInfo = 
+               new CertificationRequestInfo(new INTEGER(0), n, subjectPub, attributes);
+-            CertificationRequest certRequest = new CertificationRequest(certReqInfo,
+-              pair.getPrivate(), SignatureAlgorithm.RSASignatureWithMD5Digest);
++            System.out.println("PKCS10Client: CertificationRequestInfo() created.");
+ 
+-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+-            certRequest.encode(bos);
+-            byte[] bb = bos.toByteArray();
++            String b64E = "";
++            if (alg.equals("rsa")) {
++                CertificationRequest certRequest = null;
++                certRequest = new CertificationRequest(certReqInfo,
++                pair.getPrivate(), SignatureAlgorithm.RSASignatureWithMD5Digest);
++                System.out.println("PKCS10Client: CertificationRequest created.");
++                if (certRequest == null) {
++                    System.out.println("PKCS10Client: certRequest null.");
++                    System.exit(1);
++                } else
++                    System.out.println("PKCS10Client: certRequest not null.");
+ 
+-            String b64E = com.netscape.osutil.OSUtil.BtoA(bb);
++                ByteArrayOutputStream bos = new ByteArrayOutputStream();
++                certRequest.encode(bos);
++                byte[] bb = bos.toByteArray();
++
++                System.out.println("PKCS10Client: calling com.netscape.osutil.OSUtil.BtoA().");
++                b64E = com.netscape.osutil.OSUtil.BtoA(bb);
++                System.out.println("PKCS10Client: com.netscape.osutil.OSUtil.BtoA() completes.");
++            } else { // "ec"
++
++                CryptoToken t = cm.getThreadToken();
++                System.out.println("PKCS10Client: token is: "+ t.getName());
++                PublicKey pubk =  pair.getPublic();
++                if (pubk == null) {
++                    System.out.println("PKCS10Client: pubk null.");
++                    System.exit(1);
++                }
++                X509Key xKey = null;
++                byte pubk_encoded[] =  pubk.getEncoded();
++                xKey = CryptoUtil.getPublicX509ECCKey(pubk_encoded);
++                System.out.println("PKCS10Client: calling CryptoUtil.createCertificationRequest");
++                PKCS10 certReq = CryptoUtil.createCertificationRequest(
++                    subjectName, xKey, (org.mozilla.jss.crypto.PrivateKey) pair.getPrivate(), 
++                    "SHA256withEC");
++
++                System.out.println("PKCS10Client: created cert request");
++                if (certReq == null) {
++                    System.out.println("PKCS10Client: cert request null");
++                    System.exit(1);
++                } else
++                    System.out.println("PKCS10Client: cert request not null");
++                byte[] certReqb = certReq.toByteArray();
++                b64E = CryptoUtil.base64Encode(certReqb);
++            }
+  
+-            System.out.println("");
++            System.out.println("-----BEGIN NEW CERTIFICATE REQUEST-----");
+             System.out.println(b64E);
+-            System.out.println("");
++            System.out.println("-----END NEW CERTIFICATE REQUEST-----");
+     
+             PrintStream ps = null;
+             ps = new PrintStream(new FileOutputStream(ofilename));
++            ps.println("-----BEGIN NEW CERTIFICATE REQUEST-----");
+             ps.println(b64E);
++            ps.println("-----END NEW CERTIFICATE REQUEST-----");
+             ps.flush();
+             ps.close();
++            System.out.println("PKCS10Client: done. Request written to file: "+ ofilename);
+         } catch (Exception e) {
++            System.out.println("PKCS10Client: Exception caught: "+e.toString());
+         }
+     }
+ 
+@@ -189,8 +338,8 @@
+             x5Name= new X500Name(dn);
+         } catch(IOException e) {
+ 
+-            System.out.println("Illegal Subject Name:  " + dn + " Error: "  + e.toString());
+-            System.out.println("Filling in default Subject Name......");
++            System.out.println("PKCS10Client: Illegal Subject Name:  " + dn + " Error: "  + e.toString());
++            System.out.println("PKCS10Client: Filling in default Subject Name......");
+             return null;
+         }
+ 
+@@ -259,7 +408,7 @@
+                     continue;
+                 }
+             }  catch (Exception e)  {
+-                System.out.println("Error constructing RDN: " + rdnStr + " Error: "  + e.toString());
++                System.out.println("PKCS10Client: Error constructing RDN: " + rdnStr + " Error: "  + e.toString());
+                 continue;
+             }
+         }
+Index: java-tools/src/com/netscape/cmstools/CRMFPopClient.java
+===================================================================
+--- java-tools/src/com/netscape/cmstools/CRMFPopClient.java	(revision 2507)
++++ java-tools/src/com/netscape/cmstools/CRMFPopClient.java	(working copy)
+@@ -36,6 +36,7 @@
+ import org.mozilla.jss.crypto.CryptoToken;
+ import org.mozilla.jss.crypto.KeyPairGenerator;
+ import org.mozilla.jss.crypto.KeyPairAlgorithm;
++import org.mozilla.jss.crypto.AlreadyInitializedException;
+ import netscape.security.provider.RSAPublicKey;
+ import netscape.security.pkcs.PKCS10;
+ //import java.security.Signature;
+@@ -49,51 +50,14 @@
+ import org.mozilla.jss.pkix.primitive.*;
+ import org.mozilla.jss.pkix.crmf.*;
+ import com.netscape.cmsutil.util.*;
++import com.netscape.cmsutil.crypto.*;
+ 
+ 
+ /**
+  * A command-line utility used to generate a Certificate Request Message
+  * Format (CRMF) request with proof of possesion (POP).
+  *
+- * Usage:
+  * <pre>
+- *     CRMFPopClient  TOKEN_PWD
+- *                    PROFILE_NAME HOST PORT USER_NAME REQUESTOR_NAME
+- *                    POP_OPTION
+- *                    SUBJECT_DN [OUTPUT_CERT_REQ]
+- *
+- *                    ---  or  ---
+- *
+- *     CRMFPopClient  TOKEN_PWD
+- *                    POP_OPTION
+- *                    OUTPUT_CERT_REQ SUBJECT_DN
+- *
+- *
+- *     where POP_OPTION can be [POP_SUCCESS or POP_FAIL or POP_NONE]
+- * </pre>
+- * <p>
+- * Examples:
+- * <pre>
+- *     CRMFPopClient  password123
+- *                    caEncUserCert host.example.com 1026 MyUid MyUid
+- *                    [POP_SUCCESS or POP_FAIL or POP_NONE]
+- *                    CN=MyTest,C=US,UID=MyUid
+- *
+- *                    ---  or  ---
+- *
+- *     CRMFPopClient  password123
+- *                    caEncUserCert host.example.com 1026 joe joe
+- *                    [POP_SUCCESS or POP_FAIL or POP_NONE]
+- *                    CN=MyTest,C=US,UID=MyUid OUTPUT_CERT_REQ 
+- *
+- *                    ---  or  ---
+- *
+- *     CRMFPopClient  password123
+- *                    [POP_SUCCESS or POP_FAIL or POP_NONE]
+- *                    OUTPUT_CERT_REQ CN=MyTest,C=US,UID=MyUid
+- * </pre>
+- * <p>
+- * <pre>
+  * IMPORTANT:  The file "transport.txt" needs to be created to contain the
+  *             transport certificate in its base64 encoded format.  This
+  *             file should consist of one line containing a single certificate
+@@ -107,36 +71,16 @@
+         
+         private static void usage()
+         {
+-           System.out.println("");
+-           System.out.println("Description:  A command-line utility used to generate a");
+-           System.out.println("              Certificate Request Message Format (CRMF)");
+-           System.out.println("              request with proof of possesion (POP).\n\n");
+-           System.out.println("Usage:");
+-           System.out.println("");
+-           System.out.println("    CRMFPopClient TOKEN_PWD");
+-           System.out.println("                  PROFILE_NAME HOST PORT USER_NAME REQUESTOR_NAME");
+-           System.out.println("                  POP_OPTION");
+-           System.out.println("                  SUBJECT_DN  [OUTPUT_CERT_REQ]   \n");
+-           System.out.println("                  ---  or  ---\n");
+-           System.out.println("    CRMFPopClient TOKEN_PWD");
+-           System.out.println("                  POP_OPTION");
+-           System.out.println("                  OUTPUT_CERT_REQ SUBJECT_DN\n\n");
+-           System.out.println("    where POP_OPTION can be [POP_SUCCESS or POP_FAIL or POP_NONE]\n\n");
+-           System.out.println("Examples:");
+-           System.out.println("");
+-           System.out.println("    CRMFPopClient password123");
+-           System.out.println("                  caEncUserCert host.example.com 1026 MyUid MyUid");
+-           System.out.println("                  [POP_SUCCESS or POP_FAIL or POP_NONE]");
+-           System.out.println("                  CN=MyTest,C=US,UID=MyUid\n");
+-           System.out.println("                  ---  or  ---\n");
+-           System.out.println("    CRMFPopClient password123"); 
+-           System.out.println("                  caEncUserCert host.example.com 1026 MyUid myUid");
+-           System.out.println("                  [POP_SUCCESS or POP_FAIL or POP_NONE]");
+-           System.out.println("                  CN=MyTest,C=US,UID=MyUid OUTPUT_CERT_REQ\n"); 
+-           System.out.println("                  ---  or  ---\n");
+-           System.out.println("    CRMFPopClient password123");
+-           System.out.println("                  [POP_SUCCESS or POP_FAIL or POP_NONE]");
+-           System.out.println("                  OUTPUT_CERT_REQ CN=MyTest,C=US,UID=MyUid");
++            System.out.println("Usage: CRMFPopClient -d <location of certdb> -p <token password> -h <tokenname> -o <output file which saves the base64 CRMF request> -n <subjectDN> -a <algorithm: 'rsa' or 'ec'> -l <rsa key length> -c <ec curve name> -m <hostname:port> -f <profile name; rsa default caEncUserCert; ec default caEncECUserCert> -u <user name> -r <requestor name> -q <POP_NONE, POP_SUCCESS, or POP_FAIL; default POP_SUCCESS> \n");
++        System.out.println("    Optionally, for ECC key generation per definition in JSS pkcs11.PK11KeyPairGenerator:\n");
++        System.out.println("    -t <true for temporary(session); false for permanent(token); default is true>\n");
++        System.out.println("    -s <1 for sensitive; 0 for non-sensitive; -1 temporaryPairMode dependent; default is -1>\n");
++        System.out.println("    -e <1 for extractable; 0 for non-extractable; -1 token dependent; default is -1>\n");
++        System.out.println("    Also optional for ECC key generation:\n");
++        System.out.println("    -x <true for SSL cert that does ECDH ECDSA; false otherwise; default false>\n");
++        System.out.println(" note: '-x true' can only be used with POP_NONE");
++            System.out.println("   available ECC curve names (if provided by the crypto module): nistp256 (secp256r1),nistp384 (secp384r1),nistp521 (secp521r1),nistk163 (sect163k1),sect163r1,nistb163 (sect163r2),sect193r1,sect193r2,nistk233 (sect233k1),nistb233 (sect233r1),sect239k1,nistk283 (sect283k1),nistb283 (sect283r1),nistk409 (sect409k1),nistb409 (sect409r1),nistk571 (sect571k1),nistb571 (sect571r1),secp160k1,secp160r1,secp160r2,secp192k1,nistp192 (secp192r1, prime192v1),secp224k1,nistp224 (secp224r1),secp256k1,prime192v2,prime192v3,prime239v1,prime239v2,prime239v3,c2pnb163v1,c2pnb163v2,c2pnb163v3,c2pnb176v1,c2tnb191v1,c2tnb191v2,c2tnb191v3,c2pnb208w1,c2tnb239v1,c2tnb239v2,c2tnb239v3,c2pnb272w1,c2pnb304w1,c2tnb359w1,c2pnb368w1,c2tnb431r1,secp112r1,secp112r2,secp128r1,secp128r2,sect113r1,sect113r2,sect131r1,sect131r2\n");
++
+            System.out.println("\n");
+            System.out.println("IMPORTANT:  The file \"transport.txt\" needs to be created to contain the");
+            System.out.println("            transport certificate in its base64 encoded format.  This");
+@@ -174,367 +118,483 @@
+ 
+ 
+         }
+-	public static void main(String args[]) 
+-	{
+- 	   String USER_PREFIX = "user";
+ 
++    public static void main(String args[]) 
++    {
+ 
+-           int argsLen =  getRealArgsLength(args);
++//        int argsLen =  getRealArgsLength(args);
+ 
+-           // System.out.println("args length " + argsLen);
++        System.out.println("\n\nCRMF Proof Of Possession Utility....");
++        System.out.println("");
+ 
++        if(args.length < 4)
++        {
++             usage();
++             System.exit(1);
++        }
+ 
+-           System.out.println("\n\nProof Of Possession Utility....");
+-           System.out.println("");
++        String DB_DIR = "./";
++        String TOKEN_PWD = null;
++        String TOKEN_NAME = null;
+ 
+-           if(argsLen == 0 || (argsLen != 8 && argsLen != 9 && argsLen !=10 && argsLen != 4))
+-           {
+-                usage();
+-                return;
+-           }
++        // "rsa" or "ec"
++        String alg = "rsa";
+ 
+-	   String DB_DIR = "./";
+-	   String TOKEN_PWD = args[0];
+-	   int KEY_LEN = 1024;
++        /* default RSA key size */
++        int RSA_keylen = 2048;
++        /* default ECC key curve name */
++        String ECC_curve = "nistp256";
++        boolean ec_temporary = true; /* session if true; token if false */
++        int ec_sensitive = -1; /* -1, 0, or 1 */
++        int ec_extractable = -1; /* -1, 0, or 1 */
++        boolean ec_ssl_ecdh = false;
+ 
+-
+-           int PORT = 0;
+-           String USER_NAME = null;
+-           String REQUESTOR_NAME = null;
+-           String PROFILE_NAME = null;
++        int PORT = 0;
++        String USER_NAME = null;
++        String REQUESTOR_NAME = null;
++        String PROFILE_NAME = null;
+  
+-           String HOST = null; 
+-           String SUBJ_DN = null;
+-              
+-           if(argsLen >= 8)
+-           { 
+-               PROFILE_NAME = args[1];
+-               HOST = args[2];
+-    
+-               PORT = Integer.parseInt(args[3]);
++        // format: "host:port"
++        String HOST_PORT = null; 
++        String SUBJ_DN = null;
++        int doServerHit = 0;
+ 
+-               USER_NAME = args[4];
+-               REQUESTOR_NAME = args[5];
++        // POP_NONE, POP_SUCCESS, or POP_FAIL
++        String POP_OPTION = "POP_SUCCESS";
++        int dont_do_pop = 0;
+ 
+-               SUBJ_DN = args[7];
++        String REQ_OUT_FILE = null;
+ 
+-           }
++        for (int i=0; i<args.length; i+=2) {
++            String name = args[i];
+ 
+-           String POP_OPTION = null;
+-           String OUTPUT_CERT_REQ = null;
++            if (name.equals("-p")) {
++                TOKEN_PWD = args[i+1];
++            } else if (name.equals("-d")) {
++                DB_DIR = args[i+1];
++            } else if (name.equals("-h")) {
++                TOKEN_NAME = args[i+1];
++            } else if (name.equals("-a")) {
++                alg = args[i+1];
++                if (!alg.equals("rsa") && !alg.equals("ec")) {
++                    System.out.println("CRMFPopClient: ERROR: invalid algorithm: " + alg);
++                    System.exit(1);
++                }
++            } else if (name.equals("-x")) {
++                String temp = args[i+1];
++                if (temp.equals("true"))
++                    ec_ssl_ecdh = true;
++                else
++                    ec_ssl_ecdh = false;
++            } else if (name.equals("-t")) {
++                String temp = args[i+1];
++                if (temp.equals("true"))
++                    ec_temporary = true;
++                else
++                    ec_temporary = false;
++            } else if (name.equals("-s")) {
++                String ec_sensitive_s = args[i+1];
++                ec_sensitive = Integer.parseInt(ec_sensitive_s);
++                if ((ec_sensitive != 0) && 
++                    (ec_sensitive != 1) &&
++                    (ec_sensitive != -1)) {
++                      System.out.println("PKCS10Client: Illegal input parameters for -s.");
++                      usage();
++                      System.exit(1);
++                    }
++            } else if (name.equals("-e")) {
++                String ec_extractable_s = args[i+1];
++                ec_extractable = Integer.parseInt(ec_extractable_s);
++                if ((ec_extractable != 0) && 
++                    (ec_extractable != 1) &&
++                    (ec_extractable != -1)) {
++                      System.out.println("PKCS10Client: Illegal input parameters for -e.");
++                      usage();
++                      System.exit(1);
++                    }
++            } else if (name.equals("-l")) {
++                RSA_keylen = Integer.parseInt(args[i+1]);
++            } else if (name.equals("-c")) {
++                ECC_curve = args[i+1];
++            } else if (name.equals("-m")) {
++                HOST_PORT = args[i+1];
++                doServerHit = 1;
++            } else if (name.equals("-f")) {
++                PROFILE_NAME = args[i+1];
++            } else if (name.equals("-u")) {
++                USER_NAME = args[i+1];
++            } else if (name.equals("-r")) {
++                REQUESTOR_NAME = args[i+1];
++            } else if (name.equals("-n")) {
++                SUBJ_DN = args[i+1];
++            } else if (name.equals("-q")) {
++                POP_OPTION = args[i+1];
++                if (!POP_OPTION.equals("POP_SUCCESS") &&
++                    !POP_OPTION.equals("POP_FAIL") && 
++                    !POP_OPTION.equals("POP_NONE")) {
++                    System.out.println("CRMFPopClient: ERROR: invalid POP option: "+ POP_OPTION);
++                    System.exit(1);
++                }
++                if (POP_OPTION.equals("POP_NONE"))
++                    dont_do_pop = 1;
++            } else if (name.equals("-o")) {
++                REQ_OUT_FILE = args[i+1];
++            } else {
++                System.out.println("Unrecognized argument(" + i + "): "
++                    + name);
++                usage();
++                System.exit(1);
++            }
++        } //for
+ 
+-           if(argsLen == 4)
+-              POP_OPTION = args[1];
+-            else
+-              POP_OPTION = args[6];
++        URL url = null;
++        URLConnection conn = null;
++        InputStream is = null;
++        BufferedReader reader = null;
++        boolean success = false;
++        int num = 1;
++        long total_time = 0;
++        KeyPair pair = null;
+ 
++        boolean foundTransport = false;
++        String transportCert = null;
++        try {
++            BufferedReader br = new BufferedReader(new FileReader("./transport.txt"));
++            transportCert = br.readLine();
++            foundTransport = true;
++        } catch (Exception e) {
++            System.out.println("CRMFPopClient: ERROR: cannot find ./transport.txt, so no key archival");
+ 
+-           int doServerHit = 1;
++            System.exit(1);
++        }
+ 
+-           if(argsLen >= 9) { 
+-                OUTPUT_CERT_REQ = args[8];
+-           } 
++        try { 
++            CryptoManager.initialize( DB_DIR );
++        } catch (AlreadyInitializedException ae) {
++            // it is ok if it is already initialized 
++            System.out.println("CRMFPopClient: already initialized, continue");
++        } catch (Exception e) { 
++            System.out.println("CRMFPopClient: INITIALIZATION ERROR: " + e.toString());
++            System.exit(1);
++        }
+ 
+-            if(argsLen == 4)
+-            {
+-                doServerHit = 0;
+-                OUTPUT_CERT_REQ = args[2];
+-                SUBJ_DN = args[3];
++        try {
++            CryptoManager manager = CryptoManager.getInstance(); 
++            String token_pwd = TOKEN_PWD;
++            if (token_pwd == null) {
++               System.out.println("missing password");
++               usage();
++               System.exit(1);
+             }
+-
+-
+-            int dont_do_pop = 0;
+-
+-            if(POP_OPTION.equals("POP_NONE"))
+-            {
+-                dont_do_pop = 1;
++            CryptoToken token = null;
++            if (TOKEN_NAME == null) {
++                token = manager.getInternalKeyStorageToken();
++                TOKEN_NAME = "NSS Certificate DB";
++            } else {
++                token = manager.getTokenByName(TOKEN_NAME);
+             }
+-
+-	    URL url = null;
+-	    URLConnection conn = null;
+-	    InputStream is = null;
+-	    BufferedReader reader = null;
+-	    boolean success = false;
+-	    int num = 1;
+-	    long total_time = 0;
+-	    KeyPair pair = null;
+-
+-
+-            boolean foundTransport = false;
+-            String transportCert = null;
++            System.out.println("CRMFPopClient: getting token: "+TOKEN_NAME);
++            manager.setThreadToken(token);
++            Password password = new Password(token_pwd.toCharArray()); 
+             try {
+-              BufferedReader br = new BufferedReader(new FileReader("./transport.txt"));
+-              transportCert = br.readLine();
+-              foundTransport = true;
++                token.login(password); 
+             } catch (Exception e) {
+-                System.out.println("ERROR: cannot find ./transport.txt, so no key archival");
+-
+-                return;
++                System.out.println("CRMFPopClient: login Exception: " + e.toString());
++                System.exit(1);
+             }
+ 
++            System.out.println("."); //"done with cryptomanager");
+ 
+-
+-	    try { 
+-	   	CryptoManager.initialize( DB_DIR );
+-	    } catch (Exception e) { 
+-		// it is ok if it is already initialized 
+-		System.out.println("INITIALIZATION ERROR: " + e.toString());
+-                //		return;
++            String profileName = PROFILE_NAME;
++            if (profileName == null) {
++                if (alg.equals("rsa"))
++                    profileName = "caEncUserCert";
++                else if (alg.equals("ec"))
++                    profileName = "caEncECUserCert";
++                else {
++                    System.out.println("CRMFPopClient: unsupported algorithm: " + alg);
++                    usage();
++                    System.exit(1);
++                }
+             }
+ 
++            if (alg.equals("rsa")) {
++                KeyPairGenerator kg = token.getKeyPairGenerator(
++                KeyPairAlgorithm.RSA); 
++                kg.initialize(RSA_keylen);
+ 
+-	    try {
+-		CryptoManager manager = CryptoManager.getInstance(); 
+-		String token_pwd = TOKEN_PWD;
+-		CryptoToken token = manager.getInternalKeyStorageToken(); 
+-		Password password = new Password(token_pwd.toCharArray()); 
+-		try {
+-			token.login(password); 
+-		} catch (Exception e) {
+-                               //System.out.println("login Exception: " + e.toString());
+-			if (!token.isLoggedIn()) {
+-				token.initPassword(password, password);
+-			}
+-		}
++                pair = kg.genKeyPair(); 
++            } else if (alg.equals("ec")) {
++                /*
++                 * used with SSL server cert that does ECDH ECDSA
++                 *  ** can only be used with POP_NONE **
++                 */
++                org.mozilla.jss.crypto.KeyPairGeneratorSpi.Usage usages_mask_ECDH[] = {
++                    org.mozilla.jss.crypto.KeyPairGeneratorSpi.Usage.SIGN,
++                    org.mozilla.jss.crypto.KeyPairGeneratorSpi.Usage.SIGN_RECOVER
++                };
+ 
+-                System.out.println("."); //"done with cryptomanager");
++                /* used for other certs including SSL server cert that does ECDHE ECDSA */
++                org.mozilla.jss.crypto.KeyPairGeneratorSpi.Usage usages_mask[] = {
++                    org.mozilla.jss.crypto.KeyPairGeneratorSpi.Usage.DERIVE
++                };
+ 
+-                KeyPairGenerator kg = token.getKeyPairGenerator(
+-		KeyPairAlgorithm.RSA); 
+-		kg.initialize(KEY_LEN);
++                pair = CryptoUtil.generateECCKeyPair(TOKEN_NAME, ECC_curve,
++                    null,
++                    (ec_ssl_ecdh==true) ? usages_mask_ECDH: usages_mask,
++                       ec_temporary /*temporary*/,
++                       ec_sensitive /*sensitive*/, ec_extractable /*extractable*/);
++            }
+ 
+-		String profileName = PROFILE_NAME;
+-		pair = kg.genKeyPair(); 
++            System.out.println("CRMFPopClient: key pair generated."); //key pair generated");
+ 
+-                System.out.println("."); //key pair generated");
++            // wrap private key
++            byte transport[] = com.netscape.osutil.OSUtil.AtoB(transportCert);
+ 
+-		// wrap private key
+-		byte transport[] = com.netscape.osutil.OSUtil.AtoB(transportCert);
++            X509Certificate tcert = manager.importCACertPackage(transport);
+ 
+-		X509Certificate tcert = manager.importCACertPackage(transport);
++            byte iv[] = {0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1};
+ 
+-		byte iv[] = {0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1};
++            KeyGenerator kg1 = token.getKeyGenerator(KeyGenAlgorithm.DES3);
++            SymmetricKey sk = kg1.generate();
+ 
+-		KeyGenerator kg1 = token.getKeyGenerator(KeyGenAlgorithm.DES3);
+-		SymmetricKey sk = kg1.generate();
++            System.out.println(".before KeyWrapper");
+ 
+-                System.out.println("."); //before KeyWrapper");	
++            // wrap private key using session
++            KeyWrapper wrapper1 = 
++                token.getKeyWrapper(KeyWrapAlgorithm.DES3_CBC_PAD);
+ 
+-                // wrap private key using session
+-		KeyWrapper wrapper1 = 
+-		token.getKeyWrapper(KeyWrapAlgorithm.DES3_CBC_PAD);
++            System.out.println(".key wrapper created");
+ 
+-                System.out.println("."); //key wrapper created");
++            wrapper1.initWrap(sk, new IVParameterSpec(iv));
+ 
+-		wrapper1.initWrap(sk, new IVParameterSpec(iv));
++            System.out.println(".key wrapper inited");
++            byte key_data[] = wrapper1.wrap((org.mozilla.jss.crypto.PrivateKey)pair.getPrivate());
+ 
+-                System.out.println("."); //key wrapper inited");
+-		byte key_data[] = wrapper1.wrap((org.mozilla.jss.crypto.PrivateKey)pair.getPrivate());
++            System.out.println(".key wrapper wrapped");
+ 
+-                System.out.println("."); //key wrapper wrapped");
++            // wrap session key using DRM transport cert
++            // currently, a transport cert has to be an RSA cert,
++            // regardless of the key you are wrapping
++            KeyWrapper rsaWrap = token.getKeyWrapper(
++            KeyWrapAlgorithm.RSA); 
+ 
+-		// wrap session using transport 
+-		KeyWrapper rsaWrap = token.getKeyWrapper(
+-			KeyWrapAlgorithm.RSA); 
++            System.out.println(".got rsaWrapper");
+ 
+-                System.out.println("."); //got rsaWrapper");
++            rsaWrap.initWrap(tcert.getPublicKey(), null); 
+ 
+-		rsaWrap.initWrap(tcert.getPublicKey(), null); 
++            System.out.println(".rsaWrap inited");
+ 
+-                System.out.println("."); //rsaWrap inited");
++            byte session_data[] = rsaWrap.wrap(sk);
+ 
+-		byte session_data[] = rsaWrap.wrap(sk);
++            System.out.println(".rsaWrapped");
+ 
+-                System.out.println("."); //rsaWrapped");
++            try {
++                // create CRMF
++                CertTemplate certTemplate = new CertTemplate();
++                certTemplate.setVersion(new INTEGER(2));
+ 
+-		try {
+-		// create CRMF
+-	 	    CertTemplate certTemplate = new CertTemplate();
+-		    certTemplate.setVersion(new INTEGER(2));
++                Name n1 = getJssName(SUBJ_DN);
+ 
+-                    Name n1 = getJssName(SUBJ_DN);
++                Name n = new Name(); 
+ 
++                n.addCommonName("Me"); 
++                n.addCountryName("US"); 
++                n.addElement(new AVA(new OBJECT_IDENTIFIER("0.9.2342.19200300.100.1.1"),  new PrintableString("MyUid")));
+ 
+-		    Name n = new Name(); 
++                if(n1 != null)
++                    certTemplate.setSubject(n1);
++                else
++                    certTemplate.setSubject(n);
+ 
+-		    n.addCommonName("Me"); 
+-		    n.addCountryName("US"); 
+-                    n.addElement(new AVA(new OBJECT_IDENTIFIER("0.9.2342.19200300.100.1.1"),  new PrintableString("MyUid")));
++                certTemplate.setPublicKey(new SubjectPublicKeyInfo(pair.getPublic()));
++                // set extension
++                AlgorithmIdentifier algS = null;
++                if (alg.equals("rsa")) {
++                    algS = new AlgorithmIdentifier(new OBJECT_IDENTIFIER("1.2.840.113549.3.7"), new OCTET_STRING(iv));
++                } else { // ec
++                    algS = new AlgorithmIdentifier(new OBJECT_IDENTIFIER("1.2.840.10045.2.1"), new OCTET_STRING(iv));
++                }
+ 
+-                    if(n1 != null)
+-		        certTemplate.setSubject(n1);
+-                    else
+-                        certTemplate.setSubject(n);
++                EncryptedValue encValue = new EncryptedValue(null, algS, new BIT_STRING(session_data, 0),null, null,new BIT_STRING(key_data, 0));
++                EncryptedKey key = new EncryptedKey(encValue);
++                PKIArchiveOptions opt = new PKIArchiveOptions(key);
++                SEQUENCE seq = new SEQUENCE();
++                if (foundTransport) {
++                    seq.addElement(new AVA(new OBJECT_IDENTIFIER("1.3.6.1.5.5.7.5.1.4"),opt));
++                }
+ 
+-		    certTemplate.setPublicKey(new SubjectPublicKeyInfo(pair.getPublic()));
+-		    // set extension
+-		    AlgorithmIdentifier algS = new AlgorithmIdentifier(new OBJECT_IDENTIFIER("1.2.840.113549.3.7"), new OCTET_STRING(iv));
+-		    EncryptedValue encValue = new EncryptedValue(null, algS, new BIT_STRING(session_data, 0),null, null,new BIT_STRING(key_data, 0));
+-		    EncryptedKey key = new EncryptedKey(encValue);
+-		    PKIArchiveOptions opt = new PKIArchiveOptions(key);
+-		    SEQUENCE seq = new SEQUENCE();
+-                    if (foundTransport) {
+-		      seq.addElement(new AVA(new OBJECT_IDENTIFIER("1.3.6.1.5.5.7.5.1.4"),opt));
+-		    }
+-				
++                // Add idPOPLinkWitness control
++                String secretValue = "testing";
++                byte[] key1 = null;
++                byte[] finalDigest = null;
++                try {
++                    MessageDigest SHA1Digest = MessageDigest.getInstance("SHA1");
++                    key1 = SHA1Digest.digest(secretValue.getBytes());
++                } catch (NoSuchAlgorithmException ex) {
++                    System.exit(1);
++                }
+ 
+-            // Add idPOPLinkWitness control
+-            String secretValue = "testing";
+-            byte[] key1 = null;
+-            byte[] finalDigest = null;
+-            try {
+-                MessageDigest SHA1Digest = MessageDigest.getInstance("SHA1");
+-                key1 = SHA1Digest.digest(secretValue.getBytes());
+-            } catch (NoSuchAlgorithmException ex) {
+-            }
++                /* Example of adding the POP link witness control to CRMF */
++                byte[] b = 
++                    {0x10, 0x53, 0x42, 0x24, 0x1a, 0x2a, 0x35, 0x3c,
++                     0x7a, 0x52, 0x54, 0x56, 0x71, 0x65, 0x66, 0x4c,
++                     0x51, 0x34, 0x35, 0x23, 0x3c, 0x42, 0x43, 0x45,
++                     0x61, 0x4f, 0x6e, 0x43, 0x1e, 0x2a, 0x2b, 0x31,
++                     0x32, 0x34, 0x35, 0x36, 0x55, 0x51, 0x48, 0x14,
++                     0x16, 0x29, 0x41, 0x42, 0x43, 0x7b, 0x63, 0x44,
++                     0x6a, 0x12, 0x6b, 0x3c, 0x4c, 0x3f, 0x00, 0x14,
++                     0x51, 0x61, 0x15, 0x22, 0x23, 0x5f, 0x5e, 0x69};
+ 
+-/* Example of adding the POP link witness control to CRMF */
+-byte[] b = 
+-{0x10, 0x53, 0x42, 0x24, 0x1a, 0x2a, 0x35, 0x3c,
+- 0x7a, 0x52, 0x54, 0x56, 0x71, 0x65, 0x66, 0x4c,
+- 0x51, 0x34, 0x35, 0x23, 0x3c, 0x42, 0x43, 0x45,
+- 0x61, 0x4f, 0x6e, 0x43, 0x1e, 0x2a, 0x2b, 0x31,
+- 0x32, 0x34, 0x35, 0x36, 0x55, 0x51, 0x48, 0x14,
+- 0x16, 0x29, 0x41, 0x42, 0x43, 0x7b, 0x63, 0x44,
+- 0x6a, 0x12, 0x6b, 0x3c, 0x4c, 0x3f, 0x00, 0x14,
+- 0x51, 0x61, 0x15, 0x22, 0x23, 0x5f, 0x5e, 0x69};
++                try {
++                    MessageDigest SHA1Digest = MessageDigest.getInstance("SHA1");
++                    HMACDigest hmacDigest = new HMACDigest(SHA1Digest, key1);
++                    hmacDigest.update(b);
++                    finalDigest = hmacDigest.digest();
++                } catch (NoSuchAlgorithmException ex) {
++                    System.exit(1);
++                }
+ 
+-            try {
+-                MessageDigest SHA1Digest = MessageDigest.getInstance("SHA1");
+-                HMACDigest hmacDigest = new HMACDigest(SHA1Digest, key1);
+-                hmacDigest.update(b);
+-                finalDigest = hmacDigest.digest();
+-            } catch (NoSuchAlgorithmException ex) {
+-            }
+-                              
++                OCTET_STRING ostr = new OCTET_STRING(finalDigest);
++                seq.addElement(new AVA(OBJECT_IDENTIFIER.id_cmc_idPOPLinkWitness, ostr));
++                CertRequest certReq = new CertRequest(new INTEGER(1), certTemplate, seq);
+ 
+-            OCTET_STRING ostr = new OCTET_STRING(finalDigest);
+-            seq.addElement(new AVA(OBJECT_IDENTIFIER.id_cmc_idPOPLinkWitness, ostr));
+-		    CertRequest certReq = new CertRequest(new INTEGER(1), certTemplate, seq);
++                System.out.println(".CertRequest created");
+ 
+-                    System.out.println("."); //CertRequest created");
+-
+-
+-                    ByteArrayOutputStream bo = new ByteArrayOutputStream();
+-                    certReq.encode(bo);
+-                    byte[] toBeVerified = bo.toByteArray();
++                ByteArrayOutputStream bo = new ByteArrayOutputStream();
++                certReq.encode(bo);
++                byte[] toBeVerified = bo.toByteArray();
+                                     
+-		    byte popdata[] = ASN1Util.encode(certReq);
+-                    byte signature[];
++                byte popdata[] = ASN1Util.encode(certReq);
++                byte signature[];
+ 
+-                    System.out.println("."); //CertRequest encoded");
++                System.out.println(".CertRequest encoded");
+ 
+-                    Signature signer =  token.getSignatureContext(
+-                    SignatureAlgorithm.RSASignatureWithMD5Digest);
++                Signature signer = null;
++                if (alg.equals("rsa")) {
++                    signer =  token.getSignatureContext(
++                        SignatureAlgorithm.RSASignatureWithMD5Digest);
++                } else { //ec
++                    signer =  token.getSignatureContext(
++                        SignatureAlgorithm.ECSignatureWithSHA1Digest);
++                }
+ 
+-                    System.out.println("."); //signer created");
++                System.out.println(". signer created");
+ 
+-                    signer.initSign((org.mozilla.jss.crypto.PrivateKey)pair.getPrivate());
++                signer.initSign((org.mozilla.jss.crypto.PrivateKey)pair.getPrivate());
+ 
+-                    System.out.println("."); //signer inited");
++                System.out.println(".signer inited");
+ 
+-                    System.out.println("."); //FAIL_OR_SUCC " + FAIL_OR_SUCC);
++                System.out.println("."); //FAIL_OR_SUCC " + FAIL_OR_SUCC);
+ 
+-                    if(POP_OPTION.equals("POP_SUCCESS"))
+-                    {
+-                        System.out.println("Generating Legal POP Data.....");
+-                        signer.update(toBeVerified);
+-                    }
+-                    else  if(POP_OPTION.equals("POP_FAIL"))
+-                    {
+-                        System.out.println("Generating Illegal POP Data.....");
+-                        signer.update(iv);
+-                    }
+-                    else if(dont_do_pop == 1)
+-                    {
+-                         System.out.println("Generating NO POP Data.....");
+-                    }
++                if(POP_OPTION.equals("POP_SUCCESS"))
++                {
++                    System.out.println("CRMFPopClient: Generating Legal POP Data.....");
++                    signer.update(toBeVerified);
++                }
++                else  if(POP_OPTION.equals("POP_FAIL"))
++                {
++                    System.out.println("CRMFPopClient: Generating Illegal POP Data.....");
++                    signer.update(iv);
++                }
++                else if(dont_do_pop == 1)
++                {
++                     System.out.println("CRMFPopClient: Generating NO POP Data.....");
++                }
+ 
+-                    System.out.println("."); //signer updated");
++                System.out.println("."); //signer updated");
+ 
+-                    CertReqMsg crmfMsg = null;
++                CertReqMsg crmfMsg = null;
+ 
+-                    if(dont_do_pop == 0)
+-                    {
+-                         signature = signer.sign();
++                if(dont_do_pop == 0)
++                {
++                    signature = signer.sign();
+ 
+-                         System.out.println("Signature completed...");
+-                         System.out.println("");
++                    System.out.println("CRMFPopClient: Signature completed...");
++                    System.out.println("");
+ 
+- 
+-                         AlgorithmIdentifier algID =
+-                             new AlgorithmIdentifier(SignatureAlgorithm.RSASignatureWithMD5Digest.toOID(), null ); 
+-                         POPOSigningKey popoKey = new POPOSigningKey(null,algID, new BIT_STRING(signature,0));
++                    AlgorithmIdentifier algID = null;
++                    if (alg.equals("rsa")) {
++                        algID = new AlgorithmIdentifier(SignatureAlgorithm.RSASignatureWithMD5Digest.toOID(), null );
++                    } else { // "ec"
++                        algID = new AlgorithmIdentifier(SignatureAlgorithm.ECSignatureWithSHA1Digest.toOID(), null ); 
++                    }
++                    POPOSigningKey popoKey = new POPOSigningKey(null,algID, new BIT_STRING(signature,0));
+ 
+-                         ProofOfPossession pop = ProofOfPossession.createSignature(popoKey);
++                    ProofOfPossession pop = ProofOfPossession.createSignature(popoKey);
+ 
+-                         crmfMsg = new CertReqMsg(certReq, pop, null);
++                    crmfMsg = new CertReqMsg(certReq, pop, null);
++                } else {
++                    crmfMsg = new CertReqMsg(certReq, null, null);
++                }
+ 
+-                    }
+-                    else
+-                    {
+-		         crmfMsg = new CertReqMsg(certReq, null, null);
++                //crmfMsg.verify();
+ 
+-                    }
++                SEQUENCE s1 = new SEQUENCE();
++                s1.addElement(crmfMsg);
++                byte encoded[] = ASN1Util.encode(s1); 
+ 
+-                    //crmfMsg.verify();
++                String Req1 = com.netscape.osutil.OSUtil.BtoA(encoded);
+ 
+-		    SEQUENCE s1 = new SEQUENCE();
+-		    s1.addElement(crmfMsg);
+-		    byte encoded[] = ASN1Util.encode(s1); 
++                if(REQ_OUT_FILE != null)
++                {
++                    System.out.println("CRMFPopClient: Generated Cert Request: ...... ");
++                    System.out.println("");
+ 
+-		    String Req1 = com.netscape.osutil.OSUtil.BtoA(encoded);
++                    System.out.println(Req1);
++                    System.out.println("");
++                    System.out.println("CRMFPopClient: End Request:");
+ 
+-                    if(OUTPUT_CERT_REQ != null)
+-                    {
+-                        System.out.println("Generated Cert Request: ...... ");
+-                        System.out.println("");
++                    PrintStream ps = null;
++                    ps = new PrintStream(new FileOutputStream(REQ_OUT_FILE));
++                    ps.println("-----BEGIN NEW CERTIFICATE REQUEST-----");
++                    ps.println(Req1);
++                    ps.println("-----END NEW CERTIFICATE REQUEST-----");
++                    ps.flush();
++                    ps.close();
++                    System.out.println("CRMFPopClient: done output request to file: "+ REQ_OUT_FILE);
+ 
+-                        System.out.println(Req1);
+-                        System.out.println("");
+-                        System.out.println("End Request:");
+-
+-                        if(doServerHit == 0)
+-                            return;
+-                        }
++                    if(doServerHit == 0)
++                        return;
++                    }
+                                     
+-		  	String Req = URLEncoder.encode(Req1);
++                    String Req = URLEncoder.encode(Req1);
+ 
+-         		// post PKCS10 
++                    url = new URL("http://" + HOST_PORT + "/ca/ee/ca/profileSubmit?cert_request_type=crmf&cert_request=" + Req + "&renewal=false&uid=" + USER_NAME + "&xmlOutput=false&&profileId=" + profileName + "&sn_uid=" + USER_NAME +"&SubId=profile&requestor_name="+ REQUESTOR_NAME);
++                    System.out.println("CRMFPopClient: Posting " + url);
+ 
+-                        url = new URL("http://" + HOST + ":" + PORT + "/ca/ee/ca/profileSubmit?cert_request_type=crmf&cert_request=" + Req + "&renewal=false&uid=" + USER_NAME + "&xmlOutput=false&&profileId=" + profileName + "&sn_uid=" + USER_NAME +"&SubId=profile&requestor_name="+ REQUESTOR_NAME);
+-			//System.out.println("Posting " + url);
++                    System.out.println(""); 
++                    System.out.println("CRMFPopClient: Server Response.....");
++                    System.out.println("--------------------");
++                    System.out.println("");
+ 
+-                        System.out.println(""); 
+-                        System.out.println("Server Response.....");
+-                        System.out.println("--------------------");
+-                        System.out.println("");
++                    long start_time = (new Date()).getTime(); 
++                    conn = url.openConnection(); 
++                    is = conn.getInputStream(); 
++                    reader = new BufferedReader(new InputStreamReader(is)); 
++                    String line = null; 
+ 
+-			long start_time = (new Date()).getTime(); 
+-			conn = url.openConnection(); 
+-			is = conn.getInputStream(); 
+-			reader = new BufferedReader(new InputStreamReader(is)); 
+-			String line = null; 
+-			while ((line = reader.readLine()) != null) { 
+-                            System.out.println(line);
+-			    if (line.equals("CMS Enroll Request Success")) { 
+-			        success = true; 
+-				System.out.println("Enrollment Successful: ......");
+-                                System.out.println("");
+-			    } 
+-			} /* while */ 
+-			long end_time = (new Date()).getTime(); 
+-			total_time += (end_time - start_time); 
+-			} catch (Exception e) { 
+-				System.out.println("WARNING: " + e.toString());
+-				e.printStackTrace();
+-			}
+-		} catch (Exception e) { 
+-			System.out.println("ERROR: " + e.toString());
+-			e.printStackTrace();
+-		}
+-	}
++                    while ((line = reader.readLine()) != null) { 
++                        System.out.println(line);
++                        if (line.equals("CMS Enroll Request Success")) { 
++                            success = true; 
++                            System.out.println("CRMFPopClient: Enrollment Successful: ......");
++                            System.out.println("");
++                        } 
++                    } /* while */ 
+ 
++                    long end_time = (new Date()).getTime(); 
++                    total_time += (end_time - start_time); 
++                } catch (Exception e) { 
++                    System.out.println("CRMFPopClient: WARNING: " + e.toString());
++                    e.printStackTrace();
++                }
++            } catch (Exception e) { 
++                System.out.println("CRMFPopClient: ERROR: " + e.toString());
++                e.printStackTrace();
++            }
++        }
++
+         static Name getJssName(String dn) 
+         {
+ 
+@@ -545,8 +605,8 @@
+ 
+            } catch(IOException e) {
+ 
+-               System.out.println("Illegal Subject Name:  " + dn + " Error: "  + e.toString());
+-               System.out.println("Filling in default Subject Name......");
++               System.out.println("CRMFPopClient: Illegal Subject Name:  " + dn + " Error: "  + e.toString());
++               System.out.println("CRMFPopClient: Filling in default Subject Name......");
+                return null;
+            }
+ 
+@@ -627,7 +687,7 @@
+                      continue;
+                 }
+                 }  catch (Exception e)  {
+-                    System.out.println("Error constructing RDN: " + rdnStr + " Error: "  + e.toString());
++                    System.out.println("CRMFPopClient: Error constructing RDN: " + rdnStr + " Error: "  + e.toString());
+ 
+                     continue;
+                 }
+@@ -637,6 +697,5 @@
+ 
+             return ret;
+ 
+-
+         }
+ }
+Index: java-tools/src/com/netscape/cmstools/CMCRequest.java
+===================================================================
+--- java-tools/src/com/netscape/cmstools/CMCRequest.java	(revision 2507)
++++ java-tools/src/com/netscape/cmstools/CMCRequest.java	(working copy)
+@@ -64,6 +64,7 @@
+ 
+     public static final String PR_REQUEST_CMC = "CMC";
+     public static final String PR_REQUEST_CRMF = "CRMF";
++    public static final String PR_INTERNAL_TOKEN_NAME = "internal";
+ 
+     public static final int    ARGC = 1;
+     private static final String CERTDB = "cert8.db";
+@@ -75,20 +76,20 @@
+         
+     }
+ 
+-    public static X509Certificate getCertificate(String tokenname,
++    public static X509Certificate getCertificate(String tokenName,
+         String nickname) throws Exception {
+         CryptoManager manager = CryptoManager.getInstance();
+         CryptoToken token = null;
+ 
+-        if (tokenname.equals("internal")) {
++        if (tokenName.equals(PR_INTERNAL_TOKEN_NAME)) {
+             token = manager.getInternalKeyStorageToken();
+         } else {
+-            token = manager.getTokenByName(tokenname);
++            token = manager.getTokenByName(tokenName);
+         }
+         StringBuffer certname = new StringBuffer();
+ 
+         if (!token.equals(manager.getInternalKeyStorageToken())) {
+-            certname.append(tokenname);
++            certname.append(tokenName);
+             certname.append(":");
+         }
+         certname.append(nickname);
+@@ -99,17 +100,19 @@
+         }
+     }
+ 
+-    public static java.security.PrivateKey getPrivateKey(String tokenname, String nickname)
++    public static java.security.PrivateKey getPrivateKey(String tokenName, String nickname)
+         throws Exception {
+ 
+-        X509Certificate cert = getCertificate(tokenname, nickname);
++        X509Certificate cert = getCertificate(tokenName, nickname);
++        if (cert != null)
++            System.out.println("got signing cert");
+ 
+         return CryptoManager.getInstance().findPrivKeyByCert(cert);
+     }
+ 
+ 
+     /**
+-     * getCMCBlob create and return the enrollent request.
++     * getCMCBlob create and return the enrollment request.
+      * <P>
+      * @param signerCert the certificate of the authorized signer of the CMC revocation request.
+      * @param nickname the nickname of the certificate inside the token.
+@@ -117,13 +120,12 @@
+      * @param format either crmf or pkcs10 
+      * @return the CMC enrollment request encoded in base64
+      */
+-    static ContentInfo getCMCBlob(X509Certificate signerCert, String nickname, 
++    static ContentInfo getCMCBlob(X509Certificate signerCert, String tokenName, String nickname, 
+       String[] rValue, String format, CryptoManager manager, String transactionMgtEnable, 
+       String transactionMgtId, String identityProofEnable, String identityProofSharedSecret,
+       SEQUENCE controlSeq, SEQUENCE otherMsgSeq, int bpid) {
+         
+-        String tokenname = "internal";
+-
++        System.out.println("in getCMCBlob");
+         ContentInfo fullEnrollmentReq = null;
+         try {
+             java.security.PrivateKey privKey = null;
+@@ -142,7 +144,9 @@
+ 
+             si = new  SignerIdentifier(
+               SignerIdentifier.ISSUER_AND_SERIALNUMBER, ias, null);
+-            privKey = getPrivateKey(tokenname, nickname);
++            privKey = getPrivateKey(tokenName, nickname);
++            if (privKey != null)
++                System.out.println("getCMCBlob: got privKey");
+ 
+             TaggedRequest trq = null;
+             PKCS10 pkcs = null;
+@@ -152,10 +156,12 @@
+             SEQUENCE reqSequence = new SEQUENCE();
+             try {
+                 for (int k=0; k<rValue.length; k++) {
++                System.out.println("k="+ k);
+                     String asciiBASE64Blob = rValue[k]; 
+                     byte[] decodedBytes = com.netscape.osutil.OSUtil.AtoB(asciiBASE64Blob);
+                 
+                     if (format.equals("crmf")) {
++                        System.out.println("getCMCBlob: format: crmf");
+                         ByteArrayInputStream reqBlob = 
+                             new ByteArrayInputStream(decodedBytes);
+                         SEQUENCE crmfMsgs = null;
+@@ -163,7 +169,7 @@
+                             crmfMsgs = (SEQUENCE)new SEQUENCE.OF_Template(new
+                               CertReqMsg.Template()).decode(reqBlob);
+                         } catch (InvalidBERException ee) {
+-                            System.out.println("This is not a crmf request. Or this request has an error.");
++                            System.out.println("getCMCBlob: This is not a crmf request. Or this request has an error.");
+                             System.exit(1);
+                         }
+                         int nummsgs = crmfMsgs.size();
+@@ -172,11 +178,11 @@
+                           certReqMsg);
+                     } else if (format.equals("pkcs10")) {
+                         try {
+-                            pkcs = new PKCS10(decodedBytes);
+-                        } catch (IllegalArgumentException e) {
+-                            System.out.println("This is not a PKCS10 request.");
++                            pkcs = new PKCS10(decodedBytes, true);
++                        } catch (Exception e2) {
++                            System.out.println("getCMCBlob: Excception:"+e2.toString());
+                             System.exit(1);
+-                        } 
++                        }
+                         ByteArrayInputStream crInputStream = new ByteArrayInputStream(
+                           pkcs.toByteArray());
+                         CertificationRequest cr = (CertificationRequest)
+@@ -186,17 +192,14 @@
+                         trq = new
+                           TaggedRequest(TaggedRequest.PKCS10, tcr, null);
+                     } else {
+-                        System.out.println("Unrecognized request format: "+format);
++                        System.out.println("getCMCBlob: Unrecognized request format: "+format);
+                         System.exit(1);
+                     }
+                     reqSequence.addElement(trq);
+                 }
+-            } catch (IOException e) {
+-                throw new IOException("Internal Error - " + e.toString());
+-            } catch (SignatureException e) {
+-                throw new IOException("Internal Error - " + e.toString());
+-            } catch (NoSuchAlgorithmException e) {
+-                throw new IOException("Internal Error - " + e.toString());
++            } catch (Exception e) {
++                System.out.println("getCMCBlob: Exception:"+ e.toString());
++                System.exit(1);
+             }
+             
+             if (transactionMgtEnable.equals("true"))
+@@ -213,11 +216,16 @@
+               EncapsulatedContentInfo(OBJECT_IDENTIFIER.id_cct_PKIData, pkidata);
+             // SHA1 is the default digest Alg for now.
+             DigestAlgorithm digestAlg = null;
+-            SignatureAlgorithm signAlg = SignatureAlgorithm.RSASignatureWithSHA1Digest;
++            SignatureAlgorithm signAlg = null;
+             org.mozilla.jss.crypto.PrivateKey.Type signingKeyType = ((org.mozilla.jss.crypto.PrivateKey) privKey).getType();
++            if (signingKeyType.equals(org.mozilla.jss.crypto.PrivateKey.Type.RSA)) {
++                signAlg = SignatureAlgorithm.RSASignatureWithSHA1Digest;
++            } else if (signingKeyType.equals(org.mozilla.jss.crypto.PrivateKey.Type.EC)) {  
++                signAlg = SignatureAlgorithm.ECSignatureWithSHA1Digest;
++            } else if (signingKeyType.equals(org.mozilla.jss.crypto.PrivateKey.Type.DSA)) { 
++                signAlg = SignatureAlgorithm.DSASignatureWithSHA1Digest;
++            }
+ 
+-            if (signingKeyType.equals(org.mozilla.jss.crypto.PrivateKey.Type.DSA))
+-                signAlg = SignatureAlgorithm.DSASignatureWithSHA1Digest;
+             MessageDigest SHADigest = null;
+ 
+             byte[] digest = null; 
+@@ -234,6 +242,7 @@
+             SignerInfo signInfo = new
+               SignerInfo(si, null, null, OBJECT_IDENTIFIER.id_cct_PKIData, digest, signAlg,
+               (org.mozilla.jss.crypto.PrivateKey) privKey);
++
+             SET signInfos = new SET();
+             signInfos.addElement(signInfo);
+                 
+@@ -293,6 +302,9 @@
+         System.out.println("#output: full path for the CMC request in binary format");
+         System.out.println("output=/u/doc/cmcReq");
+         System.out.println("");
++        System.out.println("#tokenname: name of token where agent signing cert can be found (default is internal)");
++        System.out.println("tokenname=internal");
++        System.out.println("");
+         System.out.println("#nickname: nickname for agent certificate which will be used");
+         System.out.println("#to sign the CMC full request.");
+         System.out.println("nickname=CMS Agent Certificate");
+@@ -507,7 +519,7 @@
+         return bpid; 
+     }
+ 
+-    private static int addRevRequestAttr(int bpid, SEQUENCE seq, SEQUENCE otherMsgSeq, String nickname, 
++    private static int addRevRequestAttr(int bpid, SEQUENCE seq, SEQUENCE otherMsgSeq, CryptoToken token, String tokenName, String nickname, 
+       String revRequestIssuer, String revRequestSerial, String revRequestReason, 
+       String revRequestSharedSecret, String revRequestComment, String invalidityDatePresent, 
+       CryptoManager manager) {
+@@ -546,24 +558,42 @@
+ 
+             EncapsulatedContentInfo revokeContent = new EncapsulatedContentInfo(
+               OBJECT_IDENTIFIER.id_cct_PKIData, revRequestControl);
+-            DigestAlgorithm digestAlg1 = null;
+-            SignatureAlgorithm signAlg1 = SignatureAlgorithm.RSASignatureWithSHA1Digest;
++
++            StringBuffer certname = new StringBuffer();
++
++            if (!token.equals(manager.getInternalKeyStorageToken())) {
++                certname.append(tokenName);
++                certname.append(":");
++            }
++            certname.append(nickname);
+             java.security.PrivateKey revokePrivKey = null;
+             X509Certificate revokeCert = null;
++            System.out.println("finding cert:"+certname.toString());
+             try {
+-                revokeCert = manager.findCertByNickname(nickname1);
++                revokeCert = manager.findCertByNickname(certname.toString());
+             } catch (ObjectNotFoundException e) {
+                 System.out.println("Certificate not found: "+nickname1);
+                 System.exit(1);
++            } catch (Exception e2) {
++                System.out.println("Certificate not found: "+e2.toString());
++                System.exit(1);
+             }
++            System.out.println("finding private key for cert:"+certname.toString());
+             revokePrivKey = manager.findPrivKeyByCert(revokeCert);
+             org.mozilla.jss.crypto.PrivateKey.Type signingKeyType1 =
+               ((org.mozilla.jss.crypto.PrivateKey) revokePrivKey).getType();
+-            if (signingKeyType1.equals(org.mozilla.jss.crypto.PrivateKey.Type.DSA))
++            SignatureAlgorithm signAlg1 = null;
++            if (signingKeyType1.equals(org.mozilla.jss.crypto.PrivateKey.Type.RSA)) {
++                signAlg1 = SignatureAlgorithm.RSASignatureWithSHA1Digest;
++            } else if (signingKeyType1.equals(org.mozilla.jss.crypto.PrivateKey.Type.EC)) {  
++                signAlg1 = SignatureAlgorithm.ECSignatureWithSHA1Digest;
++            } else if (signingKeyType1.equals(org.mozilla.jss.crypto.PrivateKey.Type.DSA)) { 
+                 signAlg1 = SignatureAlgorithm.DSASignatureWithSHA1Digest;
++            }
+ 
+             MessageDigest rSHADigest = null;
+             byte[] rdigest = null;
++            DigestAlgorithm digestAlg1 = null;
+             try {
+                 rSHADigest = MessageDigest.getInstance("SHA1");
+                 digestAlg1 = DigestAlgorithm.SHA1;
+@@ -612,7 +642,7 @@
+             System.out.println("Successfully create revRequest control. bpid = "+(bpid-1));
+             System.out.println("");
+         } catch (Exception e) {
+-            System.out.println("Error in creating revRequest control. Check the parameters.");
++            System.out.println("Error in creating revRequest control. Check the parameters. Exception="+ e.toString());
+             System.exit(1);
+         }
+  
+@@ -763,7 +793,7 @@
+ 
+     public static void main(String[]s) {
+         String numRequests=null;
+-        String dbdir=null, nickname=null;
++        String dbdir=null, nickname=null, tokenName=null;
+         String ifilename=null, ofilename=null, password=null, format=null; 
+         FileOutputStream outputBlob = null;
+         String confirmCertEnable = "false", confirmCertIssuer = null, confirmCertSerial = null;
+@@ -822,6 +852,8 @@
+                         format = val;
+                     } else if (name.equals("dbdir")) {
+                         dbdir = val;
++                    } else if (name.equals("tokenname")) {
++                        tokenName = val;
+                     } else if (name.equals("nickname")) {
+                         nickname = val;
+                     } else if (name.equals("password")) {
+@@ -946,21 +978,50 @@
+             String mPrefix = ""; 
+             System.out.println("cert/key prefix = " + mPrefix);
+             System.out.println("path = " + dbdir);
++/*
+             CryptoManager.InitializationValues vals =
+               new CryptoManager.InitializationValues(dbdir, mPrefix,
+               mPrefix, "secmod.db");
+ 
+             CryptoManager.initialize(vals);
++*/
++            CryptoManager.initialize(dbdir);
++            CryptoToken token = null;
+             CryptoManager cm = CryptoManager.getInstance();
+-            CryptoToken token = cm.getInternalKeyStorageToken();
++            System.out.println("CryptoManger initialized");
++
++            if ((tokenName == null) || (tokenName.equals(""))) {
++                token = cm.getInternalKeyStorageToken();
++                tokenName = PR_INTERNAL_TOKEN_NAME;
++            } else {
++                token = cm.getTokenByName(tokenName);
++            }
++            cm.setThreadToken(token);
++
+             Password pass = new Password(password.toCharArray());
+ 
+-            token.login(pass);
++            try {
++                token.login(pass);
++                System.out.println("token "+ tokenName + " logged in...");
++            } catch (Exception e) {
++                System.out.println("login Exception: " + e.toString());
++                System.exit(1);
++            }
++
+             CryptoStore store = token.getCryptoStore();
+             X509Certificate[] list = store.getCertificates();
+             X509Certificate signerCert = null;
+                 
+-            signerCert = cm.findCertByNickname(nickname);
++            StringBuffer certname = new StringBuffer();
++            if (!token.equals(cm.getInternalKeyStorageToken())) {
++                certname.append(tokenName);
++                certname.append(":");
++            }
++            certname.append(nickname);
++            signerCert = cm.findCertByNickname(certname.toString());
++            if (signerCert != null) {
++                System.out.println("got signerCert: "+ certname.toString());
++            }
+                 
+             String[] requests = new String[num];
+             for (int i=0; i<num; i++) { 
+@@ -1060,12 +1121,12 @@
+                     System.exit(1);
+                 }
+ 
+-                bpid = addRevRequestAttr(bpid, controlSeq, otherMsgSeq, revCertNickname, 
++                bpid = addRevRequestAttr(bpid, controlSeq, otherMsgSeq, token, tokenName, revCertNickname, 
+                   revRequestIssuer, revRequestSerial, revRequestReason, revRequestSharedSecret,
+                   revRequestComment, revRequestInvalidityDatePresent, cm);
+             }
+             
+-            ContentInfo cmcblob = getCMCBlob(signerCert, nickname, requests, format, 
++            ContentInfo cmcblob = getCMCBlob(signerCert, tokenName, nickname, requests, format, 
+               cm, transactionMgtEnable, transactionMgtId, identityProofEnable, 
+               identityProofSharedSecret, controlSeq, otherMsgSeq, bpid);
+ 
+Index: java-tools/src/com/netscape/cmstools/CMCRevoke.java
+===================================================================
+--- java-tools/src/com/netscape/cmstools/CMCRevoke.java	(revision 2507)
++++ java-tools/src/com/netscape/cmstools/CMCRevoke.java	(working copy)
+@@ -56,12 +56,12 @@
+  * @version $Revision$, $Date$
+  */
+ public class CMCRevoke {
+-    public static final int    ARGC = 7;
++    public static final int    ARGC = 8;
+     private static final String CERTDB = "cert8.db";
+     private static final String KEYDB = "key3.db";
+     public static final String HEADER = "-----BEGIN NEW CERTIFICATE REQUEST-----";
+     public static final String TRAILER = "-----END NEW CERTIFICATE REQUEST-----";
+-    static String dValue = null, nValue = null, iValue = null, sValue = null, mValue = null, hValue = null, cValue = null;
++    static String dValue = null, nValue = null, iValue = null, sValue = null, mValue = null, hValue = null, pValue = null, cValue = null;
+ 
+     public static final String CMS_BASE_CA_SIGNINGCERT_NOT_FOUND="CA signing certificate not found";
+     public static final String PR_INTERNAL_TOKEN_NAME = "internal";
+@@ -101,7 +101,8 @@
+                 "-i<issuerName> " +
+                 "-s<serialName> " +
+                 "-m<reason to revoke> " +
+-                "-h<password to db> " +
++                "-p<password to db> " +
++                "-h<tokenname> " +
+                 "-c<comment> ");    
+             for (int i = 0; i < s.length; i++) {
+                 System.out.println(i + ":" + s[i]);
+@@ -122,6 +123,8 @@
+                     sValue = cleanArgs(s[i].substring(2));
+                 } else 		if (s[i].startsWith("-m")) {
+                     mValue = cleanArgs(s[i].substring(2));
++                } else 		if (s[i].startsWith("-p")) {
++                    pValue = cleanArgs(s[i].substring(2));
+                 } else 		if (s[i].startsWith("-h")) {
+                     hValue = cleanArgs(s[i].substring(2));
+                 } else 		if (s[i].startsWith("-c")) {
+@@ -129,13 +132,15 @@
+                 }
+                 
+             }
+-            // optional parameter
++            // optional parameters
+             if (cValue == null)
+                 cValue = new String();
+-             if (dValue == null || nValue == null || iValue == null || sValue == null || mValue == null || hValue == null)
++            if (hValue == null)
++                hValue = new String();
++             if (dValue == null || nValue == null || iValue == null || sValue == null || mValue == null || pValue == null)
+                 bWrongParam = true;
+                 else  if (dValue.length() == 0 || nValue.length() == 0 || iValue.length() == 0 ||
+-                sValue.length() == 0 || mValue.length() == 0 || hValue.length() == 0)
++                sValue.length() == 0 || mValue.length() == 0 || pValue.length() == 0)
+                 bWrongParam = true;
+           
+             if (bWrongParam == true) {
+@@ -145,7 +150,8 @@
+                     "-i<issuerName> " +
+                     "-s<serialName> " +
+                     "-m<reason to revoke> " +
+-                    "-h<password to db> " +
++                    "-p<password to db> " +
++                    "-h<tokenname> " +
+                     "-c<comment> ");
+                 for (i = 0; i < s.length; i++) {
+                     System.out.println(i + ":" + s[i]);
+@@ -164,16 +170,19 @@
+                 CryptoManager.initialize(vals);
+                 
+                 CryptoManager cm = CryptoManager.getInstance();
+-                CryptoToken token = cm.getInternalKeyStorageToken();
+-                Password pass = new Password(hValue.toCharArray());
++                CryptoToken token = null;
++                if ((hValue == null) || (hValue.equals(""))) {
++                    token = cm.getInternalKeyStorageToken();
++                    hValue = PR_INTERNAL_TOKEN_NAME;
++                } else {
++                    token = cm.getTokenByName(hValue);
++                }
+ 
++                Password pass = new Password(pValue.toCharArray());
++
+                 token.login(pass);
+-                CryptoStore store = token.getCryptoStore();
+-                X509Certificate[] list = store.getCertificates();
+-                X509Certificate signerCert = null;
+-                
+-                signerCert = cm.findCertByNickname(nValue);
+-                String outBlob = createRevokeReq(signerCert, cm, nValue);
++                X509Certificate signerCert = getCertificate(cm, hValue, nValue);
++                String outBlob = createRevokeReq(hValue, signerCert, cm);
+ 
+                 printCMCRevokeRequest(outBlob);
+             }catch (Exception e) {
+@@ -242,33 +251,33 @@
+             token = manager.getTokenByName(tokenname);
+         }
+         StringBuffer certname = new StringBuffer();
+-
+         if (!token.equals(manager.getInternalKeyStorageToken())) {
+             certname.append(tokenname);
+             certname.append(":");
+         }
+         certname.append(nickname);
++        System.out.println("CMCRevoke: searching for certificate nickname:"+
++                        certname.toString());
+         try {
+             return manager.findCertByNickname(certname.toString());
+         } catch (ObjectNotFoundException e) {
+-            throw new Exception(CMS_BASE_CA_SIGNINGCERT_NOT_FOUND);
++            throw new Exception("Signing Certificate not found");
+         }
+     }
+ 
+     /**
+      * createRevokeReq create and return the revocation request.
+      * <P>
++     * @tokenname name of the token
+      * @param signerCert the certificate of the authorized signer of the CMC revocation request.
+      * @param manager the crypto manger.
+-     * @param nValue the nickname of the certificate inside the token.
+      * @return the CMC revocation request encoded in base64
+      */
+-    static String  createRevokeReq(X509Certificate signerCert, CryptoManager manager, String nValue) {
++    static String  createRevokeReq(String tokenname, X509Certificate signerCert, CryptoManager manager) {
+ 
+         java.security.PrivateKey privKey = null;
+         SignerIdentifier si = null;
+         ContentInfo fullEnrollmentReq = null;
+-        String tokenname = "internal";
+         String asciiBASE64Blob = new String();
+             
+         try {
+@@ -286,9 +295,8 @@
+             IssuerAndSerialNumber ias = new IssuerAndSerialNumber(issuer, new INTEGER(serialno.toString()));
+ 
+             si = new  SignerIdentifier(SignerIdentifier.ISSUER_AND_SERIALNUMBER, ias, null);
+-            X509Certificate cert = getCertificate(manager, tokenname, nValue);
+   
+-            privKey = manager.findPrivKeyByCert(cert);
++            privKey = manager.findPrivKeyByCert(signerCert);
+ 
+             if( privKey == null ) {
+                 System.out.println( "CMCRevoke::createRevokeReq() - " +
+@@ -327,7 +335,7 @@
+                     //org.mozilla.jss.pkix.cmmf.RevRequest.unspecified, 
+ 					new ENUMERATED((new Integer(mValue)). longValue()),
+                     //new GeneralizedTime(new Date(lValue)), 
+-                    new OCTET_STRING(hValue.getBytes()),
++                    new OCTET_STRING(pValue.getBytes()),
+                     new UTF8String(cValue.toCharArray()));
+             //byte[] encoded = ASN1Util.encode(lRevokeRequest);
+             //org.mozilla.jss.asn1.ASN1Template template = new  org.mozilla.jss.pkix.cmmf.RevRequest.Template();
+@@ -346,11 +354,16 @@
+             EncapsulatedContentInfo ci = new EncapsulatedContentInfo(OBJECT_IDENTIFIER.id_cct_PKIData, pkidata);
+             // SHA1 is the default digest Alg for now.
+             DigestAlgorithm digestAlg = null;
+-            SignatureAlgorithm signAlg = SignatureAlgorithm.RSASignatureWithSHA1Digest;
++            SignatureAlgorithm signAlg = null;
+             org.mozilla.jss.crypto.PrivateKey.Type signingKeyType = ((org.mozilla.jss.crypto.PrivateKey) privKey).getType();
++            if (signingKeyType.equals(org.mozilla.jss.crypto.PrivateKey.Type.RSA)) {
++                signAlg = SignatureAlgorithm.RSASignatureWithSHA1Digest;
++            } else if (signingKeyType.equals(org.mozilla.jss.crypto.PrivateKey.Type.EC)) {
++                signAlg = SignatureAlgorithm.ECSignatureWithSHA1Digest;
++            } else if (signingKeyType.equals(org.mozilla.jss.crypto.PrivateKey.Type.DSA)) {
++                signAlg = SignatureAlgorithm.DSASignatureWithSHA1Digest;
++            }
+ 
+-            if (signingKeyType.equals(org.mozilla.jss.crypto.PrivateKey.Type.DSA))
+-                signAlg = SignatureAlgorithm.DSASignatureWithSHA1Digest;
+             MessageDigest SHADigest = null;
+             byte[] digest = null;
+ 
+Index: java-tools/src/com/netscape/cmstools/HttpClient.java
+===================================================================
+--- java-tools/src/com/netscape/cmstools/HttpClient.java	(revision 2507)
++++ java-tools/src/com/netscape/cmstools/HttpClient.java	(working copy)
+@@ -48,6 +48,7 @@
+  */
+ public class HttpClient
+ {
++    public static final String PR_INTERNAL_TOKEN_NAME = "internal";
+     private String _host = null;
+     private int _port = 0;
+     private boolean _secure = false;
+@@ -60,6 +61,18 @@
+             SSLSocket.SSL3_RSA_EXPORT_WITH_RC4_40_MD5,
+             SSLSocket.SSL3_RSA_EXPORT_WITH_RC2_CBC_40_MD5,
+             SSLSocket.SSL3_RSA_WITH_NULL_MD5,
++            SSLSocket.TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA,
++            SSLSocket.TLS_ECDH_RSA_WITH_AES_128_CBC_SHA,
++            SSLSocket.TLS_ECDH_RSA_WITH_AES_256_CBC_SHA,
++            SSLSocket.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
++            SSLSocket.TLS_RSA_WITH_AES_128_CBC_SHA,
++            SSLSocket.TLS_RSA_WITH_AES_256_CBC_SHA,
++            SSLSocket.TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA,
++            SSLSocket.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
++            SSLSocket.TLS_DHE_DSS_WITH_AES_128_CBC_SHA,
++            SSLSocket.TLS_DHE_DSS_WITH_AES_256_CBC_SHA,
++            SSLSocket.TLS_DHE_RSA_WITH_AES_128_CBC_SHA,
++            SSLSocket.TLS_DHE_RSA_WITH_AES_256_CBC_SHA,
+             0
+     };
+ 
+@@ -101,7 +114,7 @@
+     }
+ 
+ 
+-    public void send(String ifilename, String ofilename, String dbdir, 
++    public void send(String ifilename, String ofilename, String tokenName, String dbdir, 
+       String nickname, String password, String servlet, String clientmode) 
+          throws Exception
+     {
+@@ -116,13 +129,24 @@
+                 CryptoManager.InitializationValues vals =
+                   new CryptoManager.InitializationValues(dbdir, "", "", "secmod.db");
+                 CryptoManager.initialize(vals);
+-                SSLSocket socket = new SSLSocket(_host, _port);
++                CryptoManager cm = CryptoManager.getInstance();
++                CryptoToken token = null;
++                if ((tokenName == null) || (tokenName.equals(""))) {
++                    token = cm.getInternalKeyStorageToken();
++                    tokenName = PR_INTERNAL_TOKEN_NAME;
++                } else {
++                    token = cm.getTokenByName(tokenName);
++                }
++                cm.setThreadToken(token);
++                Password pass = new Password(password.toCharArray()); 
++                token.login(pass);
++
+                 int i;
+ 
+                 for (i = SSLSocket.SSL2_RC4_128_WITH_MD5;
+                     i <= SSLSocket.SSL2_RC2_128_CBC_EXPORT40_WITH_MD5; ++i) {
+                     try {
+-                        socket.setCipherPreference(i, true);
++                        SSLSocket.setCipherPreferenceDefault(i, false);
+                     } catch( SocketException e) {
+                     }
+                 }
+@@ -130,39 +154,49 @@
+                 for (i = SSLSocket.SSL2_DES_64_CBC_WITH_MD5;
+                     i <= SSLSocket.SSL2_DES_192_EDE3_CBC_WITH_MD5; ++i) {
+                     try { 
+-                        socket.setCipherPreference(i, true);
++                        SSLSocket.setCipherPreferenceDefault(i, false);
+                     } catch( SocketException e) {
+                     }
+                 }
+                 for (i = 0; cipherSuites[i] != 0; ++i) {
+                     try {
+-                        socket.setCipherPreference(cipherSuites[i], true);
++                        SSLSocket.setCipherPreferenceDefault(cipherSuites[i], true);
+                     } catch( SocketException e) {
+                     }
+                 }
++                SSLSocket socket = new SSLSocket(_host, _port);
++
+                 SSLHandshakeCompletedListener listener = new ClientHandshakeCB(this);
+                 socket.addHandshakeCompletedListener(listener); 
+ 
++                CryptoToken tt = cm.getThreadToken();
++                System.out.println("after SSLSocket created, thread token is "+ tt.getName());
++
+                 if (clientmode != null && clientmode.equals("true")) {
+-                    CryptoManager cm = CryptoManager.getInstance();
+-                    CryptoToken token = cm.getInternalKeyStorageToken();
+-                    Password pass = new Password(password.toCharArray()); 
+-                    token.login(pass);
+                     CryptoStore store = token.getCryptoStore(); 
+-                    X509Certificate cert = cm.findCertByNickname(nickname); 
+-                    if (cert == null)
++                    StringBuffer certname = new StringBuffer();
++                    if (!token.equals(cm.getInternalKeyStorageToken())) {
++                        certname.append(tokenName);
++                        certname.append(":");
++                    }
++                    certname.append(nickname);
++
++                    X509Certificate cert =
++                        cm.findCertByNickname(certname.toString()); 
++                    if (cert == null) {
+                         System.out.println("client cert is null"); 
+-                    else
++                        System.exit(1);
++                    } else
+                         System.out.println("client cert is not null"); 
+                     socket.setUseClientMode(true);
+-                    socket.setClientCertNickname(nickname);
++                    socket.setClientCertNickname(certname.toString());
+                 }
+ 
+                 socket.forceHandshake();
+                 dos = new DataOutputStream(socket.getOutputStream());
+                 is = socket.getInputStream();
+             } catch (Exception e) {
+-                System.out.println("Exception: "+e.toString());
++                System.out.println("Exception : "+e.toString());
+                 return;
+             }
+         } else {
+@@ -176,6 +210,7 @@
+             System.out.println("Missing servlet name.");
+             printUsage();
+         } else {
++            System.out.println("writing to socket");
+             String s = "POST "+servlet+" HTTP/1.0\r\n";
+             dos.writeBytes(s);
+         } 
+@@ -241,6 +276,7 @@
+         System.out.println("port=1025");
+         System.out.println("");
+         System.out.println("#secure: true for secure connection, false for nonsecure connection");
++        System.out.println("#For secure connection, in an ECC setup, must set environment variable 'export NSS_USE_DECODED_CKA_EC_POINT=1' prior to running this command");
+         System.out.println("secure=false");
+         System.out.println("");
+         System.out.println("#input: full path for the enrollment request, the content must be in binary format");
+@@ -249,6 +285,10 @@
+         System.out.println("#output: full path for the response in binary format");
+         System.out.println("output=/u/doc/cmcResp");
+         System.out.println("");
++        System.out.println("#tokenname: name of token where SSL client authentication cert can be found (default is internal)");
++        System.out.println("#This parameter will be ignored if secure=false");
++        System.out.println("tokenname=hsmname");
++        System.out.println("");
+         System.out.println("#dbdir: directory for cert8.db, key3.db and secmod.db");
+         System.out.println("#This parameter will be ignored if secure=false");
+         System.out.println("dbdir=/u/smith/.netscape");
+@@ -273,7 +313,7 @@
+ 
+     public static void main(String args[]) 
+     { 
+-        String host = null, portstr = null, secure = null, dbdir = null, nickname = null ;
++        String host = null, portstr = null, secure = null, tokenName = null, dbdir = null, nickname = null ;
+         String password = null, ofilename = null, ifilename = null;
+         String servlet = null;
+         String clientmode = null;
+@@ -319,6 +359,8 @@
+                             portstr = val;
+                         } else if (name.equals("secure")) {
+                             secure = val;
++                        } else if (name.equals("tokenname")) {
++                            tokenName = val;
+                         } else if (name.equals("dbdir")) {
+                             dbdir = val;
+                         } else if (name.equals("nickname")) {
+@@ -390,7 +432,7 @@
+         try {
+             HttpClient client = 
+                new HttpClient(host, port, secure);
+-            client.send(ifilename, ofilename, dbdir, nickname, password, servlet, clientmode);
++            client.send(ifilename, ofilename, tokenName, dbdir, nickname, password, servlet, clientmode);
+         } catch (Exception e) {
+             System.out.println("Error: " + e.toString());
+         }
+Index: ca/shared/profiles/ca/caCMCUserCert.cfg
+===================================================================
+--- ca/shared/profiles/ca/caCMCUserCert.cfg	(revision 2507)
++++ ca/shared/profiles/ca/caCMCUserCert.cfg	(working copy)
+@@ -31,7 +31,7 @@
+ policyset.cmcUserCertSet.3.constraint.class_id=keyConstraintImpl
+ policyset.cmcUserCertSet.3.constraint.name=Key Constraint
+ policyset.cmcUserCertSet.3.constraint.params.keyType=-
+-policyset.cmcUserCertSet.3.constraint.params.keyParameters=1024,2048,3072,4096
++policyset.cmcUserCertSet.3.constraint.params.keyParameters=1024,2048,3072,4096,nistp256,nistp521
+ policyset.cmcUserCertSet.3.default.class_id=userKeyDefaultImpl
+ policyset.cmcUserCertSet.3.default.name=Key Default
+ policyset.cmcUserCertSet.4.constraint.class_id=noConstraintImpl
+Index: ca/shared/profiles/ca/caOtherCert.cfg
+===================================================================
+--- ca/shared/profiles/ca/caOtherCert.cfg	(revision 2507)
++++ ca/shared/profiles/ca/caOtherCert.cfg	(working copy)
+@@ -76,7 +76,7 @@
+ policyset.otherCertSet.7.default.class_id=extendedKeyUsageExtDefaultImpl
+ policyset.otherCertSet.7.default.name=Extended Key Usage Extension Default
+ policyset.otherCertSet.7.default.params.exKeyUsageCritical=false
+-policyset.otherCertSet.7.default.params.exKeyUsageOIDs=1.3.6.1.5.5.7.3.1
++policyset.otherCertSet.7.default.params.exKeyUsageOIDs=1.3.6.1.5.5.7.3.1,1.3.6.1.5.5.7.3.2
+ policyset.otherCertSet.8.constraint.class_id=signingAlgConstraintImpl
+ policyset.otherCertSet.8.constraint.name=No Constraint
+ policyset.otherCertSet.8.constraint.params.signingAlgsAllowed=SHA1withRSA,SHA256withRSA,SHA512withRSA,MD5withRSA,MD2withRSA,SHA1withDSA,SHA1withEC,SHA256withEC,SHA384withEC,SHA512withEC
+Index: ca/shared/profiles/ca/caSimpleCMCUserCert.cfg
+===================================================================
+--- ca/shared/profiles/ca/caSimpleCMCUserCert.cfg	(revision 2507)
++++ ca/shared/profiles/ca/caSimpleCMCUserCert.cfg	(working copy)
+@@ -28,7 +28,7 @@
+ policyset.cmcUserCertSet.2.default.params.startTime=0
+ policyset.cmcUserCertSet.3.constraint.class_id=keyConstraintImpl
+ policyset.cmcUserCertSet.3.constraint.name=Key Constraint
+-policyset.cmcUserCertSet.3.constraint.params.keyParameters=1024,2048,3072,4096
++policyset.cmcUserCertSet.3.constraint.params.keyParameters=1024,2048,3072,4096,nistp256,nistp521
+ policyset.cmcUserCertSet.3.constraint.params.keyType=-
+ policyset.cmcUserCertSet.3.default.class_id=userKeyDefaultImpl
+ policyset.cmcUserCertSet.3.default.name=Key Default
+Index: ca/shared/profiles/ca/caFullCMCUserCert.cfg
+===================================================================
+--- ca/shared/profiles/ca/caFullCMCUserCert.cfg	(revision 2507)
++++ ca/shared/profiles/ca/caFullCMCUserCert.cfg	(working copy)
+@@ -29,7 +29,7 @@
+ policyset.cmcUserCertSet.2.default.params.startTime=0
+ policyset.cmcUserCertSet.3.constraint.class_id=keyConstraintImpl
+ policyset.cmcUserCertSet.3.constraint.name=Key Constraint
+-policyset.cmcUserCertSet.3.constraint.params.keyParameters=1024,2048,3072,4096
++policyset.cmcUserCertSet.3.constraint.params.keyParameters=1024,2048,3072,4096,nistp256,nistp521
+ policyset.cmcUserCertSet.3.constraint.params.keyType=-
+ policyset.cmcUserCertSet.3.default.class_id=userKeyDefaultImpl
+ policyset.cmcUserCertSet.3.default.name=Key Default
+Index: common/src/com/netscape/cms/authentication/CMCAuth.java
+===================================================================
+--- common/src/com/netscape/cms/authentication/CMCAuth.java	(revision 2507)
++++ common/src/com/netscape/cms/authentication/CMCAuth.java	(working copy)
+@@ -35,6 +35,7 @@
+ import com.netscape.certsrv.logging.ILogger;
+ 
+ import com.netscape.cmsutil.util.*;
++import netscape.security.util.DerValue;
+ import netscape.security.x509.*;
+ 
+ /* java sdk imports */
+@@ -346,6 +347,10 @@
+                 String uid = "defUser";
+                 if (checkSignerInfo) {
+                     IAuthToken agentToken = verifySignerInfo(authToken,cmcFullReq);
++                    if (agentToken == null) {
++                        CMS.debug("CMCAuth: authenticate() agentToken null");
++                        throw new EBaseException("CMCAuth: agent verifySignerInfo failure");
++                    }
+                     userid = agentToken.getInString("userid");
+                     uid = agentToken.getInString("cn");
+                 } else {
+@@ -479,7 +484,7 @@
+                         TaggedRequest.Type type = taggedRequest.getType();
+ 
+                         if (type.equals(TaggedRequest.PKCS10)) {
+-                            CMS.debug("CMCAuth: in PKCS10");
++                            CMS.debug("CMCAuth: type is PKCS10");
+                             TaggedCertificationRequest tcr =
+                                 taggedRequest.getTcr();
+                             int p10Id = tcr.getBodyPartID().intValue();
+@@ -494,9 +499,31 @@
+                                 new ByteArrayOutputStream();
+ 
+                             p10.encode(ostream);
++                            boolean sigver = true;
++                            boolean tokenSwitched = false;
++                            CryptoManager cm = null;
++                            CryptoToken signToken = null;
++                            CryptoToken savedToken = null;
++                            sigver = CMS.getConfigStore().getBoolean("ca.requestVerify.enabled", true);
+                             try {
++                                cm = CryptoManager.getInstance(); 
++                                if (sigver == true) {
++                                    String tokenName =
++                                        CMS.getConfigStore().getString("ca.requestVerify.token", "internal");
++                                    savedToken = cm.getThreadToken();
++                                    if (tokenName.equals("internal")) {
++                                        signToken = cm.getInternalCryptoToken();
++                                    } else {
++                                        signToken = cm.getTokenByName(tokenName);
++                                    }
++                                    if (!savedToken.getName().equals(signToken.getName())) {
++                                        cm.setThreadToken(signToken);
++                                        tokenSwitched = true;
++                                    }
++                                }
++
+                                 PKCS10 pkcs10 =
+-                                    new PKCS10(ostream.toByteArray());
++                                    new PKCS10(ostream.toByteArray(), sigver);
+ 
+                                 // xxx do we need to do anything else?
+                                 X509CertInfo certInfo =
+@@ -542,10 +569,14 @@
+ 
+                                 e.printStackTrace();    
+                                 throw new EBaseException(e.toString());
++                            } finally {
++                                if ((sigver == true) && (tokenSwitched == true)){
++                                    cm.setThreadToken(savedToken);
++                                }
+                             }
+                         } else if (type.equals(TaggedRequest.CRMF)) {
+ 
+-                            CMS.debug("CMCAuth: in CRMF");
++                            CMS.debug("CMCAuth: type is CRMF");
+                             try {
+                                 CertReqMsg crm =
+                                     taggedRequest.getCrm();
+@@ -852,16 +883,26 @@
+                             CMS.debug("CMCAuth: verifying signature");
+                             si.verify(digest, id);
+                         } else {
++                            CMS.debug("CMCAuth: found signing cert... verifying");
+                             PublicKey signKey = cert.getPublicKey();
+                             PrivateKey.Type keyType = null;
+                             String alg = signKey.getAlgorithm();
+ 
++                            PK11PubKey pubK = null;
+                             if (alg.equals("RSA")) {
++                                CMS.debug("CMCAuth: signing key alg=RSA");
+                                 keyType = PrivateKey.RSA;
++                                pubK = PK11PubKey.fromRaw(keyType, ((X509Key) signKey).getKey());
++                            } else if (alg.equals("EC")) {
++                                CMS.debug("CMCAuth: signing key alg=EC");
++                                keyType = PrivateKey.EC;
++                                byte publicKeyData[] = ((X509Key) signKey).getEncoded();
++                                pubK = (PK11PubKey) PK11ECPublicKey.fromSPKI(/*keyType,*/ publicKeyData);
+                             } else if (alg.equals("DSA")) {
++                                CMS.debug("CMCAuth: signing key alg=DSA");
+                                 keyType = PrivateKey.DSA;
++                                pubK = PK11PubKey.fromSPKI(/*keyType,*/ ((X509Key) signKey).getKey());
+                             }
+-                            PK11PubKey pubK = PK11PubKey.fromRaw(keyType, ((X509Key) signKey).getKey());
+ 
+                             CMS.debug("CMCAuth: verifying signature with public key");
+                             si.verify(digest, id, pubK);
+@@ -890,9 +931,11 @@
+                         return tempToken;
+                         
+                     }
++
+                     // find from internaldb if it's ca. (ra does not have that.)
+                     // find from internaldb usrgrp info
+                     
++                    CMS.debug("CMCAuth: how to get here?");
+                     if (cert == null) {
+                         // find from certDB
+                         si.verify(digest, id);
+@@ -901,13 +944,21 @@
+                         PrivateKey.Type keyType = null;
+                         String alg = signKey.getAlgorithm();
+ 
++                        PK11PubKey pubK = null;
+                         if (alg.equals("RSA")) {
++                            CMS.debug("CMCAuth: signing key alg=RSA");
+                             keyType = PrivateKey.RSA;
++                            pubK = PK11PubKey.fromRaw(keyType, ((X509Key) signKey).getKey());
++                        } else if (alg.equals("EC")) {
++                            CMS.debug("CMCAuth: signing key alg=EC");
++                            keyType = PrivateKey.EC;
++                            byte publicKeyData[] = ((X509Key) signKey).getEncoded();
++                            pubK = (PK11PubKey) PK11ECPublicKey.fromSPKI(/*keyType,*/ publicKeyData);   
+                         } else if (alg.equals("DSA")) {
++                            CMS.debug("CMCAuth: signing key alg=DSA");
+                             keyType = PrivateKey.DSA;
+-                        } else {
++                            pubK = PK11PubKey.fromSPKI(/*keyType,*/ ((X509Key) signKey).getKey());
+                         }
+-                        PK11PubKey pubK = PK11PubKey.fromRaw(keyType, ((X509Key) signKey).getKey());
+ 
+                         si.verify(digest, id, pubK);
+                     }
+@@ -919,7 +970,8 @@
+         } catch (IOException e) {
+             CMS.debug("CMCAuth: " + e.toString());
+         } catch (Exception e) {
+-            throw new EInvalidCredentials(CMS.getUserMessage("CMS_AUTHENTICATION_INVALID_CREDENTIAL"));
++            CMS.debug("CMCAuth: " + e.toString());
++            throw new EInvalidCredentials(CMS.getUserMessage("CMS_AUTHENTICATION_INVALID_CREDENTIAL")+":"+e.toString());
+         }
+         return (IAuthToken) null;
+         
+Index: common/src/com/netscape/cms/profile/input/CMCCertReqInput.java
+===================================================================
+--- common/src/com/netscape/cms/profile/input/CMCCertReqInput.java	(revision 2507)
++++ common/src/com/netscape/cms/profile/input/CMCCertReqInput.java	(working copy)
+@@ -104,6 +104,7 @@
+         TaggedRequest msgs[] = mEnrollProfile.parseCMC(getLocale(request), cert_request);
+ 
+         if (msgs == null) {
++            CMS.debug("CMCCertReqInput: populate - parseCMC returns null TaggedRequest msgs");
+             return; 
+         }
+         // This profile only handle the first request in CRMF
+Index: common/src/com/netscape/cms/profile/common/EnrollProfile.java
+===================================================================
+--- common/src/com/netscape/cms/profile/common/EnrollProfile.java	(revision 2507)
++++ common/src/com/netscape/cms/profile/common/EnrollProfile.java	(working copy)
+@@ -612,23 +612,58 @@
+         IRequest req)
+         throws EProfileException {
+         TaggedRequest.Type type = tagreq.getType();
++        if (type == null) {
++            CMS.debug("EnrollProfile: fillTaggedRequest: TaggedRequest type == null");
++            throw new EProfileException(
++                    CMS.getUserMessage(locale, "CMS_PROFILE_INVALID_REQUEST")+
++                    "TaggedRequest type null");
++        }
+ 
+         if (type.equals(TaggedRequest.PKCS10)) { 
++            CMS.debug("EnrollProfile: fillTaggedRequest: TaggedRequest type == pkcs10");
++            boolean sigver = true;
++            boolean tokenSwitched = false;
++            CryptoManager cm = null;
++            CryptoToken signToken = null;
++            CryptoToken savedToken = null;
+             try {
++                sigver = CMS.getConfigStore().getBoolean("ca.requestVerify.enabled", true);
++                cm = CryptoManager.getInstance();
++                if (sigver == true) {
++                    String tokenName =
++                        CMS.getConfigStore().getString("ca.requestVerify.token", "internal");   
++                    savedToken = cm.getThreadToken();
++                    if (tokenName.equals("internal")) {
++                        signToken = cm.getInternalCryptoToken();
++                    } else {
++                        signToken = cm.getTokenByName(tokenName);
++                    }
++                    if (!savedToken.getName().equals(signToken.getName())) {
++                        cm.setThreadToken(signToken);
++                        tokenSwitched = true;
++                    }
++                }
++
+                 TaggedCertificationRequest tcr = tagreq.getTcr(); 
+                 CertificationRequest p10 = tcr.getCertificationRequest(); 
+                 ByteArrayOutputStream ostream = new ByteArrayOutputStream(); 
+ 
+                 p10.encode(ostream); 
+-                PKCS10 pkcs10 = new PKCS10(ostream.toByteArray());
++                PKCS10 pkcs10 = new PKCS10(ostream.toByteArray(), sigver);
+ 
+                 req.setExtData("bodyPartId", tcr.getBodyPartID());
+                 fillPKCS10(locale, pkcs10, info, req);
+             } catch (Exception e) {
+                 CMS.debug("EnrollProfile: fillTaggedRequest " + 
+                     e.toString());
++            }  finally {
++                if ((sigver == true) && (tokenSwitched == true)){
++                    cm.setThreadToken(savedToken);
++                }
+             }
++
+         } else if (type.equals(TaggedRequest.CRMF)) { 
++            CMS.debug("EnrollProfile: fillTaggedRequest: TaggedRequest type == crmf");
+             CertReqMsg crm = tagreq.getCrm(); 
+             SessionContext context = SessionContext.getContext();
+             Integer nums = (Integer)(context.get("numOfControls"));
+@@ -650,6 +685,7 @@
+ 
+             fillCertReqMsg(locale, crm, info, req);
+         } else {
++            CMS.debug("EnrollProfile: fillTaggedRequest: unsupported type (not CRMF or PKCS10)");
+             throw new EProfileException(
+                     CMS.getUserMessage(locale, "CMS_PROFILE_INVALID_REQUEST"));
+         }
+Index: util/src/netscape/security/pkcs/PKCS10.java
+===================================================================
+--- util/src/netscape/security/pkcs/PKCS10.java	(revision 2507)
++++ util/src/netscape/security/pkcs/PKCS10.java	(working copy)
+@@ -158,11 +158,15 @@
+ 	subject = new X500Name (seq [0].data);
+     
+     
+-     byte val1[] = seq [0].data.getDerValue ().toByteArray(); 
+-     subjectPublicKeyInfo = X509Key.parse (new DerValue(val1)); 
+-     PublicKey publicKey = X509Key.parsePublicKey (new DerValue(val1)); 
++        byte val1[] = seq [0].data.getDerValue ().toByteArray(); 
++        subjectPublicKeyInfo = X509Key.parse (new DerValue(val1)); 
++        PublicKey publicKey = X509Key.parsePublicKey (new DerValue(val1)); 
++        if (publicKey == null) {
++            System.out.println("PKCS10: publicKey null");
++            throw new SignatureException ("publicKey null");
++        }
+ 
+-    String keystr = subjectPublicKeyInfo.toString();
++        String keystr = subjectPublicKeyInfo.toString();
+ 
+ 	// Cope with a somewhat common illegal PKCS #10 format
+ 	if (seq [0].data.available () != 0)
+@@ -173,7 +177,6 @@
+ 	//
+ 	// OK, we parsed it all ... validate the signature using the
+ 	// key and signature algorithm we found.
+-    // temporary commented out
+ 	try {
+         String idName = id.getName ();
+         if(idName.equals("MD5withRSA"))
+@@ -198,11 +201,14 @@
+ 
+             sig.initVerify (publicKey);
+             sig.update (data);
+-            if (!sig.verify (sigData))
++            if (!sig.verify (sigData)){
++                System.out.println("PKCS10: sig.verify() failed");
+                 throw new SignatureException ("Invalid PKCS #10 signature");
++            }
+         }
+ 	} catch (InvalidKeyException e) {
+-        throw new SignatureException ("invalid key");
++            System.out.println("PKCS10: "+ e.toString());
++            throw new SignatureException ("invalid key");
+ 	}
+     }
+ 
+Index: util/src/netscape/security/x509/X509CRLImpl.java
+===================================================================
+--- util/src/netscape/security/x509/X509CRLImpl.java	(revision 2507)
++++ util/src/netscape/security/x509/X509CRLImpl.java	(working copy)
+@@ -423,6 +423,14 @@
+             sigAlg = "SHA1/RSA";
+           } else if (sigAlg.equals("SHA1withDSA")) { 
+             sigAlg = "SHA1/DSA";
++          } else if (sigAlg.equals("SHA1withEC")) {
++            sigAlg = "SHA1/EC";
++          } else if (sigAlg.equals("SHA256withEC")) {
++            sigAlg = "SHA256/EC";
++          } else if (sigAlg.equals("SHA384withEC")) {
++            sigAlg = "SHA384/EC";
++          } else if (sigAlg.equals("SHA512withEC")) {
++            sigAlg = "SHA512/EC";
+           }
+         }
+         sigVerf = Signature.getInstance(sigAlg, sigProvider);

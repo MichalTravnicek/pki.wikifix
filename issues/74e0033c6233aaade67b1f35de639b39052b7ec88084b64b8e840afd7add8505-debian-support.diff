@@ -1,0 +1,326 @@
+--- a/base/server/etc/default.cfg
++++ b/base/server/etc/default.cfg
+@@ -164,7 +164,7 @@ pki_source_subsystem_path=/usr/share/pki
+ pki_path=%(pki_root_prefix)s/var/lib/pki
+ pki_log_path=%(pki_root_prefix)s/var/log/pki
+ pki_configuration_path=%(pki_root_prefix)s/etc/pki
+-pki_registry_path=%(pki_root_prefix)s/etc/sysconfig/pki
++pki_registry_path=%(pki_root_prefix)s/etc/dogtag
+ pki_instance_path=%(pki_path)s/%(pki_instance_name)s
+ pki_instance_log_path=%(pki_log_path)s/%(pki_instance_name)s
+ pki_instance_configuration_path=%(pki_configuration_path)s/%(pki_instance_name)s
+@@ -221,7 +221,7 @@ pki_enable_on_system_boot=True
+ pki_enable_proxy=False
+ pki_proxy_http_port=80
+ pki_proxy_https_port=443
+-pki_security_manager=true
++pki_security_manager=false
+ pki_tomcat_server_port=8005
+ 
+ # Paths
+@@ -236,9 +236,9 @@ pki_cgroup_systemd_service_path=/sys/fs/
+ pki_cgroup_systemd_service=%(pki_cgroup_systemd_service_path)s/%(pki_instance_name)s
+ pki_cgroup_cpu_systemd_service_path=/sys/fs/cgroup/cpu\,cpuacct/system/%(pki_systemd_service)s
+ pki_cgroup_cpu_systemd_service=%(pki_cgroup_cpu_systemd_service_path)s/%(pki_systemd_service)s
+-pki_tomcat_bin_path=/usr/share/tomcat/bin
+-pki_tomcat_lib_path=/usr/share/tomcat/lib
+-pki_tomcat_systemd=/usr/sbin/tomcat
++pki_tomcat_bin_path=/usr/share/tomcat7/bin
++pki_tomcat_lib_path=/usr/share/tomcat7/lib
++pki_tomcat_systemd=/etc/init.d/pki-tomcatd
+ pki_source_catalina_properties=%(pki_source_server_path)s/catalina.properties
+ pki_source_servercertnick_conf=%(pki_source_server_path)s/serverCertNick.conf
+ pki_source_server_xml=%(pki_source_server_path)s/server.xml
+--- a/base/server/man/man8/pkispawn.8
++++ b/base/server/man/man8/pkispawn.8
+@@ -137,7 +137,7 @@ the \-f option.
+ 
+ .PP
+ The interactive option is most useful for those users getting familiar with Certificate Server.  The parameters collected are
+-written to the installation file of the subsystem, which can be found at \fB/etc/sysconfig/pki/tomcat/<instance name>/<subsystem>/deployment.cfg.\fP
++written to the installation file of the subsystem, which can be found at \fB/etc/dogtag/tomcat/<instance name>/<subsystem>/deployment.cfg.\fP
+ .PP
+ The following parameters are queried interactively during the installation process:
+ .PP
+--- a/base/server/python/pki/server/__init__.py
++++ b/base/server/python/pki/server/__init__.py
+@@ -41,7 +41,7 @@ import pki.util
+ INSTANCE_BASE_DIR = '/var/lib/pki'
+ CONFIG_BASE_DIR = '/etc/pki'
+ LOG_BASE_DIR = '/var/log/pki'
+-REGISTRY_DIR = '/etc/sysconfig/pki'
++REGISTRY_DIR = '/etc/dogtag'
+ 
+ SUBSYSTEM_TYPES = ['ca', 'kra', 'ocsp', 'tks', 'tps']
+ SUBSYSTEM_CLASSES = {}
+--- a/base/server/python/pki/server/deployment/pkiparser.py
++++ b/base/server/python/pki/server/deployment/pkiparser.py
+@@ -696,7 +696,7 @@ class PKIConfigParser:
+                     "context.xml")
+             self.mdict['pki_target_tomcat_conf_instance_id'] = \
+                 self.mdict['pki_root_prefix'] + \
+-                "/etc/sysconfig/" + \
++                "/etc/default/" + \
+                 self.mdict['pki_instance_name']
+             self.mdict['pki_target_tomcat_conf'] = \
+                 os.path.join(
+@@ -1091,10 +1091,10 @@ class PKIConfigParser:
+ 
+             if config.pki_architecture == 64:
+                 self.mdict['NUXWDOG_JNI_PATH_SLOT'] = (
+-                    '/usr/lib64/nuxwdog-jni')
++                    '/usr/lib/jni')
+             else:
+                 self.mdict['NUXWDOG_JNI_PATH_SLOT'] = (
+-                    '/usr/lib/nuxwdog-jni')
++                    '/usr/lib/jni')
+ 
+             # tps parameters
+             self.mdict['TOKENDB_HOST_SLOT'] = \
+@@ -1369,7 +1369,7 @@ class PKIConfigParser:
+         instance_root = os.path.join('/var/lib/pki', instance_name)
+         if not os.path.exists(instance_root):
+             return data
+-        deployment_root = os.path.join('/etc/sysconfig/pki/tomcat',
++        deployment_root = os.path.join('/etc/default/pki/tomcat',
+                                        instance_name)
+ 
+         for root, _dirs, names in os.walk(deployment_root):
+--- a/base/server/scripts/operations
++++ b/base/server/scripts/operations
+@@ -40,8 +40,13 @@ default_error=0
+ 
+ if [ -f /etc/debian_version ]; then
+     debian=true
++    . /lib/lsb/init-functions
++    ETC_SYSCONFIG_DIR=/etc/default/
++    SYSCONFIG_PKI=/etc/dogtag/
+ else
+     debian=false
++    ETC_SYSCONFIG_DIR=/etc/sysconfig/
++    SYSCONFIG_PKI=/etc/sysconfig/pki/
+ fi
+ 
+ case $command in
+@@ -146,7 +151,7 @@ usage()
+ list_instances()
+ {
+     echo
+-    for INSTANCE in /etc/sysconfig/pki/tomcat/*; do
++    for INSTANCE in $SYSCONFIG_PKI/tomcat/*; do
+         if [ -d "${INSTANCE}" ] ; then
+             instance_name=`basename ${INSTANCE}`
+             echo "    $instance_name"
+@@ -928,7 +933,7 @@ verify_symlinks()
+     # Dogtag 10 Symbolic Link Variables
+     java_dir="/usr/share/java"
+     pki_common_jar_dir="${PKI_INSTANCE_PATH}/common/lib"
+-    pki_registry_dir="/etc/sysconfig/pki/${PKI_WEB_SERVER_TYPE}/${PKI_INSTANCE_NAME}"
++    pki_registry_dir="$SYSCONFIG_PKI/${PKI_WEB_SERVER_TYPE}/${PKI_INSTANCE_NAME}"
+ 
+     # Dogtag 10 Systemd variables
+     systemd_dir="/lib/systemd/system"
+@@ -1432,8 +1437,8 @@ set_debian_tomcat_parameters()
+     fi
+ 
+     # overwrite with settings from the registry file
+-    if [ -f /etc/sysconfig/${PKI_INSTANCE_NAME} ]; then
+-        . /etc/sysconfig/${PKI_INSTANCE_NAME}
++    if [ -f $ETC_SYSCONFIG_DIR/${PKI_INSTANCE_NAME} ]; then
++        . $ETC_SYSCONFIG_DIR/${PKI_INSTANCE_NAME}
+     fi
+ 
+     JVM_TMP=/tmp/tomcat7-${PKI_INSTANCE_NAME}-tmp
+--- a/base/server/scripts/pkidaemon
++++ b/base/server/scripts/pkidaemon
+@@ -27,7 +27,7 @@ command="$1"
+ pki_instance_type="tomcat"
+ pki_instance_id="$2"
+ 
+-PKI_REGISTRY="/etc/sysconfig/pki/${pki_instance_type}"
++PKI_REGISTRY="/etc/dogtag/${pki_instance_type}"
+ PKI_TYPE="${pki_instance_type}"
+ PKI_SYSTEMD_TARGET="pki-${pki_instance_type}d"
+ 
+--- a/base/server/share/lib/systemd/system/pki-tomcatd@.service
++++ b/base/server/share/lib/systemd/system/pki-tomcatd@.service
+@@ -4,9 +4,8 @@ PartOf=pki-tomcatd.target
+ 
+ [Service]
+ Type=simple
+-EnvironmentFile=/etc/tomcat/tomcat.conf
+ Environment="NAME=%i"
+-EnvironmentFile=-/etc/sysconfig/%i
++EnvironmentFile=-/etc/default/%i
+ ExecStartPre=/usr/bin/pkidaemon start %i
+ ExecStart=/usr/libexec/tomcat/server start
+ ExecStop=/usr/libexec/tomcat/server stop
+--- a/base/server/python/pki/server/cli/nuxwdog.py
++++ b/base/server/python/pki/server/cli/nuxwdog.py
+@@ -116,7 +116,7 @@ class NuxwdogEnableCLI(pki.cli.CLI):
+         self.modify_password_class_in_cs_cfg(instance)
+ 
+     def add_nuxwdog_link(self, instance):
+-        nuxwdog_jar_path = '/usr/lib/java/nuxwdog.jar'
++        nuxwdog_jar_path = '/usr/share/java/nuxwdog.jar'
+         if not os.path.exists(nuxwdog_jar_path):
+             print(
+                 "Error: nuxwdog jar file does not exist.  "
+@@ -135,13 +135,13 @@ class NuxwdogEnableCLI(pki.cli.CLI):
+         os.symlink(nuxwdog_jar_path, instance_jar_path)
+ 
+     def enable_nuxwdog_sysconfig_file(self, instance):
+-        sysconfig_file = os.path.join('/etc/sysconfig', instance.name)
++        sysconfig_file = os.path.join('/etc/default', instance.name)
+ 
+         arch = struct.calcsize("P") * 8
+         if arch == 64:
+-            jni_str = "-Djava.library.path=/usr/lib64/nuxwdog-jni"
++            jni_str = "-Djava.library.path=/usr/lib/jni"
+         else:
+-            jni_str = "-Djava.library.path=/usr/lib/nuxwdog-jni"
++            jni_str = "-Djava.library.path=/usr/lib/jni"
+ 
+         got_use_nuxwdog = False
+ 
+@@ -321,9 +321,9 @@ class NuxwdogDisableCLI(pki.cli.CLI):
+ 
+         arch = struct.calcsize("P") * 8
+         if arch == 64:
+-            jni_str = "-Djava.library.path=/usr/lib64/nuxwdog-jni"
++            jni_str = "-Djava.library.path=/usr/lib/jni"
+         else:
+-            jni_str = "-Djava.library.path=/usr/lib/nuxwdog-jni"
++            jni_str = "-Djava.library.path=/usr/lib/jni"
+ 
+         for line in fileinput.input(sysconfig_file, inplace=1):
+             match = re.search("^JAVA_OPTS=\"(.*)\"", line)
+--- a/base/server/python/pki/server/deployment/pkihelper.py
++++ b/base/server/python/pki/server/deployment/pkihelper.py
+@@ -3597,8 +3597,7 @@ class Systemd(object):
+         """
+         try:
+             if pki.system.SYSTEM_TYPE == "debian":
+-                command = ["rm", "/etc/rc3.d/*" +
+-                           self.mdict['pki_instance_name']]
++                command = ["true"]
+             else:
+                 command = ["systemctl", "disable", "pki-tomcatd.target"]
+ 
+@@ -3647,8 +3646,7 @@ class Systemd(object):
+         """
+         try:
+             if pki.system.SYSTEM_TYPE == "debian":
+-                command = ["ln", "-s", "/etc/init.d/pki-tomcatd",
+-                           "/etc/rc3.d/S89" + self.mdict['pki_instance_name']]
++                command = ["true"]
+             else:
+                 command = ["systemctl", "enable", "pki-tomcatd.target"]
+ 
+--- a/base/common/share/etc/pki.conf
++++ b/base/common/share/etc/pki.conf
+@@ -2,7 +2,7 @@
+ JAVA_HOME=${JAVA_HOME}
+ 
+ # JNI jar file location
+-JNI_JAR_DIR=/usr/lib/java
++JNI_JAR_DIR=/usr/share/java
+ 
+ # PKI library
+ PKI_LIB=/usr/share/pki/lib
+--- a/base/common/CMakeLists.txt
++++ b/base/common/CMakeLists.txt
+@@ -24,21 +24,21 @@ add_custom_command(
+     COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/commons-io.jar lib/commons-io.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/commons-lang.jar lib/commons-lang.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/commons-logging.jar lib/commons-logging.jar
+-    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/httpcomponents/httpclient.jar lib/httpclient.jar
+-    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/httpcomponents/httpcore.jar lib/httpcore.jar
+-    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/jackson/jackson-core-asl.jar lib/jackson-core-asl.jar
+-    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/jackson/jackson-jaxrs.jar lib/jackson-jaxrs.jar
+-    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/jackson/jackson-mapper-asl.jar lib/jackson-mapper-asl.jar
+-    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/jackson/jackson-mrbean.jar lib/jackson-mrbean.jar
+-    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/jackson/jackson-smile.jar lib/jackson-smile.jar
+-    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/jackson/jackson-xc.jar lib/jackson-xc.jar
++    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/httpclient.jar lib/httpclient.jar
++    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/httpcore.jar lib/httpcore.jar
++    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/jackson-core-asl.jar lib/jackson-core-asl.jar
++    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/jackson-jaxrs.jar lib/jackson-jaxrs.jar
++    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/jackson-mapper-asl.jar lib/jackson-mapper-asl.jar
++    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/jackson-mrbean.jar lib/jackson-mrbean.jar
++    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/jackson-smile.jar lib/jackson-smile.jar
++    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/jackson-xc.jar lib/jackson-xc.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/jaxb-api.jar lib/jaxb-api.jar
+-    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/lib/java/jss4.jar lib/jss4.jar
++    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/jss4.jar lib/jss4.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/ldapjdk.jar lib/ldapjdk.jar
+-    COMMAND /usr/bin/ln -sf /usr/share/java/pki/pki-certsrv.jar ${CMAKE_CURRENT_BINARY_DIR}/lib/pki-certsrv.jar
+-    COMMAND /usr/bin/ln -sf /usr/share/java/pki/pki-cmsutil.jar ${CMAKE_CURRENT_BINARY_DIR}/lib/pki-cmsutil.jar
+-    COMMAND /usr/bin/ln -sf /usr/share/java/pki/pki-nsutil.jar ${CMAKE_CURRENT_BINARY_DIR}/lib/pki-nsutil.jar
+-    COMMAND /usr/bin/ln -sf /usr/share/java/pki/pki-tools.jar ${CMAKE_CURRENT_BINARY_DIR}/lib/pki-tools.jar
++    COMMAND ln -sf /usr/share/java/pki/pki-certsrv.jar ${CMAKE_CURRENT_BINARY_DIR}/lib/pki-certsrv.jar
++    COMMAND ln -sf /usr/share/java/pki/pki-cmsutil.jar ${CMAKE_CURRENT_BINARY_DIR}/lib/pki-cmsutil.jar
++    COMMAND ln -sf /usr/share/java/pki/pki-nsutil.jar ${CMAKE_CURRENT_BINARY_DIR}/lib/pki-nsutil.jar
++    COMMAND ln -sf /usr/share/java/pki/pki-tools.jar ${CMAKE_CURRENT_BINARY_DIR}/lib/pki-tools.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink ${RESTEASY_LIB}/resteasy-atom-provider.jar lib/resteasy-atom-provider.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink ${RESTEASY_LIB}/resteasy-client.jar lib/resteasy-client.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink ${RESTEASY_LIB}/resteasy-jackson-provider.jar lib/resteasy-jackson-provider.jar
+@@ -46,7 +46,7 @@ add_custom_command(
+     COMMAND ${CMAKE_COMMAND} -E create_symlink ${RESTEASY_LIB}/jaxrs-api.jar lib/resteasy-jaxrs-api.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink ${RESTEASY_LIB}/resteasy-jaxrs-jandex.jar lib/resteasy-jaxrs-jandex.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink ${RESTEASY_LIB}/resteasy-jaxrs.jar lib/resteasy-jaxrs.jar
+-    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/servlet.jar lib/servlet.jar
++    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/servlet-api-3.0.jar lib/servlet.jar
+ )
+ 
+ install(
+--- a/base/server/CMakeLists.txt
++++ b/base/server/CMakeLists.txt
+@@ -33,19 +33,19 @@ add_custom_command(
+     COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/commons-io.jar common/lib/commons-io.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/commons-lang.jar common/lib/commons-lang.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/commons-logging.jar common/lib/commons-logging.jar
+-    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/httpcomponents/httpclient.jar common/lib/httpclient.jar
+-    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/httpcomponents/httpcore.jar common/lib/httpcore.jar
+-    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/jackson/jackson-core-asl.jar common/lib/jackson-core-asl.jar
+-    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/jackson/jackson-jaxrs.jar common/lib/jackson-jaxrs.jar
+-    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/jackson/jackson-mapper-asl.jar common/lib/jackson-mapper-asl.jar
+-    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/jackson/jackson-mrbean.jar common/lib/jackson-mrbean.jar
+-    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/jackson/jackson-smile.jar common/lib/jackson-smile.jar
+-    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/jackson/jackson-xc.jar common/lib/jackson-xc.jar
++    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/httpclient.jar common/lib/httpclient.jar
++    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/httpcore.jar common/lib/httpcore.jar
++    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/jackson-core-asl.jar common/lib/jackson-core-asl.jar
++    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/jackson-jaxrs.jar common/lib/jackson-jaxrs.jar
++    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/jackson-mapper-asl.jar common/lib/jackson-mapper-asl.jar
++    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/jackson-mrbean.jar common/lib/jackson-mrbean.jar
++    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/jackson-smile.jar common/lib/jackson-smile.jar
++    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/jackson-xc.jar common/lib/jackson-xc.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/javassist.jar common/lib/javassist.jar
+-    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/lib/java/jss4.jar common/lib/jss4.jar
++    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/jss4.jar common/lib/jss4.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/ldapjdk.jar common/lib/ldapjdk.jar
+-    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/lib/java/nuxwdog.jar common/lib/nuxwdog.jar
+-    COMMAND /usr/bin/ln -sf /usr/share/java/pki/pki-tomcat.jar ${CMAKE_CURRENT_BINARY_DIR}/common/lib/pki-tomcat.jar
++    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/nuxwdog.jar common/lib/nuxwdog.jar
++    COMMAND ln -sf /usr/share/java/pki/pki-tomcat.jar ${CMAKE_CURRENT_BINARY_DIR}/common/lib/pki-tomcat.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink ${RESTEASY_LIB}/resteasy-atom-provider.jar common/lib/resteasy-atom-provider.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink ${RESTEASY_LIB}/resteasy-client.jar common/lib/resteasy-client.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink ${RESTEASY_LIB}/resteasy-jackson-provider.jar common/lib/resteasy-jackson-provider.jar
+@@ -53,12 +53,12 @@ add_custom_command(
+     COMMAND ${CMAKE_COMMAND} -E create_symlink ${RESTEASY_LIB}/jaxrs-api.jar common/lib/resteasy-jaxrs-api.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink ${RESTEASY_LIB}/resteasy-jaxrs.jar common/lib/resteasy-jaxrs.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/scannotation.jar common/lib/scannotation.jar
+-    COMMAND /usr/bin/ln -sf /usr/lib/java/symkey.jar ${CMAKE_CURRENT_BINARY_DIR}/common/lib/symkey.jar
++    COMMAND ln -sf /usr/lib/java/symkey.jar ${CMAKE_CURRENT_BINARY_DIR}/common/lib/symkey.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/tomcatjss.jar common/lib/tomcatjss.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/velocity.jar common/lib/velocity.jar
+-    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/xerces-j2.jar common/lib/xerces-j2.jar
+-    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/xml-commons-apis.jar common/lib/xml-commons-apis.jar
+-    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/xml-commons-resolver.jar common/lib/xml-commons-resolver.jar
++    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/xercesImpl.jar common/lib/xerces-j2.jar
++    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/xml-apis.jar common/lib/xml-commons-apis.jar
++    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/xml-resolver.jar common/lib/xml-commons-resolver.jar
+ )
+ 
+ install(

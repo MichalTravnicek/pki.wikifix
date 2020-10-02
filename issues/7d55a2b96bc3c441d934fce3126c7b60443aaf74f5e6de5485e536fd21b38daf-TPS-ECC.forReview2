@@ -1,0 +1,1998 @@
+Index: common/src/com/netscape/cms/servlet/connector/GenerateKeyPairServlet.java
+===================================================================
+--- common/src/com/netscape/cms/servlet/connector/GenerateKeyPairServlet.java	(revision 2471)
++++ common/src/com/netscape/cms/servlet/connector/GenerateKeyPairServlet.java	(working copy)
+@@ -24,6 +24,7 @@
+ import javax.servlet.http.*;
+ 
+ import java.io.*;
++import java.util.Hashtable;
+ 
+ import com.netscape.certsrv.common.*;
+ import com.netscape.certsrv.request.*;
+@@ -55,6 +56,7 @@
+     IPrettyPrintFormat pp = CMS.getPrettyPrintFormat(":");
+     protected IAuthSubsystem mAuthSubsystem = null;
+     protected ILogger mLogger = CMS.getLogger();
++    Hashtable supportedECCurves_ht = null;
+ 
+     /**
+      * Constructs GenerateKeyPair servlet.
+@@ -67,6 +69,7 @@
+     public void init(ServletConfig config) throws ServletException {
+         super.init(config);
+         mConfig = config;
++        IConfigStore sconfig = CMS.getConfigStore();
+         String authority = config.getInitParameter(PROP_AUTHORITY);
+ 
+         if (authority != null)
+@@ -74,6 +77,22 @@
+                     CMS.getSubsystem(authority);
+         
+         mAuthSubsystem = (IAuthSubsystem) CMS.getSubsystem(CMS.SUBSYSTEM_AUTH);
++
++        // supported EC cuves by the smart cards
++        String curveList = null;
++        try {
++            curveList = sconfig.getString("kra.keygen.curvelist",
++                              "nistp256,nistp384,nistp521");
++        } catch (EBaseException e) {
++            curveList = "nistp256,nistp384,nistp521";
++        }
++
++        supportedECCurves_ht = new Hashtable();
++        String[] supportedECCurves = curveList.split(",");
++        for ( int i = 0; i < supportedECCurves.length; i++) {
++            supportedECCurves_ht.put(supportedECCurves[i], supportedECCurves[i]);
++        }
++
+     }
+ 
+     /**
+@@ -113,8 +132,10 @@
+         String rCUID = req.getParameter("CUID");
+         String rUserid = req.getParameter("userid");
+         String rdesKeyString = req.getParameter("drm_trans_desKey");
+-	String rArchive = req.getParameter("archive");
+-	String rKeysize = req.getParameter("keysize");
++        String rArchive = req.getParameter("archive");
++        String rKeysize = req.getParameter("keysize");
++        String rKeytype = req.getParameter("keytype");
++        String rKeycurve = req.getParameter("eckeycurve");
+ 
+         if ((rCUID == null) || (rCUID.equals(""))) {
+             CMS.debug("GenerateKeyPairServlet: processServerSideKeygen(): missing request parameter: CUID");
+@@ -126,10 +147,30 @@
+             missingParam = true;
+         }
+ 
+-	if ((rKeysize == null) || (rKeysize.equals(""))) {
+-	    rKeysize = "1024"; // default to 1024
+-	}
++        // keysize is for non-EC (EC uses keycurve)
++        if (!rKeytype.equals("EC") && ((rKeysize == null) || (rKeysize.equals("")))) {
++            rKeysize = "1024"; // default to 1024
++        }
+ 
++        // if not specified, default to RSA
++        if ((rKeytype == null) || (rKeytype.equals(""))) {
++            rKeytype = "RSA";
++        }
++
++        if (rKeytype.equals("EC")) {
++            if ((rKeycurve == null) || (rKeycurve.equals(""))) {
++                rKeycurve = "nistp256";
++            }
++            // is the specified curve supported?
++            boolean isSupportedCurve = supportedECCurves_ht.containsKey(rKeycurve);
++            if (isSupportedCurve == false) {
++                CMS.debug("GenerateKeyPairServlet: processServerSideKeygen(): unsupported curve:"+ rKeycurve);
++                missingParam = true;
++            } else {
++                CMS.debug("GenerateKeyPairServlet: processServerSideKeygen(): curve to be generated:"+ rKeycurve);
++            }
++        }
++
+         if ((rdesKeyString == null) ||
+             (rdesKeyString.equals(""))) {
+             CMS.debug("GenerateKeyPairServlet: processServerSideKeygen(): missing request parameter: DRM-transportKey-wrapped DES key");
+@@ -138,7 +179,7 @@
+ 
+         if ((rArchive == null) || (rArchive.equals(""))) {
+             CMS.debug("GenerateKeyPairServlet: processServerSideKeygen(): missing key archival flag 'archive' ,default to true");
+-	    rArchive = "true";
++            rArchive = "true";
+         }
+ 
+         String selectedToken = null;
+@@ -150,17 +191,19 @@
+             thisreq.setExtData(IRequest.NETKEY_ATTR_CUID, rCUID);
+             thisreq.setExtData(IRequest.NETKEY_ATTR_USERID, rUserid);
+             thisreq.setExtData(IRequest.NETKEY_ATTR_DRMTRANS_DES_KEY, rdesKeyString);
+-	    thisreq.setExtData(IRequest.NETKEY_ATTR_ARCHIVE_FLAG, rArchive);
+-	    thisreq.setExtData(IRequest.NETKEY_ATTR_KEY_SIZE, rKeysize);
++            thisreq.setExtData(IRequest.NETKEY_ATTR_ARCHIVE_FLAG, rArchive);
++            thisreq.setExtData(IRequest.NETKEY_ATTR_KEY_SIZE, rKeysize);
++            thisreq.setExtData(IRequest.NETKEY_ATTR_KEY_TYPE, rKeytype);
++            thisreq.setExtData(IRequest.NETKEY_ATTR_KEY_EC_CURVE, rKeycurve);
+ 
+             queue.processRequest( thisreq );
+             Integer result = thisreq.getExtDataInInteger(IRequest.RESULT);
+             if (result != null) {
+-		// sighs!  tps thinks 0 is good, and DRM thinks 1 is good
+-		if (result.intValue() == 1)
+-		    status = "0";
+-		else
+-		    status = result.toString();
++                // sighs!  tps thinks 0 is good, and DRM thinks 1 is good
++                if (result.intValue() == 1)
++                    status = "0";
++                else
++                    status = result.toString();
+             } else
+                 status = "7";
+ 
+@@ -183,7 +226,7 @@
+         publicKeyString = thisreq.getExtDataInString("public_key");
+         wrappedPrivKeyString = thisreq.getExtDataInString("wrappedUserPrivate");
+ 
+-	String ivString = thisreq.getExtDataInString("iv_s");
++        String ivString = thisreq.getExtDataInString("iv_s");
+ 
+         /*
+           if (selectedToken == null)
+@@ -194,12 +237,12 @@
+         else {
+             StringBuffer sb = new StringBuffer();
+             sb.append("status=0&");
+-			sb.append("wrapped_priv_key=");
+-			sb.append(wrappedPrivKeyString);
+-			sb.append("&iv_param=");
+-			sb.append(ivString);
++            sb.append("wrapped_priv_key=");
++            sb.append(wrappedPrivKeyString);
++            sb.append("&iv_param=");
++            sb.append(ivString);
+             sb.append("&public_key=");
+-			sb.append(publicKeyString);
++            sb.append(publicKeyString);
+             value = sb.toString();
+ 
+         }
+@@ -267,9 +310,9 @@
+         }
+ 
+         // begin Netkey serverSideKeyGen and archival
+-	CMS.debug("GenerateKeyPairServlet: processServerSideKeyGen would be called");
+-	processServerSideKeyGen(req, resp);
+-	return;
++        CMS.debug("GenerateKeyPairServlet: processServerSideKeyGen would be called");
++        processServerSideKeyGen(req, resp);
++        return;
+         // end Netkey functions
+ 
+     }
+Index: common/src/com/netscape/certsrv/request/IRequest.java
+===================================================================
+--- common/src/com/netscape/certsrv/request/IRequest.java	(revision 2471)
++++ common/src/com/netscape/certsrv/request/IRequest.java	(working copy)
+@@ -153,6 +153,8 @@
+     public final static String NETKEY_ATTR_ENC_PRIVKEY_FLAG ="encryptPrivKey";
+     public final static String NETKEY_ATTR_USER_CERT = "cert";
+     public final static String NETKEY_ATTR_KEY_SIZE = "keysize";
++    public final static String NETKEY_ATTR_KEY_TYPE = "keytype";
++    public final static String NETKEY_ATTR_KEY_EC_CURVE = "eckeycurve";
+ 
+     // requestor type values.
+     public static final String REQUESTOR_EE = "EE";
+Index: tps/src/processor/RA_Enroll_Processor.cpp
+===================================================================
+--- tps/src/processor/RA_Enroll_Processor.cpp	(revision 2471)
++++ tps/src/processor/RA_Enroll_Processor.cpp	(working copy)
+@@ -184,7 +184,7 @@
+ 		const char *cert_attr_id, 
+ 		const char *pri_attr_id,
+ 		const char *pub_attr_id, 
+-		BYTE se_p1, BYTE se_p2, int keysize, const char *connid, const char *keyTypePrefix,char * applet_version)
++		BYTE se_p1, BYTE se_p2, BYTE algorithm,  int keysize, const char *connid, const char *keyTypePrefix,char * applet_version)
+ {
+     RA_Status status = STATUS_NO_ERROR;
+     int rc = -1;
+@@ -231,6 +231,9 @@
+     RA::Debug(LL_PER_CONNECTION,FN,
+ 	            "Start of keygen/certificate enrollment");
+ 
++    bool isECC = RA::isAlgorithmECC(algorithm);
++    SECKEYECParams  *eccParams = NULL;
++
+     // get key version for audit logs
+     if (channel != NULL) {
+        if( keyVersion != NULL ) {
+@@ -288,8 +291,8 @@
+ 		 (progress_block_size * 15/100) /* progress */, 
+ 		 "PROGRESS_KEY_GENERATION");
+ 
+-    if (key_type == KEY_TYPE_ENCRYPTION) {// do serverSide keygen?
+-                                                                                
++    if (key_type == KEY_TYPE_ENCRYPTION) {
++      // do serverSide keygen?
+       PR_snprintf((char *)configname, 256, "%s.serverKeygen.enable", keyTypePrefix);
+       RA::Debug(LL_PER_CONNECTION,FN,
+ 		"looking for config %s", configname);
+@@ -300,57 +303,58 @@
+ 
+     if (serverKeygen) {
+       RA::Debug(LL_PER_CONNECTION,FN,
+-		"Private key is to be generated on server");
++        "Private key is to be generated on server");
+ 
+       PR_snprintf((char *)configname, 256, "%s.serverKeygen.drm.conn", keyTypePrefix);
+       RA::Debug(LL_PER_CONNECTION,FN,
+-		"looking for config %s", configname);
++        "looking for config %s", configname);
+       drmconnid = RA::GetConfigStore()->GetConfigAsString(configname);
+ 
+       PR_snprintf((char *)configname, 256, "%s.serverKeygen.archive", keyTypePrefix);
+       bool archive = RA::GetConfigStore()->GetConfigAsBool(configname, true);
+ 
+       RA::Debug(LL_PER_CONNECTION,FN,
+-		"calling ServerSideKeyGen with userid =%s, archive=%s", userid, archive? "true":"false");
++        "calling ServerSideKeyGen with userid =%s, archive=%s", userid, archive? "true":"false");
+ 
+       RA::ServerSideKeyGen(session, cuid, userid,
+                            channel->getDrmWrappedDESKey(), &pKey,
+                            &wrappedPrivKey, &ivParam, drmconnid,
+-                           archive, keysize);
++                           archive, keysize, isECC);
+ 
+       if (pKey == NULL) {
+-	    RA::Error(LL_PER_CONNECTION,FN,
+-		"Failed to generate key on server. Please check DRM.");
+-	RA::Debug(LL_PER_CONNECTION,FN,
+-		"ServerSideKeyGen called, pKey is NULL");
+-	  status = STATUS_ERROR_MAC_ENROLL_PDU;
++        RA::Error(LL_PER_CONNECTION,FN,
++          "Failed to generate key on server. Please check DRM.");
++        RA::Debug(LL_PER_CONNECTION,FN,
++          "ServerSideKeyGen called, pKey is NULL");
++        status = STATUS_ERROR_MAC_ENROLL_PDU;
+ 
+         PR_snprintf(audit_msg, 512, "ServerSideKeyGen called, failed to generate key on server");
+-	goto loser;
+-      } else
+-	RA::Debug(LL_PER_CONNECTION,FN,
+-		"key value = %s", pKey);
++        goto loser;
++      } else {
++        RA::Debug(LL_PER_CONNECTION,FN,
++          "key value = %s", pKey);
++      }
+ 
+ 
+       if (wrappedPrivKey == NULL) {
+-	RA::Debug(LL_PER_CONNECTION,FN,
+-		"ServerSideKeyGen called, wrappedPrivKey is NULL");
+-	status = STATUS_ERROR_MAC_ENROLL_PDU;
++        RA::Debug(LL_PER_CONNECTION,FN,
++          "ServerSideKeyGen called, wrappedPrivKey is NULL");
++        status = STATUS_ERROR_MAC_ENROLL_PDU;
+         PR_snprintf(audit_msg, 512, "ServerSideKeyGen called, wrappedPrivKey is NULL");
+-	goto loser;
+-      } else
+-	RA::Debug(LL_PER_CONNECTION,FN,
+-		"wrappedPrivKey = %s", wrappedPrivKey);
++        goto loser;
++      } else {
++        RA::Debug(LL_PER_CONNECTION,FN,
++          "wrappedPrivKey = %s", wrappedPrivKey);
++      }
+ 
+       if (ivParam == NULL) {
+-	RA::Debug(LL_PER_CONNECTION,FN,
+-		"ServerSideKeyGen called, ivParam is NULL");
+-	status = STATUS_ERROR_MAC_ENROLL_PDU;
++        RA::Debug(LL_PER_CONNECTION,FN,
++          "ServerSideKeyGen called, ivParam is NULL");
++        status = STATUS_ERROR_MAC_ENROLL_PDU;
+         PR_snprintf(audit_msg, 512, "ServerSideKeyGen called, ivParam is NULL");
+-	goto loser;
++        goto loser;
+       } else
+-	RA::Debug(LL_PER_CONNECTION,FN,
+-		"ivParam = %s", ivParam);
++        RA::Debug(LL_PER_CONNECTION,FN, "ivParam = %s", ivParam);
+ 
+       /*
+        * the following code converts b64-encoded public key info into SECKEYPublicKey
+@@ -359,39 +363,46 @@
+       SECItem der;
+       CERTSubjectPublicKeyInfo* spki = NULL;
+                
++      Buffer *decodePubKey = Util::URLDecode(pKey);
++      char *pKey_ascii = NULL;
++      if (decodePubKey != NULL) {
++          pKey_ascii = 
++              BTOA_DataToAscii(decodePubKey->getBuf(), decodePubKey->getLen());
++      } else {
++          PR_snprintf(audit_msg, 512, "ServerSideKeyGen: failed to URL decode public key");
++        goto loser;
++      }
++
+       der.type = (SECItemType) 0; /* initialize it, since convertAsciiToItem does not set it */
+-      rv = ATOB_ConvertAsciiToItem (&der, pKey);
++      rv = ATOB_ConvertAsciiToItem (&der, pKey_ascii);
+       if (rv != SECSuccess){
+-	RA::Debug(LL_PER_CONNECTION,FN,
+-		"failed to convert b64 private key to binary");
+-	SECITEM_FreeItem(&der, PR_FALSE);
+-	  status = STATUS_ERROR_MAC_ENROLL_PDU;
+-        PR_snprintf(audit_msg, 512, "ServerSideKeyGen: failed to convert b64 private key to binary");
+-	goto loser;
+-      }else {
+-	RA::Debug(LL_PER_CONNECTION,FN,
+-		"decoded private key as: secitem (len=%d)",der.len);
++        RA::Debug(LL_PER_CONNECTION,FN,
++          "failed to convert b64 public key to binary");
++        SECITEM_FreeItem(&der, PR_FALSE);
++        status = STATUS_ERROR_MAC_ENROLL_PDU;
++          PR_snprintf(audit_msg, 512, "ServerSideKeyGen: failed to convert b64 public key to binary");
++        goto loser;
++      } else {
++        RA::Debug(LL_PER_CONNECTION,FN,
++          "decoded public key as: secitem (len=%d)",der.len);
+ 
+-	spki = SECKEY_DecodeDERSubjectPublicKeyInfo(&der);
++        spki = SECKEY_DecodeDERSubjectPublicKeyInfo(&der);
+ 
+-	if (spki != NULL) {
+-	  RA::Debug(LL_PER_CONNECTION,FN,
+-		"Successfully decoded DER SubjectPublicKeyInfo structure");
+-	  pk_p = SECKEY_ExtractPublicKey(spki);
+-	  if (pk_p != NULL)
+-	    RA::Debug(LL_PER_CONNECTION,FN,
+-		"Successfully extracted public key from SPKI structure");
+-	  else
+-	    RA::Debug(LL_PER_CONNECTION,FN,
+-		"Failed to extract public key from SPKI");
+-	} else {
+-	  RA::Debug(LL_PER_CONNECTION,FN,
+-		"Failed to decode SPKI structure");
+-	}
++        if (spki != NULL) {
++          RA::Debug(LL_PER_CONNECTION,FN,
++            "Successfully decoded DER SubjectPublicKeyInfo structure");
++          pk_p = SECKEY_ExtractPublicKey(spki);
++          if (pk_p != NULL)
++            RA::Debug(LL_PER_CONNECTION,FN, "Successfully extracted public key from SPKI structure");
++          else
++            RA::Debug(LL_PER_CONNECTION,FN, "Failed to extract public key from SPKI");
++        } else {
++          RA::Debug(LL_PER_CONNECTION,FN,
++            "Failed to decode SPKI structure");
++        }
+ 
+-	SECITEM_FreeItem(&der, PR_FALSE);
+-    	SECKEY_DestroySubjectPublicKeyInfo(spki);
+-	
++        SECITEM_FreeItem(&der, PR_FALSE);
++            SECKEY_DestroySubjectPublicKeyInfo(spki);
+       }
+ 
+     } else { //generate keys on token
+@@ -404,6 +415,11 @@
+       if(key_check && key_check->size())
+          alg = 0x81;
+ 
++
++      if (isECC) {
++         alg = algorithm;
++      }
++
+       len = channel->StartEnrollment(
+         se_p1, se_p2,
+         wrapped_challenge,
+@@ -412,7 +428,7 @@
+         0x00 /* option */);
+ 
+       RA::Debug(LL_PER_CONNECTION,FN,
+-		"channel->StartEnrollment returned length of public key blob: len=%d", len);
++          "channel->StartEnrollment returned length of public key blob: len=%d", len);
+ 
+ 	StatusUpdate(session, extensions,
+ 			start_progress + (index * progress_block_size) + 
+@@ -460,6 +476,8 @@
+           plaintext_challenge);
+ 
+ 
++      // We have received the public key blob for ECC
++
+       // send status update to the client
+ 	StatusUpdate(session, extensions,
+ 			start_progress + (index * progress_block_size) + 
+@@ -471,7 +489,7 @@
+ 
+       pk_p = certEnroll->ParsePublicKeyBlob(
+                 (unsigned char *)(BYTE *)*public_key /*blob*/, 
+-                plaintext_challenge);
++                plaintext_challenge, isECC);
+ 
+       if (pk_p == NULL) {
+ 	    RA::Error(LL_PER_CONNECTION,FN,
+@@ -550,8 +568,10 @@
+         goto loser;
+     }
+ 
+-    si_mod = pk_p->u.rsa.modulus;
+-    modulus = new Buffer((BYTE*) si_mod.data, si_mod.len);
++    if (!isECC) {
++        si_mod = pk_p->u.rsa.modulus;
++        modulus = new Buffer((BYTE*) si_mod.data, si_mod.len);
++    }
+ 
+     /* 
+      * RFC 3279
+@@ -569,15 +589,15 @@
+     si_kid = PK11_MakeIDFromPubKey(&spkix->subjectPublicKey);
+     spkix->subjectPublicKey.len <<= 3;
+ 
+-
+     keyid = new Buffer((BYTE*) si_kid->data, si_kid->len);
+ 
+-    si_exp = pk_p->u.rsa.publicExponent;
+-    exponent =  new Buffer((BYTE*) si_exp.data, si_exp.len);
++    if (!isECC) {
++        si_exp = pk_p->u.rsa.publicExponent;
++        exponent =  new Buffer((BYTE*) si_exp.data, si_exp.len);
++        RA::Debug(LL_PER_CONNECTION,FN,
++            "Keyid, modulus and exponent have been extracted from public key");
++    }
+ 
+-    RA::Debug(LL_PER_CONNECTION,FN,
+-	      "Keyid, modulus and exponent have been extracted from public key");
+-
+     SECKEY_DestroySubjectPublicKeyInfo(spkix);
+ 
+     cert_string = (char *) cert->string();
+@@ -788,67 +808,77 @@
+ 
+     /* write certificate from CA to netkey */
+     if (pkcs11obj_enable) {
+-	ObjectSpec *objSpec = 
+-		ObjectSpec::ParseFromTokenData(
+-				(cert_id[0] << 24) +
+-				(cert_id[1] << 16),
+-				cert);
+-	pkcs_objx->AddObjectSpec(objSpec);
++        ObjectSpec *objSpec = 
++          ObjectSpec::ParseFromTokenData(
++           (cert_id[0] << 24) +
++           (cert_id[1] << 16),
++           cert);
++       pkcs_objx->AddObjectSpec(objSpec);
+     } else {
+-    	RA::Debug(LL_PER_CONNECTION,FN,
+-		"About to create certificate object on token");
+-    	rc = channel->CreateCertificate(cert_id, cert);
+-    	if (rc == -1) {
+-       	 	RA::Error(LL_PER_CONNECTION,FN,
+-		"Failed to create certificate object on token");
+-        	status = STATUS_ERROR_MAC_ENROLL_PDU;
+-                PR_snprintf(audit_msg, 512, "Failed to create certificate object on token");
+-        	goto loser;
+-    	}
++        RA::Debug(LL_PER_CONNECTION,FN,
++          "About to create certificate object on token");
++        rc = channel->CreateCertificate(cert_id, cert);
++        if (rc == -1) {
++          RA::Error(LL_PER_CONNECTION,FN,
++            "Failed to create certificate object on token");
++          status = STATUS_ERROR_MAC_ENROLL_PDU;
++            PR_snprintf(audit_msg, 512, "Failed to create certificate object on token");
++          goto loser;
++        }
+     }
+ 
+     // build label
+     PR_snprintf((char *)configname, 256, "%s.%s.keyGen.%s.label", 
+-		    OP_PREFIX, tokenType, keyType);
++      OP_PREFIX, tokenType, keyType);
+     RA::Debug(LL_PER_CONNECTION,FN,
+-		"label '%s'", configname);
++      "label '%s'", configname);
+     pattern = RA::GetConfigStore()->GetConfigAsString(configname);
+     label = MapPattern(&nv, (char *) pattern);
+ 
+     if (pkcs11obj_enable) {
+-    	Buffer b = channel->CreatePKCS11CertAttrsBuffer(
+-			key_type, cert_attr_id, label, keyid);
+-	ObjectSpec *objSpec = 
+-		ObjectSpec::ParseFromTokenData(
+-				(cert_attr_id[0] << 24) +
+-				(cert_attr_id[1] << 16),
+-				&b);
+-	pkcs_objx->AddObjectSpec(objSpec);
++        Buffer b = channel->CreatePKCS11CertAttrsBuffer(
++                        key_type, cert_attr_id, label, keyid);
++        ObjectSpec *objSpec = 
++                ObjectSpec::ParseFromTokenData(
++                                (cert_attr_id[0] << 24) +
++                                (cert_attr_id[1] << 16),
++                                &b);
++        pkcs_objx->AddObjectSpec(objSpec);
+     } else {
+-    	RA::Debug(LL_PER_CONNECTION,FN,
+-		"About to create PKCS#11 certificate Attributes");
+-    	rc = channel->CreatePKCS11CertAttrs(key_type, cert_attr_id, label, keyid);
+-    	if (rc == -1) {
+-       	 RA::Error(LL_PER_CONNECTION,FN,
+-		"PKCS11 Certificate attributes creation failed");
+-        	status = STATUS_ERROR_MAC_ENROLL_PDU;
++        RA::Debug(LL_PER_CONNECTION,FN,
++            "About to create PKCS#11 certificate Attributes");
++        rc = channel->CreatePKCS11CertAttrs(key_type, cert_attr_id, label, keyid);
++        if (rc == -1) {
++            RA::Error(LL_PER_CONNECTION,FN,
++                "PKCS11 Certificate attributes creation failed");
++            status = STATUS_ERROR_MAC_ENROLL_PDU;
+                 PR_snprintf(audit_msg, 512, "PKCS11 Certificate attributes creation failed");
+-        	goto loser;
+-    	}
++           goto loser;
++        }
+     }
+ 
+     if (pkcs11obj_enable) {
+-    	RA::Debug(LL_PER_CONNECTION,FN,
+-		"Create PKCS11 Private Key Attributes Buffer");
+-    	Buffer b = channel->CreatePKCS11PriKeyAttrsBuffer(key_type, 
+-			pri_attr_id, label, keyid, modulus, OP_PREFIX, 
+-			tokenType, keyTypePrefix);
+-	ObjectSpec *objSpec = 
+-		ObjectSpec::ParseFromTokenData(
+-				(pri_attr_id[0] << 24) +
+-				(pri_attr_id[1] << 16),
+-				&b);
+-	pkcs_objx->AddObjectSpec(objSpec);
++        RA::Debug(LL_PER_CONNECTION,FN,
++          "Create PKCS11 Private Key Attributes Buffer");
++
++        Buffer b;
++        if (!isECC) {
++            b = channel->CreatePKCS11PriKeyAttrsBuffer(key_type,
++                        pri_attr_id, label, keyid, modulus, OP_PREFIX,
++                        tokenType, keyTypePrefix);
++
++        } else { //isECC
++            eccParams  =   &pk_p->u.ec.DEREncodedParams;
++            b = channel->CreatePKCS11ECCPriKeyAttrsBuffer(key_type,     
++                        pri_attr_id, label, keyid, eccParams, OP_PREFIX,
++                        tokenType, keyTypePrefix);
++        }
++        ObjectSpec *objSpec = 
++                ObjectSpec::ParseFromTokenData( 
++                                (pri_attr_id[0] << 24) +
++                                (pri_attr_id[1] << 16),
++                                &b);
++        pkcs_objx->AddObjectSpec(objSpec);
+     } else {
+     	RA::Debug(LL_PER_CONNECTION,FN,
+ 		"Create PKCS11 Private Key Attributes");
+@@ -863,27 +893,34 @@
+     }
+ 
+     if (pkcs11obj_enable) {
+-    	Buffer b = channel->CreatePKCS11PubKeyAttrsBuffer(key_type, 
+-			pub_attr_id, label, keyid, 
+-           exponent, modulus, OP_PREFIX, tokenType, keyTypePrefix);
+-	ObjectSpec *objSpec = 
+-		ObjectSpec::ParseFromTokenData(
+-				(pub_attr_id[0] << 24) +
+-				(pub_attr_id[1] << 16),
+-				&b);
+-	pkcs_objx->AddObjectSpec(objSpec);
++        Buffer b;
++        if (!isECC) {
++            b = channel->CreatePKCS11PubKeyAttrsBuffer(key_type, 
++                pub_attr_id, label, keyid, 
++                exponent, modulus, OP_PREFIX, tokenType, keyTypePrefix);
++        } else {
++            b = channel->CreatePKCS11ECCPubKeyAttrsBuffer(key_type,
++                        pub_attr_id, label, keyid,&pk_p->u.ec, eccParams,
++                        OP_PREFIX, tokenType, keyTypePrefix);
++        }
++        ObjectSpec *objSpec = 
++            ObjectSpec::ParseFromTokenData(
++               (pub_attr_id[0] << 24) +
++               (pub_attr_id[1] << 16),
++               &b);
++        pkcs_objx->AddObjectSpec(objSpec);
+     } else {
+-    	RA::Debug(LL_PER_CONNECTION,FN,
+-		"Create PKCS11 Public Key Attributes");
+-    	rc = channel->CreatePKCS11PubKeyAttrs(key_type, pub_attr_id, label, keyid, 
++        RA::Debug(LL_PER_CONNECTION,FN,
++            "Create PKCS11 Public Key Attributes");
++        rc = channel->CreatePKCS11PubKeyAttrs(key_type, pub_attr_id, label, keyid, 
+            exponent, modulus, OP_PREFIX, tokenType, keyTypePrefix);
+-    	if (rc == -1) {
+-        	RA::Error(LL_PER_CONNECTION,FN,
+-			"PKCS11 public key attributes creation failed");
+-        	status = STATUS_ERROR_MAC_ENROLL_PDU;
++        if (rc == -1) {
++            RA::Error(LL_PER_CONNECTION,FN,
++                "PKCS11 public key attributes creation failed");
++            status = STATUS_ERROR_MAC_ENROLL_PDU;
+                 PR_snprintf(audit_msg, 512, "PKCS11 public key attributes creation failed");
+-        	goto loser;
+-    	}
++            goto loser;
++        }
+     }
+     RA::Debug(LL_PER_CONNECTION,FN, "End of keygen/certificate enrollment");
+ 
+@@ -983,10 +1020,13 @@
+     }
+     if (pk_p != NULL) {
+         if (serverKeygen) {
++            RA::Debug(LL_PER_CONNECTION,FN,"DoEnrollment about to call SECKEY_DestroyPublicKey on pk_p");
+             SECKEY_DestroyPublicKey(pk_p);
+         } else {
++            RA::Debug(LL_PER_CONNECTION,FN,"DoEnrollment about to call free on pk_p");
+             free(pk_p);
+         }
++
+         pk_p = NULL;
+     }
+     return status;
+@@ -3055,6 +3095,11 @@
+     PR_snprintf((char *)configname, 256, "%s.keySize", keyTypePrefix);
+     int keySize = RA::GetConfigStore()->GetConfigAsInt(configname, 1024);
+ 
++
++    PR_snprintf((char *)configname, 256, "%s.alg", keyTypePrefix);
++    //Default RSA_CRT=2
++    BYTE algorithm = (BYTE) RA::GetConfigStore()->GetConfigAsInt(configname, 2);
++
+     PR_snprintf((char *)configname, 256, "%s.publisherId", keyTypePrefix);
+     const char *publisherId = RA::GetConfigStore()->GetConfigAsString(configname, NULL);
+ 
+@@ -3105,7 +3150,7 @@
+           msn,
+           khex, (TokenKeyType)keyTypeEnum, profileId, userid, certId,publisherId, certAttrId, priKeyAttrId,
+           pubKeyAttrId, (keyUser << 4)+priKeyNumber,
+-          (keyUsage << 4)+pubKeyNumber, keySize, caconnid, keyTypePrefix,(char *)final_applet_version);
++          (keyUsage << 4)+pubKeyNumber, algorithm, keySize, caconnid, keyTypePrefix,(char *)final_applet_version);
+ 
+     if (o_status != STATUS_NO_ERROR) {
+         r = false;
+Index: tps/src/cms/CertEnroll.cpp
+===================================================================
+--- tps/src/cms/CertEnroll.cpp	(revision 2471)
++++ tps/src/cms/CertEnroll.cpp	(working copy)
+@@ -19,6 +19,7 @@
+ // --- END COPYRIGHT BLOCK ---
+ 
+ #include <string.h>
++#include <assert.h>
+ 
+ #include "main/RA_Session.h"
+ #include "main/RA_Msg.h"
+@@ -35,6 +36,7 @@
+ #include "base64.h"
+ #include "nssb64.h"
+ #include "prlock.h"
++#include "secoidt.h"
+ 
+ #include "main/Memory.h"
+ 
+@@ -49,6 +51,131 @@
+ #define TOKENDB_PUBLIC
+ #endif /* !XP_WIN32 */
+ 
++//ECC curve information
++
++typedef struct curveNameTagPairStr {
++    char *curveName;
++    SECOidTag curveOidTag;
++} CurveNameTagPair;
++
++
++static CurveNameTagPair nameTagPair[] =
++{ 
++  { "prime192v1", SEC_OID_ANSIX962_EC_PRIME192V1 },
++  { "prime192v2", SEC_OID_ANSIX962_EC_PRIME192V2 },
++  { "prime192v3", SEC_OID_ANSIX962_EC_PRIME192V3 },
++  { "prime239v1", SEC_OID_ANSIX962_EC_PRIME239V1 },
++  { "prime239v2", SEC_OID_ANSIX962_EC_PRIME239V2 },
++  { "prime239v3", SEC_OID_ANSIX962_EC_PRIME239V3 },
++  { "prime256v1", SEC_OID_ANSIX962_EC_PRIME256V1 },
++
++  { "secp112r1", SEC_OID_SECG_EC_SECP112R1},
++  { "secp112r2", SEC_OID_SECG_EC_SECP112R2},
++  { "secp128r1", SEC_OID_SECG_EC_SECP128R1},
++  { "secp128r2", SEC_OID_SECG_EC_SECP128R2},
++  { "secp160k1", SEC_OID_SECG_EC_SECP160K1},
++  { "secp160r1", SEC_OID_SECG_EC_SECP160R1},
++  { "secp160r2", SEC_OID_SECG_EC_SECP160R2},
++  { "secp192k1", SEC_OID_SECG_EC_SECP192K1},
++  { "secp192r1", SEC_OID_ANSIX962_EC_PRIME192V1 },
++  { "nistp192", SEC_OID_ANSIX962_EC_PRIME192V1 },
++  { "secp224k1", SEC_OID_SECG_EC_SECP224K1},
++  { "secp224r1", SEC_OID_SECG_EC_SECP224R1},
++  { "nistp224", SEC_OID_SECG_EC_SECP224R1},
++  { "secp256k1", SEC_OID_SECG_EC_SECP256K1},
++  { "secp256r1", SEC_OID_ANSIX962_EC_PRIME256V1 },
++  { "nistp256", SEC_OID_ANSIX962_EC_PRIME256V1 },
++  { "secp384r1", SEC_OID_SECG_EC_SECP384R1},
++  { "nistp384", SEC_OID_SECG_EC_SECP384R1},
++  { "secp521r1", SEC_OID_SECG_EC_SECP521R1},
++  { "nistp521", SEC_OID_SECG_EC_SECP521R1},
++
++  { "c2pnb163v1", SEC_OID_ANSIX962_EC_C2PNB163V1 },
++  { "c2pnb163v2", SEC_OID_ANSIX962_EC_C2PNB163V2 },
++  { "c2pnb163v3", SEC_OID_ANSIX962_EC_C2PNB163V3 },
++  { "c2pnb176v1", SEC_OID_ANSIX962_EC_C2PNB176V1 },
++  { "c2tnb191v1", SEC_OID_ANSIX962_EC_C2TNB191V1 },
++  { "c2tnb191v2", SEC_OID_ANSIX962_EC_C2TNB191V2 },
++  { "c2tnb191v3", SEC_OID_ANSIX962_EC_C2TNB191V3 },
++  { "c2onb191v4", SEC_OID_ANSIX962_EC_C2ONB191V4 },
++  { "c2onb191v5", SEC_OID_ANSIX962_EC_C2ONB191V5 },
++  { "c2pnb208w1", SEC_OID_ANSIX962_EC_C2PNB208W1 },
++  { "c2tnb239v1", SEC_OID_ANSIX962_EC_C2TNB239V1 },
++  { "c2tnb239v2", SEC_OID_ANSIX962_EC_C2TNB239V2 },
++  { "c2tnb239v3", SEC_OID_ANSIX962_EC_C2TNB239V3 },
++  { "c2onb239v4", SEC_OID_ANSIX962_EC_C2ONB239V4 },
++  { "c2onb239v5", SEC_OID_ANSIX962_EC_C2ONB239V5 },
++  { "c2pnb272w1", SEC_OID_ANSIX962_EC_C2PNB272W1 },
++  { "c2pnb304w1", SEC_OID_ANSIX962_EC_C2PNB304W1 },
++  { "c2tnb359v1", SEC_OID_ANSIX962_EC_C2TNB359V1 },
++  { "c2pnb368w1", SEC_OID_ANSIX962_EC_C2PNB368W1 },
++  { "c2tnb431r1", SEC_OID_ANSIX962_EC_C2TNB431R1 },
++
++  { "sect113r1", SEC_OID_SECG_EC_SECT113R1},
++  { "sect113r2", SEC_OID_SECG_EC_SECT113R2},
++  { "sect131r1", SEC_OID_SECG_EC_SECT131R1},
++  { "sect131r2", SEC_OID_SECG_EC_SECT131R2},
++  { "sect163k1", SEC_OID_SECG_EC_SECT163K1},
++  { "nistk163", SEC_OID_SECG_EC_SECT163K1},
++  { "sect163r1", SEC_OID_SECG_EC_SECT163R1},
++  { "sect163r2", SEC_OID_SECG_EC_SECT163R2},
++  { "nistb163", SEC_OID_SECG_EC_SECT163R2},
++  { "sect193r1", SEC_OID_SECG_EC_SECT193R1},
++  { "sect193r2", SEC_OID_SECG_EC_SECT193R2},
++  { "sect233k1", SEC_OID_SECG_EC_SECT233K1},
++  { "nistk233", SEC_OID_SECG_EC_SECT233K1},
++  { "sect233r1", SEC_OID_SECG_EC_SECT233R1},
++  { "nistb233", SEC_OID_SECG_EC_SECT233R1},
++  { "sect239k1", SEC_OID_SECG_EC_SECT239K1},
++  { "sect283k1", SEC_OID_SECG_EC_SECT283K1},
++  { "nistk283", SEC_OID_SECG_EC_SECT283K1},
++  { "sect283r1", SEC_OID_SECG_EC_SECT283R1},
++  { "nistb283", SEC_OID_SECG_EC_SECT283R1},
++  { "sect409k1", SEC_OID_SECG_EC_SECT409K1},
++  { "nistk409", SEC_OID_SECG_EC_SECT409K1},
++  { "sect409r1", SEC_OID_SECG_EC_SECT409R1},
++  { "nistb409", SEC_OID_SECG_EC_SECT409R1},
++  { "sect571k1", SEC_OID_SECG_EC_SECT571K1},
++  { "nistk571", SEC_OID_SECG_EC_SECT571K1},
++  { "sect571r1", SEC_OID_SECG_EC_SECT571R1},
++  { "nistb571", SEC_OID_SECG_EC_SECT571R1},
++
++};
++
++SECKEYECParams * 
++CertEnroll::encode_ec_params(char *curve)
++{
++    SECKEYECParams *ecparams;
++    SECOidData *oidData = NULL;
++    SECOidTag curveOidTag = SEC_OID_UNKNOWN; /* default */
++    int i, numCurves;
++  
++    if (curve && *curve) {
++        numCurves = sizeof(nameTagPair)/sizeof(CurveNameTagPair);
++        for (i = 0; ((i < numCurves) && (curveOidTag == SEC_OID_UNKNOWN)); 
++             i++) {
++            if (PL_strcmp(curve, nameTagPair[i].curveName) == 0)
++                curveOidTag = nameTagPair[i].curveOidTag;
++        }
++    }
++  
++    if ((curveOidTag == SEC_OID_UNKNOWN) || 
++        (oidData = SECOID_FindOIDByTag(curveOidTag)) == NULL) {
++        return NULL;
++    }
++  
++    ecparams = SECITEM_AllocItem(NULL, NULL, (2 + oidData->oid.len));
++  
++    if (!ecparams)
++      return NULL;
++  
++    ecparams->data[0] = SEC_ASN1_OBJECT_ID;
++    ecparams->data[1] = oidData->oid.len;
++    memcpy(ecparams->data + 2, oidData->oid.data, oidData->oid.len);
++  
++    return ecparams;
++}
++
+ /**
+  * Constructs handle for Certificate Enrollment
+  */
+@@ -328,8 +455,20 @@
+  * Short     Exponent Length
+  * 
+  * Byte[]     Exponent
++ *
++ *
++ *   ECC KeyBlob Format (ECC Public Key)
++ *   ----------------------------------
++ *
++ *  Byte     Encoding (0 for plaintext)
+  * 
+- *  
++ *  Byte     Key Type (10 for ECC public)
++ *
++ *  Short    Key Length (256, 384, 521 high byte first)
++ *
++ *  Byte[]     Key (W)
++ *
++ *
+  * Signature Format (Proof)
+  * ---------------------------------------
+  *  
+@@ -369,7 +508,7 @@
+  ******/
+ 
+ SECKEYPublicKey *CertEnroll::ParsePublicKeyBlob(unsigned char *blob,
+-                             Buffer *challenge)
++                             Buffer *challenge, bool isECC)
+ {
+     char configname[5000];
+     SECKEYPublicKey *pk = NULL;
+@@ -404,7 +543,7 @@
+     pkeyb_len = (unsigned short) ((len0 << 8) | (len1 & 0xFF));
+ 
+     RA::Debug(LL_PER_PDU, "CertEnroll::ParsePublicKeyBlob",
+-          "pkeyb_len =%d",pkeyb_len);
++          "pkeyb_len =%d isECC: %d",pkeyb_len, isECC);
+ 
+     if (pkeyb_len <= 0) {
+       RA::Error("CertEnroll::ParsePublicKeyBlob", "public key blob length = %d", pkeyb_len);
+@@ -431,51 +570,112 @@
+ 
+     // convert pkeyb to pkey
+     // 1 byte encoding, 1 byte key type, 2 bytes key length, then the key
++
++    // for ECC
++    unsigned short ecc_pkey_len = 0;
++    // ecc key blob
++    unsigned char *eccpb = NULL;
++
++    // for RSA
++    unsigned short mod_len = 0;
++    unsigned short exp_len = 0;
++    // public key mod blob
++    unsigned char * modb = NULL;
++    // public key exp blob
++    unsigned char * expb = NULL;
++
+     unsigned short pkey_offset = 4;
+-    // now, convert lengths for modulus and exponent
+     len0 = pkeyb[pkey_offset];
+     len1 = pkeyb[pkey_offset + 1];
+-    unsigned short mod_len = (len0 << 8 | len1);
+ 
+-    len0 = pkeyb[pkey_offset + 2 + mod_len];
+-    len1 = pkeyb[pkey_offset + 2 + mod_len + 1];
+-    unsigned short exp_len = (len0 << 8 | len1);
++    if (!isECC) {
++        // now, convert lengths for modulus and exponent
++        mod_len = (len0 << 8 | len1);
+ 
++        len0 = pkeyb[pkey_offset + 2 + mod_len];
++        len1 = pkeyb[pkey_offset + 2 + mod_len + 1];
++        exp_len = (len0 << 8 | len1);
+ 
+-    // public key mod blob
+-    unsigned char * modb = &pkeyb[pkey_offset + 2];
++        modb = &pkeyb[pkey_offset + 2];
++        expb = &pkeyb[pkey_offset + 2 + mod_len + 2];
+ 
+-    // public key exp blob
+-    unsigned char * expb = &pkeyb[pkey_offset + 2 + mod_len + 2];
++    } else {
++        ecc_pkey_len = (len0 << 8  | len1);
++        eccpb = &pkeyb[pkey_offset + 2];
++    }
+ 
+     // construct SECItem
++
++    // for RSA
+     SECItem siMod;
+-    siMod.type = (SECItemType) 0;
+-    siMod.data = (unsigned char *) modb;
+-    siMod.len = mod_len;
+-
+     SECItem siExp;
+-    siExp.type = (SECItemType) 0;
+-    siExp.data = (unsigned char *)expb;
+-    siExp.len = exp_len;
+-
+-    // construct SECKEYRSAPublicKeyStr
+     SECKEYRSAPublicKeyStr rsa_pks;
+-    rsa_pks.modulus = siMod;
+-    rsa_pks.publicExponent = siExp;
+ 
+-    // construct SECKEYPublicKey
+-    // this is to be returned
++    // for ECC
++    SECItem eccValue;
++    SECKEYECPublicKeyStr  ecc_pks;
++    SECKEYECParams *ecc_key_params = NULL;
++
+     pk = (SECKEYPublicKey *) malloc(sizeof(SECKEYPublicKey));
+-    pk->keyType = rsaKey;
+-    pk->pkcs11Slot = NULL;
+-    pk->pkcs11ID = CK_INVALID_HANDLE;
+-    pk->u.rsa = rsa_pks;
+ 
++    assert(pk);
++
++    if (!isECC) {
++
++        siMod.type = (SECItemType) 0;
++        siMod.data = (unsigned char *) modb;
++        siMod.len = mod_len;
++
++        siExp.type = (SECItemType) 0;
++        siExp.data = (unsigned char *)expb;
++        siExp.len = exp_len;
++
++        // construct SECKEYRSAPublicKeyStr
++        rsa_pks.modulus = siMod;
++        rsa_pks.publicExponent = siExp;
++
++        pk->keyType = rsaKey;
++        pk->pkcs11Slot = NULL;
++        pk->pkcs11ID = CK_INVALID_HANDLE;
++        pk->u.rsa = rsa_pks;
++    }  else {
++        // ECC
++        len0 = blob[pkeyb_len_offset +4];
++        len1 = blob[pkeyb_len_offset +5];
++        int keyCurveSize =  (len0 << 8  | len1);
++
++        RA::Debug(LL_PER_PDU, "CertEnroll::ParsePublicKeyBlob",
++          "keyCurveSize =%d",keyCurveSize);
++
++        char curve[56] = "";
++        snprintf(curve, 56, "nistp%d",keyCurveSize ); 
++
++        ecc_key_params = encode_ec_params(curve);
++
++        if (ecc_key_params == NULL) {
++            free(pk);
++            pk = NULL;
++            return NULL;
++        }
++
++        eccValue.type = (SECItemType) 0;
++        eccValue.data = (unsigned char *) eccpb;
++        eccValue.len  = ecc_pkey_len;
++
++        ecc_pks.size = keyCurveSize;
++        ecc_pks.publicValue = eccValue;
++        ecc_pks.DEREncodedParams = *ecc_key_params; 
++
++        pk->keyType = ecKey;
++        pk->pkcs11Slot = NULL;
++        pk->pkcs11ID = CK_INVALID_HANDLE;
++        pk->u.ec = ecc_pks;
++    }
++
+     PR_snprintf((char *)configname, 256, "general.verifyProof");
+     int verifyProofEnable = RA::GetConfigStore()->GetConfigAsInt(configname, 0x1);
+     if (verifyProofEnable) {
+-      rs = verifyProof(pk, &siProof, pkeyb_len, pkeyb, challenge);
++      rs = verifyProof(pk, &siProof, pkeyb_len, pkeyb, challenge, isECC);
+       if (rs.status == PR_FAILURE) {
+         RA::Error("CertEnroll::ParsePublicKeyBlob",
+           "verify proof failed");
+@@ -487,7 +687,33 @@
+     return pk;
+ }
+ 
++/*
++ * for debugging tokens
++ * -- list out all tokens and thier login status
++ */
++static SECStatus
++ListModules(void)
++{
++    PK11SlotList *list;
++    PK11SlotListElement *le;
+ 
++    /* get them all! */
++    list = PK11_GetAllTokens(CKM_INVALID_MECHANISM,PR_FALSE,PR_FALSE,NULL);
++    if (list == NULL) return SECFailure;
++
++    /* look at each slot*/
++    for (le = list->head ; le; le = le->next) {
++        RA::Debug( LL_PER_PDU, "CertEnroll::ListModules",
++          "    slot: %s\n, loggedIn? %d, token: %s\n", PK11_GetSlotName(le->slot),
++           (PK11_IsLoggedIn(le->slot, NULL) == PR_TRUE)? 1:0,
++           PK11_GetTokenName(le->slot));
++    }
++    PK11_FreeSlotList(list);
++
++    return SECSuccess;
++}
++
++
+ /**
+  * verify the proof.
+  * @param pk the public key from the input blob
+@@ -502,18 +728,24 @@
+  */
+ ReturnStatus CertEnroll::verifyProof(SECKEYPublicKey* pk, SECItem* siProof,
+              unsigned short pkeyb_len, unsigned char* pkeyb,
+-             Buffer* challenge) {
++             Buffer* challenge, bool isECC) {
+ 
+     ReturnStatus rs;
+     VFYContext * vc = NULL;
+     rs.statusNum = ::VRFY_SUCCESS;
+     rs.status = PR_SUCCESS;
+ 
++    // ListModules();
++
+     // verify proof (signature)
+     RA::Debug(LL_PER_PDU, "CertEnroll::verifyProof",
+           "verify proof begins");
+ 
+-    vc = VFY_CreateContext(pk, siProof, SEC_OID_ISO_SHA_WITH_RSA_SIGNATURE, NULL);
++    if(isECC) {
++        vc = VFY_CreateContext(pk, siProof, SEC_OID_ANSIX962_ECDSA_SHA1_SIGNATURE , NULL);
++    } else {
++        vc = VFY_CreateContext(pk, siProof, SEC_OID_ISO_SHA_WITH_RSA_SIGNATURE, NULL);
++    }
+ 
+     if (vc == NULL) {
+         RA::Error("CertEnroll::verifyProof",
+@@ -530,14 +762,15 @@
+     int i =0; 
+     for (i = 0; i<pkeyb_len; i++) {
+         proof[i] = pkeyb[i];
++        RA::Debug(LL_PER_PDU,"CertEnroll::VerifyProof", "proof[%d]=%x", i, proof[i]);
+     }
+-    //    RA::DebugBuffer("CertEnroll::VerifyProof","VerifyProof:: challenge =", challenge);
++        RA::DebugBuffer("CertEnroll::VerifyProof","VerifyProof:: challenge =", challenge);
+     unsigned char* chal = (unsigned char *)(BYTE *) (*challenge);
+     unsigned int j = 0;
+     for (j=0; j < challenge->size(); i++, j++) {
+         proof[i] = chal[j];
+-	//	RA::Debug(LL_PER_PDU, "CertEnroll::VerifyProof","proof[%d]= %x",
+-	//		  i, proof[i]);
++		RA::Debug(LL_PER_PDU, "CertEnroll::VerifyProof","proof[%d]= %x",
++			  i, proof[i]);
+     }
+ 
+     SECStatus vs = VFY_Begin(vc);
+@@ -547,7 +780,7 @@
+           vs = VFY_End(vc);
+           if (vs == SECFailure) {
+             RA::Error("CertEnroll::verifyProof",
+-                "VFY_End() failed pkeyb_len=%d challenge_size=%d", pkeyb_len, challenge->size());
++                "VFY_End() failed pkeyb_len=%d challenge_size=%d error=%d", pkeyb_len, challenge->size(),PR_GetError());
+             rs.statusNum = ::VFY_UPDATE_FAILURE;
+             rs.status = PR_FAILURE;
+           }
+Index: tps/src/include/processor/RA_Enroll_Processor.h
+===================================================================
+--- tps/src/include/processor/RA_Enroll_Processor.h	(revision 2471)
++++ tps/src/include/processor/RA_Enroll_Processor.h	(working copy)
+@@ -50,40 +50,40 @@
+ 
+ class RA_Enroll_Processor : public RA_Processor
+ {
+-	public:
+-		TPS_PUBLIC RA_Enroll_Processor();
+-		TPS_PUBLIC ~RA_Enroll_Processor();
+-	public:
+-		int ParsePublicKeyBlob(unsigned char *blob,
+-				unsigned char *challenge,
+-				SECKEYPublicKey *pk);
+-		RA_Status DoEnrollment(AuthParams *login, RA_Session *session,
+-				CERTCertificate **certificates,
+-				char **origins,
+-				char **ktypes,
+-				int pkcs11obj,
+-				PKCS11Obj * pkcs_objx,
+-				NameValueSet *extensions,
+-				int index, int keyTypeNum,
+-				int start_progress,
+-				int end_progress,
+-				Secure_Channel *channel, Buffer *wrapped_challenge,
+-				const char *tokenType,
+-				const char *keyType,
+-				Buffer *key_check,
+-				Buffer *plaintext_challenge,
+-				const char *cuid,
+-				const char *msn,
+-				const char *khex,
+-				TokenKeyType key_type,
+-				const char *profileId,
+-				const char *userid,
+-				const char *cert_id,
+-				const char *publisher_id,
+-				const char *cert_attr_id,
+-				const char *pri_attr_id,
+-				const char *pub_attr_id,
+-				BYTE se_p1, BYTE se_p2, int keysize, const char *connid, const char *keyTypePrefix,char * applet_version);
++    public:
++        TPS_PUBLIC RA_Enroll_Processor();
++        TPS_PUBLIC ~RA_Enroll_Processor();
++    public:
++        int ParsePublicKeyBlob(unsigned char *blob,
++            unsigned char *challenge,
++        SECKEYPublicKey *pk);
++        RA_Status DoEnrollment(AuthParams *login, RA_Session *session,
++            CERTCertificate **certificates,
++            char **origins,
++            char **ktypes,
++            int pkcs11obj,
++            PKCS11Obj * pkcs_objx,
++            NameValueSet *extensions,
++            int index, int keyTypeNum,
++            int start_progress,
++            int end_progress,
++            Secure_Channel *channel, Buffer *wrapped_challenge,
++            const char *tokenType,
++            const char *keyType,
++            Buffer *key_check,
++            Buffer *plaintext_challenge,
++            const char *cuid,
++            const char *msn,
++            const char *khex,
++            TokenKeyType key_type,
++            const char *profileId,
++            const char *userid,
++            const char *cert_id,
++            const char *publisher_id,
++            const char *cert_attr_id,
++            const char *pri_attr_id,
++            const char *pub_attr_id,
++            BYTE se_p1, BYTE se_p2, BYTE algorithm, int keysize, const char *connid, const char *keyTypePrefix,char * applet_version);
+ 
+         bool DoRenewal(const char *connid,
+                 const char *profileId,
+Index: tps/src/include/cms/CertEnroll.h
+===================================================================
+--- tps/src/include/cms/CertEnroll.h	(revision 2471)
++++ tps/src/include/cms/CertEnroll.h	(working copy)
+@@ -55,8 +55,9 @@
+   TOKENDB_PUBLIC CertEnroll();
+   TOKENDB_PUBLIC ~CertEnroll();
+ 
++
+   SECKEYPublicKey *ParsePublicKeyBlob(unsigned char * /*blob*/,
+-			 Buffer * /*challenge*/);
++      Buffer * /*challenge*/, bool isECC);
+   Buffer *EnrollCertificate(SECKEYPublicKey * /*pk_parsed*/,
+ 		            const char *profileId,
+ 			    const char * /*uid*/,
+@@ -64,12 +65,15 @@
+                             char *error_msg,
+ 			    	SECItem** encodedPublicKeyInfo = NULL);
+   ReturnStatus verifyProof(SECKEYPublicKey* /*pk*/, SECItem* /*siProof*/,
+-			   unsigned short /*pkeyb_len*/, unsigned char* /*pkeyb*/,
+-			   Buffer* /*challenge*/);
++          unsigned short /*pkeyb_len*/, unsigned char* /*pkeyb*/,
++           Buffer* /*challenge*/, bool /*isECC*/);
+   TOKENDB_PUBLIC Buffer *RenewCertificate(PRUint64 serialno, const char *connid, const char *profileId, char *error_msg);
+   TOKENDB_PUBLIC int RevokeCertificate(const char *reason, const char *serialno, const char *connid, char *&status);
+   TOKENDB_PUBLIC int UnrevokeCertificate(const char *serialno, const char *connid, char *&status);
+   PSHttpResponse * sendReqToCA(const char *servlet, const char *parameters, const char *connid);
+   Buffer * parseResponse(PSHttpResponse * /*resp*/);
++
++  SECKEYECParams * encode_ec_params(char *curve);
++
+ };
+ #endif /* CERTENROLL_H */
+Index: tps/src/include/main/Buffer.h
+===================================================================
+--- tps/src/include/main/Buffer.h	(revision 2471)
++++ tps/src/include/main/Buffer.h	(working copy)
+@@ -167,6 +167,9 @@
+      */
+     TPS_PUBLIC void replace(unsigned int i, const BYTE* cpy, unsigned int n);
+ 
++    TPS_PUBLIC unsigned char* getBuf();
++    TPS_PUBLIC unsigned int getLen();
++
+     /**
+      * returns a hex version of the buffer
+      */
+Index: tps/src/include/engine/RA.h
+===================================================================
+--- tps/src/include/engine/RA.h	(revision 2471)
++++ tps/src/include/engine/RA.h	(working copy)
+@@ -79,6 +79,13 @@
+ 	LL_ALL_DATA_IN_PDU = 9
+ };
+ 
++enum RA_Algs {
++        ALG_RSA = 1,
++        ALG_RSA_CRT = 2,
++        ALG_DSA = 3,
++        ALG_EC_F2M = 4,
++        ALG_EC_FP = 5
++};
+ 
+ #ifdef XP_WIN32
+ #define TPS_PUBLIC __declspec(dllexport)
+@@ -124,12 +131,12 @@
+                                            char** kek_kekSessionKey_s,
+                                            char **keycheck_s,
+                                            const char *connId);
+-	  static void ServerSideKeyGen(RA_Session *session, const char* cuid,
++      static void ServerSideKeyGen(RA_Session *session, const char* cuid,
+                                    const char *userid, char* kekSessionKey_s,
+-		                           char **publickey_s,
++                                   char **publickey_s,
+                                    char **wrappedPrivateKey_s,
+                                    char **ivParam_s, const char *connId,
+-                                   bool archive, int keysize);
++                                   bool archive, int keysize, bool isECC);
+ 	  static void RecoverKey(RA_Session *session, const char* cuid,
+                              const char *userid, char* kekSessionKey_s,
+                              char *cert_s, char **publickey_s,
+@@ -363,6 +370,7 @@
+           static void CleanupPublishers();
+         static int Failover(HttpConnection *&conn, int len);   
+ 
++          static bool isAlgorithmECC(BYTE algorithm);
+       TPS_PUBLIC static SECCertificateUsage getCertificateUsage(const char *certusage);
+       TPS_PUBLIC static bool verifySystemCertByNickname(const char *nickname, const char *certUsage);
+       TPS_PUBLIC static bool verifySystemCerts();
+Index: tps/src/include/channel/Secure_Channel.h
+===================================================================
+--- tps/src/include/channel/Secure_Channel.h	(revision 2471)
++++ tps/src/include/channel/Secure_Channel.h	(working copy)
+@@ -125,10 +125,18 @@
+           int CreatePKCS11CertAttrs(TokenKeyType type, const char *id, const char *label, Buffer *keyid);
+           Buffer CreatePKCS11PriKeyAttrsBuffer(TokenKeyType type, const char *id, const char *label, Buffer *keyid, 
+                 Buffer *modulus, const char *opType, const char *tokenType, const char *keyTypePrefix);
++
++          Buffer CreatePKCS11ECCPriKeyAttrsBuffer(TokenKeyType type, const char *id, const char *label, Buffer *keyid,
++                SECKEYECParams *ecParams, const char *opType, const char *tokenType, const char *keyTypePrefix);  
++
+           int CreatePKCS11PriKeyAttrs(TokenKeyType type, const char *id, const char *label, Buffer *keyid, 
+                 Buffer *modulus, const char *opType, const char *tokenType, const char *keyTypePrefix);
+           Buffer CreatePKCS11PubKeyAttrsBuffer(TokenKeyType type, const char *id, const char *label, Buffer *keyid,
+                 Buffer *exponent, Buffer *modulus, const char *opType, const char *tokenType, const char *keyTypePrefix);
++
++          Buffer CreatePKCS11ECCPubKeyAttrsBuffer(TokenKeyType key_type, const char *id, const char *label, Buffer *keyid, SECKEYECPublicKey *publicKey,
++                 SECKEYECParams *ecParams, const char *opType, const char *tokenType, const char *keyTypePrefix);
++
+           int CreatePKCS11PubKeyAttrs(TokenKeyType type, const char *id, const char *label, Buffer *keyid,
+                 Buffer *exponent, Buffer *modulus, const char *opType, const char *tokenType, const char *keyTypePrefix);
+ 	  APDU_Response *SendTokenAPU(APDU *apdu);
+Index: tps/src/main/Buffer.cpp
+===================================================================
+--- tps/src/main/Buffer.cpp	(revision 2471)
++++ tps/src/main/Buffer.cpp	(working copy)
+@@ -222,6 +222,16 @@
+     return s;
+ }
+ 
++TPS_PUBLIC unsigned char*
++Buffer::getBuf() {
++    return (unsigned char *) buf;
++}
++
++TPS_PUBLIC unsigned int
++Buffer::getLen() {
++    return len;
++}
++
+ TPS_PUBLIC char *
+ Buffer::toHex()
+ {
+Index: tps/src/main/ObjectSpec.cpp
+===================================================================
+--- tps/src/main/ObjectSpec.cpp	(revision 2471)
++++ tps/src/main/ObjectSpec.cpp	(working copy)
+@@ -190,6 +190,7 @@
+ 		case CKA_KEY_TYPE:
+ 			type = DATATYPE_INTEGER;
+ 			data = b->substr(curpos+6, 4);
++                        found = 1;
+ 			/* build by PKCS11 */
+ 			break;
+ 		case CKA_CLASS:
+@@ -208,6 +209,18 @@
+ 			data = b->substr(curpos+6, 4);
+ 			/* build by PKCS11 */
+ 			break;
++
++        case CKA_EC_PARAMS:
++            type = DATATYPE_STRING;
++            data = b->substr(curpos+6, attribute_size);
++            found = 1;
++            break;
++
++        case CKA_EC_POINT:
++            type = DATATYPE_STRING;
++            data = b->substr(curpos+6, attribute_size);
++            found = 1;
++            break;
+ 		default:
+ 			RA::Debug("ObjectSpec::ParseKeyBlob", 
+ 				"skipped attribute_id = %lx", 
+Index: tps/src/engine/RA.cpp
+===================================================================
+--- tps/src/engine/RA.cpp	(revision 2471)
++++ tps/src/engine/RA.cpp	(working copy)
+@@ -1287,7 +1287,7 @@
+ 	                      char **publicKey_s,
+                           char **wrappedPrivateKey_s,
+                           char **ivParam_s, const char *connId,
+-                          bool archive, int keysize)
++                          bool archive, int keysize, bool isECC)
+ {
+ 
+ 	const char *FN="RA::ServerSideKeyGen";
+@@ -1357,8 +1357,26 @@
+     RA::Debug(LL_PER_CONNECTION, FN,
+ 		"wrappedDESKey_s=%s", wrappedDESKey_s);
+ 
+-    PR_snprintf((char *)body, MAX_BODY_LEN, 
+-		"archive=%s&CUID=%s&userid=%s&keysize=%d&drm_trans_desKey=%s",archive?"true":"false",cuid, userid, keysize, wrappedDESKey_s);
++    if (isECC) {
++        char *eckeycurve = NULL;
++        if (keysize == 521) {
++            eckeycurve = "nistp521";
++        } else if (keysize == 384) {
++            eckeycurve = "nistp384";
++        } else if (keysize == 256) {
++            eckeycurve = "nistp256";
++        } else {
++            RA::Debug(LL_PER_CONNECTION, FN,
++                "unrecognized ECC keysize %d, setting to nistp256", keysize);
++            keysize = 256;
++            eckeycurve = "nistp256";
++        }
++        PR_snprintf((char *)body, MAX_BODY_LEN, 
++	    	"archive=%s&CUID=%s&userid=%s&keytype=EC&eckeycurve=%s&drm_trans_desKey=%s",archive?"true":"false",cuid, userid, eckeycurve, wrappedDESKey_s);
++    } else {
++        PR_snprintf((char *)body, MAX_BODY_LEN, 
++	    	"archive=%s&CUID=%s&userid=%s&keysize=%d&keytype=RSA&drm_trans_desKey=%s",archive?"true":"false",cuid, userid, keysize, wrappedDESKey_s);
++    }
+     RA::Debug(LL_PER_CONNECTION, FN, 
+ 		"sending to DRM: query=%s", body);
+ 
+@@ -3612,3 +3630,15 @@
+     return newKey;
+ }
+ 
++bool RA::isAlgorithmECC(BYTE alg)
++{
++    bool result = false;
++
++    if (alg == ALG_EC_F2M || alg == ALG_EC_FP)
++       result = true;
++
++    RA::Debug(LL_PER_SERVER, "RA::isAlgorithmECC", " alg: %d result: %d", alg, result);
++
++    return result;
++}
++
+Index: tps/src/channel/Secure_Channel.cpp
+===================================================================
+--- tps/src/channel/Secure_Channel.cpp	(revision 2471)
++++ tps/src/channel/Secure_Channel.cpp	(working copy)
+@@ -38,6 +38,7 @@
+ #include "apdu/Read_Object_APDU.h"
+ #include "apdu/Write_Object_APDU.h"
+ #include "apdu/Generate_Key_APDU.h"
++#include "apdu/Generate_Key_ECC_APDU.h"
+ #include "apdu/Put_Key_APDU.h"
+ #include "apdu/Delete_File_APDU.h"
+ #include "apdu/Load_File_APDU.h"
+@@ -142,6 +143,7 @@
+       }
+     }
+ 
++    RA::Debug(LL_PER_PDU,"Secure_Channel::ComputeAPDU","Completed apdu.");
+     rc = 1;
+  loser: 
+     if( mac != NULL ) {
+@@ -180,6 +182,8 @@
+     apdu->SetMAC(*mac);
+     m_icv = *mac;
+ 
++    RA::DebugBuffer("Secure_Channel::ComputeAPDUMac ", "mac",
++                       mac);
+     return mac;
+ } /* EncodeAPDUMac */
+ 
+@@ -1340,6 +1344,8 @@
+ {
+     int rc = -1;
+     Generate_Key_APDU *generate_key_apdu = NULL;
++    Generate_Key_ECC_APDU *generate_key_ecc_apdu = NULL;
++
+     APDU_Response *response = NULL;
+     RA_Token_PDU_Request_Msg *token_pdu_request_msg = NULL;
+     RA_Token_PDU_Response_Msg *token_pdu_response_msg = NULL;
+@@ -1348,9 +1354,19 @@
+ 
+     RA::Debug("Secure_Channel::GenerateKey",
+         "Secure_Channel::GenerateKey");
+-    generate_key_apdu = new Generate_Key_APDU(p1, p2, alg, keysize, option,
+-        alg, *wrapped_challenge, *key_check);
+-    rc = ComputeAPDU(generate_key_apdu);
++
++    bool isECC = RA::isAlgorithmECC(alg);
++
++    if (isECC) {
++        generate_key_ecc_apdu = new Generate_Key_ECC_APDU(p1, p2, alg, keysize, option,
++            alg, *wrapped_challenge, *key_check);
++        rc = ComputeAPDU(generate_key_ecc_apdu);
++    } else {
++        generate_key_apdu = new Generate_Key_APDU(p1, p2, alg, keysize, option,
++            alg, *wrapped_challenge, *key_check);
++        rc = ComputeAPDU(generate_key_apdu);
++    }
++
+     if (rc == -1)
+       goto loser;
+ 
+@@ -1358,8 +1374,15 @@
+     mac = ComputeAPDUMac(generate_key_apdu);
+     generate_key_apdu->SetMAC(*mac);
+     */
+-    token_pdu_request_msg = new RA_Token_PDU_Request_Msg(
+-        generate_key_apdu);
++
++    if (generate_key_ecc_apdu != NULL ) {
++        token_pdu_request_msg = new RA_Token_PDU_Request_Msg(
++            generate_key_ecc_apdu);
++    } else {
++        token_pdu_request_msg = new RA_Token_PDU_Request_Msg(
++            generate_key_apdu);
++    }
++
+     m_session->WriteMsg(token_pdu_request_msg);
+     RA::Debug("Secure_Channel::GenerateKey",
+         "Sent token_pdu_request_msg");
+@@ -2177,9 +2200,9 @@
+     Buffer b(256);       // allocate some space
+     b.resize(7);         // this keeps the allocated space around
+ 
+-  RA::Debug("Secure_Channel::CreatePKCS11CertAttrs", "id=%s", id);
+-  RA::Debug("Secure_Channel::CreatePKCS11CertAttrs", "label=%s", label);
+-  RA::DebugBuffer("Secure_Channel::CreatePKCS11CertAttrs", "keyid", keyid);
++    RA::Debug("Secure_Channel::CreatePKCS11CertAttrsBuffer", "id=%s", id);
++  RA::Debug("Secure_Channel::CreatePKCS11CertAttrsBuffer", "label=%s", label);
++  RA::DebugBuffer("Secure_Channel::CreatePKCS11CertAttrsBuffer", "keyid", keyid);
+     AppendAttribute(b, CKA_LABEL, strlen(label), (BYTE*)label);
+     // hash of pubk
+     AppendAttribute(b, CKA_ID,  keyid->size(), (BYTE*)*keyid);
+@@ -2301,6 +2324,7 @@
+         M 00020001010000000100010100000100
+         M 00040000000000000000000403000000
+ */
++
+ Buffer Secure_Channel::CreatePKCS11PriKeyAttrsBuffer(TokenKeyType key_type, const char *id, const char *label, Buffer *keyid, 
+                 Buffer *modulus, const char *opType, const char *tokenType, const char *keyTypePrefix)
+ {
+@@ -2383,6 +2407,39 @@
+ 
+ } /* CreatePKCS11PriKeyAttrs */
+ 
++Buffer Secure_Channel::CreatePKCS11ECCPriKeyAttrsBuffer(TokenKeyType type, const char *id, const char *label, Buffer *keyid,
++                SECKEYECParams *ecParams, const char *opType, const char *tokenType, const char *keyTypePrefix)
++{
++
++    BYTE keytype[8] = { 3,0,0,0 };
++    BYTE p11class[4] = { 3,0,0,0 };
++
++    Buffer b(256);               // allocate some space
++    b.resize(7);                 // this keeps the allocated space around
++
++    if (label != NULL)
++        RA::Debug("Secure_Channel::CreatePKCS11ECCPriKeyAttrsBuffer", "label=%s", label);
++    if (keyid != NULL)
++        RA::DebugBuffer("Secure_Channel::CreatePKCS11ECCPriKeyAttrsBuffer", "keyid", keyid);
++    if (id != NULL)
++        RA::Debug("Secure_Channel::CreatePKCS11ECCPriKeyAttrsBuffer", "id=%s",id);
++
++    AppendAttribute(b,CKA_KEY_TYPE, 4, keytype);
++    AppendAttribute(b,CKA_CLASS, 4, p11class );
++    // hash of pubk
++    AppendAttribute(b,CKA_ID, keyid->size(),   (BYTE*)*keyid);
++
++    AppendAttribute(b,CKA_EC_PARAMS, ecParams->len, ecParams->data);
++    AppendKeyCapabilities(b, opType, tokenType, keyTypePrefix, "private");
++
++    FinalizeBuffer(b, id);
++
++    RA::DebugBuffer("Secure_Channel::CreatePKCS11ECCPriKeyAttrsBuffer", "buffer", &b);
++
++    return b;
++
++}
++
+ /*
+ Public Key: (k1)
+ CKA_PUBLIC_EXPONENT(0x0122)
+@@ -2461,6 +2518,43 @@
+     return b;
+ } /* CreatePKCS11PubKeyAttrs */
+ 
++
++Buffer Secure_Channel::CreatePKCS11ECCPubKeyAttrsBuffer(TokenKeyType key_type, const char *id, const char *label, Buffer *keyid,
++                  SECKEYECPublicKey *publicKey, SECKEYECParams *ecParams, const char *opType, const char *tokenType, const char *keyTypePrefix)
++{
++    BYTE p11class[4] = { 2,0,0,0 };
++    // BYTE ZERO[1] = { 0 };
++    // BYTE ONE[1] = { 1 };
++    // char configname[256];
++
++    BYTE keytype[4] = { 3,0,0,0 };
++    Buffer b(256);        // allocate some space
++    b.resize(7);          // this keeps the allocated space around
++
++    if (label != NULL)
++        RA::Debug("Secure_Channel::CreatePKCS11ECCPubAttrsBuffer", "label=%s", label);
++    if (keyid != NULL)
++        RA::DebugBuffer("Secure_Channel::CreatePKCS11ECCPubAttrsBuffer", "keyid", keyid);
++
++     // XXX TUES
++    // hash of pubk
++    AppendAttribute(b,CKA_ID,  keyid->size(), (BYTE*)*keyid);
++    AppendAttribute(b, CKA_CLASS, 4, p11class );  // type of object
++    AppendAttribute(b,CKA_KEY_TYPE, 4, keytype);  // CKK_EC key type
++    AppendAttribute(b,CKA_EC_PARAMS, ecParams->len, (BYTE *) ecParams->data);
++    AppendAttribute(b, CKA_EC_POINT, publicKey->publicValue.len, (BYTE *) publicKey->publicValue.data);
++
++    AppendKeyCapabilities(b, opType, tokenType, keyTypePrefix, "public");
++
++    FinalizeBuffer(b, id);
++
++    RA::DebugBuffer("Secure_Channel::CreatePKCS11ECCPubAttrsBuffer", "buffer", &b);
++
++    return b;
++} /* CreatePKCS11ECCPubKeyAttrs */
++
++
++
+ int Secure_Channel::CreatePKCS11PubKeyAttrs(TokenKeyType key_type, const char *id, const char *label, Buffer *keyid,
+                 Buffer *exponent, Buffer *modulus, const char *opType, const char *tokenType, const char *keyTypePrefix)
+ {
+Index: kra/src/com/netscape/kra/NetkeyKeygenService.java
+===================================================================
+--- kra/src/com/netscape/kra/NetkeyKeygenService.java	(revision 2471)
++++ kra/src/com/netscape/kra/NetkeyKeygenService.java	(working copy)
+@@ -62,7 +62,10 @@
+ import com.netscape.certsrv.authentication.*;
+ import com.netscape.certsrv.apps.*;
+ import com.netscape.certsrv.apps.CMS;
++import com.netscape.cmsutil.crypto.CryptoUtil;
++import com.netscape.cms.servlet.key.KeyRecordParser;
+ 
++
+ //for b64 encoding
+ import org.mozilla.jss.util.Base64OutputStream;
+ import java.io.ByteArrayOutputStream;
+@@ -146,7 +149,7 @@
+     }
+ 
+     public  KeyPair generateKeyPair(
+-        KeyPairAlgorithm kpAlg, int keySize, PQGParams pqg) 
++        KeyPairAlgorithm kpAlg, int keySize, String keyCurve, PQGParams pqg) 
+         throws NoSuchAlgorithmException, TokenException, InvalidAlgorithmParameterException,
+             InvalidParameterException, PQGParamGenException {
+ 
+@@ -165,20 +168,28 @@
+               sensitive == true
+               extractable == true
+         */
++        
+         KeyPairGenerator kpGen = token.getKeyPairGenerator(kpAlg);
+         IConfigStore config = CMS.getConfigStore();
+         IConfigStore kgConfig = config.getSubStore("kra.keygen");
+         boolean tp = false;
+         boolean sp = false;
+         boolean ep = false;
+-        if (kgConfig != null) {
++        if ((kgConfig != null) && (!kgConfig.equals(""))) {
+           try {
+             tp = kgConfig.getBoolean("temporaryPairs", false);
+             sp = kgConfig.getBoolean("sensitivePairs", false);
+             ep = kgConfig.getBoolean("extractablePairs", false);
++            CMS.debug("NetkeyKeygenService: found config store: kra.keygen");
+             // by default, let nethsm work
+             if ((tp == false) && (sp == false) && (ep == false)) {
+-                tp = true;
++                if (kpAlg == KeyPairAlgorithm.EC) {
++                    // set to what works for nethsm
++                    tp = true;
++                    sp = false;
++                    ep = true;
++                } else   
++                    tp = true;
+             }
+           } catch (Exception e) {
+ 	        CMS.debug("NetkeyKeygenService: kgConfig.getBoolean failed");
+@@ -188,70 +199,111 @@
+         } else {
+             // by default, let nethsm work
+             CMS.debug("NetkeyKeygenService: cannot find config store: kra.keygen, assume temporaryPairs==true");
+-            tp = true;
++            if (kpAlg == KeyPairAlgorithm.EC) {
++                // set to what works for nethsm
++                tp = true;
++                sp = false;
++                ep = true;
++            } else {
++                tp = true;
++            }
+         }
+-        /* only specified to "true" will it be set */
+-        if (tp == true) {
+-	        CMS.debug("NetkeyKeygenService: setting temporaryPairs to true");
+-	        kpGen.temporaryPairs(true);
+-        }
+-        if (sp == true) {
+-	        CMS.debug("NetkeyKeygenService: setting sensitivePairs to true");
+-            kpGen.sensitivePairs(true);
+-        }
+-        if (ep == true) {
+-	        CMS.debug("NetkeyKeygenService: setting extractablePairs to true");
+-            kpGen.extractablePairs(true);
+-        }
++
++        if (kpAlg == KeyPairAlgorithm.EC) {
++
++            boolean isECDHE = false;
++			KeyPair pair = null;
++
++            // used with isECDHE == true
++            org.mozilla.jss.crypto.KeyPairGeneratorSpi.Usage usages_mask_ECDSA[] = {
++              org.mozilla.jss.crypto.KeyPairGeneratorSpi.Usage.DERIVE
++            };
++
++            // used with isECDHE == false
++            org.mozilla.jss.crypto.KeyPairGeneratorSpi.Usage usages_mask_ECDH[] = {
++              org.mozilla.jss.crypto.KeyPairGeneratorSpi.Usage.SIGN,
++              org.mozilla.jss.crypto.KeyPairGeneratorSpi.Usage.SIGN_RECOVER
++            };
++
++            try {
++                pair = CryptoUtil.generateECCKeyPair(token.getName(), /*ECC_curve default*/ keyCurve ,
++                    null,
++                    (isECDHE==true) ? usages_mask_ECDSA: usages_mask_ECDH,
++                    tp /*temporary*/, sp? 1:0 /*sensitive*/, ep? 1:0 /*extractable*/);
++                CMS.debug("NetkeyKeygenService: after key pair generation" );
++            } catch (Exception e) {
++                CMS.debug("NetkeyKeygenService: key pair generation with exception:"+e.toString());
++            }
++            return pair;
++
++        } else { // !EC
++            //only specified to "true" will it be set
++            if (tp == true) {
++	            CMS.debug("NetkeyKeygenService: setting temporaryPairs to true");
++	            kpGen.temporaryPairs(true);
++            }
++
++            if (sp == true) {
++	            CMS.debug("NetkeyKeygenService: setting sensitivePairs to true");
++                kpGen.sensitivePairs(true);
++            }
++
++            if (ep == true) {
++	            CMS.debug("NetkeyKeygenService: setting extractablePairs to true");
++                kpGen.extractablePairs(true);
++            }
+  
+-        if (kpAlg == KeyPairAlgorithm.DSA) {
+-            if (pqg == null) {
++            if (kpAlg == KeyPairAlgorithm.DSA) {
++                if (pqg == null) {
++                    kpGen.initialize(keySize);
++                } else {
++                    kpGen.initialize(pqg);
++                }
++            } else {
+                 kpGen.initialize(keySize);
+-            } else {
+-                kpGen.initialize(pqg);
+             }
+-        } else {
+-            kpGen.initialize(keySize);
+-        }
+ 
+-        if (pqg == null) {
+-			KeyPair kp = null;
+-			synchronized (new Object()) {
+-                CMS.debug("NetkeyKeygenService: key pair generation begins");
+-            	kp = kpGen.genKeyPair();
+-                CMS.debug("NetkeyKeygenService: key pair generation done");
+-				mKRA.addEntropy(true);
+-			}
+-			return kp;
+-        } else {
+-            // DSA
+-            KeyPair kp = null;
++            if (pqg == null) {
++		    	KeyPair kp = null;
++		    	synchronized (new Object()) {
++                    CMS.debug("NetkeyKeygenService: key pair generation begins");
++                	kp = kpGen.genKeyPair();
++                    CMS.debug("NetkeyKeygenService: key pair generation done");
++				    mKRA.addEntropy(true);
++			    }
++			    return kp;
++            } else {
++                // DSA
++                KeyPair kp = null;
+ 
+-            /* no DSA for now... netkey prototype
+-            do {
+-                // 602548 NSS bug - to overcome it, we use isBadDSAKeyPair
+-                kp = kpGen.genKeyPair();
++                /* no DSA for now... netkey prototype
++                do {
++                    // 602548 NSS bug - to overcome it, we use isBadDSAKeyPair
++                    kp = kpGen.genKeyPair();
++                }
++                while (isBadDSAKeyPair(kp)); 
++                */
++                return kp;
+             }
+-            while (isBadDSAKeyPair(kp)); 
+-            */
+-            return kp;
+         }
+     }
+ 
+ 
+ 
+     public  KeyPair generateKeyPair( String alg,
+-        int keySize, PQGParams pqg) throws EBaseException {
++        int keySize, String keyCurve, PQGParams pqg) throws EBaseException {
+ 
+         KeyPairAlgorithm kpAlg = null;
+ 
+         if (alg.equals("RSA"))
+             kpAlg = KeyPairAlgorithm.RSA;
++        else if (alg.equals("EC"))
++            kpAlg = KeyPairAlgorithm.EC;
+         else
+             kpAlg = KeyPairAlgorithm.DSA;
+ 
+         try {
+-            KeyPair kp = generateKeyPair( kpAlg, keySize, pqg);
++            KeyPair kp = generateKeyPair( kpAlg, keySize, keyCurve, pqg);
+ 
+             return kp;
+         } catch (InvalidParameterException e) {
+@@ -324,7 +376,7 @@
+         byte[] wrapped_des_key;
+ 
+         byte iv[] = {0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1};
+-	String iv_s ="";
++        String iv_s ="";
+         try {
+             SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
+             random.nextBytes(iv);
+@@ -332,34 +384,35 @@
+             CMS.debug("NetkeyKeygenService.serviceRequest:  "+ e.toString());
+         }
+ 
+-	IVParameterSpec algParam = new IVParameterSpec(iv);
++        IVParameterSpec algParam = new IVParameterSpec(iv);
+ 
+         wrapped_des_key = null;
+-	boolean archive = true;
+-	PK11SymKey sk= null;
+-	byte[] publicKeyData = null;;
+-	String PubKey = "";
++        boolean archive = true;
++        PK11SymKey sk= null;
++        byte[] publicKeyData = null;;
++        String PubKey = "";
+ 
+         String id = request.getRequestId().toString();
+         if (id != null) {
+             auditArchiveID = id.trim();
+         }
+ 
+-	String rArchive = request.getExtDataInString(IRequest.NETKEY_ATTR_ARCHIVE_FLAG);
+-	if (rArchive.equals("true")) {
+-	    archive = true;
++        String rArchive = request.getExtDataInString(IRequest.NETKEY_ATTR_ARCHIVE_FLAG);
++        if (rArchive.equals("true")) {
++	        archive = true;
+             CMS.debug("NetkeyKeygenService: serviceRequest " +"archival requested for serverSideKeyGen");
+-	} else {
+-	    archive = false;
++        } else {
++            archive = false;
+             CMS.debug("NetkeyKeygenService: serviceRequest " +"archival not requested for serverSideKeyGen");
+         }
+ 
+         String rCUID = request.getExtDataInString(IRequest.NETKEY_ATTR_CUID);
+         String rUserid = request.getExtDataInString(IRequest.NETKEY_ATTR_USERID);
+-	String rKeysize = request.getExtDataInString(IRequest.NETKEY_ATTR_KEY_SIZE);
+-	int keysize = Integer.parseInt(rKeysize);
+-	auditSubjectID=rCUID+":"+rUserid;
+ 
++        String rKeytype = request.getExtDataInString(IRequest.NETKEY_ATTR_KEY_TYPE);
++
++        auditSubjectID=rCUID+":"+rUserid;
++
+         SessionContext sContext = SessionContext.getContext();
+         String agentId="";
+         if (sContext != null) {
+@@ -381,15 +434,41 @@
+         wrapped_des_key = com.netscape.cmsutil.util.Utils.SpecialDecode(rWrappedDesKeyString);
+         CMS.debug("NetkeyKeygenService: wrapped_des_key specialDecoded");
+ 
+-	// get the token for generating user keys
+-	CryptoToken keygenToken = mKRA.getKeygenToken();
+-	if (keygenToken == null) {
+-	    CMS.debug("NetkeyKeygenService: failed getting keygenToken");
+-	    request.setExtData(IRequest.RESULT, Integer.valueOf(10));
+-	    return false;
+-	} else 
+-	    CMS.debug("NetkeyKeygenService: got keygenToken");
++/*
++        if ((rKeytype == null) || (rKeytype.equals(""))) {
++            rKeytype = "RSA";
++        }
++*/
+ 
++        if ((rKeytype == null) || (rKeytype.equals(""))) {
++            CMS.debug("NetkeyKeygenService: serviceRequest: key type is null");
++            rKeytype = "RSA";
++        } else
++            CMS.debug("NetkeyKeygenService: serviceRequest: key type = "+ rKeytype);
++
++        /* for EC, keysize is ignored, only key curve is used */
++        String rKeysize = "2048";
++        int keysize = 2048;
++        String rKeycurve = "nistp256";
++        if (rKeytype.equals("EC")) {
++            rKeycurve = request.getExtDataInString(IRequest.NETKEY_ATTR_KEY_EC_CURVE);
++            if ((rKeycurve == null) || (rKeycurve.equals(""))) {
++                rKeycurve = "nistp256";
++            }
++        } else {
++            rKeysize = request.getExtDataInString(IRequest.NETKEY_ATTR_KEY_SIZE);
++            keysize = Integer.parseInt(rKeysize);
++        }
++
++        // get the token for generating user keys
++        CryptoToken keygenToken = mKRA.getKeygenToken();
++        if (keygenToken == null) {
++            CMS.debug("NetkeyKeygenService: failed getting keygenToken");
++            request.setExtData(IRequest.RESULT, Integer.valueOf(10));
++            return false;
++        } else 
++            CMS.debug("NetkeyKeygenService: got keygenToken");
++
+         if ((wrapped_des_key != null) &&
+             (wrapped_des_key.length > 0)) {
+ 
+@@ -401,8 +480,10 @@
+ 
+             CMS.debug("NetkeyKeygenService: about to generate key pair");
+ 
+-            keypair = generateKeyPair("RSA"/*alg*/,
+-                      keysize /*Integer.parseInt(len)*/, null /*pqgParams*/);
++            keypair = generateKeyPair(rKeytype /* rKeytype: "RSA" or "EC" */,
++                      keysize /*Integer.parseInt(len)*/,
++                      rKeycurve /* for "EC" only */,
++                      null /*pqgParams*/);
+ 
+             if (keypair == null) {
+                 CMS.debug("NetkeyKeygenService: failed generating key pair for "+rCUID+":"+rUserid);
+@@ -421,18 +502,20 @@
+             CMS.debug("NetkeyKeygenService: finished generate key pair for " +rCUID+":"+rUserid);
+ 
+             try {
+-		        publicKeyData = keypair.getPublic().getEncoded();
+-		        if (publicKeyData == null) {
+-		            request.setExtData(IRequest.RESULT, Integer.valueOf(4));
+-		            CMS.debug("NetkeyKeygenService: failed getting publickey encoded");
+-		            return false;
+-		        } else {
+-		            //CMS.debug("NetkeyKeygenService: public key binary length ="+ publicKeyData.length);
+-		            PubKey = base64Encode(publicKeyData);
++                publicKeyData = keypair.getPublic().getEncoded();
++                if (publicKeyData == null) {
++                    request.setExtData(IRequest.RESULT, Integer.valueOf(4));
++                    CMS.debug("NetkeyKeygenService: failed getting publickey encoded");
++                    return false;
++                } else {
++                    //CMS.debug("NetkeyKeygenService: public key binary length ="+ publicKeyData.length);
++                    /* url encode */
++                    PubKey = com.netscape.cmsutil.util.Utils.SpecialEncode(publicKeyData);
++                    CMS.debug("NetkeyKeygenService: EC PubKey special encoded");
+ 
+-		            //CMS.debug("NetkeyKeygenService: public key length =" + PubKey.length());
+-		            request.setExtData("public_key", PubKey);
+-	    	    }
++                    //CMS.debug("NetkeyKeygenService: public key length =" + PubKey.length());
++                    request.setExtData("public_key", PubKey);
++                }
+ 
+                 auditMessage = CMS.getLogMessage(
+                     LOGGING_SIGNED_AUDIT_SERVER_SIDE_KEYGEN_REQUEST_PROCESSED_SUCCESS,
+@@ -558,18 +641,52 @@
+ 			CMS.debug("NetkeyKeygenService: privatekey recording failed");
+ 			return false;
+ 		    } else
+-			CMS.debug("NetkeyKeygenService: got key record");
++		    	CMS.debug("NetkeyKeygenService: got key record");
+ 		    
+-		    // we deal with RSA key only
+-		    try {
+-			RSAPublicKey rsaPublicKey = new RSAPublicKey(publicKeyData);
++            if (rKeytype.equals("RSA")) {
++		        try {
++			        RSAPublicKey rsaPublicKey = new RSAPublicKey(publicKeyData);
+ 
+-			rec.setKeySize(Integer.valueOf(rsaPublicKey.getKeySize()));
+-		    } catch (InvalidKeyException e) {
+-			request.setExtData(IRequest.RESULT, Integer.valueOf(11));
+-			CMS.debug("NetkeyKeygenService: failed:InvalidKeyException");
+-			return false;
+-		    }
++			        rec.setKeySize(Integer.valueOf(rsaPublicKey.getKeySize()));
++		        } catch (InvalidKeyException e) {
++			        request.setExtData(IRequest.RESULT, Integer.valueOf(11));
++			        CMS.debug("NetkeyKeygenService: failed:InvalidKeyException");
++			        return false;
++		        }
++            } else if (rKeytype.equals("EC")) {
++			    CMS.debug("NetkeyKeygenService: alg is EC");
++                String oidDescription = "UNDETERMINED";
++                // for KeyRecordParser
++                MetaInfo metaInfo = new MetaInfo();
++
++                try {
++                    byte curve[] =
++                    ASN1Util.getECCurveBytesByX509PublicKeyBytes(publicKeyData,
++                        false /* without tag and size */);
++                    if (curve.length != 0) {
++                        oidDescription = ASN1Util.getOIDdescription(curve);
++                    } else {
++                        /* this is to be used by derdump */
++                        byte curveTS[] =
++                          ASN1Util.getECCurveBytesByX509PublicKeyBytes(publicKeyData,
++                              true /* with tag and size */);
++                        if (curveTS.length != 0) {
++                            oidDescription = CMS.BtoA(curveTS);
++                        }
++                    }
++                } catch (Exception e) {
++                    CMS.debug("NetkeyKeygenService: ASN1Util.getECCurveBytesByX509PublicKeyByte() throws exception: "+ e.toString());
++                    CMS.debug("NetkeyKeygenService: exception allowed. continue");
++                }
++
++                metaInfo.set(KeyRecordParser.OUT_KEY_EC_CURVE,
++                    oidDescription);
++
++                rec.set(IKeyRecord.ATTR_META_INFO, metaInfo);
++                // key size does not apply to EC; 
++                rec.setKeySize(-1);
++            }
++
+ 		    //??
+ 		    IKeyRepository storage = mKRA.getKeyRepository();
+ 		    BigInteger serialNo = storage.getNextSerialNumber();

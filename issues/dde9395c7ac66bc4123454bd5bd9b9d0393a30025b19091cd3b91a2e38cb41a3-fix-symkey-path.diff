@@ -1,0 +1,28 @@
+--- a/base/symkey/src/com/netscape/symkey/CMakeLists.txt
++++ b/base/symkey/src/com/netscape/symkey/CMakeLists.txt
+@@ -60,5 +60,5 @@ set_target_properties(${SYMKEY_SHARED_LI
+ install(
+     TARGETS
+         ${SYMKEY_SHARED_LIBRARY}
+-    LIBRARY DESTINATION ${LIB_INSTALL_DIR}/symkey
++    LIBRARY DESTINATION ${LIB_INSTALL_DIR}/jni
+ )
+--- a/base/symkey/src/com/netscape/symkey/SessionKey.java
++++ b/base/symkey/src/com/netscape/symkey/SessionKey.java
+@@ -44,14 +44,14 @@ public class SessionKey {
+             // Check for 64-bit library availability
+             // prior to 32-bit library availability.
+             mNativeLibrariesLoaded =
+-                    tryLoad("/usr/lib64/symkey/libsymkey.so");
++                    tryLoad("/usr/lib/jni/libsymkey.so");
+             if (mNativeLibrariesLoaded) {
+                 System.out.println("64-bit symkey library loaded");
+             } else {
+                 // REMINDER:  May be trying to run a 32-bit app
+                 //            on 64-bit platform.
+                 mNativeLibrariesLoaded =
+-                        tryLoad("/usr/lib/symkey/libsymkey.so");
++                        tryLoad("/usr/lib/jni/libsymkey.so");
+                 if (mNativeLibrariesLoaded) {
+                     System.out.println("32-bit symkey library loaded");
+                 } else {

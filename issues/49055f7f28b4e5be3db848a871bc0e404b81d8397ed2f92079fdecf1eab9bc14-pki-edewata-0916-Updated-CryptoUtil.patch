@@ -1,0 +1,114 @@
+From 01d74107d27e32d2ea57be0586acf597fc5d60fa Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Tue, 24 Jan 2017 16:14:42 +0100
+Subject: [PATCH] Updated CryptoUtil.
+
+The CryptoUtil has been modified to provide separate methods to
+obtain crypto tokens and key store tokens. If the provided token
+name matches the internal token name the methods will return the
+corresponding internal token.
+
+https://fedorahosted.org/pki/ticket/2556
+---
+ .../cms/servlet/csadmin/ConfigurationUtils.java    |  2 +-
+ .../com/netscape/cmsutil/crypto/CryptoUtil.java    | 32 +++++++++++++++++-----
+ 2 files changed, 26 insertions(+), 8 deletions(-)
+
+diff --git a/base/server/cms/src/com/netscape/cms/servlet/csadmin/ConfigurationUtils.java b/base/server/cms/src/com/netscape/cms/servlet/csadmin/ConfigurationUtils.java
+index 65bd371eb092eecf56a9bad659ece42ea8ec8cec..105ae6ee90fc0405478df0f000c994788c43be4d 100644
+--- a/base/server/cms/src/com/netscape/cms/servlet/csadmin/ConfigurationUtils.java
++++ b/base/server/cms/src/com/netscape/cms/servlet/csadmin/ConfigurationUtils.java
+@@ -3434,7 +3434,7 @@ public class ConfigurationUtils {
+             NoSuchTokenException, TokenException {
+ 
+         CryptoManager cm = CryptoManager.getInstance();
+-        CryptoToken tok = CryptoUtil.getTokenByName(tokenname);
++        CryptoToken tok = CryptoUtil.getKeyStorageToken(tokenname);
+         CryptoStore store = tok.getCryptoStore();
+         String fullnickname = nickname;
+         if (!tokenname.equals("") &&
+diff --git a/base/util/src/com/netscape/cmsutil/crypto/CryptoUtil.java b/base/util/src/com/netscape/cmsutil/crypto/CryptoUtil.java
+index b6b5e6af30cc48d11fd3603b6eb4252b85e1e1b6..57119ce2c2f9f363208f0878916bd53d5cfe0257 100644
+--- a/base/util/src/com/netscape/cmsutil/crypto/CryptoUtil.java
++++ b/base/util/src/com/netscape/cmsutil/crypto/CryptoUtil.java
+@@ -47,6 +47,7 @@ import java.util.Random;
+ import java.util.StringTokenizer;
+ import java.util.Vector;
+ 
++import org.apache.commons.lang.StringUtils;
+ import org.mozilla.jss.CryptoManager;
+ import org.mozilla.jss.CryptoManager.NotInitializedException;
+ import org.mozilla.jss.NoSuchTokenException;
+@@ -476,13 +477,30 @@ public class CryptoUtil {
+     }
+ 
+     public static boolean isInternalToken(String name) {
+-        return name.equalsIgnoreCase(INTERNAL_TOKEN_NAME) || name.equalsIgnoreCase(INTERNAL_TOKEN_FULL_NAME);
++        return StringUtils.isEmpty(name)
++                || name.equalsIgnoreCase(INTERNAL_TOKEN_NAME)
++                || name.equalsIgnoreCase(INTERNAL_TOKEN_FULL_NAME);
+     }
+ 
+     /**
+-     * Retrieves handle to a JSS token.
++     * Retrieves handle to a crypto token.
+      */
+-    public static CryptoToken getTokenByName(String name)
++    public static CryptoToken getCryptoToken(String name)
++            throws NotInitializedException, NoSuchTokenException {
++
++        CryptoManager cm = CryptoManager.getInstance();
++
++        if (isInternalToken(name)) {
++            return cm.getInternalCryptoToken();
++        }
++
++        return cm.getTokenByName(name);
++    }
++
++    /**
++     * Retrieves handle to a key store token.
++     */
++    public static CryptoToken getKeyStorageToken(String name)
+             throws NotInitializedException, NoSuchTokenException {
+ 
+         CryptoManager cm = CryptoManager.getInstance();
+@@ -502,7 +520,7 @@ public class CryptoUtil {
+                 NoSuchTokenException,
+                 NoSuchAlgorithmException,
+                 TokenException {
+-        CryptoToken t = getTokenByName(token);
++        CryptoToken t = getKeyStorageToken(token);
+         KeyPairGenerator g = t.getKeyPairGenerator(KeyPairAlgorithm.RSA);
+ 
+         g.initialize(keysize);
+@@ -555,7 +573,7 @@ public class CryptoUtil {
+                 NoSuchAlgorithmException,
+                 TokenException {
+ 
+-        CryptoToken t = getTokenByName(token);
++        CryptoToken t = getKeyStorageToken(token);
+ 
+         KeyPairAlgorithm alg = KeyPairAlgorithm.EC;
+         KeyPairGenerator keygen = t.getKeyPairGenerator(alg);
+@@ -608,7 +626,7 @@ public class CryptoUtil {
+                 NoSuchTokenException,
+                 NoSuchAlgorithmException,
+                 TokenException {
+-        CryptoToken t = getTokenByName(token);
++        CryptoToken t = getKeyStorageToken(token);
+         return generateECCKeyPair(t, curveName, usage_ops, usage_mask);
+     }
+ 
+@@ -620,7 +638,7 @@ public class CryptoUtil {
+                 NoSuchTokenException,
+                 NoSuchAlgorithmException,
+                 TokenException {
+-        CryptoToken t = getTokenByName(token);
++        CryptoToken t = getKeyStorageToken(token);
+         return generateECCKeyPair(t, curveName, usage_ops, usage_mask,
+             temporary, sensitive, extractable);
+     }
+-- 
+2.5.5
+

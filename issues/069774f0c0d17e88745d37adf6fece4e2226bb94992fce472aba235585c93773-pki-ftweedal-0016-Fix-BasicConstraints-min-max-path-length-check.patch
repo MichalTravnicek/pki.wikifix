@@ -1,0 +1,34 @@
+From ee503f8fc08243906c130149f41dc8d77442d9c7 Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Thu, 25 Sep 2014 01:39:40 -0400
+Subject: [PATCH] Fix BasicConstraints min/max path length check
+
+The BasicConstraintsExtConstraint min/max path length validity check
+ensures that the max length is greater than the min length, however,
+when a negative value is used to represent "no max", the check
+fails.
+
+Only compare the min and max length if the max length is
+non-negative.
+
+Ticket #1035
+---
+ .../netscape/cms/profile/constraint/BasicConstraintsExtConstraint.java  | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/base/server/cms/src/com/netscape/cms/profile/constraint/BasicConstraintsExtConstraint.java b/base/server/cms/src/com/netscape/cms/profile/constraint/BasicConstraintsExtConstraint.java
+index ca2668f7db305122f330fca058b27801820a75b4..8fbea435825194d7d31ecda5e65414f1081eeb01 100644
+--- a/base/server/cms/src/com/netscape/cms/profile/constraint/BasicConstraintsExtConstraint.java
++++ b/base/server/cms/src/com/netscape/cms/profile/constraint/BasicConstraintsExtConstraint.java
+@@ -211,7 +211,7 @@ public class BasicConstraintsExtConstraint extends EnrollConstraint {
+ 
+                 int maxLen = getInt(value);
+ 
+-                if (minLen >= maxLen) {
++                if (maxLen >= 0 && minLen >= maxLen) {
+                     CMS.debug("BasicConstraintExt:  minPathLen >= maxPathLen!");
+ 
+                     throw new EPropertyException("bad value");
+-- 
+1.9.3
+

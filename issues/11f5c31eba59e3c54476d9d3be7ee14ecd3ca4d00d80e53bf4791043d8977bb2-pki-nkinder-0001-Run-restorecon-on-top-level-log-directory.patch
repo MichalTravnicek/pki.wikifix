@@ -1,0 +1,32 @@
+From 6fdf64ee4c0cf4099d768b8d7fecc10412605f05 Mon Sep 17 00:00:00 2001
+From: Nathan Kinder <nkinder@redhat.com>
+Date: Mon, 3 Dec 2012 12:33:22 -0800
+Subject: [PATCH] Run restorecon on top-level log directory
+
+We currently run a restorecon on the instance log directory, but not
+on the top level log directory.  Restorecon is required for the top
+level log directory since pkispawn creates it.  Without running a
+restorecon, it gets the label of the parent directory (var_log_t)
+instead of consulting the fcontext rule in the base policy and using
+pki_var_log_t.
+
+Ticket #431
+---
+ base/deploy/src/scriptlets/selinux_setup.py |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/base/deploy/src/scriptlets/selinux_setup.py b/base/deploy/src/scriptlets/selinux_setup.py
+index 98bfcd48e0516ae5623f4f4bc0495fc709796d8d..87e129f75bf0eb20f30d22a15a48038570ed0ead 100644
+--- a/base/deploy/src/scriptlets/selinux_setup.py
++++ b/base/deploy/src/scriptlets/selinux_setup.py
+@@ -36,6 +36,7 @@ class PkiScriptlet(pkiscriptlet.AbstractBasePkiScriptlet):
+ 
+     def restore_context(self):
+         selinux.restorecon(master['pki_instance_path'], True)
++        selinux.restorecon(config.PKI_DEPLOYMENT_LOG_ROOT, True)
+         selinux.restorecon(master['pki_instance_log_path'], True)
+         selinux.restorecon(master['pki_instance_configuration_path'], True)
+ 
+-- 
+1.7.7.6
+

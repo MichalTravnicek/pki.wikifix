@@ -1,0 +1,105 @@
+From cc1b04d255158a507e4afe68da8d0911e8c32edc Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Tue, 1 Dec 2015 16:49:03 +1100
+Subject: [PATCH] Block startup until initial profile load completed
+
+It is possible for the CMS getStatus resource to indicate that CMS
+is ready when the initial loading of profiles (which is performed by
+another thread) is not complete.  During startup, wait for the
+initial loading of profiles to complete before continuing.
+
+Fixes: https://fedorahosted.org/pki/ticket/1702
+---
+ .../cmscore/profile/LDAPProfileSubsystem.java      | 35 ++++++++++++++++++++--
+ 1 file changed, 33 insertions(+), 2 deletions(-)
+
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/profile/LDAPProfileSubsystem.java b/base/server/cmscore/src/com/netscape/cmscore/profile/LDAPProfileSubsystem.java
+index cc2e43dfa2e9b1a4eb3bdb53eeb3ace6cfd1d6ac..15caff68d93347a29736ef0886b021ae9ac35302 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/profile/LDAPProfileSubsystem.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/profile/LDAPProfileSubsystem.java
+@@ -19,9 +19,11 @@ package com.netscape.cmscore.profile;
+ 
+ import java.io.ByteArrayInputStream;
+ import java.io.InputStream;
++import java.util.Arrays;
+ import java.util.Enumeration;
+ import java.util.Hashtable;
+ import java.util.LinkedHashMap;
++import java.util.concurrent.CountDownLatch;
+ 
+ import netscape.ldap.LDAPAttribute;
+ import netscape.ldap.LDAPConnection;
+@@ -58,6 +60,10 @@ public class LDAPProfileSubsystem
+     private boolean stopped = false;
+     private Thread monitor;
+ 
++    private Integer initialNumProfiles = null;
++    private int numProfilesLoaded = 0;
++    private CountDownLatch initialLoadDone = new CountDownLatch(1);
++
+     /**
+      * Initializes this subsystem with the given configuration
+      * store.
+@@ -96,6 +102,11 @@ public class LDAPProfileSubsystem
+ 
+         monitor = new Thread(this, "profileChangeMonitor");
+         monitor.start();
++        try {
++            initialLoadDone.await();
++        } catch (InterruptedException e) {
++        }
++        CMS.debug("LDAPProfileSubsystem: finished init");
+     }
+ 
+     /**
+@@ -265,6 +276,12 @@ public class LDAPProfileSubsystem
+         return "cn=" + id + "," + dn;
+     }
+ 
++    private void checkInitialLoadDone() {
++        if (initialNumProfiles != null
++                && numProfilesLoaded >= initialNumProfiles)
++            initialLoadDone.countDown();
++    }
++
+     public void run() {
+         int op = LDAPPersistSearchControl.ADD
+             | LDAPPersistSearchControl.MODIFY
+@@ -285,11 +302,23 @@ public class LDAPProfileSubsystem
+                 cons.setServerControls(persistCtrl);
+                 cons.setBatchSize(1);
+                 cons.setServerTimeLimit(0 /* seconds */);
++                String[] attrs = {"*", "numSubordinates"};
+                 LDAPSearchResults results = conn.search(
+-                    dn, LDAPConnection.SCOPE_ONE, "(objectclass=*)",
+-                    null, false, cons);
++                    dn, LDAPConnection.SCOPE_SUB, "(objectclass=*)",
++                    attrs, false, cons);
+                 while (!stopped && results.hasMoreElements()) {
+                     LDAPEntry entry = results.next();
++
++                    String[] objectClasses =
++                        entry.getAttribute("objectClass").getStringValueArray();
++                    if (Arrays.asList(objectClasses).contains("organizationalUnit")) {
++                        initialNumProfiles = new Integer(
++                            entry.getAttribute("numSubordinates")
++                                .getStringValueArray()[0]);
++                        checkInitialLoadDone();
++                        continue;
++                    }
++
+                     LDAPEntryChangeControl changeControl = null;
+                     LDAPControl[] changeControls = results.getResponseControls();
+                     if (changeControls != null) {
+@@ -327,6 +356,8 @@ public class LDAPProfileSubsystem
+                     } else {
+                         CMS.debug("Profile change monitor: immediate result");
+                         readProfile(entry);
++                        numProfilesLoaded += 1;
++                        checkInitialLoadDone();
+                     }
+                 }
+             } catch (ELdapException e) {
+-- 
+2.4.3
+

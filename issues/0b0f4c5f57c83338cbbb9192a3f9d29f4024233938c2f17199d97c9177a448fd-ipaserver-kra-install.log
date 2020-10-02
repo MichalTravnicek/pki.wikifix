@@ -1,0 +1,301 @@
+2016-08-17T05:54:36Z DEBUG Logging to /var/log/ipaserver-kra-install.log
+2016-08-17T05:54:36Z DEBUG ipa-kra-install was invoked with arguments [] and options: {'verbose': False, 'no_host_dns': False, 'quiet': False, 'log_file': None, 'unattended': True, 'uninstall': False}
+2016-08-17T05:54:36Z DEBUG IPA version 4.4.0.201608161713GIT5776f1e-20160816170240Zjenkins200git5776f1e.fc24
+2016-08-17T05:54:36Z DEBUG Loading StateFile from '/var/lib/ipa/sysrestore/sysrestore.state'
+2016-08-17T05:54:37Z DEBUG flushing ldapi://%2fvar%2frun%2fslapd-DOM-088-ABC-IDM-LAB-ENG-BRQ-REDHAT-COM.socket from SchemaCache
+2016-08-17T05:54:37Z DEBUG retrieving schema for SchemaCache url=ldapi://%2fvar%2frun%2fslapd-DOM-088-ABC-IDM-LAB-ENG-BRQ-REDHAT-COM.socket conn=<ldap.ldapobject.SimpleLDAPObject instance at 0x7f99669c0e18>
+2016-08-17T05:54:37Z DEBUG Created connection context.ldap2_140296838354448
+2016-08-17T05:54:37Z DEBUG retrieving schema for SchemaCache url=ldapi://%2Fvar%2Frun%2Fslapd-DOM-088-ABC-IDM-LAB-ENG-BRQ-REDHAT-COM.socket conn=<ldap.ldapobject.SimpleLDAPObject instance at 0x7f99669c0dd0>
+2016-08-17T05:54:37Z DEBUG Loading StateFile from '/var/lib/ipa/sysrestore/sysrestore.state'
+2016-08-17T05:54:37Z DEBUG raw: kra_is_enabled(version=u'2.211')
+2016-08-17T05:54:37Z DEBUG kra_is_enabled(version=u'2.211')
+2016-08-17T05:54:37Z DEBUG Loading StateFile from '/var/lib/ipa/sysrestore/sysrestore.state'
+2016-08-17T05:54:37Z DEBUG Loading Index file from '/var/lib/ipa/sysrestore/sysrestore.index'
+2016-08-17T05:54:37Z DEBUG Trying to find certificate subject base in sysupgrade
+2016-08-17T05:54:37Z DEBUG Loading StateFile from '/var/lib/ipa/sysupgrade/sysupgrade.state'
+2016-08-17T05:54:37Z DEBUG Loading StateFile from '/var/lib/ipa/sysupgrade/sysupgrade.state'
+2016-08-17T05:54:37Z DEBUG Found certificate subject base in sysupgrade: O=DOM-088.ABC.IDM.LAB.ENG.BRQ.REDHAT.COM
+2016-08-17T05:54:37Z DEBUG Loading StateFile from '/var/lib/ipa/sysrestore/sysrestore.state'
+2016-08-17T05:54:39Z DEBUG Starting external process
+2016-08-17T05:54:39Z DEBUG args=/usr/bin/pk12util -d /tmp/tmpUNH3JK -k /tmp/tmpUNH3JK/nsspwfile -n auditSigningCert cert-pki-kra -i /tmp/tmpUNH3JK/pk12file -w /tmp/tmpUNH3JK/pk12pwfile
+2016-08-17T05:54:39Z DEBUG Process finished, return code=0
+2016-08-17T05:54:39Z DEBUG stdout=pk12util: PKCS12 IMPORT SUCCESSFUL
+
+2016-08-17T05:54:39Z DEBUG stderr=
+2016-08-17T05:54:39Z DEBUG Starting external process
+2016-08-17T05:54:39Z DEBUG args=/usr/bin/pk12util -d /tmp/tmpUNH3JK -k /tmp/tmpUNH3JK/nsspwfile -n storageCert cert-pki-kra -i /tmp/tmpUNH3JK/pk12file -w /tmp/tmpUNH3JK/pk12pwfile
+2016-08-17T05:54:39Z DEBUG Process finished, return code=0
+2016-08-17T05:54:39Z DEBUG stdout=pk12util: PKCS12 IMPORT SUCCESSFUL
+
+2016-08-17T05:54:39Z DEBUG stderr=
+2016-08-17T05:54:40Z DEBUG Starting external process
+2016-08-17T05:54:40Z DEBUG args=/usr/bin/pk12util -d /tmp/tmpUNH3JK -k /tmp/tmpUNH3JK/nsspwfile -n subsystemCert cert-pki-ca -i /tmp/tmpUNH3JK/pk12file -w /tmp/tmpUNH3JK/pk12pwfile
+2016-08-17T05:54:40Z DEBUG Process finished, return code=0
+2016-08-17T05:54:40Z DEBUG stdout=pk12util: PKCS12 IMPORT SUCCESSFUL
+
+2016-08-17T05:54:40Z DEBUG stderr=
+2016-08-17T05:54:40Z DEBUG Starting external process
+2016-08-17T05:54:40Z DEBUG args=/usr/bin/pk12util -d /tmp/tmpUNH3JK -k /tmp/tmpUNH3JK/nsspwfile -n transportCert cert-pki-kra -i /tmp/tmpUNH3JK/pk12file -w /tmp/tmpUNH3JK/pk12pwfile
+2016-08-17T05:54:40Z DEBUG Process finished, return code=0
+2016-08-17T05:54:40Z DEBUG stdout=pk12util: PKCS12 IMPORT SUCCESSFUL
+
+2016-08-17T05:54:40Z DEBUG stderr=
+2016-08-17T05:54:40Z DEBUG Starting external process
+2016-08-17T05:54:40Z DEBUG args=/usr/bin/PKCS12Export -d /tmp/tmpUNH3JK -p /tmp/tmpUNH3JK/nsspwfile -w /tmp/tmpUNH3JK/crtpwfile -o /tmp/tmpwpe44Dipa/kracert.p12
+2016-08-17T05:54:40Z DEBUG Process finished, return code=0
+2016-08-17T05:54:40Z DEBUG stdout=Export complete.
+
+2016-08-17T05:54:40Z DEBUG stderr=
+2016-08-17T05:54:40Z DEBUG Loading StateFile from '/var/lib/ipa/sysrestore/sysrestore.state'
+2016-08-17T05:54:40Z DEBUG Loading StateFile from '/var/lib/ipa/sysrestore/sysrestore.state'
+2016-08-17T05:54:40Z DEBUG Configuring KRA server (pki-tomcatd). Estimated time: 2 minutes 6 seconds
+2016-08-17T05:54:40Z DEBUG   [1/8]: creating installation admin user
+2016-08-17T05:54:40Z DEBUG flushing ldapi://%2fvar%2frun%2fslapd-DOM-088-ABC-IDM-LAB-ENG-BRQ-REDHAT-COM.socket from SchemaCache
+2016-08-17T05:54:40Z DEBUG retrieving schema for SchemaCache url=ldapi://%2fvar%2frun%2fslapd-DOM-088-ABC-IDM-LAB-ENG-BRQ-REDHAT-COM.socket conn=<ldap.ldapobject.SimpleLDAPObject instance at 0x7f99650b2a28>
+2016-08-17T05:54:43Z DEBUG flushing ldap://vm-058-168.abc.idm.lab.eng.brq.redhat.com:389 from SchemaCache
+2016-08-17T05:54:43Z DEBUG retrieving schema for SchemaCache url=ldap://vm-058-168.abc.idm.lab.eng.brq.redhat.com:389 conn=<ldap.ldapobject.SimpleLDAPObject instance at 0x7f99641a2680>
+2016-08-17T05:54:43Z DEBUG   duration: 2 seconds
+2016-08-17T05:54:43Z DEBUG   [2/8]: configuring KRA instance
+2016-08-17T05:54:43Z DEBUG Contents of pkispawn configuration file (/tmp/tmp3aTtTZ):
+[KRA]
+pki_security_domain_https_port = 443
+pki_security_domain_password = XXXXXXXX
+pki_security_domain_user = admin-vm-041.abc.idm.lab.eng.brq.redhat.com
+pki_issuing_ca_uri = https://vm-041.abc.idm.lab.eng.brq.redhat.com:443
+pki_enable_proxy = True
+pki_restart_configured_instance = False
+pki_backup_keys = True
+pki_backup_password = XXXXXXXX
+pki_client_database_dir = /tmp/tmp-8dgqTy
+pki_client_database_password = XXXXXXXX
+pki_client_database_purge = False
+pki_client_pkcs12_password = XXXXXXXX
+pki_admin_name = admin-vm-041.abc.idm.lab.eng.brq.redhat.com
+pki_admin_uid = admin-vm-041.abc.idm.lab.eng.brq.redhat.com
+pki_admin_email = root@localhost
+pki_admin_password = XXXXXXXX
+pki_admin_nickname = ipa-ca-agent
+pki_admin_subject_dn = cn=ipa-ca-agent,O=DOM-088.ABC.IDM.LAB.ENG.BRQ.REDHAT.COM
+pki_import_admin_cert = True
+pki_admin_cert_file = /root/.dogtag/pki-tomcat/ca_admin.cert
+pki_client_admin_cert_p12 = /root/ca-agent.p12
+pki_ds_ldap_port = 389
+pki_ds_password = XXXXXXXX
+pki_ds_base_dn = o=kra,o=ipaca
+pki_ds_database = ipaca
+pki_ds_create_new_db = False
+pki_ds_ldaps_port = 636
+pki_ds_secure_connection = True
+pki_ds_secure_connection_ca_pem_file = /etc/ipa/ca.crt
+pki_subsystem_subject_dn = cn=CA Subsystem,O=DOM-088.ABC.IDM.LAB.ENG.BRQ.REDHAT.COM
+pki_ssl_server_subject_dn = cn=vm-041.abc.idm.lab.eng.brq.redhat.com,O=DOM-088.ABC.IDM.LAB.ENG.BRQ.REDHAT.COM
+pki_audit_signing_subject_dn = cn=KRA Audit,O=DOM-088.ABC.IDM.LAB.ENG.BRQ.REDHAT.COM
+pki_transport_subject_dn = cn=KRA Transport Certificate,O=DOM-088.ABC.IDM.LAB.ENG.BRQ.REDHAT.COM
+pki_storage_subject_dn = cn=KRA Storage Certificate,O=DOM-088.ABC.IDM.LAB.ENG.BRQ.REDHAT.COM
+pki_subsystem_nickname = subsystemCert cert-pki-ca
+pki_ssl_server_nickname = Server-Cert cert-pki-ca
+pki_audit_signing_nickname = auditSigningCert cert-pki-kra
+pki_transport_nickname = transportCert cert-pki-kra
+pki_storage_nickname = storageCert cert-pki-kra
+pki_share_db = True
+pki_share_dbuser_dn = uid=pkidbuser,ou=people,o=ipaca
+pki_security_domain_hostname = vm-058-168.abc.idm.lab.eng.brq.redhat.com
+pki_clone = True
+pki_clone_pkcs12_path = /tmp/tmpfYEuDY
+pki_clone_pkcs12_password = XXXXXXXX
+pki_clone_setup_replication = False
+pki_clone_uri = https://vm-058-168.abc.idm.lab.eng.brq.redhat.com:443
+
+
+2016-08-17T05:54:43Z DEBUG Starting external process
+2016-08-17T05:54:43Z DEBUG args=/usr/sbin/pkispawn -s KRA -f /tmp/tmp3aTtTZ
+2016-08-17T05:55:08Z DEBUG Process finished, return code=1
+2016-08-17T05:55:08Z DEBUG stdout=Log file: /var/log/pki/pki-kra-spawn.20160817075443.log
+Loading deployment configuration from /tmp/tmp3aTtTZ.
+Installing KRA into /var/lib/pki/pki-tomcat.
+Storing deployment configuration into /etc/sysconfig/pki/tomcat/pki-tomcat/kra/deployment.cfg.
+Importing certificates from /tmp/tmpfYEuDY:
+---------------
+5 entries found
+---------------
+  Certificate ID: 43cd8f5a4d7abc6d39bd1d0a034ebc20af6152f3
+  Serial Number: 0xc
+  Nickname: storageCert cert-pki-kra
+  Subject DN: CN=KRA Storage Certificate,O=DOM-088.ABC.IDM.LAB.ENG.BRQ.REDHAT.COM
+  Issuer DN: CN=Certificate Authority,O=DOM-088.ABC.IDM.LAB.ENG.BRQ.REDHAT.COM
+  Trust Flags: u,u,u
+  Has Key: true
+
+  Certificate ID: c1013937b960f8e7671cbbec515b60ae8da90db
+  Serial Number: 0x1
+  Nickname: caSigningCert cert-pki-ca
+  Subject DN: CN=Certificate Authority,O=DOM-088.ABC.IDM.LAB.ENG.BRQ.REDHAT.COM
+  Issuer DN: CN=Certificate Authority,O=DOM-088.ABC.IDM.LAB.ENG.BRQ.REDHAT.COM
+  Trust Flags: ,,
+  Has Key: false
+
+  Certificate ID: 45c750235969475aaa19e9348a78e15ca5e5058
+  Serial Number: 0x4
+  Nickname: subsystemCert cert-pki-ca
+  Subject DN: CN=CA Subsystem,O=DOM-088.ABC.IDM.LAB.ENG.BRQ.REDHAT.COM
+  Issuer DN: CN=Certificate Authority,O=DOM-088.ABC.IDM.LAB.ENG.BRQ.REDHAT.COM
+  Trust Flags: u,u,u
+  Has Key: true
+
+  Certificate ID: e90489e5fe2522bb366023681b08eb23a1487652
+  Serial Number: 0xd
+  Nickname: auditSigningCert cert-pki-kra
+  Subject DN: CN=KRA Audit,O=DOM-088.ABC.IDM.LAB.ENG.BRQ.REDHAT.COM
+  Issuer DN: CN=Certificate Authority,O=DOM-088.ABC.IDM.LAB.ENG.BRQ.REDHAT.COM
+  Trust Flags: u,u,u
+  Has Key: true
+
+  Certificate ID: e9ca3d0c5aad197b332ed884862793c5220524b4
+  Serial Number: 0xb
+  Nickname: transportCert cert-pki-kra
+  Subject DN: CN=KRA Transport Certificate,O=DOM-088.ABC.IDM.LAB.ENG.BRQ.REDHAT.COM
+  Issuer DN: CN=Certificate Authority,O=DOM-088.ABC.IDM.LAB.ENG.BRQ.REDHAT.COM
+  Trust Flags: u,u,u
+  Has Key: true
+WARNING: cert caSigningCert cert-pki-ca already exists
+---------------
+Import complete
+---------------
+Imported certificates in /etc/pki/pki-tomcat/alias:
+
+Certificate Nickname                                         Trust Attributes
+                                                             SSL,S/MIME,JAR/XPI
+
+ocspSigningCert cert-pki-ca                                  u,u,u
+subsystemCert cert-pki-ca                                    u,u,u
+Server-Cert cert-pki-ca                                      u,u,u
+storageCert cert-pki-kra                                     u,u,u
+caSigningCert cert-pki-ca                                    CTu,Cu,Cu
+auditSigningCert cert-pki-ca                                 u,u,Pu
+transportCert cert-pki-kra                                   u,u,u
+auditSigningCert cert-pki-kra                                u,u,Pu
+
+Installation failed:
+<!DOCTYPE html><html><head><title>Apache Tomcat/8.0.36 - Error report</title><style type="text/css">H1 {font-family:Tahoma,Arial,sans-serif;color:white;background-color:#525D76;font-size:22px;} H2 {font-family:Tahoma,Arial,sans-serif;color:white;background-color:#525D76;font-size:16px;} H3 {font-family:Tahoma,Arial,sans-serif;color:white;background-color:#525D76;font-size:14px;} BODY {font-family:Tahoma,Arial,sans-serif;color:black;background-color:white;} B {font-family:Tahoma,Arial,sans-serif;color:white;background-color:#525D76;} P {font-family:Tahoma,Arial,sans-serif;background:white;color:black;font-size:12px;}A {color : black;}A.name {color : black;}.line {height: 1px; background-color: #525D76; border: none;}</style> </head><body><h1>HTTP Status 500 - java.io.IOException: Error: Failed to update number range.</h1><div class="line"></div><p><b>type</b> Exception report</p><p><b>message</b> <u>java.io.IOException: Error: Failed to update number range.</u></p><p><b>description</b> <u>The server encountered an internal error that prevented it from fulfilling this request.</u></p><p><b>exception</b></p><pre>org.jboss.resteasy.spi.UnhandledException: java.io.IOException: Error: Failed to update number range.
+	org.jboss.resteasy.core.ExceptionHandler.handleApplicationException(ExceptionHandler.java:77)
+	org.jboss.resteasy.core.ExceptionHandler.handleException(ExceptionHandler.java:220)
+	org.jboss.resteasy.core.SynchronousDispatcher.writeException(SynchronousDispatcher.java:175)
+	org.jboss.resteasy.core.SynchronousDispatcher.invoke(SynchronousDispatcher.java:418)
+	org.jboss.resteasy.core.SynchronousDispatcher.invoke(SynchronousDispatcher.java:209)
+	org.jboss.resteasy.plugins.server.servlet.ServletContainerDispatcher.service(ServletContainerDispatcher.java:221)
+	org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher.service(HttpServletDispatcher.java:56)
+	org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher.service(HttpServletDispatcher.java:51)
+	javax.servlet.http.HttpServlet.service(HttpServlet.java:729)
+	sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	java.lang.reflect.Method.invoke(Method.java:498)
+	org.apache.catalina.security.SecurityUtil$1.run(SecurityUtil.java:293)
+	org.apache.catalina.security.SecurityUtil$1.run(SecurityUtil.java:290)
+	java.security.AccessController.doPrivileged(Native Method)
+	javax.security.auth.Subject.doAsPrivileged(Subject.java:549)
+	org.apache.catalina.security.SecurityUtil.execute(SecurityUtil.java:325)
+	org.apache.catalina.security.SecurityUtil.doAsPrivilege(SecurityUtil.java:176)
+	java.security.AccessController.doPrivileged(Native Method)
+	org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:52)
+	sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	java.lang.reflect.Method.invoke(Method.java:498)
+	org.apache.catalina.security.SecurityUtil$1.run(SecurityUtil.java:293)
+	org.apache.catalina.security.SecurityUtil$1.run(SecurityUtil.java:290)
+	java.security.AccessController.doPrivileged(Native Method)
+	javax.security.auth.Subject.doAsPrivileged(Subject.java:549)
+	org.apache.catalina.security.SecurityUtil.execute(SecurityUtil.java:325)
+	org.apache.catalina.security.SecurityUtil.doAsPrivilege(SecurityUtil.java:264)
+</pre><p><b>root cause</b></p><pre>java.io.IOException: Error: Failed to update number range.
+	com.netscape.cms.servlet.csadmin.ConfigurationUtils.updateNumberRange(ConfigurationUtils.java:690)
+	com.netscape.cms.servlet.csadmin.ConfigurationUtils.getConfigEntriesFromMaster(ConfigurationUtils.java:555)
+	org.dogtagpki.server.rest.SystemConfigService.configureClone(SystemConfigService.java:881)
+	org.dogtagpki.server.rest.SystemConfigService.configureSubsystem(SystemConfigService.java:1018)
+	org.dogtagpki.server.rest.SystemConfigService.configure(SystemConfigService.java:164)
+	org.dogtagpki.server.rest.SystemConfigService.configure(SystemConfigService.java:121)
+	sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	java.lang.reflect.Method.invoke(Method.java:498)
+	org.jboss.resteasy.core.MethodInjectorImpl.invoke(MethodInjectorImpl.java:139)
+	org.jboss.resteasy.core.ResourceMethodInvoker.invokeOnTarget(ResourceMethodInvoker.java:295)
+	org.jboss.resteasy.core.ResourceMethodInvoker.invoke(ResourceMethodInvoker.java:249)
+	org.jboss.resteasy.core.ResourceMethodInvoker.invoke(ResourceMethodInvoker.java:236)
+	org.jboss.resteasy.core.SynchronousDispatcher.invoke(SynchronousDispatcher.java:402)
+	org.jboss.resteasy.core.SynchronousDispatcher.invoke(SynchronousDispatcher.java:209)
+	org.jboss.resteasy.plugins.server.servlet.ServletContainerDispatcher.service(ServletContainerDispatcher.java:221)
+	org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher.service(HttpServletDispatcher.java:56)
+	org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher.service(HttpServletDispatcher.java:51)
+	javax.servlet.http.HttpServlet.service(HttpServlet.java:729)
+	sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	java.lang.reflect.Method.invoke(Method.java:498)
+	org.apache.catalina.security.SecurityUtil$1.run(SecurityUtil.java:293)
+	org.apache.catalina.security.SecurityUtil$1.run(SecurityUtil.java:290)
+	java.security.AccessController.doPrivileged(Native Method)
+	javax.security.auth.Subject.doAsPrivileged(Subject.java:549)
+	org.apache.catalina.security.SecurityUtil.execute(SecurityUtil.java:325)
+	org.apache.catalina.security.SecurityUtil.doAsPrivilege(SecurityUtil.java:176)
+	java.security.AccessController.doPrivileged(Native Method)
+	org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:52)
+	sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	java.lang.reflect.Method.invoke(Method.java:498)
+	org.apache.catalina.security.SecurityUtil$1.run(SecurityUtil.java:293)
+	org.apache.catalina.security.SecurityUtil$1.run(SecurityUtil.java:290)
+	java.security.AccessController.doPrivileged(Native Method)
+	javax.security.auth.Subject.doAsPrivileged(Subject.java:549)
+	org.apache.catalina.security.SecurityUtil.execute(SecurityUtil.java:325)
+	org.apache.catalina.security.SecurityUtil.doAsPrivilege(SecurityUtil.java:264)
+</pre><p><b>note</b> <u>The full stack trace of the root cause is available in the Apache Tomcat/8.0.36 logs.</u></p><hr class="line"><h3>Apache Tomcat/8.0.36</h3></body></html>
+
+Please check the KRA logs in /var/log/pki/pki-tomcat/kra.
+
+2016-08-17T05:55:08Z DEBUG stderr=
+2016-08-17T05:55:08Z CRITICAL Failed to configure KRA instance: Command '/usr/sbin/pkispawn -s KRA -f /tmp/tmp3aTtTZ' returned non-zero exit status 1
+2016-08-17T05:55:08Z CRITICAL See the installation logs and the following files/directories for more information:
+2016-08-17T05:55:08Z CRITICAL   /var/log/pki/pki-tomcat
+2016-08-17T05:55:08Z DEBUG Traceback (most recent call last):
+  File "/usr/lib/python2.7/site-packages/ipaserver/install/service.py", line 448, in start_creation
+    run_step(full_msg, method)
+  File "/usr/lib/python2.7/site-packages/ipaserver/install/service.py", line 438, in run_step
+    method()
+  File "/usr/lib/python2.7/site-packages/ipaserver/install/krainstance.py", line 258, in __spawn_instance
+    DogtagInstance.spawn_instance(self, cfg_file)
+  File "/usr/lib/python2.7/site-packages/ipaserver/install/dogtaginstance.py", line 181, in spawn_instance
+    self.handle_setup_error(e)
+  File "/usr/lib/python2.7/site-packages/ipaserver/install/dogtaginstance.py", line 420, in handle_setup_error
+    raise RuntimeError("%s configuration failed." % self.subsystem)
+RuntimeError: KRA configuration failed.
+
+2016-08-17T05:55:08Z DEBUG   [error] RuntimeError: KRA configuration failed.
+2016-08-17T05:55:08Z ERROR 
+Your system may be partly configured.
+Run ipa-kra-install --uninstall to clean up.
+
+2016-08-17T05:55:08Z DEBUG   File "/usr/lib/python2.7/site-packages/ipapython/admintool.py", line 171, in execute
+    return_value = self.run()
+  File "/usr/lib/python2.7/site-packages/ipaserver/install/ipa_kra_install.py", line 225, in run
+    kra.install(api, config, self.options)
+  File "/usr/lib/python2.7/site-packages/ipaserver/install/kra.py", line 82, in install
+    kra_cert_bundle=ca_data)
+  File "/usr/lib/python2.7/site-packages/ipaserver/install/krainstance.py", line 399, in configure_replica
+    self.start_creation(runtime=126)
+  File "/usr/lib/python2.7/site-packages/ipaserver/install/service.py", line 448, in start_creation
+    run_step(full_msg, method)
+  File "/usr/lib/python2.7/site-packages/ipaserver/install/service.py", line 438, in run_step
+    method()
+  File "/usr/lib/python2.7/site-packages/ipaserver/install/krainstance.py", line 258, in __spawn_instance
+    DogtagInstance.spawn_instance(self, cfg_file)
+  File "/usr/lib/python2.7/site-packages/ipaserver/install/dogtaginstance.py", line 181, in spawn_instance
+    self.handle_setup_error(e)
+  File "/usr/lib/python2.7/site-packages/ipaserver/install/dogtaginstance.py", line 420, in handle_setup_error
+    raise RuntimeError("%s configuration failed." % self.subsystem)
+
+2016-08-17T05:55:08Z DEBUG The ipa-kra-install command failed, exception: RuntimeError: KRA configuration failed.
+2016-08-17T05:55:08Z ERROR KRA configuration failed.
+2016-08-17T05:55:08Z ERROR The ipa-kra-install command failed. See /var/log/ipaserver-kra-install.log for more information

@@ -1,0 +1,530 @@
+From cbad723bd29724ebaecddc9ef0715fe42eb54c5e Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Wed, 21 Sep 2016 03:23:02 +0200
+Subject: [PATCH] Updated PKI server logging service to use JUL.
+
+The PKI server logging service has been modified to utilize Java
+Util Logging (JUL). This will allow PKI code to be refactored into
+smaller modules which can run outside the server (e.g. for unit
+testing).
+
+The common logging.properties file has been updated to define the
+debug log handlers for each subsystem. New logging.properties files
+have been added for each subsystem to specify the PKI packages to
+be logged.
+
+The deployment tool has been modified to create a link to the
+default logging.properties instead of creating a copy. The unused
+log4j.properties has been removed.
+
+The pki.policy has been modified to allow Tomcat to read the
+default logging.properties files in /usr/share/pki and to
+generate debug logs in subfolders under <instance>/logs.
+
+https://fedorahosted.org/pki/ticket/195
+---
+ .../webapps/ca/WEB-INF/classes/logging.properties  | 27 ++++++++
+ .../webapps/kra/WEB-INF/classes/logging.properties | 27 ++++++++
+ .../ocsp/WEB-INF/classes/logging.properties        | 27 ++++++++
+ .../src/com/netscape/cmscore/util/Debug.java       | 74 +++++++---------------
+ .../python/pki/server/deployment/pkihelper.py      | 12 ----
+ .../deployment/scriptlets/instance_layout.py       | 18 +++++-
+ base/server/share/conf/log4j.properties            | 30 ---------
+ base/server/share/conf/logging.properties          | 41 +++++++++++-
+ base/server/share/conf/pki.policy                  |  2 +
+ .../webapps/tks/WEB-INF/classes/logging.properties | 27 ++++++++
+ .../webapps/tps/WEB-INF/classes/logging.properties | 27 ++++++++
+ 11 files changed, 216 insertions(+), 96 deletions(-)
+ create mode 100644 base/ca/shared/webapps/ca/WEB-INF/classes/logging.properties
+ create mode 100644 base/kra/shared/webapps/kra/WEB-INF/classes/logging.properties
+ create mode 100644 base/ocsp/shared/webapps/ocsp/WEB-INF/classes/logging.properties
+ delete mode 100644 base/server/share/conf/log4j.properties
+ create mode 100644 base/tks/shared/webapps/tks/WEB-INF/classes/logging.properties
+ create mode 100644 base/tps/shared/webapps/tps/WEB-INF/classes/logging.properties
+
+diff --git a/base/ca/shared/webapps/ca/WEB-INF/classes/logging.properties b/base/ca/shared/webapps/ca/WEB-INF/classes/logging.properties
+new file mode 100644
+index 0000000000000000000000000000000000000000..4668391be23379d6fb2de2bb62cd1b267f320373
+--- /dev/null
++++ b/base/ca/shared/webapps/ca/WEB-INF/classes/logging.properties
+@@ -0,0 +1,27 @@
++# --- BEGIN COPYRIGHT BLOCK ---
++# Copyright (C) 2016 Red Hat, Inc.
++# All rights reserved.
++# Modifications: configuration parameters
++# --- END COPYRIGHT BLOCK ---
++
++# Licensed to the Apache Software Foundation (ASF) under one or more
++# contributor license agreements.  See the NOTICE file distributed with
++# this work for additional information regarding copyright ownership.
++# The ASF licenses this file to You under the Apache License, Version 2.0
++# (the "License"); you may not use this file except in compliance with
++# the License.  You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++
++.handlers = 5ca-debug.org.apache.juli.FileHandler
++
++netscape.level = ALL
++com.netscape.level = ALL
++org.dogtagpki.level = ALL
+diff --git a/base/kra/shared/webapps/kra/WEB-INF/classes/logging.properties b/base/kra/shared/webapps/kra/WEB-INF/classes/logging.properties
+new file mode 100644
+index 0000000000000000000000000000000000000000..d605f2da661ac60658306720579b8b7c49393e36
+--- /dev/null
++++ b/base/kra/shared/webapps/kra/WEB-INF/classes/logging.properties
+@@ -0,0 +1,27 @@
++# --- BEGIN COPYRIGHT BLOCK ---
++# Copyright (C) 2016 Red Hat, Inc.
++# All rights reserved.
++# Modifications: configuration parameters
++# --- END COPYRIGHT BLOCK ---
++
++# Licensed to the Apache Software Foundation (ASF) under one or more
++# contributor license agreements.  See the NOTICE file distributed with
++# this work for additional information regarding copyright ownership.
++# The ASF licenses this file to You under the Apache License, Version 2.0
++# (the "License"); you may not use this file except in compliance with
++# the License.  You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++
++.handlers = 6kra-debug.org.apache.juli.FileHandler
++
++netscape.level = ALL
++com.netscape.level = ALL
++org.dogtagpki.level = ALL
+diff --git a/base/ocsp/shared/webapps/ocsp/WEB-INF/classes/logging.properties b/base/ocsp/shared/webapps/ocsp/WEB-INF/classes/logging.properties
+new file mode 100644
+index 0000000000000000000000000000000000000000..1153354ca98d82a2e866cdc7708a136e8699a167
+--- /dev/null
++++ b/base/ocsp/shared/webapps/ocsp/WEB-INF/classes/logging.properties
+@@ -0,0 +1,27 @@
++# --- BEGIN COPYRIGHT BLOCK ---
++# Copyright (C) 2016 Red Hat, Inc.
++# All rights reserved.
++# Modifications: configuration parameters
++# --- END COPYRIGHT BLOCK ---
++
++# Licensed to the Apache Software Foundation (ASF) under one or more
++# contributor license agreements.  See the NOTICE file distributed with
++# this work for additional information regarding copyright ownership.
++# The ASF licenses this file to You under the Apache License, Version 2.0
++# (the "License"); you may not use this file except in compliance with
++# the License.  You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++
++.handlers = 7ocsp-debug.org.apache.juli.FileHandler
++
++netscape.level = ALL
++com.netscape.level = ALL
++org.dogtagpki.level = ALL
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/util/Debug.java b/base/server/cmscore/src/com/netscape/cmscore/util/Debug.java
+index 83c0e1b06826422741e143810e701d6b78b41492..d1bb5c5a638c065a504d56a187a8164243fb60e5 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/util/Debug.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/util/Debug.java
+@@ -17,22 +17,21 @@
+ // --- END COPYRIGHT BLOCK ---
+ package com.netscape.cmscore.util;
+ 
+-import java.io.FileOutputStream;
+-import java.io.OutputStream;
+-import java.io.PrintStream;
+-import java.util.Date;
+ import java.util.Hashtable;
+ import java.util.StringTokenizer;
++import java.util.logging.Level;
++import java.util.logging.Logger;
+ 
+ import org.apache.commons.lang.time.FastDateFormat;
+ 
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.ISubsystem;
+-import com.netscape.cmsutil.util.Utils;
+ 
+ public class Debug
+         implements ISubsystem {
+ 
++    private static Logger logger = Logger.getLogger(Debug.class.getName());
++
+     private static Debug mInstance = new Debug();
+     private static boolean mShowCaller = false;
+ 
+@@ -58,15 +57,8 @@ public class Debug
+ 
+     private static int mDebugLevel = VERBOSE;
+ 
+-    private static PrintStream mOut = null;
+     private static Hashtable<String, String> mHK = null;
+ 
+-    static {
+-        if (TRACE_ON == true) {
+-            mOut = System.out;
+-        }
+-    }
+-
+     public static void trace(int level, String t) {
+         trace(level, t, null, true);
+     }
+@@ -135,10 +127,7 @@ public class Debug
+     private static void outputTraceMessage(String t) {
+         if (!TRACE_ON)
+             return;
+-        if (mOut != null) {
+-            mOut.println("[" + df.format(new Date()) + "][" + Thread.currentThread().getName() + "]: " + t);
+-            mOut.flush();
+-        }
++        logger.finest("[" + Thread.currentThread().getName() + "] " + t);
+     }
+ 
+     private static boolean hkdotype(String type) {
+@@ -181,9 +170,17 @@ public class Debug
+     public static void print(int level, String t) {
+         if (!TRACE_ON)
+             return;
+-        if (mOut != null) {
+-            if (level >= mDebugLevel)
+-                mOut.print(t);
++        if (level < mDebugLevel)
++            return;
++
++        if (level == INFORM) {
++            logger.info(t);
++
++        } else if (level == VERBOSE) {
++            logger.fine(t);
++
++        } else { // level == OBNOXIOUS
++            logger.finest(t);
+         }
+     }
+ 
+@@ -191,15 +188,6 @@ public class Debug
+         print(VERBOSE, t);
+     }
+ 
+-    private static void printNybble(byte b) {
+-        if (mOut == null)
+-            return;
+-        if (b < 10)
+-            mOut.write('0' + b);
+-        else
+-            mOut.write('a' + b - 10);
+-    }
+-
+     /**
+      * If tracing enabled, dump a byte array to debugging printstream
+      * as hex, colon-seperated bytes, 16 bytes to a line
+@@ -207,18 +195,17 @@ public class Debug
+     public static void print(byte[] b) {
+         if (!TRACE_ON)
+             return;
+-        if (mOut == null)
+-            return;
++
++        StringBuilder sb = new StringBuilder();
++        sb.append("Data:\n");
+ 
+         for (int i = 0; i < b.length; i++) {
+-            printNybble((byte) ((b[i] & 0xf0) >> 4));
+-            printNybble((byte) (b[i] & 0x0f));
+-            mOut.print(" ");
++            sb.append(String.format(" %02x",  b[i]));
+             if (((i % 16) == 15) && i != b.length)
+-                mOut.println("");
++                sb.append("\n");
+         }
+-        mOut.println("");
+-        mOut.flush();
++
++        logger.fine(sb.toString());
+     }
+ 
+     /**
+@@ -239,10 +226,8 @@ public class Debug
+     public static void printStackTrace(Throwable e) {
+         if (!TRACE_ON)
+             return;
+-        if (mOut == null)
+-            return;
+ 
+-        e.printStackTrace(mOut);
++        logger.log(Level.SEVERE, e.getMessage(), e);
+     }
+ 
+     /**
+@@ -322,17 +307,6 @@ public class Debug
+                 append = mConfig.getBoolean(PROP_APPEND, true);
+             }
+             if (TRACE_ON) {
+-                if (filename.equals("STDOUT")) {
+-                    mOut = System.out;
+-                } else {
+-                    if (!Utils.isNT()) {
+-                        // Always insure that a physical file exists!
+-                        Utils.exec("touch " + filename);
+-                        Utils.exec("chmod 00640 " + filename);
+-                    }
+-                    OutputStream os = new FileOutputStream(filename, append);
+-                    mOut = new PrintStream(os, true); /* true == autoflush */
+-                }
+                 if (hashkeytypes != null) {
+                     StringTokenizer st = new StringTokenizer(hashkeytypes,
+                             ",", false);
+diff --git a/base/server/python/pki/server/deployment/pkihelper.py b/base/server/python/pki/server/deployment/pkihelper.py
+index b6eacf1cea121ede30795289d953baf496c5a22f..35287a9b59d32f1702ec2a122a35fe9899e5e771 100644
+--- a/base/server/python/pki/server/deployment/pkihelper.py
++++ b/base/server/python/pki/server/deployment/pkihelper.py
+@@ -414,18 +414,6 @@ class Namespace:
+                     log.PKIHELPER_NAMESPACE_COLLISION_2 % (
+                         self.mdict['pki_instance_name'],
+                         self.mdict['pki_cgroup_cpu_systemd_service_path']))
+-        if os.path.exists(self.mdict['pki_instance_log_path']) and\
+-           os.path.exists(self.mdict['pki_subsystem_log_path']):
+-            # Top-Level PKI log path collision
+-            config.pki_log.error(
+-                log.PKIHELPER_NAMESPACE_COLLISION_2,
+-                self.mdict['pki_instance_name'],
+-                self.mdict['pki_instance_log_path'],
+-                extra=config.PKI_INDENTATION_LEVEL_2)
+-            raise Exception(
+-                log.PKIHELPER_NAMESPACE_COLLISION_2 % (
+-                    self.mdict['pki_instance_name'],
+-                    self.mdict['pki_instance_log_path']))
+         if os.path.exists(self.mdict['pki_instance_configuration_path']) and\
+            os.path.exists(self.mdict['pki_subsystem_configuration_path']):
+             # Top-Level PKI configuration path collision
+diff --git a/base/server/python/pki/server/deployment/scriptlets/instance_layout.py b/base/server/python/pki/server/deployment/scriptlets/instance_layout.py
+index c470c7f948b1746709b1e776d942121450b0691c..bdf4c776bfdc1048fca5e98c44b1d07f5d15f940 100644
+--- a/base/server/python/pki/server/deployment/scriptlets/instance_layout.py
++++ b/base/server/python/pki/server/deployment/scriptlets/instance_layout.py
+@@ -132,9 +132,14 @@ class PkiScriptlet(pkiscriptlet.AbstractBasePkiScriptlet):
+                     os.path.join(
+                         deployer.mdict['pki_instance_lib'],
+                         name))
++
++            # Link /var/lib/pki/<instance>/conf/logging.properties
++            # to /usr/share/pki/server/conf/logging.properties
+             deployer.symlink.create(
+-                deployer.mdict['pki_instance_conf_log4j_properties'],
+-                deployer.mdict['pki_instance_lib_log4j_properties'])
++                '/usr/share/pki/server/conf/logging.properties',
++                os.path.join(
++                    deployer.mdict['pki_instance_configuration_path'],
++                    'logging.properties'))
+ 
+             # Link /var/lib/pki/<instance>/common to /usr/share/pki/server/common
+             deployer.symlink.create(
+@@ -219,5 +224,12 @@ def file_ignore_callback_src_server(src, names):
+     config.pki_log.info(log.FILE_EXCLUDE_CALLBACK_2, src, names,
+                         extra=config.PKI_INDENTATION_LEVEL_1)
+ 
+-    excludes = {'schema.ldif', 'database.ldif', 'manager.ldif', 'pki.xml'}
++    excludes = {
++        'schema.ldif',
++        'database.ldif',
++        'manager.ldif',
++        'pki.xml',
++        'logging.properties'
++    }
++
+     return excludes
+diff --git a/base/server/share/conf/log4j.properties b/base/server/share/conf/log4j.properties
+deleted file mode 100644
+index dd4bd9318b4bd4f416e05a4d830d992a7a86f4b6..0000000000000000000000000000000000000000
+--- a/base/server/share/conf/log4j.properties
++++ /dev/null
+@@ -1,30 +0,0 @@
+-# --- BEGIN COPYRIGHT BLOCK ---
+-# Copyright (C) 2012 Red Hat, Inc.
+-# All rights reserved.
+-# Modifications: configuration parameters
+-# --- END COPYRIGHT BLOCK ---
+-
+-log4j.rootLogger=debug, R
+-log4j.appender.R=org.apache.log4j.RollingFileAppender
+-log4j.appender.R.File=${catalina.base}/logs/catalina.out
+-log4j.appender.R.MaxFileSize=10MB
+-log4j.appender.R.MaxBackupIndex=10
+-log4j.appender.R.layout=org.apache.log4j.PatternLayout
+-log4j.appender.R.layout.ConversionPattern=%p %t %c - %m%n
+-log4j.logger.org.apache.catalina=DEBUG, R
+-log4j.logger.org.apache.catalina.core.ContainerBase.[Catalina].[localhost]=DEBUG, R
+-log4j.logger.org.apache.catalina.core=DEBUG, R
+-log4j.logger.org.apache.catalina.session=DEBUG, R
+-
+-#resteasy
+-log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+-log4j.appender.stdout.Target=System.out
+-log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+-log4j.appender.stdout.layout.ConversionPattern=%d{ABSOLUTE} %5p (%c:%L) - %m%n
+-log4j.rootLogger=warn, stdout
+-log4j.rootCategory=debug, stdout
+-log4j.category.org.jboss.resteasy.core=debug
+-log4j.category.org.jboss.resteasy.plugins.providers=debug
+-log4j.category.org.jboss.resteasy.specimpl=debug
+-log4j.category.org.jboss.resteasy.plugins.server=debug
+-log4j.logger.org.jboss.resteasy.mock=debug
+diff --git a/base/server/share/conf/logging.properties b/base/server/share/conf/logging.properties
+index dfdc0a40ffabc2dae05673bea2e01349ce101f7f..db371975728c0bcca5875ec0ac159707615e0777 100644
+--- a/base/server/share/conf/logging.properties
++++ b/base/server/share/conf/logging.properties
+@@ -19,7 +19,16 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ 
+-handlers = 1catalina.org.apache.juli.FileHandler, 2localhost.org.apache.juli.FileHandler, 3manager.org.apache.juli.FileHandler, 4host-manager.org.apache.juli.FileHandler, java.util.logging.ConsoleHandler
++handlers = 1catalina.org.apache.juli.FileHandler,\
++ 2localhost.org.apache.juli.FileHandler,\
++ 3manager.org.apache.juli.FileHandler,\
++ 4host-manager.org.apache.juli.FileHandler,\
++ 5ca-debug.org.apache.juli.FileHandler,\
++ 6kra-debug.org.apache.juli.FileHandler,\
++ 7ocsp-debug.org.apache.juli.FileHandler,\
++ 8tks-debug.org.apache.juli.FileHandler,\
++ 9tps-debug.org.apache.juli.FileHandler,\
++ java.util.logging.ConsoleHandler
+ 
+ .handlers = 1catalina.org.apache.juli.FileHandler, java.util.logging.ConsoleHandler
+ 
+@@ -59,6 +68,36 @@ handlers = 1catalina.org.apache.juli.FileHandler, 2localhost.org.apache.juli.Fil
+ 4host-manager.org.apache.juli.FileHandler.directory = ${catalina.base}/logs
+ 4host-manager.org.apache.juli.FileHandler.prefix = host-manager.
+ 
++5ca-debug.org.apache.juli.FileHandler.level = ALL
++5ca-debug.org.apache.juli.FileHandler.directory = ${catalina.base}/logs/ca
++5ca-debug.org.apache.juli.FileHandler.prefix = debug.
++5ca-debug.org.apache.juli.FileHandler.formatter = java.util.logging.SimpleFormatter
++java.util.logging.SimpleFormatter.format = %1$tF %1$tT %5$s%6$s%n
++
++6kra-debug.org.apache.juli.FileHandler.level = ALL
++6kra-debug.org.apache.juli.FileHandler.directory = ${catalina.base}/logs/kra
++6kra-debug.org.apache.juli.FileHandler.prefix = debug.
++6kra-debug.org.apache.juli.FileHandler.formatter = java.util.logging.SimpleFormatter
++java.util.logging.SimpleFormatter.format = %1$tF %1$tT %5$s%6$s%n
++
++7ocsp-debug.org.apache.juli.FileHandler.level = ALL
++7ocsp-debug.org.apache.juli.FileHandler.directory = ${catalina.base}/logs/ocsp
++7ocsp-debug.org.apache.juli.FileHandler.prefix = debug.
++7ocsp-debug.org.apache.juli.FileHandler.formatter = java.util.logging.SimpleFormatter
++java.util.logging.SimpleFormatter.format = %1$tF %1$tT %5$s%6$s%n
++
++8tks-debug.org.apache.juli.FileHandler.level = ALL
++8tks-debug.org.apache.juli.FileHandler.directory = ${catalina.base}/logs/tks
++8tks-debug.org.apache.juli.FileHandler.prefix = debug.
++8tks-debug.org.apache.juli.FileHandler.formatter = java.util.logging.SimpleFormatter
++java.util.logging.SimpleFormatter.format = %1$tF %1$tT %5$s%6$s%n
++
++9tps-debug.org.apache.juli.FileHandler.level = ALL
++9tps-debug.org.apache.juli.FileHandler.directory = ${catalina.base}/logs/tps
++9tps-debug.org.apache.juli.FileHandler.prefix = debug.
++9tps-debug.org.apache.juli.FileHandler.formatter = java.util.logging.SimpleFormatter
++java.util.logging.SimpleFormatter.format = %1$tF %1$tT %5$s%6$s%n
++
+ java.util.logging.ConsoleHandler.level = FINE
+ java.util.logging.ConsoleHandler.formatter = java.util.logging.SimpleFormatter
+ 
+diff --git a/base/server/share/conf/pki.policy b/base/server/share/conf/pki.policy
+index 7d8cfec4591ec3ee28ade876253f4f593e086e67..993118b2e33d4b392523d541ab8a56f830efcff3 100644
+--- a/base/server/share/conf/pki.policy
++++ b/base/server/share/conf/pki.policy
+@@ -12,6 +12,8 @@
+ 
+ grant codeBase "file:${catalina.home}/bin/tomcat-juli.jar" {
+         permission java.lang.RuntimePermission "accessClassInPackage.sun.util.logging.resources";
++        permission java.io.FilePermission "${catalina.base}/logs/-", "read, write";
++        permission java.io.FilePermission "/usr/share/pki/-", "read";
+ };
+ 
+ grant codeBase "file:${catalina.base}/bin/bootstrap.jar" {
+diff --git a/base/tks/shared/webapps/tks/WEB-INF/classes/logging.properties b/base/tks/shared/webapps/tks/WEB-INF/classes/logging.properties
+new file mode 100644
+index 0000000000000000000000000000000000000000..1c9b3dcf6e971d4d133e0dcfb7e95e493139ef08
+--- /dev/null
++++ b/base/tks/shared/webapps/tks/WEB-INF/classes/logging.properties
+@@ -0,0 +1,27 @@
++# --- BEGIN COPYRIGHT BLOCK ---
++# Copyright (C) 2016 Red Hat, Inc.
++# All rights reserved.
++# Modifications: configuration parameters
++# --- END COPYRIGHT BLOCK ---
++
++# Licensed to the Apache Software Foundation (ASF) under one or more
++# contributor license agreements.  See the NOTICE file distributed with
++# this work for additional information regarding copyright ownership.
++# The ASF licenses this file to You under the Apache License, Version 2.0
++# (the "License"); you may not use this file except in compliance with
++# the License.  You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++
++.handlers = 8tks-debug.org.apache.juli.FileHandler
++
++netscape.level = ALL
++com.netscape.level = ALL
++org.dogtagpki.level = ALL
+diff --git a/base/tps/shared/webapps/tps/WEB-INF/classes/logging.properties b/base/tps/shared/webapps/tps/WEB-INF/classes/logging.properties
+new file mode 100644
+index 0000000000000000000000000000000000000000..bb7443b5624a59e4404138e011488f359a503283
+--- /dev/null
++++ b/base/tps/shared/webapps/tps/WEB-INF/classes/logging.properties
+@@ -0,0 +1,27 @@
++# --- BEGIN COPYRIGHT BLOCK ---
++# Copyright (C) 2016 Red Hat, Inc.
++# All rights reserved.
++# Modifications: configuration parameters
++# --- END COPYRIGHT BLOCK ---
++
++# Licensed to the Apache Software Foundation (ASF) under one or more
++# contributor license agreements.  See the NOTICE file distributed with
++# this work for additional information regarding copyright ownership.
++# The ASF licenses this file to You under the Apache License, Version 2.0
++# (the "License"); you may not use this file except in compliance with
++# the License.  You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++
++.handlers = 9tps-debug.org.apache.juli.FileHandler
++
++netscape.level = ALL
++com.netscape.level = ALL
++org.dogtagpki.level = ALL
+-- 
+2.5.5
+

@@ -1,0 +1,137 @@
+From e112cdfd4c1d383739134e4b5e42c59789593c05 Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Wed, 18 Jan 2017 19:56:51 +0100
+Subject: [PATCH] Updated untrusted CA handling in PKI CLI.
+
+https://fedorahosted.org/pki/ticket/2583
+---
+ .../client/PKICertificateApprovalCallback.java     | 22 +++++------
+ .../src/com/netscape/certsrv/client/PKIClient.java | 45 ++++++++++++++++++++++
+ 2 files changed, 54 insertions(+), 13 deletions(-)
+
+diff --git a/base/common/src/com/netscape/certsrv/client/PKICertificateApprovalCallback.java b/base/common/src/com/netscape/certsrv/client/PKICertificateApprovalCallback.java
+index 3ec46f57396924b75950b9a42b8a41977d1a9038..33c01facfbcde5070147edb843f3f2f91d916653 100644
+--- a/base/common/src/com/netscape/certsrv/client/PKICertificateApprovalCallback.java
++++ b/base/common/src/com/netscape/certsrv/client/PKICertificateApprovalCallback.java
+@@ -92,7 +92,8 @@ public class PKICertificateApprovalCallback implements SSLCertificateApprovalCal
+ 
+     public boolean handleUntrustedIssuer(X509Certificate serverCert) {
+         try {
+-            System.out.print("Import CA certificate (Y/n)? ");
++            System.out.print("Trust server certificate (Y/n)? ");
++            System.out.flush();
+ 
+             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+             String line = reader.readLine().trim();
+@@ -100,23 +101,16 @@ public class PKICertificateApprovalCallback implements SSLCertificateApprovalCal
+             if (!line.equals("") && !line.equalsIgnoreCase("Y"))
+                 return false;
+ 
+-            String caServerURI = "http://" + client.getConfig().getServerURI().getHost() + ":8080/ca";
+-
+-            System.out.print("CA server URI [" + caServerURI + "]: ");
++            System.out.print("Import server certificate (Y/n)? ");
+             System.out.flush();
+ 
+             line = reader.readLine().trim();
+-            if (!line.equals("")) {
+-                caServerURI = line;
+-            }
+ 
+-            if (client.verbose) System.out.println("Downloading CA certificate chain from " + caServerURI + ".");
+-            byte[] bytes = client.downloadCACertChain(caServerURI);
++            if (!line.equals("") && !line.equalsIgnoreCase("Y"))
++                return true;
+ 
+-            if (client.verbose) System.out.println("Importing CA certificate chain.");
+-            client.importCACertPackage(bytes);
++            client.importServerCert(serverCert);
+ 
+-            if (client.verbose) System.out.println("Imported CA certificate.");
+             return true;
+ 
+         } catch (Exception e) {
+@@ -161,7 +155,9 @@ public class PKICertificateApprovalCallback implements SSLCertificateApprovalCal
+                 // cert for this operation.
+                 if (!client.statuses.contains(reason)) {
+                     System.err.println("WARNING: " + getMessage(serverCert, reason));
+-                    handleUntrustedIssuer(serverCert);
++                    if (!handleUntrustedIssuer(serverCert)) {
++                        approval = false;
++                    }
+                 }
+ 
+             } else if (reason == SSLCertificateApprovalCallback.ValidityStatus.BAD_CERT_DOMAIN) {
+diff --git a/base/common/src/com/netscape/certsrv/client/PKIClient.java b/base/common/src/com/netscape/certsrv/client/PKIClient.java
+index a1ca84eb9993469af96885d12033af0a39b0651c..d086e8e8ab23f195bcf08d391910ef0e2f17f000 100644
+--- a/base/common/src/com/netscape/certsrv/client/PKIClient.java
++++ b/base/common/src/com/netscape/certsrv/client/PKIClient.java
+@@ -25,6 +25,7 @@ import java.net.URL;
+ import java.security.cert.CertificateEncodingException;
+ import java.util.Collection;
+ import java.util.HashSet;
++import java.util.Vector;
+ 
+ import javax.ws.rs.core.GenericType;
+ import javax.ws.rs.core.Response;
+@@ -53,6 +54,9 @@ import com.netscape.certsrv.base.PKIException;
+ import com.netscape.certsrv.util.CryptoProvider;
+ import com.netscape.cmsutil.util.Utils;
+ 
++import netscape.ldap.util.DN;
++import netscape.ldap.util.RDN;
++
+ 
+ public class PKIClient {
+ 
+@@ -204,6 +208,47 @@ public class PKIClient {
+         return manager.importCertPackage(bytes, nickname);
+     }
+ 
++    public X509Certificate importServerCert(X509Certificate serverCert)
++            throws NotInitializedException, CertificateEncodingException,
++            NicknameConflictException, UserCertConflictException,
++            NoSuchItemOnTokenException, TokenException {
++
++        String subjectDN = serverCert.getSubjectDN().getName();
++        DN dn = new DN(subjectDN);
++        Vector<?> rdns = dn.getRDNs();
++
++        // get nickname from CN attribute (i.e. hostname)
++        String nickname = null;
++
++        for (int i=0; i< rdns.size(); i++) {
++            RDN rdn = (RDN)rdns.elementAt(i);
++            String type = rdn.getTypes()[0].toUpperCase();
++
++            if (!"CN".equals(type)) {
++                continue;
++            }
++
++            nickname = rdn.getValues()[0];
++        }
++
++        if (nickname == null) {
++            nickname = subjectDN;
++        }
++
++        byte[] bytes = serverCert.getEncoded();
++
++        CryptoManager manager = CryptoManager.getInstance();
++        InternalCertificate cert = (InternalCertificate)
++                manager.importCACertPackage(bytes); // no nickname
++
++        cert.setSSLTrust(InternalCertificate.TRUSTED_PEER);
++        cert.setObjectSigningTrust(0);
++        cert.setEmailTrust(0);
++
++        return cert;
++    }
++
++
+     public X509Certificate importCACertPackage(byte[] bytes)
+             throws NotInitializedException, CertificateEncodingException, TokenException {
+ 
+-- 
+2.5.5
+

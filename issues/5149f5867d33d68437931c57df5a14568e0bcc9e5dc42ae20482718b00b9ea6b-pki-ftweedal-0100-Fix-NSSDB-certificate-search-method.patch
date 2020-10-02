@@ -1,0 +1,37 @@
+From f912026913a93e40d1e06ba93f873b621feffbc6 Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Wed, 27 Apr 2016 13:35:41 +1000
+Subject: [PATCH] Fix NSSDB certificate search method
+
+'getX509CertFromToken' erroneously compares Issuer DN of given cert
+with Subject DNs of cert in NSSDB.  It falsely returns the parent of
+the target cert, if the certs have the same serial number.
+
+In the context of how this method is used, it causes the deletion of
+an external CA certificate from the NSSDB if the serial numbers
+match, and subsequent certificate verification failure when
+connecting to LDAP.
+
+Update the method to check the Issuer DN.
+
+Fixes: https://fedorahosted.org/pki/ticket/2301
+---
+ .../cms/src/com/netscape/cms/servlet/csadmin/ConfigurationUtils.java    | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/base/server/cms/src/com/netscape/cms/servlet/csadmin/ConfigurationUtils.java b/base/server/cms/src/com/netscape/cms/servlet/csadmin/ConfigurationUtils.java
+index 8c353f0c7af47772af7fe3aab371fdf1ec0a6f29..c0f0ce1f405dd63232f1be6c15f8bd8d1a8d3c4b 100644
+--- a/base/server/cms/src/com/netscape/cms/servlet/csadmin/ConfigurationUtils.java
++++ b/base/server/cms/src/com/netscape/cms/servlet/csadmin/ConfigurationUtils.java
+@@ -1168,7 +1168,7 @@ public class ConfigurationUtils {
+         CryptoManager cm = CryptoManager.getInstance();
+         X509Certificate[] permcerts = cm.getPermCerts();
+         for (int i = 0; i < permcerts.length; i++) {
+-            String issuer_p = permcerts[i].getSubjectDN().toString();
++            String issuer_p = permcerts[i].getIssuerDN().toString();
+             BigInteger serial_p = permcerts[i].getSerialNumber();
+             if (issuer_p.equals(issuer_impl) && serial_p.compareTo(serial_impl) == 0) {
+                 return permcerts[i];
+-- 
+2.5.5
+

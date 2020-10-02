@@ -1,0 +1,71 @@
+From 4cbaf297690bf95fffc864cb109bdd6ae49c9dc3 Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Wed, 22 Jun 2016 13:34:01 +1000
+Subject: [PATCH] Add profiles container to LDAP if missing
+
+CMS startup was changed a while back to wait for
+LDAPProfileSubsystem initialisation, while LDAPProfileSubsystem
+initialisation waits for all known profiles to be loaded by the LDAP
+persistent search thread.  If the ou=certificateProfiles container
+object does not exist, startup hangs.
+
+This can cause a race condition in FreeIPA upgrade.  FreeIPA
+switches the Dogtag instance to the LDAPProfileSubsystem and
+restarts it.  The restart fails because the container object does
+not get added until after the restart.
+
+Update LDAPProfileSubsystem to add the container object itself, if
+it is missing, before commencing the persistent search.
+
+Fixes: https://fedorahosted.org/pki/ticket/2285
+---
+ .../cmscore/profile/LDAPProfileSubsystem.java         | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/profile/LDAPProfileSubsystem.java b/base/server/cmscore/src/com/netscape/cmscore/profile/LDAPProfileSubsystem.java
+index 28b34cda889cc6c2eba4fc3392863df36717fa14..6dea1a0d88beaefeea489ea58ad9ad13d2da8bd7 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/profile/LDAPProfileSubsystem.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/profile/LDAPProfileSubsystem.java
+@@ -27,6 +27,7 @@ import java.util.TreeSet;
+ import java.util.concurrent.CountDownLatch;
+ 
+ import netscape.ldap.LDAPAttribute;
++import netscape.ldap.LDAPAttributeSet;
+ import netscape.ldap.LDAPConnection;
+ import netscape.ldap.LDAPDN;
+ import netscape.ldap.LDAPEntry;
+@@ -400,6 +401,23 @@ public class LDAPProfileSubsystem
+             initialLoadDone.countDown();
+     }
+ 
++    private void ensureProfilesOU(LDAPConnection conn) throws LDAPException {
++        try {
++            conn.search(dn, LDAPConnection.SCOPE_BASE, "(objectclass=*)", null, false);
++        } catch (LDAPException e) {
++            if (e.getLDAPResultCode() == LDAPException.NO_SUCH_OBJECT) {
++                CMS.debug("Adding LDAP certificate profiles container");
++                LDAPAttribute[] attrs = {
++                    new LDAPAttribute("objectClass", "organizationalUnit"),
++                    new LDAPAttribute("ou", "certificateProfiles")
++                };
++                LDAPAttributeSet attrSet = new LDAPAttributeSet(attrs);
++                LDAPEntry entry = new LDAPEntry(dn, attrSet);
++                conn.add(entry);
++            }
++        }
++    }
++
+     public void run() {
+         int op = LDAPPersistSearchControl.ADD
+             | LDAPPersistSearchControl.MODIFY
+@@ -416,6 +434,7 @@ public class LDAPProfileSubsystem
+             forgetAllProfiles();
+             try {
+                 conn = dbFactory.getConn();
++                ensureProfilesOU(conn);
+                 LDAPSearchConstraints cons = conn.getSearchConstraints();
+                 cons.setServerControls(persistCtrl);
+                 cons.setBatchSize(1);
+-- 
+2.5.5
+

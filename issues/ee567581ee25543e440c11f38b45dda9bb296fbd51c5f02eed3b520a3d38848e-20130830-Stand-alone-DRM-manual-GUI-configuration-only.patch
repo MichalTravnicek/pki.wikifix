@@ -1,0 +1,2382 @@
+From 76bc410ec25a1fcfd701f630b6c0c46053ed5b55 Mon Sep 17 00:00:00 2001
+From: Matthew Harmsen <mharmsen@redhat.com>
+Date: Fri, 30 Aug 2013 15:37:43 -0700
+Subject: [PATCH] Stand-alone DRM (manual GUI configuration only)
+
+* TRAC Ticket #667 - provide option for ca-less drm install
+* TRAC Ticket #641 - Incorrect interface labels in pkidaemon output
+* TRAC Ticket #707 - Do not "require" the following pkispawn parameters
+                     for GUI-based configuration
+---
+ base/ca/shared/conf/CS.cfg.in                      |   4 +-
+ base/ca/shared/conf/server.xml                     |  12 +-
+ base/ca/shared/profiles/ca/caStorageCert.cfg       |  85 ++++
+ .../certsrv/system/ConfigurationRequest.java       |   1 +
+ .../netscape/cms/servlet/csadmin/AdminPanel.java   |  27 +-
+ .../cms/servlet/csadmin/CreateSubsystemPanel.java  |   3 +-
+ .../cms/servlet/csadmin/DisplayCertChainPanel.java |   5 +
+ .../netscape/cms/servlet/csadmin/DonePanel.java    |  51 +-
+ .../cms/servlet/csadmin/ImportAdminCertPanel.java  |  44 +-
+ .../netscape/cms/servlet/csadmin/NamePanel.java    |  39 +-
+ .../cms/servlet/csadmin/SecurityDomainPanel.java   |  33 +-
+ .../cms/servlet/csadmin/SystemConfigService.java   |  95 +++-
+ base/kra/shared/conf/CS.cfg.in                     |   1 +
+ base/kra/shared/conf/server.xml                    |  10 +-
+ base/ocsp/shared/conf/CS.cfg.in                    |   1 +
+ base/ocsp/shared/conf/server.xml                   |  10 +-
+ base/server/etc/default.cfg                        |  77 ++-
+ .../python/pki/server/deployment/pkihelper.py      | 559 ++++++++++++++++++---
+ .../python/pki/server/deployment/pkimessages.py    |  18 +
+ .../python/pki/server/deployment/pkiparser.py      |  25 +-
+ .../server/deployment/scriptlets/configuration.py  |   8 +-
+ base/server/sbin/pkispawn                          |   5 +-
+ base/server/scripts/operations                     | 164 ++++--
+ base/server/share/conf/server.xml                  |  42 +-
+ .../webapps/pki/admin/console/config/adminpanel.vm |  25 +-
+ .../pki/admin/console/config/certrequestpanel.vm   |   3 +-
+ .../admin/console/config/importadmincertpanel.vm   |   4 +
+ .../admin/console/config/securitydomainpanel.vm    |  17 +
+ base/tks/shared/conf/server.xml                    |  10 +-
+ base/tps-tomcat/shared/conf/server.xml             |  10 +-
+ 30 files changed, 1135 insertions(+), 253 deletions(-)
+ create mode 100644 base/ca/shared/profiles/ca/caStorageCert.cfg
+
+diff --git a/base/ca/shared/conf/CS.cfg.in b/base/ca/shared/conf/CS.cfg.in
+index f5519f0..ab6863d 100644
+--- a/base/ca/shared/conf/CS.cfg.in
++++ b/base/ca/shared/conf/CS.cfg.in
+@@ -958,7 +958,7 @@ oidmap.pse.oid=2.16.840.1.113730.1.18
+ oidmap.subject_info_access.class=netscape.security.extensions.SubjectInfoAccessExtension
+ oidmap.subject_info_access.oid=1.3.6.1.5.5.7.1.11
+ os.userid=nobody
+-profile.list=caUserCert,caECUserCert,caUserSMIMEcapCert,caDualCert,caECDualCert,caSignedLogCert,caTPSCert,caRARouterCert,caRouterCert,caServerCert,caOtherCert,caCACert,caCrossSignedCACert,caInstallCACert,caRACert,caOCSPCert,caTransportCert,caDirPinUserCert,caDirUserCert,caECDirUserCert,caAgentServerCert,caAgentFileSigning,caCMCUserCert,caFullCMCUserCert,caSimpleCMCUserCert,caTokenDeviceKeyEnrollment,caTokenUserEncryptionKeyEnrollment,caTokenUserSigningKeyEnrollment,caTempTokenDeviceKeyEnrollment,caTempTokenUserEncryptionKeyEnrollment,caTempTokenUserSigningKeyEnrollment,caAdminCert,caInternalAuthServerCert,caInternalAuthTransportCert,caInternalAuthDRMstorageCert,caInternalAuthSubsystemCert,caInternalAuthOCSPCert,caInternalAuthAuditSigningCert,DomainController,caDualRAuserCert,caRAagentCert,caRAserverCert,caUUIDdeviceCert,caSSLClientSelfRenewal,caDirUserRenewal,caManualRenewal,caTokenMSLoginEnrollment,caTokenUserSigningKeyRenewal,caTokenUserEncryptionKeyRenewal,caJarSigningCert,caIPAserviceCert,caEncUserCert,caEncECUserCert
++profile.list=caUserCert,caECUserCert,caUserSMIMEcapCert,caDualCert,caECDualCert,caSignedLogCert,caTPSCert,caRARouterCert,caRouterCert,caServerCert,caOtherCert,caCACert,caCrossSignedCACert,caInstallCACert,caRACert,caOCSPCert,caStorageCert,caTransportCert,caDirPinUserCert,caDirUserCert,caECDirUserCert,caAgentServerCert,caAgentFileSigning,caCMCUserCert,caFullCMCUserCert,caSimpleCMCUserCert,caTokenDeviceKeyEnrollment,caTokenUserEncryptionKeyEnrollment,caTokenUserSigningKeyEnrollment,caTempTokenDeviceKeyEnrollment,caTempTokenUserEncryptionKeyEnrollment,caTempTokenUserSigningKeyEnrollment,caAdminCert,caInternalAuthServerCert,caInternalAuthTransportCert,caInternalAuthDRMstorageCert,caInternalAuthSubsystemCert,caInternalAuthOCSPCert,caInternalAuthAuditSigningCert,DomainController,caDualRAuserCert,caRAagentCert,caRAserverCert,caUUIDdeviceCert,caSSLClientSelfRenewal,caDirUserRenewal,caManualRenewal,caTokenMSLoginEnrollment,caTokenUserSigningKeyRenewal,caTokenUserEncryptionKeyRenewal,caJarSigningCert,caIPAserviceCert,caEncUserCert,caEncECUserCert
+ profile.caUUIDdeviceCert.class_id=caEnrollImpl
+ profile.caUUIDdeviceCert.config=[PKI_INSTANCE_PATH]/[PKI_SUBSYSTEM_TYPE]/profiles/ca/caUUIDdeviceCert.cfg
+ profile.caManualRenewal.class_id=caEnrollImpl
+@@ -1049,6 +1049,8 @@ profile.caTokenUserSigningKeyEnrollment.class_id=caUserCertEnrollImpl
+ profile.caTokenUserSigningKeyEnrollment.config=[PKI_INSTANCE_PATH]/[PKI_SUBSYSTEM_TYPE]/profiles/ca/caTokenUserSigningKeyEnrollment.cfg
+ profile.caTokenMSLoginEnrollment.class_id=caUserCertEnrollImpl
+ profile.caTokenMSLoginEnrollment.config=[PKI_INSTANCE_PATH]/[PKI_SUBSYSTEM_TYPE]/profiles/ca/caTokenMSLoginEnrollment.cfg
++profile.caStorageCert.class_id=caEnrollImpl
++profile.caStorageCert.config=[PKI_INSTANCE_PATH]/[PKI_SUBSYSTEM_TYPE]/profiles/ca/caStorageCert.cfg
+ profile.caTransportCert.class_id=caEnrollImpl
+ profile.caTransportCert.config=[PKI_INSTANCE_PATH]/[PKI_SUBSYSTEM_TYPE]/profiles/ca/caTransportCert.cfg
+ profile.caUserCert.class_id=caEnrollImpl
+diff --git a/base/ca/shared/conf/server.xml b/base/ca/shared/conf/server.xml
+index 2ccdb4d..8c0b8b0 100644
+--- a/base/ca/shared/conf/server.xml
++++ b/base/ca/shared/conf/server.xml
+@@ -27,12 +27,12 @@
+ 
+ <!-- DO NOT REMOVE - Begin PKI Status Definitions -->
+ <!--
+-Unsecure Port       = http://[PKI_HOSTNAME]:[PKI_UNSECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/ee/[PKI_SUBSYSTEM_TYPE]
+-Secure Agent Port   = https://[PKI_HOSTNAME]:[PKI_AGENT_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/agent/[PKI_SUBSYSTEM_TYPE]
+-Secure EE Port      = https://[PKI_HOSTNAME]:[PKI_EE_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/ee/[PKI_SUBSYSTEM_TYPE]
+-Secure Admin Port   = https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/services
+-EE Client Auth Port = https://[PKI_HOSTNAME]:[PKI_EE_SECURE_CLIENT_AUTH_PORT]/[PKI_SUBSYSTEM_TYPE]/eeca/[PKI_SUBSYSTEM_TYPE]
+-PKI Console Port    = pkiconsole https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]
++Unsecure URL        = http://[PKI_HOSTNAME]:[PKI_UNSECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/ee/[PKI_SUBSYSTEM_TYPE]
++Secure Agent URL    = https://[PKI_HOSTNAME]:[PKI_AGENT_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/agent/[PKI_SUBSYSTEM_TYPE]
++Secure EE URL       = https://[PKI_HOSTNAME]:[PKI_EE_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/ee/[PKI_SUBSYSTEM_TYPE]
++Secure Admin URL    = https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/services
++EE Client Auth URL  = https://[PKI_HOSTNAME]:[PKI_EE_SECURE_CLIENT_AUTH_PORT]/[PKI_SUBSYSTEM_TYPE]/eeca/[PKI_SUBSYSTEM_TYPE]
++PKI Console Command = pkiconsole https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]
+ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+ -->
+ <!-- DO NOT REMOVE - End PKI Status Definitions -->
+diff --git a/base/ca/shared/profiles/ca/caStorageCert.cfg b/base/ca/shared/profiles/ca/caStorageCert.cfg
+new file mode 100644
+index 0000000..3d99883
+--- /dev/null
++++ b/base/ca/shared/profiles/ca/caStorageCert.cfg
+@@ -0,0 +1,85 @@
++desc=This certificate profile is for enrolling Data Recovery Manager storage certificates.
++visible=true
++enable=true
++enableBy=admin
++auth.class.id=
++name=Manual Data Recovery Manager Storage Certificate Enrollment
++input.list=i1,i2
++input.i1.class_id=certReqInputImpl
++input.i2.class_id=submitterInfoInputImpl
++output.list=o1
++output.o1.class_id=certOutputImpl
++policyset.list=drmStorageCertSet
++policyset.drmStorageCertSet.list=1,2,3,4,5,6,7,9
++policyset.drmStorageCertSet.1.constraint.class_id=subjectNameConstraintImpl
++policyset.drmStorageCertSet.1.constraint.name=Subject Name Constraint
++policyset.drmStorageCertSet.1.constraint.params.pattern=CN=.*
++policyset.drmStorageCertSet.1.constraint.params.accept=true
++policyset.drmStorageCertSet.1.default.class_id=userSubjectNameDefaultImpl
++policyset.drmStorageCertSet.1.default.name=Subject Name Default
++policyset.drmStorageCertSet.1.default.params.name=
++policyset.drmStorageCertSet.2.constraint.class_id=validityConstraintImpl
++policyset.drmStorageCertSet.2.constraint.name=Validity Constraint
++policyset.drmStorageCertSet.2.constraint.params.range=720
++policyset.drmStorageCertSet.2.constraint.params.notBeforeCheck=false
++policyset.drmStorageCertSet.2.constraint.params.notAfterCheck=false
++policyset.drmStorageCertSet.2.default.class_id=validityDefaultImpl
++policyset.drmStorageCertSet.2.default.name=Validity Default
++policyset.drmStorageCertSet.2.default.params.range=720
++policyset.drmStorageCertSet.2.default.params.startTime=0
++policyset.drmStorageCertSet.3.constraint.class_id=keyConstraintImpl
++policyset.drmStorageCertSet.3.constraint.name=Key Constraint
++policyset.drmStorageCertSet.3.constraint.params.keyType=RSA
++policyset.drmStorageCertSet.3.constraint.params.keyParameters=1024,2048,3072,4096
++policyset.drmStorageCertSet.3.default.class_id=userKeyDefaultImpl
++policyset.drmStorageCertSet.3.default.name=Key Default
++policyset.drmStorageCertSet.4.constraint.class_id=noConstraintImpl
++policyset.drmStorageCertSet.4.constraint.name=No Constraint
++policyset.drmStorageCertSet.4.default.class_id=authorityKeyIdentifierExtDefaultImpl
++policyset.drmStorageCertSet.4.default.name=Authority Key Identifier Default
++policyset.drmStorageCertSet.5.constraint.class_id=noConstraintImpl
++policyset.drmStorageCertSet.5.constraint.name=No Constraint
++policyset.drmStorageCertSet.5.default.class_id=authInfoAccessExtDefaultImpl
++policyset.drmStorageCertSet.5.default.name=AIA Extension Default
++policyset.drmStorageCertSet.5.default.params.authInfoAccessADEnable_0=true
++policyset.drmStorageCertSet.5.default.params.authInfoAccessADLocationType_0=URIName
++policyset.drmStorageCertSet.5.default.params.authInfoAccessADLocation_0=
++policyset.drmStorageCertSet.5.default.params.authInfoAccessADMethod_0=1.3.6.1.5.5.7.48.1
++policyset.drmStorageCertSet.5.default.params.authInfoAccessCritical=false
++policyset.drmStorageCertSet.5.default.params.authInfoAccessNumADs=1
++policyset.drmStorageCertSet.6.constraint.class_id=keyUsageExtConstraintImpl
++policyset.drmStorageCertSet.6.constraint.name=Key Usage Extension Constraint
++policyset.drmStorageCertSet.6.constraint.params.keyUsageCritical=true
++policyset.drmStorageCertSet.6.constraint.params.keyUsageDigitalSignature=true
++policyset.drmStorageCertSet.6.constraint.params.keyUsageNonRepudiation=true
++policyset.drmStorageCertSet.6.constraint.params.keyUsageDataEncipherment=true
++policyset.drmStorageCertSet.6.constraint.params.keyUsageKeyEncipherment=true
++policyset.drmStorageCertSet.6.constraint.params.keyUsageKeyAgreement=false
++policyset.drmStorageCertSet.6.constraint.params.keyUsageKeyCertSign=false
++policyset.drmStorageCertSet.6.constraint.params.keyUsageCrlSign=false
++policyset.drmStorageCertSet.6.constraint.params.keyUsageEncipherOnly=false
++policyset.drmStorageCertSet.6.constraint.params.keyUsageDecipherOnly=false
++policyset.drmStorageCertSet.6.default.class_id=keyUsageExtDefaultImpl
++policyset.drmStorageCertSet.6.default.name=Key Usage Default
++policyset.drmStorageCertSet.6.default.params.keyUsageCritical=true
++policyset.drmStorageCertSet.6.default.params.keyUsageDigitalSignature=true
++policyset.drmStorageCertSet.6.default.params.keyUsageNonRepudiation=true
++policyset.drmStorageCertSet.6.default.params.keyUsageDataEncipherment=true
++policyset.drmStorageCertSet.6.default.params.keyUsageKeyEncipherment=true
++policyset.drmStorageCertSet.6.default.params.keyUsageKeyAgreement=false
++policyset.drmStorageCertSet.6.default.params.keyUsageKeyCertSign=false
++policyset.drmStorageCertSet.6.default.params.keyUsageCrlSign=false
++policyset.drmStorageCertSet.6.default.params.keyUsageEncipherOnly=false
++policyset.drmStorageCertSet.6.default.params.keyUsageDecipherOnly=false
++policyset.drmStorageCertSet.7.constraint.class_id=noConstraintImpl
++policyset.drmStorageCertSet.7.constraint.name=No Constraint
++policyset.drmStorageCertSet.7.default.class_id=extendedKeyUsageExtDefaultImpl
++policyset.drmStorageCertSet.7.default.name=Extended Key Usage Extension Default
++policyset.drmStorageCertSet.7.default.params.exKeyUsageCritical=false
++policyset.drmStorageCertSet.7.default.params.exKeyUsageOIDs=1.3.6.1.5.5.7.3.2
++policyset.drmStorageCertSet.9.constraint.class_id=signingAlgConstraintImpl
++policyset.drmStorageCertSet.9.constraint.name=No Constraint
++policyset.drmStorageCertSet.9.constraint.params.signingAlgsAllowed=SHA1withRSA,SHA256withRSA,SHA512withRSA,MD5withRSA,MD2withRSA,SHA1withDSA,SHA1withEC,SHA256withEC,SHA384withEC,SHA512withEC
++policyset.drmStorageCertSet.9.default.class_id=signingAlgDefaultImpl
++policyset.drmStorageCertSet.9.default.name=Signing Alg
++policyset.drmStorageCertSet.9.default.params.signingAlg=-
+diff --git a/base/common/src/com/netscape/certsrv/system/ConfigurationRequest.java b/base/common/src/com/netscape/certsrv/system/ConfigurationRequest.java
+index 23021a5..f64aedc 100644
+--- a/base/common/src/com/netscape/certsrv/system/ConfigurationRequest.java
++++ b/base/common/src/com/netscape/certsrv/system/ConfigurationRequest.java
+@@ -88,6 +88,7 @@ public class ConfigurationRequest {
+     //defaults
+     public static final String TOKEN_DEFAULT = "Internal Key Storage Token";
+     public static final String NEW_DOMAIN = "newdomain";
++    public static final String SANS_DOMAIN = "none";
+     public static final String EXISTING_DOMAIN = "existingdomain";
+ 
+     @XmlElement
+diff --git a/base/common/src/com/netscape/cms/servlet/csadmin/AdminPanel.java b/base/common/src/com/netscape/cms/servlet/csadmin/AdminPanel.java
+index 579c54d..38b988a 100644
+--- a/base/common/src/com/netscape/cms/servlet/csadmin/AdminPanel.java
++++ b/base/common/src/com/netscape/cms/servlet/csadmin/AdminPanel.java
+@@ -36,6 +36,7 @@ import com.netscape.certsrv.property.PropertySet;
+ import com.netscape.certsrv.usrgrp.IUGSubsystem;
+ import com.netscape.certsrv.util.HttpInput;
+ import com.netscape.cms.servlet.wizard.WizardServlet;
++import com.netscape.cmsutil.crypto.CryptoUtil;
+ 
+ public class AdminPanel extends WizardPanelBase {
+ 
+@@ -133,12 +134,22 @@ public class AdminPanel extends WizardPanelBase {
+                 context.put("admin_pwd", "");
+                 context.put("admin_pwd_again", "");
+                 context.put("admin_uid", cs.getString("preop.admin.uid"));
++                context.put("cstype", cs.getString("cs.type", ""));
+             } catch (Exception e) {
+             }
+         } else {
++            String csType = "";
++            String pkiType = "";
+             String def_admin_name = "";
+             try {
+-                def_admin_name = cs.getString("cs.type") + " Administrator of Instance " + cs.getString("instanceId");
++                csType = cs.getString("cs.type", "");
++                if (csType.equals("KRA")) {
++                    // display "KRA" as "DRM" to end-users
++                    pkiType = "DRM";
++                } else {
++                    pkiType = csType;
++                }
++                def_admin_name = pkiType + " Administrator of Instance " + cs.getString("instanceId");
+             } catch (EBaseException e) {
+             }
+             context.put("admin_name", def_admin_name);
+@@ -146,6 +157,9 @@ public class AdminPanel extends WizardPanelBase {
+             context.put("admin_pwd", "");
+             context.put("admin_pwd_again", "");
+             context.put("admin_uid", ADMIN_UID);
++            context.put("cstype", csType);
++            context.put("pkitype", pkiType);
++            context.put("lc_cstype", csType.toLowerCase());
+         }
+         ISubsystem ca = CMS.getSubsystem("ca");
+ 
+@@ -233,6 +247,7 @@ public class AdminPanel extends WizardPanelBase {
+             String type = config.getString(PRE_CA_TYPE, "");
+             String subsystemtype = config.getString("cs.type", "");
+             String selected_hierarchy = config.getString("preop.hierarchy.select", "");
++            String selected_securitydomain = config.getString("preop.securitydomain.select", "");
+ 
+             ISubsystem ca = CMS.getSubsystem("ca");
+ 
+@@ -257,6 +272,14 @@ public class AdminPanel extends WizardPanelBase {
+ 
+                 ConfigurationUtils.createAdminCertificate(cert_request,
+                         cert_request_type, subject);
++            } else if (selected_securitydomain.equals("none") ||
++                       selected_securitydomain.equals("")) {
++                // For stand-alone PKI components, strip the Ctrl-M's
++                // from the request and store it in CS.cfg
++                byte[] certreqb = CMS.AtoB(cert_request);
++                String admin_certreq = CryptoUtil.base64Encode(certreqb);
++                config.putString(subsystemtype + ".admin.certreq", admin_certreq);
++                CMS.debug("AdminPanel update:  " + subsystemtype + " subsystem - saved admin cert request");
+             } else {
+                 String ca_hostname = null;
+                 int ca_port = -1;
+@@ -281,7 +304,7 @@ public class AdminPanel extends WizardPanelBase {
+             CMS.debug("AdminPanel update(): Exception thrown " + e);
+             e.printStackTrace();
+             context.put("updateStatus", "failure");
+-            throw new IOException("Error when adding admin user" + e);
++            throw new IOException("Error when adding admin user " + e);
+         }
+ 
+         context.put("updateStatus", "success");
+diff --git a/base/common/src/com/netscape/cms/servlet/csadmin/CreateSubsystemPanel.java b/base/common/src/com/netscape/cms/servlet/csadmin/CreateSubsystemPanel.java
+index 462e054..7d0f950 100644
+--- a/base/common/src/com/netscape/cms/servlet/csadmin/CreateSubsystemPanel.java
++++ b/base/common/src/com/netscape/cms/servlet/csadmin/CreateSubsystemPanel.java
+@@ -130,7 +130,8 @@ public class CreateSubsystemPanel extends WizardPanelBase {
+ 
+             String domainType = config.getString("preop.securitydomain.select");
+             Vector<String> v = null;
+-            if (!domainType.equals("new")) {
++            if (!domainType.equals("new") &&
++                !domainType.equals("none")) {
+                 try {
+                     v = ConfigurationUtils.getUrlListFromSecurityDomain(config, cstype, "SecurePort");
+                 } catch (Exception e) {
+diff --git a/base/common/src/com/netscape/cms/servlet/csadmin/DisplayCertChainPanel.java b/base/common/src/com/netscape/cms/servlet/csadmin/DisplayCertChainPanel.java
+index 702c5aa..1967160 100644
+--- a/base/common/src/com/netscape/cms/servlet/csadmin/DisplayCertChainPanel.java
++++ b/base/common/src/com/netscape/cms/servlet/csadmin/DisplayCertChainPanel.java
+@@ -98,6 +98,11 @@ public class DisplayCertChainPanel extends WizardPanelBase {
+                 return true;
+             }
+ 
++            // Stand-alone PKI KRA/OCSP
++            if (select.equals("none")) {
++                return true;
++            }
++
+             if (type.equals("new") && getId().equals("clone"))
+                 return true;
+ 
+diff --git a/base/common/src/com/netscape/cms/servlet/csadmin/DonePanel.java b/base/common/src/com/netscape/cms/servlet/csadmin/DonePanel.java
+index 650ccc2..9e670b3 100644
+--- a/base/common/src/com/netscape/cms/servlet/csadmin/DonePanel.java
++++ b/base/common/src/com/netscape/cms/servlet/csadmin/DonePanel.java
+@@ -154,33 +154,38 @@ public class DonePanel extends WizardPanelBase {
+         else
+             context.put("externalCA", "false");
+ 
+-        // Create or update security domain
++        if (!sdtype.equals("none")) {
++            // Create or update security domain
+ 
+-        try {
+-            if (sdtype.equals("new")) {
+-                ConfigurationUtils.createSecurityDomain();
+-            } else { //existing domain
+-                ConfigurationUtils.updateSecurityDomain();
+-            }
++            try {
++                if (sdtype.equals("new")) {
++                    ConfigurationUtils.createSecurityDomain();
++                } else { //existing domain
++                    ConfigurationUtils.updateSecurityDomain();
++                }
+ 
+-            cs.putString("service.securityDomainPort", CMS.getAgentPort());
+-            cs.putString("securitydomain.store", "ldap");
+-            cs.commit(false);
+-        } catch (Exception e) {
+-            CMS.debug("DonePanel - update(): Error while updating security domain: " + e);
+-            e.printStackTrace();
+-        }
++                cs.putString("service.securityDomainPort", CMS.getAgentPort());
++                cs.putString("securitydomain.store", "ldap");
++                cs.commit(false);
++            } catch (Exception e) {
++                CMS.debug("DonePanel - update(): Error while updating security domain: " + e);
++                e.printStackTrace();
++            }
+ 
+-        // push connector information to the CA
+-        try {
+-            if (type.equals("KRA") && !ca_host.equals("")) {
+-                ConfigurationUtils.updateConnectorInfo(CMS.getAgentHost(), CMS.getAgentPort());
+-                ConfigurationUtils.setupClientAuthUser();
++            // push connector information to the CA
++            try {
++                if (type.equals("KRA") && !ca_host.equals("")) {
++                    ConfigurationUtils.updateConnectorInfo(CMS.getAgentHost(), CMS.getAgentPort());
++                    ConfigurationUtils.setupClientAuthUser();
++                }
++            } catch (Exception e) {
++                context.put("info", "Failed to update connector information. "+e.getMessage());
++                CMS.debug("DonePanel - update(): Error while pushing KRA connector information to the CA: " + e);
++                e.printStackTrace();
+             }
+-        } catch (Exception e) {
+-            context.put("info", "Failed to update connector information. "+e.getMessage());
+-            CMS.debug("DonePanel - update(): Error while pushing KRA connectot information to the CA: " + e);
+-            e.printStackTrace();
++        } else {
++            // suppress any additional info from being displayed on panel
++            context.put("info", "");
+         }
+ 
+         // import the CA certificate into the OCSP
+diff --git a/base/common/src/com/netscape/cms/servlet/csadmin/ImportAdminCertPanel.java b/base/common/src/com/netscape/cms/servlet/csadmin/ImportAdminCertPanel.java
+index 7019d14..eb7baf1 100644
+--- a/base/common/src/com/netscape/cms/servlet/csadmin/ImportAdminCertPanel.java
++++ b/base/common/src/com/netscape/cms/servlet/csadmin/ImportAdminCertPanel.java
+@@ -92,14 +92,15 @@ public class ImportAdminCertPanel extends WizardPanelBase {
+         context.put("errorString", "");
+         context.put("title", "Import Administrator's Certificate");
+         context.put("panel", "admin/console/config/importadmincertpanel.vm");
+-        context.put("import", "true");
+ 
+         IConfigStore cs = CMS.getConfigStore();
+ 
+         String type = "";
++        String subsystemtype = "";
+ 
+         try {
+             type = cs.getString("preop.ca.type", "");
++            subsystemtype = cs.getString("cs.type", "");
+         } catch (Exception e) {
+         }
+ 
+@@ -117,8 +118,34 @@ public class ImportAdminCertPanel extends WizardPanelBase {
+ 
+         if (ca == null) {
+             context.put("ca", "false");
++            if (subsystemtype.equals("KRA") ||
++                subsystemtype.equals("OCSP")) {
++                String lc_cstype = subsystemtype.toLowerCase();
++                boolean standalone = false;
++                try {
++                    standalone = cs.getBoolean(lc_cstype + ".standalone", false);
++                } catch (Exception e) {
++                }
++                if (standalone) {
++                    // Stand-alone PKI KRA/OCSP
++                    String pkitype;
++                    if (subsystemtype.equals("KRA")) {
++                        pkitype = "DRM";
++                    } else {
++                        pkitype = subsystemtype;
++                    }
++                    context.put("import", "false");
++                    context.put("pkitype", pkitype);
++                    context.put("lc_cstype", lc_cstype);
++                } else {
++                    context.put("import", "true");
++                }
++            } else {
++                context.put("import", "true");
++            }
+         } else {
+             context.put("ca", "true");
++            context.put("import", "true");
+         }
+ 
+         String caHost = "";
+@@ -207,6 +234,19 @@ public class ImportAdminCertPanel extends WizardPanelBase {
+ 
+         X509CertImpl certs[] = new X509CertImpl[1];
+ 
++        if (subsystemtype.equals("KRA") ||
++            subsystemtype.equals("OCSP")) {
++            boolean standalone = false;
++            try {
++                standalone = cs.getBoolean(subsystemtype.toLowerCase() + ".standalone", false);
++                if (standalone) {
++                    // Stand-alone PKI KRA/OCSP
++                    return;
++                }
++            } catch (Exception e) {
++            }
++        }
++
+         // REMINDER:  This panel is NOT used by "clones"
+         if (ca != null) {
+             String serialno = null;
+@@ -327,7 +367,7 @@ public class ImportAdminCertPanel extends WizardPanelBase {
+     }
+ 
+     /**
+-     * If validiate() returns false, this method will be called.
++     * If validate() returns false, this method will be called.
+      */
+     public void displayError(HttpServletRequest request,
+             HttpServletResponse response,
+diff --git a/base/common/src/com/netscape/cms/servlet/csadmin/NamePanel.java b/base/common/src/com/netscape/cms/servlet/csadmin/NamePanel.java
+index 070e17e..34a93f0 100644
+--- a/base/common/src/com/netscape/cms/servlet/csadmin/NamePanel.java
++++ b/base/common/src/com/netscape/cms/servlet/csadmin/NamePanel.java
+@@ -188,10 +188,6 @@ public class NamePanel extends WizardPanelBase {
+         try {
+             domainname = config.getString("securitydomain.name", "");
+ 
+-            String certTags = config.getString("preop.cert.list");
+-            // same token for now
+-            String token = config.getString(PRE_CONF_CA_TOKEN);
+-            StringTokenizer st = new StringTokenizer(certTags, ",");
+             String domaintype = config.getString("securitydomain.select");
+             int count = 0;
+             String host = "";
+@@ -200,8 +196,36 @@ public class NamePanel extends WizardPanelBase {
+                 host = config.getString("securitydomain.host", "");
+                 sd_admin_port = config.getInteger("securitydomain.httpsadminport", -1);
+                 count = ConfigurationUtils.getSubsystemCount(host, sd_admin_port, true, cstype);
++            } else if (domaintype.equals("none")) {
++                String ctags = config.getString("preop.cert.list");
++                StringTokenizer stoken = new StringTokenizer(ctags, ",");
++                StringBuffer sb = new StringBuffer();
++
++                while (stoken.hasMoreTokens()) {
++                    String ctag = stoken.nextToken();
++                    if (ctag.equals("subsystem")) {
++                        // remove 'subsystem' cert from 'preop.cert.list'
++                        continue;
++                    } else {
++                        sb.append(ctag);
++                        if (stoken.hasMoreElements()) {
++                            sb.append(",");
++                        }
++
++                        // mark this 'ctag' to NOT add o=securitydomainname
++                        config.putBoolean(PCERT_PREFIX + ctag + ".o_securitydomain", false);
++                    }
++                }
++
++                // save revised 'preop.cert.list'
++                config.putString("preop.cert.list", sb.toString());
+             }
+ 
++            String certTags = config.getString("preop.cert.list");
++            // same token for now
++            String token = config.getString(PRE_CONF_CA_TOKEN);
++            StringTokenizer st = new StringTokenizer(certTags, ",");
++
+             while (st.hasMoreTokens()) {
+                 String certTag = st.nextToken();
+ 
+@@ -228,9 +252,9 @@ public class NamePanel extends WizardPanelBase {
+                 String dn = config.getString(PCERT_PREFIX + certTag + ".dn");
+                 boolean override = config.getBoolean(PCERT_PREFIX + certTag +
+                         ".cncomponent.override", true);
+-                //o_sd is to add o=secritydomainname
++                // o_sd is to add o=securitydomainname
+                 boolean o_sd = config.getBoolean(PCERT_PREFIX + certTag +
+-                         "o_securitydomain", true);
++                         ".o_securitydomain", true);
+                 domainname = config.getString("securitydomain.name", "");
+                 CMS.debug("NamePanel: display() override is " + override);
+                 CMS.debug("NamePanel: display() o_securitydomain is " + o_sd);
+@@ -278,7 +302,8 @@ public class NamePanel extends WizardPanelBase {
+ 
+         CMS.debug("NamePanel: Ready to get SSL EE HTTPS urls");
+         Vector<String> v = null;
+-        if (!domainType.equals("new")) {
++        if (!domainType.equals("new") &&
++            !domainType.equals("none")) {
+             try {
+                 v = ConfigurationUtils.getUrlListFromSecurityDomain(config, "CA", "SecurePort");
+             } catch (Exception e) {
+diff --git a/base/common/src/com/netscape/cms/servlet/csadmin/SecurityDomainPanel.java b/base/common/src/com/netscape/cms/servlet/csadmin/SecurityDomainPanel.java
+index 1ae4c33..aff7eca 100644
+--- a/base/common/src/com/netscape/cms/servlet/csadmin/SecurityDomainPanel.java
++++ b/base/common/src/com/netscape/cms/servlet/csadmin/SecurityDomainPanel.java
+@@ -111,9 +111,15 @@ public class SecurityDomainPanel extends WizardPanelBase {
+ 
+                 if (s.equals("new")) {
+                     context.put("check_newdomain", "checked");
++                    context.put("check_sansdomain", "");
++                    context.put("check_existingdomain", "");
++                } else if (s.equals("none")) {
++                    context.put("check_newdomain", "");
++                    context.put("check_sansdomain", "checked");
+                     context.put("check_existingdomain", "");
+                 } else if (s.equals("existing")) {
+                     context.put("check_newdomain", "");
++                    context.put("check_sansdomain", "");
+                     context.put("check_existingdomain", "checked");
+                 }
+             } catch (Exception e) {
+@@ -125,7 +131,16 @@ public class SecurityDomainPanel extends WizardPanelBase {
+         }
+ 
+         try {
+-            context.put("cstype", config.getString("cs.type"));
++            String csType = config.getString("cs.type");
++            String pkiType = "";
++            if (csType.equals("KRA")) {
++                // display "KRA" as "DRM" to end-users
++                pkiType = "DRM";
++            } else {
++                pkiType = csType;
++            }
++            context.put("cstype", csType);
++            context.put("pkitype", pkiType);
+             context.put("wizardname", config.getString("preop.wizard.name"));
+             context.put("panelname", "Security Domain Configuration");
+             context.put("systemname", config.getString("preop.system.name"));
+@@ -301,9 +316,15 @@ public class SecurityDomainPanel extends WizardPanelBase {
+         String select = request.getParameter("choice");
+         if (select.equals("newdomain")) {
+             context.put("check_newdomain", "checked");
++            context.put("check_sansdomain", "");
++            context.put("check_existingdomain", "");
++        } else if (select.equals("sansdomain")) {
++            context.put("check_newdomain", "");
++            context.put("check_sansdomain", "checked");
+             context.put("check_existingdomain", "");
+         } else if (select.equals("existingdomain")) {
+             context.put("check_newdomain", "");
++            context.put("check_sansdomain", "");
+             context.put("check_existingdomain", "checked");
+         }
+ 
+@@ -334,6 +355,7 @@ public class SecurityDomainPanel extends WizardPanelBase {
+         IConfigStore config = CMS.getConfigStore();
+ 
+         try {
++            String csType = config.getString("cs.type");
+             if (select.equals("newdomain")) {
+                 config.putString("preop.securitydomain.select", "new");
+                 config.putString("securitydomain.select", "new");
+@@ -350,6 +372,13 @@ public class SecurityDomainPanel extends WizardPanelBase {
+                 config.putString("preop.cert.subsystem.profile", "subsystemCert.profile");
+ 
+                 config.commit(false);
++            } else if (select.equals("sansdomain")) {
++                // Stand-alone PKI KRA/OCSP
++                config.putBoolean(csType.toLowerCase() + ".standalone", true);
++                config.putString("preop.securitydomain.select", "none");
++                config.putString("preop.securitydomain.name", "");
++                config.putString("securitydomain.name", "");
++                config.putString("securitydomain.select", "none");
+             } else if (select.equals("existingdomain")) {
+                 config.putString("preop.securitydomain.select", "existing");
+                 config.putString("securitydomain.select", "existing");
+@@ -380,7 +409,7 @@ public class SecurityDomainPanel extends WizardPanelBase {
+ 
+             config.commit(false);
+ 
+-            context.put("cstype", config.getString("cs.type"));
++            context.put("cstype", csType);
+             context.put("wizardname", config.getString("preop.wizard.name"));
+             context.put("panelname", "Security Domain Configuration");
+             context.put("systemname", config.getString("preop.system.name"));
+diff --git a/base/common/src/com/netscape/cms/servlet/csadmin/SystemConfigService.java b/base/common/src/com/netscape/cms/servlet/csadmin/SystemConfigService.java
+index f450fe7..c4cabaf 100644
+--- a/base/common/src/com/netscape/cms/servlet/csadmin/SystemConfigService.java
++++ b/base/common/src/com/netscape/cms/servlet/csadmin/SystemConfigService.java
+@@ -105,7 +105,40 @@ public class SystemConfigService extends PKIService implements SystemConfigResou
+         }
+ 
+         String certList;
++        String securityDomainType;
+         try {
++            securityDomainType = data.getSecurityDomainType();
++            if (securityDomainType.equals(ConfigurationRequest.SANS_DOMAIN) &&
++                data.getStepTwo() == null) {
++                // Information used by NamePanel, CertRequestPanel below
++                String ctags = cs.getString("preop.cert.list");
++                StringTokenizer stoken = new StringTokenizer(ctags, ",");
++                StringBuffer sb = new StringBuffer();
++
++                while (stoken.hasMoreTokens()) {
++                    String ctag = stoken.nextToken();
++                    if (ctag.equals("subsystem")) {
++                        // remove 'subsystem' cert from 'preop.cert.list'
++                        continue;
++                    } else {
++                        sb.append(ctag);
++                        if (stoken.hasMoreElements()) {
++                            sb.append(",");
++                        }
++
++                        // mark this 'ctag' to NOT add o=securitydomainname
++                        //
++                        // NOTE:  Only used by the GUI Panel configuration!
++                        //
++                        cs.putBoolean("preop.cert." + ctag + ".o_securitydomain", false);
++                    }
++                }
++
++                // save revised 'preop.cert.list'
++                cs.putString("preop.cert.list", sb.toString());
++                CMS.debug("Step 1: Revising cert list for stand-alone " + csType);
++            }
++
+             certList = cs.getString("preop.cert.list");
+         } catch (Exception e) {
+             e.printStackTrace();
+@@ -126,7 +159,6 @@ public class SystemConfigService extends PKIService implements SystemConfigResou
+         tokenPanel(data, token);
+ 
+         //configure security domain
+-        String securityDomainType = data.getSecurityDomainType();
+         String domainXML = securityDomainPanel(data, securityDomainType);
+ 
+         //subsystem panel
+@@ -384,19 +416,21 @@ public class SystemConfigService extends PKIService implements SystemConfigResou
+         adminPanel(data, response);
+ 
+         // Done Panel
+-        // Create or update security domain
+-        try {
+-            if (securityDomainType.equals(ConfigurationRequest.NEW_DOMAIN)) {
+-                ConfigurationUtils.createSecurityDomain();
+-            } else {
+-                ConfigurationUtils.updateSecurityDomain();
++        if (!securityDomainType.equals(ConfigurationRequest.SANS_DOMAIN)) {
++            // Create or update security domain
++            try {
++                if (securityDomainType.equals(ConfigurationRequest.NEW_DOMAIN)) {
++                    ConfigurationUtils.createSecurityDomain();
++                } else {
++                    ConfigurationUtils.updateSecurityDomain();
++                }
++                cs.putString("service.securityDomainPort", CMS.getAgentPort());
++                cs.putString("securitydomain.store", "ldap");
++                cs.commit(false);
++            } catch (Exception e) {
++                e.printStackTrace();
++                throw new PKIException("Error while updating security domain: " + e);
+             }
+-            cs.putString("service.securityDomainPort", CMS.getAgentPort());
+-            cs.putString("securitydomain.store", "ldap");
+-            cs.commit(false);
+-        } catch (Exception e) {
+-            e.printStackTrace();
+-            throw new PKIException("Error while updating security domain: " + e);
+         }
+ 
+         // need to push connector information to the CA
+@@ -407,15 +441,17 @@ public class SystemConfigService extends PKIService implements SystemConfigResou
+             e.printStackTrace();
+         }
+ 
+-        // need to push connector information to the CA
+-        try {
+-            if (csType.equals("KRA") && (!ca_host.equals(""))) {
+-                ConfigurationUtils.updateConnectorInfo(CMS.getAgentHost(), CMS.getAgentPort());
+-                ConfigurationUtils.setupClientAuthUser();
++        if (!securityDomainType.equals(ConfigurationRequest.SANS_DOMAIN)) {
++            // need to push KRA connector information to the CA
++            try {
++                if (csType.equals("KRA") && (!ca_host.equals(""))) {
++                    ConfigurationUtils.updateConnectorInfo(CMS.getAgentHost(), CMS.getAgentPort());
++                    ConfigurationUtils.setupClientAuthUser();
++                }
++            } catch (Exception e) {
++                e.printStackTrace();
++                throw new PKIException("Errors in pushing KRA connector information to the CA: " + e);
+             }
+-        } catch (Exception e) {
+-            e.printStackTrace();
+-            throw new PKIException("Errors in pushing KRA connector information to the CA: " + e);
+         }
+ 
+         // import the CA certificate into the OCSP
+@@ -569,6 +605,16 @@ public class SystemConfigService extends PKIService implements SystemConfigResou
+                         ICertificateAuthority ca = (ICertificateAuthority) CMS.getSubsystem(ICertificateAuthority.ID);
+                         ICertificateRepository repo = ca.getCertificateRepository();
+                         admincerts[0] = repo.getX509Certificate(new BigInteger(serialno, 16));
++                    } else if ((csType.equals("KRA") ||
++                                csType.equals("OCSP")) &&
++                                cs.getBoolean(csType.toLowerCase() + ".standalone")) {
++                        if (data.getStepTwo() == null) {
++                            // For stand-alone PKI components, store the request in CS.cfg
++                            cs.putString(csType.toLowerCase() + ".admin.certreq", data.getAdminCertRequest());
++                            CMS.debug("Step 1: Saving Admin CSR for stand-alone " + csType + " in CS.cfg");
++                     // } else {
++                            // Consider doing something for Step 2???
++                        }
+                     } else {
+                         String type = cs.getString("preop.ca.type", "");
+                         String ca_hostname = "";
+@@ -811,6 +857,13 @@ public class SystemConfigService extends PKIService implements SystemConfigResou
+             cs.putString("securitydomain.httpsadminport", CMS.getAdminPort());
+             cs.putString("preop.cert.subsystem.type", "local");
+             cs.putString("preop.cert.subsystem.profile", "subsystemCert.profile");
++        } else if (securityDomainType.equals(ConfigurationRequest.SANS_DOMAIN)) {
++            // Stand-alone PKI KRA/OCSP
++            cs.putBoolean(csType.toLowerCase() + ".standalone", true);
++            cs.putString("preop.securitydomain.select", "none");
++            cs.putString("securitydomain.select", "none");
++            cs.putString("preop.securitydomain.name", "");
++            cs.putString("securitydomain.name", "");
+         } else {
+             cs.putString("preop.securitydomain.select", "existing");
+             cs.putString("securitydomain.select", "existing");
+diff --git a/base/kra/shared/conf/CS.cfg.in b/base/kra/shared/conf/CS.cfg.in
+index 98d8757..1faf9f4 100644
+--- a/base/kra/shared/conf/CS.cfg.in
++++ b/base/kra/shared/conf/CS.cfg.in
+@@ -49,6 +49,7 @@ kra.cert.storage.certusage=SSLClient
+ kra.cert.sslserver.certusage=SSLServer
+ kra.cert.subsystem.certusage=SSLClient
+ kra.cert.audit_signing.certusage=ObjectSigner
++kra.standalone=false
+ preop.cert.list=transport,storage,sslserver,subsystem,audit_signing
+ preop.cert.rsalist=transport,storage,audit_signing
+ preop.cert.transport.enable=true
+diff --git a/base/kra/shared/conf/server.xml b/base/kra/shared/conf/server.xml
+index 53cb364..77f75d4 100644
+--- a/base/kra/shared/conf/server.xml
++++ b/base/kra/shared/conf/server.xml
+@@ -27,11 +27,11 @@
+ 
+ <!-- DO NOT REMOVE - Begin PKI Status Definitions -->
+ <!--
+-Unsecure Port       = http://[PKI_HOSTNAME]:[PKI_UNSECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/ee/[PKI_SUBSYSTEM_TYPE]
+-Secure Agent Port   = https://[PKI_HOSTNAME]:[PKI_AGENT_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/agent/[PKI_SUBSYSTEM_TYPE]
+-Secure EE Port      = https://[PKI_HOSTNAME]:[PKI_EE_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/ee/[PKI_SUBSYSTEM_TYPE]
+-Secure Admin Port   = https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/services
+-PKI Console Port    = pkiconsole https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]
++Unsecure URL        = http://[PKI_HOSTNAME]:[PKI_UNSECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/ee/[PKI_SUBSYSTEM_TYPE]
++Secure Agent URL    = https://[PKI_HOSTNAME]:[PKI_AGENT_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/agent/[PKI_SUBSYSTEM_TYPE]
++Secure EE URL       = https://[PKI_HOSTNAME]:[PKI_EE_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/ee/[PKI_SUBSYSTEM_TYPE]
++Secure Admin URL    = https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/services
++PKI Console Command = pkiconsole https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]
+ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+ -->
+ <!-- DO NOT REMOVE - End PKI Status Definitions -->
+diff --git a/base/ocsp/shared/conf/CS.cfg.in b/base/ocsp/shared/conf/CS.cfg.in
+index 223e715..35e0f20 100644
+--- a/base/ocsp/shared/conf/CS.cfg.in
++++ b/base/ocsp/shared/conf/CS.cfg.in
+@@ -48,6 +48,7 @@ ocsp.cert.signing.certusage=StatusResponder
+ ocsp.cert.sslserver.certusage=SSLServer
+ ocsp.cert.subsystem.certusage=SSLClient
+ ocsp.cert.audit_signing.certusage=ObjectSigner
++ocsp.standalone=false
+ preop.cert.ocsp_signing.enable=true
+ preop.cert.sslserver.enable=true
+ preop.cert.subsystem.enable=true
+diff --git a/base/ocsp/shared/conf/server.xml b/base/ocsp/shared/conf/server.xml
+index 29b1777..02de97e 100644
+--- a/base/ocsp/shared/conf/server.xml
++++ b/base/ocsp/shared/conf/server.xml
+@@ -27,11 +27,11 @@
+ 
+ <!-- DO NOT REMOVE - Begin PKI Status Definitions -->
+ <!--
+-Unsecure Port       = http://[PKI_HOSTNAME]:[PKI_UNSECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/ee/[PKI_SUBSYSTEM_TYPE]
+-Secure Agent Port   = https://[PKI_HOSTNAME]:[PKI_AGENT_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/agent/[PKI_SUBSYSTEM_TYPE]
+-Secure EE Port      = https://[PKI_HOSTNAME]:[PKI_EE_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/ee/[PKI_SUBSYSTEM_TYPE]
+-Secure Admin Port   = https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/services
+-PKI Console Port    = pkiconsole https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]
++Unsecure URL        = http://[PKI_HOSTNAME]:[PKI_UNSECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/ee/[PKI_SUBSYSTEM_TYPE]
++Secure Agent URL    = https://[PKI_HOSTNAME]:[PKI_AGENT_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/agent/[PKI_SUBSYSTEM_TYPE]
++Secure EE URL       = https://[PKI_HOSTNAME]:[PKI_EE_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/ee/[PKI_SUBSYSTEM_TYPE]
++Secure Admin URL    = https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/services
++PKI Console Command = pkiconsole https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]
+ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+ -->
+ <!-- DO NOT REMOVE - End PKI Status Definitions -->
+diff --git a/base/server/etc/default.cfg b/base/server/etc/default.cfg
+index facdf5f..065c310 100644
+--- a/base/server/etc/default.cfg
++++ b/base/server/etc/default.cfg
+@@ -100,7 +100,7 @@ pki_issuing_ca=%(pki_issuing_ca_uri)s
+ pki_restart_configured_instance=True
+ pki_security_domain_hostname=%(pki_hostname)s
+ pki_security_domain_https_port=8443
+-pki_security_domain_name=%(pki_dns_domainname)s Security Domain
++pki_security_domain_name=,o=%(pki_dns_domainname)s Security Domain
+ pki_security_domain_password=
+ pki_security_domain_user=caadmin
+ pki_skip_configuration=False
+@@ -109,7 +109,7 @@ pki_ssl_server_key_algorithm=SHA256withRSA
+ pki_ssl_server_key_size=2048
+ pki_ssl_server_key_type=rsa
+ pki_ssl_server_nickname=Server-Cert cert-%(pki_instance_name)s
+-pki_ssl_server_subject_dn=cn=%(pki_hostname)s,o=%(pki_security_domain_name)s
++pki_ssl_server_subject_dn=cn=%(pki_hostname)s%(pki_security_domain_name)s
+ pki_ssl_server_token=Internal Key Storage Token
+ pki_subsystem_key_algorithm=SHA256withRSA
+ pki_subsystem_key_size=2048
+@@ -362,7 +362,7 @@ pki_ca_signing_key_size=2048
+ pki_ca_signing_key_type=rsa
+ pki_ca_signing_nickname=caSigningCert cert-%(pki_instance_name)s CA
+ pki_ca_signing_signing_algorithm=SHA256withRSA
+-pki_ca_signing_subject_dn=cn=CA Signing Certificate,o=%(pki_security_domain_name)s
++pki_ca_signing_subject_dn=cn=CA Signing Certificate%(pki_security_domain_name)s
+ pki_ca_signing_token=Internal Key Storage Token
+ pki_external=False
+ pki_external_ca_cert_chain_path=
+@@ -375,23 +375,23 @@ pki_ocsp_signing_key_size=2048
+ pki_ocsp_signing_key_type=rsa
+ pki_ocsp_signing_nickname=ocspSigningCert cert-%(pki_instance_name)s CA
+ pki_ocsp_signing_signing_algorithm=SHA256withRSA
+-pki_ocsp_signing_subject_dn=cn=CA OCSP Signing Certificate,o=%(pki_security_domain_name)s
++pki_ocsp_signing_subject_dn=cn=CA OCSP Signing Certificate%(pki_security_domain_name)s
+ pki_ocsp_signing_token=Internal Key Storage Token
+ pki_random_serial_numbers_enable=False
+ pki_subordinate=False
+ pki_admin_email=%(pki_admin_name)s@%(pki_dns_domainname)s
+ pki_admin_name=%(pki_admin_uid)s
+ pki_admin_nickname=PKI Administrator for %(pki_dns_domainname)s
+-pki_admin_subject_dn=cn=PKI Administrator,e=%(pki_admin_email)s,o=%(pki_security_domain_name)s
++pki_admin_subject_dn=cn=PKI Administrator,e=%(pki_admin_email)s%(pki_security_domain_name)s
+ pki_admin_uid=caadmin
+ pki_audit_signing_nickname=auditSigningCert cert-%(pki_instance_name)s CA
+-pki_audit_signing_subject_dn=cn=CA Audit Signing Certificate,o=%(pki_security_domain_name)s
++pki_audit_signing_subject_dn=cn=CA Audit Signing Certificate%(pki_security_domain_name)s
+ pki_ds_base_dn=o=%(pki_instance_name)s-CA
+ pki_ds_database=%(pki_instance_name)s-CA
+ pki_ds_hostname=%(pki_hostname)s
+ pki_subsystem_name=CA %(pki_hostname)s %(pki_https_port)s
+ pki_subsystem_nickname=subsystemCert cert-%(pki_instance_name)s CA
+-pki_subsystem_subject_dn=cn=CA Subsystem Certificate,o=%(pki_security_domain_name)s
++pki_subsystem_subject_dn=cn=CA Subsystem Certificate%(pki_security_domain_name)s
+ 
+ # Paths
+ # These are used in the processing of pkispawn and are not supposed
+@@ -418,38 +418,52 @@ pki_subsystem_profiles_path=%(pki_subsystem_path)s/profiles
+ ##  KRA Configuration:                                                       ##
+ ##                                                                           ##
+ ##  Values in this section are common to KRA subsystems                      ##
+-##  including 'PKI KRAs' and 'Cloned KRAs', and contain                      ##
++##  including 'PKI KRAs', 'Cloned KRAs', and 'Stand-alone KRAs' and contain  ##
+ ##  required information which MAY be overridden by users as necessary.      ##
++##                                                                           ##
++##     STAND-ALONE KRAs:  To specify a 'Stand-alone KRA', change the value   ##
++##                        of 'pki_standalone' from 'False' to 'True'.        ##
++##                                                                           ##
+ ###############################################################################
+ [KRA]
+ pki_import_admin_cert=True
++pki_standalone=False
++pki_external_audit_signing_cert_path=
++pki_external_sslserver_cert_path=
++pki_external_storage_cert_path=
++pki_external_transport_cert_path=
++pki_external_audit_signing_csr_path=
++pki_external_sslserver_csr_path=
++pki_external_storage_csr_path=
++pki_external_transport_csr_path=
++pki_external_step_two=False
+ pki_storage_key_algorithm=SHA256withRSA
+ pki_storage_key_size=2048
+ pki_storage_key_type=rsa
+ pki_storage_nickname=storageCert cert-%(pki_instance_name)s KRA
+ pki_storage_signing_algorithm=SHA256withRSA
+-pki_storage_subject_dn=cn=DRM Storage Certificate,o=%(pki_security_domain_name)s
++pki_storage_subject_dn=cn=DRM Storage Certificate%(pki_security_domain_name)s
+ pki_storage_token=Internal Key Storage Token
+ pki_transport_key_algorithm=SHA256withRSA
+ pki_transport_key_size=2048
+ pki_transport_key_type=rsa
+ pki_transport_nickname=transportCert cert-%(pki_instance_name)s KRA
+ pki_transport_signing_algorithm=SHA256withRSA
+-pki_transport_subject_dn=cn=DRM Transport Certificate,o=%(pki_security_domain_name)s
++pki_transport_subject_dn=cn=DRM Transport Certificate%(pki_security_domain_name)s
+ pki_transport_token=Internal Key Storage Token
+ pki_admin_email=%(pki_admin_name)s@%(pki_dns_domainname)s
+ pki_admin_name=%(pki_admin_uid)s
+ pki_admin_nickname=PKI Administrator for %(pki_dns_domainname)s
+-pki_admin_subject_dn=cn=PKI Administrator,e=%(pki_admin_email)s,o=%(pki_security_domain_name)s
++pki_admin_subject_dn=cn=PKI Administrator,e=%(pki_admin_email)s%(pki_security_domain_name)s
+ pki_admin_uid=kraadmin
+ pki_audit_signing_nickname=auditSigningCert cert-%(pki_instance_name)s KRA
+-pki_audit_signing_subject_dn=cn=KRA Audit Signing Certificate,o=%(pki_security_domain_name)s
++pki_audit_signing_subject_dn=cn=KRA Audit Signing Certificate%(pki_security_domain_name)s
+ pki_ds_base_dn=o=%(pki_instance_name)s-KRA
+ pki_ds_database=%(pki_instance_name)s-KRA
+ pki_ds_hostname=%(pki_hostname)s
+ pki_subsystem_name=KRA %(pki_hostname)s %(pki_https_port)s
+ pki_subsystem_nickname=subsystemCert cert-%(pki_instance_name)s KRA
+-pki_subsystem_subject_dn=cn=KRA Subsystem Certificate,o=%(pki_security_domain_name)s
++pki_subsystem_subject_dn=cn=KRA Subsystem Certificate%(pki_security_domain_name)s
+ 
+ # Paths
+ # These are used in the processing of pkispawn and are not supposed
+@@ -464,31 +478,44 @@ pki_source_transportcert_profile=%(pki_source_conf_path)s/transportCert.profile
+ ##  OCSP Configuration:                                                      ##
+ ##                                                                           ##
+ ##  Values in this section are common to OCSP subsystems                     ##
+-##  including 'PKI OCSPs' and 'Cloned OCSPs', and contain                    ##
+-##  required information which MAY be overridden by users as necessary.      ##
++##  including 'PKI OCSPs', 'Cloned OCSPs', and 'Stand-alone OCSPs' and       ##
++##  contain required information which MAY be overridden by users as         ##
++##  necessary.                                                               ##
++##                                                                           ##
++##     STAND-ALONE OCSPs:  To specify a 'Stand-alone OCSP', change the value ##
++##                         of 'pki_standalone' from 'False' to 'True'.       ##
++##                                                                           ##
+ ###############################################################################
+ [OCSP]
+ pki_import_admin_cert=True
++pki_standalone=False
++pki_external_audit_signing_cert_path=
++pki_external_signing_cert_path=
++pki_external_sslserver_cert_path=
++pki_external_audit_signing_csr_path=
++pki_external_signing_csr_path=
++pki_external_sslserver_csr_path=
++pki_external_step_two=False
+ pki_ocsp_signing_key_algorithm=SHA256withRSA
+ pki_ocsp_signing_key_size=2048
+ pki_ocsp_signing_key_type=rsa
+ pki_ocsp_signing_nickname=ocspSigningCert cert-%(pki_instance_name)s OCSP
+ pki_ocsp_signing_signing_algorithm=SHA256withRSA
+-pki_ocsp_signing_subject_dn=cn=OCSP Signing Certificate,o=%(pki_security_domain_name)s
++pki_ocsp_signing_subject_dn=cn=OCSP Signing Certificate%(pki_security_domain_name)s
+ pki_ocsp_signing_token=Internal Key Storage Token
+ pki_admin_email=%(pki_admin_name)s@%(pki_dns_domainname)s
+ pki_admin_name=%(pki_admin_uid)s
+ pki_admin_nickname=PKI Administrator for %(pki_dns_domainname)s
+-pki_admin_subject_dn=cn=PKI Administrator,e=%(pki_admin_email)s,o=%(pki_security_domain_name)s
++pki_admin_subject_dn=cn=PKI Administrator,e=%(pki_admin_email)s%(pki_security_domain_name)s
+ pki_admin_uid=ocspadmin
+ pki_audit_signing_nickname=auditSigningCert cert-%(pki_instance_name)s OCSP
+-pki_audit_signing_subject_dn=cn=OCSP Audit Signing Certificate,o=%(pki_security_domain_name)s
++pki_audit_signing_subject_dn=cn=OCSP Audit Signing Certificate%(pki_security_domain_name)s
+ pki_ds_base_dn=o=%(pki_instance_name)s-OCSP
+ pki_ds_database=%(pki_instance_name)s-OCSP
+ pki_ds_hostname=%(pki_hostname)s
+ pki_subsystem_name=OCSP %(pki_hostname)s %(pki_https_port)s
+ pki_subsystem_nickname=subsystemCert cert-%(pki_instance_name)s OCSP
+-pki_subsystem_subject_dn=cn=OCSP Subsystem Certificate,o=%(pki_security_domain_name)s
++pki_subsystem_subject_dn=cn=OCSP Subsystem Certificate%(pki_security_domain_name)s
+ 
+ ###############################################################################
+ ##  RA Configuration:                                                        ##
+@@ -510,16 +537,16 @@ pki_import_admin_cert=True
+ pki_admin_email=%(pki_admin_name)s@%(pki_dns_domainname)s
+ pki_admin_name=%(pki_admin_uid)s
+ pki_admin_nickname=PKI Administrator for %(pki_dns_domainname)s
+-pki_admin_subject_dn=cn=PKI Administrator,e=%(pki_admin_email)s,o=%(pki_security_domain_name)s
++pki_admin_subject_dn=cn=PKI Administrator,e=%(pki_admin_email)s%(pki_security_domain_name)s
+ pki_admin_uid=tksadmin
+ pki_audit_signing_nickname=auditSigningCert cert-%(pki_instance_name)s TKS
+-pki_audit_signing_subject_dn=cn=TKS Audit Signing Certificate,o=%(pki_security_domain_name)s
++pki_audit_signing_subject_dn=cn=TKS Audit Signing Certificate%(pki_security_domain_name)s
+ pki_ds_base_dn=o=%(pki_instance_name)s-TKS
+ pki_ds_database=%(pki_instance_name)s-TKS
+ pki_ds_hostname=%(pki_hostname)s
+ pki_subsystem_name=TKS %(pki_hostname)s %(pki_https_port)s
+ pki_subsystem_nickname=subsystemCert cert-%(pki_instance_name)s TKS
+-pki_subsystem_subject_dn=cn=TKS Subsystem Certificate,o=%(pki_security_domain_name)s
++pki_subsystem_subject_dn=cn=TKS Subsystem Certificate%(pki_security_domain_name)s
+ 
+ ###############################################################################
+ ##  TPS Configuration:                                                       ##
+@@ -532,16 +559,16 @@ pki_import_admin_cert=True
+ pki_admin_email=%(pki_admin_name)s@%(pki_dns_domainname)s
+ pki_admin_name=%(pki_admin_uid)s
+ pki_admin_nickname=PKI Administrator for %(pki_dns_domainname)s
+-pki_admin_subject_dn=cn=PKI Administrator,e=%(pki_admin_email)s,o=%(pki_security_domain_name)s
++pki_admin_subject_dn=cn=PKI Administrator,e=%(pki_admin_email)s%(pki_security_domain_name)s
+ pki_admin_uid=tpsadmin
+ pki_audit_signing_nickname=auditSigningCert cert-%(pki_instance_name)s TPS
+-pki_audit_signing_subject_dn=cn=TPS Audit Signing Certificate,o=%(pki_security_domain_name)s
++pki_audit_signing_subject_dn=cn=TPS Audit Signing Certificate%(pki_security_domain_name)s
+ pki_ds_base_dn=o=%(pki_instance_name)s-TPS
+ pki_ds_database=%(pki_instance_name)s-TPS
+ pki_ds_hostname=%(pki_hostname)s
+ pki_subsystem_name=TPS %(pki_hostname)s %(pki_https_port)s
+ pki_subsystem_nickname=subsystemCert cert-%(pki_instance_name)s TPS
+-pki_subsystem_subject_dn=cn=TPS Subsystem Certificate,o=%(pki_security_domain_name)s
++pki_subsystem_subject_dn=cn=TPS Subsystem Certificate%(pki_security_domain_name)s
+ pki_authdb_hostname=%(pki_hostname)s
+ pki_authdb_port=389
+ pki_authdb_secure_conn=False
+diff --git a/base/server/python/pki/server/deployment/pkihelper.py b/base/server/python/pki/server/deployment/pkihelper.py
+index e72af16..d8c3811 100644
+--- a/base/server/python/pki/server/deployment/pkihelper.py
++++ b/base/server/python/pki/server/deployment/pkihelper.py
+@@ -453,15 +453,17 @@ class ConfigurationFile:
+     def verify_sensitive_data(self):
+         # Silently verify the existence of 'sensitive' data
+         if self.master_dict['pki_subsystem'] in config.PKI_TOMCAT_SUBSYSTEMS:
+-            # Verify existence of Directory Server Password (ALWAYS)
+-            if not self.master_dict.has_key('pki_ds_password') or\
+-               not len(self.master_dict['pki_ds_password']):
+-                config.pki_log.error(
+-                    log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2,
+-                    "pki_ds_password",
+-                    self.master_dict['pki_user_deployment_cfg'],
+-                    extra=config.PKI_INDENTATION_LEVEL_2)
+-                raise Exception(log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 % ("pki_ds_password",
++            # Verify existence of Directory Server Password
++            # (unless configuration will not be automatically executed)
++            if not config.str2bool(self.master_dict['pki_skip_configuration']):
++                if not self.master_dict.has_key('pki_ds_password') or\
++                   not len(self.master_dict['pki_ds_password']):
++                    config.pki_log.error(
++                        log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2,
++                        "pki_ds_password",
++                        self.master_dict['pki_user_deployment_cfg'],
++                        extra=config.PKI_INDENTATION_LEVEL_2)
++                    raise Exception(log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 % ("pki_ds_password",
+                                                                                      self.master_dict['pki_user_deployment_cfg']))
+             # Verify existence of Admin Password (except for Clones)
+             if not config.str2bool(self.master_dict['pki_clone']):
+@@ -523,12 +525,22 @@ class ConfigurationFile:
+                config.str2bool(self.master_dict['pki_subordinate']):
+                 if not self.master_dict.has_key('pki_security_domain_password') or\
+                    not len(self.master_dict['pki_security_domain_password']):
+-                    config.pki_log.error(
+-                        log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2,
+-                        "pki_security_domain_password",
+-                        self.master_dict['pki_user_deployment_cfg'],
+-                        extra=config.PKI_INDENTATION_LEVEL_2)
+-                    raise Exception(log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 % ("pki_security_domain_password",
++                    if not config.str2bool(
++                               self.master_dict['pki_skip_configuration']) or\
++                       (self.master_dict['pki_subsystem'] == "KRA" and
++                        not config.str2bool(
++                               self.master_dict['pki_standalone'])) or\
++                       (self.master_dict['pki_subsystem'] == "OCSP" and
++                        not config.str2bool(
++                               self.master_dict['pki_standalone'])):
++                        # (that will be automatically configured or
++                        #  are NOT stand-alone KRAs nor stand-alone OCSPs)
++                        config.pki_log.error(
++                            log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2,
++                            "pki_security_domain_password",
++                            self.master_dict['pki_user_deployment_cfg'],
++                            extra=config.PKI_INDENTATION_LEVEL_2)
++                        raise Exception(log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 % ("pki_security_domain_password",
+                                                                                           self.master_dict['pki_user_deployment_cfg']))
+             # If required, verify existence of Token Password
+             if not self.master_dict['pki_token_name'] == "internal":
+@@ -598,8 +610,10 @@ class ConfigurationFile:
+                         "pki_ds_base_dn",
+                         self.master_dict['pki_user_deployment_cfg'],
+                         extra=config.PKI_INDENTATION_LEVEL_2)
+-                    raise Exception(log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 % ("pki_ds_base_dn",
+-                                                                                         self.master_dict['pki_user_deployment_cfg']))
++                    raise Exception(
++                        log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 %
++                            ("pki_ds_base_dn",
++                             self.master_dict['pki_user_deployment_cfg']))
+                 if not self.master_dict.has_key('pki_ds_ldap_port') or\
+                    not len(self.master_dict['pki_ds_ldap_port']):
+                     # FUTURE:  Check for unused port value
+@@ -610,8 +624,10 @@ class ConfigurationFile:
+                         "pki_ds_ldap_port",
+                         self.master_dict['pki_user_deployment_cfg'],
+                         extra=config.PKI_INDENTATION_LEVEL_2)
+-                    raise Exception(log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 % ("pki_ds_ldap_port",
+-                                                                                         self.master_dict['pki_user_deployment_cfg']))
++                    raise Exception(
++                        log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 %
++                            ("pki_ds_ldap_port",
++                             self.master_dict['pki_user_deployment_cfg']))
+                 if not self.master_dict.has_key('pki_ds_ldaps_port') or\
+                    not len(self.master_dict['pki_ds_ldaps_port']):
+                     # FUTURE:  Check for unused port value
+@@ -622,8 +638,10 @@ class ConfigurationFile:
+                         "pki_ds_ldaps_port",
+                         self.master_dict['pki_user_deployment_cfg'],
+                         extra=config.PKI_INDENTATION_LEVEL_2)
+-                    raise Exception(log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 % ("pki_ds_ldaps_port",
+-                                                                                         self.master_dict['pki_user_deployment_cfg']))
++                    raise Exception(
++                        log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 %
++                            ("pki_ds_ldaps_port",
++                             self.master_dict['pki_user_deployment_cfg']))
+                 # NOTE:  Although this will be checked prior to getting to
+                 #        this method, this clone's 'pki_instance_name' MUST
+                 #        be different from the master's 'pki_instance_name'
+@@ -639,8 +657,10 @@ class ConfigurationFile:
+                         "pki_ajp_port",
+                         self.master_dict['pki_user_deployment_cfg'],
+                         extra=config.PKI_INDENTATION_LEVEL_2)
+-                    raise Exception(log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 % ("pki_ajp_port",
+-                                                                                         self.master_dict['pki_user_deployment_cfg']))
++                    raise Exception(
++                        log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 %
++                            ("pki_ajp_port",
++                             self.master_dict['pki_user_deployment_cfg']))
+                 if not self.master_dict.has_key('pki_http_port') or\
+                    not len(self.master_dict['pki_http_port']):
+                     # FUTURE:  Check for unused port value
+@@ -651,8 +671,10 @@ class ConfigurationFile:
+                         "pki_http_port",
+                         self.master_dict['pki_user_deployment_cfg'],
+                         extra=config.PKI_INDENTATION_LEVEL_2)
+-                    raise Exception(log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 % ("pki_http_port",
+-                                                                                         self.master_dict['pki_user_deployment_cfg']))
++                    raise Exception(
++                        log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 %
++                            ("pki_http_port",
++                             self.master_dict['pki_user_deployment_cfg']))
+                 if not self.master_dict.has_key('pki_https_port') or\
+                    not len(self.master_dict['pki_https_port']):
+                     # FUTURE:  Check for unused port value
+@@ -663,8 +685,10 @@ class ConfigurationFile:
+                         "pki_https_port",
+                         self.master_dict['pki_user_deployment_cfg'],
+                         extra=config.PKI_INDENTATION_LEVEL_2)
+-                    raise Exception(log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 % ("pki_https_port",
+-                                                                                         self.master_dict['pki_user_deployment_cfg']))
++                    raise Exception(
++                        log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 %
++                            ("pki_https_port",
++                             self.master_dict['pki_user_deployment_cfg']))
+                 if not self.master_dict.has_key('pki_tomcat_server_port') or\
+                    not len(self.master_dict['pki_tomcat_server_port']):
+                     # FUTURE:  Check for unused port value
+@@ -675,8 +699,10 @@ class ConfigurationFile:
+                         "pki_tomcat_server_port",
+                         self.master_dict['pki_user_deployment_cfg'],
+                         extra=config.PKI_INDENTATION_LEVEL_2)
+-                    raise Exception(log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 % ("pki_tomcat_server_port",
+-                                                                                         self.master_dict['pki_user_deployment_cfg']))
++                    raise Exception(
++                        log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 %
++                            ("pki_tomcat_server_port",
++                             self.master_dict['pki_user_deployment_cfg']))
+                 if not self.master_dict.has_key('pki_clone_pkcs12_path') or\
+                    not len(self.master_dict['pki_clone_pkcs12_path']):
+                     config.pki_log.error(
+@@ -684,14 +710,18 @@ class ConfigurationFile:
+                         "pki_clone_pkcs12_path",
+                         self.master_dict['pki_user_deployment_cfg'],
+                         extra=config.PKI_INDENTATION_LEVEL_2)
+-                    raise Exception(log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 % ("pki_clone_pkcs12_path",
+-                                                                                         self.master_dict['pki_user_deployment_cfg']))
++                    raise Exception(
++                        log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 %
++                            ("pki_clone_pkcs12_path",
++                             self.master_dict['pki_user_deployment_cfg']))
+                 elif not os.path.isfile(self.master_dict['pki_clone_pkcs12_path']):
+                     config.pki_log.error(
+                         log.PKI_FILE_ALREADY_EXISTS_NOT_A_FILE_1,
+                         self.master_dict['pki_clone_pkcs12_path'],
+                         extra=config.PKI_INDENTATION_LEVEL_2)
+-                    raise Exception(log.PKI_FILE_ALREADY_EXISTS_NOT_A_FILE_1 % "pki_clone_pkcs12_path")
++                    raise Exception(
++                        log.PKI_FILE_ALREADY_EXISTS_NOT_A_FILE_1 %
++                            "pki_clone_pkcs12_path")
+                 if not self.master_dict.has_key('pki_clone_replication_security') or\
+                    not len(self.master_dict['pki_clone_replication_security']):
+                     config.pki_log.error(
+@@ -699,8 +729,10 @@ class ConfigurationFile:
+                         "pki_clone_replication_security",
+                         self.master_dict['pki_user_deployment_cfg'],
+                         extra=config.PKI_INDENTATION_LEVEL_2)
+-                    raise Exception(log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 % ("pki_clone_replication_security",
+-                                                                                         self.master_dict['pki_user_deployment_cfg']))
++                    raise Exception(
++                        log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 %
++                            ("pki_clone_replication_security",
++                             self.master_dict['pki_user_deployment_cfg']))
+                 if not self.master_dict.has_key('pki_clone_uri') or\
+                    not len(self.master_dict['pki_clone_uri']):
+                     config.pki_log.error(
+@@ -708,8 +740,10 @@ class ConfigurationFile:
+                         "pki_clone_uri",
+                         self.master_dict['pki_user_deployment_cfg'],
+                         extra=config.PKI_INDENTATION_LEVEL_2)
+-                    raise Exception(log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 % ("pki_clone_uri",
+-                                                                                         self.master_dict['pki_user_deployment_cfg']))
++                    raise Exception(
++                        log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 %
++                            ("pki_clone_uri",
++                             self.master_dict['pki_user_deployment_cfg']))
+             elif self.master_dict['pki_subsystem'] == "CA" and\
+                  config.str2bool(self.master_dict['pki_external']):
+                 if not self.master_dict.has_key('pki_external_step_two') or\
+@@ -719,8 +753,10 @@ class ConfigurationFile:
+                         "pki_external_step_two",
+                         self.master_dict['pki_user_deployment_cfg'],
+                         extra=config.PKI_INDENTATION_LEVEL_2)
+-                    raise Exception(log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 % ("pki_extrenal_step_two",
+-                                                                                          self.master_dict['pki_user_deployment_cfg']))
++                    raise Exception(
++                        log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 %
++                            ("pki_external_step_two",
++                             self.master_dict['pki_user_deployment_cfg']))
+                 if not config.str2bool(self.master_dict['pki_external_step_two']):
+                     # External CA (Step 1)
+                     if not self.master_dict.has_key('pki_external_csr_path') or\
+@@ -730,15 +766,18 @@ class ConfigurationFile:
+                             "pki_external_csr_path",
+                             self.master_dict['pki_user_deployment_cfg'],
+                             extra=config.PKI_INDENTATION_LEVEL_2)
+-                        raise Exception(log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 % ("pki_extrenal_csr_path",
+-                                                                                              self.master_dict['pki_user_deployment_cfg']))
+-                    elif os.path.exists(self.master_dict['pki_external_csr_path']) and\
+-                         not os.path.isfile(self.master_dict['pki_external_csr_path']):
++                        raise Exception(
++                            log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 %
++                                ("pki_external_csr_path",
++                                 self.master_dict['pki_user_deployment_cfg']))
++                    elif os.path.exists(self.master_dict['pki_external_csr_path']):
+                         config.pki_log.error(
+-                            log.PKI_FILE_ALREADY_EXISTS_NOT_A_FILE_1,
++                            log.PKI_FILE_ALREADY_EXISTS_1,
+                             self.master_dict['pki_external_csr_path'],
+                             extra=config.PKI_INDENTATION_LEVEL_2)
+-                        raise Exception(log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 % "pki_extrenal_csr_path")
++                        raise Exception(
++                            log.PKI_FILE_ALREADY_EXISTS_1 %
++                                "pki_external_csr_path")
+                 else:
+                     # External CA (Step 2)
+                     if not self.master_dict.has_key('pki_external_ca_cert_chain_path') or\
+@@ -748,17 +787,21 @@ class ConfigurationFile:
+                             "pki_external_ca_cert_chain_path",
+                             self.master_dict['pki_user_deployment_cfg'],
+                             extra=config.PKI_INDENTATION_LEVEL_2)
+-                        raise Exception(log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 % ("pki_extrenal_ca_cert_chain_path",
+-                                                                                              self.master_dict['pki_user_deployment_cfg']))
+-                    elif os.path.exists(
+-                                 self.master_dict['pki_external_ca_cert_chain_path']) and\
++                        raise Exception(
++                            log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 %
++                                ("pki_external_ca_cert_chain_path",
++                                 self.master_dict['pki_user_deployment_cfg']))
++                    elif not os.path.exists(
++                                 self.master_dict['pki_external_ca_cert_chain_path']) or\
+                          not os.path.isfile(
+                                  self.master_dict['pki_external_ca_cert_chain_path']):
+                         config.pki_log.error(
+-                            log.PKI_FILE_ALREADY_EXISTS_NOT_A_FILE_1,
++                            log.PKI_FILE_MISSING_OR_NOT_A_FILE_1,
+                             self.master_dict['pki_external_ca_cert_chain_path'],
+                             extra=config.PKI_INDENTATION_LEVEL_2)
+-                        raise Exception(log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 % "pki_extrenal_ca_cert_chain_path")
++                        raise Exception(
++                            log.PKI_FILE_MISSING_OR_NOT_A_FILE_1 %
++                                "pki_external_ca_cert_chain_path")
+                     if not self.master_dict.has_key('pki_external_ca_cert_path') or\
+                        not len(self.master_dict['pki_external_ca_cert_path']):
+                         config.pki_log.error(
+@@ -766,16 +809,266 @@ class ConfigurationFile:
+                             "pki_external_ca_cert_path",
+                             self.master_dict['pki_user_deployment_cfg'],
+                             extra=config.PKI_INDENTATION_LEVEL_2)
+-                        raise Exception(log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 % ("pki_extrenal_ca_cert_path",
+-                                                                                              self.master_dict['pki_user_deployment_cfg']))
+-                    elif os.path.exists(self.master_dict['pki_external_ca_cert_path']) and\
++                        raise Exception(
++                            log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 %
++                                ("pki_external_ca_cert_path",
++                                 self.master_dict['pki_user_deployment_cfg']))
++                    elif not os.path.exists(self.master_dict['pki_external_ca_cert_path']) or\
+                          not os.path.isfile(
+                                  self.master_dict['pki_external_ca_cert_path']):
+                         config.pki_log.error(
+-                            log.PKI_FILE_ALREADY_EXISTS_NOT_A_FILE_1,
++                            log.PKI_FILE_MISSING_OR_NOT_A_FILE_1,
+                             self.master_dict['pki_external_ca_cert_path'],
+                             extra=config.PKI_INDENTATION_LEVEL_2)
+-                        raise Exception(log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 % "pki_extrenal_ca_cert_path")
++                        raise Exception(
++                            log.PKI_FILE_MISSING_OR_NOT_A_FILE_1 %
++                                "pki_external_ca_cert_path")
++            elif not config.str2bool(self.master_dict['pki_skip_configuration']) and\
++                 ((self.master_dict['pki_subsystem'] == "KRA" or
++                   self.master_dict['pki_subsystem'] == "OCSP") and
++                  config.str2bool(self.master_dict['pki_standalone'])):
++                if not self.master_dict.has_key('pki_external_step_two') or\
++                   not len(self.master_dict['pki_external_step_two']):
++                    config.pki_log.error(
++                        log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2,
++                        "pki_external_step_two",
++                        self.master_dict['pki_user_deployment_cfg'],
++                        extra=config.PKI_INDENTATION_LEVEL_2)
++                    raise Exception(
++                        log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 %
++                            ("pki_external_step_two",
++                             self.master_dict['pki_user_deployment_cfg']))
++                if not config.str2bool(self.master_dict['pki_external_step_two']):
++                    # Stand-alone PKI KRA/OCSP Audit Signing CSR
++                    # (External CA Step 1)
++                    if not self.master_dict.has_key('pki_external_audit_signing_csr_path') or\
++                       not len(self.master_dict['pki_external_audit_signing_csr_path']):
++                        config.pki_log.error(
++                            log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2,
++                            "pki_external_audit_signing_csr_path",
++                            self.master_dict['pki_user_deployment_cfg'],
++                            extra=config.PKI_INDENTATION_LEVEL_2)
++                        raise Exception(
++                            log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 %
++                                ("pki_external_audit_signing_csr_path",
++                                 self.master_dict['pki_user_deployment_cfg']))
++                    elif os.path.exists(self.master_dict['pki_external_audit_signing_csr_path']) and\
++                         not os.path.isfile(self.master_dict['pki_external_audit_signing_csr_path']):
++                        config.pki_log.error(
++                            log.PKI_FILE_ALREADY_EXISTS_NOT_A_FILE_1,
++                            self.master_dict['pki_external_audit_signing_csr_path'],
++                            extra=config.PKI_INDENTATION_LEVEL_2)
++                        raise Exception(
++                            log.PKI_FILE_ALREADY_EXISTS_NOT_A_FILE_1 %
++                                "pki_external_audit_signing_csr_path")
++                    # Stand-alone PKI KRA/OCSP SSL Server CSR
++                    # (External CA Step 1)
++                    if not self.master_dict.has_key('pki_external_sslserver_csr_path') or\
++                       not len(self.master_dict['pki_external_sslserver_csr_path']):
++                        config.pki_log.error(
++                            log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2,
++                            "pki_external_sslserver_csr_path",
++                            self.master_dict['pki_user_deployment_cfg'],
++                            extra=config.PKI_INDENTATION_LEVEL_2)
++                        raise Exception(
++                            log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 %
++                                ("pki_external_sslserver_csr_path",
++                                 self.master_dict['pki_user_deployment_cfg']))
++                    elif os.path.exists(self.master_dict['pki_external_sslserver_csr_path']) and\
++                         not os.path.isfile(self.master_dict['pki_external_sslserver_csr_path']):
++                        config.pki_log.error(
++                            log.PKI_FILE_ALREADY_EXISTS_NOT_A_FILE_1,
++                            self.master_dict['pki_external_sslserver_csr_path'],
++                            extra=config.PKI_INDENTATION_LEVEL_2)
++                        raise Exception(
++                            log.PKI_FILE_ALREADY_EXISTS_NOT_A_FILE_1 %
++                                "pki_external_sslserver_csr_path")
++                    if self.master_dict['pki_subsystem'] == "KRA":
++                        # Stand-alone PKI KRA Storage CSR
++                        # (External CA Step 1)
++                        if not self.master_dict.has_key('pki_external_storage_csr_path') or\
++                           not len(self.master_dict['pki_external_storage_csr_path']):
++                            config.pki_log.error(
++                                log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2,
++                                "pki_external_storage_csr_path",
++                                self.master_dict['pki_user_deployment_cfg'],
++                                extra=config.PKI_INDENTATION_LEVEL_2)
++                            raise Exception(
++                                log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 %
++                                    ("pki_external_storage_csr_path",
++                                     self.master_dict['pki_user_deployment_cfg']))
++                        elif os.path.exists(self.master_dict['pki_external_storage_csr_path']) and\
++                             not os.path.isfile(self.master_dict['pki_external_storage_csr_path']):
++                            config.pki_log.error(
++                                log.PKI_FILE_ALREADY_EXISTS_NOT_A_FILE_1,
++                                self.master_dict['pki_external_storage_csr_path'],
++                                extra=config.PKI_INDENTATION_LEVEL_2)
++                            raise Exception(
++                                log.PKI_FILE_ALREADY_EXISTS_NOT_A_FILE_1 %
++                                    "pki_external_storage_csr_path")
++                        # Stand-alone PKI KRA Transport CSR
++                        # (External CA Step 1)
++                        if not self.master_dict.has_key('pki_external_transport_csr_path') or\
++                           not len(self.master_dict['pki_external_transport_csr_path']):
++                            config.pki_log.error(
++                                log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2,
++                                "pki_external_transport_csr_path",
++                                self.master_dict['pki_user_deployment_cfg'],
++                                extra=config.PKI_INDENTATION_LEVEL_2)
++                            raise Exception(
++                                log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 %
++                                    ("pki_external_transport_csr_path",
++                                     self.master_dict['pki_user_deployment_cfg']))
++                        elif os.path.exists(self.master_dict['pki_external_transport_csr_path']) and\
++                             not os.path.isfile(self.master_dict['pki_external_transport_csr_path']):
++                            config.pki_log.error(
++                                log.PKI_FILE_ALREADY_EXISTS_NOT_A_FILE_1,
++                                self.master_dict['pki_external_transport_csr_path'],
++                                extra=config.PKI_INDENTATION_LEVEL_2)
++                            raise Exception(
++                                log.PKI_FILE_ALREADY_EXISTS_NOT_A_FILE_1 %
++                                    "pki_external_transport_csr_path")
++                    if self.master_dict['pki_subsystem'] == "OCSP":
++                        # Stand-alone PKI OCSP OCSP Signing CSR
++                        # (External CA Step 1)
++                        if not self.master_dict.has_key('pki_external_signing_csr_path') or\
++                           not len(self.master_dict['pki_external_signing_csr_path']):
++                            config.pki_log.error(
++                                log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2,
++                                "pki_external_signing_csr_path",
++                                self.master_dict['pki_user_deployment_cfg'],
++                                extra=config.PKI_INDENTATION_LEVEL_2)
++                            raise Exception(
++                                log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 %
++                                    ("pki_external_signing_csr_path",
++                                     self.master_dict['pki_user_deployment_cfg']))
++                        elif os.path.exists(self.master_dict['pki_external_signing_csr_path']) and\
++                             not os.path.isfile(self.master_dict['pki_external_signing_csr_path']):
++                            config.pki_log.error(
++                                log.PKI_FILE_ALREADY_EXISTS_NOT_A_FILE_1,
++                                self.master_dict['pki_external_signing_csr_path'],
++                                extra=config.PKI_INDENTATION_LEVEL_2)
++                            raise Exception(
++                                log.PKI_FILE_ALREADY_EXISTS_NOT_A_FILE_1 %
++                                    "pki_external_signing_csr_path")
++                else:
++                    # Stand-alone PKI KRA/OCSP Audit Signing Certificate
++                    # (External CA Step 2)
++                    if not self.master_dict.has_key('pki_external_audit_signing_cert_path') or\
++                       not len(self.master_dict['pki_external_audit_signing_cert_path']):
++                        config.pki_log.error(
++                            log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2,
++                            "pki_external_audit_signing_cert_path",
++                            self.master_dict['pki_user_deployment_cfg'],
++                            extra=config.PKI_INDENTATION_LEVEL_2)
++                        raise Exception(
++                            log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 %
++                                ("pki_external_audit_signing_cert_path",
++                                 self.master_dict['pki_user_deployment_cfg']))
++                    elif not os.path.exists(self.master_dict['pki_external_audit_signing_cert_path']) or\
++                         not os.path.isfile(
++                                 self.master_dict['pki_external_audit_signing_cert_path']):
++                        config.pki_log.error(
++                            log.PKI_FILE_MISSING_OR_NOT_A_FILE_1,
++                            self.master_dict['pki_external_audit_signing_cert_path'],
++                            extra=config.PKI_INDENTATION_LEVEL_2)
++                        raise Exception(
++                            log.PKI_FILE_MISSING_OR_NOT_A_FILE_1 %
++                                "pki_external_audit_signing_cert_path")
++                    # Stand-alone PKI KRA/OCSP SSL Server Certificate
++                    # (External CA Step 2)
++                    if not self.master_dict.has_key('pki_external_sslserver_cert_path') or\
++                       not len(self.master_dict['pki_external_sslserver_cert_path']):
++                        config.pki_log.error(
++                            log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2,
++                            "pki_external_sslserver_cert_path",
++                            self.master_dict['pki_user_deployment_cfg'],
++                            extra=config.PKI_INDENTATION_LEVEL_2)
++                        raise Exception(
++                            log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 %
++                                ("pki_external_sslserver_cert_path",
++                                 self.master_dict['pki_user_deployment_cfg']))
++                    elif not os.path.exists(self.master_dict['pki_external_sslserver_cert_path']) or\
++                         not os.path.isfile(
++                                 self.master_dict['pki_external_sslserver_cert_path']):
++                        config.pki_log.error(
++                            log.PKI_FILE_MISSING_OR_NOT_A_FILE_1,
++                            self.master_dict['pki_external_sslserver_cert_path'],
++                            extra=config.PKI_INDENTATION_LEVEL_2)
++                        raise Exception(
++                            log.PKI_FILE_MISSING_OR_NOT_A_FILE_1 %
++                                "pki_external_sslserver_cert_path")
++                    if self.master_dict['pki_subsystem'] == "KRA":
++                        # Stand-alone PKI KRA Storage Certificate
++                        # (External CA Step 2)
++                        if not self.master_dict.has_key('pki_external_storage_cert_path') or\
++                           not len(self.master_dict['pki_external_storage_cert_path']):
++                            config.pki_log.error(
++                                log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2,
++                                "pki_external_storage_cert_path",
++                                self.master_dict['pki_user_deployment_cfg'],
++                                extra=config.PKI_INDENTATION_LEVEL_2)
++                            raise Exception(
++                                log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 %
++                                    ("pki_external_storage_cert_path",
++                                     self.master_dict['pki_user_deployment_cfg']))
++                        elif not os.path.exists(self.master_dict['pki_external_storage_cert_path']) or\
++                             not os.path.isfile(
++                                     self.master_dict['pki_external_storage_cert_path']):
++                            config.pki_log.error(
++                                log.PKI_FILE_MISSING_OR_NOT_A_FILE_1,
++                                self.master_dict['pki_external_storage_cert_path'],
++                                extra=config.PKI_INDENTATION_LEVEL_2)
++                            raise Exception(
++                                log.PKI_FILE_MISSING_OR_NOT_A_FILE_1 %
++                                    "pki_external_storage_cert_path")
++                        # Stand-alone PKI KRA Transport Certificate
++                        # (External CA Step 2)
++                        if not self.master_dict.has_key('pki_external_transport_cert_path') or\
++                           not len(self.master_dict['pki_external_transport_cert_path']):
++                            config.pki_log.error(
++                                log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2,
++                                "pki_external_transport_cert_path",
++                                self.master_dict['pki_user_deployment_cfg'],
++                                extra=config.PKI_INDENTATION_LEVEL_2)
++                            raise Exception(
++                                log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 %
++                                    ("pki_external_transport_cert_path",
++                                     self.master_dict['pki_user_deployment_cfg']))
++                        elif not os.path.exists(self.master_dict['pki_external_transport_cert_path']) or\
++                             not os.path.isfile(
++                                     self.master_dict['pki_external_transport_cert_path']):
++                            config.pki_log.error(
++                                log.PKI_FILE_MISSING_OR_NOT_A_FILE_1,
++                                self.master_dict['pki_external_transport_cert_path'],
++                                extra=config.PKI_INDENTATION_LEVEL_2)
++                            raise Exception(
++                                log.PKI_FILE_MISSING_OR_NOT_A_FILE_1 %
++                                    "pki_external_transport_cert_path")
++                    if self.master_dict['pki_subsystem'] == "OCSP":
++                        # Stand-alone PKI OCSP OCSP Signing Certificate
++                        # (External CA Step 2)
++                        if not self.master_dict.has_key('pki_external_signing_cert_path') or\
++                           not len(self.master_dict['pki_external_signing_cert_path']):
++                            config.pki_log.error(
++                                log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2,
++                                "pki_external_signing_cert_path",
++                                self.master_dict['pki_user_deployment_cfg'],
++                                extra=config.PKI_INDENTATION_LEVEL_2)
++                            raise Exception(
++                                log.PKIHELPER_UNDEFINED_CONFIGURATION_FILE_ENTRY_2 %
++                                    ("pki_external_signing_cert_path",
++                                     self.master_dict['pki_user_deployment_cfg']))
++                        elif not os.path.exists(self.master_dict['pki_external_signing_cert_path']) or\
++                             not os.path.isfile(
++                                     self.master_dict['pki_external_signing_cert_path']):
++                            config.pki_log.error(
++                                log.PKI_FILE_MISSING_OR_NOT_A_FILE_1,
++                                self.master_dict['pki_external_signing_cert_path'],
++                                extra=config.PKI_INDENTATION_LEVEL_2)
++                            raise Exception(
++                                log.PKI_FILE_MISSING_OR_NOT_A_FILE_1 %
++                                    "pki_external_signing_cert_path")
+         return
+ 
+     def populate_non_default_ports(self):
+@@ -3115,6 +3408,62 @@ class ConfigClient:
+                         with open(self.master_dict['pki_external_csr_path'], "w") as f:
+                             f.write(cdata['request'])
+                         return
++                elif not config.str2bool(self.master_dict['pki_skip_configuration']) and\
++                     ((self.master_dict['pki_subsystem'] == "KRA" or
++                       self.master_dict['pki_subsystem'] == "OCSP") and
++                      config.str2bool(self.master_dict['pki_standalone'])) and\
++                     not config.str2bool(self.master_dict['pki_external_step_two']):
++                    # PKI KRA/OCSP (External CA Step 1)
++                    config.pki_log.info(log.PKI_CONFIG_CDATA_REQUEST + \
++                        " " + cdata['request'],
++                        extra=config.PKI_INDENTATION_LEVEL_2)
++                    if cdata['tag'].lower() == "audit_signing":
++                        # Save 'External CA Audit Signing Certificate' CSR (Step 1)
++                        config.pki_log.info(log.PKI_CONFIG_EXTERNAL_CSR_SAVE_PKI_AUDIT_SIGNING_1 + \
++                            " '" + self.master_dict['pki_external_audit_signing_csr_path'] + "'",
++                            self.master_dict['pki_subsystem'],
++                            extra=config.PKI_INDENTATION_LEVEL_2)
++                        self.deployer.directory.create(
++                            os.path.dirname(self.master_dict['pki_external_audit_signing_csr_path']))
++                        with open(self.master_dict['pki_external_audit_signing_csr_path'], "w") as f:
++                            f.write(cdata['request'])
++                    elif cdata['tag'].lower() == "signing":
++                        # Save 'External CA OCSP Signing Certificate' CSR (Step 1)
++                        config.pki_log.info(log.PKI_CONFIG_EXTERNAL_CSR_SAVE_OCSP_SIGNING + \
++                            " '" + self.master_dict['pki_external_signing_csr_path'] + "'",
++                            extra=config.PKI_INDENTATION_LEVEL_2)
++                        self.deployer.directory.create(
++                            os.path.dirname(self.master_dict['pki_external_signing_csr_path']))
++                        with open(self.master_dict['pki_external_signing_csr_path'], "w") as f:
++                            f.write(cdata['request'])
++                    elif cdata['tag'].lower() == "sslserver":
++                        # Save 'External CA SSL Server Certificate' CSR (Step 1)
++                        config.pki_log.info(log.PKI_CONFIG_EXTERNAL_CSR_SAVE_PKI_SSLSERVER_1 + \
++                            " '" + self.master_dict['pki_external_sslserver_csr_path'] + "'",
++                            self.master_dict['pki_subsystem'],
++                            extra=config.PKI_INDENTATION_LEVEL_2)
++                        self.deployer.directory.create(
++                            os.path.dirname(self.master_dict['pki_external_sslserver_csr_path']))
++                        with open(self.master_dict['pki_external_sslserver_csr_path'], "w") as f:
++                            f.write(cdata['request'])
++                    elif cdata['tag'].lower() == "storage":
++                        # Save 'External CA KRA Storage Certificate' CSR (Step 1)
++                        config.pki_log.info(log.PKI_CONFIG_EXTERNAL_CSR_SAVE_KRA_STORAGE + \
++                            " '" + self.master_dict['pki_external_storage_csr_path'] + "'",
++                            extra=config.PKI_INDENTATION_LEVEL_2)
++                        self.deployer.directory.create(
++                            os.path.dirname(self.master_dict['pki_external_storage_csr_path']))
++                        with open(self.master_dict['pki_external_storage_csr_path'], "w") as f:
++                            f.write(cdata['request'])
++                    elif cdata['tag'].lower() == "transport":
++                        # Save 'External CA KRA Transport Certificate' CSR (Step 1)
++                        config.pki_log.info(log.PKI_CONFIG_EXTERNAL_CSR_SAVE_KRA_TRANSPORT + \
++                            " '" + self.master_dict['pki_external_storage_csr_path'] + "'",
++                            extra=config.PKI_INDENTATION_LEVEL_2)
++                        self.deployer.directory.create(
++                            os.path.dirname(self.master_dict['pki_external_transport_csr_path']))
++                        with open(self.master_dict['pki_external_transport_csr_path'], "w") as f:
++                            f.write(cdata['request'])
+                 else:
+                     config.pki_log.debug(log.PKI_CONFIG_CDATA_TAG + \
+                                            " " + cdata['tag'],
+@@ -3227,9 +3576,15 @@ class ConfigClient:
+         self.set_hierarchy_parameters(data)
+ 
+         # Security Domain
+-        if self.master_dict['pki_subsystem'] != "CA" or\
+-           config.str2bool(self.master_dict['pki_clone']) or\
+-           config.str2bool(self.master_dict['pki_subordinate']):
++        if not config.str2bool(self.master_dict['pki_skip_configuration']) and\
++           ((self.master_dict['pki_subsystem'] == "KRA" or
++             self.master_dict['pki_subsystem'] == "OCSP") and\
++            config.str2bool(self.master_dict['pki_standalone'])):
++            # Stand-alone PKI KRA/OCSP
++            self.set_no_security_domain(data)
++        elif self.master_dict['pki_subsystem'] != "CA" or\
++             config.str2bool(self.master_dict['pki_clone']) or\
++             config.str2bool(self.master_dict['pki_subordinate']):
+             # PKI KRA, PKI OCSP, PKI RA, PKI TKS, PKI TPS,
+             # CA Clone, KRA Clone, OCSP Clone, TKS Clone, TPS Clone, or
+             # Subordinate CA
+@@ -3299,6 +3654,18 @@ class ConfigClient:
+                 cert2 = self.create_system_cert("ocsp_signing")
+                 cert2.signingAlgorithm = \
+                     self.master_dict['pki_ocsp_signing_signing_algorithm']
++                if not config.str2bool(self.master_dict['pki_skip_configuration']) and\
++                   (self.master_dict['pki_subsystem'] == "OCSP" and
++                    config.str2bool(self.master_dict['pki_standalone'])) and\
++                   config.str2bool(self.master_dict['pki_external_step_two']):
++                    # Load the 'External CA OCSP Signing Certificate' (Step 2)
++                    # for a Stand-alone PKI OCSP
++                    print(
++                        log.PKI_CONFIG_EXTERNAL_CERT_LOAD_OCSP_SIGNING + " " + \
++                        "'" + self.master_dict['pki_external_signing_cert_path'] + "'")
++                    with open(self.master_dict['pki_external_signing_cert_path']) as f:
++                        external_ocsp_signing_cert = f.read()
++                    cert2.cert = external_ocsp_signing_cert
+                 systemCerts.append(cert2)
+ 
+         # Create 'SSL Server Certificate'
+@@ -3307,7 +3674,22 @@ class ConfigClient:
+         # create new sslserver cert only if this is a new instance
+         cert3 = None
+         system_list = self.deployer.instance.tomcat_instance_subsystems()
+-        if len(system_list) >= 2:
++        if not config.str2bool(self.master_dict['pki_skip_configuration']) and\
++           ((self.master_dict['pki_subsystem'] == "KRA" or
++             self.master_dict['pki_subsystem'] == "OCSP") and
++            config.str2bool(self.master_dict['pki_standalone'])) and\
++           config.str2bool(self.master_dict['pki_external_step_two']):
++            cert3 = self.create_system_cert("ssl_server")
++            # Load the 'External CA SSL Server Certificate' (Step 2)
++            # for a Stand-alone PKI KRA/OCSP
++            print(
++                log.PKI_CONFIG_EXTERNAL_CERT_LOAD_PKI_SSLSERVER_1 + " " + \
++                "'" + self.master_dict['pki_external_sslserver_cert_path'] + "'",
++                self.master_dict['pki_subsystem'])
++            with open(self.master_dict['pki_external_sslserver_cert_path']) as f:
++                external_sslserver_cert = f.read()
++            cert3.cert = external_sslserver_cert
++        elif len(system_list) >= 2:
+             data.generateServerCert = "false"
+             for subsystem in system_list:
+                 dst = self.master_dict['pki_instance_path'] + '/conf/' + \
+@@ -3322,8 +3704,15 @@ class ConfigClient:
+ 
+         # Create 'Subsystem Certificate'
+         if not config.str2bool(self.master_dict['pki_clone']):
+-            cert4 = self.create_system_cert("subsystem")
+-            systemCerts.append(cert4)
++            if not config.str2bool(self.master_dict['pki_skip_configuration']) and\
++               ((self.master_dict['pki_subsystem'] == "KRA" or
++                 self.master_dict['pki_subsystem'] == "OCSP") and
++                config.str2bool(self.master_dict['pki_standalone'])):
++                # Stand-alone PKI KRA/OCSP does not contain a security domain
++                cert4 = None
++            else:
++                cert4 = self.create_system_cert("subsystem")
++                systemCerts.append(cert4)
+ 
+         # Create 'Audit Signing Certificate'
+         if not config.str2bool(self.master_dict['pki_clone']):
+@@ -3331,15 +3720,53 @@ class ConfigClient:
+                 cert5 = self.create_system_cert("audit_signing")
+                 cert5.signingAlgorithm = \
+                     self.master_dict['pki_audit_signing_signing_algorithm']
++                if not config.str2bool(self.master_dict['pki_skip_configuration']) and\
++                   ((self.master_dict['pki_subsystem'] == "KRA" or
++                     self.master_dict['pki_subsystem'] == "OCSP") and
++                    config.str2bool(self.master_dict['pki_standalone'])) and\
++                   config.str2bool(self.master_dict['pki_external_step_two']):
++                    # Load the 'External CA Audit Signing Certificate' (Step 2)
++                    # for a Stand-alone PKI KRA/OCSP
++                    print(
++                        log.PKI_CONFIG_EXTERNAL_CERT_LOAD_PKI_AUDIT_SIGNING_1 +\
++                        " '" + self.master_dict['pki_external_audit_signing_cert_path'] + "'",
++                        self.master_dict['pki_subsystem'])
++                    with open(self.master_dict['pki_external_audit_signing_cert_path']) as f:
++                        external_audit_signing_cert = f.read()
++                    cert5.cert = external_audit_signing_cert
+                 systemCerts.append(cert5)
+ 
+         # Create DRM Transport and storage Certificates
+         if not config.str2bool(self.master_dict['pki_clone']):
+             if self.master_dict['pki_subsystem'] == "KRA":
+                 cert6 = self.create_system_cert("transport")
++                if not config.str2bool(self.master_dict['pki_skip_configuration']) and\
++                   (self.master_dict['pki_subsystem'] == "KRA" and
++                    config.str2bool(self.master_dict['pki_standalone'])) and\
++                   config.str2bool(self.master_dict['pki_external_step_two']):
++                    # Load the 'External CA KRA Transport Certificate' (Step 2)
++                    # for a Stand-alone PKI KRA
++                    print(
++                        log.PKI_CONFIG_EXTERNAL_CERT_LOAD_KRA_TRANSPORT + \
++                        " '" + self.master_dict['pki_external_transport_cert_path'] + "'")
++                    with open(self.master_dict['pki_external_transport_cert_path']) as f:
++                        external_transport_cert = f.read()
++                    cert6.cert = external_transport_cert
+                 systemCerts.append(cert6)
+ 
+                 cert7 = self.create_system_cert("storage")
++                if not config.str2bool(self.master_dict['pki_skip_configuration']) and\
++                   (self.master_dict['pki_subsystem'] == "KRA" and
++                    config.str2bool(self.master_dict['pki_standalone'])) and\
++                   config.str2bool(self.master_dict['pki_external_step_two']):
++                    # Load the 'External CA KRA Storage Certificate' (Step 2)
++                    # for a Stand-alone PKI KRA
++                    print(
++                        log.PKI_CONFIG_EXTERNAL_CERT_LOAD_KRA_STORAGE + \
++                        " '" + self.master_dict['pki_external_storage_cert_path'] + "'")
++                    with open(self.master_dict['pki_external_storage_cert_path']) as f:
++                        external_storage_cert = f.read()
++                    cert7.cert = external_storage_cert
+                 systemCerts.append(cert7)
+ 
+         data.systemCerts = systemCerts
+@@ -3384,6 +3811,9 @@ class ConfigClient:
+         data.securityDomainType = "newdomain"
+         data.securityDomainName = self.master_dict['pki_security_domain_name']
+ 
++    def set_no_security_domain(self, data):
++        data.securityDomainType = "sansdomain"
++
+     def set_database_parameters(self, data):
+         data.dsHost = self.master_dict['pki_ds_hostname']
+         data.dsPort = self.master_dict['pki_ds_ldap_port']
+@@ -3477,6 +3907,13 @@ class ConfigClient:
+                config.str2bool(self.master_dict['pki_external_step_two']):
+                 # External CA Step 2
+                 data.stepTwo = "true"
++            elif not config.str2bool(self.master_dict['pki_skip_configuration']) and\
++                 ((self.master_dict['pki_subsystem'] == "KRA" or
++                   self.master_dict['pki_subsystem'] == "OCSP") and
++                  config.str2bool(self.master_dict['pki_standalone'])) and\
++                 config.str2bool(self.master_dict['pki_external_step_two']):
++                # Stand-alone PKI KRA/OCSP (External CA Step 2)
++                data.stepTwo = "true"
+ 
+     def set_tps_parameters(self, data):
+         data.caUri = self.master_dict['pki_ca_uri']
+diff --git a/base/server/python/pki/server/deployment/pkimessages.py b/base/server/python/pki/server/deployment/pkimessages.py
+index a3be42e..f2643cd 100644
+--- a/base/server/python/pki/server/deployment/pkimessages.py
++++ b/base/server/python/pki/server/deployment/pkimessages.py
+@@ -300,7 +300,25 @@ PKI_CONFIG_EXTERNAL_CA_LOAD = "loading external CA signing certificate "\
+                               "from file:"
+ PKI_CONFIG_EXTERNAL_CA_CHAIN_LOAD = "loading external CA signing certificate "\
+                                     "chain from file:"
++PKI_CONFIG_EXTERNAL_CERT_LOAD_KRA_STORAGE = "loading external CA KRA Storage "\
++                                            "certificate from file:"
++PKI_CONFIG_EXTERNAL_CERT_LOAD_KRA_TRANSPORT = "loading external CA KRA "\
++                                              "Transport certificate from file:"
++PKI_CONFIG_EXTERNAL_CERT_LOAD_OCSP_SIGNING = "loading external CA OCSP "\
++                                             "Signing certificate from file:"
++PKI_CONFIG_EXTERNAL_CERT_LOAD_PKI_SSLSERVER_1 = "loading external CA %s SSL "\
++                                                "Server certificate from file:"
++PKI_CONFIG_EXTERNAL_CERT_LOAD_PKI_AUDIT_SIGNING_1 = "loading external CA %s "\
++                                                    "Audit Signing "\
++                                                    "certificate from file:"
+ PKI_CONFIG_EXTERNAL_CSR_SAVE = "saving CA Signing CSR to file:"
++PKI_CONFIG_EXTERNAL_CSR_SAVE_KRA_STORAGE = "saving KRA Storage CSR to file:"
++PKI_CONFIG_EXTERNAL_CSR_SAVE_KRA_TRANSPORT = "saving KRA Transport CSR to file:"
++PKI_CONFIG_EXTERNAL_CSR_SAVE_OCSP_SIGNING = "saving OCSP Signing CSR to file:"
++PKI_CONFIG_EXTERNAL_CSR_SAVE_PKI_AUDIT_SIGNING_1 = "saving %s Audit Signing "\
++                                                   "CSR to file:"
++PKI_CONFIG_EXTERNAL_CSR_SAVE_PKI_SSLSERVER_1 = "saving %s SSL Server CSR "\
++                                               "to file:"
+ PKI_CONFIG_JAVA_CONFIGURATION_EXCEPTION = \
+     "Exception from Java Configuration Servlet:"
+ PKI_CONFIG_RESPONSE_ADMIN_CERT = "adminCert:"
+diff --git a/base/server/python/pki/server/deployment/pkiparser.py b/base/server/python/pki/server/deployment/pkiparser.py
+index e7b23a6..398f002 100644
+--- a/base/server/python/pki/server/deployment/pkiparser.py
++++ b/base/server/python/pki/server/deployment/pkiparser.py
+@@ -951,9 +951,22 @@ class PKIConfigParser:
+                 else:
+                     self.pki_master_dict['pki_security_domain_user'] = "caadmin"
+ 
+-            if config.pki_subsystem != "CA" or\
+-               config.str2bool(self.pki_master_dict['pki_clone']) or\
+-               config.str2bool(self.pki_master_dict['pki_subordinate']):
++            if not config.str2bool(self.pki_master_dict['pki_skip_configuration']) and\
++               ((self.pki_master_dict['pki_subsystem'] == "KRA" or
++                 self.pki_master_dict['pki_subsystem'] == "OCSP") and\
++                config.str2bool(self.pki_master_dict['pki_standalone'])):
++                # Stand-alone PKI KRA/OCSP
++                self.pki_master_dict['pki_security_domain_hostname'] = ""
++                self.pki_master_dict['pki_security_domain_https_port'] = ""
++                self.pki_master_dict['pki_security_domain_name'] = ""
++                self.pki_master_dict['pki_security_domain_password'] = ""
++                self.pki_master_dict['pki_security_domain_type'] = "none"
++                self.pki_master_dict['pki_security_domain_uri'] = ""
++                self.pki_master_dict['pki_security_domain_user'] = ""
++                self.pki_master_dict['pki_issuing_ca'] = "External CA"
++            elif config.pki_subsystem != "CA" or\
++                 config.str2bool(self.pki_master_dict['pki_clone']) or\
++                 config.str2bool(self.pki_master_dict['pki_subordinate']):
+                 # PKI KRA, PKI OCSP, PKI RA, PKI TKS, PKI TPS,
+                 # CA Clone, KRA Clone, OCSP Clone, TKS Clone, TPS Clone, or
+                 # Subordinate CA
+@@ -1009,6 +1022,12 @@ class PKIConfigParser:
+ 
+             if not 'pki_import_admin_cert' in self.pki_master_dict:
+                 self.pki_master_dict['pki_import_admin_cert'] = 'false'
++            elif not config.str2bool(self.pki_master_dict['pki_skip_configuration']) and\
++                 ((self.pki_master_dict['pki_subsystem'] == "KRA" or
++                   self.pki_master_dict['pki_subsystem'] == "OCSP") and\
++                  config.str2bool(self.pki_master_dict['pki_standalone'])):
++                # Stand-alone PKI KRA/OCSP
++                self.pki_master_dict['pki_import_admin_cert'] = 'false'
+ 
+             self.pki_master_dict['pki_ca_signing_tag'] = "signing"
+             if self.pki_master_dict['pki_subsystem'] == "CA":
+diff --git a/base/server/python/pki/server/deployment/scriptlets/configuration.py b/base/server/python/pki/server/deployment/scriptlets/configuration.py
+index 004d8c2..465ccc5 100644
+--- a/base/server/python/pki/server/deployment/scriptlets/configuration.py
++++ b/base/server/python/pki/server/deployment/scriptlets/configuration.py
+@@ -35,6 +35,12 @@ class PkiScriptlet(pkiscriptlet.AbstractBasePkiScriptlet):
+ 
+     def spawn(self, deployer):
+ 
++        # ALWAYS establish the following Tomcat instance symbolic link since
++        # this link is required by both automatic pkispawn instance
++        # configuration as well as manual browser GUI instance configuration
++        deployer.symlink.create(deployer.master_dict['pki_systemd_service'],
++                                deployer.master_dict['pki_systemd_service_link'])
++
+         if config.str2bool(deployer.master_dict['pki_skip_configuration']):
+             config.pki_log.info(log.SKIP_CONFIGURATION_SPAWN_1, __name__,
+                                 extra=config.PKI_INDENTATION_LEVEL_1)
+@@ -70,8 +76,6 @@ class PkiScriptlet(pkiscriptlet.AbstractBasePkiScriptlet):
+             deployer.master_dict['pki_client_key_database'],
+             deployer.master_dict['pki_client_secmod_database'],
+             password_file=deployer.master_dict['pki_client_password_conf'])
+-        deployer.symlink.create(deployer.master_dict['pki_systemd_service'],
+-                            deployer.master_dict['pki_systemd_service_link'])
+ 
+         # Start/Restart this Apache/Tomcat PKI Process
+         if deployer.master_dict['pki_subsystem'] in config.PKI_APACHE_SUBSYSTEMS:
+diff --git a/base/server/sbin/pkispawn b/base/server/sbin/pkispawn
+index 988dd60..e7422ca 100755
+--- a/base/server/sbin/pkispawn
++++ b/base/server/sbin/pkispawn
+@@ -341,7 +341,10 @@ def main(argv):
+             print 'ERROR:  Unable to access directory server: ' + e.message['desc']
+             sys.exit(1)
+ 
+-        if config.pki_subsystem != "CA" or\
++        if ((config.pki_subsystem == "KRA" or
++             config.pki_subsystem == "OCSP") and\
++            not config.str2bool(parser.pki_master_dict['pki_standalone'])) or\
++            config.pki_subsystem != "CA" or\
+             config.str2bool(parser.pki_master_dict['pki_clone']) or\
+             config.str2bool(parser.pki_master_dict['pki_subordinate']):
+             try:
+diff --git a/base/server/scripts/operations b/base/server/scripts/operations
+index b71893e..40f4401 100644
+--- a/base/server/scripts/operations
++++ b/base/server/scripts/operations
+@@ -452,9 +452,9 @@ get_pki_status_definitions_ra()
+     for port in `sed -n 's/^[ \t]*Listen[ \t][ \t]*\([^ \t][^ \t]*\)/\1/p' ${PKI_HTTPD_CONF}`; do
+         PKI_UNSECURE_PORT=$port
+         if [ $total_ports -eq 0 ]; then
+-            echo "    Unsecure Port              = http://${PKI_HOSTNAME}:${PKI_UNSECURE_PORT}"
++            echo "    Unsecure URL               = http://${PKI_HOSTNAME}:${PKI_UNSECURE_PORT}"
+         else
+-            echo "ERROR: extra Unsecure Port = http://${PKI_HOSTNAME}:${PKI_UNSECURE_PORT}"
++            echo "ERROR: extra Unsecure URL  = http://${PKI_HOSTNAME}:${PKI_UNSECURE_PORT}"
+         fi
+         total_ports=`expr ${total_ports} + 1`
+ 
+@@ -465,11 +465,11 @@ get_pki_status_definitions_ra()
+         PKI_UNSECURE_PORT=$port
+         if [ $total_ports -eq 1 ]; then
+             CLIENTAUTH_PORT=$port
+-            echo "    Secure Clientauth Port     = https://${PKI_HOSTNAME}:${CLIENTAUTH_PORT}"
++            echo "    Secure Clientauth URL      = https://${PKI_HOSTNAME}:${CLIENTAUTH_PORT}"
+         fi
+         if [ $total_ports -eq 2 ]; then
+             NON_CLIENTAUTH_PORT=$port
+-            echo "    Secure Non-Clientauth Port = https://${PKI_HOSTNAME}:${NON_CLIENTAUTH_PORT}"
++            echo "    Secure Non-Clientauth URL  = https://${PKI_HOSTNAME}:${NON_CLIENTAUTH_PORT}"
+         fi
+         total_ports=`expr ${total_ports} + 1`
+ 
+@@ -502,12 +502,12 @@ get_pki_status_definitions_tps()
+     for port in `sed -n 's/^[ \t]*Listen[ \t][ \t]*\([^ \t][^ \t]*\)/\1/p' ${PKI_HTTPD_CONF}`; do
+         PKI_UNSECURE_PORT=$port
+         if [ $total_ports -eq 0 ]; then
+-            echo "    Unsecure Port              = http://${PKI_HOSTNAME}:${PKI_UNSECURE_PORT}/cgi-bin/so/enroll.cgi"
++            echo "    Unsecure URL               = http://${PKI_HOSTNAME}:${PKI_UNSECURE_PORT}/cgi-bin/so/enroll.cgi"
+             echo "                                 (ESC Security Officer Enrollment)"
+-            echo "    Unsecure Port              = http://${PKI_HOSTNAME}:${PKI_UNSECURE_PORT}/cgi-bin/home/index.cgi"
++            echo "    Unsecure URL               = http://${PKI_HOSTNAME}:${PKI_UNSECURE_PORT}/cgi-bin/home/index.cgi"
+             echo "                                 (ESC Phone Home)"
+         else
+-            echo "ERROR: extra Unsecure Port = http://${PKI_HOSTNAME}:${PKI_UNSECURE_PORT}"
++            echo "ERROR: extra Unsecure URL  = http://${PKI_HOSTNAME}:${PKI_UNSECURE_PORT}"
+         fi
+         total_ports=`expr ${total_ports} + 1`
+ 
+@@ -518,16 +518,16 @@ get_pki_status_definitions_tps()
+         PKI_UNSECURE_PORT=$port
+         if [ $total_ports -eq 1 ]; then
+             CLIENTAUTH_PORT=$port
+-            echo "    Secure Clientauth Port     = https://${PKI_HOSTNAME}:${CLIENTAUTH_PORT}/cgi-bin/sow/welcome.cgi"
++            echo "    Secure Clientauth URL      = https://${PKI_HOSTNAME}:${CLIENTAUTH_PORT}/cgi-bin/sow/welcome.cgi"
+             echo "                                 (ESC Security Officer Workstation)"
+-            echo "    Secure Clientauth Port     = https://${PKI_HOSTNAME}:${CLIENTAUTH_PORT}/tus"
++            echo "    Secure Clientauth URL      = https://${PKI_HOSTNAME}:${CLIENTAUTH_PORT}/tus"
+             echo "                                 (TPS Roles - Operator/Administrator/Agent)"
+         fi
+         if [ $total_ports -eq 2 ]; then
+             NON_CLIENTAUTH_PORT=$port
+-            echo "    Secure Non-Clientauth Port = https://${PKI_HOSTNAME}:${NON_CLIENTAUTH_PORT}/cgi-bin/so/enroll.cgi"
++            echo "    Secure Non-Clientauth URL  = https://${PKI_HOSTNAME}:${NON_CLIENTAUTH_PORT}/cgi-bin/so/enroll.cgi"
+             echo "                                 (ESC Security Officer Enrollment)"
+-            echo "    Secure Non-Clientauth Port = https://${PKI_HOSTNAME}:${NON_CLIENTAUTH_PORT}/cgi-bin/home/index.cgi"
++            echo "    Secure Non-Clientauth URL  = https://${PKI_HOSTNAME}:${NON_CLIENTAUTH_PORT}/cgi-bin/home/index.cgi"
+             echo "                                 (ESC Phone Home)"
+         fi
+         total_ports=`expr ${total_ports} + 1`
+@@ -553,6 +553,12 @@ get_pki_status_definitions_tomcat()
+     secure_ee_client_auth_port_statement="EE Client Auth Port"
+     secure_admin_port_statement="Secure Admin Port"
+     pki_console_port_statement="PKI Console Port"
++    unsecure_url_statement="Unsecure URL"
++    secure_agent_url_statement="Secure Agent URL"
++    secure_ee_url_statement="Secure EE URL"
++    secure_ee_client_auth_url_statement="EE Client Auth URL"
++    secure_admin_url_statement="Secure Admin URL"
++    pki_console_command_statement="PKI Console Command"
+     tomcat_port_statement="Tomcat Port"
+ 
+     # initialize looping variables
+@@ -658,6 +664,12 @@ get_pki_status_definitions_tomcat()
+                     [ "$head" == "$secure_admin_port_statement" ]          ||
+                     [ "$head" == "$secure_ee_client_auth_port_statement" ] ||
+                     [ "$head" == "$pki_console_port_statement"  ]          ||
++                    [ "$head" == "$unsecure_url_statement"      ]          ||
++                    [ "$head" == "$secure_agent_url_statement"  ]          ||
++                    [ "$head" == "$secure_ee_url_statement"     ]          ||
++                    [ "$head" == "$secure_admin_url_statement"  ]          ||
++                    [ "$head" == "$secure_ee_client_auth_url_statement" ]  ||
++                    [ "$head" == "$pki_console_command_statement"  ]       ||
+                     [ "$head" == "$tomcat_port_statement"       ] ; then
+                      echo "    $line"
+                      total_ports=`expr ${total_ports} + 1`
+@@ -745,31 +757,70 @@ get_pki_configuration_definitions()
+         fi
+     fi
+ 
+-    # Always obtain this PKI instance's "registered"
+-    # security domain information
+-    pki_security_domain_name=""
+-    pki_security_domain_hostname=""
+-    pki_security_domain_https_admin_port=""
+-
+-    line=`grep -e '^[ \t]*securitydomain.name[ \t]*=' ${PKI_SUBSYSTEM_CONFIGURATION_FILE}`
+-    if [ "${line}" != "" ] ; then
+-        pki_security_domain_name=`echo "${line}" | sed -e 's/^[^=]*[ \t]*=[ \t]*\(.*\)/\1/' -e 's/[ \t]*$//'`
+-    else
+-        return ${default_error}
++    # If ${pki_subsystem} is a DRM or OCSP, check to see if
++    # it is either a Stand-alone DRM or a Stand-alone OCSP
++    #
++    #     NOTE:  Ignore errors when the '<pki>.standalone' parameter
++    #            is not present as this is most likely a legacy instance!
++    #
++    pki_standalone=""
++    if  [ "${pki_subsystem}" == "DRM"  ] ; then
++        line=`grep -e '^[ \t]*kra.standalone[ \t]*=' ${PKI_SUBSYSTEM_CONFIGURATION_FILE}`
++        if [ "${line}" != "" ] ; then
++            pki_standalone=`echo "${line}" | sed -e 's/^[^=]*[ \t]*=[ \t]*\(.*\)/\1/' -e 's/[ \t]*$//'`
++            if [ "${pki_standalone}" == "true" ] ; then
++                # Set a fixed value for "${pki_standalone}"
++                pki_standalone="(Stand-alone)"
++            else
++                # Reset "${pki_standalone}" to be empty
++                pki_standalone=""
++            fi
++        fi
++    elif [ "${pki_subsystem}" == "OCSP" ] ; then
++        line=`grep -e '^[ \t]*ocsp.standalone[ \t]*=' ${PKI_SUBSYSTEM_CONFIGURATION_FILE}`
++        if [ "${line}" != "" ] ; then
++            pki_standalone=`echo "${line}" | sed -e 's/^[^=]*[ \t]*=[ \t]*\(.*\)/\1/' -e 's/[ \t]*$//'`
++            if [ "${pki_standalone}" == "true" ] ; then
++                # Set a fixed value for "${pki_standalone}"
++                pki_standalone="(Stand-alone)"
++            else
++                # Reset "${pki_standalone}" to be empty
++                pki_standalone=""
++            fi
++        fi
+     fi
+ 
+-    line=`grep -e '^[ \t]*securitydomain.host[ \t]*=' ${PKI_SUBSYSTEM_CONFIGURATION_FILE}`
+-    if [ "${line}" != "" ] ; then
+-        pki_security_domain_hostname=`echo "${line}" | sed -e 's/^[^=]*[ \t]*=[ \t]*\(.*\)/\1/' -e 's/[ \t]*$//'`
+-    else
+-        return ${default_error}
+-    fi
++    if [ "${pki_standalone}" == "" ] ; then
++        # Always obtain this PKI instance's "registered"
++        # security domain information
++        pki_security_domain_name=""
++        pki_security_domain_hostname=""
++        pki_security_domain_https_admin_port=""
+ 
+-    line=`grep -e '^[ \t]*securitydomain.httpsadminport[ \t]*=' ${PKI_SUBSYSTEM_CONFIGURATION_FILE}`
+-    if [ "${line}" != "" ] ; then
+-        pki_security_domain_https_admin_port=`echo "${line}" | sed -e 's/^[^=]*[ \t]*=[ \t]*\(.*\)/\1/' -e 's/[ \t]*$//'`
+-    else
+-        return ${default_error}
++        line=`grep -e '^[ \t]*securitydomain.name[ \t]*=' ${PKI_SUBSYSTEM_CONFIGURATION_FILE}`
++        if [ "${line}" != "" ] ; then
++            pki_security_domain_name=`echo "${line}" | sed -e 's/^[^=]*[ \t]*=[ \t]*\(.*\)/\1/' -e 's/[ \t]*$//'`
++            if [ "${pki_security_domain_name:0:3}" == ",o=" ] ; then
++                # Strip off DN prefix
++                pki_security_domain_name="${pki_security_domain_name:3}"
++            fi
++        else
++            return ${default_error}
++        fi
++
++        line=`grep -e '^[ \t]*securitydomain.host[ \t]*=' ${PKI_SUBSYSTEM_CONFIGURATION_FILE}`
++        if [ "${line}" != "" ] ; then
++            pki_security_domain_hostname=`echo "${line}" | sed -e 's/^[^=]*[ \t]*=[ \t]*\(.*\)/\1/' -e 's/[ \t]*$//'`
++        else
++            return ${default_error}
++        fi
++
++        line=`grep -e '^[ \t]*securitydomain.httpsadminport[ \t]*=' ${PKI_SUBSYSTEM_CONFIGURATION_FILE}`
++        if [ "${line}" != "" ] ; then
++            pki_security_domain_https_admin_port=`echo "${line}" | sed -e 's/^[^=]*[ \t]*=[ \t]*\(.*\)/\1/' -e 's/[ \t]*$//'`
++        else
++            return ${default_error}
++        fi
+     fi
+ 
+     # Compose the "PKI Instance Name" Status Line
+@@ -810,6 +861,13 @@ get_pki_configuration_definitions()
+             #
+             data="${pki_hierarchy} ${pki_subsystem}"
+         fi
++    elif [ "${pki_standalone}" != "" ] ; then
++        # Possible Values:
++        #
++        #     "DRM (Stand-alone)"
++        #     "OCSP (Stand-alone)"
++        #
++        data="${pki_subsystem} ${pki_standalone}"
+     else
+         # Possible Values:
+         #
+@@ -823,19 +881,21 @@ get_pki_configuration_definitions()
+     fi
+     pki_subsystem_type="${header} ${data}"
+ 
+-    # Compose the "Registered PKI Security Domain Information" Status Line
+-    header="Name: "
+-    registered_pki_security_domain_name="${header} ${pki_security_domain_name}"
++    if [ "${pki_standalone}" == "" ] ; then
++        # Compose the "Registered PKI Security Domain Information" Status Line
++        header="Name: "
++        registered_pki_security_domain_name="${header} ${pki_security_domain_name}"
+ 
+-    header="URL:  "
+-    if  [ "${pki_security_domain_hostname}" != ""         ] &&
+-        [ "${pki_security_domain_https_admin_port}" != "" ]
+-    then
+-        data="https://${pki_security_domain_hostname}:${pki_security_domain_https_admin_port}"
+-    else
+-        return ${default_error}
++        header="URL:  "
++        if  [ "${pki_security_domain_hostname}" != ""         ] &&
++            [ "${pki_security_domain_https_admin_port}" != "" ]
++        then
++            data="https://${pki_security_domain_hostname}:${pki_security_domain_https_admin_port}"
++        else
++            return ${default_error}
++        fi
++        registered_pki_security_domain_url="${header} ${data}"
+     fi
+-    registered_pki_security_domain_url="${header} ${data}"
+ 
+     # Print the "PKI Subsystem Type" Status Line
+     echo
+@@ -846,13 +906,15 @@ get_pki_configuration_definitions()
+     echo
+     echo "    ${pki_subsystem_type}"
+ 
+-    # Print the "Registered PKI Security Domain Information" Status Line
+-    echo
+-    echo "    Registered PKI Security Domain Information:"
+-    echo "    =========================================================================="
+-    echo "    ${registered_pki_security_domain_name}"
+-    echo "    ${registered_pki_security_domain_url}"
+-    echo "    =========================================================================="
++    if [ "${pki_standalone}" == "" ] ; then
++        # Print the "Registered PKI Security Domain Information" Status Line
++        echo
++        echo "    Registered PKI Security Domain Information:"
++        echo "    =========================================================================="
++        echo "    ${registered_pki_security_domain_name}"
++        echo "    ${registered_pki_security_domain_url}"
++        echo "    =========================================================================="
++    fi
+ 
+     return 0
+ }
+diff --git a/base/server/share/conf/server.xml b/base/server/share/conf/server.xml
+index 93af08b..ed4dacc 100644
+--- a/base/server/share/conf/server.xml
++++ b/base/server/share/conf/server.xml
+@@ -28,39 +28,39 @@
+ <!-- DO NOT REMOVE - Begin PKI Status Definitions -->
+ <!-- CA Status Definitions -->
+ <!--
+-Unsecure Port       = http://[PKI_HOSTNAME]:[PKI_UNSECURE_PORT]/ca/ee/ca
+-Secure Agent Port   = https://[PKI_HOSTNAME]:[PKI_AGENT_SECURE_PORT]/ca/agent/ca
+-Secure EE Port      = https://[PKI_HOSTNAME]:[PKI_EE_SECURE_PORT]/ca/ee/ca
+-Secure Admin Port   = https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/ca/services
+-EE Client Auth Port = https://[PKI_HOSTNAME]:[PKI_EE_SECURE_CLIENT_AUTH_PORT]/ca/eeca/ca
+-PKI Console Port    = pkiconsole https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/ca
++Unsecure URL        = http://[PKI_HOSTNAME]:[PKI_UNSECURE_PORT]/ca/ee/ca
++Secure Agent URL    = https://[PKI_HOSTNAME]:[PKI_AGENT_SECURE_PORT]/ca/agent/ca
++Secure EE URL       = https://[PKI_HOSTNAME]:[PKI_EE_SECURE_PORT]/ca/ee/ca
++Secure Admin URL    = https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/ca/services
++EE Client Auth URL  = https://[PKI_HOSTNAME]:[PKI_EE_SECURE_CLIENT_AUTH_PORT]/ca/eeca/ca
++PKI Console Command = pkiconsole https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/ca
+ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+ -->
+ <!-- KRA Status Definitions -->
+ <!--
+-Unsecure Port       = http://[PKI_HOSTNAME]:[PKI_UNSECURE_PORT]/kra/ee/kra
+-Secure Agent Port   = https://[PKI_HOSTNAME]:[PKI_AGENT_SECURE_PORT]/kra/agent/kra
+-Secure EE Port      = https://[PKI_HOSTNAME]:[PKI_EE_SECURE_PORT]/kra/ee/kra
+-Secure Admin Port   = https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/kra/services
+-PKI Console Port    = pkiconsole https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/kra
++Unsecure URL        = http://[PKI_HOSTNAME]:[PKI_UNSECURE_PORT]/kra/ee/kra
++Secure Agent URL    = https://[PKI_HOSTNAME]:[PKI_AGENT_SECURE_PORT]/kra/agent/kra
++Secure EE URL       = https://[PKI_HOSTNAME]:[PKI_EE_SECURE_PORT]/kra/ee/kra
++Secure Admin URL    = https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/kra/services
++PKI Console Command = pkiconsole https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/kra
+ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+ -->
+ <!-- OCSP Status Definitions -->
+ <!--
+-Unsecure Port       = http://[PKI_HOSTNAME]:[PKI_UNSECURE_PORT]/ocsp/ee/ocsp
+-Secure Agent Port   = https://[PKI_HOSTNAME]:[PKI_AGENT_SECURE_PORT]/ocsp/agent/ocsp
+-Secure EE Port      = https://[PKI_HOSTNAME]:[PKI_EE_SECURE_PORT]/ocsp/ee/ocsp
+-Secure Admin Port   = https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/ocsp/services
+-PKI Console Port    = pkiconsole https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/ocsp
++Unsecure URL        = http://[PKI_HOSTNAME]:[PKI_UNSECURE_PORT]/ocsp/ee/ocsp
++Secure Agent URL    = https://[PKI_HOSTNAME]:[PKI_AGENT_SECURE_PORT]/ocsp/agent/ocsp
++Secure EE URL       = https://[PKI_HOSTNAME]:[PKI_EE_SECURE_PORT]/ocsp/ee/ocsp
++Secure Admin URL    = https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/ocsp/services
++PKI Console Command = pkiconsole https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/ocsp
+ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+ -->
+ <!-- TKS Status Definitions -->
+ <!--
+-Unsecure Port       = http://[PKI_HOSTNAME]:[PKI_UNSECURE_PORT]/tks/ee/tks
+-Secure Agent Port   = https://[PKI_HOSTNAME]:[PKI_AGENT_SECURE_PORT]/tks/agent/tks
+-Secure EE Port      = https://[PKI_HOSTNAME]:[PKI_EE_SECURE_PORT]/tks/ee/tks
+-Secure Admin Port   = https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/tks/services
+-PKI Console Port    = pkiconsole https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/tks
++Unsecure URL        = http://[PKI_HOSTNAME]:[PKI_UNSECURE_PORT]/tks/ee/tks
++Secure Agent URL    = https://[PKI_HOSTNAME]:[PKI_AGENT_SECURE_PORT]/tks/agent/tks
++Secure EE URL       = https://[PKI_HOSTNAME]:[PKI_EE_SECURE_PORT]/tks/ee/tks
++Secure Admin URL    = https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/tks/services
++PKI Console Command = pkiconsole https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/tks
+ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+ -->
+ <!-- DO NOT REMOVE - End PKI Status Definitions -->
+diff --git a/base/server/share/webapps/pki/admin/console/config/adminpanel.vm b/base/server/share/webapps/pki/admin/console/config/adminpanel.vm
+index 37d9227..f587ac4 100644
+--- a/base/server/share/webapps/pki/admin/console/config/adminpanel.vm
++++ b/base/server/share/webapps/pki/admin/console/config/adminpanel.vm
+@@ -23,7 +23,7 @@ function myOnLoad() {
+ function performPanel() {
+     var email = document.forms[0].email.value;
+     var name = document.forms[0].name.value;
+-    var o = '$securityDomain';
++    var securitydomain = document.forms[0].securitydomain.value;
+     if (name == '') {
+         alert("Name is empty");
+         return;
+@@ -32,7 +32,12 @@ function performPanel() {
+         alert("Email is empty");
+         return;
+     }
+-    var dn = "cn=" + name + ",uid=admin,e="+email+",o="+o;
++    var dn = "";
++    if (securitydomain == '') {
++        dn = "cn=" + name + ",uid=admin,e="+email;
++    } else {
++        dn = "cn=" + name + ",uid=admin,e="+email+",o="+securitydomain;
++    }
+     document.forms[0].subject.value = dn;
+     var keyGenAlg = "rsa-dual-use";
+     var keyParams = null;
+@@ -112,7 +117,12 @@ Sub Send_OnClick
+ 
+   TheForm.cert_request.Value = szCertReq
+   TheForm.cert_request_type.Value = "pkcs10"
+-  TheForm.subject.Value = "cn=" & TheForm.name.Value & ",uid=" & TheForm.uid.Value & ",e=" & TheForm.email.Value & ",o=" & TheForm.securitydomain.Value
++  TheForm.subject.Value  = ""
++  If (TheForm.securitydomain.Value = "") Then
++      TheForm.subject.Value = "cn=" & TheForm.name.Value & ",uid=" & TheForm.uid.Value & ",e=" & TheForm.email.Value
++  Else
++      TheForm.subject.Value = "cn=" & TheForm.name.Value & ",uid=" & TheForm.uid.Value & ",e=" & TheForm.email.Value & ",o=" & TheForm.securitydomain.Value
++  End If
+ 
+   TheForm.Submit
+   Exit Sub
+@@ -173,6 +183,15 @@ End Function
+ </SCRIPT>
+ The administrator is a privileged user who manages this subsystem. Please enter the following relevant information, and a certificate request will be automatically generated and submitted. An administrator's entry will be created in the internal database and an administrator's certificate will be imported into this browser automatically in the next panel.
+ <br/>
++#if (($cstype == "KRA") || ($cstype == "OCSP"))
++<table>
++<tr>
++<td valign="top"><b>NOTE:&nbsp;&nbsp; </b></td>
++<td>For a stand-alone $pkitype, an Admin Certificate request will be generated and stored in the "CS.cfg" configuration file as the value of the '${lc_cstype}.admin.certreq' parameter.  This request must be submitted to an External CA to obtain a valid Admin Certificate which may be manually imported into the browser.</td>
++</tr>
++</table>
++#end
++<br/>
+ #if ($errorString != "")
+ <img src="/pki/images/icon_crit_update.gif">&nbsp;<font color="red">$errorString</font>
+ #end
+diff --git a/base/server/share/webapps/pki/admin/console/config/certrequestpanel.vm b/base/server/share/webapps/pki/admin/console/config/certrequestpanel.vm
+index 0502834..3ddedb4 100644
+--- a/base/server/share/webapps/pki/admin/console/config/certrequestpanel.vm
++++ b/base/server/share/webapps/pki/admin/console/config/certrequestpanel.vm
+@@ -114,7 +114,8 @@ A certificate signing request (CSR) contains a public key and is an unsigned cop
+ <p>
+ If a given CSR has been successfully signed by a CA, then the certificate will be designated below by a certificate icon labeled Certificate Generated Successfully.
+ <p>
+-However, if a given CSR contains an <font color="red">action required</font> label under its certificate icon, then those requests must be <i>manually</i> submitted to a CA for certificate generation.
++However, if a given CSR contains a certificate icon labeled <font color="red">action required</font>, then those requests must be <i>manually</i> submitted to a CA for certificate generation.  The URLs associated with each certificate listed below will produce modal dialog boxes (i. e. - tiny pop-up windows that can NOT be opened as a separate browser tab) which may be used to paste in the contents.
++<p>
+ <p>
+ Press the [Apply] button after certificates and chains are pasted in.
+ <p>
+diff --git a/base/server/share/webapps/pki/admin/console/config/importadmincertpanel.vm b/base/server/share/webapps/pki/admin/console/config/importadmincertpanel.vm
+index 53d4459..d946e12 100644
+--- a/base/server/share/webapps/pki/admin/console/config/importadmincertpanel.vm
++++ b/base/server/share/webapps/pki/admin/console/config/importadmincertpanel.vm
+@@ -26,7 +26,11 @@ function performPanel() {
+     }
+ }
+ </SCRIPT>
++#if ($import == 'true')
+ An administrator's certificate has been created and imported into this browser. This certificate is used to access the agent interface of this subsystem.
++#else
++An Admin Certificate request for this stand-alone $pkitype has been generated and stored in the "CS.cfg" configuration file as the value of the '${lc_cstype}.admin.certreq' parameter.  This request must be submitted to an External CA to obtain a valid Admin Certificate which may be manually imported into the browser to be used to access the agent interface of this subsystem.
++#end
+ <p>
+ #if ($errorString != "")
+ <img src="/pki/images/icon_crit_update.gif">&nbsp;<font color="red">$errorString</font>
+diff --git a/base/server/share/webapps/pki/admin/console/config/securitydomainpanel.vm b/base/server/share/webapps/pki/admin/console/config/securitydomainpanel.vm
+index a8ac15b..c977d9e 100644
+--- a/base/server/share/webapps/pki/admin/console/config/securitydomainpanel.vm
++++ b/base/server/share/webapps/pki/admin/console/config/securitydomainpanel.vm
+@@ -83,6 +83,23 @@ If no security domain exists, a new one must be created for this CA.
+     </table>
+ <br/>
+ <b><input $check_existingdomain type=radio name=choice value="existingdomain">&nbsp;Join an Existing Security Domain </b>
++#elseif (($cstype == "KRA") || ($cstype == "OCSP"))
++<b><input disabled="disabled" type=radio name=choice value="newdomain">&nbsp;Create a New Security Domain </b>
++<br/>
++If no security domain exists, a new one must be created for this CA.
++    <table class="details">
++      <tr>
++        <th>Security Domain Name: </th>
++        <td><input disabled="disabled" type=text size="40" name="sdomainName" value="$sdomainName"> (e.g. - Dogtag Security Domain)</td>
++      </tr>
++    </table>
++<br/>
++<b><input $check_sansdomain type=radio name=choice value="sansdomain">&nbsp;Stand-alone $pkitype</b>
++<br/>
++If this $pkitype is being provided for stand-alone use (i. e. - utilizes an external CA exclusively), it does not need to be registered with a security domain.
++<br/>
++<br/>
++<b><input checked type=radio name=choice value="existingdomain">&nbsp;Join an Existing Security Domain </b>
+ #else
+ <b><input disabled="disabled" type=radio name=choice value="newdomain">&nbsp;Create a New Security Domain </b>
+ <br/>
+diff --git a/base/tks/shared/conf/server.xml b/base/tks/shared/conf/server.xml
+index 29b1777..02de97e 100644
+--- a/base/tks/shared/conf/server.xml
++++ b/base/tks/shared/conf/server.xml
+@@ -27,11 +27,11 @@
+ 
+ <!-- DO NOT REMOVE - Begin PKI Status Definitions -->
+ <!--
+-Unsecure Port       = http://[PKI_HOSTNAME]:[PKI_UNSECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/ee/[PKI_SUBSYSTEM_TYPE]
+-Secure Agent Port   = https://[PKI_HOSTNAME]:[PKI_AGENT_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/agent/[PKI_SUBSYSTEM_TYPE]
+-Secure EE Port      = https://[PKI_HOSTNAME]:[PKI_EE_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/ee/[PKI_SUBSYSTEM_TYPE]
+-Secure Admin Port   = https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/services
+-PKI Console Port    = pkiconsole https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]
++Unsecure URL        = http://[PKI_HOSTNAME]:[PKI_UNSECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/ee/[PKI_SUBSYSTEM_TYPE]
++Secure Agent URL    = https://[PKI_HOSTNAME]:[PKI_AGENT_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/agent/[PKI_SUBSYSTEM_TYPE]
++Secure EE URL       = https://[PKI_HOSTNAME]:[PKI_EE_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/ee/[PKI_SUBSYSTEM_TYPE]
++Secure Admin URL    = https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/services
++PKI Console Command = pkiconsole https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]
+ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+ -->
+ <!-- DO NOT REMOVE - End PKI Status Definitions -->
+diff --git a/base/tps-tomcat/shared/conf/server.xml b/base/tps-tomcat/shared/conf/server.xml
+index b66cb51..ad11d4d 100644
+--- a/base/tps-tomcat/shared/conf/server.xml
++++ b/base/tps-tomcat/shared/conf/server.xml
+@@ -27,11 +27,11 @@
+ 
+ <!-- DO NOT REMOVE - Begin PKI Status Definitions -->
+ <!--
+-Unsecure Port       = http://[PKI_HOSTNAME]:[PKI_UNSECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/ee/[PKI_SUBSYSTEM_TYPE]
+-Secure Agent Port   = https://[PKI_HOSTNAME]:[PKI_AGENT_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/agent/[PKI_SUBSYSTEM_TYPE]
+-Secure EE Port      = https://[PKI_HOSTNAME]:[PKI_EE_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/ee/[PKI_SUBSYSTEM_TYPE]
+-Secure Admin Port   = https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/services
+-PKI Console Port    = pkiconsole https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]
++Unsecure URL        = http://[PKI_HOSTNAME]:[PKI_UNSECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/ee/[PKI_SUBSYSTEM_TYPE]
++Secure Agent URL    = https://[PKI_HOSTNAME]:[PKI_AGENT_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/agent/[PKI_SUBSYSTEM_TYPE]
++Secure EE URL       = https://[PKI_HOSTNAME]:[PKI_EE_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/ee/[PKI_SUBSYSTEM_TYPE]
++Secure Admin URL    = https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]/services
++PKI Console Command = pkiconsole https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/[PKI_SUBSYSTEM_TYPE]
+ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+ -->
+ <!-- DO NOT REMOVE - End PKI Status Definitions -->
+-- 
+1.8.2.1
+

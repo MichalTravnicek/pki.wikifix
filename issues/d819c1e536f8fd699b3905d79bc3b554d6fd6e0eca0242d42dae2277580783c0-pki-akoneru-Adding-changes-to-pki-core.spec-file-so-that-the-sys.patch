@@ -1,0 +1,40 @@
+From 27dd176ee8167a7c7b476129486cadcc01074e4c Mon Sep 17 00:00:00 2001
+From: Abhishek Koneru <akoneru@redhat.com>
+Date: Fri, 15 Mar 2013 18:16:58 -0400
+Subject: [PATCH] Adding changes to pki-core.spec file so that the system wide
+ configuration file, /etc/pki/pki.conf does not get replaced
+ on upgrade, if edited on the disk and the user's
+ configurations are not lost.
+
+  #Ticket 507
+---
+ specs/pki-core.spec |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/specs/pki-core.spec b/specs/pki-core.spec
+index a4117452dbd240c6d064f7e641c558ee8dcbe1ed..cf089f7a7a8bb7030a9cbd0e6a7870d7c7c7cf75 100644
+--- a/specs/pki-core.spec
++++ b/specs/pki-core.spec
+@@ -5,7 +5,7 @@ distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
+ 
+ Name:             pki-core
+ Version:          10.0.1
+-Release:          6%{?dist}
++Release:          7%{?dist}
+ Summary:          Certificate System - PKI Core Components
+ URL:              http://pki.fedoraproject.org/
+ License:          GPLv2
+@@ -859,7 +859,9 @@ fi
+ %defattr(-,root,root,-)
+ %doc base/common/THIRD_PARTY_LICENSES
+ %doc base/deploy/LICENSE
+-%{_sysconfdir}/pki/
++%dir %{_sysconfdir}/pki/
++%config(noreplace) %{_sysconfdir}/pki/pki.conf
++%{_sysconfdir}/pki/default.cfg
+ %{_sbindir}/pkispawn
+ %{_sbindir}/pkidestroy
+ #%{_bindir}/pki-setup-proxy
+-- 
+1.7.10.2
+

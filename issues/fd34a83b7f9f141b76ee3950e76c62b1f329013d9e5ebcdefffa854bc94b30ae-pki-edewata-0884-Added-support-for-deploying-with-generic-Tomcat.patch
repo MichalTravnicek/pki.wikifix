@@ -1,0 +1,313 @@
+From f66446083b226052ef2cd8420adb2c49d82a5736 Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Sat, 10 Dec 2016 19:03:01 +0100
+Subject: [PATCH] Added support for deploying with generic Tomcat.
+
+The start(), stop() and restart() methods in PKIInstance have been
+modified to provide a unified way to manage instances using different
+types of Tomcat installations:
+* generic Tomcat
+* standard Tomcat on Debian
+* nuxwdog-enabled Tomcat on Fedora/RHEL
+* standard Tomcat on Fedora/RHEL
+
+The deployment tool has been modified to provide a parameter to specify
+the Tomcat home for the instance. It has also been modified to utilize
+the unified instance startup methods.
+
+https://fedorahosted.org/pki/ticket/2560
+---
+ base/server/etc/default.cfg                        |   5 +-
+ base/server/python/pki/server/__init__.py          | 107 +++++++++++++++++++--
+ .../python/pki/server/deployment/pkihelper.py      |  57 ++---------
+ base/server/share/conf/tomcat.conf                 |   5 +-
+ 4 files changed, 112 insertions(+), 62 deletions(-)
+
+diff --git a/base/server/etc/default.cfg b/base/server/etc/default.cfg
+index 31267ed88159e36e94e900c5fff103a2f2a2357d..869fbb71a9610e899bbd45e778bd5adca8591ba5 100644
+--- a/base/server/etc/default.cfg
++++ b/base/server/etc/default.cfg
+@@ -236,8 +236,9 @@ pki_cgroup_systemd_service_path=/sys/fs/cgroup/systemd/system/%(pki_systemd_serv
+ pki_cgroup_systemd_service=%(pki_cgroup_systemd_service_path)s/%(pki_instance_name)s
+ pki_cgroup_cpu_systemd_service_path=/sys/fs/cgroup/cpu\,cpuacct/system/%(pki_systemd_service)s
+ pki_cgroup_cpu_systemd_service=%(pki_cgroup_cpu_systemd_service_path)s/%(pki_systemd_service)s
+-pki_tomcat_bin_path=/usr/share/tomcat/bin
+-pki_tomcat_lib_path=/usr/share/tomcat/lib
++tomcat_home=/usr/share/tomcat
++pki_tomcat_bin_path=%(tomcat_home)s/bin
++pki_tomcat_lib_path=%(tomcat_home)s/lib
+ pki_tomcat_systemd=/usr/sbin/tomcat
+ pki_source_catalina_properties=%(pki_source_server_path)s/catalina.properties
+ pki_source_servercertnick_conf=%(pki_source_server_path)s/serverCertNick.conf
+diff --git a/base/server/python/pki/server/__init__.py b/base/server/python/pki/server/__init__.py
+index d556312a7c0f87cfeda025abd9d6841939d220f1..b56c2ddada5190361f564de5e8b6b4e4efe0c290 100644
+--- a/base/server/python/pki/server/__init__.py
++++ b/base/server/python/pki/server/__init__.py
+@@ -32,16 +32,19 @@ import pwd
+ import re
+ import shutil
+ import subprocess
++import sys
+ import tempfile
+ 
+ import pki
+ import pki.nssdb
++import pki.system
+ import pki.util
+ 
+ INSTANCE_BASE_DIR = '/var/lib/pki'
+ CONFIG_BASE_DIR = '/etc/pki'
+ LOG_BASE_DIR = '/var/log/pki'
+-REGISTRY_DIR = '/etc/sysconfig/pki'
++SYSCONFIG_DIR = '/etc/sysconfig'
++REGISTRY_DIR = SYSCONFIG_DIR + '/pki'
+ 
+ SUBSYSTEM_TYPES = ['ca', 'kra', 'ocsp', 'tks', 'tps']
+ SUBSYSTEM_CLASSES = {}
+@@ -483,20 +486,19 @@ class PKIInstance(object):
+         self.log_dir = os.path.join(LOG_BASE_DIR, name)
+ 
+         self.password_conf = os.path.join(self.conf_dir, 'password.conf')
+-        self.external_certs_conf = os.path.join(
+-            self.conf_dir, 'external_certs.conf')
++        self.external_certs_conf = os.path.join(self.conf_dir, 'external_certs.conf')
+         self.external_certs = []
+ 
+         self.nssdb_dir = os.path.join(self.base_dir, 'alias')
+         self.lib_dir = os.path.join(self.base_dir, 'lib')
+ 
+-        self.registry_dir = os.path.join(
+-            pki.server.REGISTRY_DIR,
+-            'tomcat',
+-            self.name)
++        self.sysconfig_file = os.path.join(SYSCONFIG_DIR, self.name)
++
++        self.registry_dir = os.path.join(REGISTRY_DIR, 'tomcat', self.name)
+         self.registry_file = os.path.join(self.registry_dir, self.name)
+ 
+         self.service_name = 'pki-tomcatd@%s.service' % self.name
++        self.nuxwdog_service_name = 'pki-tomcatd-nuxwdog@%s.service' % self.name
+ 
+         self.user = None
+         self.group = None
+@@ -537,10 +539,97 @@ class PKIInstance(object):
+                 'Invalid instance: ' + self.__repr__(), None)
+ 
+     def start(self):
+-        subprocess.check_call(['systemctl', 'start', self.service_name])
++
++        catalina_sh = os.path.join(self.base_dir, 'bin', 'catalina.sh')
++
++        # generic Tomcat
++        if os.path.exists(catalina_sh):
++            command = '. %s && %s start' % (self.sysconfig_file, catalina_sh)
++            subprocess.check_call(command, shell=True)
++            return
++
++        # standard Tomcat on Debian
++        if pki.system.SYSTEM_TYPE == 'debian':
++            command = ['/etc/init.d/pki-tomcatd', 'start', self.name]
++            subprocess.check_call(command)
++            return
++
++        nuxwdog_enabled = subprocess.check_output(
++            '. %s && echo $USE_NUXWDOG' % self.sysconfig_file, shell=True)
++        nuxwdog_enabled = nuxwdog_enabled.decode(sys.getfilesystemencoding())
++        nuxwdog_enabled = nuxwdog_enabled.strip().lower()
++
++        # nuxwdog-enabled Tomcat on Fedora/RHEL
++        if nuxwdog_enabled == 'true':
++            command = ['systemctl', 'start', self.nuxwdog_service_name]
++            subprocess.check_call(command)
++            return
++
++        # standard Tomcat on Fedora/RHEL
++        command = ['systemctl', 'start', self.service_name]
++        subprocess.check_call(command)
+ 
+     def stop(self):
+-        subprocess.check_call(['systemctl', 'stop', self.service_name])
++
++        catalina_sh = os.path.join(self.base_dir, 'bin', 'catalina.sh')
++
++        # generic Tomcat
++        if os.path.exists(catalina_sh):
++            command = '. %s && %s stop' % (self.sysconfig_file, catalina_sh)
++            subprocess.check_call(command, shell=True)
++            return
++
++        # standard Tomcat on Debian
++        if pki.system.SYSTEM_TYPE == 'debian':
++            command = ['/etc/init.d/pki-tomcatd', 'stop', self.name]
++            subprocess.check_call(command)
++            return
++
++        nuxwdog_enabled = subprocess.check_output(
++            '. %s && echo $USE_NUXWDOG' % self.sysconfig_file, shell=True)
++        nuxwdog_enabled = nuxwdog_enabled.decode(sys.getfilesystemencoding())
++        nuxwdog_enabled = nuxwdog_enabled.strip().lower()
++
++        # nuxwdog-enabled Tomcat on Fedora/RHEL
++        if nuxwdog_enabled == 'true':
++            command = ['systemctl', 'stop', self.nuxwdog_service_name]
++            subprocess.check_call(command)
++            return
++
++        # standard Tomcat on Fedora/RHEL
++        command = ['systemctl', 'stop', self.service_name]
++        subprocess.check_call(command)
++
++    def restart(self):
++
++        catalina_sh = os.path.join(self.base_dir, 'bin', 'catalina.sh')
++
++        # generic Tomcat
++        if os.path.exists(catalina_sh):
++            self.stop()
++            self.start()
++            return
++
++        # standard Tomcat on Debian
++        if pki.system.SYSTEM_TYPE == 'debian':
++            command = ['/etc/init.d/pki-tomcatd', 'restart', self.name]
++            subprocess.check_call(command)
++            return
++
++        nuxwdog_enabled = subprocess.check_output(
++            '. %s && echo $USE_NUXWDOG' % self.sysconfig_file, shell=True)
++        nuxwdog_enabled = nuxwdog_enabled.decode(sys.getfilesystemencoding())
++        nuxwdog_enabled = nuxwdog_enabled.strip().lower()
++
++        # nuxwdog-enabled Tomcat on Fedora/RHEL
++        if nuxwdog_enabled == 'true':
++            command = ['systemctl', 'restart', self.nuxwdog_service_name]
++            subprocess.check_call(command)
++            return
++
++        # standard Tomcat on Fedora/RHEL
++        command = ['systemctl', 'restart', self.service_name]
++        subprocess.check_call(command)
+ 
+     def is_active(self):
+         rc = subprocess.call(
+diff --git a/base/server/python/pki/server/deployment/pkihelper.py b/base/server/python/pki/server/deployment/pkihelper.py
+index 7ca6519c93be71908905bc8294b41d8709241922..9125ba73722e91c327f9ee08661597f7a60ff986 100644
+--- a/base/server/python/pki/server/deployment/pkihelper.py
++++ b/base/server/python/pki/server/deployment/pkihelper.py
+@@ -52,6 +52,7 @@ from . import pkimessages as log
+ from .pkiparser import PKIConfigParser
+ import pki.client
+ import pki.system
++import pki.server
+ 
+ # special care for SELinux
+ import selinux
+@@ -3696,27 +3697,13 @@ class Systemd(object):
+ 
+         """
+         try:
+-            service = None
+             # Execute the "systemd daemon-reload" management lifecycle command
+             if reload_daemon:
+                 self.daemon_reload(critical_failure)
+-            # Compose this "systemd" execution management command
+-            service = "pki-tomcatd" + "@" +\
+-                      self.mdict['pki_instance_name'] + "." +\
+-                      "service"
+ 
+-            if pki.system.SYSTEM_TYPE == "debian":
+-                command = ["/etc/init.d/pki-tomcatd", "start",
+-                           self.mdict['pki_instance_name']]
+-            else:
+-                command = ["systemctl", "start", service]
++            instance = pki.server.PKIInstance(self.mdict['pki_instance_name'])
++            instance.start()
+ 
+-            # Display this "systemd" execution managment command
+-            config.pki_log.info(
+-                log.PKIHELPER_SYSTEMD_COMMAND_1, ' '.join(command),
+-                extra=config.PKI_INDENTATION_LEVEL_2)
+-            # Execute this "systemd" execution management command
+-            subprocess.check_call(command)
+         except subprocess.CalledProcessError as exc:
+             if pki.system.SYSTEM_TYPE == "debian":
+                 if exc.returncode == 6:
+@@ -3749,24 +3736,9 @@ class Systemd(object):
+ 
+         """
+         try:
+-            service = None
+-            # Compose this "systemd" execution management command
+-            service = "pki-tomcatd" + "@" +\
+-                      self.mdict['pki_instance_name'] + "." +\
+-                      "service"
++            instance = pki.server.PKIInstance(self.mdict['pki_instance_name'])
++            instance.stop()
+ 
+-            if pki.system.SYSTEM_TYPE == "debian":
+-                command = ["/etc/init.d/pki-tomcatd", "stop",
+-                           self.mdict['pki_instance_name']]
+-            else:
+-                command = ["systemctl", "stop", service]
+-
+-            # Display this "systemd" execution managment command
+-            config.pki_log.info(
+-                log.PKIHELPER_SYSTEMD_COMMAND_1, ' '.join(command),
+-                extra=config.PKI_INDENTATION_LEVEL_2)
+-            # Execute this "systemd" execution management command
+-            subprocess.check_call(command)
+         except subprocess.CalledProcessError as exc:
+             config.pki_log.error(log.PKI_SUBPROCESS_ERROR_1, exc,
+                                  extra=config.PKI_INDENTATION_LEVEL_2)
+@@ -3800,28 +3772,13 @@ class Systemd(object):
+ 
+         """
+         try:
+-            service = None
+-            # Compose this "systemd" execution management command
+             # Execute the "systemd daemon-reload" management lifecycle command
+             if reload_daemon:
+                 self.daemon_reload(critical_failure)
+ 
+-            service = "pki-tomcatd" + "@" +\
+-                      self.mdict['pki_instance_name'] + "." +\
+-                      "service"
++            instance = pki.server.PKIInstance(self.mdict['pki_instance_name'])
++            instance.restart()
+ 
+-            if pki.system.SYSTEM_TYPE == "debian":
+-                command = ["/etc/init.d/pki-tomcatd", "restart",
+-                           self.mdict['pki_instance_name']]
+-            else:
+-                command = ["systemctl", "restart", service]
+-
+-            # Display this "systemd" execution managment command
+-            config.pki_log.info(
+-                log.PKIHELPER_SYSTEMD_COMMAND_1, ' '.join(command),
+-                extra=config.PKI_INDENTATION_LEVEL_2)
+-            # Execute this "systemd" execution management command
+-            subprocess.check_call(command)
+         except subprocess.CalledProcessError as exc:
+             if pki.system.SYSTEM_TYPE == "debian":
+                 if exc.returncode == 6:
+diff --git a/base/server/share/conf/tomcat.conf b/base/server/share/conf/tomcat.conf
+index bd2359c8b6bc0da4e7ccdc957b1e354ee45149cd..2bd83e438de8bd6a24ae77594d656e3693dd769c 100644
+--- a/base/server/share/conf/tomcat.conf
++++ b/base/server/share/conf/tomcat.conf
+@@ -9,9 +9,12 @@
+ # Where your java installation lives
+ JAVA_HOME="[JAVA_HOME]"
+ 
+-# Where your tomcat installation lives
++# Where your PKI instance lives
+ CATALINA_BASE="[PKI_INSTANCE_PATH]"
+ 
++# Where your Tomcat installation lives
++CATALINA_HOME="[tomcat_home]"
++
+ # Instance tmp dir
+ CATALINA_TMPDIR=[PKI_TMPDIR]
+ 
+-- 
+2.5.5
+

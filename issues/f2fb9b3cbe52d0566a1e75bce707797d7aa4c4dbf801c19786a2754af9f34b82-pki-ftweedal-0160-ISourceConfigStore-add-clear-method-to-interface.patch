@@ -1,0 +1,53 @@
+From ca09f58f4a953fb8d40898a1924f236bba42fa29 Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Tue, 7 Feb 2017 17:39:33 +1000
+Subject: [PATCH 160/161] ISourceConfigStore: add clear() method to interface
+
+The SourceConfigStore load() method does not clear the config store,
+but this might be necessary to avoid stale data if wanting to
+perform a complete replacement of the data (e.g. reload from file).
+
+We should not change the behaviour of load() in case some code is
+relying on the current behaviour, so add the clear() method to the
+interface.
+
+Part of: https://fedorahosted.org/pki/ticket/2588
+---
+ base/common/src/com/netscape/certsrv/base/ISourceConfigStore.java    | 5 +++++
+ .../cmscore/src/com/netscape/cmscore/base/PropConfigStore.java       | 4 ++++
+ 2 files changed, 9 insertions(+)
+
+diff --git a/base/common/src/com/netscape/certsrv/base/ISourceConfigStore.java b/base/common/src/com/netscape/certsrv/base/ISourceConfigStore.java
+index 42637c258258472d8469fd8c691a826e3bcb1b3e..8eb86c2ba5cfd1522f52b98a676d1a509424c270 100644
+--- a/base/common/src/com/netscape/certsrv/base/ISourceConfigStore.java
++++ b/base/common/src/com/netscape/certsrv/base/ISourceConfigStore.java
+@@ -63,6 +63,11 @@ public interface ISourceConfigStore extends Serializable {
+     public Enumeration<String> keys();
+ 
+     /**
++     * Clear the config store.
++     */
++    public void clear();
++
++    /**
+      * Reads a config store from an input stream.
+      *
+      * @param in input stream where the properties are located
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/base/PropConfigStore.java b/base/server/cmscore/src/com/netscape/cmscore/base/PropConfigStore.java
+index cc16e247d01428f958d0d397ff95127fcb8d2f45..acf28441337b76628d47dc58351a0233568397d8 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/base/PropConfigStore.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/base/PropConfigStore.java
+@@ -223,6 +223,10 @@ public class PropConfigStore implements IConfigStore, Cloneable {
+         }
+     }
+ 
++    public synchronized void clear() {
++        mSource.clear();
++    }
++
+     /**
+      * Reads a config store from an input stream.
+      *
+-- 
+2.9.3
+

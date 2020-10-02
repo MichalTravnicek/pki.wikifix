@@ -1,0 +1,139 @@
+From 4f87ef1595152e48df8cdbe2f6e726ff62ce4eae Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Sat, 12 Dec 2015 04:10:54 +0100
+Subject: [PATCH] Fixed external CA case for IPA compatibility.
+
+The installation code for external CA case has been fixed such
+that IPA can detect step 1 completion properly.
+
+The code that handles certificate data conversion has been fixed
+to reformat base-64 data for PEM output properly.
+
+The installation summary for step 1 has been updated to provide
+more accurate information.
+
+https://fedorahosted.org/pki/ticket/456
+---
+ base/common/python/pki/nss.py                      |  8 ++++++--
+ .../python/pki/server/deployment/pkihelper.py      |  7 +++++--
+ .../server/deployment/scriptlets/configuration.py  | 10 +++++++---
+ base/server/sbin/pkispawn                          | 23 +++++++++++++++++++++-
+ 4 files changed, 40 insertions(+), 8 deletions(-)
+
+diff --git a/base/common/python/pki/nss.py b/base/common/python/pki/nss.py
+index 196fe462fac4e5f6fdcf4604f6d5c95af82838db..67fd90b4cf8046e64b9291296489a5f04e22efcd 100644
+--- a/base/common/python/pki/nss.py
++++ b/base/common/python/pki/nss.py
+@@ -43,9 +43,13 @@ def convert_data(data, input_format, output_format, header=None, footer=None):
+ 
+     if input_format == 'base64' and output_format == 'pem':
+ 
+-        # split a single line into multiple lines
+-        data = data.rstrip('\r\n')
++        # join base-64 data into a single line
++        data = data.replace('\r', '').replace('\n', '')
++
++        # re-split the line into fixed-length lines
+         lines = [data[i:i+64] for i in range(0, len(data), 64)]
++
++        # add header and footer
+         return '%s\n%s\n%s\n' % (header, '\n'.join(lines), footer)
+ 
+     if input_format == 'pem' and output_format == 'base64':
+diff --git a/base/server/python/pki/server/deployment/pkihelper.py b/base/server/python/pki/server/deployment/pkihelper.py
+index 9c9b40454a41b42f2c089f045ac9ac662093a409..7a1a8c7d145628313868b614123977165b9015bf 100644
+--- a/base/server/python/pki/server/deployment/pkihelper.py
++++ b/base/server/python/pki/server/deployment/pkihelper.py
+@@ -502,15 +502,18 @@ class ConfigurationFile:
+         # generic extension support in CSR - for external CA
+         self.add_req_ext = config.str2bool(
+             self.mdict['pki_req_ext_add'])
++
+         self.external = config.str2bool(self.mdict['pki_external'])
++        self.external_step_one = not config.str2bool(self.mdict['pki_external_step_two'])
++        self.external_step_two = not self.external_step_one
++
+         if self.external:
+             # generic extension support in CSR - for external CA
+             if self.add_req_ext:
+                 self.req_ext_oid = self.mdict['pki_req_ext_oid']
+                 self.req_ext_critical = self.mdict['pki_req_ext_critical']
+                 self.req_ext_data = self.mdict['pki_req_ext_data']
+-        self.external_step_two = config.str2bool(
+-            self.mdict['pki_external_step_two'])
++
+         self.skip_configuration = config.str2bool(
+             self.mdict['pki_skip_configuration'])
+         self.standalone = config.str2bool(self.mdict['pki_standalone'])
+diff --git a/base/server/python/pki/server/deployment/scriptlets/configuration.py b/base/server/python/pki/server/deployment/scriptlets/configuration.py
+index b8b8fc69197f661ac4a9106cbad91ae8bb81d0c8..a80239374da7a4184bbf593bb9069673a9d9c8dd 100644
+--- a/base/server/python/pki/server/deployment/scriptlets/configuration.py
++++ b/base/server/python/pki/server/deployment/scriptlets/configuration.py
+@@ -94,9 +94,9 @@ class PkiScriptlet(pkiscriptlet.AbstractBasePkiScriptlet):
+         token = deployer.mdict['pki_token_name']
+         nssdb = instance.open_nssdb(token)
+ 
+-        external = config.str2bool(deployer.mdict['pki_external'])
+-        step_one = not config.str2bool(deployer.mdict['pki_external_step_two'])
+-        step_two = not step_one
++        external = deployer.configuration_file.external
++        step_one = deployer.configuration_file.external_step_one
++        step_two = deployer.configuration_file.external_step_two
+ 
+         try:
+             if external and step_one: # external/existing CA step 1
+@@ -142,6 +142,10 @@ class PkiScriptlet(pkiscriptlet.AbstractBasePkiScriptlet):
+                     signing_csr = pki.nss.convert_csr(signing_csr, 'pem', 'base64')
+                     subsystem.config['ca.signing.certreq'] = signing_csr
+ 
++                # This is needed by IPA to detect step 1 completion.
++                # See is_step_one_done() in ipaserver/install/cainstance.py.
++                subsystem.config['preop.ca.type'] = 'otherca'
++
+                 subsystem.save()
+ 
+             elif external and step_two: # external/existing CA step 2
+diff --git a/base/server/sbin/pkispawn b/base/server/sbin/pkispawn
+index f29dec33398e3fb5b7414d32043c547a83a3d1d4..9c2aa2d665b2e523bae242bebb27c06c471ce2c7 100755
+--- a/base/server/sbin/pkispawn
++++ b/base/server/sbin/pkispawn
+@@ -614,7 +614,13 @@ def main(argv):
+     config.pki_log.debug(pkilogging.log_format(parser.mdict),
+                          extra=config.PKI_INDENTATION_LEVEL_0)
+ 
+-    print_install_information(parser.mdict)
++    external = deployer.configuration_file.external
++    step_one = deployer.configuration_file.external_step_one
++
++    if external and step_one:
++        print_step_one_information(parser.mdict)
++    else:
++        print_install_information(parser.mdict)
+ 
+ 
+ def set_port(parser, tag, prompt, existing_data):
+@@ -624,6 +630,21 @@ def set_port(parser, tag, prompt, existing_data):
+         parser.read_text(prompt, config.pki_subsystem, tag)
+ 
+ 
++def print_step_one_information(mdict):
++
++    print(log.PKI_SPAWN_INFORMATION_HEADER)
++    print("      The %s subsystem of the '%s' instance is still incomplete." %
++          (config.pki_subsystem, mdict['pki_instance_name']))
++    print()
++    print("      A CSR for the CA certificate has been generated at:\n"
++          "            %s"
++          % mdict['pki_external_csr_path'])
++    print()
++    print("      Submit the CSR to an external CA to generate a CA certificate\n"
++          "      for this subsystem.")
++    print(log.PKI_SPAWN_INFORMATION_FOOTER)
++
++
+ def print_install_information(mdict):
+ 
+     skip_configuration = config.str2bool(mdict['pki_skip_configuration'])
+-- 
+2.4.3
+

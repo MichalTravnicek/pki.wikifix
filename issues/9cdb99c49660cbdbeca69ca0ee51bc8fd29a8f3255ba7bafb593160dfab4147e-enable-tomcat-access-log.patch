@@ -1,0 +1,33 @@
+From 2695c5f41b7f81326e45d979f918d48120879170 Mon Sep 17 00:00:00 2001
+From: Andrew Wnuk <awnuk@redhat.com>
+Date: Tue, 8 Oct 2013 17:25:10 -0400
+Subject: [PATCH] enable tomcat access log
+
+This patch enables Tomcat access log for Java subsystems.
+
+Ticket #558.
+---
+ base/server/share/conf/server.xml | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/base/server/share/conf/server.xml b/base/server/share/conf/server.xml
+index ed4dacc..751b408 100644
+--- a/base/server/share/conf/server.xml
++++ b/base/server/share/conf/server.xml
+@@ -292,11 +292,11 @@ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+ 
+         <!-- Access log processes all example.
+              Documentation at: /docs/config/valve.html -->
+-        <!--
++
+         <Valve className="org.apache.catalina.valves.AccessLogValve"
+                directory="logs" prefix="localhost_access_log." suffix=".txt"
+                pattern="common" resolveHosts="false"/>
+-        -->
++
+ 
+       </Host>
+     </Engine>
+-- 
+1.8.1.4
+

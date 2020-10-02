@@ -1,0 +1,120 @@
+
+tail -f /var/log/pki/rootca1/localhost_access_log.2019-04-28.txt /var/log/pki/rootca1/ca/debug /var/log/dirsrv/slapd-ca1/access &
+
+pki -U https://ca1.example.test:7443/ca -d ${nssdir} -C ${nssdir}/pwdfile.txt -n subca1useragent1 ca-cert-hold 0xc
+
+==> /var/log/pki/rootca1/ca/debug <==
+[28/Apr/2019:18:52:40][http-bio-7443-exec-5]: SignedAuditLogger: event ACCESS_SESSION_ESTABLISH
+
+==> /var/log/pki/rootca1/localhost_access_log.2019-04-28.txt <==
+192.168.122.66 - - [28/Apr/2019:18:52:40 +0000] "GET /pki/rest/info HTTP/1.1" 200 106
+
+==> /var/log/pki/rootca1/ca/debug <==
+[28/Apr/2019:18:52:41][http-bio-7443-exec-5]: PKIRealm: Authenticating certificate chain:
+...
+[28/Apr/2019:18:52:41][http-bio-7443-exec-5]: authorization search base: cn=Certificate Manager Agents,ou=groups,o=rootca1-CA
+[28/Apr/2019:18:52:41][http-bio-7443-exec-5]: authorization search filter: (uniquemember=uid=subca1agentuser1,ou=people,o=rootca1-CA)
+[28/Apr/2019:18:52:41][http-bio-7443-exec-5]: authorization result: true
+[28/Apr/2019:18:52:41][http-bio-7443-exec-5]: returnConn: mNumConns now 3
+[28/Apr/2019:18:52:41][http-bio-7443-exec-5]: evaluated expression: group="Certificate Manager Agents" to be true
+[28/Apr/2019:18:52:41][http-bio-7443-exec-5]: DirAclAuthz: authorization passed
+[28/Apr/2019:18:52:41][http-bio-7443-exec-5]: ACLInterceptor: access granted
+[28/Apr/2019:18:52:41][http-bio-7443-exec-5]: SignedAuditLogger: event AUTHZ
+[28/Apr/2019:18:52:41][http-bio-7443-exec-5]: MessageFormatInterceptor: CertResource.reviewCert()
+...
+Placing certificate on-hold:
+  Serial Number: 0xc
+  Subject DN: UID=rootca1user1
+  Issuer DN: CN=CA Signing Certificate,OU=rootca1,O=Root CA Example Corp 7
+  Status: VALID
+  Not Valid Before: Sun Apr 28 18:39:26 UTC 2019
+  Not Valid After: Fri Oct 25 18:39:26 UTC 2019
+Are you sure (Y/N)? y
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: SessionContextInterceptor: CertResource.revokeCert()
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: SessionContextInterceptor: principal: subca1agentuser1
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: AuthMethodInterceptor: CertResource.revokeCert()
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: AuthMethodInterceptor: mapping: certs
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: AuthMethodInterceptor: required auth methods: [certUserDBAuthMgr]
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: AuthMethodInterceptor: authentication manager: certUserDBAuthMgr
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: AuthMethodInterceptor: access granted
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: ACLInterceptor: CertResource.revokeCert()
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: ACLInterceptor: principal: subca1agentuser1
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: ACLInterceptor: will use authz manager DirAclAuthz
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: ACLInterceptor: mapping: certs
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: ACLInterceptor: ACL: certServer.ca.certs,execute
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: AAclAuthz.checkPermission(certServer.ca.certs, execute)
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: checkAllowEntries(): expressions: group="Certificate Manager Agents"
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: evaluating expressions: group="Certificate Manager Agents"
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: GroupAccessEvaluator: evaluate: uid=subca1agentuser1 value="Certificate Manager Agents"
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: GroupAccessEvaluator: evaluate: no groups in authToken
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: In LdapBoundConnFactory::getConn()
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: masterConn is connected: true
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: getConn: conn is connected true
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: getConn: mNumConns now 2
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: returnConn: mNumConns now 3
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: UGSubsystem.isMemberOf() using new lookup code
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: In LdapBoundConnFactory::getConn()
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: masterConn is connected: true
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: getConn: conn is connected true
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: getConn: mNumConns now 2
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: authorization search base: cn=Certificate Manager Agents,ou=groups,o=rootca1-CA
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: authorization search filter: (uniquemember=uid=subca1agentuser1,ou=people,o=rootca1-CA)
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: authorization result: true
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: returnConn: mNumConns now 3
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: evaluated expression: group="Certificate Manager Agents" to be true
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: DirAclAuthz: authorization passed
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: ACLInterceptor: access granted
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: MessageFormatInterceptor: CertResource.revokeCert()
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: MessageFormatInterceptor: content-type: application/xml
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: MessageFormatInterceptor: accept: [application/xml]
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: MessageFormatInterceptor: request format: application/xml
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: MessageFormatInterceptor: response format: application/xml
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: In LdapBoundConnFactory::getConn()
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: masterConn is connected: true
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: getConn: conn is connected true
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: getConn: mNumConns now 2
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: returnConn: mNumConns now 3
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: according to ccMode, authorization for servlet: caDoRevoke-agent is LDAP based, not XML {1}, use default authz mgr: {2}.
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: Getting SSL client certificate.
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: In LdapBoundConnFactory::getConn()
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: masterConn is connected: true
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: getConn: conn is connected true
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: getConn: mNumConns now 2
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: returnConn: mNumConns now 3
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: SignedAuditLogger: event CERT_STATUS_CHANGE_REQUEST
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: LogFile: event type not selected: CERT_STATUS_CHANGE_REQUEST
+[28/Apr/2019:18:52:45][http-bio-7443-exec-5]: SignedAuditLogger: event ACCESS_SESSION_TERMINATED
+PKIException: Record not found
+
+==> /var/log/pki/rootca1/localhost_access_log.2019-04-28.txt <==
+192.168.122.66 - subca1agentuser1 [28/Apr/2019:18:52:41 +0000] "GET /ca/rest/account/login HTTP/1.1" 200 203
+192.168.122.66 - subca1agentuser1 [28/Apr/2019:18:52:41 +0000] "GET /ca/rest/agent/certs/12 HTTP/1.1" 200 9450
+192.168.122.66 - subca1agentuser1 [28/Apr/2019:18:52:45 +0000] "POST /ca/rest/agent/certs/12/revoke HTTP/1.1" 500 209
+
+==> /var/log/dirsrv/slapd-ca1/access <==
+[28/Apr/2019:18:52:41.798385214 +0000] conn=47 op=627 SRCH base="cn=1026,ou=certificateRepository,ou=ca,o=rootca1-CA" scope=0 filter="(objectClass=*)" attrs=ALL
+[28/Apr/2019:18:52:41.798634690 +0000] conn=47 op=627 RESULT err=32 tag=101 nentries=0 etime=0.0000373518
+[28/Apr/2019:18:52:41.799978035 +0000] conn=49 op=149 SRCH base="ou=People,o=rootca1-CA" scope=2 filter="(description=2;1026;CN=CA Subordinate Signing subca1 org 8,O=Example Org;UID=subca1useragent1)" attrs=ALL
+[28/Apr/2019:18:52:41.800227494 +0000] conn=49 op=149 RESULT err=0 tag=101 nentries=1 etime=0.0000316368
+[28/Apr/2019:18:52:41.804036929 +0000] conn=49 op=150 SRCH base="uid=subca1agentuser1,ou=People,o=rootca1-CA" scope=0 filter="(objectClass=*)" attrs=ALL
+[28/Apr/2019:18:52:41.804244356 +0000] conn=49 op=150 RESULT err=0 tag=101 nentries=1 etime=0.0002142300
+[28/Apr/2019:18:52:41.805438404 +0000] conn=49 op=151 SRCH base="ou=Groups,o=rootca1-CA" scope=1 filter="(&(objectClass=groupofuniquenames)(uniqueMember=uid=subca1agentuser1,ou=people,o=rootca1-CA))" attrs="cn description"
+[28/Apr/2019:18:52:41.805658623 +0000] conn=49 op=151 RESULT err=0 tag=101 nentries=1 etime=0.0001006856
+[28/Apr/2019:18:52:41.919831775 +0000] conn=49 op=152 SRCH base="uid=subca1agentuser1,ou=People,o=rootca1-CA" scope=0 filter="(objectClass=*)" attrs=ALL
+[28/Apr/2019:18:52:41.920372987 +0000] conn=49 op=152 RESULT err=0 tag=101 nentries=1 etime=0.0114276521
+[28/Apr/2019:18:52:41.922628463 +0000] conn=49 op=153 SRCH base="cn=Certificate Manager Agents,ou=groups,o=rootca1-CA" scope=0 filter="(uniqueMember=uid=subca1agentuser1,ou=people,o=rootca1-CA)" attrs="cn"
+[28/Apr/2019:18:52:41.922771493 +0000] conn=49 op=153 RESULT err=0 tag=101 nentries=1 etime=0.0000997406
+[28/Apr/2019:18:52:41.924540434 +0000] conn=47 op=628 SRCH base="cn=12,ou=certificateRepository,ou=ca,o=rootca1-CA" scope=0 filter="(objectClass=*)" attrs=ALL
+[28/Apr/2019:18:52:41.924658175 +0000] conn=47 op=628 RESULT err=0 tag=101 nentries=1 etime=0.0125637771
+[28/Apr/2019:18:52:45.504387329 +0000] conn=49 op=155 SRCH base="uid=subca1agentuser1,ou=People,o=rootca1-CA" scope=0 filter="(objectClass=*)" attrs=ALL
+[28/Apr/2019:18:52:45.504683947 +0000] conn=49 op=155 RESULT err=0 tag=101 nentries=1 etime=0.0000422879
+[28/Apr/2019:18:52:45.506447224 +0000] conn=49 op=156 SRCH base="cn=Certificate Manager Agents,ou=groups,o=rootca1-CA" scope=0 filter="(uniqueMember=uid=subca1agentuser1,ou=people,o=rootca1-CA)" attrs="cn"
+[28/Apr/2019:18:52:45.506642580 +0000] conn=49 op=156 RESULT err=0 tag=101 nentries=1 etime=0.0000274375
+[28/Apr/2019:18:52:45.530402174 +0000] conn=47 op=630 SRCH base="cn=12,ou=certificateRepository,ou=ca,o=rootca1-CA" scope=0 filter="(objectClass=*)" attrs=ALL
+[28/Apr/2019:18:52:45.530558315 +0000] conn=47 op=630 RESULT err=0 tag=101 nentries=1 etime=0.0000273027
+[28/Apr/2019:18:52:45.537285618 +0000] conn=47 op=631 SRCH base="cn=1026,ou=certificateRepository,ou=ca,o=rootca1-CA" scope=0 filter="(objectClass=*)" attrs=ALL
+[28/Apr/2019:18:52:45.537478215 +0000] conn=47 op=631 RESULT err=32 tag=101 nentries=0 etime=0.0000290540
+
+[root@ca1 ~]#
+
+

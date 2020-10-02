@@ -1,0 +1,230 @@
+From 14a020007b53c7688935c5356fbe2da81fc99cb3 Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Tue, 13 May 2014 14:06:21 -0400
+Subject: [PATCH] Replaced group for RegisterUser.
+
+The RegisterUser servlets in CA, KRA, and TKS have been updated to
+add the user into Trusted Managers group instead of Agents.
+
+A new upgrade script has been added to update existing instances.
+Empty 10.0.7 and 10.1.1 folders have been added to support upgrading
+from those versions.
+
+The XML formatting in TKS's web.xml has been cleaned up.
+
+Ticket #990
+---
+ base/ca/shared/webapps/ca/WEB-INF/web.xml          |  2 +-
+ base/common/upgrade/10.0.7/.gitignore              |  4 +
+ base/common/upgrade/10.1.1/.gitignore              |  4 +
+ base/kra/shared/webapps/kra/WEB-INF/web.xml        |  2 +-
+ base/server/upgrade/10.0.7/.gitignore              |  4 +
+ base/server/upgrade/10.1.1/.gitignore              |  4 +
+ .../upgrade/10.1.99/06-UpdateRegisterUserServlet   | 99 ++++++++++++++++++++++
+ base/tks/shared/webapps/tks/WEB-INF/web.xml        | 11 ++-
+ 8 files changed, 124 insertions(+), 6 deletions(-)
+ create mode 100644 base/common/upgrade/10.0.7/.gitignore
+ create mode 100644 base/common/upgrade/10.1.1/.gitignore
+ create mode 100644 base/server/upgrade/10.0.7/.gitignore
+ create mode 100644 base/server/upgrade/10.1.1/.gitignore
+ create mode 100755 base/server/upgrade/10.1.99/06-UpdateRegisterUserServlet
+
+diff --git a/base/ca/shared/webapps/ca/WEB-INF/web.xml b/base/ca/shared/webapps/ca/WEB-INF/web.xml
+index 508c31694ea79c9f43e189bb305e107412dc3ffc..54c2d17e336439eb673e44de3476ac6a1923152a 100644
+--- a/base/ca/shared/webapps/ca/WEB-INF/web.xml
++++ b/base/ca/shared/webapps/ca/WEB-INF/web.xml
+@@ -135,7 +135,7 @@
+              <init-param><param-name>  AuthMgr     </param-name>
+                          <param-value> TokenAuth </param-value> </init-param>
+              <init-param><param-name>  GroupName    </param-name>
+-                         <param-value> Certificate Manager Agents </param-value> </init-param>
++                         <param-value> Trusted Managers </param-value> </init-param>
+              <init-param><param-name>  AuthzMgr    </param-name>
+                          <param-value> BasicAclAuthz </param-value> </init-param>
+              <init-param><param-name>  resourceID  </param-name>
+diff --git a/base/common/upgrade/10.0.7/.gitignore b/base/common/upgrade/10.0.7/.gitignore
+new file mode 100644
+index 0000000000000000000000000000000000000000..5e7d2734cfc60289debf74293817c0a8f572ff32
+--- /dev/null
++++ b/base/common/upgrade/10.0.7/.gitignore
+@@ -0,0 +1,4 @@
++# Ignore everything in this directory
++*
++# Except this file
++!.gitignore
+diff --git a/base/common/upgrade/10.1.1/.gitignore b/base/common/upgrade/10.1.1/.gitignore
+new file mode 100644
+index 0000000000000000000000000000000000000000..5e7d2734cfc60289debf74293817c0a8f572ff32
+--- /dev/null
++++ b/base/common/upgrade/10.1.1/.gitignore
+@@ -0,0 +1,4 @@
++# Ignore everything in this directory
++*
++# Except this file
++!.gitignore
+diff --git a/base/kra/shared/webapps/kra/WEB-INF/web.xml b/base/kra/shared/webapps/kra/WEB-INF/web.xml
+index d0573d5d4104045b163f18c26c85c89df72a8815..82bf610572e124729418ba9c41620783aa183fc8 100644
+--- a/base/kra/shared/webapps/kra/WEB-INF/web.xml
++++ b/base/kra/shared/webapps/kra/WEB-INF/web.xml
+@@ -144,7 +144,7 @@
+              <init-param><param-name>  ID          </param-name>
+                          <param-value> kraRegisterUser </param-value> </init-param>
+              <init-param><param-name>  GroupName     </param-name>
+-                         <param-value> Data Recovery Manager Agents </param-value> </init-param>
++                         <param-value> Trusted Managers </param-value> </init-param>
+              <init-param><param-name>  AuthMgr     </param-name>
+                          <param-value> TokenAuth </param-value> </init-param>
+              <init-param><param-name>  AuthzMgr    </param-name>
+diff --git a/base/server/upgrade/10.0.7/.gitignore b/base/server/upgrade/10.0.7/.gitignore
+new file mode 100644
+index 0000000000000000000000000000000000000000..5e7d2734cfc60289debf74293817c0a8f572ff32
+--- /dev/null
++++ b/base/server/upgrade/10.0.7/.gitignore
+@@ -0,0 +1,4 @@
++# Ignore everything in this directory
++*
++# Except this file
++!.gitignore
+diff --git a/base/server/upgrade/10.1.1/.gitignore b/base/server/upgrade/10.1.1/.gitignore
+new file mode 100644
+index 0000000000000000000000000000000000000000..5e7d2734cfc60289debf74293817c0a8f572ff32
+--- /dev/null
++++ b/base/server/upgrade/10.1.1/.gitignore
+@@ -0,0 +1,4 @@
++# Ignore everything in this directory
++*
++# Except this file
++!.gitignore
+diff --git a/base/server/upgrade/10.1.99/06-UpdateRegisterUserServlet b/base/server/upgrade/10.1.99/06-UpdateRegisterUserServlet
+new file mode 100755
+index 0000000000000000000000000000000000000000..3768d1543317bf3ce8dd70262219c2c5f240dab0
+--- /dev/null
++++ b/base/server/upgrade/10.1.99/06-UpdateRegisterUserServlet
+@@ -0,0 +1,99 @@
++#!/usr/bin/python
++# Authors:
++#     Endi S. Dewata <edewata@redhat.com>
++#
++# This program is free software; you can redistribute it and/or modify
++# it under the terms of the GNU General Public License as published by
++# the Free Software Foundation; version 2 of the License.
++#
++# This program is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License along
++# with this program; if not, write to the Free Software Foundation, Inc.,
++# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++#
++# Copyright (C) 2014 Red Hat, Inc.
++# All rights reserved.
++#
++
++import os
++from lxml import etree
++
++from pki.upgrade import verbose
++import pki.server.upgrade
++
++class UpdateRegisterUserServlet(pki.server.upgrade.PKIServerUpgradeScriptlet):
++
++    def __init__(self):
++
++        self.message = 'Replace group for RegisterUser servlet in web.xml'
++
++    def upgrade_subsystem(self, instance, subsystem):
++
++        if subsystem.name not in ['ca', 'kra', 'tks']:
++            return
++
++        web_xml = os.path.join(instance.base_dir, 'webapps', subsystem.name, 'WEB-INF', 'web.xml')
++
++        if not os.path.exists(web_xml):
++            return
++
++        self.backup(web_xml)
++
++        document = etree.parse(web_xml)
++        self.modify_servlet(document, subsystem.name + 'RegisterUser')
++
++        with open(web_xml, 'w') as f:
++            f.write(etree.tostring(document, pretty_print=True))
++
++    def modify_servlet(self, document, name):
++
++        context = document.getroot()
++
++        if verbose: print 'Searching for ' + name + ' servlet.'
++
++        servlet = None
++
++        for element in context.findall('servlet'):
++
++            servlet_name = element.find('servlet-name')
++            value = servlet_name.text.strip()
++
++            if value == name:
++                servlet = element
++                break
++
++        if servlet is None:
++            raise Exception('Servlet ' + name + ' not found.')
++
++        if verbose: print 'Servlet found. Searching for GroupName parameter.'
++
++        init_param = None
++
++        for element in servlet.findall('init-param'):
++
++            param_name = element.find('param-name')
++            value = param_name.text.strip()
++
++            if value == 'GroupName':
++                init_param = element
++                break
++
++        if init_param is None:
++            raise Exception('Parameter GroupName not found.')
++
++        if verbose: print 'Searching for parameter value for GroupName.'
++
++        param_value = init_param.find('param-value')
++
++        if param_value is None:
++            raise Exception('Parameter value for GroupName value not found.')
++
++        if verbose: print 'Updating parameter value for GroupName.'
++
++        param_value.text = ' Trusted Managers '
++
++        if verbose: print 'Parameter value for GroupName has been updated.'
+diff --git a/base/tks/shared/webapps/tks/WEB-INF/web.xml b/base/tks/shared/webapps/tks/WEB-INF/web.xml
+index 0642faea1305cc32cb56cc3f9b934cf11985407b..724b4d4f1d7cffd1e4deca91bed745647deee391 100644
+--- a/base/tks/shared/webapps/tks/WEB-INF/web.xml
++++ b/base/tks/shared/webapps/tks/WEB-INF/web.xml
+@@ -104,13 +104,16 @@
+    <servlet>       
+           <servlet-name>  tksRegisterUser  </servlet-name>       
+           <servlet-class> com.netscape.cms.servlet.csadmin.RegisterUser  </servlet-class>              
+-             <init-param><param-name>  GetClientCert  </param-name>                          <param-value> false       </param-value> </init-param>
++             <init-param><param-name>  GetClientCert  </param-name>
++                         <param-value> false       </param-value> </init-param>
+              <init-param><param-name>  authority   </param-name>
+-                         <param-value> tks          </param-value> </init-param>             <init-param><param-name>  ID          </param-name>
++                         <param-value> tks          </param-value> </init-param>
++             <init-param><param-name>  ID          </param-name>
+                          <param-value> tksRegisterUser </param-value> </init-param>
+              <init-param><param-name>  GroupName     </param-name>
+-                          <param-value> Token Key Service Manager Agents </param-value> </init-param>
+-             <init-param><param-name>  AuthMgr     </param-name>                          <param-value> TokenAuth </param-value> </init-param>
++                         <param-value> Trusted Managers </param-value> </init-param>
++             <init-param><param-name>  AuthMgr     </param-name>
++                         <param-value> TokenAuth </param-value> </init-param>
+              <init-param><param-name>  AuthzMgr    </param-name>
+                          <param-value> BasicAclAuthz </param-value> </init-param>
+              <init-param><param-name>  resourceID  </param-name>
+-- 
+1.8.4.2
+

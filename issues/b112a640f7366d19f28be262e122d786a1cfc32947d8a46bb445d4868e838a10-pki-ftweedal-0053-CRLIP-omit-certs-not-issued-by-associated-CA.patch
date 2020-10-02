@@ -1,0 +1,51 @@
+From 61af27fab6293f2edd2d72787f52b14b205615fd Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Fri, 9 Oct 2015 02:54:18 -0400
+Subject: [PATCH] CRLIP: omit certs not issued by associated CA
+
+Lightweight CAs mean that a single database can include certificates
+from many issuers.  Update CRLIssuingPoint to only include
+certificates issued by its associated CA.
+
+For backwards compatibility, if the associated CA is the host CA,
+certificate records with missing 'issuerName' attribute are also
+included.
+
+Fixes: https://fedorahosted.org/pki/ticket/1626
+---
+ base/ca/src/com/netscape/ca/CRLIssuingPoint.java | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/base/ca/src/com/netscape/ca/CRLIssuingPoint.java b/base/ca/src/com/netscape/ca/CRLIssuingPoint.java
+index fe230e937f25728f3789974ab57e2529a161533a..f6eaf72873a51a0bc301c16a8f9288e1f6c5441c 100644
+--- a/base/ca/src/com/netscape/ca/CRLIssuingPoint.java
++++ b/base/ca/src/com/netscape/ca/CRLIssuingPoint.java
+@@ -1868,11 +1868,21 @@ public class CRLIssuingPoint implements ICRLIssuingPoint, Runnable {
+             filter += "(" + CertRecord.ATTR_ID + "<=" + mEndSerial.toString() + ")";
+         }
+ 
++        String issuerFilter =
++            "(" + CertRecord.ATTR_X509CERT_ISSUER
++            + "=" + mCA.getX500Name().toString() + ")";
++        // host authority may be absent issuer attribute
++        if (mCA.isHostAuthority()) {
++            issuerFilter =
++                "(|"
++                + "(!(" + CertRecord.ATTR_X509CERT_ISSUER + "=*))"
++                + issuerFilter
++                + ")";
++        }
++        filter += issuerFilter;
++
+         // get all revoked non-expired certs.
+-        if (mEndSerial != null || mBeginSerial != null || mCACertsOnly ||
+-                (mProfileCertsOnly && mProfileList != null && mProfileList.size() > 0)) {
+-            filter = "(&" + filter + ")";
+-        }
++        filter = "(&" + filter + ")";
+ 
+         return filter;
+     }
+-- 
+2.4.3
+

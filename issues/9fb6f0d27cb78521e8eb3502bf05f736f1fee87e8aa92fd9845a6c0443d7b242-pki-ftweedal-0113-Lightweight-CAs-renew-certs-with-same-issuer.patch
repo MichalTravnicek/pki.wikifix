@@ -1,0 +1,42 @@
+From 61a91278466ffbbe695a008833dc800ab10eea59 Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Tue, 17 May 2016 12:44:03 +1000
+Subject: [PATCH 113/114] Lightweight CAs: renew certs with same issuer
+
+When renewing a certificate, propagate the Authority ID from the
+original request to the new request, to ensure that the new
+certificate is issued by the same issuer as the original.
+
+Part of: https://fedorahosted.org/pki/ticket/2327
+---
+ .../cms/src/com/netscape/cms/servlet/cert/RenewalProcessor.java    | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/base/server/cms/src/com/netscape/cms/servlet/cert/RenewalProcessor.java b/base/server/cms/src/com/netscape/cms/servlet/cert/RenewalProcessor.java
+index 87291a08bf915838c0347287f962bd4a6f591e96..1e4e02c9e3503ed543ff4a0a1da6c8e85c17bf3d 100644
+--- a/base/server/cms/src/com/netscape/cms/servlet/cert/RenewalProcessor.java
++++ b/base/server/cms/src/com/netscape/cms/servlet/cert/RenewalProcessor.java
+@@ -159,6 +159,9 @@ public class RenewalProcessor extends CertProcessor {
+             String profileId = origReq.getExtDataInString("profileId");
+             CMS.debug("RenewalSubmitter: renewal original profileId=" + profileId);
+ 
++            String aidString = origReq.getExtDataInString(
++                    IEnrollProfile.REQUEST_AUTHORITY_ID);
++
+             Integer origSeqNum = origReq.getExtDataInInteger(IEnrollProfile.REQUEST_SEQ_NUM);
+             IProfile profile = ps.getProfile(profileId);
+             if (profile == null) {
+@@ -171,6 +174,10 @@ public class RenewalProcessor extends CertProcessor {
+             }
+ 
+             IProfileContext ctx = profile.createContext();
++
++            if (aidString != null)
++                ctx.set(IEnrollProfile.REQUEST_AUTHORITY_ID, aidString);
++
+             IProfileAuthenticator authenticator = renewProfile.getAuthenticator();
+             IProfileAuthenticator origAuthenticator = profile.getAuthenticator();
+ 
+-- 
+2.5.5
+

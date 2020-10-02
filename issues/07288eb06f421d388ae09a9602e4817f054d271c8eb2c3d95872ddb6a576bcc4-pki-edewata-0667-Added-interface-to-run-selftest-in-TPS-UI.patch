@@ -1,0 +1,367 @@
+From 880213c5bb173f872d0003f303143a5f49c2067a Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Wed, 6 Jan 2016 05:10:33 +0100
+Subject: [PATCH] Added interface to run selftest in TPS UI.
+
+The TPS UI has been modified to provide an interface to run the
+selftests and display the results.
+
+https://fedorahosted.org/pki/ticket/1502
+---
+ base/server/share/webapps/pki/js/pki-ui.js    |  28 ++++--
+ base/tps/shared/webapps/tps/js/selftest.js    | 133 +++++++++++++++++++++++++-
+ base/tps/shared/webapps/tps/ui/selftest.html  |  35 +++++++
+ base/tps/shared/webapps/tps/ui/selftests.html |  39 ++++++--
+ 4 files changed, 217 insertions(+), 18 deletions(-)
+
+diff --git a/base/server/share/webapps/pki/js/pki-ui.js b/base/server/share/webapps/pki/js/pki-ui.js
+index cf4b44e241aee2ab7817fbebcc26b1f28dfc5148..c6e326a0c4b10a672e67a40fc2d21bfea4be6b43 100644
+--- a/base/server/share/webapps/pki/js/pki-ui.js
++++ b/base/server/share/webapps/pki/js/pki-ui.js
+@@ -194,6 +194,8 @@ var Dialog = Backbone.View.extend({
+         var self = this;
+         Dialog.__super__.initialize.call(self, options);
+ 
++        self.body = self.$(".modal-body");
++
+         self.title = options.title;
+ 
+         self.readonly = options.readonly;
+@@ -231,7 +233,8 @@ var Dialog = Backbone.View.extend({
+         }
+ 
+         // setup input fields
+-        self.$(".modal-body input").each(function(index) {
++        // TODO: handle drop-down lists
++        $("input, textarea", self.body).each(function(index) {
+             var input = $(this);
+             var name = input.attr("name");
+             if (_.contains(self.readonly, name)) {
+@@ -287,13 +290,7 @@ var Dialog = Backbone.View.extend({
+         var self = this;
+ 
+         // load input fields
+-        self.$(".modal-body input").each(function(index) {
+-            var input = $(this);
+-            self.loadField(input);
+-        });
+-
+-        // load drop-down lists
+-        self.$(".modal-body select").each(function(index) {
++        $("input, select, textarea", self.body).each(function(index) {
+             var input = $(this);
+             self.loadField(input);
+         });
+@@ -425,6 +422,17 @@ var TableItem = Backbone.View.extend({
+             }
+         });
+     },
++    isSelected: function() {
++        var self = this;
++
++        var checkbox = $("td.pki-select-column input", self.$el);
++
++        // skip blank rows
++        var value = checkbox.val();
++        if (value == "") return false;
++
++        return checkbox.prop("checked");
++    },
+     get: function(name) {
+         var self = this;
+         var attribute = self.table.columnMappings[name] || name;
+@@ -664,6 +672,10 @@ var Table = Backbone.View.extend({
+             item.reset();
+         }
+     },
++    getSelectedRows: function() {
++        var self = this;
++        return _.filter(self.items, function(item) { return item.isSelected(); });
++    },
+     totalEntries: function() {
+         var self = this;
+         return self.filteredEntries.length;
+diff --git a/base/tps/shared/webapps/tps/js/selftest.js b/base/tps/shared/webapps/tps/js/selftest.js
+index d2890781760eb856f5684365dc3b7bc243c06302..0d402c597270a825bbde8c4ec4927b967f456ab5 100644
+--- a/base/tps/shared/webapps/tps/js/selftest.js
++++ b/base/tps/shared/webapps/tps/js/selftest.js
+@@ -38,6 +38,18 @@ var SelfTestModel = Model.extend({
+             EnabledOnDemand: attributes.enabledOnDemand,
+             CriticalOnDemand: attributes.criticalOnDemand
+         };
++    },
++    run: function(options) {
++        var self = this;
++        $.ajax({
++            type: "POST",
++            url: self.url() + "/run",
++            dataType: "json"
++        }).done(function(data, textStatus, jqXHR) {
++            if (options.success) options.success.call(self, data, textStatus, jqXHR);
++        }).fail(function(jqXHR, textStatus, errorThrown) {
++            if (options.error) options.error.call(self, jqXHR, textStatus, errorThrown);
++        });
+     }
+ });
+ 
+@@ -64,6 +76,48 @@ var SelfTestPage = EntryPage.extend({
+     initialize: function(options) {
+         var self = this;
+         SelfTestPage.__super__.initialize.call(self, options);
++    },
++    setup: function() {
++        var self = this;
++
++        SelfTestPage.__super__.setup.call(self);
++
++        self.runAction = $("[name='run']", self.viewMenu);
++
++        $("a", self.runAction).click(function(e) {
++
++            e.preventDefault();
++
++            self.model.run({
++                success: function(data, textStatus, jqXHR) {
++                    self.showResult({
++                        id: data.id,
++                        status: data.Status,
++                        output: data.Output
++                    });
++                },
++                error: function(jqXHR, textStatus, errorThrown) {
++                    self.showResult({
++                        id: self.model.get("id"),
++                        status: textStatus,
++                        output: errorThrown
++                    });
++                }
++            });
++
++        });
++    },
++    showResult: function(data) {
++        var dialog = new Dialog({
++            el: self.$("#selftest-result-dialog"),
++            title: "Self Test Result",
++            readonly: ["id", "status", "output"],
++            actions: ["close"]
++        });
++
++        dialog.entry = data;
++
++        dialog.open();
+     }
+ });
+ 
+@@ -71,6 +125,80 @@ var SelfTestsTable = ModelTable.extend({
+     initialize: function(options) {
+         var self = this;
+         SelfTestsTable.__super__.initialize.call(self, options);
++
++        self.runButton = $("[name='run']", self.buttons);
++        self.runButton.click(function(e) {
++            var items = self.getSelectedRows();
++            _.each(items, function(item, index) {
++                self.runTest(item, index);
++            });
++        });
++
++        self.clearButton = $("[name='clear']", self.buttons);
++        self.clearButton.click(function(e) {
++            var items = self.getSelectedRows();
++            _.each(items, function(item, index) {
++                self.clearTest(item, index);
++            });
++        });
++    },
++    runTest: function(item, index) {
++        var self = this;
++
++        var statusTD = $("td[name='status']", item.$el);
++        statusTD.text("RUNNING");
++
++        var id = item.get("id");
++        var model = self.collection.get(id);
++
++        model.run({
++            success: function(data, textStatus, jqXHR) {
++                statusTD.empty();
++                var link = $("<a/>", {
++                    text: data.Status,
++                    click: function(e) {
++                        e.preventDefault();
++                        self.showResult({
++                            id: data.id,
++                            status: data.Status,
++                            output: data.Output
++                        });
++                    }
++                }).appendTo(statusTD);
++            },
++            error: function(jqXHR, textStatus, errorThrown) {
++                statusTD.empty();
++                var link = $("<a/>", {
++                    text: textStatus,
++                    click: function(e) {
++                        e.preventDefault();
++                        self.showResult({
++                            id: id,
++                            status: textStatus,
++                            output: errorThrown
++                        });
++                    }
++                }).appendTo(statusTD);
++            }
++        });
++    },
++    clearTest: function(item, index) {
++        var self = this;
++
++        var statusTD = $("td[name='status']", item.$el);
++        statusTD.empty();
++    },
++    showResult: function(data) {
++        var dialog = new Dialog({
++            el: self.parent.$("#selftest-result-dialog"),
++            title: "Self Test Result",
++            readonly: ["id", "status", "output"],
++            actions: ["close"]
++        });
++
++        dialog.entry = data;
++
++        dialog.open();
+     }
+ });
+ 
+@@ -79,8 +207,9 @@ var SelfTestsPage = Page.extend({
+         var self = this;
+ 
+         var table = new SelfTestsTable({
+-            el: $("table[name='selftests']"),
+-            collection: new SelfTestCollection()
++            el: self.$("table[name='selftests']"),
++            collection: new SelfTestCollection(),
++            parent: self
+         });
+ 
+         table.render();
+diff --git a/base/tps/shared/webapps/tps/ui/selftest.html b/base/tps/shared/webapps/tps/ui/selftest.html
+index 8a680355a293b689dcac071a80dd2484c4c0e0d2..1b43cfe5e3c010da038850ec6c4b79783fd02bcd 100644
+--- a/base/tps/shared/webapps/tps/ui/selftest.html
++++ b/base/tps/shared/webapps/tps/ui/selftest.html
+@@ -24,6 +24,14 @@
+ 
+ <span name="title" class="pki-title">Self Test ${id}</span>
+ 
++<span class="pki-actions">
++
++<ul name="view" class="pki-actions-menu">
++<li name="run"><a href="#">Run</a></li>
++</ul>
++
++</span>
++
+ </div>
+ 
+ <div name="user" class="pki-fields">
+@@ -40,3 +48,30 @@
+     <input name="criticalOnDemand" readonly="readonly"><br>
+ </fieldset>
+ </div>
++
++<div id="selftest-result-dialog" class="modal">
++    <div class="modal-dialog">
++        <div class="modal-content">
++            <div class="modal-header">
++                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
++                    <span class="pficon pficon-close"></span>
++                </button>
++                <h4 class="modal-title">Self Test Result</h4>
++            </div>
++            <div class="modal-body">
++                <fieldset>
++                <label>Self Test ID</label>
++                <input name="id" readonly="readonly"><br>
++                <label>Status</label>
++                <input name="status" readonly="readonly"><br>
++                <label>Output</label>
++                <textarea name="output" rows="20" style="width: 100%; white-space: pre;">
++                </textarea>
++                </fieldset>
++            </div>
++            <div class="modal-footer">
++                <button name="close" class="btn btn-default" data-dismiss="modal">Close</button>
++            </div>
++        </div>
++    </div>
++</div>
+diff --git a/base/tps/shared/webapps/tps/ui/selftests.html b/base/tps/shared/webapps/tps/ui/selftests.html
+index 95bafeaffcec1519e6c057a1902b13a87a6fa51c..92133c3d3edd1729a3a27d4eb658497a4cd90d52 100644
+--- a/base/tps/shared/webapps/tps/ui/selftests.html
++++ b/base/tps/shared/webapps/tps/ui/selftests.html
+@@ -32,26 +32,22 @@
+                  <input name="search" type="text" placeholder="Search...">
+              </span>
+              <span class="pki-table-buttons">
++                 <button name="run">Run</button>
++                 <button name="clear">Clear</button>
+              </span>
+          </th>
+     </tr>
+     <tr>
+         <th class="pki-select-column"><input id="selftests-selectall" type="checkbox"><label for="selftests-selectall">&nbsp;</label></th>
+         <th>Self Test ID</th>
+-        <th>Enabled at Statup</th>
+-        <th>Critical at Startup</th>
+-        <th>Enabled on Demand</th>
+-        <th>Critical on Demand</th>
++        <th>Status</th>
+     </tr>
+ </thead>
+ <tbody>
+     <tr>
+         <td class="pki-select-column"><input id="selftests-select" type="checkbox"><label for="selftests-select">&nbsp;</label></td>
+         <td name="id"><a href="#selftests/${id}">${id}</a></td>
+-        <td name="enabledAtStartup">${enabledAtStartup}</td>
+-        <td name="criticalAtStartup">${criticalAtStartup}</td>
+-        <td name="enabledOnDemand">${enabledOnDemand}</td>
+-        <td name="criticalOnDemand">${criticalOnDemand}</td>
++        <td name="status"></td>
+     </tr>
+ </tbody>
+ <tfoot>
+@@ -77,3 +73,30 @@
+     </tr>
+ </tfoot>
+ </table>
++
++<div id="selftest-result-dialog" class="modal">
++    <div class="modal-dialog">
++        <div class="modal-content">
++            <div class="modal-header">
++                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
++                    <span class="pficon pficon-close"></span>
++                </button>
++                <h4 class="modal-title">Self Test Result</h4>
++            </div>
++            <div class="modal-body">
++                <fieldset>
++                <label>Self Test ID</label>
++                <input name="id" readonly="readonly"><br>
++                <label>Status</label>
++                <input name="status" readonly="readonly"><br>
++                <label>Output</label>
++                <textarea name="output" rows="20" style="width: 100%; white-space: pre;">
++                </textarea>
++                </fieldset>
++            </div>
++            <div class="modal-footer">
++                <button name="close" class="btn btn-default" data-dismiss="modal">Close</button>
++            </div>
++        </div>
++    </div>
++</div>
+-- 
+2.4.3
+

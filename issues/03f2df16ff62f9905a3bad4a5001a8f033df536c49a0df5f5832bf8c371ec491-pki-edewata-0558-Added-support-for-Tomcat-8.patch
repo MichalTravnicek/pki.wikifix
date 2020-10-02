@@ -1,0 +1,1231 @@
+From dce40f4d9d5f1d5f9ab7e20ee864d506fe7688ae Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Tue, 24 Feb 2015 21:02:13 -0500
+Subject: [PATCH] Added support for Tomcat 8.
+
+The Dogtag code has been modified to support both Tomcat 7 and 8.
+All files depending on a specific Tomcat version are now stored
+in separate folders. The build scripts have been modified to use
+the proper folder for the target platform. The tomcatjss
+dependency has been updated as well.
+
+The upgrade script will be added in a separate patch.
+
+https://fedorahosted.org/pki/ticket/1264
+---
+ .classpath                                         |   2 +-
+ CMakeLists.txt                                     |   4 +-
+ base/ca/CMakeLists.txt                             |   8 ++
+ base/ca/tomcat7/CMakeLists.txt                     |   6 +
+ .../conf/Catalina/localhost/ca.xml                 |   0
+ base/ca/tomcat8/CMakeLists.txt                     |   6 +
+ .../conf/Catalina/localhost/ca.xml                 |   4 +-
+ base/kra/CMakeLists.txt                            |   8 ++
+ base/kra/tomcat7/CMakeLists.txt                    |   6 +
+ .../conf/Catalina/localhost/kra.xml                |   0
+ base/kra/tomcat8/CMakeLists.txt                    |   6 +
+ .../conf/Catalina/localhost/kra.xml                |   4 +-
+ base/ocsp/CMakeLists.txt                           |   8 ++
+ base/ocsp/tomcat7/CMakeLists.txt                   |   6 +
+ .../conf/Catalina/localhost/ocsp.xml               |   0
+ base/ocsp/tomcat8/CMakeLists.txt                   |   6 +
+ .../conf/Catalina/localhost/ocsp.xml               |   4 +-
+ base/server/CMakeLists.txt                         |   9 +-
+ .../netscape/cms/servlet/common/CMSTemplate.java   |  25 +---
+ base/server/tomcat/CMakeLists.txt                  |   3 -
+ base/server/tomcat7/CMakeLists.txt                 |  10 ++
+ .../conf/Catalina/localhost/ROOT.xml               |   0
+ .../conf/Catalina/localhost/pki.xml                |   0
+ base/server/{share => tomcat7}/conf/server.xml     |   0
+ base/server/{tomcat => tomcat7}/src/CMakeLists.txt |   6 +-
+ .../src/com/netscape/cms/tomcat/ProxyRealm.java    |   0
+ .../cms/tomcat/SSLAuthenticatorWithFallback.java   |   0
+ base/server/{tomcat => tomcat7}/src/pki-tomcat.mf  |   0
+ base/server/tomcat8/CMakeLists.txt                 |  10 ++
+ .../conf/Catalina/localhost/ROOT.xml               |   4 +-
+ .../conf/Catalina/localhost/pki.xml                |   4 +-
+ base/server/{share => tomcat8}/conf/server.xml     | 137 +++++++++------------
+ base/server/{tomcat => tomcat8}/src/CMakeLists.txt |   6 +-
+ .../src/com/netscape/cms/tomcat/ProxyRealm.java    |  18 ++-
+ .../cms/tomcat/SSLAuthenticatorWithFallback.java   |  18 ++-
+ base/server/{tomcat => tomcat8}/src/pki-tomcat.mf  |   0
+ base/tks/CMakeLists.txt                            |   8 ++
+ base/tks/tomcat7/CMakeLists.txt                    |   6 +
+ .../conf/Catalina/localhost/tks.xml                |   0
+ base/tks/tomcat8/CMakeLists.txt                    |   6 +
+ .../conf/Catalina/localhost/tks.xml                |   4 +-
+ base/tps/CMakeLists.txt                            |   8 ++
+ base/tps/tomcat7/CMakeLists.txt                    |   6 +
+ .../conf/Catalina/localhost/tps.xml                |   0
+ base/tps/tomcat8/CMakeLists.txt                    |   6 +
+ .../conf/Catalina/localhost/tps.xml                |   4 +-
+ specs/dogtag-pki.spec                              |   3 +-
+ specs/pki-core.spec                                |  62 +++++++---
+ 48 files changed, 288 insertions(+), 153 deletions(-)
+ create mode 100644 base/ca/tomcat7/CMakeLists.txt
+ copy base/ca/{shared => tomcat7}/conf/Catalina/localhost/ca.xml (100%)
+ create mode 100644 base/ca/tomcat8/CMakeLists.txt
+ rename base/ca/{shared => tomcat8}/conf/Catalina/localhost/ca.xml (95%)
+ create mode 100644 base/kra/tomcat7/CMakeLists.txt
+ copy base/kra/{shared => tomcat7}/conf/Catalina/localhost/kra.xml (100%)
+ create mode 100644 base/kra/tomcat8/CMakeLists.txt
+ rename base/kra/{shared => tomcat8}/conf/Catalina/localhost/kra.xml (95%)
+ create mode 100644 base/ocsp/tomcat7/CMakeLists.txt
+ copy base/ocsp/{shared => tomcat7}/conf/Catalina/localhost/ocsp.xml (100%)
+ create mode 100644 base/ocsp/tomcat8/CMakeLists.txt
+ rename base/ocsp/{shared => tomcat8}/conf/Catalina/localhost/ocsp.xml (95%)
+ delete mode 100644 base/server/tomcat/CMakeLists.txt
+ create mode 100644 base/server/tomcat7/CMakeLists.txt
+ copy base/server/{share => tomcat7}/conf/Catalina/localhost/ROOT.xml (100%)
+ copy base/server/{share => tomcat7}/conf/Catalina/localhost/pki.xml (100%)
+ copy base/server/{share => tomcat7}/conf/server.xml (100%)
+ copy base/server/{tomcat => tomcat7}/src/CMakeLists.txt (95%)
+ copy base/server/{tomcat => tomcat7}/src/com/netscape/cms/tomcat/ProxyRealm.java (100%)
+ copy base/server/{tomcat => tomcat7}/src/com/netscape/cms/tomcat/SSLAuthenticatorWithFallback.java (100%)
+ copy base/server/{tomcat => tomcat7}/src/pki-tomcat.mf (100%)
+ create mode 100644 base/server/tomcat8/CMakeLists.txt
+ rename base/server/{share => tomcat8}/conf/Catalina/localhost/ROOT.xml (94%)
+ rename base/server/{share => tomcat8}/conf/Catalina/localhost/pki.xml (94%)
+ rename base/server/{share => tomcat8}/conf/server.xml (73%)
+ rename base/server/{tomcat => tomcat8}/src/CMakeLists.txt (95%)
+ rename base/server/{tomcat => tomcat8}/src/com/netscape/cms/tomcat/ProxyRealm.java (91%)
+ rename base/server/{tomcat => tomcat8}/src/com/netscape/cms/tomcat/SSLAuthenticatorWithFallback.java (94%)
+ rename base/server/{tomcat => tomcat8}/src/pki-tomcat.mf (100%)
+ create mode 100644 base/tks/tomcat7/CMakeLists.txt
+ copy base/tks/{shared => tomcat7}/conf/Catalina/localhost/tks.xml (100%)
+ create mode 100644 base/tks/tomcat8/CMakeLists.txt
+ rename base/tks/{shared => tomcat8}/conf/Catalina/localhost/tks.xml (95%)
+ create mode 100644 base/tps/tomcat7/CMakeLists.txt
+ copy base/tps/{shared => tomcat7}/conf/Catalina/localhost/tps.xml (100%)
+ create mode 100644 base/tps/tomcat8/CMakeLists.txt
+ rename base/tps/{shared => tomcat8}/conf/Catalina/localhost/tps.xml (96%)
+
+diff --git a/.classpath b/.classpath
+index 9886a5236a6a88398efe123efdc7688391a88279..9befab0fe0430ca7725de7ae4523c85f0b94df58 100644
+--- a/.classpath
++++ b/.classpath
+@@ -8,7 +8,7 @@
+ 	<classpathentry excluding="**/CMakeLists.txt" kind="src" path="base/common/src"/>
+ 	<classpathentry excluding="**/CMakeLists.txt" kind="src" path="base/common/functional/src"/>
+ 	<classpathentry excluding="**/CMakeLists.txt" kind="src" path="base/java-tools/src"/>
+-	<classpathentry excluding="**/CMakeLists.txt" kind="src" path="base/server/tomcat/src"/>
++	<classpathentry excluding="**/CMakeLists.txt" kind="src" path="base/server/tomcat7/src"/>
+ 	<classpathentry excluding="**/CMakeLists.txt" kind="src" path="base/server/cms/src"/>
+ 	<classpathentry excluding="**/CMakeLists.txt" kind="src" path="base/server/cmscore/src"/>
+ 	<classpathentry excluding="**/CMakeLists.txt" kind="src" path="base/server/test"/>
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 6702ac07d5ea983225741442726a3e259dbdfc47..12a7493b376d0925744399277314d9e8aa78a059 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -14,8 +14,10 @@ string(REGEX REPLACE "^([0-9]+).*" "\\1" APPLICATION_VERSION_MAJOR ${VERSION})
+ string(REGEX REPLACE "^[0-9]+\\.([0-9]+).*" "\\1" APPLICATION_VERSION_MINOR ${VERSION})
+ string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" APPLICATION_VERSION_PATCH ${VERSION})
+ 
+-option(WITH_JAVADOC "Build Javadoc" ON)
++option(WITH_TOMCAT7 "Build Tomcat 7" ON)
++option(WITH_TOMCAT8 "Build Tomcat 8" ON)
+ option(WITH_SERVER "Build Server" ON)
++option(WITH_JAVADOC "Build Javadoc" ON)
+ 
+ if (BUILD_DOGTAG_PKI_THEME)
+     set(APPLICATION_FLAVOR_DOGTAG_PKI_THEME TRUE)
+diff --git a/base/ca/CMakeLists.txt b/base/ca/CMakeLists.txt
+index 025f7a1327208ca022a2c302a23e790550f4dc1b..63e77195a5ba21251b0039407ccc180873f48828 100644
+--- a/base/ca/CMakeLists.txt
++++ b/base/ca/CMakeLists.txt
+@@ -4,6 +4,14 @@ add_subdirectory(src)
+ add_subdirectory(setup)
+ add_subdirectory(shared/conf)
+ 
++if(WITH_TOMCAT7)
++    add_subdirectory(tomcat7)
++endif(WITH_TOMCAT7)
++
++if(WITH_TOMCAT8)
++    add_subdirectory(tomcat8)
++endif(WITH_TOMCAT8)
++
+ # install directories
+ install(
+     DIRECTORY
+diff --git a/base/ca/tomcat7/CMakeLists.txt b/base/ca/tomcat7/CMakeLists.txt
+new file mode 100644
+index 0000000000000000000000000000000000000000..5c324e441fd2b17054cd8b5accb05510048d489a
+--- /dev/null
++++ b/base/ca/tomcat7/CMakeLists.txt
+@@ -0,0 +1,6 @@
++install(
++    DIRECTORY
++        conf/
++    DESTINATION
++        ${SHARE_INSTALL_PREFIX}/${APPLICATION_NAME}/${PROJECT_NAME}/conf/
++)
+diff --git a/base/ca/shared/conf/Catalina/localhost/ca.xml b/base/ca/tomcat7/conf/Catalina/localhost/ca.xml
+similarity index 100%
+copy from base/ca/shared/conf/Catalina/localhost/ca.xml
+copy to base/ca/tomcat7/conf/Catalina/localhost/ca.xml
+diff --git a/base/ca/tomcat8/CMakeLists.txt b/base/ca/tomcat8/CMakeLists.txt
+new file mode 100644
+index 0000000000000000000000000000000000000000..5c324e441fd2b17054cd8b5accb05510048d489a
+--- /dev/null
++++ b/base/ca/tomcat8/CMakeLists.txt
+@@ -0,0 +1,6 @@
++install(
++    DIRECTORY
++        conf/
++    DESTINATION
++        ${SHARE_INSTALL_PREFIX}/${APPLICATION_NAME}/${PROJECT_NAME}/conf/
++)
+diff --git a/base/ca/shared/conf/Catalina/localhost/ca.xml b/base/ca/tomcat8/conf/Catalina/localhost/ca.xml
+similarity index 95%
+rename from base/ca/shared/conf/Catalina/localhost/ca.xml
+rename to base/ca/tomcat8/conf/Catalina/localhost/ca.xml
+index e838503a64e5442e114cf4e18f616fdffe39b647..2c045dec7beedf3ac5502ed26916d10ca42ade4c 100644
+--- a/base/ca/shared/conf/Catalina/localhost/ca.xml
++++ b/base/ca/tomcat8/conf/Catalina/localhost/ca.xml
+@@ -22,7 +22,7 @@
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ -->
+-<Context crossContext="true" allowLinking="true">
++<Context crossContext="true">
+ 
+     <Manager
+         secureRandomProvider="Mozilla-JSS" secureRandomAlgorithm="pkcs11prng"/>
+@@ -34,4 +34,6 @@
+ 
+     <Realm className="com.netscape.cms.tomcat.ProxyRealm" />
+ 
++    <Resources allowLinking="true" />
++
+ </Context>
+diff --git a/base/kra/CMakeLists.txt b/base/kra/CMakeLists.txt
+index 02bacd132c5af796cf27e05de699296f7e555dd3..0197075ba5f0bef2c7159537f275e78abf225eac 100644
+--- a/base/kra/CMakeLists.txt
++++ b/base/kra/CMakeLists.txt
+@@ -4,6 +4,14 @@ add_subdirectory(src)
+ add_subdirectory(setup)
+ add_subdirectory(shared/conf)
+ 
++if(WITH_TOMCAT7)
++    add_subdirectory(tomcat7)
++endif(WITH_TOMCAT7)
++
++if(WITH_TOMCAT8)
++    add_subdirectory(tomcat8)
++endif(WITH_TOMCAT8)
++
+ # install directories
+ install(
+     DIRECTORY
+diff --git a/base/kra/tomcat7/CMakeLists.txt b/base/kra/tomcat7/CMakeLists.txt
+new file mode 100644
+index 0000000000000000000000000000000000000000..5c324e441fd2b17054cd8b5accb05510048d489a
+--- /dev/null
++++ b/base/kra/tomcat7/CMakeLists.txt
+@@ -0,0 +1,6 @@
++install(
++    DIRECTORY
++        conf/
++    DESTINATION
++        ${SHARE_INSTALL_PREFIX}/${APPLICATION_NAME}/${PROJECT_NAME}/conf/
++)
+diff --git a/base/kra/shared/conf/Catalina/localhost/kra.xml b/base/kra/tomcat7/conf/Catalina/localhost/kra.xml
+similarity index 100%
+copy from base/kra/shared/conf/Catalina/localhost/kra.xml
+copy to base/kra/tomcat7/conf/Catalina/localhost/kra.xml
+diff --git a/base/kra/tomcat8/CMakeLists.txt b/base/kra/tomcat8/CMakeLists.txt
+new file mode 100644
+index 0000000000000000000000000000000000000000..5c324e441fd2b17054cd8b5accb05510048d489a
+--- /dev/null
++++ b/base/kra/tomcat8/CMakeLists.txt
+@@ -0,0 +1,6 @@
++install(
++    DIRECTORY
++        conf/
++    DESTINATION
++        ${SHARE_INSTALL_PREFIX}/${APPLICATION_NAME}/${PROJECT_NAME}/conf/
++)
+diff --git a/base/kra/shared/conf/Catalina/localhost/kra.xml b/base/kra/tomcat8/conf/Catalina/localhost/kra.xml
+similarity index 95%
+rename from base/kra/shared/conf/Catalina/localhost/kra.xml
+rename to base/kra/tomcat8/conf/Catalina/localhost/kra.xml
+index e838503a64e5442e114cf4e18f616fdffe39b647..2c045dec7beedf3ac5502ed26916d10ca42ade4c 100644
+--- a/base/kra/shared/conf/Catalina/localhost/kra.xml
++++ b/base/kra/tomcat8/conf/Catalina/localhost/kra.xml
+@@ -22,7 +22,7 @@
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ -->
+-<Context crossContext="true" allowLinking="true">
++<Context crossContext="true">
+ 
+     <Manager
+         secureRandomProvider="Mozilla-JSS" secureRandomAlgorithm="pkcs11prng"/>
+@@ -34,4 +34,6 @@
+ 
+     <Realm className="com.netscape.cms.tomcat.ProxyRealm" />
+ 
++    <Resources allowLinking="true" />
++
+ </Context>
+diff --git a/base/ocsp/CMakeLists.txt b/base/ocsp/CMakeLists.txt
+index 4a7259b90fb94cf0121d0d8978c42ab2a996ed42..de781f8c3687ed3f5dd948858d128043a16c7534 100644
+--- a/base/ocsp/CMakeLists.txt
++++ b/base/ocsp/CMakeLists.txt
+@@ -4,6 +4,14 @@ add_subdirectory(src)
+ add_subdirectory(setup)
+ add_subdirectory(shared/conf)
+ 
++if(WITH_TOMCAT7)
++    add_subdirectory(tomcat7)
++endif(WITH_TOMCAT7)
++
++if(WITH_TOMCAT8)
++    add_subdirectory(tomcat8)
++endif(WITH_TOMCAT8)
++
+ # install directories
+ install(
+     DIRECTORY
+diff --git a/base/ocsp/tomcat7/CMakeLists.txt b/base/ocsp/tomcat7/CMakeLists.txt
+new file mode 100644
+index 0000000000000000000000000000000000000000..5c324e441fd2b17054cd8b5accb05510048d489a
+--- /dev/null
++++ b/base/ocsp/tomcat7/CMakeLists.txt
+@@ -0,0 +1,6 @@
++install(
++    DIRECTORY
++        conf/
++    DESTINATION
++        ${SHARE_INSTALL_PREFIX}/${APPLICATION_NAME}/${PROJECT_NAME}/conf/
++)
+diff --git a/base/ocsp/shared/conf/Catalina/localhost/ocsp.xml b/base/ocsp/tomcat7/conf/Catalina/localhost/ocsp.xml
+similarity index 100%
+copy from base/ocsp/shared/conf/Catalina/localhost/ocsp.xml
+copy to base/ocsp/tomcat7/conf/Catalina/localhost/ocsp.xml
+diff --git a/base/ocsp/tomcat8/CMakeLists.txt b/base/ocsp/tomcat8/CMakeLists.txt
+new file mode 100644
+index 0000000000000000000000000000000000000000..5c324e441fd2b17054cd8b5accb05510048d489a
+--- /dev/null
++++ b/base/ocsp/tomcat8/CMakeLists.txt
+@@ -0,0 +1,6 @@
++install(
++    DIRECTORY
++        conf/
++    DESTINATION
++        ${SHARE_INSTALL_PREFIX}/${APPLICATION_NAME}/${PROJECT_NAME}/conf/
++)
+diff --git a/base/ocsp/shared/conf/Catalina/localhost/ocsp.xml b/base/ocsp/tomcat8/conf/Catalina/localhost/ocsp.xml
+similarity index 95%
+rename from base/ocsp/shared/conf/Catalina/localhost/ocsp.xml
+rename to base/ocsp/tomcat8/conf/Catalina/localhost/ocsp.xml
+index e838503a64e5442e114cf4e18f616fdffe39b647..2c045dec7beedf3ac5502ed26916d10ca42ade4c 100644
+--- a/base/ocsp/shared/conf/Catalina/localhost/ocsp.xml
++++ b/base/ocsp/tomcat8/conf/Catalina/localhost/ocsp.xml
+@@ -22,7 +22,7 @@
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ -->
+-<Context crossContext="true" allowLinking="true">
++<Context crossContext="true">
+ 
+     <Manager
+         secureRandomProvider="Mozilla-JSS" secureRandomAlgorithm="pkcs11prng"/>
+@@ -34,4 +34,6 @@
+ 
+     <Realm className="com.netscape.cms.tomcat.ProxyRealm" />
+ 
++    <Resources allowLinking="true" />
++
+ </Context>
+diff --git a/base/server/CMakeLists.txt b/base/server/CMakeLists.txt
+index 01a194a3dc894dcc831393623f84a725c5c0fafd..b429c4e80f34c18e1b0213563a7db8306530406c 100644
+--- a/base/server/CMakeLists.txt
++++ b/base/server/CMakeLists.txt
+@@ -140,7 +140,14 @@ install(
+ install(CODE "file(MAKE_DIRECTORY \$ENV{DESTDIR}${VAR_INSTALL_DIR}/lock/pki)")
+ install(CODE "file(MAKE_DIRECTORY \$ENV{DESTDIR}${VAR_INSTALL_DIR}/run/pki)")
+ 
+-add_subdirectory(tomcat)
++if(WITH_TOMCAT7)
++    add_subdirectory(tomcat7)
++endif(WITH_TOMCAT7)
++
++if(WITH_TOMCAT8)
++    add_subdirectory(tomcat8)
++endif(WITH_TOMCAT8)
++
+ add_subdirectory(cms)
+ add_subdirectory(cmsbundle)
+ add_subdirectory(cmscore)
+diff --git a/base/server/cms/src/com/netscape/cms/servlet/common/CMSTemplate.java b/base/server/cms/src/com/netscape/cms/servlet/common/CMSTemplate.java
+index 336032dd39c3c92380cd5b39d531b3c0f17048cb..dc8cef68fb6c975c04ad950427b4312e95ea462c 100644
+--- a/base/server/cms/src/com/netscape/cms/servlet/common/CMSTemplate.java
++++ b/base/server/cms/src/com/netscape/cms/servlet/common/CMSTemplate.java
+@@ -18,6 +18,7 @@
+ package com.netscape.cms.servlet.common;
+ 
+ import java.io.BufferedReader;
++import java.io.ByteArrayOutputStream;
+ import java.io.File;
+ import java.io.FileInputStream;
+ import java.io.IOException;
+@@ -25,13 +26,10 @@ import java.io.InputStreamReader;
+ import java.io.OutputStream;
+ import java.io.OutputStreamWriter;
+ import java.io.PrintWriter;
+-import java.io.StringWriter;
+ import java.io.UnsupportedEncodingException;
+ import java.math.BigInteger;
+ import java.util.Enumeration;
+ 
+-import javax.servlet.ServletOutputStream;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IArgBlock;
+@@ -531,8 +529,7 @@ public class CMSTemplate extends CMSFile {
+      */
+     public String getOutput(CMSTemplateParams input)
+             throws IOException {
+-        debugOutputStream out = new debugOutputStream();
+-
++        ByteArrayOutputStream out = new ByteArrayOutputStream();
+         renderOutput(out, input);
+         return out.toString();
+     }
+@@ -572,22 +569,4 @@ public class CMSTemplate extends CMSFile {
+         }
+ 
+     }
+-
+-    private static class debugOutputStream extends ServletOutputStream {
+-        private StringWriter mStringWriter = new StringWriter();
+-
+-        public debugOutputStream() {
+-            super();
+-        }
+-
+-        public void write(int b) throws IOException {
+-            mStringWriter.write(b);
+-        }
+-
+-        public String toString() {
+-            return mStringWriter.toString();
+-        }
+-
+-    }
+-
+ }
+diff --git a/base/server/tomcat/CMakeLists.txt b/base/server/tomcat/CMakeLists.txt
+deleted file mode 100644
+index 555a9329dae47e5c38f072dce009078db17c819e..0000000000000000000000000000000000000000
+--- a/base/server/tomcat/CMakeLists.txt
++++ /dev/null
+@@ -1,3 +0,0 @@
+-project(tomcat)
+-
+-add_subdirectory(src)
+diff --git a/base/server/tomcat7/CMakeLists.txt b/base/server/tomcat7/CMakeLists.txt
+new file mode 100644
+index 0000000000000000000000000000000000000000..ba02af18dd571660e84030e03227a47bc87f76d4
+--- /dev/null
++++ b/base/server/tomcat7/CMakeLists.txt
+@@ -0,0 +1,10 @@
++project(server-tomcat7)
++
++add_subdirectory(src)
++
++install(
++    DIRECTORY
++        conf/
++    DESTINATION
++        ${DATA_INSTALL_DIR}/server/conf/
++)
+diff --git a/base/server/share/conf/Catalina/localhost/ROOT.xml b/base/server/tomcat7/conf/Catalina/localhost/ROOT.xml
+similarity index 100%
+copy from base/server/share/conf/Catalina/localhost/ROOT.xml
+copy to base/server/tomcat7/conf/Catalina/localhost/ROOT.xml
+diff --git a/base/server/share/conf/Catalina/localhost/pki.xml b/base/server/tomcat7/conf/Catalina/localhost/pki.xml
+similarity index 100%
+copy from base/server/share/conf/Catalina/localhost/pki.xml
+copy to base/server/tomcat7/conf/Catalina/localhost/pki.xml
+diff --git a/base/server/share/conf/server.xml b/base/server/tomcat7/conf/server.xml
+similarity index 100%
+copy from base/server/share/conf/server.xml
+copy to base/server/tomcat7/conf/server.xml
+diff --git a/base/server/tomcat/src/CMakeLists.txt b/base/server/tomcat7/src/CMakeLists.txt
+similarity index 95%
+copy from base/server/tomcat/src/CMakeLists.txt
+copy to base/server/tomcat7/src/CMakeLists.txt
+index d9808a8033e2c43a4653652f74e6e9b687be8e62..102dec7824d621637749a4b9138ef0fb69462209 100644
+--- a/base/server/tomcat/src/CMakeLists.txt
++++ b/base/server/tomcat7/src/CMakeLists.txt
+@@ -44,9 +44,9 @@ find_file(TOMCAT_CATALINA_JAR
+         /usr/share/java/tomcat
+ )
+ 
+-find_file(TOMCAT_UTIL_JAR
++find_file(TOMCAT_UTIL_SCAN_JAR
+     NAMES
+-        tomcat-util.jar
++        tomcat-util-scan.jar
+     PATHS
+         /usr/share/java/tomcat
+ )
+@@ -123,7 +123,7 @@ javac(pki-tomcat-classes
+     SOURCES
+         com/netscape/cms/tomcat/*.java
+     CLASSPATH
+-        ${SERVLET_JAR} ${TOMCAT_CATALINA_JAR}
++        ${SERVLET_JAR} ${TOMCAT_CATALINA_JAR} ${TOMCAT_UTIL_SCAN_JAR}
+     OUTPUT_DIR
+         ${CMAKE_BINARY_DIR}/classes
+ )
+diff --git a/base/server/tomcat/src/com/netscape/cms/tomcat/ProxyRealm.java b/base/server/tomcat7/src/com/netscape/cms/tomcat/ProxyRealm.java
+similarity index 100%
+copy from base/server/tomcat/src/com/netscape/cms/tomcat/ProxyRealm.java
+copy to base/server/tomcat7/src/com/netscape/cms/tomcat/ProxyRealm.java
+diff --git a/base/server/tomcat/src/com/netscape/cms/tomcat/SSLAuthenticatorWithFallback.java b/base/server/tomcat7/src/com/netscape/cms/tomcat/SSLAuthenticatorWithFallback.java
+similarity index 100%
+copy from base/server/tomcat/src/com/netscape/cms/tomcat/SSLAuthenticatorWithFallback.java
+copy to base/server/tomcat7/src/com/netscape/cms/tomcat/SSLAuthenticatorWithFallback.java
+diff --git a/base/server/tomcat/src/pki-tomcat.mf b/base/server/tomcat7/src/pki-tomcat.mf
+similarity index 100%
+copy from base/server/tomcat/src/pki-tomcat.mf
+copy to base/server/tomcat7/src/pki-tomcat.mf
+diff --git a/base/server/tomcat8/CMakeLists.txt b/base/server/tomcat8/CMakeLists.txt
+new file mode 100644
+index 0000000000000000000000000000000000000000..b5f8d7c223a3b3164d3973656559917454688efb
+--- /dev/null
++++ b/base/server/tomcat8/CMakeLists.txt
+@@ -0,0 +1,10 @@
++project(server-tomcat8)
++
++add_subdirectory(src)
++
++install(
++    DIRECTORY
++        conf/
++    DESTINATION
++        ${DATA_INSTALL_DIR}/server/conf/
++)
+diff --git a/base/server/share/conf/Catalina/localhost/ROOT.xml b/base/server/tomcat8/conf/Catalina/localhost/ROOT.xml
+similarity index 94%
+rename from base/server/share/conf/Catalina/localhost/ROOT.xml
+rename to base/server/tomcat8/conf/Catalina/localhost/ROOT.xml
+index ce98bfa4ec98502b1f45aef4ce048c26de3f1f70..e70dd20558a1f72bd82625396dd9e8d43a45fbe4 100644
+--- a/base/server/share/conf/Catalina/localhost/ROOT.xml
++++ b/base/server/tomcat8/conf/Catalina/localhost/ROOT.xml
+@@ -22,9 +22,11 @@
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ -->
+-<Context crossContext="true" allowLinking="true">
++<Context crossContext="true">
+ 
+     <Manager
+         secureRandomProvider="Mozilla-JSS" secureRandomAlgorithm="pkcs11prng"/>
+ 
++    <Resources allowLinking="true" />
++
+ </Context>
+diff --git a/base/server/share/conf/Catalina/localhost/pki.xml b/base/server/tomcat8/conf/Catalina/localhost/pki.xml
+similarity index 94%
+rename from base/server/share/conf/Catalina/localhost/pki.xml
+rename to base/server/tomcat8/conf/Catalina/localhost/pki.xml
+index ce98bfa4ec98502b1f45aef4ce048c26de3f1f70..e70dd20558a1f72bd82625396dd9e8d43a45fbe4 100644
+--- a/base/server/share/conf/Catalina/localhost/pki.xml
++++ b/base/server/tomcat8/conf/Catalina/localhost/pki.xml
+@@ -22,9 +22,11 @@
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ -->
+-<Context crossContext="true" allowLinking="true">
++<Context crossContext="true">
+ 
+     <Manager
+         secureRandomProvider="Mozilla-JSS" secureRandomAlgorithm="pkcs11prng"/>
+ 
++    <Resources allowLinking="true" />
++
+ </Context>
+diff --git a/base/server/share/conf/server.xml b/base/server/tomcat8/conf/server.xml
+similarity index 73%
+rename from base/server/share/conf/server.xml
+rename to base/server/tomcat8/conf/server.xml
+index b9e8860b2179e1432ebef7d06ff9f2c70985c1b5..ce8fc57dcec0193b01ac7c0b25c7fb90eee25c0b 100644
+--- a/base/server/share/conf/server.xml
++++ b/base/server/tomcat8/conf/server.xml
+@@ -23,7 +23,7 @@
+ <!-- Note:  A "Server" is not itself a "Container", so you may not
+      define subcomponents such as "Valves" at this level.
+      Documentation at /docs/config/server.html
+--->
++ -->
+ 
+ <!-- DO NOT REMOVE - Begin PKI Status Definitions -->
+ <!-- CA Status Definitions -->
+@@ -66,19 +66,20 @@ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+ <!-- DO NOT REMOVE - End PKI Status Definitions -->
+ 
+ <Server port="[TOMCAT_SERVER_PORT]" shutdown="SHUTDOWN">
+-
++  <Listener className="org.apache.catalina.startup.VersionLoggerListener" />
++  <!-- Security listener. Documentation at /docs/config/listeners.html
++  <Listener className="org.apache.catalina.security.SecurityListener" />
++  -->
+   <!--APR library loader. Documentation at /docs/apr.html -->
+   <!-- The following Listener class has been commented out because this -->
+   <!-- implementation depends upon the 'tomcatjss' JSSE module, 'JSS',  -->
+   <!-- and 'NSS' rather than the 'tomcat-native' module! -->
+   <!-- Listener className="org.apache.catalina.core.AprLifecycleListener" SSLEngine="on" -->
+-  <!--Initialize Jasper prior to webapps are loaded. Documentation at /docs/jasper-howto.html -->
+-  <Listener className="org.apache.catalina.core.JasperListener" />
+-  <!-- JMX Support for the Tomcat server. Documentation at /docs/non-existent.html -->
+-  <!-- The following class has been commented out because it -->
+-  <!-- has been EXCLUDED from the Tomcat 7 'tomcat-lib' RPM! -->
+-  <!-- Listener className="org.apache.catalina.mbeans.ServerLifecycleListener" -->
++
++  <!-- Prevent memory leaks due to use of particular java/javax APIs-->
++  <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener" />
+   <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener" />
++  <Listener className="org.apache.catalina.core.ThreadLocalLeakPreventionListener" />
+ 
+   <!-- Global JNDI resources
+        Documentation at /docs/jndi-resources-howto.html
+@@ -98,7 +99,7 @@ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+        a single "Container" Note:  A "Service" is not itself a "Container",
+        so you may not define subcomponents such as "Valves" at this level.
+        Documentation at /docs/config/service.html
+-  -->
++   -->
+   <Service name="Catalina">
+ 
+     <!--The connectors can use a shared executor, you can define one or more named thread pools-->
+@@ -113,17 +114,36 @@ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+          Java HTTP Connector: /docs/config/http.html (blocking & non-blocking)
+          Java AJP  Connector: /docs/config/ajp.html
+          APR (HTTP/AJP) Connector: /docs/apr.html
+-         Define a non-SSL HTTP/1.1 Connector on port 8080
++         Define a non-SSL/TLS HTTP/1.1 Connector on port [PKI_UNSECURE_PORT]
+     -->
+ 
+     [PKI_UNSECURE_PORT_SERVER_COMMENT]
+-    <Connector name="[PKI_UNSECURE_PORT_CONNECTOR_NAME]" port="[PKI_UNSECURE_PORT]" protocol="HTTP/1.1" redirectPort="[PKI_SECURE_PORT]"
++    <Connector name="[PKI_UNSECURE_PORT_CONNECTOR_NAME]"
++           port="[PKI_UNSECURE_PORT]"
++           protocol="HTTP/1.1"
++           redirectPort="[PKI_SECURE_PORT]"
+            maxHttpHeaderSize="8192"
+-           acceptCount="100" maxThreads="150" minSpareThreads="25"
+-           enableLookups="false" connectionTimeout="20000" disableUploadTimeout="true"
++           acceptCount="100"
++           maxThreads="150"
++           minSpareThreads="25"
++           enableLookups="false"
++           connectionTimeout="20000"
++           disableUploadTimeout="true"
+            />
+ 
+-    <!-- Define a SSL HTTP/1.1 Connector on port 8443 -->
++    <!-- A "Connector" using the shared thread pool-->
++    <!--
++    <Connector executor="tomcatThreadPool"
++               port="[PKI_UNSECURE_PORT]" protocol="HTTP/1.1"
++               connectionTimeout="20000"
++               redirectPort="[PKI_SECURE_PORT]" />
++    -->
++
++    <!-- Define a SSL/TLS HTTP/1.1 Connector on port [PKI_SECURE_PORT]
++         This connector uses the NIO implementation that requires the JSSE
++         style configuration. When using the APR/native implementation, the
++         OpenSSL style configuration is required as described in the APR/native
++         documentation -->
+     [PKI_SECURE_PORT_SERVER_COMMENT]
+     <!-- DO NOT REMOVE - Begin define PKI secure port
+     NOTE: The following 'keys' (and their assigned values) are exclusive to
+@@ -175,7 +195,13 @@ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+         ocspMaxCacheEntryDuration - sets maximum seconds to next fetch attempt
+         ocspTimeout -sets OCSP timeout in seconds
+     -->
+-    <Connector name="[PKI_SECURE_PORT_CONNECTOR_NAME]" port="[PKI_SECURE_PORT]" protocol="HTTP/1.1" SSLEnabled="true" sslProtocol="SSL" scheme="https" secure="true"
++    <Connector name="[PKI_SECURE_PORT_CONNECTOR_NAME]"
++           port="[PKI_SECURE_PORT]"
++           protocol="org.apache.coyote.http11.Http11Protocol"
++           SSLEnabled="true"
++           sslProtocol="SSL"
++           scheme="https"
++           secure="true"
+            maxHttpHeaderSize="8192"
+            acceptCount="100" maxThreads="150" minSpareThreads="25"
+            enableLookups="false" disableUploadTimeout="true"
+@@ -205,7 +231,10 @@ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+ 
+     <!-- Define an AJP 1.3 Connector on port [PKI_AJP_PORT] -->
+ [PKI_OPEN_AJP_PORT_COMMENT]
+-    <Connector port="[PKI_AJP_PORT]" protocol="AJP/1.3" redirectPort="[PKI_AJP_REDIRECT_PORT]" address="127.0.0.1" />
++    <Connector port="[PKI_AJP_PORT]"
++            protocol="AJP/1.3"
++            redirectPort="[PKI_AJP_REDIRECT_PORT]"
++            address="127.0.0.1" />
+ [PKI_CLOSE_AJP_PORT_COMMENT]
+ 
+ 
+@@ -227,68 +256,23 @@ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+       <Cluster className="org.apache.catalina.ha.tcp.SimpleTcpCluster"/>
+       -->
+ 
+-      <!-- The request dumper valve dumps useful debugging information about
+-           the request and response data received and sent by Tomcat.
+-           Documentation at: /docs/config/valve.html -->
++      <!-- Use the LockOutRealm to prevent attempts to guess user passwords
++           via a brute-force attack -->
+       <!--
+-      <Valve className="org.apache.catalina.valves.RequestDumperValve"/>
++      <Realm className="org.apache.catalina.realm.LockOutRealm">
+       -->
+-
+-      <!-- This Realm uses the UserDatabase configured in the global JNDI
+-           resources under the key "UserDatabase".  Any edits
+-           that are performed against this UserDatabase are immediately
+-           available for use by the Realm.  -->
+-
+-      <!--
+-      <Realm className="org.apache.catalina.realm.UserDatabaseRealm"
+-             resourceName="UserDatabase"/>
+-      -->
+-
++        <!-- This Realm uses the UserDatabase configured in the global JNDI
++             resources under the key "UserDatabase".  Any edits
++             that are performed against this UserDatabase are immediately
++             available for use by the Realm.  -->
+       <!--
+-      <Realm className="com.netscape.cmscore.realm.PKIRealm" />
++        <Realm className="org.apache.catalina.realm.UserDatabaseRealm"
++               resourceName="UserDatabase"/>
++      </Realm>
+       -->
+ 
+-      <!-- Define the default virtual host
+-           Note: XML Schema validation will not work with Xerces 2.2.
+-      -->
+-      <Host name="localhost"
+-            appBase="[PKI_INSTANCE_PATH]/webapps"
+-            unpackWARs="true" autoDeploy="true"
+-            xmlValidation="false" xmlNamespaceAware="false">
+-
+-        <!--
+-        <Context path="/ca"
+-                 docBase="ca"
+-                 allowLinking="true">
+-          <Loader className="org.apache.catalina.loader.VirtualWebappLoader"
+-                  virtualClasspath="[PKI_INSTANCE_PATH]/ca/webapps/ca/WEB-INF/classes;[PKI_INSTANCE_PATH]/ca/webapps/ca/WEB-INF/lib" />" />
+-          <JarScanner scanAllDirectories="true" />
+-        </Context>
+-
+-        <Context path="/kra"
+-                 docBase="kra"
+-                 allowLinking="true">
+-          <Loader className="org.apache.catalina.loader.VirtualWebappLoader"
+-                  virtualClasspath="[PKI_INSTANCE_PATH]/kra/webapps/kra/WEB-INF/classes;[PKI_INSTANCE_PATH]/kra/webapps/kra/WEB-INF/lib" />
+-          <JarScanner scanAllDirectories="true" />
+-        </Context>
+-
+-        <Context path="/ocsp"
+-                 docBase="ocsp"
+-                 allowLinking="true">
+-          <Loader className="org.apache.catalina.loader.VirtualWebappLoader"
+-                  virtualClasspath="[PKI_INSTANCE_PATH]/ocsp/webapps/ocsp/WEB-INF/classes;[PKI_INSTANCE_PATH]/ocsp/webapps/ocsp/WEB-INF/lib" />
+-          <JarScanner scanAllDirectories="true" />
+-        </Context>
+-
+-        <Context path="/tks"
+-                 docBase="tks"
+-                 allowLinking="true">
+-          <Loader className="org.apache.catalina.loader.VirtualWebappLoader"
+-                  virtualClasspath="[PKI_INSTANCE_PATH]/tks/webapps/tks/WEB-INF/classes;[PKI_INSTANCE_PATH]/tks/webapps/tks/WEB-INF/lib" />
+-          <JarScanner scanAllDirectories="true" />
+-        </Context>
+-        -->
++      <Host name="localhost"  appBase="[PKI_INSTANCE_PATH]/webapps"
++            unpackWARs="true" autoDeploy="true">
+ 
+         <!-- SingleSignOn valve, share authentication between web applications
+              Documentation at: /docs/config/valve.html -->
+@@ -297,10 +281,11 @@ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+         -->
+ 
+         <!-- Access log processes all example.
+-             Documentation at: /docs/config/valve.html -->
++             Documentation at: /docs/config/valve.html
++             Note: The pattern used is equivalent to using pattern="common" -->
+         [PKI_OPEN_TOMCAT_ACCESS_LOG_COMMENT]
+-        <Valve className="org.apache.catalina.valves.AccessLogValve"
+-               directory="logs" prefix="localhost_access_log." suffix=".txt"
++        <Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs"
++               prefix="localhost_access_log" suffix=".txt"
+                pattern="common" resolveHosts="false"/>
+         [PKI_CLOSE_TOMCAT_ACCESS_LOG_COMMENT]
+ 
+diff --git a/base/server/tomcat/src/CMakeLists.txt b/base/server/tomcat8/src/CMakeLists.txt
+similarity index 95%
+rename from base/server/tomcat/src/CMakeLists.txt
+rename to base/server/tomcat8/src/CMakeLists.txt
+index d9808a8033e2c43a4653652f74e6e9b687be8e62..102dec7824d621637749a4b9138ef0fb69462209 100644
+--- a/base/server/tomcat/src/CMakeLists.txt
++++ b/base/server/tomcat8/src/CMakeLists.txt
+@@ -44,9 +44,9 @@ find_file(TOMCAT_CATALINA_JAR
+         /usr/share/java/tomcat
+ )
+ 
+-find_file(TOMCAT_UTIL_JAR
++find_file(TOMCAT_UTIL_SCAN_JAR
+     NAMES
+-        tomcat-util.jar
++        tomcat-util-scan.jar
+     PATHS
+         /usr/share/java/tomcat
+ )
+@@ -123,7 +123,7 @@ javac(pki-tomcat-classes
+     SOURCES
+         com/netscape/cms/tomcat/*.java
+     CLASSPATH
+-        ${SERVLET_JAR} ${TOMCAT_CATALINA_JAR}
++        ${SERVLET_JAR} ${TOMCAT_CATALINA_JAR} ${TOMCAT_UTIL_SCAN_JAR}
+     OUTPUT_DIR
+         ${CMAKE_BINARY_DIR}/classes
+ )
+diff --git a/base/server/tomcat/src/com/netscape/cms/tomcat/ProxyRealm.java b/base/server/tomcat8/src/com/netscape/cms/tomcat/ProxyRealm.java
+similarity index 91%
+rename from base/server/tomcat/src/com/netscape/cms/tomcat/ProxyRealm.java
+rename to base/server/tomcat8/src/com/netscape/cms/tomcat/ProxyRealm.java
+index 094c0561f49f4e79d910b1d9a30c13b10d04a297..044563233e11b0cb11f094fd5f4600a38cd229d7 100644
+--- a/base/server/tomcat/src/com/netscape/cms/tomcat/ProxyRealm.java
++++ b/base/server/tomcat8/src/com/netscape/cms/tomcat/ProxyRealm.java
+@@ -9,11 +9,12 @@ import java.util.Map;
+ 
+ import org.apache.catalina.Container;
+ import org.apache.catalina.Context;
++import org.apache.catalina.CredentialHandler;
+ import org.apache.catalina.Realm;
+ import org.apache.catalina.Wrapper;
+ import org.apache.catalina.connector.Request;
+ import org.apache.catalina.connector.Response;
+-import org.apache.catalina.deploy.SecurityConstraint;
++import org.apache.tomcat.util.descriptor.web.SecurityConstraint;
+ import org.ietf.jgss.GSSContext;
+ 
+ /**
+@@ -99,11 +100,6 @@ public class ProxyRealm implements Realm {
+     }
+ 
+     @Override
+-    public String getInfo() {
+-        return realm.getInfo();
+-    }
+-
+-    @Override
+     public void backgroundProcess() {
+         realm.backgroundProcess();
+     }
+@@ -136,4 +132,14 @@ public class ProxyRealm implements Realm {
+     public void removePropertyChangeListener(PropertyChangeListener listener) {
+         realm.removePropertyChangeListener(listener);
+     }
++
++    @Override
++    public CredentialHandler getCredentialHandler() {
++        return realm.getCredentialHandler();
++    }
++
++    @Override
++    public void setCredentialHandler(CredentialHandler handler) {
++        realm.setCredentialHandler(handler);
++    }
+ }
+diff --git a/base/server/tomcat/src/com/netscape/cms/tomcat/SSLAuthenticatorWithFallback.java b/base/server/tomcat8/src/com/netscape/cms/tomcat/SSLAuthenticatorWithFallback.java
+similarity index 94%
+rename from base/server/tomcat/src/com/netscape/cms/tomcat/SSLAuthenticatorWithFallback.java
+rename to base/server/tomcat8/src/com/netscape/cms/tomcat/SSLAuthenticatorWithFallback.java
+index 20bf85d221bac3f5dbd1cac73aa9b8252a1cc6e8..3678791b927a9d6bca523d6a79a5fbfff1b675cf 100644
+--- a/base/server/tomcat/src/com/netscape/cms/tomcat/SSLAuthenticatorWithFallback.java
++++ b/base/server/tomcat8/src/com/netscape/cms/tomcat/SSLAuthenticatorWithFallback.java
+@@ -33,7 +33,6 @@ import org.apache.catalina.authenticator.BasicAuthenticator;
+ import org.apache.catalina.authenticator.FormAuthenticator;
+ import org.apache.catalina.authenticator.SSLAuthenticator;
+ import org.apache.catalina.connector.Request;
+-import org.apache.catalina.deploy.LoginConfig;
+ 
+ /**
+  * @author Endi S. Dewata
+@@ -52,11 +51,6 @@ public class SSLAuthenticatorWithFallback extends AuthenticatorBase {
+         log("Creating SSL authenticator with fallback");
+     }
+ 
+-    @Override
+-    public String getInfo() {
+-        return "SSL authenticator with "+fallbackMethod+" fallback.";
+-    }
+-
+     public String getFallbackMethod() {
+         return fallbackMethod;
+     }
+@@ -75,7 +69,7 @@ public class SSLAuthenticatorWithFallback extends AuthenticatorBase {
+     }
+ 
+     @Override
+-    public boolean authenticate(Request request, HttpServletResponse response, LoginConfig config) throws IOException {
++    public boolean authenticate(Request request, HttpServletResponse response) throws IOException {
+ 
+         X509Certificate certs[] = (X509Certificate[]) request.getAttribute(Globals.CERTIFICATES_ATTR);
+         boolean result;
+@@ -90,7 +84,7 @@ public class SSLAuthenticatorWithFallback extends AuthenticatorBase {
+                     log("SSL auth return code: "+code);
+                 }
+             };
+-            result = sslAuthenticator.authenticate(request, wrapper, config);
++            result = sslAuthenticator.authenticate(request, wrapper);
+ 
+         } else {
+             log("Authenticating with "+fallbackMethod+" authentication");
+@@ -102,20 +96,22 @@ public class SSLAuthenticatorWithFallback extends AuthenticatorBase {
+                     log("Fallback auth return code: "+code);
+                 }
+             };
+-            result = fallbackAuthenticator.authenticate(request, wrapper, config);
++            result = fallbackAuthenticator.authenticate(request, wrapper);
+         }
+ 
+         if (result)
+             return true;
+ 
+         log("Result: "+result);
++        String realmName = AuthenticatorBase.getRealmName(request.getContext());
++
+ 
+         StringBuilder value = new StringBuilder(16);
+         value.append("Basic realm=\"");
+-        if (config.getRealmName() == null) {
++        if (realmName != null) {
+             value.append(REALM_NAME);
+         } else {
+-            value.append(config.getRealmName());
++            value.append(realmName);
+         }
+         value.append('\"');
+         response.setHeader(AUTH_HEADER_NAME, value.toString());
+diff --git a/base/server/tomcat/src/pki-tomcat.mf b/base/server/tomcat8/src/pki-tomcat.mf
+similarity index 100%
+rename from base/server/tomcat/src/pki-tomcat.mf
+rename to base/server/tomcat8/src/pki-tomcat.mf
+diff --git a/base/tks/CMakeLists.txt b/base/tks/CMakeLists.txt
+index 4b17ca0c889dc6228bcf8ca52587bb6341d0ed00..8bdf2258e9b6016ea0e4df99e91d5cbc4f29c3da 100644
+--- a/base/tks/CMakeLists.txt
++++ b/base/tks/CMakeLists.txt
+@@ -4,6 +4,14 @@ add_subdirectory(src)
+ add_subdirectory(setup)
+ add_subdirectory(shared/conf)
+ 
++if(WITH_TOMCAT7)
++    add_subdirectory(tomcat7)
++endif(WITH_TOMCAT7)
++
++if(WITH_TOMCAT8)
++    add_subdirectory(tomcat8)
++endif(WITH_TOMCAT8)
++
+ # install directories
+ install(
+     DIRECTORY
+diff --git a/base/tks/tomcat7/CMakeLists.txt b/base/tks/tomcat7/CMakeLists.txt
+new file mode 100644
+index 0000000000000000000000000000000000000000..5c324e441fd2b17054cd8b5accb05510048d489a
+--- /dev/null
++++ b/base/tks/tomcat7/CMakeLists.txt
+@@ -0,0 +1,6 @@
++install(
++    DIRECTORY
++        conf/
++    DESTINATION
++        ${SHARE_INSTALL_PREFIX}/${APPLICATION_NAME}/${PROJECT_NAME}/conf/
++)
+diff --git a/base/tks/shared/conf/Catalina/localhost/tks.xml b/base/tks/tomcat7/conf/Catalina/localhost/tks.xml
+similarity index 100%
+copy from base/tks/shared/conf/Catalina/localhost/tks.xml
+copy to base/tks/tomcat7/conf/Catalina/localhost/tks.xml
+diff --git a/base/tks/tomcat8/CMakeLists.txt b/base/tks/tomcat8/CMakeLists.txt
+new file mode 100644
+index 0000000000000000000000000000000000000000..5c324e441fd2b17054cd8b5accb05510048d489a
+--- /dev/null
++++ b/base/tks/tomcat8/CMakeLists.txt
+@@ -0,0 +1,6 @@
++install(
++    DIRECTORY
++        conf/
++    DESTINATION
++        ${SHARE_INSTALL_PREFIX}/${APPLICATION_NAME}/${PROJECT_NAME}/conf/
++)
+diff --git a/base/tks/shared/conf/Catalina/localhost/tks.xml b/base/tks/tomcat8/conf/Catalina/localhost/tks.xml
+similarity index 95%
+rename from base/tks/shared/conf/Catalina/localhost/tks.xml
+rename to base/tks/tomcat8/conf/Catalina/localhost/tks.xml
+index e838503a64e5442e114cf4e18f616fdffe39b647..2c045dec7beedf3ac5502ed26916d10ca42ade4c 100644
+--- a/base/tks/shared/conf/Catalina/localhost/tks.xml
++++ b/base/tks/tomcat8/conf/Catalina/localhost/tks.xml
+@@ -22,7 +22,7 @@
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ -->
+-<Context crossContext="true" allowLinking="true">
++<Context crossContext="true">
+ 
+     <Manager
+         secureRandomProvider="Mozilla-JSS" secureRandomAlgorithm="pkcs11prng"/>
+@@ -34,4 +34,6 @@
+ 
+     <Realm className="com.netscape.cms.tomcat.ProxyRealm" />
+ 
++    <Resources allowLinking="true" />
++
+ </Context>
+diff --git a/base/tps/CMakeLists.txt b/base/tps/CMakeLists.txt
+index dac32876c8e3c25ca3be11591a5eac65e18eb9c1..516d4264024a7b9b9a34cc33efa3f8eeaf590704 100644
+--- a/base/tps/CMakeLists.txt
++++ b/base/tps/CMakeLists.txt
+@@ -6,6 +6,14 @@ add_subdirectory(src)
+ add_subdirectory(setup)
+ add_subdirectory(shared/conf)
+ 
++if(WITH_TOMCAT7)
++    add_subdirectory(tomcat7)
++endif(WITH_TOMCAT7)
++
++if(WITH_TOMCAT8)
++    add_subdirectory(tomcat8)
++endif(WITH_TOMCAT8)
++
+ # install manual pages
+ install(
+     DIRECTORY
+diff --git a/base/tps/tomcat7/CMakeLists.txt b/base/tps/tomcat7/CMakeLists.txt
+new file mode 100644
+index 0000000000000000000000000000000000000000..5c324e441fd2b17054cd8b5accb05510048d489a
+--- /dev/null
++++ b/base/tps/tomcat7/CMakeLists.txt
+@@ -0,0 +1,6 @@
++install(
++    DIRECTORY
++        conf/
++    DESTINATION
++        ${SHARE_INSTALL_PREFIX}/${APPLICATION_NAME}/${PROJECT_NAME}/conf/
++)
+diff --git a/base/tps/shared/conf/Catalina/localhost/tps.xml b/base/tps/tomcat7/conf/Catalina/localhost/tps.xml
+similarity index 100%
+copy from base/tps/shared/conf/Catalina/localhost/tps.xml
+copy to base/tps/tomcat7/conf/Catalina/localhost/tps.xml
+diff --git a/base/tps/tomcat8/CMakeLists.txt b/base/tps/tomcat8/CMakeLists.txt
+new file mode 100644
+index 0000000000000000000000000000000000000000..5c324e441fd2b17054cd8b5accb05510048d489a
+--- /dev/null
++++ b/base/tps/tomcat8/CMakeLists.txt
+@@ -0,0 +1,6 @@
++install(
++    DIRECTORY
++        conf/
++    DESTINATION
++        ${SHARE_INSTALL_PREFIX}/${APPLICATION_NAME}/${PROJECT_NAME}/conf/
++)
+diff --git a/base/tps/shared/conf/Catalina/localhost/tps.xml b/base/tps/tomcat8/conf/Catalina/localhost/tps.xml
+similarity index 96%
+rename from base/tps/shared/conf/Catalina/localhost/tps.xml
+rename to base/tps/tomcat8/conf/Catalina/localhost/tps.xml
+index d80c1296dbd6a88a9263c50b351a31516682a59a..def403c2255674d94361eb970cb3f5f2fe8b7a2b 100644
+--- a/base/tps/shared/conf/Catalina/localhost/tps.xml
++++ b/base/tps/tomcat8/conf/Catalina/localhost/tps.xml
+@@ -22,7 +22,7 @@
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ -->
+-<Context docBase="/usr/share/pki/tps/webapps/tps" crossContext="true" allowLinking="true">
++<Context docBase="/usr/share/pki/tps/webapps/tps" crossContext="true">
+ 
+     <Manager
+         secureRandomProvider="Mozilla-JSS" secureRandomAlgorithm="pkcs11prng"/>
+@@ -34,4 +34,6 @@
+ 
+     <Realm className="com.netscape.cms.tomcat.ProxyRealm" />
+ 
++    <Resources allowLinking="true" />
++
+ </Context>
+diff --git a/specs/dogtag-pki.spec b/specs/dogtag-pki.spec
+index e2ec0e0a790de608f7cdfbcd9bc03187dfe138d8..194d8e3cd279aef2c997414d985a80a47d32f985 100644
+--- a/specs/dogtag-pki.spec
++++ b/specs/dogtag-pki.spec
+@@ -22,7 +22,7 @@ ExcludeArch:      ppc ppc64 ppcle ppc64le s390 s390x
+ %if 0%{?rhel}
+ %define tomcatjss_version          7.1.0-5
+ %else
+-%define tomcatjss_version          7.1.1
++%define tomcatjss_version          7.1.2
+ %endif
+ 
+ Requires:         apache-commons-codec
+@@ -118,6 +118,7 @@ rm -rf %{buildroot}
+ %changelog
+ * Thu Jan  8 2015 Dogtag Team <pki-devel@redhat.com> 10.2.2-0.1
+ - Updated version number to 10.2.2-0.1
++- Added support for Tomcat 8.
+ 
+ * Thu Jan  8 2015 Dogtag Team <pki-devel@redhat.com> 10.2.1-1
+ - Update release number for release build
+diff --git a/specs/pki-core.spec b/specs/pki-core.spec
+index aac5b196778bbf9eff129985a78839dae9196093..1baa10cccf0ef1df8f760955cd5229cecd36af86 100644
+--- a/specs/pki-core.spec
++++ b/specs/pki-core.spec
+@@ -1,8 +1,36 @@
++# Python
+ %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from
+ distutils.sysconfig import get_python_lib; print(get_python_lib())")}
+ %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from
+ distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
+ 
++# Tomcat
++%if 0%{?fedora} >= 23
++%define with_tomcat7 0
++%define with_tomcat8 1
++%else
++# 0%{?rhel} || 0%{?fedora} <= 22
++%define with_tomcat7 1
++%define with_tomcat8 0
++%endif
++
++# RESTEasy
++%if 0%{?rhel}
++%define resteasy_lib /usr/share/java/resteasy-base
++%else
++# 0%{?fedora}
++%define resteasy_lib /usr/share/java/resteasy
++%endif
++
++# Dogtag
++%bcond_without    server
++%bcond_without    javadoc
++
++# ignore unpackaged files from native 'tpsclient'
++# REMINDER:  Remove this '%%define' once 'tpsclient' is rewritten as a Java app
++%define _unpackaged_files_terminate_build 0
++
++
+ Name:             pki-core
+ Version:          10.2.2
+ Release:          0.1%{?dist}
+@@ -11,12 +39,6 @@ URL:              http://pki.fedoraproject.org/
+ License:          GPLv2
+ Group:            System Environment/Daemons
+ 
+-%bcond_without    server
+-%bcond_without    javadoc
+-# ignore unpackaged files from native 'tpsclient'
+-# REMINDER:  Remove this '%%define' once 'tpsclient' is rewritten as a Java app
+-%define _unpackaged_files_terminate_build 0
+-
+ BuildRoot:        %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+ 
+ BuildRequires:    cmake >= 2.8.9-1
+@@ -39,7 +61,7 @@ BuildRequires:    velocity
+ BuildRequires:    xalan-j2
+ BuildRequires:    xerces-j2
+ 
+-%if  0%{?rhel}
++%if 0%{?rhel}
+ # 'resteasy-base' is a subset of the complete set of
+ # 'resteasy' packages and consists of what is needed to
+ # support the PKI Restful interface on RHEL platforms
+@@ -50,7 +72,7 @@ BuildRequires:    resteasy-base-jaxrs >= 3.0.6-1
+ BuildRequires:    resteasy-base-jaxrs-api >= 3.0.6-1
+ BuildRequires:    resteasy-base-jackson-provider >= 3.0.6-1
+ %else
+-%if  0%{?fedora} >= 22
++%if 0%{?fedora} >= 22
+ # Starting from Fedora 22, resteasy packages were split into
+ # subpackages.
+ BuildRequires:    resteasy-atom-provider >= 3.0.6-7
+@@ -80,7 +102,7 @@ BuildRequires:    systemd-units
+ %if 0%{?rhel}
+ BuildRequires:    tomcatjss >= 7.1.0-5
+ %else
+-BuildRequires:    tomcatjss >= 7.1.1
++BuildRequires:    tomcatjss >= 7.1.2
+ %endif
+ 
+ # additional build requirements needed to build native 'tpsclient'
+@@ -245,7 +267,7 @@ Requires:         python-ldap
+ Requires:         python-lxml
+ Requires:         python-requests >= 1.1.0-3
+ 
+-%if  0%{?rhel}
++%if 0%{?rhel}
+ # 'resteasy-base' is a subset of the complete set of
+ # 'resteasy' packages and consists of what is needed to
+ # support the PKI Restful interface on RHEL platforms
+@@ -256,7 +278,7 @@ Requires:    resteasy-base-jaxrs >= 3.0.6-1
+ Requires:    resteasy-base-jaxrs-api >= 3.0.6-1
+ Requires:    resteasy-base-jackson-provider >= 3.0.6-1
+ %else
+-%if  0%{?fedora} >= 22
++%if 0%{?fedora} >= 22
+ # Starting from Fedora 22, resteasy packages were split into
+ # subpackages.
+ Requires:    resteasy-atom-provider >= 3.0.6-7
+@@ -333,7 +355,7 @@ Requires:         pki-base = %{version}-%{release}
+ Requires:         pki-tools = %{version}-%{release}
+ Requires:         policycoreutils-python
+ 
+-%if  0%{?fedora} >= 21
++%if 0%{?fedora} >= 21
+ Requires:         selinux-policy-targeted >= 3.13.1-9
+ %else
+ # 0%{?rhel} || 0%{?fedora} < 21
+@@ -355,7 +377,7 @@ Requires(postun): systemd-units
+ %if 0%{?rhel}
+ Requires:         tomcatjss >= 7.1.0-5
+ %else
+-Requires:         tomcatjss >= 7.1.1
++Requires:         tomcatjss >= 7.1.2
+ %endif
+ 
+ %description -n   pki-server
+@@ -594,10 +616,15 @@ cd build
+ 	-DBUILD_PKI_CORE:BOOL=ON \
+ 	-DJAVA_LIB_INSTALL_DIR=%{_jnidir} \
+ 	-DSYSTEMD_LIB_INSTALL_DIR=%{_unitdir} \
+-%if 0%{?rhel}
+-	-DRESTEASY_LIB=/usr/share/java/resteasy-base \
+-%else
+-	-DRESTEASY_LIB=/usr/share/java/resteasy \
++%if ! %{with_tomcat7}
++	-DWITH_TOMCAT7:BOOL=OFF \
++%endif
++%if ! %{with_tomcat8}
++	-DWITH_TOMCAT8:BOOL=OFF \
++%endif
++	-DRESTEASY_LIB=%{resteasy_lib} \
++%if ! %{with server}
++	-DWITH_SERVER:BOOL=OFF \
+ %endif
+ %if ! %{with server}
+ 	-DWITH_SERVER:BOOL=OFF \
+@@ -901,6 +928,7 @@ systemctl daemon-reload
+ - Moved web application deployment locations.
+ - Updated Resteasy and Jackson dependencies.
+ - Added missing python-lxml build dependency.
++- Added support for Tomcat 8.
+ 
+ * Thu Jan  8 2015 Dogtag Team <pki-devel@redhat.com> 10.2.1-1
+ - Update release number for release build
+-- 
+1.9.3
+

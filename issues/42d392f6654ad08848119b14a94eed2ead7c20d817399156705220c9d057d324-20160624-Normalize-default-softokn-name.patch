@@ -1,0 +1,42 @@
+From 709f1867316a21040acadcbe427de554e6b4de29 Mon Sep 17 00:00:00 2001
+From: Matthew Harmsen <mharmsen@pki.usersys.redhat.com>
+Date: Fri, 24 Jun 2016 14:39:59 -0600
+Subject: [PATCH] Normalize default softokn name
+
+- PKI TRAC Ticket #2311 - When pki_token_name=Internal,
+  consider normalizing it to "internal"
+---
+ base/server/python/pki/server/deployment/pkiparser.py | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/base/server/python/pki/server/deployment/pkiparser.py b/base/server/python/pki/server/deployment/pkiparser.py
+index b1fc213..dc5d7f6 100644
+--- a/base/server/python/pki/server/deployment/pkiparser.py
++++ b/base/server/python/pki/server/deployment/pkiparser.py
+@@ -1181,6 +1181,11 @@ class PKIConfigParser:
+             #         self.mdict['pki_clone_pkcs12_path']
+             #         self.mdict['pki_clone_uri']
+             #         self.mdict['pki_security_domain_https_port']
++            #
++            #     The following variables are established via the specified PKI
++            #     deployment configuration file and potentially "normalized"
++            #     below:
++            #
+             #         self.mdict['pki_token_name']
+             #
+             #     The following variables are established via the specified PKI
+@@ -1191,6 +1196,11 @@ class PKIConfigParser:
+             #         self.mdict['pki_issuing_ca']
+             #
+ 
++            # if the case insensitive softokn name is the 'default' value
++            if (self.mdict['pki_token_name'].lower() == "internal"):
++                # always normalize 'default' softokn name
++                self.mdict['pki_token_name'] = "internal"
++
+             # if security domain user is not defined
+             if not len(self.mdict['pki_security_domain_user']):
+ 
+-- 
+2.5.5
+

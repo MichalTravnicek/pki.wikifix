@@ -1,0 +1,2230 @@
+--- original/base/common/python/pki/encoder.py
++++ fixed/base/common/python/pki/encoder.py
+@@ -32,6 +32,7 @@
+         when-instance-variable-name-is-same-as-method-name
+     """
+     # pylint: disable=E0202
++
+     def default(self, obj):
+         for k, v in TYPES.items():
+             if isinstance(obj, v):
+--- original/base/common/python/conf.py
++++ fixed/base/common/python/conf.py
+@@ -11,14 +11,15 @@
+ # All configuration values have a default; values that are commented out
+ # serve to show the default.
+ 
+-import sys, os
++import sys
++import os
+ 
+ # If extensions (or modules to document with autodoc) are in another directory,
+ # add these directories to sys.path here. If the directory is relative to the
+ # documentation root, use os.path.abspath to make it absolute, like shown here.
+ sys.path.insert(0, os.path.abspath('pki'))
+ 
+-# -- General configuration -----------------------------------------------------
++# -- General configuration -----------------------------------------------
+ 
+ # If your documentation needs a minimal Sphinx version, state it here.
+ #needs_sphinx = '1.0'
+@@ -87,7 +88,7 @@
+ #modindex_common_prefix = []
+ 
+ 
+-# -- Options for HTML output ---------------------------------------------------
++# -- Options for HTML output ---------------------------------------------
+ 
+ # The theme to use for HTML and HTML Help pages.  See the documentation for
+ # a list of builtin themes.
+@@ -167,24 +168,24 @@
+ htmlhelp_basename = 'pythondoc'
+ 
+ 
+-# -- Options for LaTeX output --------------------------------------------------
++# -- Options for LaTeX output --------------------------------------------
+ 
+ latex_elements = {
+-# The paper size ('letterpaper' or 'a4paper').
+-#'papersize': 'letterpaper',
+-
+-# The font size ('10pt', '11pt' or '12pt').
+-#'pointsize': '10pt',
+-
+-# Additional stuff for the LaTeX preamble.
+-#'preamble': '',
++    # The paper size ('letterpaper' or 'a4paper').
++    #'papersize': 'letterpaper',
++
++    # The font size ('10pt', '11pt' or '12pt').
++    #'pointsize': '10pt',
++
++    # Additional stuff for the LaTeX preamble.
++    #'preamble': '',
+ }
+ 
+ # Grouping the document tree into LaTeX files. List of tuples
+ # (source start file, target name, title, author, documentclass [howto/manual]).
+ latex_documents = [
+-  ('index', 'dogtag.tex', u'Dogtag Python Client API',
+-   u'Author', 'manual'),
++    ('index', 'dogtag.tex', u'Dogtag Python Client API',
++     u'Author', 'manual'),
+ ]
+ 
+ # The name of an image file (relative to this directory) to place at the top of
+@@ -208,7 +209,7 @@
+ #latex_domain_indices = True
+ 
+ 
+-# -- Options for manual page output --------------------------------------------
++# -- Options for manual page output --------------------------------------
+ 
+ # One entry per manual page. List of tuples
+ # (source start file, name, description, authors, manual section).
+@@ -221,15 +222,15 @@
+ #man_show_urls = False
+ 
+ 
+-# -- Options for Texinfo output ------------------------------------------------
++# -- Options for Texinfo output ------------------------------------------
+ 
+ # Grouping the document tree into Texinfo files. List of tuples
+ # (source start file, target name, title, author,
+ #  dir menu entry, description, category)
+ texinfo_documents = [
+-  ('index', 'Dogtag', u'Dogtag Python Client API',
+-   u'Author', 'Dogtag PKI Team', 'Dogtag is an enterprise software system designed to manage enterprise Public Key Infrastructure (PKI) deployments.',
+-   'Miscellaneous'),
++    ('index', 'Dogtag', u'Dogtag Python Client API',
++     u'Author', 'Dogtag PKI Team', 'Dogtag is an enterprise software system designed to manage enterprise Public Key Infrastructure (PKI) deployments.',
++     'Miscellaneous'),
+ ]
+ 
+ # Documents to append as an appendix to all manuals.
+@@ -242,7 +243,7 @@
+ #texinfo_show_urls = 'footnote'
+ 
+ 
+-# -- Options for Epub output ---------------------------------------------------
++# -- Options for Epub output ---------------------------------------------
+ 
+ # Bibliographic Dublin Core info.
+ epub_title = u'Dogtag Certificate Server'
+--- original/base/server/python/pki/server/cli/migrate.py
++++ fixed/base/server/python/pki/server/cli/migrate.py
+@@ -100,10 +100,18 @@
+         server_xml = os.path.join(instance.conf_dir, 'server.xml')
+         self.migrate_server_xml(server_xml, tomcat_version)
+ 
+-        root_context_xml = os.path.join(instance.conf_dir, 'Catalina', 'localhost', 'ROOT.xml')
++        root_context_xml = os.path.join(
++            instance.conf_dir,
++            'Catalina',
++            'localhost',
++            'ROOT.xml')
+         self.migrate_context_xml(root_context_xml, tomcat_version)
+ 
+-        pki_context_xml = os.path.join(instance.conf_dir, 'Catalina', 'localhost', 'pki.xml')
++        pki_context_xml = os.path.join(
++            instance.conf_dir,
++            'Catalina',
++            'localhost',
++            'pki.xml')
+         self.migrate_context_xml(pki_context_xml, tomcat_version)
+ 
+         self.migrate_tomcat_libraries(instance)
+@@ -133,24 +141,32 @@
+ 
+         server = document.getroot()
+ 
+-        jasper_comment = etree.Comment('Initialize Jasper prior to webapps are loaded. Documentation at /docs/jasper-howto.html ')
++        jasper_comment = etree.Comment(
++            'Initialize Jasper prior to webapps are loaded. Documentation at /docs/jasper-howto.html ')
+ 
+         jasper_listener = etree.Element('Listener')
+-        jasper_listener.set('className', 'org.apache.catalina.core.JasperListener')
+-
+-        jmx_support_comment = etree.Comment(' JMX Support for the Tomcat server. Documentation at /docs/non-existent.html ')
+-
+-        excluded_comment1 = etree.Comment(' The following class has been commented out because it ')
+-        excluded_comment2 = etree.Comment(' has been EXCLUDED from the Tomcat 7 \'tomcat-lib\' RPM! ')
+-
+-        server_lifecycle_comment = etree.Comment(' Listener className="org.apache.catalina.mbeans.ServerLifecycleListener" ')
++        jasper_listener.set(
++            'className',
++            'org.apache.catalina.core.JasperListener')
++
++        jmx_support_comment = etree.Comment(
++            ' JMX Support for the Tomcat server. Documentation at /docs/non-existent.html ')
++
++        excluded_comment1 = etree.Comment(
++            ' The following class has been commented out because it ')
++        excluded_comment2 = etree.Comment(
++            ' has been EXCLUDED from the Tomcat 7 \'tomcat-lib\' RPM! ')
++
++        server_lifecycle_comment = etree.Comment(
++            ' Listener className="org.apache.catalina.mbeans.ServerLifecycleListener" ')
+ 
+         global_resources_lifecycle_listener = None
+ 
+         children = list(server)
+         for child in children:
+ 
+-            if isinstance(child, etree._Comment): # pylint: disable=protected-access
++            if isinstance(
++                    child, etree._Comment):  # pylint: disable=protected-access
+ 
+                 if 'org.apache.catalina.security.SecurityListener' in child.text:
+                     server.remove(child)
+@@ -177,10 +193,10 @@
+                 class_name = child.get('className')
+ 
+                 if class_name == 'org.apache.catalina.startup.VersionLoggerListener'\
+-                    or class_name == 'org.apache.catalina.security.SecurityListener'\
+-                    or class_name == 'org.apache.catalina.mbeans.ServerLifecycleListener'\
+-                    or class_name == 'org.apache.catalina.core.JreMemoryLeakPreventionListener'\
+-                    or class_name == 'org.apache.catalina.core.ThreadLocalLeakPreventionListener':
++                        or class_name == 'org.apache.catalina.security.SecurityListener'\
++                        or class_name == 'org.apache.catalina.mbeans.ServerLifecycleListener'\
++                        or class_name == 'org.apache.catalina.core.JreMemoryLeakPreventionListener'\
++                        or class_name == 'org.apache.catalina.core.ThreadLocalLeakPreventionListener':
+ 
+                     if self.debug:
+                         print '* removing %s' % class_name
+@@ -241,7 +257,8 @@
+         valves = server.findall('Service/Engine/Host/Valve')
+         for valve in valves:
+ 
+-            if valve.get('className') == 'org.apache.catalina.valves.AccessLogValve':
++            if valve.get(
++                    'className') == 'org.apache.catalina.valves.AccessLogValve':
+                 valve.set('prefix', 'localhost_access_log.')
+ 
+     def migrate_server_xml_to_tomcat8(self, document):
+@@ -249,26 +266,34 @@
+         server = document.getroot()
+ 
+         version_logger_listener = etree.Element('Listener')
+-        version_logger_listener.set('className', 'org.apache.catalina.startup.VersionLoggerListener')
++        version_logger_listener.set(
++            'className',
++            'org.apache.catalina.startup.VersionLoggerListener')
+ 
+         security_listener_comment = etree.Comment(''' Security listener. Documentation at /docs/config/listeners.html
+   <Listener className="org.apache.catalina.security.SecurityListener" />
+   ''')
+ 
+         jre_memory_leak_prevention_listener = etree.Element('Listener')
+-        jre_memory_leak_prevention_listener.set('className', 'org.apache.catalina.core.JreMemoryLeakPreventionListener')
++        jre_memory_leak_prevention_listener.set(
++            'className',
++            'org.apache.catalina.core.JreMemoryLeakPreventionListener')
+ 
+         global_resources_lifecycle_listener = None
+ 
+         thread_local_leak_prevention_listener = etree.Element('Listener')
+-        thread_local_leak_prevention_listener.set('className', 'org.apache.catalina.core.ThreadLocalLeakPreventionListener')
+-
+-        prevent_comment = etree.Comment(' Prevent memory leaks due to use of particular java/javax APIs')
++        thread_local_leak_prevention_listener.set(
++            'className',
++            'org.apache.catalina.core.ThreadLocalLeakPreventionListener')
++
++        prevent_comment = etree.Comment(
++            ' Prevent memory leaks due to use of particular java/javax APIs')
+ 
+         children = list(server)
+         for child in children:
+ 
+-            if isinstance(child, etree._Comment): # pylint: disable=protected-access
++            if isinstance(
++                    child, etree._Comment):  # pylint: disable=protected-access
+ 
+                 if 'org.apache.catalina.security.SecurityListener' in child.text:
+                     security_listener_comment = None
+@@ -296,7 +321,7 @@
+                 class_name = child.get('className')
+ 
+                 if class_name == 'org.apache.catalina.core.JasperListener'\
+-                    or class_name == 'org.apache.catalina.mbeans.ServerLifecycleListener':
++                        or class_name == 'org.apache.catalina.mbeans.ServerLifecycleListener':
+ 
+                     if self.debug:
+                         print '* removing %s' % class_name
+@@ -359,7 +384,9 @@
+         for connector in connectors:
+ 
+             if connector.get('secure') == 'true':
+-                connector.set('protocol', 'org.apache.coyote.http11.Http11Protocol')
++                connector.set(
++                    'protocol',
++                    'org.apache.coyote.http11.Http11Protocol')
+ 
+         if self.debug:
+             print '* updating AccessLogValve'
+@@ -367,7 +394,8 @@
+         valves = server.findall('Service/Engine/Host/Valve')
+         for valve in valves:
+ 
+-            if valve.get('className') == 'org.apache.catalina.valves.AccessLogValve':
++            if valve.get(
++                    'className') == 'org.apache.catalina.valves.AccessLogValve':
+                 valve.set('prefix', 'localhost_access_log')
+ 
+     def migrate_subsystems(self, instance, tomcat_version):
+@@ -420,7 +448,7 @@
+     def migrate_context_xml_to_tomcat8(self, document):
+ 
+         context = document.getroot()
+-        if context.attrib.has_key('allowLinking'):
++        if 'allowLinking' in context.attrib:
+             context.attrib.pop('allowLinking')
+ 
+         resources = context.find('Resources')
+--- original/base/server/python/pki/server/deployment/pkihelper.py
++++ fixed/base/server/python/pki/server/deployment/pkihelper.py
+@@ -113,13 +113,13 @@
+                 shutil.copy2(srcname, dstname)
+         # catch the Error from the recursive pki_copytree so that we can
+         # continue with other files
+-        except Error, err:
++        except Error as err:
+             errors.extend(err.args[0])
+-        except EnvironmentError, why:
++        except EnvironmentError as why:
+             errors.append((srcname, dstname, str(why)))
+     try:
+         shutil.copystat(src, dst)
+-    except OSError, why:
++    except OSError as why:
+         if WindowsError is not None and isinstance(why, WindowsError):
+             # Copying file access times may fail on Windows
+             pass
+@@ -371,7 +371,8 @@
+                         self.mdict['pki_instance_name'],
+                         self.mdict['pki_instance_path']))
+         else:
+-            if os.path.exists(self.mdict['pki_target_tomcat_conf_instance_id']):
++            if os.path.exists(
++                    self.mdict['pki_target_tomcat_conf_instance_id']):
+                 # Top-Level "/etc/sysconfig" path collision
+                 config.pki_log.error(
+                     log.PKIHELPER_NAMESPACE_COLLISION_2,
+@@ -550,7 +551,8 @@
+                                 self.subsystem)
+             if config.str2bool(
+                     self.mdict['pki_subordinate_create_new_security_domain']):
+-                self.confirm_data_exists('pki_subordinate_security_domain_name')
++                self.confirm_data_exists(
++                    'pki_subordinate_security_domain_name')
+ 
+     def confirm_external_step_two(self):
+         # ALWAYS defined via 'pkiparser.py'
+@@ -602,8 +604,8 @@
+         # If HSM, verify absence of all PKCS #12 backup parameters
+         if (config.str2bool(self.mdict['pki_hsm_enable']) and
+                 (config.str2bool(self.mdict['pki_backup_keys']) or
+-                ('pki_backup_password' in self.mdict and
+-                len(self.mdict['pki_backup_password'])))):
++                 ('pki_backup_password' in self.mdict and
++                  len(self.mdict['pki_backup_password'])))):
+             config.pki_log.error(
+                 log.PKIHELPER_HSM_KEYS_CANNOT_BE_BACKED_UP_TO_PKCS12_FILES,
+                 extra=config.PKI_INDENTATION_LEVEL_2)
+@@ -625,7 +627,7 @@
+             # Verify absence of all PKCS #12 clone parameters for HSMs
+             elif (os.path.exists(self.mdict['pki_clone_pkcs12_path']) or
+                     ('pki_clone_pkcs12_password' in self.mdict and
+-                    len(self.mdict['pki_clone_pkcs12_password']))):
++                     len(self.mdict['pki_clone_pkcs12_password']))):
+                 config.pki_log.error(
+                     log.PKIHELPER_HSM_CLONES_MUST_SHARE_HSM_MASTER_PRIVATE_KEYS,
+                     extra=config.PKI_INDENTATION_LEVEL_2)
+@@ -968,7 +970,9 @@
+                 if os.path.isdir(os.path.join(self.mdict['pki_path'], instance))\
+                    and not\
+                    os.path.islink(os.path.join(self.mdict['pki_path'], instance)):
+-                    instance_dir = os.path.join(self.mdict['pki_path'], instance)
++                    instance_dir = os.path.join(
++                        self.mdict['pki_path'],
++                        instance)
+                     # Since ANY directory within this PKI instance COULD
+                     # be a PKI subsystem, look for all possible
+                     # PKI subsystems within this PKI instance
+@@ -991,7 +995,8 @@
+         rv = []
+         try:
+             for subsystem in config.PKI_TOMCAT_SUBSYSTEMS:
+-                path = self.mdict['pki_instance_path'] + "/" + subsystem.lower()
++                path = self.mdict['pki_instance_path'] + \
++                    "/" + subsystem.lower()
+                 if os.path.exists(path) and os.path.isdir(path):
+                     rv.append(subsystem)
+         except OSError as exc:
+@@ -1010,13 +1015,13 @@
+             # present within the PKI 'tomcat' registry directory
+             for instance in os.listdir(
+                     self.mdict['pki_instance_type_registry_path']):
+-                if os.path.isdir(\
+-                    os.path.join(\
+-                        self.mdict['pki_instance_type_registry_path'],\
++                if os.path.isdir(
++                    os.path.join(
++                        self.mdict['pki_instance_type_registry_path'],
+                         instance)) and not\
+-                   os.path.islink(\
+-                       os.path.join(\
+-                           self.mdict['pki_instance_type_registry_path'],\
++                   os.path.islink(
++                       os.path.join(
++                           self.mdict['pki_instance_type_registry_path'],
+                            instance)):
+                     rv += 1
+             config.pki_log.debug(log.PKIHELPER_TOMCAT_INSTANCES_2,
+@@ -1076,7 +1081,9 @@
+         try:
+             client = pki.system.SystemStatusClient(connection)
+             response = client.get_status()
+-            config.pki_log.debug(response, extra=config.PKI_INDENTATION_LEVEL_3)
++            config.pki_log.debug(
++                response,
++                extra=config.PKI_INDENTATION_LEVEL_3)
+ 
+             root = ET.fromstring(response)
+             status = root.findtext("Status")
+@@ -1582,7 +1589,9 @@
+                     log.PKI_FILE_MISSING_OR_NOT_A_FILE_1, name,
+                     extra=config.PKI_INDENTATION_LEVEL_2)
+                 if critical_failure:
+-                    raise Exception(log.PKI_FILE_MISSING_OR_NOT_A_FILE_1 % name)
++                    raise Exception(
++                        log.PKI_FILE_MISSING_OR_NOT_A_FILE_1 %
++                        name)
+         except OSError as exc:
+             config.pki_log.error(log.PKI_OSERROR_1, exc,
+                                  extra=config.PKI_INDENTATION_LEVEL_2)
+@@ -1628,7 +1637,9 @@
+                 config.pki_log.error(
+                     log.PKI_FILE_MISSING_OR_NOT_A_FILE_1, old_name,
+                     extra=config.PKI_INDENTATION_LEVEL_2)
+-                raise Exception(log.PKI_FILE_MISSING_OR_NOT_A_FILE_1 % old_name)
++                raise Exception(
++                    log.PKI_FILE_MISSING_OR_NOT_A_FILE_1 %
++                    old_name)
+             else:
+                 if os.path.exists(new_name):
+                     if not overwrite_flag:
+@@ -1749,7 +1760,9 @@
+                 config.pki_log.error(
+                     log.PKI_FILE_MISSING_OR_NOT_A_FILE_1, old_name,
+                     extra=config.PKI_INDENTATION_LEVEL_2)
+-                raise Exception(log.PKI_FILE_MISSING_OR_NOT_A_FILE_1 % old_name)
++                raise Exception(
++                    log.PKI_FILE_MISSING_OR_NOT_A_FILE_1 %
++                    old_name)
+             else:
+                 if os.path.exists(new_name):
+                     if not overwrite_flag:
+@@ -1824,8 +1837,8 @@
+                     extra=config.PKI_INDENTATION_LEVEL_2)
+                 open(name, "w").close()
+                 with open(name, "w") as FILE:
+-                    noise = ''.join(random.choice(string.ascii_letters +\
+-                                    string.digits) for x in range(random_bytes))
++                    noise = ''.join(random.choice(string.ascii_letters +
++                                                  string.digits) for x in range(random_bytes))
+                     FILE.write(noise)
+                 # chmod <perms> <name>
+                 config.pki_log.debug(log.PKIHELPER_CHMOD_2, perms, name,
+@@ -2186,7 +2199,9 @@
+                                  token_name,
+                                  extra=config.PKI_INDENTATION_LEVEL_2)
+             if critical_failure:
+-                raise Exception(log.PKIHELPER_PASSWORD_NOT_FOUND_1 % token_name)
++                raise Exception(
++                    log.PKIHELPER_PASSWORD_NOT_FOUND_1 %
++                    token_name)
+             else:
+                 return
+         return token_pwd
+@@ -2208,11 +2223,11 @@
+ 
+     def initialize_ncipher(self):
+         if (self.file.exists(config.PKI_HSM_NCIPHER_EXE) and
+-            self.file.exists(config.PKI_HSM_NCIPHER_LIB) and
+-            self.identity.group_exists(config.PKI_HSM_NCIPHER_GROUP)):
++                self.file.exists(config.PKI_HSM_NCIPHER_LIB) and
++                self.identity.group_exists(config.PKI_HSM_NCIPHER_GROUP)):
+             # Check if 'pki_user' is a member of the default "nCipher" group
+             if not self.identity.is_user_a_member_of_group(
+-                self.mdict['pki_user'], config.PKI_HSM_NCIPHER_GROUP):
++                    self.mdict['pki_user'], config.PKI_HSM_NCIPHER_GROUP):
+                 # Make 'pki_user' a member of the default "nCipher" group
+                 self.identity.add_user_to_group(self.mdict['pki_user'],
+                                                 config.PKI_HSM_NCIPHER_GROUP)
+@@ -2986,7 +3001,8 @@
+                     sechost, secport)
+             except Exception as e:
+                 config.pki_log.error(
+-                    "unable to access security domain. Continuing .. " + str(e),
++                    "unable to access security domain. Continuing .. " +
++                    str(e),
+                     extra=config.PKI_INDENTATION_LEVEL_2)
+                 ca_list = []
+ 
+@@ -3127,7 +3143,7 @@
+                 else:
+                     return
+ 
+-            #retrieve tks host and port
++            # retrieve tks host and port
+             if ':' in tkshostport:
+                 tkshost = tkshostport.split(':')[0]
+                 tksport = tkshostport.split(':')[1]
+@@ -3896,7 +3912,7 @@
+                     admin_cert = response['adminCert']['cert']
+                     self.process_admin_cert(admin_cert)
+ 
+-        except Exception, e:
++        except Exception as e:
+             config.pki_log.error(
+                 log.PKI_CONFIG_JAVA_CONFIGURATION_EXCEPTION + " " + str(e),
+                 extra=config.PKI_INDENTATION_LEVEL_2)
+@@ -3904,7 +3920,7 @@
+             if hasattr(e, 'response'):
+                 try:
+                     root = ET.fromstring(e.response.text)
+-                except ET.ParseError, pe:
++                except ET.ParseError as pe:
+                     config.pki_log.error(
+                         "ParseError: %s: %s " % (pe, e.response.text),
+                         extra=config.PKI_INDENTATION_LEVEL_2)
+@@ -4049,8 +4065,8 @@
+         with open(self.mdict['pki_external_admin_csr_path'], "w") as f:
+             f.write("-----BEGIN CERTIFICATE REQUEST-----\n")
+         admin_certreq = None
+-        with open(os.path.join(\
+-                  self.mdict['pki_client_database_dir'],\
++        with open(os.path.join(
++                  self.mdict['pki_client_database_dir'],
+                   "admin_pkcs10.bin.asc"), "r") as f:
+             admin_certreq = f.read()
+         with open(self.mdict['pki_external_admin_csr_path'], "a") as f:
+@@ -4063,7 +4079,8 @@
+             log.PKI_CONFIG_CDATA_REQUEST + "\n" + admin_certreq,
+             extra=config.PKI_INDENTATION_LEVEL_2)
+ 
+-    def save_admin_cert(self, message, input_data, output_file, subsystem_name):
++    def save_admin_cert(
++            self, message, input_data, output_file, subsystem_name):
+         config.pki_log.debug(message + " '" + output_file + "'", subsystem_name,
+                              extra=config.PKI_INDENTATION_LEVEL_2)
+         with open(output_file, "w") as f:
+@@ -4318,7 +4335,8 @@
+         data.securityDomainType = "existingdomain"
+         data.securityDomainUri = self.mdict['pki_security_domain_uri']
+         data.securityDomainUser = self.mdict['pki_security_domain_user']
+-        data.securityDomainPassword = self.mdict['pki_security_domain_password']
++        data.securityDomainPassword = self.mdict[
++            'pki_security_domain_password']
+ 
+     def set_new_security_domain(self, data):
+         data.securityDomainType = "newdomain"
+@@ -4591,4 +4609,6 @@
+             f.write(etree.tostring(document, pretty_print=True))
+ 
+         os.chown(new_descriptor, self.mdict['pki_uid'], self.mdict['pki_gid'])
+-        os.chmod(new_descriptor, config.PKI_DEPLOYMENT_DEFAULT_FILE_PERMISSIONS)
++        os.chmod(
++            new_descriptor,
++            config.PKI_DEPLOYMENT_DEFAULT_FILE_PERMISSIONS)
+--- original/base/server/python/pki/server/deployment/scriptlets/infrastructure_layout.py
++++ fixed/base/server/python/pki/server/deployment/scriptlets/infrastructure_layout.py
+@@ -55,7 +55,8 @@
+         deployer.directory.create(
+             deployer.mdict['pki_instance_type_registry_path'])
+         deployer.directory.create(deployer.mdict['pki_instance_registry_path'])
+-        deployer.directory.create(deployer.mdict['pki_subsystem_registry_path'])
++        deployer.directory.create(
++            deployer.mdict['pki_subsystem_registry_path'])
+         deployer.file.copy(
+             deployer.mdict['pki_default_deployment_cfg'],
+             deployer.mdict['pki_default_deployment_cfg_replica'])
+--- original/base/common/python/pki/profile.py
++++ fixed/base/common/python/pki/profile.py
+@@ -162,7 +162,8 @@
+         if 'Value' in attr_list:
+             attribute.value = attr_list['Value']
+         if 'Descriptor' in attr_list:
+-            attribute.descriptor = Descriptor.from_json(attr_list['Descriptor'])
++            attribute.descriptor = Descriptor.from_json(
++                attr_list['Descriptor'])
+ 
+         return attribute
+ 
+@@ -502,6 +503,7 @@
+     """
+     Represents a PolicyConstraintValue
+     """
++
+     def __init__(self, name=None, value=None, descriptor=None):
+         self.name = name
+         self.value = value
+@@ -784,7 +786,8 @@
+         policy_set_list = cls()
+         policy_sets = attr_list['PolicySet']
+         if not isinstance(policy_sets, types.ListType):
+-            policy_set_list.policy_sets.append(PolicySet.from_json(policy_sets))
++            policy_set_list.policy_sets.append(
++                PolicySet.from_json(policy_sets))
+         else:
+             for policy_set in policy_sets:
+                 policy_set_list.policy_sets.append(
+@@ -1158,7 +1161,7 @@
+     # openssl pkcs12 -in <p12_file_path> -out /tmp/auth.pem -nodes
+     connection.set_authentication_cert("/tmp/auth.pem")
+ 
+-    #Initialize the ProfileClient class
++    # Initialize the ProfileClient class
+     profile_client = ProfileClient(connection)
+ 
+     # Folder to store the files generated during test
+@@ -1166,7 +1169,7 @@
+     if not os.path.exists(file_path):
+         os.makedirs(file_path)
+ 
+-    #Fetching a list of profiles
++    # Fetching a list of profiles
+     profile_data_infos = profile_client.list_profiles()
+     print 'List of profiles:'
+     print '-----------------'
+@@ -1204,7 +1207,7 @@
+     print '  Profile ID: ' + profile_data.profile_id
+     print '  Is profile enabled? ' + str(profile.enabled)
+     print
+-    #profile_client.delete_profile('MySampleProfile')
++    # profile_client.delete_profile('MySampleProfile')
+     # Create a new sample profile
+     print 'Creating a new profile:'
+     print '-----------------------'
+@@ -1272,7 +1275,9 @@
+                                    "Validity to the request. The default "
+                                    "values are Range=180 in days")
+     attr_descriptor = Descriptor(syntax="string", description="Not Before")
+-    policy_attribute = ProfileAttribute("notBefore", descriptor=attr_descriptor)
++    policy_attribute = ProfileAttribute(
++        "notBefore",
++        descriptor=attr_descriptor)
+     policy_default.add_attribute(policy_attribute)
+ 
+     attr_descriptor = Descriptor(syntax="string", description="Not After")
+@@ -1284,7 +1289,7 @@
+     policy_default.add_parameter(profile_param)
+     policy_default.add_parameter(profile_param2)
+ 
+-    #Defining the policy constraint
++    # Defining the policy constraint
+     policy_constraint = PolicyConstraint("Validity Constraint",
+                                          "This constraint rejects the validity "
+                                          "that is not between 365 days.",
+@@ -1317,7 +1322,7 @@
+     profile_data.add_policy_set(policy_set)
+ 
+     # Write the profile data object to a file for testing a file input
+-    with open(file_path+'/original.json', 'w') as output_file:
++    with open(file_path + '/original.json', 'w') as output_file:
+         output_file.write(json.dumps(profile_data,
+                                      cls=encoder.CustomTypeEncoder,
+                                      sort_keys=True, indent=4))
+@@ -1369,7 +1374,7 @@
+     fetch.name += " (Modified)"
+     modified_profile = profile_client.modify_profile(fetch)
+ 
+-    with open(file_path+'modified.json', 'w') as output_file:
++    with open(file_path + 'modified.json', 'w') as output_file:
+         output_file.write(json.dumps(fetch, cls=encoder.CustomTypeEncoder,
+                                      sort_keys=True, indent=4))
+ 
+@@ -1411,10 +1416,10 @@
+ 
+     # Test clean up
+     profile_client.delete_profile('MySampleProfile')
+-    os.remove(file_path+'original.json')
+-    os.remove(file_path+'modified.json')
++    os.remove(file_path + 'original.json')
++    os.remove(file_path + 'modified.json')
+     os.removedirs(file_path)
+ 
+ 
+ if __name__ == "__main__":
+-    main()
+\ No newline at end of file
++    main()
+--- original/base/server/python/pki/server/cli/subsystem.py
++++ fixed/base/server/python/pki/server/cli/subsystem.py
+@@ -248,7 +248,11 @@
+ class SubsystemDisableCLI(pki.cli.CLI):
+ 
+     def __init__(self):
+-        super(SubsystemDisableCLI, self).__init__('disable', 'Disable subsystem')
++        super(
++            SubsystemDisableCLI,
++            self).__init__(
++            'disable',
++            'Disable subsystem')
+ 
+     def usage(self):
+         print 'Usage: pki-server subsystem-disable [OPTIONS] <subsystem ID>'
+--- original/base/server/python/pki/server/cli/instance.py
++++ fixed/base/server/python/pki/server/cli/instance.py
+@@ -322,7 +322,9 @@
+         instance = pki.server.PKIInstance(instance_name)
+         instance.load()
+ 
+-        module.migrate(instance, tomcat_version)  # pylint: disable=no-member,maybe-no-member
++        module.migrate(
++            instance,
++            tomcat_version)  # pylint: disable=no-member,maybe-no-member
+ 
+         self.print_message('%s instance migrated' % instance_name)
+ 
+@@ -376,7 +378,8 @@
+         instance = pki.server.PKIInstance(instance_name)
+         instance.load()
+ 
+-        module.enable_nuxwdog(instance)  # pylint: disable=no-member,maybe-no-member
++        module.enable_nuxwdog(
++            instance)  # pylint: disable=no-member,maybe-no-member
+ 
+         self.print_message('Nuxwdog enabled for instance %s.' % instance_name)
+ 
+@@ -430,6 +433,7 @@
+         instance = pki.server.PKIInstance(instance_name)
+         instance.load()
+ 
+-        module.disable_nuxwdog(instance)  # pylint: disable=no-member,maybe-no-member
++        module.disable_nuxwdog(
++            instance)  # pylint: disable=no-member,maybe-no-member
+ 
+         self.print_message('Nuxwdog disabled for instance %s.' % instance_name)
+--- original/base/common/python/pki/system.py
++++ fixed/base/common/python/pki/system.py
+@@ -112,7 +112,7 @@
+ 
+         hosts = json_value['Host']
+         if isinstance(hosts, dict):
+-            hosts = [ hosts ]
++            hosts = [hosts]
+ 
+         for h in hosts:
+             host = SecurityDomainHost.from_json(h)
+@@ -155,7 +155,7 @@
+ 
+             subsystems = domain_info['Subsystem']
+             if isinstance(subsystems, dict):
+-                subsystems = [ subsystems ]
++                subsystems = [subsystems]
+ 
+         for s in subsystems:
+             subsystem = SecurityDomainSubsystem.from_json(s)
+@@ -211,6 +211,7 @@
+     This class is the python equivalent of the Java class:
+     com.netscape.certsrv.system.ConfigurationRequest
+     """
++
+     def __init__(self):
+         self.token = "Internal Key Storage Token"
+         self.isClone = "false"
+@@ -227,6 +228,7 @@
+     This class is the python equivalent of the Java class:
+     com.netscape.certsrv.system.ConfigurationRequest
+     """
++
+     def __init__(self):
+         pass
+ 
+@@ -240,6 +242,7 @@
+     This class is the python equivalent of the Java class:
+     com.netscape.certsrv.system.SystemCertData
+     """
++
+     def __init__(self):
+         pass
+ 
+@@ -252,6 +255,7 @@
+     The connection details for the system being configured are passed in
+     the PKIConnection object used when constructing this object.
+     """
++
+     def __init__(self, connection):
+         self.connection = connection
+ 
+@@ -276,6 +280,7 @@
+     """
+     Client used to check the status of a Dogtag subsystem.
+     """
++
+     def __init__(self, connection):
+         self.connection = connection
+ 
+--- original/base/server/python/pki/server/deployment/pkiconfig.py
++++ fixed/base/server/python/pki/server/deployment/pkiconfig.py
+@@ -20,14 +20,14 @@
+ #
+ 
+ # PKI Deployment Constants
+-PKI_DEPLOYMENT_DEFAULT_CLIENT_DIR_PERMISSIONS = 00755
+-PKI_DEPLOYMENT_DEFAULT_DIR_PERMISSIONS = 00770
+-PKI_DEPLOYMENT_DEFAULT_EXE_PERMISSIONS = 00770
+-PKI_DEPLOYMENT_DEFAULT_FILE_PERMISSIONS = 00660
+-PKI_DEPLOYMENT_DEFAULT_SECURITY_DATABASE_PERMISSIONS = 00600
+-PKI_DEPLOYMENT_DEFAULT_SGID_DIR_PERMISSIONS = 02770
+-PKI_DEPLOYMENT_DEFAULT_SYMLINK_PERMISSIONS = 00777
+-PKI_DEPLOYMENT_DEFAULT_UMASK = 00002
++PKI_DEPLOYMENT_DEFAULT_CLIENT_DIR_PERMISSIONS = 0o0755
++PKI_DEPLOYMENT_DEFAULT_DIR_PERMISSIONS = 0o0770
++PKI_DEPLOYMENT_DEFAULT_EXE_PERMISSIONS = 0o0770
++PKI_DEPLOYMENT_DEFAULT_FILE_PERMISSIONS = 0o0660
++PKI_DEPLOYMENT_DEFAULT_SECURITY_DATABASE_PERMISSIONS = 0o0600
++PKI_DEPLOYMENT_DEFAULT_SGID_DIR_PERMISSIONS = 0o2770
++PKI_DEPLOYMENT_DEFAULT_SYMLINK_PERMISSIONS = 0o0777
++PKI_DEPLOYMENT_DEFAULT_UMASK = 0o0002
+ 
+ PKI_DEPLOYMENT_DEFAULT_COMMENT = "'Certificate System'"
+ PKI_DEPLOYMENT_DEFAULT_GID = 17
+--- original/base/common/python/pki/cert.py
++++ fixed/base/common/python/pki/cert.py
+@@ -344,9 +344,9 @@
+                 setattr(self, CertSearchRequest.search_params[param], value)
+                 setattr(self, 'serialNumberRangeInUse', True)
+ 
+-            if param in {\
+-                'email', 'common_name', 'user_id', 'org_unit', 'org',\
+-                'locality', 'state', 'country', 'match_exactly'\
++            if param in {
++                'email', 'common_name', 'user_id', 'org_unit', 'org',
++                'locality', 'state', 'country', 'match_exactly'
+             }:
+                 setattr(self, CertSearchRequest.search_params[param], value)
+                 setattr(self, 'subjectInUse', True)
+@@ -382,16 +382,16 @@
+                 setattr(self, CertSearchRequest.search_params[param], value)
+                 setattr(self, 'validNotAfterInUse', True)
+ 
+-            if param in {\
+-                'validity_operation', 'validity_count', 'validity_unit'\
++            if param in {
++                'validity_operation', 'validity_count', 'validity_unit'
+             }:
+                 setattr(self, CertSearchRequest.search_params[param], value)
+                 setattr(self, 'validityLengthInUse', True)
+ 
+-            if param in {\
+-                'cert_type_sub_email_ca', 'cert_type_sub_ssl_ca',\
+-                'cert_type_secure_email', 'cert_type_ssl_client',\
+-                'cert_type_ssl_server'\
++            if param in {
++                'cert_type_sub_email_ca', 'cert_type_sub_ssl_ca',
++                'cert_type_secure_email', 'cert_type_ssl_client',
++                'cert_type_ssl_server'
+             }:
+                 setattr(self, CertSearchRequest.search_params[param], value)
+                 setattr(self, 'certTypeInUse', True)
+@@ -413,7 +413,8 @@
+                'Certificate_Hold', 'Remove_from_CRL', 'Privilege_Withdrawn',
+                'AA_Compromise']
+ 
+-    def __init__(self, nonce, reason=None, invalidity_date=None, comments=None):
++    def __init__(
++            self, nonce, reason=None, invalidity_date=None, comments=None):
+         """ Constructor """
+ 
+         setattr(self, "Nonce", nonce)
+@@ -508,7 +509,8 @@
+ 
+         inputs = attr_list['Input']
+         if not isinstance(inputs, types.ListType):
+-            enroll_request.inputs.append(profile.ProfileInput.from_json(inputs))
++            enroll_request.inputs.append(
++                profile.ProfileInput.from_json(inputs))
+         else:
+             for profile_input in inputs:
+                 enroll_request.inputs.append(
+@@ -589,7 +591,7 @@
+     @classmethod
+     def from_json(cls, attr_list):
+ 
+-        #First read the values for attributes defined in CertEnrollmentRequest
++        # First read the values for attributes defined in CertEnrollmentRequest
+         review_response = super(CertReviewResponse, cls).from_json(attr_list)
+ 
+         for k, v in attr_list.items():
+@@ -638,7 +640,7 @@
+ 
+         url = self.cert_url + '/' + str(cert_serial_number)
+         r = self.connection.get(url, self.headers)
+-        #print r.json()
++        # print r.json()
+         return CertData.from_json(r.json())
+ 
+     @pki.handle_exceptions()
+@@ -720,7 +722,8 @@
+             This method requires an agent's authentication cert in the
+             connection object.
+         """
+-        url = self.agent_cert_url + '/' + str(cert_serial_number) + '/revoke-ca'
++        url = self.agent_cert_url + '/' + \
++            str(cert_serial_number) + '/revoke-ca'
+         return self._submit_revoke_request(url, cert_serial_number,
+                                            revocation_reason, invalidity_date,
+                                            comments, nonce)
+@@ -816,7 +819,7 @@
+         review_response = json.dumps(cert_review_response,
+                                      cls=encoder.CustomTypeEncoder,
+                                      sort_keys=True)
+-        #print review_response
++        # print review_response
+         r = self.connection.post(url, review_response, headers=self.headers)
+         return r
+ 
+@@ -827,7 +830,8 @@
+         to fetch the CertReviewResponse object.
+         Requires as agent level authentication.
+         """
+-        return self._perform_action(request_id, cert_review_response, 'approve')
++        return self._perform_action(
++            request_id, cert_review_response, 'approve')
+ 
+     def cancel_request(self, request_id, cert_review_response=None):
+         """
+@@ -918,8 +922,8 @@
+             return copy.deepcopy(self.enrollment_templates[profile_id])
+         url = self.cert_requests_url + '/profiles/' + str(profile_id)
+         r = self.connection.get(url, self.headers)
+-        #print r.json()
+-        #Caching the enrollment template object in-memory for future use.
++        # print r.json()
++        # Caching the enrollment template object in-memory for future use.
+         enrollment_template = CertEnrollmentRequest.from_json(r.json())
+         self.enrollment_templates[profile_id] = enrollment_template
+ 
+@@ -955,7 +959,7 @@
+         request_object = json.dumps(enrollment_request,
+                                     cls=encoder.CustomTypeEncoder,
+                                     sort_keys=True)
+-        #print request_object
++        # print request_object
+         r = self.connection.post(self.cert_requests_url, request_object,
+                                  self.headers)
+         return CertRequestInfoCollection.from_json(r.json())
+@@ -1039,12 +1043,12 @@
+     # openssl pkcs12 -in <p12_file_path> -out /tmp/auth.pem -nodes
+     connection.set_authentication_cert("/tmp/auth.pem")
+ 
+-    #Instantiate the CertClient
++    # Instantiate the CertClient
+     cert_client = CertClient(connection)
+ 
+     cert_client.get_enrollment_template('caUserCert')
+ 
+-    #Enrolling an user certificate
++    # Enrolling an user certificate
+     print 'Enrolling an user certificate'
+     print '-----------------------------'
+ 
+@@ -1134,8 +1138,8 @@
+         print "Status: " + cert_data_info.status
+     print
+ 
+-    #Trying to get a non-existing cert
+-    #Assuming that there is no certificate with serial number = 100
++    # Trying to get a non-existing cert
++    # Assuming that there is no certificate with serial number = 100
+     try:
+         cert_data = cert_client.get_cert(100)
+         print 'Serial Number: ' + cert_data.serial_number
+@@ -1150,7 +1154,7 @@
+     # Following examples use the serial number of the user certificate enrolled
+     #  before.
+ 
+-    #Get certificate data
++    # Get certificate data
+     print 'Getting information of a certificate'
+     print '------------------------------------'
+ 
+@@ -1180,7 +1184,7 @@
+     print 'Nonce: ' + str(cert_data.nonce)
+     print
+ 
+-    #Revoke a certificate
++    # Revoke a certificate
+     print 'Revoking a certificate'
+     print '----------------------'
+ 
+@@ -1191,7 +1195,7 @@
+     print 'Request Status: ' + cert_request_info.request_status
+     print
+ 
+-    #Un-revoke a certificate
++    # Un-revoke a certificate
+     print 'Un-revoking a certificate'
+     print '-------------------------'
+ 
+@@ -1203,4 +1207,4 @@
+ 
+ 
+ if __name__ == "__main__":
+-    main()
+\ No newline at end of file
++    main()
+--- original/base/server/python/pki/server/deployment/scriptlets/initialization.py
++++ fixed/base/server/python/pki/server/deployment/scriptlets/initialization.py
+@@ -51,8 +51,8 @@
+         else:
+             config.pki_log.info(log.INITIALIZATION_SPAWN_1, __name__,
+                                 extra=config.PKI_INDENTATION_LEVEL_1)
+-            if (deployer.mdict['pki_subsystem'] == "CA" or \
+-                        config.str2bool(deployer.mdict['pki_standalone'])) and \
++            if (deployer.mdict['pki_subsystem'] == "CA" or
++                config.str2bool(deployer.mdict['pki_standalone'])) and \
+                     config.str2bool(deployer.mdict['pki_external_step_two']):
+                 # verify that this External CA (Step 2), or Stand-alone PKI
+                 # (Step 2) currently EXISTS for this "instance"
+--- original/base/common/python/pki/crypto.py
++++ fixed/base/common/python/pki/crypto.py
+@@ -63,7 +63,8 @@
+         pass
+ 
+     @abc.abstractmethod
+-    def symmetric_wrap(self, data, wrapping_key, mechanism=None, nonce_iv=None):
++    def symmetric_wrap(
++            self, data, wrapping_key, mechanism=None, nonce_iv=None):
+         """ encrypt data using a symmetric key (wrapping key)"""
+         pass
+ 
+@@ -87,7 +88,7 @@
+         """
+         pass
+ 
+-    #abc.abstractmethod
++    # abc.abstractmethod
+     def get_cert(self, cert_nick):
+         """ Get the certificate for the specified cert_nick. """
+         pass
+@@ -102,7 +103,8 @@
+     """
+ 
+     @staticmethod
+-    def setup_database(db_dir, password=None, over_write=False, password_file=None):
++    def setup_database(
++            db_dir, password=None, over_write=False, password_file=None):
+         """ Create an NSS database """
+         if os.path.exists(db_dir):
+             if not over_write:
+@@ -189,7 +191,8 @@
+                                    None,
+                                    slot.get_best_key_length(mechanism))
+ 
+-        # If initialization vector was supplied use it, otherwise set it to None
++        # If initialization vector was supplied use it, otherwise set it to
++        # None
+         if nonce_iv:
+             iv_si = nss.SecItem(nonce_iv)
+             iv_param = nss.param_from_iv(mechanism, iv_si)
+--- original/base/server/python/pki/server/deployment/pkiparser.py
++++ fixed/base/server/python/pki/server/deployment/pkiparser.py
+@@ -52,7 +52,7 @@
+     def __init__(self, description, epilog):
+         self.pki_config = None
+ 
+-        #Read and process command-line options
++        # Read and process command-line options
+         self.arg_parser = argparse.ArgumentParser(
+             description=description,
+             add_help=False,
+@@ -64,7 +64,8 @@
+             'mandatory arguments')
+ 
+         # Establish 'Optional' command-line options
+-        self.optional = self.arg_parser.add_argument_group('optional arguments')
++        self.optional = self.arg_parser.add_argument_group(
++            'optional arguments')
+         self.optional.add_argument(
+             '-s',
+             dest='pki_subsystem', action='store',
+@@ -239,7 +240,8 @@
+         self.pki_config.set(section, key, value)
+         self.flatten_master_dict()
+ 
+-        if section != "DEFAULT" and not config.user_config.has_section(section):
++        if section != "DEFAULT" and not config.user_config.has_section(
++                section):
+             config.user_config.add_section(section)
+         config.user_config.set(section, key, value)
+ 
+@@ -370,7 +372,7 @@
+                                         section, key, val.replace("%", "%%"))
+                             except ConfigParser.NoOptionError:
+                                 continue
+-        except ConfigParser.ParsingError, err:
++        except ConfigParser.ParsingError as err:
+             print err
+             rv = err
+         return rv
+@@ -636,8 +638,8 @@
+                 # and add this to the "sensitive" key value pairs read in from
+                 # the configuration file
+                 self.mdict['pki_one_time_pin'] = \
+-                    ''.join(random.choice(string.ascii_letters + string.digits)\
+-                    for x in range(20))
++                    ''.join(random.choice(string.ascii_letters + string.digits)
++                            for x in range(20))
+ 
+             self.mdict['pki_target_catalina_properties'] = \
+                 os.path.join(
+@@ -1138,8 +1140,8 @@
+                 # Stand-alone PKI
+                 self.mdict['pki_security_domain_type'] = "new"
+                 self.mdict['pki_issuing_ca'] = "External CA"
+-            elif (config.pki_subsystem != "CA" or\
+-                    config.str2bool(self.mdict['pki_clone']) or\
++            elif (config.pki_subsystem != "CA" or
++                    config.str2bool(self.mdict['pki_clone']) or
+                     config.str2bool(self.mdict['pki_subordinate'])):
+                 # PKI KRA, PKI OCSP, PKI RA, PKI TKS, PKI TPS,
+                 # CA Clone, KRA Clone, OCSP Clone, TKS Clone, TPS Clone
+@@ -1266,7 +1268,7 @@
+             parser.read(config.PKI_DEPLOYMENT_SLOTS_CONFIGURATION_FILE)
+             # Slots configuration file name/value pairs
+             self.slots_dict = dict(parser.items('Tomcat'))
+-        except ConfigParser.ParsingError, err:
++        except ConfigParser.ParsingError as err:
+             rv = err
+         return rv
+ 
+@@ -1287,5 +1289,3 @@
+                 break
+ 
+         return data
+-
+-
+--- original/base/kra/functional/drmclient_deprecated.py
++++ fixed/base/kra/functional/drmclient_deprecated.py
+@@ -48,8 +48,10 @@
+ CERT_HEADER = "-----BEGIN NEW CERTIFICATE REQUEST-----"
+ CERT_FOOTER = "-----END NEW CERTIFICATE REQUEST-----"
+ 
++
+ def _(string):
+     return string
++
+ 
+ def parse_key_request_info_xml(doc):
+     '''
+@@ -79,28 +81,29 @@
+     request_type = doc.xpath('requestType')
+     if len(request_type) == 1:
+         request_type = etree.tostring(request_type[0], method='text',
+-                                           encoding=unicode).strip()
++                                      encoding=unicode).strip()
+         response['request_type'] = request_type
+ 
+     request_status = doc.xpath('requestStatus')
+     if len(request_status) == 1:
+         request_status = etree.tostring(request_status[0], method='text',
+-                                           encoding=unicode).strip()
++                                        encoding=unicode).strip()
+         response['request_status'] = request_status
+ 
+     request_url = doc.xpath('requestURL')
+     if len(request_url) == 1:
+         request_url = etree.tostring(request_url[0], method='text',
+-                                           encoding=unicode).strip()
++                                     encoding=unicode).strip()
+         response['request_id'] = request_url.rsplit('/', 1)[1]
+ 
+     key_url = doc.xpath('keyURL')
+     if len(key_url) == 1:
+         key_url = etree.tostring(key_url[0], method='text',
+-                                           encoding=unicode).strip()
++                                 encoding=unicode).strip()
+         response['key_id'] = key_url.rsplit('/', 1)[1]
+ 
+     return response
++
+ 
+ def parse_key_request_infos_xml(doc):
+     '''
+@@ -152,6 +155,7 @@
+ 
+     return response
+ 
++
+ def parse_key_data_info_xml(doc):
+     '''
+     :param doc: The root node of the xml document to parse
+@@ -176,16 +180,17 @@
+     client_id = doc.xpath('clientID')
+     if len(client_id) == 1:
+         client_id = etree.tostring(client_id[0], method='text',
+-                                           encoding=unicode).strip()
++                                   encoding=unicode).strip()
+         response['client_id'] = client_id
+ 
+     key_url = doc.xpath('keyURL')
+     if len(key_url) == 1:
+         key_url = etree.tostring(key_url[0], method='text',
+-                                           encoding=unicode).strip()
++                                 encoding=unicode).strip()
+         response['key_url'] = key_url
+ 
+     return response
++
+ 
+ def parse_key_data_infos_xml(doc):
+     '''
+@@ -238,6 +243,7 @@
+ 
+     return response
+ 
++
+ def parse_key_data_xml(doc):
+     '''
+     :param doc: The root node of the xml document to parse
+@@ -271,6 +277,7 @@
+ 
+     return response
+ 
++
+ def parse_certificate_data_xml(doc):
+     '''
+     :param doc: The root node of the xml document to parse
+@@ -293,11 +300,17 @@
+     if len(b64) == 1:
+         b64 = etree.tostring(b64[0], method='text',
+                              encoding=unicode).strip()
+-        response['cert'] = b64.replace(CERT_HEADER, "").replace(CERT_FOOTER, "")
++        response['cert'] = b64.replace(
++            CERT_HEADER,
++            "").replace(
++            CERT_FOOTER,
++            "")
+ 
+     return response
+ 
+-def https_request(host, port, url, secdir, password, nickname, operation, args, **kw):
++
++def https_request(
++        host, port, url, secdir, password, nickname, operation, args, **kw):
+     """
+     :param url:        The URL to post to.
+     :param operation:  GET, POST, (PUT and DELETE not yet implemented)
+@@ -316,9 +329,9 @@
+     request_headers = {"Content-type": "application/xml",
+                        "Accept": "application/xml"}
+     if operation == "POST":
+-        if args != None:
++        if args is not None:
+             post = args
+-        elif kw != None:
++        elif kw is not None:
+             post = urlencode(kw)
+             request_headers = {"Content-type": "application/x-www-form-urlencoded",
+                                "Accept": "text/plain"}
+@@ -342,13 +355,14 @@
+         http_reason_phrase = unicode(res.reason, 'utf-8')
+         http_headers = res.msg.dict
+         http_body = res.read()
+-    except Exception, e:
++    except Exception as e:
+         raise NetworkError(uri=uri, error=str(e))
+     finally:
+         if conn is not None:
+             conn.close()
+ 
+     return http_status, http_reason_phrase, http_headers, http_body
++
+ 
+ def http_request(host, port, url, operation, args):
+     """
+@@ -365,16 +379,16 @@
+     uri = 'http://%s%s' % (ipautil.format_netloc(host, port), url)
+     logging.info('request %r', uri)
+     request_headers = {"Content-type": "application/xml",
+-                   "Accept": "application/xml"}
++                       "Accept": "application/xml"}
+     if operation == "POST":
+-        if args != None:
++        if args is not None:
+             post = args
+         else:
+             post = ""
+     conn = httplib.HTTPConnection(host, port)
+     try:
+         if operation == "GET":
+-            if args != None:
++            if args is not None:
+                 url = url + "?" + args
+             conn.request("GET", url)
+         elif operation == "POST":
+@@ -386,7 +400,7 @@
+         http_reason_phrase = unicode(res.reason, 'utf-8')
+         http_headers = res.msg.dict
+         http_body = res.read()
+-    except NSPRError, e:
++    except NSPRError as e:
+         raise NetworkError(uri=uri, error=str(e))
+     finally:
+         if conn is not None:
+@@ -398,6 +412,7 @@
+     logging.debug('request body %r', http_body)
+ 
+     return http_status, http_reason_phrase, http_headers, http_body
++
+ 
+ class kra:
+     """
+@@ -410,7 +425,6 @@
+     mechanism = nss.CKM_DES_CBC_PAD
+     iv = "e4:bb:3b:d3:c3:71:2e:58"
+     fullname = "kra"
+-
+ 
+     def __init__(self, work_dir, kra_host, kra_port, kra_nickname):
+         # crypto
+@@ -427,10 +441,11 @@
+         # set up key db for crypto functions
+         try:
+             nss.nss_init(self.sec_dir)
+-        except Exception, e:
+-            raise CertificateOperationError(error=_('Error in initializing certdb (%s)') \
+-                      + e.strerror)
+-        self.transport_cert = nss.find_cert_from_nickname(self.transport_cert_nickname)
++        except Exception as e:
++            raise CertificateOperationError(error=_('Error in initializing certdb (%s)')
++                                            + e.strerror)
++        self.transport_cert = nss.find_cert_from_nickname(
++            self.transport_cert_nickname)
+ 
+         # DRM info
+         self.kra_host = kra_host
+@@ -441,10 +456,14 @@
+         # Get a PK11 slot based on the cipher
+         slot = nss.get_best_slot(mechanism)
+ 
+-        if sym_key == None:
+-            sym_key = slot.key_gen(mechanism, None, slot.get_best_key_length(mechanism))
+-
+-        # If initialization vector was supplied use it, otherwise set it to None
++        if sym_key is None:
++            sym_key = slot.key_gen(
++                mechanism,
++                None,
++                slot.get_best_key_length(mechanism))
++
++        # If initialization vector was supplied use it, otherwise set it to
++        # None
+         if iv:
+             iv_data = nss.read_hex(iv)
+             iv_si = nss.SecItem(iv_data)
+@@ -497,7 +516,7 @@
+         Perform an HTTPS request
+         """
+         return https_request(self.kra_host, port, url, self.sec_dir, self.password,
+-							 self.ipa_certificate_nickname, operation, args, **kw)
++                             self.ipa_certificate_nickname, operation, args, **kw)
+ 
+     def symmetric_wrap(self, data, wrapping_key):
+         """
+@@ -506,8 +525,10 @@
+ 
+         Wrap (encrypt) data using the supplied symmetric key
+         """
+-        encoding_ctx, _decoding_ctx = self.setup_contexts(self.mechanism, wrapping_key, self.iv)
+-        wrapped_data = encoding_ctx.cipher_op(data) + encoding_ctx.digest_final()
++        encoding_ctx, _decoding_ctx = self.setup_contexts(
++            self.mechanism, wrapping_key, self.iv)
++        wrapped_data = encoding_ctx.cipher_op(
++            data) + encoding_ctx.digest_final()
+         return wrapped_data
+ 
+     def asymmetric_wrap(self, data, wrapping_cert):
+@@ -527,10 +548,12 @@
+ 
+         Unwrap (decrypt) data using the supplied symmetric key
+         """
+-        if iv == None:
++        if iv is None:
+             iv = self.iv
+-        _encoding_ctx, decoding_ctx = self.setup_contexts(self.mechanism, wrapping_key, iv)
+-        unwrapped_data = decoding_ctx.cipher_op(data) + decoding_ctx.digest_final()
++        _encoding_ctx, decoding_ctx = self.setup_contexts(
++            self.mechanism, wrapping_key, iv)
++        unwrapped_data = decoding_ctx.cipher_op(
++            data) + decoding_ctx.digest_final()
+         return unwrapped_data
+ 
+     def get_parse_result_xml(self, xml_text, parse_func):
+@@ -546,7 +569,9 @@
+         parser = etree.XMLParser()
+         doc = etree.fromstring(xml_text, parser)
+         result = parse_func(doc)
+-        self.debug("%s() xml_text:\n%s\nparse_result:\n%s" % (parse_func.__name__, xml_text, result))
++        self.debug(
++            "%s() xml_text:\n%s\nparse_result:\n%s" %
++            (parse_func.__name__, xml_text, result))
+         return result
+ 
+     def create_archival_request(self, client_id, security_data, data_type):
+@@ -561,13 +586,16 @@
+         root = etree.Element("KeyArchivalRequest")
+         client_id_element = etree.SubElement(root, "clientId")
+         client_id_element.text = client_id
+-        wrapped_private_data_element = etree.SubElement(root, "wrappedPrivateData")
++        wrapped_private_data_element = etree.SubElement(
++            root,
++            "wrappedPrivateData")
+         wrapped_private_data_element.text = security_data
+         data_type_element = etree.SubElement(root, "dataType")
+         data_type_element.text = data_type
+         return etree.ElementTree(root)
+ 
+-    def create_recovery_request(self, key_id, request_id, session_key, passphrase, nonce=None):
++    def create_recovery_request(
++            self, key_id, request_id, session_key, passphrase, nonce=None):
+         """
+         :param key_id:            identifier of key to be recovered
+         :param request_id:        id for the recovery request
+@@ -575,22 +603,26 @@
+         :param passphrase         passphrase wrapped in session key
+         :return doc:              xml doc with archival request
+ 
+-	"""
++        """
+         self.debug('%s.create_recovery_request()', self.fullname)
+         root = etree.Element("KeyRecoveryRequest")
+-        if key_id != None:
++        if key_id is not None:
+             key_id_element = etree.SubElement(root, "keyId")
+             key_id_element.text = key_id
+-        if request_id != None:
++        if request_id is not None:
+             request_id_element = etree.SubElement(root, "requestId")
+             request_id_element.text = request_id
+-        if session_key != None:
+-            session_key_element = etree.SubElement(root, "transWrappedSessionKey")
++        if session_key is not None:
++            session_key_element = etree.SubElement(
++                root,
++                "transWrappedSessionKey")
+             session_key_element.text = session_key
+-        if passphrase != None:
+-            passphrase_element = etree.SubElement(root, "sessionWrappedPassphrase")
++        if passphrase is not None:
++            passphrase_element = etree.SubElement(
++                root,
++                "sessionWrappedPassphrase")
+             passphrase_element.text = passphrase
+-        if nonce != None:
++        if nonce is not None:
+             nonce_element = etree.SubElement(root, "nonceData")
+             nonce_element.text = nonce
+         return etree.ElementTree(root)
+@@ -612,24 +644,30 @@
+         self.debug('%s.archive_security_data()', self.fullname)
+ 
+         # check clientID and security data
+-        if ((client_id == None) or (security_data == None)):
+-            raise CertificateOperationError(error=_('Bad arguments to archive_security_data'))
+-
+-        request = self.create_archival_request(client_id, security_data, data_type)
++        if ((client_id is None) or (security_data is None)):
++            raise CertificateOperationError(
++                error=_('Bad arguments to archive_security_data'))
++
++        request = self.create_archival_request(
++            client_id,
++            security_data,
++            data_type)
+ 
+         # Call CMS
+         http_status, http_reason_phrase, _http_headers, http_body = \
+             self._request('/kra/rest/agent/keyrequests/archive',
+-                         self.kra_agent_port,
+-                         self.POST,
+-                         etree.tostring(request.getroot(), encoding='UTF-8'))
++                          self.kra_agent_port,
++                          self.POST,
++                          etree.tostring(request.getroot(), encoding='UTF-8'))
+ 
+         # Parse and handle errors
+         if (http_status != 200):
+-            raise CertificateOperationError(error=_('Error in archiving request (%s)') % \
+-                      http_reason_phrase)
+-
+-        parse_result = self.get_parse_result_xml(http_body, parse_key_request_info_xml)
++            raise CertificateOperationError(error=_('Error in archiving request (%s)') %
++                                            http_reason_phrase)
++
++        parse_result = self.get_parse_result_xml(
++            http_body,
++            parse_key_request_info_xml)
+         return parse_result
+ 
+     def get_transport_cert(self, etag=None):
+@@ -645,17 +683,19 @@
+         # Call CMS
+         http_status, http_reason_phrase, http_headers, http_body = \
+             self._request('/kra/rest/config/cert/transport',
+-                         self.kra_agent_port,
+-                         self.GET,
+-                         None)
+-
+-        self.debug("headers: %s" , http_headers)
++                          self.kra_agent_port,
++                          self.GET,
++                          None)
++
++        self.debug("headers: %s", http_headers)
+         # Parse and handle errors
+         if (http_status != 200):
+-            raise CertificateOperationError(error=_('Error in archiving request (%s)') % \
+-                      http_reason_phrase)
+-
+-        parse_result = self.get_parse_result_xml(http_body, parse_certificate_data_xml)
++            raise CertificateOperationError(error=_('Error in archiving request (%s)') %
++                                            http_reason_phrase)
++
++        parse_result = self.get_parse_result_xml(
++            http_body,
++            parse_certificate_data_xml)
+         return parse_result
+ 
+     def list_security_data(self, client_id, key_state=None, next_id=None):
+@@ -669,14 +709,15 @@
+         The command returns a dict as specified in parse_key_data_infos_xml().
+         """
+         self.debug('%s.list_security_data()', self.fullname)
+-        if client_id == None:
+-            raise CertificateOperationError(error=_('Bad argument to list_security_data'))
++        if client_id is None:
++            raise CertificateOperationError(
++                error=_('Bad argument to list_security_data'))
+         get_args = "clientID=" + quote_plus(client_id)
+ 
+-        if key_state != None:
++        if key_state is not None:
+             get_args = get_args + "&status=" + quote_plus(key_state)
+ 
+-        if next_id != None:
++        if next_id is not None:
+             # currnently not implemented on server
+             get_args = get_args + "&start=" + quote_plus(next_id)
+ 
+@@ -689,10 +730,12 @@
+ 
+         # Parse and handle errors
+         if (http_status != 200):
+-            raise CertificateOperationError(error=_('Error in listing keys (%s)') % \
+-                      http_reason_phrase)
+-
+-        parse_result = self.get_parse_result_xml(http_body, parse_key_data_infos_xml)
++            raise CertificateOperationError(error=_('Error in listing keys (%s)') %
++                                            http_reason_phrase)
++
++        parse_result = self.get_parse_result_xml(
++            http_body,
++            parse_key_data_infos_xml)
+         return parse_result
+ 
+     def list_key_requests(self, request_state=None, request_type=None, client_id=None,
+@@ -709,16 +752,16 @@
+         self.debug('%s.list_key_requests()', self.fullname)
+         get_args = ""
+ 
+-        if request_state != None:
++        if request_state is not None:
+             get_args = get_args + "&requestState=" + quote_plus(request_state)
+ 
+-        if request_type != None:
++        if request_type is not None:
+             get_args = get_args + "&requestType=" + quote_plus(request_type)
+ 
+-        if client_id != None:
++        if client_id is not None:
+             get_args = get_args + "&clientID=" + quote_plus(client_id)
+ 
+-        if next_id != None:
++        if next_id is not None:
+             # currnently not implemented on server
+             get_args = get_args + "&start=" + quote_plus(next_id)
+ 
+@@ -731,10 +774,12 @@
+ 
+         # Parse and handle errors
+         if (http_status != 200):
+-            raise CertificateOperationError(error=_('Error in listing key requests (%s)') % \
+-                      http_reason_phrase)
+-
+-        parse_result = self.get_parse_result_xml(http_body, parse_key_request_infos_xml)
++            raise CertificateOperationError(error=_('Error in listing key requests (%s)') %
++                                            http_reason_phrase)
++
++        parse_result = self.get_parse_result_xml(
++            http_body,
++            parse_key_request_infos_xml)
+         return parse_result
+ 
+     def submit_recovery_request(self, key_id):
+@@ -750,24 +795,27 @@
+         self.debug('%s.submit_recovery_request()', self.fullname)
+ 
+         # check clientID and security data
+-        if key_id == None:
+-            raise CertificateOperationError(error=_('Bad argument to archive_security_data'))
++        if key_id is None:
++            raise CertificateOperationError(
++                error=_('Bad argument to archive_security_data'))
+ 
+         request = self.create_recovery_request(key_id, None, None, None)
+ 
+         # Call CMS
+         http_status, http_reason_phrase, _http_headers, http_body = \
+             self._request('/kra/rest/agent/keyrequests/recover',
+-                         self.kra_agent_port,
+-                         self.POST,
+-                         etree.tostring(request.getroot(), encoding='UTF-8'))
++                          self.kra_agent_port,
++                          self.POST,
++                          etree.tostring(request.getroot(), encoding='UTF-8'))
+ 
+         # Parse and handle errors
+         if (http_status != 200):
+-            raise CertificateOperationError(error=_('Error in archiving request (%s)') % \
+-                      http_reason_phrase)
+-
+-        parse_result = self.get_parse_result_xml(http_body, parse_key_request_info_xml)
++            raise CertificateOperationError(error=_('Error in archiving request (%s)') %
++                                            http_reason_phrase)
++
++        parse_result = self.get_parse_result_xml(
++            http_body,
++            parse_key_request_info_xml)
+         return parse_result
+ 
+     def check_request_status(self, request_id):
+@@ -800,20 +848,21 @@
+         Approve recovery request
+         """
+         self.debug('%s.approve_recovery_request()', self.fullname)
+-        if request_id == None:
+-            raise CertificateOperationError(error=_('Bad argument to approve_recovery_request'))
++        if request_id is None:
++            raise CertificateOperationError(
++                error=_('Bad argument to approve_recovery_request'))
+ 
+         # Call CMS
+         http_status, http_reason_phrase, _http_headers, _http_body = \
+             self._request('/kra/rest/agent/keyrequests/' + request_id + '/approve',
+-                         self.kra_agent_port,
+-                         self.POST,
+-                         None)
++                          self.kra_agent_port,
++                          self.POST,
++                          None)
+ 
+         # Parse and handle errors
+         if (http_status > 399):
+-            raise CertificateOperationError(error=_('Error in approving request (%s)') % \
+-                      http_reason_phrase)
++            raise CertificateOperationError(error=_('Error in approving request (%s)') %
++                                            http_reason_phrase)
+ 
+     def reject_recovery_request(self, request_id):
+         """
+@@ -822,20 +871,21 @@
+         Reject recovery request
+         """
+         self.debug('%s.reject_recovery_request()', self.fullname)
+-        if request_id == None:
+-            raise CertificateOperationError(error=_('Bad argument to reject_recovery_request'))
++        if request_id is None:
++            raise CertificateOperationError(
++                error=_('Bad argument to reject_recovery_request'))
+ 
+         # Call CMS
+         http_status, http_reason_phrase, _http_headers, _http_body = \
+             self._request('/kra/rest/agent/keyrequests/' + request_id + '/reject',
+-                         self.kra_agent_port,
+-                         self.POST,
+-                         None)
++                          self.kra_agent_port,
++                          self.POST,
++                          None)
+ 
+         # Parse and handle errors
+         if (http_status > 399):
+-            raise CertificateOperationError(error=_('Error in rejecting request (%s)') % \
+-                      http_reason_phrase)
++            raise CertificateOperationError(error=_('Error in rejecting request (%s)') %
++                                            http_reason_phrase)
+ 
+     def cancel_recovery_request(self, request_id):
+         """
+@@ -844,20 +894,21 @@
+         Cancel recovery request
+         """
+         self.debug('%s.cancel_recovery_request()', self.fullname)
+-        if request_id == None:
+-            raise CertificateOperationError(error=_('Bad argument to cancel_recovery_request'))
++        if request_id is None:
++            raise CertificateOperationError(
++                error=_('Bad argument to cancel_recovery_request'))
+ 
+         # Call CMS
+         http_status, http_reason_phrase, _http_headers, _http_body = \
+             self._request('/kra/rest/agent/keyrequests/' + request_id + '/cancel',
+-                         self.kra_agent_port,
+-                         self.POST,
+-                         None)
++                          self.kra_agent_port,
++                          self.POST,
++                          None)
+ 
+         # Parse and handle errors
+         if (http_status > 399):
+-            raise CertificateOperationError(error=_('Error in cancelling request (%s)') % \
+-                      http_reason_phrase)
++            raise CertificateOperationError(error=_('Error in cancelling request (%s)') %
++                                            http_reason_phrase)
+ 
+     def retrieve_security_data(self, recovery_request_id, passphrase=None):
+         """
+@@ -881,23 +932,35 @@
+         |data             |String         | Key data (either wrapped using        |
+         |                 |               | passphrase or unwrapped)              |
+         +-----------------+---------------+---------------------------------------+
+-	"""
++        """
+         self.debug('%s.retrieve_security_data()', self.fullname)
+ 
+-        if recovery_request_id == None:
+-            raise CertificateOperationError(error=_('Bad arguments to retrieve_security_data'))
++        if recovery_request_id is None:
++            raise CertificateOperationError(
++                error=_('Bad arguments to retrieve_security_data'))
+ 
+         # generate symmetric key
+         slot = nss.get_best_slot(self.mechanism)
+-        session_key = slot.key_gen(self.mechanism, None, slot.get_best_key_length(self.mechanism))
++        session_key = slot.key_gen(
++            self.mechanism,
++            None,
++            slot.get_best_key_length(
++                self.mechanism))
+ 
+         # wrap this key with the transport cert
+         public_key = self.transport_cert.subject_public_key_info.public_key
+-        wrapped_session_key = base64.b64encode(nss.pub_wrap_sym_key(self.mechanism, public_key, session_key))
++        wrapped_session_key = base64.b64encode(
++            nss.pub_wrap_sym_key(
++                self.mechanism,
++                public_key,
++                session_key))
+         wrapped_passphrase = None
+-        if passphrase != None:
++        if passphrase is not None:
+             # wrap passphrase with session key
+-            wrapped_session_key = base64.b64encode(self.symmetric_wrap(passphrase, session_key))
++            wrapped_session_key = base64.b64encode(
++                self.symmetric_wrap(
++                    passphrase,
++                    session_key))
+ 
+         request = self.create_recovery_request(None, recovery_request_id,
+                                                wrapped_session_key,
+@@ -906,19 +969,21 @@
+         # Call CMS
+         http_status, http_reason_phrase, _http_headers, http_body = \
+             self._request('/kra/rest/agent/keys/retrieve',
+-                         self.kra_agent_port,
+-                         self.POST,
+-                         etree.tostring(request.getroot(), encoding='UTF-8'))
++                          self.kra_agent_port,
++                          self.POST,
++                          etree.tostring(request.getroot(), encoding='UTF-8'))
+ 
+         # Parse and handle errors
+         if (http_status != 200):
+-            raise CertificateOperationError(error=_('Error in retrieving security data (%s)') % \
+-                      http_reason_phrase)
++            raise CertificateOperationError(error=_('Error in retrieving security data (%s)') %
++                                            http_reason_phrase)
+ 
+         parse_result = self.get_parse_result_xml(http_body, parse_key_data_xml)
+ 
+-        if passphrase == None:
+-            iv = nss.data_to_hex(base64.decodestring(parse_result['nonce_data']))
++        if passphrase is None:
++            iv = nss.data_to_hex(
++                base64.decodestring(
++                    parse_result['nonce_data']))
+             parse_result['data'] = self.symmetric_unwrap(base64.decodestring(parse_result['wrapped_data']),
+                                                          session_key, iv)
+ 
+@@ -945,13 +1010,26 @@
+ import argparse
+ 
+ parser = argparse.ArgumentParser(description="Sample Test execution")
+-parser.add_argument('-d', default='/tmp/drmtest', dest='work_dir', help='Working directory')
++parser.add_argument(
++    '-d',
++    default='/tmp/drmtest',
++    dest='work_dir',
++    help='Working directory')
+ parser.add_argument('--options', default='options.out', dest='options_file',
+                     help='File containing test PKIArchiveOptions to be archived')
+ parser.add_argument('--symkey', default='symkey.out', dest='symkey_file',
+                     help='File containing test symkey')
+-parser.add_argument('--host', default='localhost', dest='kra_host', help='DRM hostname')
+-parser.add_argument('-p', default='10080', type=int, dest='kra_port', help='DRM Port')
++parser.add_argument(
++    '--host',
++    default='localhost',
++    dest='kra_host',
++    help='DRM hostname')
++parser.add_argument(
++    '-p',
++    default='10080',
++    type=int,
++    dest='kra_port',
++    help='DRM Port')
+ parser.add_argument('-n', default='DRM TransportCert Nickname', dest='kra_nickname',
+                     help="DRM Nickname")
+ 
+@@ -977,7 +1055,10 @@
+ f = open(work_dir + "/" + options_file)
+ wrapped_key = f.read()
+ client_id = "Python symmetric key " + datetime.now().strftime("%Y-%m-%d %H:%M")
+-response = test_kra.archive_security_data(client_id, wrapped_key, "symmetricKey")
++response = test_kra.archive_security_data(
++    client_id,
++    wrapped_key,
++    "symmetricKey")
+ print response
+ 
+ # list keys with client_id
+@@ -999,7 +1080,7 @@
+ try:
+     response = test_kra.retrieve_security_data("INVALID")
+     print "Failure: No exception thrown"
+-except CertificateOperationError, e:
++except CertificateOperationError as e:
+     if 'Error in retrieving security data (Bad Request)' == e.error:
+         print "Success: " + e.error
+     else:
+--- original/base/common/python/pki/key.py
++++ fixed/base/common/python/pki/key.py
+@@ -33,8 +33,8 @@
+ import pki.encoder as encoder
+ 
+ 
+-#should be moved to request.py
+-#pylint: disable=R0903
++# should be moved to request.py
++# pylint: disable=R0903
+ class RequestId(object):
+     """
+     Class representing a Request ID
+@@ -45,7 +45,7 @@
+         self.value = req_id
+ 
+ 
+-#pylint: disable=R0903
++# pylint: disable=R0903
+ class KeyData(object):
+     """
+     This is the object that contains the encoded wrapped secret
+@@ -86,7 +86,8 @@
+ 
+     def __init__(self, key_data):
+         """ Constructor """
+-        self.encrypted_data = base64.decodestring(key_data.wrapped_private_data)
++        self.encrypted_data = base64.decodestring(
++            key_data.wrapped_private_data)
+         self.nonce_data = base64.decodestring(key_data.nonce_data)
+         self.algorithm = key_data.algorithm
+         self.size = key_data.size
+@@ -140,7 +141,7 @@
+         return None
+ 
+ 
+-#pylint: disable=R0903
++# pylint: disable=R0903
+ class KeyInfoCollection(object):
+     """
+     This class represents data returned when searching the DRM archived
+@@ -212,7 +213,7 @@
+         return None
+ 
+ 
+-#pylint: disable=R0903
++# pylint: disable=R0903
+ class KeyRequestInfoCollection(object):
+     """
+     This class represents the data returned when searching the key
+@@ -420,7 +421,7 @@
+     RSA_ALGORITHM = "RSA"
+     DSA_ALGORITHM = "DSA"
+ 
+-    #default session key wrapping algorithm
++    # default session key wrapping algorithm
+     DES_EDE3_CBC_OID = "{1 2 840 113549 3 7}"
+ 
+     def __init__(self, connection, crypto, transport_cert_nick=None):
+@@ -441,7 +442,8 @@
+     def set_transport_cert(self, transport_cert_nick):
+         """ Set the transport certificate for crypto operations """
+         if transport_cert_nick is None:
+-            raise TypeError("Transport certificate nickname must be specified.")
++            raise TypeError(
++                "Transport certificate nickname must be specified.")
+         self.transport_cert = self.crypto.get_cert(transport_cert_nick)
+ 
+     @pki.handle_exceptions()
+@@ -627,7 +629,7 @@
+         if algorithm == self.RSA_ALGORITHM:
+             if key_size < 256:
+                 raise ValueError("Invalid key size specified.")
+-            if ((key_size-256) % 16) != 0:
++            if ((key_size - 256) % 16) != 0:
+                 raise ValueError("Invalid key size specified.")
+         if algorithm == self.DSA_ALGORITHM:
+             if key_size not in [512, 768, 1024]:
+@@ -687,7 +689,9 @@
+         nonce_iv = self.crypto.generate_nonce_iv()
+         session_key = self.crypto.generate_session_key()
+ 
+-        wrapped_session_key = self.crypto.asymmetric_wrap(session_key, self.transport_cert)
++        wrapped_session_key = self.crypto.asymmetric_wrap(
++            session_key,
++            self.transport_cert)
+ 
+         encrypted_data = self.crypto.symmetric_wrap(
+             private_data,
+@@ -705,15 +709,15 @@
+             key_size=key_size)
+ 
+     @pki.handle_exceptions()
+-    def archive_encrypted_data(self,\
+-            client_key_id,\
+-            data_type,\
+-            encrypted_data,\
+-            wrapped_session_key,\
+-            algorithm_oid=None,\
+-            nonce_iv=None,\
+-            key_algorithm=None,\
+-            key_size=None):
++    def archive_encrypted_data(self,
++                               client_key_id,
++                               data_type,
++                               encrypted_data,
++                               wrapped_session_key,
++                               algorithm_oid=None,
++                               nonce_iv=None,
++                               key_algorithm=None,
++                               key_size=None):
+         """
+         Archive a secret (symmetric key or passphrase) on the DRM.
+ 
+--- original/base/common/python/pki/upgrade.py
++++ fixed/base/common/python/pki/upgrade.py
+@@ -334,7 +334,7 @@
+ 
+             # restore all backed up files
+             for sourcepath, _, filenames in os.walk(oldfiles):
+-                #unused item _ for dirnames
++                # unused item _ for dirnames
+ 
+                 destpath = sourcepath[len(oldfiles):]
+                 if destpath == '':
+@@ -525,7 +525,10 @@
+             try:
+                 i = filename.index('-')
+             except ValueError as e:
+-                raise pki.PKIException('Invalid scriptlet name: ' + filename, e)
++                raise pki.PKIException(
++                    'Invalid scriptlet name: ' +
++                    filename,
++                    e)
+ 
+             index = int(filename[0:i])
+             classname = filename[i + 1:]
+@@ -622,7 +625,7 @@
+             except pki.PKIException:
+                 raise
+ 
+-            except Exception as e: # pylint: disable=W0703
++            except Exception as e:  # pylint: disable=W0703
+ 
+                 print
+ 
+@@ -689,7 +692,7 @@
+             except pki.PKIException:
+                 raise
+ 
+-            except Exception as e: # pylint: disable=W0703
++            except Exception as e:  # pylint: disable=W0703
+ 
+                 print
+ 
+--- original/base/server/python/pki/server/deployment/pkimanifest.py
++++ fixed/base/server/python/pki/server/deployment/pkimanifest.py
+@@ -101,4 +101,3 @@
+             config.pki_log.error(log.PKI_IOERROR_1, exc,
+                                  extra=config.PKI_INDENTATION_LEVEL_1)
+             raise
+-
+--- original/base/server/python/pki/server/deployment/scriptlets/security_databases.py
++++ fixed/base/server/python/pki/server/deployment/scriptlets/security_databases.py
+@@ -132,7 +132,8 @@
+                     # Import the directory server CA certificate
+                     rv = deployer.certutil.import_cert(
+                         deployer.mdict['pki_ds_secure_connection_ca_nickname'],
+-                        deployer.mdict['pki_ds_secure_connection_ca_trustargs'],
++                        deployer.mdict[
++                            'pki_ds_secure_connection_ca_trustargs'],
+                         deployer.mdict['pki_ds_secure_connection_ca_pem_file'],
+                         password_file=deployer.mdict['pki_shared_pfile'],
+                         path=deployer.mdict['pki_database_path'],
+--- original/base/kra/functional/drmtest.py
++++ fixed/base/kra/functional/drmtest.py
+@@ -84,14 +84,15 @@
+         print "Private Data: " + base64.encodestring(key_data.data)
+ 
+ 
+-def run_test(protocol, hostname, port, client_cert, certdb_dir, certdb_password):
++def run_test(protocol, hostname, port, client_cert, certdb_dir,
++             certdb_password):
+     """ test code execution """
+ 
+     # set up the connection to the DRM, including authentication credentials
+     connection = PKIConnection(protocol, hostname, port, 'kra')
+     connection.set_authentication_cert(client_cert)
+ 
+-    #create kraclient
++    # create kraclient
+     crypto = pki.crypto.NSSCryptoProvider(certdb_dir, certdb_password)
+     kraclient = KRAClient(connection, crypto)
+     keyclient = kraclient.keys
+@@ -207,7 +208,7 @@
+         print "KeyNotFoundException thrown - Code:" + exc.code + \
+               " Message: " + exc.message
+ 
+-    #Test 13 = getKeyInfo
++    # Test 13 = getKeyInfo
+     print "Get key info for existing key"
+     key_info = keyclient.get_key_info(key_id)
+     print_key_info(key_info)
+@@ -217,7 +218,7 @@
+     key_info = keyclient.get_active_key_info(client_key_id)
+     print_key_info(key_info)
+ 
+-    #Test 15: change the key status
++    # Test 15: change the key status
+     print "Change the key status"
+     keyclient.modify_key_status(key_id, keyclient.KEY_STATUS_INACTIVE)
+     print_key_info(keyclient.get_key_info(key_id))
+@@ -239,7 +240,7 @@
+         print "ResourceNotFoundException thrown - Code: " + exc.code +\
+               "Message: " + exc.message
+ 
+-    #Test 18: Generate a symmetric key with default parameters
++    # Test 18: Generate a symmetric key with default parameters
+     client_key_id = "Vek #3" + time.strftime('%c')
+     response = keyclient.generate_symmetric_key(client_key_id)
+     print_key_request(response.request_info)
+@@ -270,7 +271,7 @@
+         print "Error: archived and recovered keys do not match"
+     print
+ 
+-    #Test 20: Generating asymmetric keys
++    # Test 20: Generating asymmetric keys
+     print "Generating asymmetric keys"
+     try:
+         response = keyclient.generate_asymmetric_key(
+@@ -284,7 +285,7 @@
+         print "BadRequestException thrown - Code:" + exc.code +\
+               " Message: " + exc.message
+ 
+-    #Test 21: Get key information of the newly generated asymmetric keys
++    # Test 21: Get key information of the newly generated asymmetric keys
+     print "Retrieving key information"
+     key_info = keyclient.get_key_info(response.request_info.get_key_id())
+     print_key_info(key_info)
+@@ -310,9 +311,9 @@
+         usage()
+         sys.exit(1)
+ 
+-    protocol    = 'https'
+-    hostname    = 'localhost'
+-    port        = '8443'
++    protocol = 'https'
++    hostname = 'localhost'
++    port = '8443'
+     client_cert = 'kraagent.pem'
+ 
+     for o, a in opts:
+@@ -340,11 +341,20 @@
+     certdb_dir = tempfile.mkdtemp(prefix='pki-kra-test-')
+     print "NSS database dir: %s" % certdb_dir
+ 
+-    certdb_password = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(8))
++    certdb_password = ''.join(
++        random.choice(
++            string.ascii_letters +
++            string.digits) for i in range(8))
+     print "NSS database password: %s" % certdb_password
+ 
+     try:
+-        run_test(protocol, hostname, port, client_cert, certdb_dir, certdb_password)
++        run_test(
++            protocol,
++            hostname,
++            port,
++            client_cert,
++            certdb_dir,
++            certdb_password)
+     finally:
+         shutil.rmtree(certdb_dir)
+ 
+--- original/base/server/python/pki/server/__init__.py
++++ fixed/base/server/python/pki/server/__init__.py
+@@ -121,7 +121,10 @@
+         self.conf_dir = os.path.join(self.base_dir, 'conf')
+         self.lib_dir = os.path.join(self.base_dir, 'lib')
+ 
+-        self.registry_dir = os.path.join(pki.server.REGISTRY_DIR, 'tomcat', self.name)
++        self.registry_dir = os.path.join(
++            pki.server.REGISTRY_DIR,
++            'tomcat',
++            self.name)
+         self.registry_file = os.path.join(self.registry_dir, self.name)
+ 
+         self.service_name = 'pki-tomcatd@%s.service' % self.name
+@@ -149,7 +152,8 @@
+         subprocess.check_call(['systemctl', 'stop', self.service_name])
+ 
+     def is_active(self):
+-        rc = subprocess.call(['systemctl', '--quiet', 'is-active', self.service_name])
++        rc = subprocess.call(
++            ['systemctl', '--quiet', 'is-active', self.service_name])
+         return rc == 0
+ 
+     def load(self):
+@@ -215,7 +219,7 @@
+ 
+         # set deployment descriptor ownership and permission
+         os.chown(context_xml, self.uid, self.gid)
+-        os.chmod(context_xml, 00660)
++        os.chmod(context_xml, 0o0660)
+ 
+     def undeploy(self, webapp_name):
+         context_xml = os.path.join(
+--- original/base/server/python/pki/server/upgrade.py
++++ fixed/base/server/python/pki/server/upgrade.py
+@@ -182,7 +182,9 @@
+     def instances(self):
+ 
+         if self.instanceName and self.instanceType:
+-            instance = pki.server.PKIInstance(self.instanceName, self.instanceType)
++            instance = pki.server.PKIInstance(
++                self.instanceName,
++                self.instanceType)
+             instance.validate()
+             instance.load()
+             return [instance]
+@@ -230,7 +232,9 @@
+                 instance.name)
+             for subsystemName in os.listdir(registry_dir):
+                 if subsystemName in pki.server.SUBSYSTEM_TYPES:
+-                    subsystem = pki.server.PKISubsystem(instance, subsystemName)
++                    subsystem = pki.server.PKISubsystem(
++                        instance,
++                        subsystemName)
+                     subsystem.validate()
+                     subsystem_list.append(subsystem)
+         else:
+@@ -240,7 +244,9 @@
+                     subsystemName,
+                     instance.name)
+                 if os.path.exists(registry_dir):
+-                    subsystem = pki.server.PKISubsystem(instance, subsystemName)
++                    subsystem = pki.server.PKISubsystem(
++                        instance,
++                        subsystemName)
+                     subsystem.validate()
+                     subsystem_list.append(subsystem)
+ 
+--- original/base/common/python/pki/__init__.py
++++ fixed/base/common/python/pki/__init__.py
+@@ -117,7 +117,7 @@
+     raise Exception('Missing implementation version.')
+ 
+ 
+-#pylint: disable=R0903
++# pylint: disable=R0903
+ class Attribute(object):
+     """
+     Class representing a key/value pair.
+@@ -131,7 +131,7 @@
+         self.value = value
+ 
+ 
+-#pylint: disable=R0903
++# pylint: disable=R0903
+ class AttributeList(object):
+     """
+     Class representing a list of attributes.
+--- original/base/common/python/pki/cli.py
++++ fixed/base/common/python/pki/cli.py
+@@ -99,7 +99,8 @@
+         sub_command = None
+ 
+         # Search the module by incrementally adding parts into module name.
+-        # Repeat until it finds the module or until there is no more parts to add.
++        # Repeat until it finds the module or until there is no more parts to
++        # add.
+         module = None
+         position = 0
+ 
+@@ -110,7 +111,7 @@
+             if i >= 0:
+                 # Dash found. Split command into module name and sub command.
+                 module_name = command[0:i]
+-                sub_command = command[i+1:]
++                sub_command = command[i + 1:]
+             else:
+                 # Dash not found. Use the whole command.
+                 module_name = command
+@@ -127,7 +128,8 @@
+                     module = m
+                     break
+ 
+-                # There is a sub command. It must be processed by module's children.
++                # There is a sub command. It must be processed by module's
++                # children.
+                 if len(m.modules) > 0:
+                     # Module has children. Use this module.
+                     module = m
+@@ -153,7 +155,8 @@
+ 
+         # Prepare module arguments.
+         if sub_command:
+-            # If module command exists, include it as arguments: <module command> <args>...
++            # If module command exists, include it as arguments: <module
++            # command> <args>...
+             module_args = [sub_command] + args[1:]
+ 
+         else:

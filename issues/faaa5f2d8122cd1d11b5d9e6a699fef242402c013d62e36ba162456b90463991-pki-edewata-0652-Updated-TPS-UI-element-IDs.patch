@@ -1,0 +1,459 @@
+From e79d577c02a4054186723e39e2162579fc0dec14 Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Wed, 14 Oct 2015 20:24:53 +0200
+Subject: [PATCH] Updated TPS UI element IDs.
+
+The TPS UI navigation elements have been updated to add the
+missing names and to use better names. The checkbox IDs in various
+pages have also been renamed for consistency.
+
+The pki-ui.js has been modified to use the checkbox ID of the
+template row instead of table name to construct the checkbox ID
+of the actual rows.
+
+https://fedorahosted.org/pki/ticket/1622
+---
+ base/server/share/webapps/pki/js/pki-ui.js           |  5 ++++-
+ base/tps/shared/webapps/tps/ui/activities.html       |  4 ++--
+ base/tps/shared/webapps/tps/ui/audit.html            |  4 ++--
+ base/tps/shared/webapps/tps/ui/authenticator.html    |  4 ++--
+ base/tps/shared/webapps/tps/ui/authenticators.html   |  4 ++--
+ base/tps/shared/webapps/tps/ui/certs.html            |  4 ++--
+ base/tps/shared/webapps/tps/ui/config.html           |  4 ++--
+ base/tps/shared/webapps/tps/ui/connector.html        |  4 ++--
+ base/tps/shared/webapps/tps/ui/connectors.html       |  4 ++--
+ base/tps/shared/webapps/tps/ui/group.html            |  4 ++--
+ base/tps/shared/webapps/tps/ui/groups.html           |  4 ++--
+ base/tps/shared/webapps/tps/ui/index.html            | 18 +++++++++---------
+ base/tps/shared/webapps/tps/ui/profile-mapping.html  |  4 ++--
+ base/tps/shared/webapps/tps/ui/profile-mappings.html |  4 ++--
+ base/tps/shared/webapps/tps/ui/profile.html          |  4 ++--
+ base/tps/shared/webapps/tps/ui/profiles.html         |  4 ++--
+ base/tps/shared/webapps/tps/ui/selftests.html        |  4 ++--
+ base/tps/shared/webapps/tps/ui/tokens.html           |  4 ++--
+ base/tps/shared/webapps/tps/ui/users.html            |  4 ++--
+ 19 files changed, 47 insertions(+), 44 deletions(-)
+
+diff --git a/base/server/share/webapps/pki/js/pki-ui.js b/base/server/share/webapps/pki/js/pki-ui.js
+index c1c57793ce4605ced961c8f06453fd89d71a3d51..2fa47ccc48a65ff781c694662734c5ca26d055d6 100644
+--- a/base/server/share/webapps/pki/js/pki-ui.js
++++ b/base/server/share/webapps/pki/js/pki-ui.js
+@@ -393,7 +393,10 @@ var TableItem = Backbone.View.extend({
+     },
+     render: function() {
+         var self = this;
+-        var prefix = self.table.$el.attr("name") + "_select_";
++
++        var template = self.table.template;
++        var templateCheckbox = $("input[type='checkbox']", template);
++        var prefix = templateCheckbox.attr("id") + "-";
+ 
+         var templateTDs = $("td", self.table.template);
+         $("td", self.$el).each(function(index) {
+diff --git a/base/tps/shared/webapps/tps/ui/activities.html b/base/tps/shared/webapps/tps/ui/activities.html
+index 0762401fd01c35169dc77279ab97a7235e6c03c3..32bc35ac776ea912cd191b054f16c54e4f4dcb70 100644
+--- a/base/tps/shared/webapps/tps/ui/activities.html
++++ b/base/tps/shared/webapps/tps/ui/activities.html
+@@ -36,7 +36,7 @@
+          </th>
+     </tr>
+     <tr>
+-        <th class="pki-select-column"><input id="activity_selectall" type="checkbox"><label for="activity_selectall">&nbsp;</label></th>
++        <th class="pki-select-column"><input id="activities-selectall" type="checkbox"><label for="activities-selectall">&nbsp;</label></th>
+         <th>Activity ID</th>
+         <th>Token ID</th>
+         <th>User ID</th>
+@@ -48,7 +48,7 @@
+ </thead>
+ <tbody>
+     <tr>
+-        <td class="pki-select-column"><input id="activity_select" type="checkbox"><label for="activity_select">&nbsp;</label></td>
++        <td class="pki-select-column"><input id="activities-select" type="checkbox"><label for="activities-select">&nbsp;</label></td>
+         <td name="id"><a href="#activities/${id}">${id}</a></td>
+         <td name="tokenID">${tokenID}</td>
+         <td name="userID">${userID}</td>
+diff --git a/base/tps/shared/webapps/tps/ui/audit.html b/base/tps/shared/webapps/tps/ui/audit.html
+index 06457de62a6e2b0c5cb2f32faf7b8f55fac45e17..23012f2143f59f2207325acbefe451c791a24199 100644
+--- a/base/tps/shared/webapps/tps/ui/audit.html
++++ b/base/tps/shared/webapps/tps/ui/audit.html
+@@ -71,14 +71,14 @@
+          </th>
+     </tr>
+     <tr>
+-        <th class="pki-select-column"><input id="events_selectall" type="checkbox"><label for="events_selectall">&nbsp;</label></th>
++        <th class="pki-select-column"><input id="audit-events-selectall" type="checkbox"><label for="audit-events-selectall">&nbsp;</label></th>
+         <th class="pki-property-name-column">Name</th>
+         <th>Value</th>
+     </tr>
+ </thead>
+ <tbody>
+     <tr>
+-        <td class="pki-select-column"><input id="events_select" type="checkbox"><label for="events_select">&nbsp;</label></td>
++        <td class="pki-select-column"><input id="audit-events-select" type="checkbox"><label for="audit-events-select">&nbsp;</label></td>
+         <td name="id" class="pki-property-name-column"><a href="/tps/ui/audit/events/${id}">${id}</a></td>
+         <td name="value">${value}</td>
+     </tr>
+diff --git a/base/tps/shared/webapps/tps/ui/authenticator.html b/base/tps/shared/webapps/tps/ui/authenticator.html
+index 59d3e40b5054fb9c48e3c542c436769b37fdbce3..5a27eb8e001920770f78dc93fbfa832114ef3531 100644
+--- a/base/tps/shared/webapps/tps/ui/authenticator.html
++++ b/base/tps/shared/webapps/tps/ui/authenticator.html
+@@ -75,14 +75,14 @@
+          </th>
+     </tr>
+     <tr>
+-        <th class="pki-select-column"><input id="authenticator_selectall" type="checkbox"><label for="authenticator_selectall">&nbsp;</label></th>
++        <th class="pki-select-column"><input id="authenticator-properties-selectall" type="checkbox"><label for="authenticator-properties-selectall">&nbsp;</label></th>
+         <th class="pki-property-name-column">Name</th>
+         <th>Value</th>
+     </tr>
+ </thead>
+ <tbody>
+     <tr>
+-        <td class="pki-select-column"><input id="authenticator_select" type="checkbox"><label for="authenticator_select">&nbsp;</label></td>
++        <td class="pki-select-column"><input id="authenticator-properties-select" type="checkbox"><label for="authenticator-properties-select">&nbsp;</label></td>
+         <td name="id" class="pki-property-name-column"><a href="/tps/ui/authenticators/${parent.id}/properties/${id}">${id}</a></td>
+         <td name="value">${value}</td>
+     </tr>
+diff --git a/base/tps/shared/webapps/tps/ui/authenticators.html b/base/tps/shared/webapps/tps/ui/authenticators.html
+index f9b0b0a2836d80e3cb41de37cf0dd8298ecc47ce..521e16e0dfd6253665aaec8216ab15f2a0e1e6a3 100644
+--- a/base/tps/shared/webapps/tps/ui/authenticators.html
++++ b/base/tps/shared/webapps/tps/ui/authenticators.html
+@@ -37,14 +37,14 @@
+          </th>
+     </tr>
+     <tr>
+-        <th class="pki-select-column"><input id="authenticator_selectall" type="checkbox"><label for="authenticator_selectall">&nbsp;</label></th>
++        <th class="pki-select-column"><input id="authenticators-selectall" type="checkbox"><label for="authenticators-selectall">&nbsp;</label></th>
+         <th>Source ID</th>
+         <th>Status</th>
+     </tr>
+ </thead>
+ <tbody>
+     <tr>
+-        <td class="pki-select-column"><input id="authenticator_select" type="checkbox"><label for="authenticator_select">&nbsp;</label></td>
++        <td class="pki-select-column"><input id="authenticators-select" type="checkbox"><label for="authenticators-select">&nbsp;</label></td>
+         <td name="id"><a href="#authenticators/${id}">${id}</a></td>
+         <td name="status">${status}</td>
+     </tr>
+diff --git a/base/tps/shared/webapps/tps/ui/certs.html b/base/tps/shared/webapps/tps/ui/certs.html
+index 52e229f7bac26536076873a83f98ea379b8ac516..7d91162eb93d1680d314e551611b620ba98c3e1d 100644
+--- a/base/tps/shared/webapps/tps/ui/certs.html
++++ b/base/tps/shared/webapps/tps/ui/certs.html
+@@ -38,7 +38,7 @@
+          </th>
+     </tr>
+     <tr>
+-        <th class="pki-select-column"><input id="cert_selectall" type="checkbox"><label for="cert_selectall">&nbsp;</label></tdh>
++        <th class="pki-select-column"><input id="certs-selectall" type="checkbox"><label for="certs-selectall">&nbsp;</label></tdh>
+         <th>Certificate ID</th>
+         <th>Serial Number</th>
+         <th>Subject</th>
+@@ -52,7 +52,7 @@
+ </thead>
+ <tbody>
+     <tr>
+-        <td class="pki-select-column"><input id="cert_select" type="checkbox"><label for="cert_select">&nbsp;</label></td>
++        <td class="pki-select-column"><input id="certs-select" type="checkbox"><label for="certs-select">&nbsp;</label></td>
+         <td name="id"><a href="#certs/${id}">${id}</a></td>
+         <td name="serialNumber">${serialNumber}</td>
+         <td name="subject">${subject}</td>
+diff --git a/base/tps/shared/webapps/tps/ui/config.html b/base/tps/shared/webapps/tps/ui/config.html
+index 567ee9818c53cfdbc3e96cee3a4e03ec43830da9..228ee6e7434a97b41aa102d6e6ec78b0c1a69349 100644
+--- a/base/tps/shared/webapps/tps/ui/config.html
++++ b/base/tps/shared/webapps/tps/ui/config.html
+@@ -55,14 +55,14 @@
+          </th>
+     </tr>
+     <tr>
+-        <th class="pki-select-column"><input id="properties_selectall" type="checkbox"><label for="properties_selectall">&nbsp;</label></th>
++        <th class="pki-select-column"><input id="config-selectall" type="checkbox"><label for="config-selectall">&nbsp;</label></th>
+         <th class="pki-property-name-column">Name</th>
+         <th>Value</th>
+     </tr>
+ </thead>
+ <tbody>
+     <tr>
+-        <td class="pki-select-column"><input id="properties_select" type="checkbox"><label for="properties_select">&nbsp;</label></td>
++        <td class="pki-select-column"><input id="config-select" type="checkbox"><label for="config-select">&nbsp;</label></td>
+         <td name="id" class="pki-property-name-column"><a href="/tps/ui/config/properties/${id}">${id}</a></td>
+         <td name="value">${value}</td>
+     </tr>
+diff --git a/base/tps/shared/webapps/tps/ui/connector.html b/base/tps/shared/webapps/tps/ui/connector.html
+index 1a017df489ba1f3be73f4938e9171aeb77e86d39..a0a8934b8399ffbff4796e04329a375d8e564cf1 100644
+--- a/base/tps/shared/webapps/tps/ui/connector.html
++++ b/base/tps/shared/webapps/tps/ui/connector.html
+@@ -75,14 +75,14 @@
+          </th>
+     </tr>
+     <tr>
+-        <th class="pki-select-column"><input id="connector_selectall" type="checkbox"><label for="connector_selectall">&nbsp;</label></th>
++        <th class="pki-select-column"><input id="connector-properties-selectall" type="checkbox"><label for="connector-properties-selectall">&nbsp;</label></th>
+         <th class="pki-property-name-column">Name</th>
+         <th>Value</th>
+     </tr>
+ </thead>
+ <tbody>
+     <tr>
+-        <td class="pki-select-column"><input id="connector_select" type="checkbox"><label for="connector_select">&nbsp;</label></td>
++        <td class="pki-select-column"><input id="connector-properties-select" type="checkbox"><label for="connector-properties-select">&nbsp;</label></td>
+         <td name="id" class="pki-property-name-column"><a href="/tps/ui/connectors/${parent.id}/properties/${id}">${id}</a></td>
+         <td name="value">${value}</td>
+     </tr>
+diff --git a/base/tps/shared/webapps/tps/ui/connectors.html b/base/tps/shared/webapps/tps/ui/connectors.html
+index 4d4d597725db86a601f67680dbc769e3e6c971e2..2517b9e2647663d39f1ac019fdc42d6f91ef1312 100644
+--- a/base/tps/shared/webapps/tps/ui/connectors.html
++++ b/base/tps/shared/webapps/tps/ui/connectors.html
+@@ -38,14 +38,14 @@
+          </th>
+     </tr>
+     <tr>
+-        <th class="pki-select-column"><input id="connector_selectall" type="checkbox"><label for="connector_selectall">&nbsp;</label></th>
++        <th class="pki-select-column"><input id="connectors-selectall" type="checkbox"><label for="connectors-selectall">&nbsp;</label></th>
+         <th>Connector ID</th>
+         <th>Status</th>
+     </tr>
+ </thead>
+ <tbody>
+     <tr>
+-        <td class="pki-select-column"><input id="connector_select" type="checkbox"><label for="connector_select">&nbsp;</label></td>
++        <td class="pki-select-column"><input id="connectors-select" type="checkbox"><label for="connectors-select">&nbsp;</label></td>
+         <td name="id"><a href="#connectors/${id}">${id}</a></td>
+         <td name="status">${status}</td>
+     </tr>
+diff --git a/base/tps/shared/webapps/tps/ui/group.html b/base/tps/shared/webapps/tps/ui/group.html
+index df933815f05d77ea4487a6b7e17269561aac0192..0f3d8872be3894c48e6bc90df1a0d55e75733bba 100644
+--- a/base/tps/shared/webapps/tps/ui/group.html
++++ b/base/tps/shared/webapps/tps/ui/group.html
+@@ -64,13 +64,13 @@
+          </th>
+     </tr>
+     <tr>
+-        <th class="pki-select-column"><input id="members_selectall" type="checkbox"><label for="members_selectall">&nbsp;</label></th>
++        <th class="pki-select-column"><input id="group-members-selectall" type="checkbox"><label for="group-members-selectall">&nbsp;</label></th>
+         <th>User ID</th>
+     </tr>
+ </thead>
+ <tbody>
+     <tr>
+-        <td class="pki-select-column"><input id="members_select" type="checkbox"><label for="members_select">&nbsp;</label></td>
++        <td class="pki-select-column"><input id="group-members-select" type="checkbox"><label for="group-members-select">&nbsp;</label></td>
+         <td name="id">${id}</td>
+     </tr>
+ </tbody>
+diff --git a/base/tps/shared/webapps/tps/ui/groups.html b/base/tps/shared/webapps/tps/ui/groups.html
+index 9f4239db8e50d3db9abd4efe61946a501f2896c3..246df1452b592f4398f0b2d5c659c0ae91bfa724 100644
+--- a/base/tps/shared/webapps/tps/ui/groups.html
++++ b/base/tps/shared/webapps/tps/ui/groups.html
+@@ -38,14 +38,14 @@
+          </th>
+     </tr>
+     <tr>
+-        <th class="pki-select-column"><input id="group_selectall" type="checkbox"><label for="group_selectall">&nbsp;</label></th>
++        <th class="pki-select-column"><input id="groups-selectall" type="checkbox"><label for="groups-selectall">&nbsp;</label></th>
+         <th>Group ID</th>
+         <th>Description</th>
+     </tr>
+ </thead>
+ <tbody>
+     <tr>
+-        <td class="pki-select-column"><input id="group_select" type="checkbox"><label for="group_select">&nbsp;</label></td>
++        <td class="pki-select-column"><input id="groups-select" type="checkbox"><label for="groups-select">&nbsp;</label></td>
+         <td name="id"><a href="#groups/${id}">${id}</a></td>
+         <td name="description">${description}</td>
+     </tr>
+diff --git a/base/tps/shared/webapps/tps/ui/index.html b/base/tps/shared/webapps/tps/ui/index.html
+index 357ade514c4835cb672a016bff155ead206bf562..4bf0ea94bc1ed268f34e3c3edb847e3eee0802bc 100644
+--- a/base/tps/shared/webapps/tps/ui/index.html
++++ b/base/tps/shared/webapps/tps/ui/index.html
+@@ -50,7 +50,7 @@ $(function() {
+             tps.user = data;
+             var roles = tps.user.Roles.Role;
+ 
+-            var user = $("#user");
++            var user = $("#navigation [name=account] [name=username]");
+             user.text(data.FullName);
+ 
+             var accounts_menu = $("#navigation [name=accounts]");
+@@ -383,22 +383,22 @@ $(function() {
+ </div>
+ <div class="collapse navbar-collapse navbar-collapse-1">
+     <ul class="nav navbar-nav navbar-utility">
+-    <li><a href="#">Status</a></li>
+-    <li class="dropdown">
++    <li name="status"><a href="#">Status</a></li>
++    <li name="account" class="dropdown">
+         <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+         <span class="pficon pficon-user"></span>
+-        <span id="user"></span><b class="caret"></b>
++        <span name="username"></span><b class="caret"></b>
+         </a>
+         <ul class="dropdown-menu">
+-        <li><a href="#logout">Logout</a></li>
++        <li name="logout"><a href="#logout">Logout</a></li>
+         </ul>
+     </li>
+     </ul>
+     <ul class="nav navbar-nav navbar-primary">
+-    <li><a href="#"><span class="glyphicon glyphicon-home"></span> Home</a></li>
+-    <li><a href="#tokens">Tokens</a></li>
+-    <li><a href="#certs">Certificates</a></li>
+-    <li><a href="#activities">Activities</a></li>
++    <li name="home"><a href="#"><span class="glyphicon glyphicon-home"></span> Home</a></li>
++    <li name="tokens"><a href="#tokens">Tokens</a></li>
++    <li name="certs"><a href="#certs">Certificates</a></li>
++    <li name="activities"><a href="#activities">Activities</a></li>
+     <li name="accounts" class="dropdown context" style="display: none;">
+       <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+         Accounts
+diff --git a/base/tps/shared/webapps/tps/ui/profile-mapping.html b/base/tps/shared/webapps/tps/ui/profile-mapping.html
+index 47f24199b8625e096c5b1ba2a32b91717600fbcf..51764df6683f30675ec27a155f9f8016d847633d 100644
+--- a/base/tps/shared/webapps/tps/ui/profile-mapping.html
++++ b/base/tps/shared/webapps/tps/ui/profile-mapping.html
+@@ -75,14 +75,14 @@
+          </th>
+     </tr>
+     <tr>
+-        <th class="pki-select-column"><input id="profile_selectall" type="checkbox"><label for="profile_selectall">&nbsp;</label></th>
++        <th class="pki-select-column"><input id="profile-mapping-properties-selectall" type="checkbox"><label for="profile-mapping-properties-selectall">&nbsp;</label></th>
+         <th class="pki-property-name-column">Name</th>
+         <th>Value</th>
+     </tr>
+ </thead>
+ <tbody>
+     <tr>
+-        <td class="pki-select-column"><input id="profile_select" type="checkbox"><label for="profile_select">&nbsp;</label></td>
++        <td class="pki-select-column"><input id="profile-mapping-properties-select" type="checkbox"><label for="profile-mapping-properties-select">&nbsp;</label></td>
+         <td name="id" class="pki-property-name-column"><a href="/tps/ui/profile-mappings/${parent.id}/properties/${id}">${id}</a></td>
+         <td name="value">${value}</td>
+     </tr>
+diff --git a/base/tps/shared/webapps/tps/ui/profile-mappings.html b/base/tps/shared/webapps/tps/ui/profile-mappings.html
+index dc797bc18601fa1d5fb69cbe5cee150a093f0de2..428f46b5b10eab301653dd383de9d9b3be6cde6c 100644
+--- a/base/tps/shared/webapps/tps/ui/profile-mappings.html
++++ b/base/tps/shared/webapps/tps/ui/profile-mappings.html
+@@ -38,14 +38,14 @@
+          </th>
+     </tr>
+     <tr>
+-        <th class="pki-select-column"><input id="profile_mapping_selectall" type="checkbox"><label for="profile_mapping_selectall">&nbsp;</label></th>
++        <th class="pki-select-column"><input id="profile-mappings-selectall" type="checkbox"><label for="profile-mappings-selectall">&nbsp;</label></th>
+         <th>Profile Mapping ID</th>
+         <th>Status</th>
+     </tr>
+ </thead>
+ <tbody>
+     <tr>
+-        <td class="pki-select-column"><input id="profile_mapping_select" type="checkbox"><label for="profile_mapping_select">&nbsp;</label></td>
++        <td class="pki-select-column"><input id="profile-mappings-select" type="checkbox"><label for="profile-mappings-select">&nbsp;</label></td>
+         <td name="id"><a href="#profile-mappings/${id}">${id}</a></td>
+         <td name="status">${status}</td>
+     </tr>
+diff --git a/base/tps/shared/webapps/tps/ui/profile.html b/base/tps/shared/webapps/tps/ui/profile.html
+index d1994c89641b0419704b45bda22c36eb2af4a266..5ab0178924de5f7b7740f75959c9f566d361de00 100644
+--- a/base/tps/shared/webapps/tps/ui/profile.html
++++ b/base/tps/shared/webapps/tps/ui/profile.html
+@@ -75,14 +75,14 @@
+          </th>
+     </tr>
+     <tr>
+-        <th class="pki-select-column"><input id="profile_selectall" type="checkbox"><label for="profile_selectall">&nbsp;</label></th>
++        <th class="pki-select-column"><input id="profile-properties-selectall" type="checkbox"><label for="profile-properties-selectall">&nbsp;</label></th>
+         <th class="pki-property-name-column">Name</th>
+         <th>Value</th>
+     </tr>
+ </thead>
+ <tbody>
+     <tr>
+-        <td class="pki-select-column"><input id="profile_select" type="checkbox"><label for="profile_select">&nbsp;</label></td>
++        <td class="pki-select-column"><input id="profile-properties-select" type="checkbox"><label for="profile-properties-select">&nbsp;</label></td>
+         <td name="id" class="pki-property-name-column"><a href="/tps/ui/profiles/${parent.id}/properties/${id}">${id}</a></td>
+         <td name="value">${value}</td>
+     </tr>
+diff --git a/base/tps/shared/webapps/tps/ui/profiles.html b/base/tps/shared/webapps/tps/ui/profiles.html
+index 00218e5f7762edda97969b2f79bca2905d5d3523..9f2c302f25926ff88d3f4697f0d4185a6b8a987e 100644
+--- a/base/tps/shared/webapps/tps/ui/profiles.html
++++ b/base/tps/shared/webapps/tps/ui/profiles.html
+@@ -38,14 +38,14 @@
+          </th>
+     </tr>
+     <tr>
+-        <th class="pki-select-column"><input id="profile_selectall" type="checkbox"><label for="profile_selectall">&nbsp;</label></th>
++        <th class="pki-select-column"><input id="profiles-selectall" type="checkbox"><label for="profiles-selectall">&nbsp;</label></th>
+         <th>Profile ID</th>
+         <th>Status</th>
+     </tr>
+ </thead>
+ <tbody>
+     <tr>
+-        <td class="pki-select-column"><input id="profile_select" type="checkbox"><label for="profile_select">&nbsp;</label></td>
++        <td class="pki-select-column"><input id="profiles-select" type="checkbox"><label for="profiles-select">&nbsp;</label></td>
+         <td name="id"><a href="#profiles/${id}">${id}</a></td>
+         <td name="status">${status}</td>
+     </tr>
+diff --git a/base/tps/shared/webapps/tps/ui/selftests.html b/base/tps/shared/webapps/tps/ui/selftests.html
+index 2b428e2d202f500b1a69ac6e581166c599a1db0b..95bafeaffcec1519e6c057a1902b13a87a6fa51c 100644
+--- a/base/tps/shared/webapps/tps/ui/selftests.html
++++ b/base/tps/shared/webapps/tps/ui/selftests.html
+@@ -36,7 +36,7 @@
+          </th>
+     </tr>
+     <tr>
+-        <th class="pki-select-column"><input id="selftest_selectall" type="checkbox"><label for="selftest_selectall">&nbsp;</label></th>
++        <th class="pki-select-column"><input id="selftests-selectall" type="checkbox"><label for="selftests-selectall">&nbsp;</label></th>
+         <th>Self Test ID</th>
+         <th>Enabled at Statup</th>
+         <th>Critical at Startup</th>
+@@ -46,7 +46,7 @@
+ </thead>
+ <tbody>
+     <tr>
+-        <td class="pki-select-column"><input id="selftest_select" type="checkbox"><label for="selftest_select">&nbsp;</label></td>
++        <td class="pki-select-column"><input id="selftests-select" type="checkbox"><label for="selftests-select">&nbsp;</label></td>
+         <td name="id"><a href="#selftests/${id}">${id}</a></td>
+         <td name="enabledAtStartup">${enabledAtStartup}</td>
+         <td name="criticalAtStartup">${criticalAtStartup}</td>
+diff --git a/base/tps/shared/webapps/tps/ui/tokens.html b/base/tps/shared/webapps/tps/ui/tokens.html
+index aca579a68966a90394c71b199914f13f4433fa46..06d4fdf2a35c72736ff7c6a97cc26cc817be1e4e 100644
+--- a/base/tps/shared/webapps/tps/ui/tokens.html
++++ b/base/tps/shared/webapps/tps/ui/tokens.html
+@@ -38,7 +38,7 @@
+          </th>
+     </tr>
+     <tr>
+-        <th class="pki-select-column"><input id="token_selectall" type="checkbox"><label for="token_selectall">&nbsp;</label></th>
++        <th class="pki-select-column"><input id="tokens-selectall" type="checkbox"><label for="tokens-selectall">&nbsp;</label></th>
+         <th>Token ID</th>
+         <th>User ID</th>
+         <th>Type</th>
+@@ -52,7 +52,7 @@
+ </thead>
+ <tbody>
+     <tr>
+-        <td class="pki-select-column"><input id="token_select" type="checkbox"><label for="token_select">&nbsp;</label></td>
++        <td class="pki-select-column"><input id="tokens-select" type="checkbox"><label for="tokens-select">&nbsp;</label></td>
+         <td name="id"><a href="#tokens/${id}">${id}</a></td>
+         <td name="userID">${userID}</td>
+         <td name="type">${type}</td>
+diff --git a/base/tps/shared/webapps/tps/ui/users.html b/base/tps/shared/webapps/tps/ui/users.html
+index 18d59c9deef581717f6f27827b314d374adf2841..76a33e9f9e9e37f7681644c18e47db1a5aef5fae 100644
+--- a/base/tps/shared/webapps/tps/ui/users.html
++++ b/base/tps/shared/webapps/tps/ui/users.html
+@@ -38,14 +38,14 @@
+          </th>
+     </tr>
+     <tr>
+-        <th class="pki-select-column"><input id="user_selectall" type="checkbox"><label for="user_selectall">&nbsp;</label></th>
++        <th class="pki-select-column"><input id="users-selectall" type="checkbox"><label for="users-selectall">&nbsp;</label></th>
+         <th>User ID</th>
+         <th>Full Name</th>
+     </tr>
+ </thead>
+ <tbody>
+     <tr>
+-        <td class="pki-select-column"><input id="user_select" type="checkbox"><label for="user_select">&nbsp;</label></td>
++        <td class="pki-select-column"><input id="users-select" type="checkbox"><label for="users-select">&nbsp;</label></td>
+         <td name="id"><a href="#users/${id}">${id}</a></td>
+         <td name="fullName">${fullName}</td>
+     </tr>
+-- 
+2.4.3
+

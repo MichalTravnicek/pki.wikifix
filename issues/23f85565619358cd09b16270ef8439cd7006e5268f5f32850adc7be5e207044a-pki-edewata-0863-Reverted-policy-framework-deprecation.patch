@@ -1,0 +1,1898 @@
+From 6f49b0cb806796d2d1614a7815bd65f5471a4689 Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Fri, 4 Nov 2016 00:58:04 +0100
+Subject: [PATCH] Reverted policy framework deprecation.
+
+To reduce Eclipse warnings, classes and methods related to policy
+framework have been undeprecated. In the future the policy
+framework may be removed since it has already been replaced with
+the profile framework.
+
+https://fedorahosted.org/pki/ticket/6
+---
+ base/ca/src/com/netscape/ca/CAPolicy.java          |  1 -
+ .../src/com/netscape/ca/CertificateAuthority.java  |  3 ---
+ .../netscape/certsrv/ca/ICertificateAuthority.java |  1 -
+ .../certsrv/kra/IKeyRecoveryAuthority.java         |  5 ++--
+ .../netscape/certsrv/policy/EPolicyException.java  |  1 -
+ .../netscape/certsrv/policy/IEnrollmentPolicy.java |  1 -
+ .../com/netscape/certsrv/policy/IExpression.java   |  1 -
+ .../policy/IGeneralNameAsConstraintsConfig.java    |  1 -
+ .../certsrv/policy/IGeneralNameConfig.java         |  5 ++--
+ .../netscape/certsrv/policy/IGeneralNameUtil.java  |  1 -
+ .../policy/IGeneralNamesAsConstraintsConfig.java   |  1 -
+ .../certsrv/policy/IGeneralNamesConfig.java        |  1 -
+ .../certsrv/policy/IKeyArchivalPolicy.java         |  1 -
+ .../certsrv/policy/IKeyRecoveryPolicy.java         |  1 -
+ .../certsrv/policy/IPolicyPredicateParser.java     |  1 -
+ .../netscape/certsrv/policy/IPolicyProcessor.java  |  1 -
+ .../com/netscape/certsrv/policy/IPolicyRule.java   |  1 -
+ .../com/netscape/certsrv/policy/IPolicySet.java    |  1 -
+ .../netscape/certsrv/policy/IRenewalPolicy.java    |  1 -
+ .../netscape/certsrv/policy/IRevocationPolicy.java |  1 -
+ .../certsrv/policy/ISubjAltNameConfig.java         |  1 -
+ .../certsrv/ra/IRegistrationAuthority.java         |  5 ++--
+ base/kra/src/com/netscape/kra/KRAPolicy.java       |  1 -
+ .../src/com/netscape/kra/KeyRecoveryAuthority.java |  3 ---
+ .../src/com/netscape/cms/policy/APolicyRule.java   | 11 ++++-----
+ .../cms/policy/constraints/AgentPolicy.java        |  1 -
+ .../constraints/AttributePresentConstraints.java   | 15 ++++++------
+ .../cms/policy/constraints/DSAKeyConstraints.java  | 11 ++++-----
+ .../cms/policy/constraints/DefaultRevocation.java  |  1 -
+ .../cms/policy/constraints/IssuerConstraints.java  |  7 +++---
+ .../constraints/KeyAlgorithmConstraints.java       |  9 ++++----
+ .../policy/constraints/ManualAuthentication.java   |  1 -
+ .../cms/policy/constraints/RSAKeyConstraints.java  | 15 ++++++------
+ .../cms/policy/constraints/RenewalConstraints.java |  9 ++++----
+ .../constraints/RenewalValidityConstraints.java    |  9 ++++----
+ .../policy/constraints/RevocationConstraints.java  | 11 ++++-----
+ .../constraints/SigningAlgorithmConstraints.java   |  9 ++++----
+ .../policy/constraints/SubCANameConstraints.java   |  1 -
+ .../cms/policy/constraints/UniqueSubjectName.java  |  1 -
+ .../constraints/UniqueSubjectNameConstraints.java  | 13 +++++------
+ .../policy/constraints/ValidityConstraints.java    |  7 +++---
+ .../cms/policy/extensions/AuthInfoAccessExt.java   | 15 ++++++------
+ .../extensions/AuthorityKeyIdentifierExt.java      |  1 -
+ .../cms/policy/extensions/BasicConstraintsExt.java |  1 -
+ .../extensions/CRLDistributionPointsExt.java       | 23 +++++++++---------
+ .../policy/extensions/CertificatePoliciesExt.java  | 25 ++++++++++----------
+ .../extensions/CertificateRenewalWindowExt.java    | 11 ++++-----
+ .../extensions/CertificateScopeOfUseExt.java       | 17 +++++++-------
+ .../cms/policy/extensions/ExtendedKeyUsageExt.java |  1 -
+ .../cms/policy/extensions/GenericASN1Ext.java      | 15 ++++++------
+ .../cms/policy/extensions/IssuerAltNameExt.java    | 11 ++++-----
+ .../cms/policy/extensions/KeyUsageExt.java         | 13 +++++------
+ .../cms/policy/extensions/NSCCommentExt.java       | 11 ++++-----
+ .../cms/policy/extensions/NSCertTypeExt.java       | 15 ++++++------
+ .../cms/policy/extensions/NameConstraintsExt.java  | 15 ++++++------
+ .../cms/policy/extensions/OCSPNoCheckExt.java      |  1 -
+ .../policy/extensions/PolicyConstraintsExt.java    | 11 ++++-----
+ .../cms/policy/extensions/PolicyMappingsExt.java   | 17 +++++++-------
+ .../cms/policy/extensions/PresenceExt.java         |  1 -
+ .../extensions/PrivateKeyUsagePeriodExt.java       | 11 ++++-----
+ .../extensions/RemoveBasicConstraintsExt.java      |  9 ++++----
+ .../cms/policy/extensions/SubjAltNameExt.java      | 15 ++++++------
+ .../cms/policy/extensions/SubjectAltNameExt.java   | 15 ++++++------
+ .../extensions/SubjectDirectoryAttributesExt.java  | 21 ++++++++---------
+ .../policy/extensions/SubjectKeyIdentifierExt.java | 17 +++++++-------
+ .../cms/servlet/admin/PolicyAdminServlet.java      |  1 -
+ .../com/netscape/cmscore/policy/AndExpression.java |  1 -
+ .../netscape/cmscore/policy/GeneralNameUtil.java   | 27 +++++++++++-----------
+ .../cmscore/policy/GenericPolicyProcessor.java     |  4 ----
+ .../cmscore/policy/JavaScriptRequestProxy.java     |  5 ----
+ .../com/netscape/cmscore/policy/OrExpression.java  |  1 -
+ .../cmscore/policy/PolicyPredicateParser.java      |  1 -
+ .../src/com/netscape/cmscore/policy/PolicySet.java |  1 -
+ .../netscape/cmscore/policy/SimpleExpression.java  |  1 -
+ 74 files changed, 210 insertions(+), 295 deletions(-)
+
+diff --git a/base/ca/src/com/netscape/ca/CAPolicy.java b/base/ca/src/com/netscape/ca/CAPolicy.java
+index fa41a961af909a2e6ab1e1f38e0acbd3e22aa644..dda7e52d514276e2d7476382775cfd82461dea60 100644
+--- a/base/ca/src/com/netscape/ca/CAPolicy.java
++++ b/base/ca/src/com/netscape/ca/CAPolicy.java
+@@ -39,7 +39,6 @@ import com.netscape.cmscore.util.Debug;
+  * XXX2 moved to just implement IPolicy since GenericPolicyProcessor is
+  * unuseable for CA.
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class CAPolicy implements IPolicy {
+diff --git a/base/ca/src/com/netscape/ca/CertificateAuthority.java b/base/ca/src/com/netscape/ca/CertificateAuthority.java
+index ae90d3ac1c973e102724c0f3e1db3291c5d17fb4..6a1f9b67988f44fc0ac6857e19533838d26e73cc 100644
+--- a/base/ca/src/com/netscape/ca/CertificateAuthority.java
++++ b/base/ca/src/com/netscape/ca/CertificateAuthority.java
+@@ -440,9 +440,6 @@ public class CertificateAuthority
+         return mCRLPublisher;
+     }
+ 
+-    /**
+-     * @deprecated
+-     */
+     public IPolicyProcessor getPolicyProcessor() {
+         return mPolicy.getPolicyProcessor();
+     }
+diff --git a/base/common/src/com/netscape/certsrv/ca/ICertificateAuthority.java b/base/common/src/com/netscape/certsrv/ca/ICertificateAuthority.java
+index 5218a4cb11773d7922630f2c203670d82a0c82c4..3389d1da90fccd67216cf36b4863f2fb7768416c 100644
+--- a/base/common/src/com/netscape/certsrv/ca/ICertificateAuthority.java
++++ b/base/common/src/com/netscape/certsrv/ca/ICertificateAuthority.java
+@@ -132,7 +132,6 @@ public interface ICertificateAuthority extends ISubsystem {
+ 
+     /**
+      * Retrieves the policy processor of this certificate authority.
+-     * @deprecated
+      * @return CA's policy processor
+      */
+     public IPolicyProcessor getPolicyProcessor();
+diff --git a/base/common/src/com/netscape/certsrv/kra/IKeyRecoveryAuthority.java b/base/common/src/com/netscape/certsrv/kra/IKeyRecoveryAuthority.java
+index acc3214bbec24baa777426bec337fed0943c9c8b..1074e47359b2d3c999d383ffa8a910cde41a5483 100644
+--- a/base/common/src/com/netscape/certsrv/kra/IKeyRecoveryAuthority.java
++++ b/base/common/src/com/netscape/certsrv/kra/IKeyRecoveryAuthority.java
+@@ -21,8 +21,6 @@ import java.util.Enumeration;
+ import java.util.Hashtable;
+ import java.util.Vector;
+ 
+-import netscape.security.x509.X500Name;
+-
+ import org.mozilla.jss.crypto.CryptoToken;
+ 
+ import com.netscape.certsrv.base.EBaseException;
+@@ -37,6 +35,8 @@ import com.netscape.certsrv.security.Credential;
+ import com.netscape.certsrv.security.IStorageKeyUnit;
+ import com.netscape.certsrv.security.ITransportKeyUnit;
+ 
++import netscape.security.x509.X500Name;
++
+ /**
+  * An interface represents key recovery authority. The
+  * key recovery authority is responsibile for archiving
+@@ -206,7 +206,6 @@ public interface IKeyRecoveryAuthority extends ISubsystem {
+     /**
+      * Returns policy processor of the key recovery
+      * authority.
+-     * @deprecated
+      * @return policy processor
+      */
+     public IPolicyProcessor getPolicyProcessor();
+diff --git a/base/common/src/com/netscape/certsrv/policy/EPolicyException.java b/base/common/src/com/netscape/certsrv/policy/EPolicyException.java
+index b5a46736e560188df2c986774a61a16fd52ebcf7..1026bfb6a7c4e7b21835dea6798c6d2536b42a99 100644
+--- a/base/common/src/com/netscape/certsrv/policy/EPolicyException.java
++++ b/base/common/src/com/netscape/certsrv/policy/EPolicyException.java
+@@ -35,7 +35,6 @@ import com.netscape.certsrv.base.MessageFormatter;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  * @see java.text.MessageFormat
+  */
+diff --git a/base/common/src/com/netscape/certsrv/policy/IEnrollmentPolicy.java b/base/common/src/com/netscape/certsrv/policy/IEnrollmentPolicy.java
+index 96da142bab1bca7fdac9569bccafb5135a79ca74..ce746a6f9fb3c211582934df330ac9789bb213fd 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IEnrollmentPolicy.java
++++ b/base/common/src/com/netscape/certsrv/policy/IEnrollmentPolicy.java
+@@ -28,7 +28,6 @@ package com.netscape.certsrv.policy;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public interface IEnrollmentPolicy extends IPolicyRule {
+diff --git a/base/common/src/com/netscape/certsrv/policy/IExpression.java b/base/common/src/com/netscape/certsrv/policy/IExpression.java
+index 9bfe34611d50830d9461b62e5f4e83d0d32147f3..b6640b37d1d5f52122f5b17c5c17fd60f9186aa4 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IExpression.java
++++ b/base/common/src/com/netscape/certsrv/policy/IExpression.java
+@@ -28,7 +28,6 @@ import com.netscape.certsrv.request.IRequest;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public interface IExpression {
+diff --git a/base/common/src/com/netscape/certsrv/policy/IGeneralNameAsConstraintsConfig.java b/base/common/src/com/netscape/certsrv/policy/IGeneralNameAsConstraintsConfig.java
+index 1e8a666669559e51062fa02cd4fc8340f5a4a3da..330e935f63830664e503c49e39f924946844e81c 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IGeneralNameAsConstraintsConfig.java
++++ b/base/common/src/com/netscape/certsrv/policy/IGeneralNameAsConstraintsConfig.java
+@@ -31,7 +31,6 @@ import netscape.security.x509.GeneralName;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public interface IGeneralNameAsConstraintsConfig {
+diff --git a/base/common/src/com/netscape/certsrv/policy/IGeneralNameConfig.java b/base/common/src/com/netscape/certsrv/policy/IGeneralNameConfig.java
+index f4f7362cce4c0004e2800c463affc3eb98b12fce..1e5d0e6b518b646b7fe416bc5b73a2a603f59487 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IGeneralNameConfig.java
++++ b/base/common/src/com/netscape/certsrv/policy/IGeneralNameConfig.java
+@@ -19,10 +19,10 @@ package com.netscape.certsrv.policy;
+ 
+ import java.util.Vector;
+ 
+-import netscape.security.x509.GeneralName;
+-
+ import com.netscape.certsrv.base.EBaseException;
+ 
++import netscape.security.x509.GeneralName;
++
+ /**
+  * Class that can be used to form general names from configuration file.
+  * Used by policies and extension commands.
+@@ -33,7 +33,6 @@ import com.netscape.certsrv.base.EBaseException;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public interface IGeneralNameConfig {
+diff --git a/base/common/src/com/netscape/certsrv/policy/IGeneralNameUtil.java b/base/common/src/com/netscape/certsrv/policy/IGeneralNameUtil.java
+index 125a885113cf6d66d00ea8a7047f78608dae27ff..725c3e942e33bfb0378f29165a21f17aa8f5f7da 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IGeneralNameUtil.java
++++ b/base/common/src/com/netscape/certsrv/policy/IGeneralNameUtil.java
+@@ -27,7 +27,6 @@ package com.netscape.certsrv.policy;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public interface IGeneralNameUtil {
+diff --git a/base/common/src/com/netscape/certsrv/policy/IGeneralNamesAsConstraintsConfig.java b/base/common/src/com/netscape/certsrv/policy/IGeneralNamesAsConstraintsConfig.java
+index c3a35f913fd60a7d1915b9441b516dd398090009..698800645bc8582ccfed87ed8325ed395dc3ac70 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IGeneralNamesAsConstraintsConfig.java
++++ b/base/common/src/com/netscape/certsrv/policy/IGeneralNamesAsConstraintsConfig.java
+@@ -31,7 +31,6 @@ import netscape.security.x509.GeneralNames;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public interface IGeneralNamesAsConstraintsConfig {
+diff --git a/base/common/src/com/netscape/certsrv/policy/IGeneralNamesConfig.java b/base/common/src/com/netscape/certsrv/policy/IGeneralNamesConfig.java
+index e799195dba2663afa325dd4b251dbd2ff5341491..77ea0350ed6ca6682dfac5e333ac261d1d8f387a 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IGeneralNamesConfig.java
++++ b/base/common/src/com/netscape/certsrv/policy/IGeneralNamesConfig.java
+@@ -31,7 +31,6 @@ import netscape.security.x509.GeneralNames;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public interface IGeneralNamesConfig {
+diff --git a/base/common/src/com/netscape/certsrv/policy/IKeyArchivalPolicy.java b/base/common/src/com/netscape/certsrv/policy/IKeyArchivalPolicy.java
+index bdf8e12e55e8131382b2f49099f54bc93eb7daa7..bdd6efdc00c3083453a8847fdca5f41bb5895ea2 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IKeyArchivalPolicy.java
++++ b/base/common/src/com/netscape/certsrv/policy/IKeyArchivalPolicy.java
+@@ -26,7 +26,6 @@ package com.netscape.certsrv.policy;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public interface IKeyArchivalPolicy extends IPolicyRule {
+diff --git a/base/common/src/com/netscape/certsrv/policy/IKeyRecoveryPolicy.java b/base/common/src/com/netscape/certsrv/policy/IKeyRecoveryPolicy.java
+index 42d3e38e10488d121483ab4bd9b1997f177314bc..62989472c4723c2e1086eb5d0d09169e7f328063 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IKeyRecoveryPolicy.java
++++ b/base/common/src/com/netscape/certsrv/policy/IKeyRecoveryPolicy.java
+@@ -26,7 +26,6 @@ package com.netscape.certsrv.policy;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public interface IKeyRecoveryPolicy extends IPolicyRule {
+diff --git a/base/common/src/com/netscape/certsrv/policy/IPolicyPredicateParser.java b/base/common/src/com/netscape/certsrv/policy/IPolicyPredicateParser.java
+index f56de9811d304955da2dbc53c338767e8f50b696..f262be0cd106ba597d5fea8917170012463558d1 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IPolicyPredicateParser.java
++++ b/base/common/src/com/netscape/certsrv/policy/IPolicyPredicateParser.java
+@@ -26,7 +26,6 @@ package com.netscape.certsrv.policy;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public interface IPolicyPredicateParser {
+diff --git a/base/common/src/com/netscape/certsrv/policy/IPolicyProcessor.java b/base/common/src/com/netscape/certsrv/policy/IPolicyProcessor.java
+index 5ee591e8679fc9af873d164c0dffa229156fac31..d2e70e9025f5484981accf2e7cf2556e0bdab9fb 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IPolicyProcessor.java
++++ b/base/common/src/com/netscape/certsrv/policy/IPolicyProcessor.java
+@@ -40,7 +40,6 @@ import com.netscape.certsrv.base.ISubsystem;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public interface IPolicyProcessor extends ISubsystem,
+diff --git a/base/common/src/com/netscape/certsrv/policy/IPolicyRule.java b/base/common/src/com/netscape/certsrv/policy/IPolicyRule.java
+index 6013698138cf103ec070bd78895c5b60bbc03e83..8deb10e2572737c4d815b2f4ec2219106927dce9 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IPolicyRule.java
++++ b/base/common/src/com/netscape/certsrv/policy/IPolicyRule.java
+@@ -34,7 +34,6 @@ import com.netscape.certsrv.request.PolicyResult;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public interface IPolicyRule
+diff --git a/base/common/src/com/netscape/certsrv/policy/IPolicySet.java b/base/common/src/com/netscape/certsrv/policy/IPolicySet.java
+index 5170153ffc1112932fd587c45d4f166f313771ba..cc1da3fdce508fa1dbc365320dcad0e6c7764648 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IPolicySet.java
++++ b/base/common/src/com/netscape/certsrv/policy/IPolicySet.java
+@@ -38,7 +38,6 @@ import com.netscape.certsrv.request.PolicyResult;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public interface IPolicySet {
+diff --git a/base/common/src/com/netscape/certsrv/policy/IRenewalPolicy.java b/base/common/src/com/netscape/certsrv/policy/IRenewalPolicy.java
+index 6f47ff6d942a81d3d5bedef5011ca079bbb851e8..bfd44c446b3f59cbda739623910171b82da86448 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IRenewalPolicy.java
++++ b/base/common/src/com/netscape/certsrv/policy/IRenewalPolicy.java
+@@ -26,7 +26,6 @@ package com.netscape.certsrv.policy;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public interface IRenewalPolicy extends IPolicyRule {
+diff --git a/base/common/src/com/netscape/certsrv/policy/IRevocationPolicy.java b/base/common/src/com/netscape/certsrv/policy/IRevocationPolicy.java
+index d573c4bd25420b931454e5f8fa14e9e564cfb429..940d240cf65c1eaba4c8ef303b4ac7e58a7b6bd3 100644
+--- a/base/common/src/com/netscape/certsrv/policy/IRevocationPolicy.java
++++ b/base/common/src/com/netscape/certsrv/policy/IRevocationPolicy.java
+@@ -26,7 +26,6 @@ package com.netscape.certsrv.policy;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public interface IRevocationPolicy extends IPolicyRule {
+diff --git a/base/common/src/com/netscape/certsrv/policy/ISubjAltNameConfig.java b/base/common/src/com/netscape/certsrv/policy/ISubjAltNameConfig.java
+index be6e5f214b7896dfc897ff7c0a281fc5aeae1aba..57d523cf92266c381481f5e6e87bc7a02ac8be29 100644
+--- a/base/common/src/com/netscape/certsrv/policy/ISubjAltNameConfig.java
++++ b/base/common/src/com/netscape/certsrv/policy/ISubjAltNameConfig.java
+@@ -27,7 +27,6 @@ package com.netscape.certsrv.policy;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public interface ISubjAltNameConfig extends IGeneralNameConfig {
+diff --git a/base/common/src/com/netscape/certsrv/ra/IRegistrationAuthority.java b/base/common/src/com/netscape/certsrv/ra/IRegistrationAuthority.java
+index 4f121378bcd00542a507d96b6967d8bbc5db3882..0be193d879c843c1e89ddec7ee6266366ea83778 100644
+--- a/base/common/src/com/netscape/certsrv/ra/IRegistrationAuthority.java
++++ b/base/common/src/com/netscape/certsrv/ra/IRegistrationAuthority.java
+@@ -19,8 +19,6 @@ package com.netscape.certsrv.ra;
+ 
+ import java.util.Enumeration;
+ 
+-import netscape.security.x509.X500Name;
+-
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.ISubsystem;
+ import com.netscape.certsrv.policy.IPolicyProcessor;
+@@ -28,6 +26,8 @@ import com.netscape.certsrv.publish.IPublisherProcessor;
+ import com.netscape.certsrv.request.IRequestListener;
+ import com.netscape.certsrv.request.IRequestQueue;
+ 
++import netscape.security.x509.X500Name;
++
+ /**
+  * An interface represents a Registration Authority that is
+  * responsible for certificate enrollment operations.
+@@ -69,7 +69,6 @@ public interface IRegistrationAuthority extends ISubsystem {
+ 
+     /**
+      * Retrieves the policy processor of this registration authority.
+-     * @deprecated
+      * @return RA's policy processor
+      */
+     public IPolicyProcessor getPolicyProcessor();
+diff --git a/base/kra/src/com/netscape/kra/KRAPolicy.java b/base/kra/src/com/netscape/kra/KRAPolicy.java
+index eac3adb8c2d4e4f719989a97c279cba291ebc869..a2392d77ca9f626fbd273d5acb0dc2cca8819257 100644
+--- a/base/kra/src/com/netscape/kra/KRAPolicy.java
++++ b/base/kra/src/com/netscape/kra/KRAPolicy.java
+@@ -32,7 +32,6 @@ import com.netscape.cmscore.util.Debug;
+ /**
+  * KRA Policy.
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class KRAPolicy implements IPolicy {
+diff --git a/base/kra/src/com/netscape/kra/KeyRecoveryAuthority.java b/base/kra/src/com/netscape/kra/KeyRecoveryAuthority.java
+index cda3ba659b935139f23f5bae2ac6b1a41c060a8f..a3041770aea454b2657bf1807d7f7b7be13e83d0 100644
+--- a/base/kra/src/com/netscape/kra/KeyRecoveryAuthority.java
++++ b/base/kra/src/com/netscape/kra/KeyRecoveryAuthority.java
+@@ -177,9 +177,6 @@ public class KeyRecoveryAuthority implements IAuthority, IKeyService, IKeyRecove
+         mId = id;
+     }
+ 
+-    /**
+-     * @deprecated
+-     */
+     public IPolicyProcessor getPolicyProcessor() {
+         return mPolicy.getPolicyProcessor();
+     }
+diff --git a/base/server/cms/src/com/netscape/cms/policy/APolicyRule.java b/base/server/cms/src/com/netscape/cms/policy/APolicyRule.java
+index 8ed94350325547d12a45f0756f4367f16d6b551c..0551927db3b8b1f7c2e3b13f63bfd9b99172ce75 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/APolicyRule.java
++++ b/base/server/cms/src/com/netscape/cms/policy/APolicyRule.java
+@@ -24,11 +24,6 @@ import java.security.NoSuchAlgorithmException;
+ import java.security.cert.CertificateException;
+ import java.util.Vector;
+ 
+-import netscape.security.x509.CertificateX509Key;
+-import netscape.security.x509.KeyIdentifier;
+-import netscape.security.x509.X509CertInfo;
+-import netscape.security.x509.X509Key;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+@@ -41,6 +36,11 @@ import com.netscape.certsrv.request.AgentApprovals;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ 
++import netscape.security.x509.CertificateX509Key;
++import netscape.security.x509.KeyIdentifier;
++import netscape.security.x509.X509CertInfo;
++import netscape.security.x509.X509Key;
++
+ /**
+  * The abstract policy rule that concrete implementations will
+  * extend.
+@@ -51,7 +51,6 @@ import com.netscape.certsrv.request.PolicyResult;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public abstract class APolicyRule implements IPolicyRule {
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/AgentPolicy.java b/base/server/cms/src/com/netscape/cms/policy/constraints/AgentPolicy.java
+index 2129f0f004204dff277772f84a30f70fabce6555..c935bf66390c0dcf5ed21e57ebd585daae0a1e28 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/AgentPolicy.java
++++ b/base/server/cms/src/com/netscape/cms/policy/constraints/AgentPolicy.java
+@@ -42,7 +42,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class AgentPolicy extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/AttributePresentConstraints.java b/base/server/cms/src/com/netscape/cms/policy/constraints/AttributePresentConstraints.java
+index fb56c67c42211d9fbd130c39f34d39310a6d77b2..0755a3a01b3a5b2e3cf754834ab28708283f7a61 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/AttributePresentConstraints.java
++++ b/base/server/cms/src/com/netscape/cms/policy/constraints/AttributePresentConstraints.java
+@@ -22,13 +22,6 @@ import java.util.Hashtable;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
+-import netscape.ldap.LDAPAttribute;
+-import netscape.ldap.LDAPConnection;
+-import netscape.ldap.LDAPEntry;
+-import netscape.ldap.LDAPException;
+-import netscape.ldap.LDAPSearchResults;
+-import netscape.ldap.LDAPv2;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+@@ -41,6 +34,13 @@ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cms.policy.APolicyRule;
+ 
++import netscape.ldap.LDAPAttribute;
++import netscape.ldap.LDAPConnection;
++import netscape.ldap.LDAPEntry;
++import netscape.ldap.LDAPException;
++import netscape.ldap.LDAPSearchResults;
++import netscape.ldap.LDAPv2;
++
+ /**
+  * This checks if attribute present.
+  * <P>
+@@ -50,7 +50,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class AttributePresentConstraints extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/DSAKeyConstraints.java b/base/server/cms/src/com/netscape/cms/policy/constraints/DSAKeyConstraints.java
+index 9b5fbd152becffbef60c169ca9b448e31a5be07b..0b8c82fbe45abab88be6577829cd9f98407b412a 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/DSAKeyConstraints.java
++++ b/base/server/cms/src/com/netscape/cms/policy/constraints/DSAKeyConstraints.java
+@@ -22,11 +22,6 @@ import java.security.interfaces.DSAParams;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
+-import netscape.security.provider.DSAPublicKey;
+-import netscape.security.x509.CertificateX509Key;
+-import netscape.security.x509.X509CertInfo;
+-import netscape.security.x509.X509Key;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+@@ -39,6 +34,11 @@ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cms.policy.APolicyRule;
+ 
++import netscape.security.provider.DSAPublicKey;
++import netscape.security.x509.CertificateX509Key;
++import netscape.security.x509.X509CertInfo;
++import netscape.security.x509.X509Key;
++
+ /**
+  * DSAKeyConstraints policy enforces min and max size of the key.
+  * <P>
+@@ -48,7 +48,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class DSAKeyConstraints extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/DefaultRevocation.java b/base/server/cms/src/com/netscape/cms/policy/constraints/DefaultRevocation.java
+index fecb59049181675753c080e6abb08c9b36bd43c6..19c4ae1931e63df4eb380a6ad77465c909ac73e5 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/DefaultRevocation.java
++++ b/base/server/cms/src/com/netscape/cms/policy/constraints/DefaultRevocation.java
+@@ -40,7 +40,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class DefaultRevocation extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/IssuerConstraints.java b/base/server/cms/src/com/netscape/cms/policy/constraints/IssuerConstraints.java
+index efd306bf3e99342a6f76bcb01b18fa9623e583f2..645a63cb554138870e941f68226a692283a946e2 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/IssuerConstraints.java
++++ b/base/server/cms/src/com/netscape/cms/policy/constraints/IssuerConstraints.java
+@@ -20,9 +20,6 @@ package com.netscape.cms.policy.constraints;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
+-import netscape.security.x509.X500Name;
+-import netscape.security.x509.X509CertInfo;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+@@ -34,6 +31,9 @@ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cms.policy.APolicyRule;
+ 
++import netscape.security.x509.X500Name;
++import netscape.security.x509.X509CertInfo;
++
+ /**
+  * IssuerConstraints is a rule for restricting the issuers of the
+  * certificates used for certificate-based enrollments.
+@@ -44,7 +44,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$ $Date$
+  */
+ public class IssuerConstraints extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/KeyAlgorithmConstraints.java b/base/server/cms/src/com/netscape/cms/policy/constraints/KeyAlgorithmConstraints.java
+index d656ed463a5bd5772076e786fc66e7508132cfd5..c8f8d8469c2b5a90d90fae58d11029b7bff032a3 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/KeyAlgorithmConstraints.java
++++ b/base/server/cms/src/com/netscape/cms/policy/constraints/KeyAlgorithmConstraints.java
+@@ -22,10 +22,6 @@ import java.util.Locale;
+ import java.util.StringTokenizer;
+ import java.util.Vector;
+ 
+-import netscape.security.x509.CertificateX509Key;
+-import netscape.security.x509.X509CertInfo;
+-import netscape.security.x509.X509Key;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+@@ -36,6 +32,10 @@ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cms.policy.APolicyRule;
+ 
++import netscape.security.x509.CertificateX509Key;
++import netscape.security.x509.X509CertInfo;
++import netscape.security.x509.X509Key;
++
+ /**
+  * KeyAlgorithmConstraints enforces a constraint that the RA or a CA
+  * honor only the keys generated using one of the permitted algorithms
+@@ -47,7 +47,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class KeyAlgorithmConstraints extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/ManualAuthentication.java b/base/server/cms/src/com/netscape/cms/policy/constraints/ManualAuthentication.java
+index 56b96f95f96e0808357339175f4ceecab06b7407..80396497ca60b5922c6f2f3887e07dfd3520496f 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/ManualAuthentication.java
++++ b/base/server/cms/src/com/netscape/cms/policy/constraints/ManualAuthentication.java
+@@ -40,7 +40,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class ManualAuthentication extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/RSAKeyConstraints.java b/base/server/cms/src/com/netscape/cms/policy/constraints/RSAKeyConstraints.java
+index 363856197a587954ea0a946bfd96fe369625f21b..9e6df7c70ee0830bd7bc7f01d26af62054eb09c5 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/RSAKeyConstraints.java
++++ b/base/server/cms/src/com/netscape/cms/policy/constraints/RSAKeyConstraints.java
+@@ -22,13 +22,6 @@ import java.util.Locale;
+ import java.util.StringTokenizer;
+ import java.util.Vector;
+ 
+-import netscape.security.provider.RSAPublicKey;
+-import netscape.security.util.BigInt;
+-import netscape.security.x509.AlgorithmId;
+-import netscape.security.x509.CertificateX509Key;
+-import netscape.security.x509.X509CertInfo;
+-import netscape.security.x509.X509Key;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+@@ -40,6 +33,13 @@ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cms.policy.APolicyRule;
+ 
++import netscape.security.provider.RSAPublicKey;
++import netscape.security.util.BigInt;
++import netscape.security.x509.AlgorithmId;
++import netscape.security.x509.CertificateX509Key;
++import netscape.security.x509.X509CertInfo;
++import netscape.security.x509.X509Key;
++
+ /**
+  * RSAKeyConstraints policy enforces min and max size of the key.
+  * Optionally checks the exponents.
+@@ -50,7 +50,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class RSAKeyConstraints extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/RenewalConstraints.java b/base/server/cms/src/com/netscape/cms/policy/constraints/RenewalConstraints.java
+index 3ff977df53a0648cfe1fe4907a3f3f449b58f18e..b38563bfcf1cb0f031e3d922435d99d954af14ef 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/RenewalConstraints.java
++++ b/base/server/cms/src/com/netscape/cms/policy/constraints/RenewalConstraints.java
+@@ -21,10 +21,6 @@ import java.util.Date;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
+-import netscape.security.x509.CertificateValidity;
+-import netscape.security.x509.X509CertImpl;
+-import netscape.security.x509.X509CertInfo;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+@@ -36,6 +32,10 @@ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cms.policy.APolicyRule;
+ 
++import netscape.security.x509.CertificateValidity;
++import netscape.security.x509.X509CertImpl;
++import netscape.security.x509.X509CertInfo;
++
+ /**
+  * Whether to allow renewal of an expired cert.
+  *
+@@ -47,7 +47,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  *          <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class RenewalConstraints extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/RenewalValidityConstraints.java b/base/server/cms/src/com/netscape/cms/policy/constraints/RenewalValidityConstraints.java
+index 2810fae10a7e02da5b07ff8dfd0b4a04f488b9a0..df5774bd6f4bf23a6adca37b15246f3e65c78377 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/RenewalValidityConstraints.java
++++ b/base/server/cms/src/com/netscape/cms/policy/constraints/RenewalValidityConstraints.java
+@@ -21,10 +21,6 @@ import java.util.Date;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
+-import netscape.security.x509.CertificateValidity;
+-import netscape.security.x509.X509CertImpl;
+-import netscape.security.x509.X509CertInfo;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+@@ -36,6 +32,10 @@ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cms.policy.APolicyRule;
+ import com.netscape.cmsutil.util.Utils;
+ 
++import netscape.security.x509.CertificateValidity;
++import netscape.security.x509.X509CertImpl;
++import netscape.security.x509.X509CertInfo;
++
+ /**
+  * RenewalValidityConstraints is a default rule for Certificate
+  * Renewal. This policy enforces the no of days before which a
+@@ -55,7 +55,6 @@ import com.netscape.cmsutil.util.Utils;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class RenewalValidityConstraints extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/RevocationConstraints.java b/base/server/cms/src/com/netscape/cms/policy/constraints/RevocationConstraints.java
+index 88c59b2fd5fcfa6a54ec1d32999c44a057ef53cb..bbdb9af67e793c198261c3108fcbc2af86b375e9 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/RevocationConstraints.java
++++ b/base/server/cms/src/com/netscape/cms/policy/constraints/RevocationConstraints.java
+@@ -21,11 +21,6 @@ import java.util.Date;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
+-import netscape.security.x509.CertificateValidity;
+-import netscape.security.x509.RevocationReason;
+-import netscape.security.x509.X509CertImpl;
+-import netscape.security.x509.X509CertInfo;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+@@ -37,6 +32,11 @@ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cms.policy.APolicyRule;
+ 
++import netscape.security.x509.CertificateValidity;
++import netscape.security.x509.RevocationReason;
++import netscape.security.x509.X509CertImpl;
++import netscape.security.x509.X509CertInfo;
++
+ /**
+  * Whether to allow revocation of an expired cert.
+  * <P>
+@@ -46,7 +46,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class RevocationConstraints extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/SigningAlgorithmConstraints.java b/base/server/cms/src/com/netscape/cms/policy/constraints/SigningAlgorithmConstraints.java
+index 15b12af40ef0a20a7103438904949086f4ac60f7..59fde827d9bb485a3f02dd9a282505000947b579 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/SigningAlgorithmConstraints.java
++++ b/base/server/cms/src/com/netscape/cms/policy/constraints/SigningAlgorithmConstraints.java
+@@ -21,10 +21,6 @@ import java.util.Locale;
+ import java.util.StringTokenizer;
+ import java.util.Vector;
+ 
+-import netscape.security.x509.AlgorithmId;
+-import netscape.security.x509.CertificateAlgorithmId;
+-import netscape.security.x509.X509CertInfo;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.authority.IAuthority;
+ import com.netscape.certsrv.authority.ICertAuthority;
+@@ -40,6 +36,10 @@ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cms.policy.APolicyRule;
+ 
++import netscape.security.x509.AlgorithmId;
++import netscape.security.x509.CertificateAlgorithmId;
++import netscape.security.x509.X509CertInfo;
++
+ /**
+  * SigningAlgorithmConstraints enforces that only a supported
+  * signing algorithm be requested.
+@@ -50,7 +50,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class SigningAlgorithmConstraints extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/SubCANameConstraints.java b/base/server/cms/src/com/netscape/cms/policy/constraints/SubCANameConstraints.java
+index bc41d1bcbcdde8159a6f003de2d8f086ece144f0..8cf6b0f373902f67318a0a19d106e207179af392 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/SubCANameConstraints.java
++++ b/base/server/cms/src/com/netscape/cms/policy/constraints/SubCANameConstraints.java
+@@ -50,7 +50,6 @@ import netscape.security.x509.X509CertInfo;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class SubCANameConstraints extends APolicyRule implements IEnrollmentPolicy, IExtendedPluginInfo {
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/UniqueSubjectName.java b/base/server/cms/src/com/netscape/cms/policy/constraints/UniqueSubjectName.java
+index 27b5d1a9273ee4a36577e7ca642905d8e6712b35..bacace981d04e4efd72f759cae4cc98e24646828 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/UniqueSubjectName.java
++++ b/base/server/cms/src/com/netscape/cms/policy/constraints/UniqueSubjectName.java
+@@ -26,7 +26,6 @@ package com.netscape.cms.policy.constraints;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class UniqueSubjectName extends UniqueSubjectNameConstraints {
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/UniqueSubjectNameConstraints.java b/base/server/cms/src/com/netscape/cms/policy/constraints/UniqueSubjectNameConstraints.java
+index fb52b1302ff518143eded891cdafc1b712339699..3ebbcc7b0c9d87c3379d26efee2572e006e61f73 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/UniqueSubjectNameConstraints.java
++++ b/base/server/cms/src/com/netscape/cms/policy/constraints/UniqueSubjectNameConstraints.java
+@@ -22,12 +22,6 @@ import java.util.Enumeration;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
+-import netscape.security.x509.CertificateExtensions;
+-import netscape.security.x509.CertificateSubjectName;
+-import netscape.security.x509.KeyUsageExtension;
+-import netscape.security.x509.X509CertImpl;
+-import netscape.security.x509.X509CertInfo;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.authority.ICertAuthority;
+ import com.netscape.certsrv.base.EBaseException;
+@@ -43,6 +37,12 @@ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cms.policy.APolicyRule;
+ 
++import netscape.security.x509.CertificateExtensions;
++import netscape.security.x509.CertificateSubjectName;
++import netscape.security.x509.KeyUsageExtension;
++import netscape.security.x509.X509CertImpl;
++import netscape.security.x509.X509CertInfo;
++
+ /**
+  * Checks the uniqueness of the subject name. This policy
+  * can only be used (installed) in Certificate Authority
+@@ -63,7 +63,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class UniqueSubjectNameConstraints extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/constraints/ValidityConstraints.java b/base/server/cms/src/com/netscape/cms/policy/constraints/ValidityConstraints.java
+index 72be9d75a096ed0402ff9d25922781766aff2205..ff17c8308c0493a98a4db0ea49cf6e1283c59965 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/constraints/ValidityConstraints.java
++++ b/base/server/cms/src/com/netscape/cms/policy/constraints/ValidityConstraints.java
+@@ -21,9 +21,6 @@ import java.util.Date;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
+-import netscape.security.x509.CertificateValidity;
+-import netscape.security.x509.X509CertInfo;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.IExtendedPluginInfo;
+@@ -34,6 +31,9 @@ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cms.policy.APolicyRule;
+ 
++import netscape.security.x509.CertificateValidity;
++import netscape.security.x509.X509CertInfo;
++
+ /**
+  * ValidityConstraints is a default rule for Enrollment and
+  * Renewal that enforces minimum and maximum validity periods
+@@ -49,7 +49,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class ValidityConstraints extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/AuthInfoAccessExt.java b/base/server/cms/src/com/netscape/cms/policy/extensions/AuthInfoAccessExt.java
+index 21e4ad9204e6c8761e51428f54a33f56a425ed93..0699dcc7b70c34207e185c204756e7b36c0b719a 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/AuthInfoAccessExt.java
++++ b/base/server/cms/src/com/netscape/cms/policy/extensions/AuthInfoAccessExt.java
+@@ -24,13 +24,6 @@ import java.util.Enumeration;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
+-import netscape.security.extensions.AuthInfoAccessExtension;
+-import netscape.security.util.ObjectIdentifier;
+-import netscape.security.x509.CertificateExtensions;
+-import netscape.security.x509.CertificateVersion;
+-import netscape.security.x509.GeneralName;
+-import netscape.security.x509.X509CertInfo;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+@@ -43,6 +36,13 @@ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cms.policy.APolicyRule;
+ 
++import netscape.security.extensions.AuthInfoAccessExtension;
++import netscape.security.util.ObjectIdentifier;
++import netscape.security.x509.CertificateExtensions;
++import netscape.security.x509.CertificateVersion;
++import netscape.security.x509.GeneralName;
++import netscape.security.x509.X509CertInfo;
++
+ /**
+  * Authority Information Access extension policy.
+  * If this policy is enabled, it adds an authority
+@@ -76,7 +76,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class AuthInfoAccessExt extends APolicyRule implements
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/AuthorityKeyIdentifierExt.java b/base/server/cms/src/com/netscape/cms/policy/extensions/AuthorityKeyIdentifierExt.java
+index 1a2220239462c193a8504ab279060dfe982831c3..5a72a6a053c83205b4a9f48210a039e0d672c124 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/AuthorityKeyIdentifierExt.java
++++ b/base/server/cms/src/com/netscape/cms/policy/extensions/AuthorityKeyIdentifierExt.java
+@@ -54,7 +54,6 @@ import netscape.security.x509.X509CertInfo;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class AuthorityKeyIdentifierExt extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/BasicConstraintsExt.java b/base/server/cms/src/com/netscape/cms/policy/extensions/BasicConstraintsExt.java
+index 5c05d86d965177b6edf6d5a72d0297f28cda843c..55ee29036082b1d8f8b43f3f8c2b08d2053737e3 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/BasicConstraintsExt.java
++++ b/base/server/cms/src/com/netscape/cms/policy/extensions/BasicConstraintsExt.java
+@@ -56,7 +56,6 @@ import netscape.security.x509.X509CertInfo;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class BasicConstraintsExt extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/CRLDistributionPointsExt.java b/base/server/cms/src/com/netscape/cms/policy/extensions/CRLDistributionPointsExt.java
+index 7cf50385e4a24cae0a3d5df7f01a87000e0fb1a6..123a6e38fdae6110adb530147287f116242073b6 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/CRLDistributionPointsExt.java
++++ b/base/server/cms/src/com/netscape/cms/policy/extensions/CRLDistributionPointsExt.java
+@@ -24,6 +24,17 @@ import java.util.Locale;
+ import java.util.StringTokenizer;
+ import java.util.Vector;
+ 
++import com.netscape.certsrv.apps.CMS;
++import com.netscape.certsrv.base.EBaseException;
++import com.netscape.certsrv.base.IConfigStore;
++import com.netscape.certsrv.base.IExtendedPluginInfo;
++import com.netscape.certsrv.base.ISubsystem;
++import com.netscape.certsrv.logging.ILogger;
++import com.netscape.certsrv.policy.IEnrollmentPolicy;
++import com.netscape.certsrv.request.IRequest;
++import com.netscape.certsrv.request.PolicyResult;
++import com.netscape.cms.policy.APolicyRule;
++
+ import netscape.security.util.BitArray;
+ import netscape.security.x509.CRLDistributionPoint;
+ import netscape.security.x509.CRLDistributionPointsExtension;
+@@ -38,17 +49,6 @@ import netscape.security.x509.URIName;
+ import netscape.security.x509.X500Name;
+ import netscape.security.x509.X509CertInfo;
+ 
+-import com.netscape.certsrv.apps.CMS;
+-import com.netscape.certsrv.base.EBaseException;
+-import com.netscape.certsrv.base.IConfigStore;
+-import com.netscape.certsrv.base.IExtendedPluginInfo;
+-import com.netscape.certsrv.base.ISubsystem;
+-import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+-import com.netscape.certsrv.request.IRequest;
+-import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+-
+ /**
+  * The type of the distribution point or issuer name. The name is expressed
+  * as a simple string in the configuration file, so this attribute is needed
+@@ -61,7 +61,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ class NameType {
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/CertificatePoliciesExt.java b/base/server/cms/src/com/netscape/cms/policy/extensions/CertificatePoliciesExt.java
+index 4124d430df48abb6fd87f191c45ba39844454a70..78c828435dede4cc48cfff67dfa7aa7c56ade0f3 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/CertificatePoliciesExt.java
++++ b/base/server/cms/src/com/netscape/cms/policy/extensions/CertificatePoliciesExt.java
+@@ -23,6 +23,18 @@ import java.util.Locale;
+ import java.util.StringTokenizer;
+ import java.util.Vector;
+ 
++import com.netscape.certsrv.apps.CMS;
++import com.netscape.certsrv.base.EBaseException;
++import com.netscape.certsrv.base.IConfigStore;
++import com.netscape.certsrv.base.IExtendedPluginInfo;
++import com.netscape.certsrv.base.ISubsystem;
++import com.netscape.certsrv.logging.ILogger;
++import com.netscape.certsrv.policy.IEnrollmentPolicy;
++import com.netscape.certsrv.policy.IPolicyProcessor;
++import com.netscape.certsrv.request.IRequest;
++import com.netscape.certsrv.request.PolicyResult;
++import com.netscape.cms.policy.APolicyRule;
++
+ import netscape.security.util.ObjectIdentifier;
+ import netscape.security.x509.CPSuri;
+ import netscape.security.x509.CertificateExtensions;
+@@ -37,18 +49,6 @@ import netscape.security.x509.PolicyQualifiers;
+ import netscape.security.x509.UserNotice;
+ import netscape.security.x509.X509CertInfo;
+ 
+-import com.netscape.certsrv.apps.CMS;
+-import com.netscape.certsrv.base.EBaseException;
+-import com.netscape.certsrv.base.IConfigStore;
+-import com.netscape.certsrv.base.IExtendedPluginInfo;
+-import com.netscape.certsrv.base.ISubsystem;
+-import com.netscape.certsrv.logging.ILogger;
+-import com.netscape.certsrv.policy.IEnrollmentPolicy;
+-import com.netscape.certsrv.policy.IPolicyProcessor;
+-import com.netscape.certsrv.request.IRequest;
+-import com.netscape.certsrv.request.PolicyResult;
+-import com.netscape.cms.policy.APolicyRule;
+-
+ /**
+  * Certificate Policies.
+  * Adds certificate policies extension.
+@@ -59,7 +59,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class CertificatePoliciesExt extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/CertificateRenewalWindowExt.java b/base/server/cms/src/com/netscape/cms/policy/extensions/CertificateRenewalWindowExt.java
+index 58ce112f39ceb26e69e6624f336b98975bf21176..cfc793c22ef3143b492a206dc69db7fe5151ed8e 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/CertificateRenewalWindowExt.java
++++ b/base/server/cms/src/com/netscape/cms/policy/extensions/CertificateRenewalWindowExt.java
+@@ -23,11 +23,6 @@ import java.util.Date;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
+-import netscape.security.extensions.CertificateRenewalWindowExtension;
+-import netscape.security.x509.CertificateExtensions;
+-import netscape.security.x509.CertificateVersion;
+-import netscape.security.x509.X509CertInfo;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+@@ -39,6 +34,11 @@ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cms.policy.APolicyRule;
+ 
++import netscape.security.extensions.CertificateRenewalWindowExtension;
++import netscape.security.x509.CertificateExtensions;
++import netscape.security.x509.CertificateVersion;
++import netscape.security.x509.X509CertInfo;
++
+ /**
+  * Certificate Renewal Window Extension Policy
+  * <P>
+@@ -48,7 +48,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class CertificateRenewalWindowExt extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/CertificateScopeOfUseExt.java b/base/server/cms/src/com/netscape/cms/policy/extensions/CertificateScopeOfUseExt.java
+index 779be165b023ab999a690d49a4e9262522cd5d4b..3a4c1eb19299254a58d8578726953a689fe23abd 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/CertificateScopeOfUseExt.java
++++ b/base/server/cms/src/com/netscape/cms/policy/extensions/CertificateScopeOfUseExt.java
+@@ -22,14 +22,6 @@ import java.security.cert.CertificateException;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
+-import netscape.security.extensions.CertificateScopeEntry;
+-import netscape.security.extensions.CertificateScopeOfUseExtension;
+-import netscape.security.util.BigInt;
+-import netscape.security.x509.CertificateExtensions;
+-import netscape.security.x509.CertificateVersion;
+-import netscape.security.x509.GeneralName;
+-import netscape.security.x509.X509CertInfo;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+@@ -42,6 +34,14 @@ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cms.policy.APolicyRule;
+ 
++import netscape.security.extensions.CertificateScopeEntry;
++import netscape.security.extensions.CertificateScopeOfUseExtension;
++import netscape.security.util.BigInt;
++import netscape.security.x509.CertificateExtensions;
++import netscape.security.x509.CertificateVersion;
++import netscape.security.x509.GeneralName;
++import netscape.security.x509.X509CertInfo;
++
+ /**
+  * Certificate Scope Of Use extension policy. This extension
+  * is defined in draft-thayes-cert-scope-00.txt
+@@ -52,7 +52,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class CertificateScopeOfUseExt extends APolicyRule implements
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/ExtendedKeyUsageExt.java b/base/server/cms/src/com/netscape/cms/policy/extensions/ExtendedKeyUsageExt.java
+index 4ba834dbeea8b97835da08635537f467f120caae..84e3a54a246ce314ee51f59c68129d4d85d61390 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/ExtendedKeyUsageExt.java
++++ b/base/server/cms/src/com/netscape/cms/policy/extensions/ExtendedKeyUsageExt.java
+@@ -48,7 +48,6 @@ import netscape.security.x509.X509CertInfo;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class ExtendedKeyUsageExt extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/GenericASN1Ext.java b/base/server/cms/src/com/netscape/cms/policy/extensions/GenericASN1Ext.java
+index 35f5313c13776e018377c99025e81e6eb0ad4abf..2f52f9752b8cb8daf0e4ea89c9e54d57377dd8e6 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/GenericASN1Ext.java
++++ b/base/server/cms/src/com/netscape/cms/policy/extensions/GenericASN1Ext.java
+@@ -27,13 +27,6 @@ import java.util.Hashtable;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
+-import netscape.security.extensions.GenericASN1Extension;
+-import netscape.security.util.ObjectIdentifier;
+-import netscape.security.x509.CertificateExtensions;
+-import netscape.security.x509.CertificateVersion;
+-import netscape.security.x509.OIDMap;
+-import netscape.security.x509.X509CertInfo;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+@@ -45,6 +38,13 @@ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cms.policy.APolicyRule;
+ 
++import netscape.security.extensions.GenericASN1Extension;
++import netscape.security.util.ObjectIdentifier;
++import netscape.security.x509.CertificateExtensions;
++import netscape.security.x509.CertificateVersion;
++import netscape.security.x509.OIDMap;
++import netscape.security.x509.X509CertInfo;
++
+ /**
+  * Private Integer extension policy.
+  * If this policy is enabled, it adds an Private Integer
+@@ -82,7 +82,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class GenericASN1Ext extends APolicyRule implements
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/IssuerAltNameExt.java b/base/server/cms/src/com/netscape/cms/policy/extensions/IssuerAltNameExt.java
+index 9ceaf99bdf3364f0fc15a190bf3a3dc96cfe896f..71eefa041bcc5ebbd5dadfc15645fbc94650eebe 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/IssuerAltNameExt.java
++++ b/base/server/cms/src/com/netscape/cms/policy/extensions/IssuerAltNameExt.java
+@@ -22,11 +22,6 @@ import java.security.cert.CertificateException;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
+-import netscape.security.x509.CertificateExtensions;
+-import netscape.security.x509.CertificateVersion;
+-import netscape.security.x509.IssuerAlternativeNameExtension;
+-import netscape.security.x509.X509CertInfo;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+@@ -40,6 +35,11 @@ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cms.policy.APolicyRule;
+ 
++import netscape.security.x509.CertificateExtensions;
++import netscape.security.x509.CertificateVersion;
++import netscape.security.x509.IssuerAlternativeNameExtension;
++import netscape.security.x509.X509CertInfo;
++
+ /**
+  * Issuer Alt Name Extension policy.
+  *
+@@ -52,7 +52,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class IssuerAltNameExt extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/KeyUsageExt.java b/base/server/cms/src/com/netscape/cms/policy/extensions/KeyUsageExt.java
+index 24e5f45edcbf1c675a2f4d0d59bc72fa7b4d95be..f864ab93c80a8a67807548b681d910aa49f1d971 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/KeyUsageExt.java
++++ b/base/server/cms/src/com/netscape/cms/policy/extensions/KeyUsageExt.java
+@@ -23,12 +23,6 @@ import java.security.cert.X509Certificate;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
+-import netscape.security.x509.CertificateChain;
+-import netscape.security.x509.CertificateExtensions;
+-import netscape.security.x509.CertificateVersion;
+-import netscape.security.x509.KeyUsageExtension;
+-import netscape.security.x509.X509CertInfo;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.authority.ICertAuthority;
+ import com.netscape.certsrv.base.EBaseException;
+@@ -43,6 +37,12 @@ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cms.policy.APolicyRule;
+ 
++import netscape.security.x509.CertificateChain;
++import netscape.security.x509.CertificateExtensions;
++import netscape.security.x509.CertificateVersion;
++import netscape.security.x509.KeyUsageExtension;
++import netscape.security.x509.X509CertInfo;
++
+ /**
+  * Policy to add Key Usage Extension.
+  * Adds the key usage extension based on what's requested.
+@@ -53,7 +53,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class KeyUsageExt extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/NSCCommentExt.java b/base/server/cms/src/com/netscape/cms/policy/extensions/NSCCommentExt.java
+index ca18b80239494702551f452449f1df3699850115..c0b0656bf75bdca078531da6a12e2da9bb4524e4 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/NSCCommentExt.java
++++ b/base/server/cms/src/com/netscape/cms/policy/extensions/NSCCommentExt.java
+@@ -26,11 +26,6 @@ import java.security.cert.CertificateException;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
+-import netscape.security.x509.CertificateExtensions;
+-import netscape.security.x509.CertificateVersion;
+-import netscape.security.x509.NSCCommentExtension;
+-import netscape.security.x509.X509CertInfo;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+@@ -43,6 +38,11 @@ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cms.policy.APolicyRule;
+ 
++import netscape.security.x509.CertificateExtensions;
++import netscape.security.x509.CertificateVersion;
++import netscape.security.x509.NSCCommentExtension;
++import netscape.security.x509.X509CertInfo;
++
+ /**
+  * Netscape comment
+  * Adds Netscape comment policy
+@@ -53,7 +53,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class NSCCommentExt extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/NSCertTypeExt.java b/base/server/cms/src/com/netscape/cms/policy/extensions/NSCertTypeExt.java
+index c5daabed909fde2f97772f5b43e0af109a31c1a9..ed38f6fc8977c9d8776fbe2eaad6afc37dd3e194 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/NSCertTypeExt.java
++++ b/base/server/cms/src/com/netscape/cms/policy/extensions/NSCertTypeExt.java
+@@ -23,13 +23,6 @@ import java.security.cert.X509Certificate;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
+-import netscape.security.extensions.NSCertTypeExtension;
+-import netscape.security.x509.CertificateChain;
+-import netscape.security.x509.CertificateExtensions;
+-import netscape.security.x509.CertificateVersion;
+-import netscape.security.x509.KeyUsageExtension;
+-import netscape.security.x509.X509CertInfo;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.authentication.IAuthToken;
+ import com.netscape.certsrv.authority.ICertAuthority;
+@@ -45,6 +38,13 @@ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cms.policy.APolicyRule;
+ 
++import netscape.security.extensions.NSCertTypeExtension;
++import netscape.security.x509.CertificateChain;
++import netscape.security.x509.CertificateExtensions;
++import netscape.security.x509.CertificateVersion;
++import netscape.security.x509.KeyUsageExtension;
++import netscape.security.x509.X509CertInfo;
++
+ /**
+  * NS Cert Type policy.
+  * Adds the ns cert type extension depending on cert type requested.
+@@ -55,7 +55,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class NSCertTypeExt extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/NameConstraintsExt.java b/base/server/cms/src/com/netscape/cms/policy/extensions/NameConstraintsExt.java
+index 1b132e8357be3be91df4e6e1be2ccad7d6345d6f..41a11c59b38b7136bc8aff678f75da266bd2b91c 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/NameConstraintsExt.java
++++ b/base/server/cms/src/com/netscape/cms/policy/extensions/NameConstraintsExt.java
+@@ -22,13 +22,6 @@ import java.security.cert.CertificateException;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
+-import netscape.security.x509.CertificateExtensions;
+-import netscape.security.x509.CertificateVersion;
+-import netscape.security.x509.GeneralSubtree;
+-import netscape.security.x509.GeneralSubtrees;
+-import netscape.security.x509.NameConstraintsExtension;
+-import netscape.security.x509.X509CertInfo;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+@@ -42,6 +35,13 @@ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cms.policy.APolicyRule;
+ 
++import netscape.security.x509.CertificateExtensions;
++import netscape.security.x509.CertificateVersion;
++import netscape.security.x509.GeneralSubtree;
++import netscape.security.x509.GeneralSubtrees;
++import netscape.security.x509.NameConstraintsExtension;
++import netscape.security.x509.X509CertInfo;
++
+ /**
+  * Name Constraints Extension Policy
+  * Adds the name constraints extension to a (CA) certificate.
+@@ -53,7 +53,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class NameConstraintsExt extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/OCSPNoCheckExt.java b/base/server/cms/src/com/netscape/cms/policy/extensions/OCSPNoCheckExt.java
+index da0584cb04816568bab9d1d3fe3d5b50fc893987..1cb60a72b28756c6224cd6678835802682de3aac 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/OCSPNoCheckExt.java
++++ b/base/server/cms/src/com/netscape/cms/policy/extensions/OCSPNoCheckExt.java
+@@ -48,7 +48,6 @@ import netscape.security.x509.X509CertInfo;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$ $Date$
+  */
+ public class OCSPNoCheckExt extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/PolicyConstraintsExt.java b/base/server/cms/src/com/netscape/cms/policy/extensions/PolicyConstraintsExt.java
+index 0bb77e207188ecff593d29d2b08ada99826b215f..1d5b3cac3f950e8a04663c5888ec686c3ff109b2 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/PolicyConstraintsExt.java
++++ b/base/server/cms/src/com/netscape/cms/policy/extensions/PolicyConstraintsExt.java
+@@ -22,11 +22,6 @@ import java.security.cert.CertificateException;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
+-import netscape.security.x509.CertificateExtensions;
+-import netscape.security.x509.CertificateVersion;
+-import netscape.security.x509.PolicyConstraintsExtension;
+-import netscape.security.x509.X509CertInfo;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+@@ -39,6 +34,11 @@ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cms.policy.APolicyRule;
+ 
++import netscape.security.x509.CertificateExtensions;
++import netscape.security.x509.CertificateVersion;
++import netscape.security.x509.PolicyConstraintsExtension;
++import netscape.security.x509.X509CertInfo;
++
+ /**
+  * Policy Constraints Extension Policy
+  * Adds the policy constraints extension to (CA) certificates.
+@@ -50,7 +50,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class PolicyConstraintsExt extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/PolicyMappingsExt.java b/base/server/cms/src/com/netscape/cms/policy/extensions/PolicyMappingsExt.java
+index 0af8b86cadb05863a3760b51db5c7ca242af21e0..5e20a2d26ceb88c156d6c30aa34a421590786c3e 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/PolicyMappingsExt.java
++++ b/base/server/cms/src/com/netscape/cms/policy/extensions/PolicyMappingsExt.java
+@@ -22,14 +22,6 @@ import java.security.cert.CertificateException;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
+-import netscape.security.util.ObjectIdentifier;
+-import netscape.security.x509.CertificateExtensions;
+-import netscape.security.x509.CertificatePolicyId;
+-import netscape.security.x509.CertificatePolicyMap;
+-import netscape.security.x509.CertificateVersion;
+-import netscape.security.x509.PolicyMappingsExtension;
+-import netscape.security.x509.X509CertInfo;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+@@ -42,6 +34,14 @@ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cms.policy.APolicyRule;
+ 
++import netscape.security.util.ObjectIdentifier;
++import netscape.security.x509.CertificateExtensions;
++import netscape.security.x509.CertificatePolicyId;
++import netscape.security.x509.CertificatePolicyMap;
++import netscape.security.x509.CertificateVersion;
++import netscape.security.x509.PolicyMappingsExtension;
++import netscape.security.x509.X509CertInfo;
++
+ /**
+  * Policy Mappings Extension Policy
+  * Adds the Policy Mappings extension to a (CA) certificate.
+@@ -53,7 +53,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class PolicyMappingsExt extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/PresenceExt.java b/base/server/cms/src/com/netscape/cms/policy/extensions/PresenceExt.java
+index 7f44c8eb039c254cb75ac8efdb705a53ff9b6eae..3b2502f4fdf24a012c8b64c318418621fcb67086 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/PresenceExt.java
++++ b/base/server/cms/src/com/netscape/cms/policy/extensions/PresenceExt.java
+@@ -37,7 +37,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class PresenceExt extends APolicyRule {
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/PrivateKeyUsagePeriodExt.java b/base/server/cms/src/com/netscape/cms/policy/extensions/PrivateKeyUsagePeriodExt.java
+index fd52e9bb1a215a9a536c46c9929d3da79d023f59..17a772e2c8fb1c227f581fe76db1b0dcd8cef14a 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/PrivateKeyUsagePeriodExt.java
++++ b/base/server/cms/src/com/netscape/cms/policy/extensions/PrivateKeyUsagePeriodExt.java
+@@ -24,11 +24,6 @@ import java.util.Date;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
+-import netscape.security.x509.CertificateExtensions;
+-import netscape.security.x509.CertificateVersion;
+-import netscape.security.x509.PrivateKeyUsageExtension;
+-import netscape.security.x509.X509CertInfo;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+@@ -41,6 +36,11 @@ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cms.policy.APolicyRule;
+ 
++import netscape.security.x509.CertificateExtensions;
++import netscape.security.x509.CertificateVersion;
++import netscape.security.x509.PrivateKeyUsageExtension;
++import netscape.security.x509.X509CertInfo;
++
+ /**
+  * PrivateKeyUsagePeriod Identifier Extension policy.
+  * <P>
+@@ -50,7 +50,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class PrivateKeyUsagePeriodExt extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/RemoveBasicConstraintsExt.java b/base/server/cms/src/com/netscape/cms/policy/extensions/RemoveBasicConstraintsExt.java
+index b5d6d8eec80030d78f12080392deb38d2d8dcaaf..f9aca133d64107c4a51b2a5c1ac7a778f2ecc1a6 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/RemoveBasicConstraintsExt.java
++++ b/base/server/cms/src/com/netscape/cms/policy/extensions/RemoveBasicConstraintsExt.java
+@@ -22,10 +22,6 @@ import java.security.cert.CertificateException;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
+-import netscape.security.x509.BasicConstraintsExtension;
+-import netscape.security.x509.CertificateExtensions;
+-import netscape.security.x509.X509CertInfo;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+@@ -36,6 +32,10 @@ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cms.policy.APolicyRule;
+ 
++import netscape.security.x509.BasicConstraintsExtension;
++import netscape.security.x509.CertificateExtensions;
++import netscape.security.x509.X509CertInfo;
++
+ /**
+  * Remove Basic Constraints policy.
+  * Adds the Basic constraints extension.
+@@ -46,7 +46,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class RemoveBasicConstraintsExt extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/SubjAltNameExt.java b/base/server/cms/src/com/netscape/cms/policy/extensions/SubjAltNameExt.java
+index d6e626aa95b6b06f16737688d12648ba482d25c2..1e06b5dd4024ca88fa0cffcb7203ff98b842c641 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/SubjAltNameExt.java
++++ b/base/server/cms/src/com/netscape/cms/policy/extensions/SubjAltNameExt.java
+@@ -22,13 +22,6 @@ import java.security.cert.CertificateException;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
+-import netscape.security.x509.CertificateExtensions;
+-import netscape.security.x509.CertificateVersion;
+-import netscape.security.x509.GeneralNames;
+-import netscape.security.x509.RFC822Name;
+-import netscape.security.x509.SubjectAlternativeNameExtension;
+-import netscape.security.x509.X509CertInfo;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.authentication.IAuthToken;
+ import com.netscape.certsrv.base.EBaseException;
+@@ -41,6 +34,13 @@ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cms.policy.APolicyRule;
+ 
++import netscape.security.x509.CertificateExtensions;
++import netscape.security.x509.CertificateVersion;
++import netscape.security.x509.GeneralNames;
++import netscape.security.x509.RFC822Name;
++import netscape.security.x509.SubjectAlternativeNameExtension;
++import netscape.security.x509.X509CertInfo;
++
+ /**
+  *
+  * THIS POLICY HAS BEEN DEPRECATED SINCE CMS 4.2.
+@@ -63,7 +63,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class SubjAltNameExt extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/SubjectAltNameExt.java b/base/server/cms/src/com/netscape/cms/policy/extensions/SubjectAltNameExt.java
+index 0d89d8876ea366cd411e1f1465ed7d64fe3c6031..3634cc6293887503fd0d261ea912fb166f673153 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/SubjectAltNameExt.java
++++ b/base/server/cms/src/com/netscape/cms/policy/extensions/SubjectAltNameExt.java
+@@ -23,13 +23,6 @@ import java.util.Enumeration;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
+-import netscape.security.x509.CertificateExtensions;
+-import netscape.security.x509.CertificateVersion;
+-import netscape.security.x509.GeneralName;
+-import netscape.security.x509.GeneralNames;
+-import netscape.security.x509.SubjectAlternativeNameExtension;
+-import netscape.security.x509.X509CertInfo;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+@@ -44,6 +37,13 @@ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cms.policy.APolicyRule;
+ 
++import netscape.security.x509.CertificateExtensions;
++import netscape.security.x509.CertificateVersion;
++import netscape.security.x509.GeneralName;
++import netscape.security.x509.GeneralNames;
++import netscape.security.x509.SubjectAlternativeNameExtension;
++import netscape.security.x509.X509CertInfo;
++
+ /**
+  * Subject Alternative Name extension policy.
+  *
+@@ -65,7 +65,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class SubjectAltNameExt extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/SubjectDirectoryAttributesExt.java b/base/server/cms/src/com/netscape/cms/policy/extensions/SubjectDirectoryAttributesExt.java
+index bcd9c9885ea010e8bba364a1a93cc7047c3836fb..f939c3675c78fe60ee4a4a9361ffe9353ad30528 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/SubjectDirectoryAttributesExt.java
++++ b/base/server/cms/src/com/netscape/cms/policy/extensions/SubjectDirectoryAttributesExt.java
+@@ -23,16 +23,6 @@ import java.util.Enumeration;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
+-import netscape.security.util.DerValue;
+-import netscape.security.util.ObjectIdentifier;
+-import netscape.security.x509.AVAValueConverter;
+-import netscape.security.x509.Attribute;
+-import netscape.security.x509.CertificateExtensions;
+-import netscape.security.x509.CertificateVersion;
+-import netscape.security.x509.SubjectDirAttributesExtension;
+-import netscape.security.x509.X500NameAttrMap;
+-import netscape.security.x509.X509CertInfo;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+@@ -44,6 +34,16 @@ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cms.policy.APolicyRule;
+ 
++import netscape.security.util.DerValue;
++import netscape.security.util.ObjectIdentifier;
++import netscape.security.x509.AVAValueConverter;
++import netscape.security.x509.Attribute;
++import netscape.security.x509.CertificateExtensions;
++import netscape.security.x509.CertificateVersion;
++import netscape.security.x509.SubjectDirAttributesExtension;
++import netscape.security.x509.X500NameAttrMap;
++import netscape.security.x509.X509CertInfo;
++
+ /**
+  * Policy to add the subject directory attributes extension.
+  * <P>
+@@ -53,7 +53,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class SubjectDirectoryAttributesExt extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/policy/extensions/SubjectKeyIdentifierExt.java b/base/server/cms/src/com/netscape/cms/policy/extensions/SubjectKeyIdentifierExt.java
+index 16fc73347ea35ef71af359e16d7860371cab1913..1144f8bad0f30a167588999988ce0c7197ae5a2c 100644
+--- a/base/server/cms/src/com/netscape/cms/policy/extensions/SubjectKeyIdentifierExt.java
++++ b/base/server/cms/src/com/netscape/cms/policy/extensions/SubjectKeyIdentifierExt.java
+@@ -24,14 +24,6 @@ import java.security.cert.CertificateException;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
+-import netscape.security.x509.CertificateExtensions;
+-import netscape.security.x509.CertificateVersion;
+-import netscape.security.x509.CertificateX509Key;
+-import netscape.security.x509.KeyIdentifier;
+-import netscape.security.x509.SubjectKeyIdentifierExtension;
+-import netscape.security.x509.X509CertInfo;
+-import netscape.security.x509.X509Key;
+-
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
+@@ -45,6 +37,14 @@ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ import com.netscape.cms.policy.APolicyRule;
+ 
++import netscape.security.x509.CertificateExtensions;
++import netscape.security.x509.CertificateVersion;
++import netscape.security.x509.CertificateX509Key;
++import netscape.security.x509.KeyIdentifier;
++import netscape.security.x509.SubjectKeyIdentifierExtension;
++import netscape.security.x509.X509CertInfo;
++import netscape.security.x509.X509Key;
++
+ /**
+  * Subject Public Key Extension Policy
+  * Adds the subject public key id extension to certificates.
+@@ -55,7 +55,6 @@ import com.netscape.cms.policy.APolicyRule;
+  * </PRE>
+  * <P>
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class SubjectKeyIdentifierExt extends APolicyRule
+diff --git a/base/server/cms/src/com/netscape/cms/servlet/admin/PolicyAdminServlet.java b/base/server/cms/src/com/netscape/cms/servlet/admin/PolicyAdminServlet.java
+index bfc1e6f4af1c74e518616d3715278352854348b1..776c9d2900eec1169f75fc28b23ceeee23fbc3a8 100644
+--- a/base/server/cms/src/com/netscape/cms/servlet/admin/PolicyAdminServlet.java
++++ b/base/server/cms/src/com/netscape/cms/servlet/admin/PolicyAdminServlet.java
+@@ -50,7 +50,6 @@ import com.netscape.certsrv.ra.IRegistrationAuthority;
+  * for registering an instance of this with the remote
+  * administration subsystem.
+  *
+- * @deprecated
+  * @version $Revision$, $Date$
+  */
+ public class PolicyAdminServlet extends AdminServlet {
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/policy/AndExpression.java b/base/server/cmscore/src/com/netscape/cmscore/policy/AndExpression.java
+index 9a2274b11afd58ae76cfd7cea142028f80a8959c..e6e5b496c3dbe0923b550f2ea88411c505b20b36 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/policy/AndExpression.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/policy/AndExpression.java
+@@ -27,7 +27,6 @@ import com.netscape.certsrv.request.IRequest;
+  *
+  * Expressions are used as predicates for policy selection.
+  *
+- * @deprecated
+  * @author kanda
+  * @version $Revision$, $Date$
+  */
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/policy/GeneralNameUtil.java b/base/server/cmscore/src/com/netscape/cmscore/policy/GeneralNameUtil.java
+index 8d8c05bc6c503ddc0fdbc524242906e8321aba3c..6bd60e0093da4b7a29398a745f41db51c8fa6a23 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/policy/GeneralNameUtil.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/policy/GeneralNameUtil.java
+@@ -23,6 +23,19 @@ import java.util.Enumeration;
+ import java.util.StringTokenizer;
+ import java.util.Vector;
+ 
++import com.netscape.certsrv.apps.CMS;
++import com.netscape.certsrv.base.EBaseException;
++import com.netscape.certsrv.base.EPropertyNotFound;
++import com.netscape.certsrv.base.IConfigStore;
++import com.netscape.certsrv.policy.IGeneralNameAsConstraintsConfig;
++import com.netscape.certsrv.policy.IGeneralNameConfig;
++import com.netscape.certsrv.policy.IGeneralNameUtil;
++import com.netscape.certsrv.policy.IGeneralNamesAsConstraintsConfig;
++import com.netscape.certsrv.policy.IGeneralNamesConfig;
++import com.netscape.certsrv.policy.ISubjAltNameConfig;
++import com.netscape.cmscore.util.Debug;
++import com.netscape.cmsutil.util.Utils;
++
+ import netscape.security.util.DerValue;
+ import netscape.security.util.ObjectIdentifier;
+ import netscape.security.x509.DNSName;
+@@ -37,23 +50,9 @@ import netscape.security.x509.RFC822Name;
+ import netscape.security.x509.URIName;
+ import netscape.security.x509.X500Name;
+ 
+-import com.netscape.certsrv.apps.CMS;
+-import com.netscape.certsrv.base.EBaseException;
+-import com.netscape.certsrv.base.EPropertyNotFound;
+-import com.netscape.certsrv.base.IConfigStore;
+-import com.netscape.certsrv.policy.IGeneralNameAsConstraintsConfig;
+-import com.netscape.certsrv.policy.IGeneralNameConfig;
+-import com.netscape.certsrv.policy.IGeneralNameUtil;
+-import com.netscape.certsrv.policy.IGeneralNamesAsConstraintsConfig;
+-import com.netscape.certsrv.policy.IGeneralNamesConfig;
+-import com.netscape.certsrv.policy.ISubjAltNameConfig;
+-import com.netscape.cmscore.util.Debug;
+-import com.netscape.cmsutil.util.Utils;
+-
+ /**
+  * Class that can be used to form general names from configuration file.
+  * Used by policies and extension commands.
+- * @deprecated
+  */
+ public class GeneralNameUtil implements IGeneralNameUtil {
+ 
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/policy/GenericPolicyProcessor.java b/base/server/cmscore/src/com/netscape/cmscore/policy/GenericPolicyProcessor.java
+index 7b3eac27404318a3c1c65dda09c88f6a9a54662b..2a37e71f4c0fddfa4569e061f64761127c9a450f 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/policy/GenericPolicyProcessor.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/policy/GenericPolicyProcessor.java
+@@ -60,7 +60,6 @@ import com.netscape.cmscore.util.Debug;
+  * the processor itself presents itself as one big policy to the
+  * request processor.
+  *
+- * @deprecated
+  * @author kanda
+  * @version $Revision$, $Date$
+  */
+@@ -1479,9 +1478,6 @@ class RegisteredPolicy {
+     }
+ }
+ 
+-/**
+- * @deprecated
+- */
+ class PolicyInstance {
+     String mInstanceId;
+     String mImplId;
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/policy/JavaScriptRequestProxy.java b/base/server/cmscore/src/com/netscape/cmscore/policy/JavaScriptRequestProxy.java
+index 1fbcf27385f5d9438e974d11726346d3d4cb4370..e9a7371d96145c7082582e0f17a6fed1f7dc528c 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/policy/JavaScriptRequestProxy.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/policy/JavaScriptRequestProxy.java
+@@ -21,11 +21,6 @@ import com.netscape.certsrv.policy.IPolicyRule;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.PolicyResult;
+ 
+-/**
+- *
+- * @deprecated
+- *
+- */
+ public class JavaScriptRequestProxy {
+     IRequest req;
+ 
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/policy/OrExpression.java b/base/server/cmscore/src/com/netscape/cmscore/policy/OrExpression.java
+index 512bba256f5af08b82919e8db44d35f2ccbadf2b..7da07a8bcf92a0735d825b06aa41a971cc1e1a9b 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/policy/OrExpression.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/policy/OrExpression.java
+@@ -27,7 +27,6 @@ import com.netscape.certsrv.request.IRequest;
+  *
+  * Expressions are used as predicates for policy selection.
+  *
+- * @deprecated
+  * @author kanda
+  * @version $Revision$, $Date$
+  */
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/policy/PolicyPredicateParser.java b/base/server/cmscore/src/com/netscape/cmscore/policy/PolicyPredicateParser.java
+index c55b84ecef51a333d82bbf531949357130a22f00..08f74e2f58edd07cc03dbae076af1d1da17685ef 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/policy/PolicyPredicateParser.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/policy/PolicyPredicateParser.java
+@@ -36,7 +36,6 @@ import com.netscape.cmscore.util.Debug;
+  * is treated as (a AND b) OR e OR (c AND d)
+  * 4. If this is n't adequate, roll your own.
+  *
+- * @deprecated
+  * @author kanda
+  * @version $Revision$, $Date$
+  */
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/policy/PolicySet.java b/base/server/cmscore/src/com/netscape/cmscore/policy/PolicySet.java
+index b5e3459d1b800b9180c53dd3ef3ed71df6e5c1bd..4c16961309113ec753595d38799d96dbe79a8541 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/policy/PolicySet.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/policy/PolicySet.java
+@@ -33,7 +33,6 @@ import com.netscape.cmscore.util.Debug;
+  * Implements a policy set per IPolicySet interface. This class
+  * uses a vector of ordered policies to enforce priority.
+  *
+- * @deprecated
+  * @author kanda
+  * @version $Revision$, $Date$
+  */
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/policy/SimpleExpression.java b/base/server/cmscore/src/com/netscape/cmscore/policy/SimpleExpression.java
+index 4f8f0eb9ae52282ac406fedcd6f04fb757c4eb34..fa8b7df082d136fe4d88922c54cf2d1f8806e24d 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/policy/SimpleExpression.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/policy/SimpleExpression.java
+@@ -33,7 +33,6 @@ import com.netscape.cmscore.util.Debug;
+  *
+  * Expressions are used as predicates for policy selection.
+  *
+- * @deprecated
+  * @author kanda
+  * @version $Revision$, $Date$
+  */
+-- 
+2.5.5
+

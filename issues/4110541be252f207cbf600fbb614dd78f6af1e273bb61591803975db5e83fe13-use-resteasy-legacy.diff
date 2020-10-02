@@ -1,0 +1,364 @@
+--- a/.classpath
++++ b/.classpath
+@@ -47,6 +47,7 @@
+ 	<classpathentry kind="lib" path="/usr/share/java/resteasy/resteasy-jaxb-provider.jar"/>
+ 	<classpathentry kind="lib" path="/usr/share/java/resteasy/resteasy-jaxrs.jar"/>
+ 	<classpathentry kind="lib" path="/usr/share/java/resteasy/resteasy-jackson-provider.jar"/>
++	<classpathentry kind="lib" path="/usr/share/java/resteasy/resteasy-legacy.jar"/>
+ 	<classpathentry kind="lib" path="/usr/share/java/servlet.jar"/>
+ 	<classpathentry kind="lib" path="/usr/share/java/velocity.jar"/>
+ 	<classpathentry kind="lib" path="/usr/share/java/xerces-j2.jar"/>
+--- a/base/common/CMakeLists.txt
++++ b/base/common/CMakeLists.txt
+@@ -46,6 +46,7 @@ add_custom_command(
+     COMMAND ${CMAKE_COMMAND} -E create_symlink ${JAXRS_API_JAR} lib/jaxrs-api.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink ${RESTEASY_LIB}/resteasy-jaxrs-jandex.jar lib/resteasy-jaxrs-jandex.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink ${RESTEASY_LIB}/resteasy-jaxrs.jar lib/resteasy-jaxrs.jar
++    COMMAND ${CMAKE_COMMAND} -E create_symlink ${RESTEASY_LIB}/resteasy-legacy.jar lib/resteasy-legacy.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink ${SERVLET_JAR} lib/servlet.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink ${SLF4J_API_JAR} lib/slf4j-api.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink ${SLF4J_JDK14_JAR} lib/slf4j-jdk14.jar
+--- a/base/common/src/CMakeLists.txt
++++ b/base/common/src/CMakeLists.txt
+@@ -75,6 +75,13 @@ find_file(RESTEASY_CLIENT_JAR
+         ${RESTEASY_LIB}
+ )
+ 
++find_file(RESTEASY_LEGACY_JAR
++    NAMES
++        resteasy-legacy.jar
++    PATHS
++        ${RESTEASY_LIB}
++)
++
+ find_file(HTTPCLIENT_JAR
+     NAMES
+         httpclient.jar
+@@ -102,7 +109,7 @@ javac(pki-certsrv-classes
+         ${COMMONS_LANG_JAR}
+         ${TOMCAT_CATALINA_JAR} ${TOMCAT_UTIL_JAR} ${SYMKEY_JAR}
+         ${JAXRS_API_JAR} ${RESTEASY_JAXRS_JAR} ${RESTEASY_ATOM_PROVIDER_JAR} ${RESTEASY_CLIENT_JAR}
+-        ${HTTPCLIENT_JAR} ${HTTPCORE_JAR}
++        ${RESTEASY_LEGACY_JAR} ${HTTPCLIENT_JAR} ${HTTPCORE_JAR}
+         ${PKI_NSUTIL_JAR} ${PKI_CMSUTIL_JAR}
+     OUTPUT_DIR
+         ${CMAKE_CURRENT_BINARY_DIR}/classes
+--- a/base/common/src/com/netscape/certsrv/account/AccountResource.java
++++ b/base/common/src/com/netscape/certsrv/account/AccountResource.java
+@@ -22,7 +22,7 @@ import javax.ws.rs.GET;
+ import javax.ws.rs.Path;
+ import javax.ws.rs.core.Response;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.annotations.legacy.ClientResponseType;
+ 
+ import com.netscape.certsrv.acls.ACLMapping;
+ import com.netscape.certsrv.authentication.AuthMethodMapping;
+--- a/base/common/src/com/netscape/certsrv/authority/AuthorityResource.java
++++ b/base/common/src/com/netscape/certsrv/authority/AuthorityResource.java
+@@ -10,7 +10,7 @@ import javax.ws.rs.Produces;
+ import javax.ws.rs.QueryParam;
+ import javax.ws.rs.core.Response;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.annotations.legacy.ClientResponseType;
+ 
+ import com.netscape.certsrv.acls.ACLMapping;
+ import com.netscape.certsrv.authentication.AuthMethodMapping;
+--- a/base/common/src/com/netscape/certsrv/cert/CertRequestResource.java
++++ b/base/common/src/com/netscape/certsrv/cert/CertRequestResource.java
+@@ -24,7 +24,7 @@ import javax.ws.rs.PathParam;
+ import javax.ws.rs.QueryParam;
+ import javax.ws.rs.core.Response;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.annotations.legacy.ClientResponseType;
+ 
+ import com.netscape.certsrv.acls.ACLMapping;
+ import com.netscape.certsrv.authentication.AuthMethodMapping;
+--- a/base/common/src/com/netscape/certsrv/cert/CertResource.java
++++ b/base/common/src/com/netscape/certsrv/cert/CertResource.java
+@@ -7,7 +7,7 @@ import javax.ws.rs.PathParam;
+ import javax.ws.rs.QueryParam;
+ import javax.ws.rs.core.Response;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.annotations.legacy.ClientResponseType;
+ 
+ import com.netscape.certsrv.acls.ACLMapping;
+ import com.netscape.certsrv.authentication.AuthMethodMapping;
+--- a/base/common/src/com/netscape/certsrv/group/GroupResource.java
++++ b/base/common/src/com/netscape/certsrv/group/GroupResource.java
+@@ -26,7 +26,7 @@ import javax.ws.rs.PathParam;
+ import javax.ws.rs.QueryParam;
+ import javax.ws.rs.core.Response;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.annotations.legacy.ClientResponseType;
+ 
+ import com.netscape.certsrv.acls.ACLMapping;
+ import com.netscape.certsrv.authentication.AuthMethodMapping;
+--- a/base/common/src/com/netscape/certsrv/key/KeyRequestResource.java
++++ b/base/common/src/com/netscape/certsrv/key/KeyRequestResource.java
+@@ -10,7 +10,7 @@ import javax.ws.rs.core.MediaType;
+ import javax.ws.rs.core.MultivaluedMap;
+ import javax.ws.rs.core.Response;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.annotations.legacy.ClientResponseType;
+ 
+ import com.netscape.certsrv.acls.ACLMapping;
+ import com.netscape.certsrv.authentication.AuthMethodMapping;
+--- a/base/common/src/com/netscape/certsrv/key/KeyResource.java
++++ b/base/common/src/com/netscape/certsrv/key/KeyResource.java
+@@ -10,7 +10,7 @@ import javax.ws.rs.core.MediaType;
+ import javax.ws.rs.core.MultivaluedMap;
+ import javax.ws.rs.core.Response;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.annotations.legacy.ClientResponseType;
+ 
+ import com.netscape.certsrv.acls.ACLMapping;
+ import com.netscape.certsrv.authentication.AuthMethodMapping;
+--- a/base/common/src/com/netscape/certsrv/logging/ActivityResource.java
++++ b/base/common/src/com/netscape/certsrv/logging/ActivityResource.java
+@@ -23,7 +23,7 @@ import javax.ws.rs.PathParam;
+ import javax.ws.rs.QueryParam;
+ import javax.ws.rs.core.Response;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.annotations.legacy.ClientResponseType;
+ 
+ 
+ /**
+--- a/base/common/src/com/netscape/certsrv/logging/AuditResource.java
++++ b/base/common/src/com/netscape/certsrv/logging/AuditResource.java
+@@ -27,7 +27,7 @@ import javax.ws.rs.core.MediaType;
+ import javax.ws.rs.core.Response;
+ import javax.ws.rs.core.StreamingOutput;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.annotations.legacy.ClientResponseType;
+ 
+ import com.netscape.certsrv.acls.ACLMapping;
+ import com.netscape.certsrv.authentication.AuthMethodMapping;
+--- a/base/common/src/com/netscape/certsrv/profile/ProfileResource.java
++++ b/base/common/src/com/netscape/certsrv/profile/ProfileResource.java
+@@ -9,7 +9,7 @@ import javax.ws.rs.PathParam;
+ import javax.ws.rs.QueryParam;
+ import javax.ws.rs.core.Response;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.annotations.legacy.ClientResponseType;
+ 
+ import com.netscape.certsrv.acls.ACLMapping;
+ import com.netscape.certsrv.authentication.AuthMethodMapping;
+--- a/base/common/src/com/netscape/certsrv/selftests/SelfTestResource.java
++++ b/base/common/src/com/netscape/certsrv/selftests/SelfTestResource.java
+@@ -24,7 +24,7 @@ import javax.ws.rs.PathParam;
+ import javax.ws.rs.QueryParam;
+ import javax.ws.rs.core.Response;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.annotations.legacy.ClientResponseType;
+ 
+ import com.netscape.certsrv.acls.ACLMapping;
+ import com.netscape.certsrv.authentication.AuthMethodMapping;
+--- a/base/common/src/com/netscape/certsrv/system/FeatureResource.java
++++ b/base/common/src/com/netscape/certsrv/system/FeatureResource.java
+@@ -22,7 +22,7 @@ import javax.ws.rs.Path;
+ import javax.ws.rs.PathParam;
+ import javax.ws.rs.core.Response;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.annotations.legacy.ClientResponseType;
+ 
+ /**
+  * @author alee
+--- a/base/common/src/com/netscape/certsrv/system/KRAConnectorResource.java
++++ b/base/common/src/com/netscape/certsrv/system/KRAConnectorResource.java
+@@ -23,7 +23,7 @@ import javax.ws.rs.Path;
+ import javax.ws.rs.QueryParam;
+ import javax.ws.rs.core.Response;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.annotations.legacy.ClientResponseType;
+ 
+ import com.netscape.certsrv.acls.ACLMapping;
+ import com.netscape.certsrv.authentication.AuthMethodMapping;
+--- a/base/common/src/com/netscape/certsrv/system/SecurityDomainResource.java
++++ b/base/common/src/com/netscape/certsrv/system/SecurityDomainResource.java
+@@ -22,7 +22,7 @@ import javax.ws.rs.Path;
+ import javax.ws.rs.QueryParam;
+ import javax.ws.rs.core.Response;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.annotations.legacy.ClientResponseType;
+ 
+ import com.netscape.certsrv.acls.ACLMapping;
+ import com.netscape.certsrv.authentication.AuthMethodMapping;
+--- a/base/common/src/com/netscape/certsrv/system/SystemCertResource.java
++++ b/base/common/src/com/netscape/certsrv/system/SystemCertResource.java
+@@ -4,7 +4,7 @@ import javax.ws.rs.GET;
+ import javax.ws.rs.Path;
+ import javax.ws.rs.core.Response;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.annotations.legacy.ClientResponseType;
+ 
+ import com.netscape.certsrv.cert.CertData;
+ 
+--- a/base/common/src/com/netscape/certsrv/system/TPSConnectorResource.java
++++ b/base/common/src/com/netscape/certsrv/system/TPSConnectorResource.java
+@@ -26,7 +26,7 @@ import javax.ws.rs.PathParam;
+ import javax.ws.rs.QueryParam;
+ import javax.ws.rs.core.Response;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.annotations.legacy.ClientResponseType;
+ 
+ import com.netscape.certsrv.acls.ACLMapping;
+ import com.netscape.certsrv.authentication.AuthMethodMapping;
+--- a/base/common/src/com/netscape/certsrv/tps/authenticator/AuthenticatorResource.java
++++ b/base/common/src/com/netscape/certsrv/tps/authenticator/AuthenticatorResource.java
+@@ -25,7 +25,7 @@ import javax.ws.rs.PathParam;
+ import javax.ws.rs.QueryParam;
+ import javax.ws.rs.core.Response;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.annotations.legacy.ClientResponseType;
+ 
+ import com.netscape.certsrv.acls.ACLMapping;
+ import com.netscape.certsrv.authentication.AuthMethodMapping;
+--- a/base/common/src/com/netscape/certsrv/tps/cert/TPSCertResource.java
++++ b/base/common/src/com/netscape/certsrv/tps/cert/TPSCertResource.java
+@@ -23,7 +23,7 @@ import javax.ws.rs.PathParam;
+ import javax.ws.rs.QueryParam;
+ import javax.ws.rs.core.Response;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.annotations.legacy.ClientResponseType;
+ 
+ 
+ /**
+--- a/base/common/src/com/netscape/certsrv/tps/config/ConfigResource.java
++++ b/base/common/src/com/netscape/certsrv/tps/config/ConfigResource.java
+@@ -21,7 +21,7 @@ import javax.ws.rs.GET;
+ import javax.ws.rs.Path;
+ import javax.ws.rs.core.Response;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.annotations.legacy.ClientResponseType;
+ 
+ import com.netscape.certsrv.acls.ACLMapping;
+ import com.netscape.certsrv.authentication.AuthMethodMapping;
+--- a/base/common/src/com/netscape/certsrv/tps/connector/ConnectorResource.java
++++ b/base/common/src/com/netscape/certsrv/tps/connector/ConnectorResource.java
+@@ -25,7 +25,7 @@ import javax.ws.rs.PathParam;
+ import javax.ws.rs.QueryParam;
+ import javax.ws.rs.core.Response;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.annotations.legacy.ClientResponseType;
+ 
+ import com.netscape.certsrv.acls.ACLMapping;
+ import com.netscape.certsrv.authentication.AuthMethodMapping;
+--- a/base/common/src/com/netscape/certsrv/tps/profile/ProfileMappingResource.java
++++ b/base/common/src/com/netscape/certsrv/tps/profile/ProfileMappingResource.java
+@@ -25,7 +25,7 @@ import javax.ws.rs.PathParam;
+ import javax.ws.rs.QueryParam;
+ import javax.ws.rs.core.Response;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.annotations.legacy.ClientResponseType;
+ 
+ import com.netscape.certsrv.acls.ACLMapping;
+ import com.netscape.certsrv.authentication.AuthMethodMapping;
+--- a/base/common/src/com/netscape/certsrv/tps/profile/ProfileResource.java
++++ b/base/common/src/com/netscape/certsrv/tps/profile/ProfileResource.java
+@@ -25,7 +25,7 @@ import javax.ws.rs.PathParam;
+ import javax.ws.rs.QueryParam;
+ import javax.ws.rs.core.Response;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.annotations.legacy.ClientResponseType;
+ 
+ import com.netscape.certsrv.acls.ACLMapping;
+ import com.netscape.certsrv.authentication.AuthMethodMapping;
+--- a/base/common/src/com/netscape/certsrv/tps/token/TokenResource.java
++++ b/base/common/src/com/netscape/certsrv/tps/token/TokenResource.java
+@@ -26,7 +26,7 @@ import javax.ws.rs.PathParam;
+ import javax.ws.rs.QueryParam;
+ import javax.ws.rs.core.Response;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.annotations.legacy.ClientResponseType;
+ 
+ import com.netscape.certsrv.acls.ACLMapping;
+ import com.netscape.certsrv.authentication.AuthMethodMapping;
+--- a/base/common/src/com/netscape/certsrv/user/UserResource.java
++++ b/base/common/src/com/netscape/certsrv/user/UserResource.java
+@@ -27,7 +27,7 @@ import javax.ws.rs.PathParam;
+ import javax.ws.rs.QueryParam;
+ import javax.ws.rs.core.Response;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.annotations.legacy.ClientResponseType;
+ 
+ import com.netscape.certsrv.acls.ACLMapping;
+ import com.netscape.certsrv.authentication.AuthMethodMapping;
+--- a/base/javadoc/CMakeLists.txt
++++ b/base/javadoc/CMakeLists.txt
+@@ -98,7 +98,7 @@ javadoc(pki-javadoc
+         ${HTTPCLIENT_JAR} ${HTTPCORE_JAR}
+         ${JAXRS_API_JAR} ${RESTEASY_JAXRS_JAR} ${RESTEASY_ATOM_PROVIDER_JAR} ${RESTEASY_CLIENT_JAR}
+         ${PKI_CMSUTIL_JAR} ${PKI_CERTSRV_JAR} ${PKI_TOMCAT_JAR} ${PKI_CMS_JAR} ${PKI_TOOLS_JAR}
+-        ${NUXWDOG_JAR}
++        ${NUXWDOG_JAR} ${RESTEASY_LEGACY_JAR}
+     OPTIONS
+         -windowtitle 'pki-javadoc'
+         -doctitle '<h1>PKI Javadoc</h1>'
+--- a/base/common/src/org/dogtagpki/common/CAInfoResource.java
++++ b/base/common/src/org/dogtagpki/common/CAInfoResource.java
+@@ -22,7 +22,7 @@ import javax.ws.rs.GET;
+ import javax.ws.rs.Path;
+ import javax.ws.rs.core.Response;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.annotations.legacy.ClientResponseType;
+ 
+ /**
+  * @author Ade Lee
+--- a/base/common/src/org/dogtagpki/common/InfoResource.java
++++ b/base/common/src/org/dogtagpki/common/InfoResource.java
+@@ -22,7 +22,7 @@ import javax.ws.rs.GET;
+ import javax.ws.rs.Path;
+ import javax.ws.rs.core.Response;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.annotations.legacy.ClientResponseType;
+ 
+ /**
+  * @author Endi S. Dewata
+--- a/base/common/src/org/dogtagpki/common/KRAInfoResource.java
++++ b/base/common/src/org/dogtagpki/common/KRAInfoResource.java
+@@ -22,7 +22,7 @@ import javax.ws.rs.GET;
+ import javax.ws.rs.Path;
+ import javax.ws.rs.core.Response;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.annotations.legacy.ClientResponseType;
+ 
+ /**
+  * @author Ade Lee
+--- a/base/common/src/org/dogtagpki/common/LoginResource.java
++++ b/base/common/src/org/dogtagpki/common/LoginResource.java
+@@ -22,7 +22,7 @@ import javax.ws.rs.POST;
+ import javax.ws.rs.Path;
+ import javax.ws.rs.core.Response;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.annotations.legacy.ClientResponseType;
+ 
+ /**
+  * @author Endi S. Dewata

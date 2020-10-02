@@ -1,0 +1,69 @@
+From bf0ad3c901b2bf8385cdc642b8c485ba54ad62bf Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Wed, 16 Nov 2016 03:42:49 +0100
+Subject: [PATCH] Fixed hanging subordinate CA with HSM installation in FIPS
+ mode.
+
+When installing subordinate CA with HSM, the installer calls the
+pki CLI (which is implemented using JSS) to validate the imported
+CA certificate in HSM. Normally, the HSM password is specified as
+CLI parameter, but in FIPS mode JSS requires both the HSM and the
+internal token passwords. Since the CLI only takes one password,
+JSS will prompt for the missing one on the console causing the
+installation to hang.
+
+As a temporary solution, the pki-server subsystem-cert-validate
+command has been modified to validate certificates stored in the
+internal token only and it will use the internal token password,
+so only a single password is required. Further investigation in
+CLI/JSS/NSS is needed to support validating certificates in HSM
+without password prompts.
+
+https://fedorahosted.org/pki/ticket/2543
+---
+ base/server/python/pki/server/cli/subsystem.py | 21 ++++++++-------------
+ 1 file changed, 8 insertions(+), 13 deletions(-)
+
+diff --git a/base/server/python/pki/server/cli/subsystem.py b/base/server/python/pki/server/cli/subsystem.py
+index 42da26e10b3741a230e7f2344508b0c3a42d86e6..04461f2f66a4f278176bc8c3d700472a5de2196a 100644
+--- a/base/server/python/pki/server/cli/subsystem.py
++++ b/base/server/python/pki/server/cli/subsystem.py
+@@ -951,11 +951,8 @@ class SubsystemCertValidateCLI(pki.cli.CLI):
+ 
+         print('  Token: %s' % token)
+ 
+-        if token and token.lower() in ['internal', 'internal key storage token']:
+-            token = None
+-
+-        # get token password and store in temporary file
+-        passwd = instance.get_token_password(token)
++        # get internal token password and store in temporary file
++        passwd = instance.get_token_password()
+ 
+         pwfile_handle, pwfile_path = mkstemp()
+         os.write(pwfile_handle, passwd)
+@@ -964,15 +961,13 @@ class SubsystemCertValidateCLI(pki.cli.CLI):
+         try:
+             cmd = ['pki',
+                    '-d', instance.nssdb_dir,
+-                   '-C', pwfile_path]
++                   '-C', pwfile_path,
++                   'client-cert-validate',
++                   nickname,
++                   '--certusage', usage]
+ 
+-            if token:
+-                cmd.extend(['--token', token])
+-
+-            cmd.extend(['client-cert-validate',
+-                        nickname,
+-                        '--certusage', usage
+-                       ])
++            if self.verbose:
++                print('Command: %s' % cmd)
+ 
+             subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+             print('  Status: VALID')
+-- 
+2.5.5
+

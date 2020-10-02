@@ -1,0 +1,50 @@
+From 7d90e12fd05ae58b1d02c2e944c4807d26cd21c5 Mon Sep 17 00:00:00 2001
+From: Christian Heimes <cheimes@redhat.com>
+Date: Thu, 25 Feb 2016 12:46:35 +0100
+Subject: [PATCH 3/3] Silence pylint 1.5 false positives
+
+Pylint 1.5 complains about additional issues. All issues are false
+positives.
+
+https://fedorahosted.org/pki/attachment/ticket/2223
+---
+ base/common/python/pki/cert.py       | 10 ++++------
+ base/common/python/pki/systemcert.py |  1 +
+ 2 files changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/base/common/python/pki/cert.py b/base/common/python/pki/cert.py
+index c03bf60074581eaaf2b16d2f940b5175623c4fd5..05db87c73c9337a59e88371b468f459f4986ff62 100644
+--- a/base/common/python/pki/cert.py
++++ b/base/common/python/pki/cert.py
+@@ -603,12 +603,10 @@ class CertReviewResponse(CertEnrollmentRequest):
+ 
+         profile_policy_sets = attr_list['ProfilePolicySet']
+         if not isinstance(profile_policy_sets, list):
+-            review_response.policy_sets.append(
+-                profile.ProfilePolicySet.from_json(profile_policy_sets))
+-        else:
+-            for policy_set in profile_policy_sets:
+-                review_response.policy_sets.append(
+-                    profile.ProfilePolicySet.from_json(policy_set))
++            profile_policy_sets = [profile_policy_sets]
++        for policy_set in profile_policy_sets:
++            review_response.policy_sets.append(  # pylint: disable=E1101
++                profile.ProfilePolicySet.from_json(policy_set))
+ 
+         return review_response
+ 
+diff --git a/base/common/python/pki/systemcert.py b/base/common/python/pki/systemcert.py
+index a7d4e1c718cf8368b3f832bbec61ef5e78fae080..7e450b9ed10f54ddb6fbc04d126cf44e601f08e3 100644
+--- a/base/common/python/pki/systemcert.py
++++ b/base/common/python/pki/systemcert.py
+@@ -54,6 +54,7 @@ class SystemCertClient(object):
+         cert_data = CertData.from_json(response.json())
+ 
+         pem = cert_data.encoded
++        # pylint: disable=E1136
+         b64 = pem[len(pki.CERT_HEADER):len(pem) - len(pki.CERT_FOOTER)]
+         cert_data.binary = decode_cert(b64)
+ 
+-- 
+2.5.0
+

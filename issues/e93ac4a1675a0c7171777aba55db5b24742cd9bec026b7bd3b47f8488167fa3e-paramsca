@@ -1,0 +1,115 @@
+[DEFAULT]
+
+pki_instance_name=pki-saili
+pki_https_port=30002
+pki_http_port=30010
+pki_ajp_port=30004
+pki_tomcat_server_port=30005
+pki_user=pkiuser 
+pki_group=pkiuser 
+pki_audit_group=pkiaudit
+pki_token_name=saili 
+pki_token_password=Secret123
+pki_client_pkcs12_password=Secret123
+pki_admin_password=Secret123
+pki_ds_password=Secret123
+
+[CA]
+
+pki_ca_signing_key_type=rsa
+pki_ca_signing_key_size=2048
+pki_ca_signing_key_algorithm=SHA512withRSA  
+pki_ca_signing_signing_algorithm=SHA512withRSA 
+pki_ca_signing_token=/tmp/saili
+pki_ca_signing_nickname=cacert      
+pki_ca_signing_subject_dn=CN=PKI Signing,O=idm.lab.bos.redhat.com 
+
+pki_ocsp_signing_key_type=rsa
+pki_ocsp_signing_key_size=2048
+pki_ocsp_signing_key_algorithm=SHA512withRSA
+pki_ocsp_signing_signing_algorithm=SHA512withRSA
+pki_ocsp_signing_token=/tmp/saili
+pki_ocsp_signing_nickname=caocspsigningcert
+pki_ocsp_signing_subject_dn=CN=PKI CA OCSP Signing,O=idm.lab.bos.redhat.com
+
+
+pki_audit_signing_key_algorithm=SHA256withRSA
+pki_audit_signing_key_size=2048
+pki_audit_signing_key_type=rsa
+pki_audit_signing_signing_algorithm=SHA256withRSA
+pki_audit_signing_token=saili
+pki_audit_signing_nickname=caauditsigningcert
+pki_audit_signing_subject_dn=CN=PKI Audit Signing,O=idm.lab.bos.redhat.com
+
+pki_ssl_server_key_algorithm=SHA256withRSA
+pki_ssl_server_key_size=2048
+pki_ssl_server_key_type=rsa
+pki_ssl_server_nickname=Server-Cert cert-%(pki_instance_name)s
+pki_ssl_server_subject_dn=cn=PKI SSL Server Cert,o=%(pki_security_domain_name)s
+pki_ssl_server_token=Internal Key Storage Token
+
+##Admin Params
+
+pki_admin_name=caadmin1
+pki_admin_uid=1002
+pki_admin_email=saipandi@redhat.com
+pki_admin_dualkey=True    
+pki_admin_keysize=2048
+pki_admin_keytype=rsa
+pki_admin_subject_dn=CN=PKI   Administrator, E=%(pki_admin_email)s, O=idm.lab.bos.redhat.com
+pki_admin_nickname=caadmincert
+pki_import_admin_cert=False       
+pki_client_dir=/tmp/saili
+pki_client_admin_cert_p12=/tmp/saili/caadmincert.p12
+
+##Agent params
+
+pki_agent_name=caagent1
+pki_agent_key_size=2048
+pki_agent_key_type=rsa
+pki_agent_email=saipandi@redhat.com
+pki_agent_dualkey=True    
+pki_agent_subject_dn=CN=PKI   Auditor, E=%(pki_admin_email)s, O=idm.lab.bos.redhat.com
+pki_agent_nickname=caauditcert
+
+
+##BACKUP PARAMETERS
+
+pki_backup_keys=True
+pki_backup_password=Secret123
+pki_backup_fname=/tmp/saili/backup.p12
+
+##CLIENT DIRECTORY PARAMETER
+
+pki_client_database_dir=/tmp/saili/db
+pki_client_database_password=Secret123
+pki_client_database_purge=True
+
+##Security Domain Parameters
+
+pki_security_domain_hostname= blade03.idm.lab.eng.rdu2.redhat.com 
+pki_security_domain_https_port=30002
+pki_security_domain_user=       1002
+pki_security_domain_password= Secret123
+pki_security_domain_name=idm.lab.eng.rdu2.redhat.com
+
+##INTERNAL DATABASE PARAMETERS
+
+pki_ds_hostname=localhost
+pki_ds_ldap_port=389
+pki_ds_bind_dn=CN=Directory Manager
+pki_ds_password=Secret123
+pki_ds_secure_connection=False
+pki_ds_remove_data=True
+pki_ds_base_dn =dc=pki-saili
+pki_ds_database=slapd-blade03
+
+#MISCELLANEOUS PARAMETERS
+
+pki_restart_configured_instance=True
+pki_skip_configuration=False
+pki_skip_installation=False
+pki_enable_access_log=True
+pki_enable_java_debugger=False
+pki_security_manager=True
+

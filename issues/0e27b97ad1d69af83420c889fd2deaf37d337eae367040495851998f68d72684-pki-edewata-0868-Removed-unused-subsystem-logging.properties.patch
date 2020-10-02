@@ -1,0 +1,405 @@
+From 2486be1b2c2b1355480fa92ba81700c5cf0ded81 Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Thu, 17 Nov 2016 00:10:55 +0100
+Subject: [PATCH] Removed unused subsystem logging.properties.
+
+The logging.properties files in the subsystem folders are never
+deployed so they have been removed.
+
+https://fedorahosted.org/pki/ticket/1897
+---
+ base/ca/shared/conf/logging.properties   | 70 --------------------------------
+ base/kra/shared/conf/logging.properties  | 70 --------------------------------
+ base/ocsp/shared/conf/logging.properties | 70 --------------------------------
+ base/tks/shared/conf/logging.properties  | 70 --------------------------------
+ base/tps/shared/conf/logging.properties  | 70 --------------------------------
+ 5 files changed, 350 deletions(-)
+ delete mode 100644 base/ca/shared/conf/logging.properties
+ delete mode 100644 base/kra/shared/conf/logging.properties
+ delete mode 100644 base/ocsp/shared/conf/logging.properties
+ delete mode 100644 base/tks/shared/conf/logging.properties
+ delete mode 100644 base/tps/shared/conf/logging.properties
+
+diff --git a/base/ca/shared/conf/logging.properties b/base/ca/shared/conf/logging.properties
+deleted file mode 100644
+index 796cfc07152b08b2afc4102d2ba60f3162f3ba96..0000000000000000000000000000000000000000
+--- a/base/ca/shared/conf/logging.properties
++++ /dev/null
+@@ -1,70 +0,0 @@
+-# --- BEGIN COPYRIGHT BLOCK ---
+-# Copyright (C) 2006-2010 Red Hat, Inc.
+-# All rights reserved.
+-# Modifications: configuration parameters
+-# --- END COPYRIGHT BLOCK ---
+-
+-# Licensed to the Apache Software Foundation (ASF) under one or more
+-# contributor license agreements.  See the NOTICE file distributed with
+-# this work for additional information regarding copyright ownership.
+-# The ASF licenses this file to You under the Apache License, Version 2.0
+-# (the "License"); you may not use this file except in compliance with
+-# the License.  You may obtain a copy of the License at
+-#
+-#     http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-
+-handlers = 1catalina.org.apache.juli.FileHandler, 2localhost.org.apache.juli.FileHandler, 3manager.org.apache.juli.FileHandler, 4host-manager.org.apache.juli.FileHandler, java.util.logging.ConsoleHandler
+-
+-.handlers = 1catalina.org.apache.juli.FileHandler, java.util.logging.ConsoleHandler
+-
+-############################################################
+-# Handler specific properties.
+-# Describes specific configuration info for Handlers.
+-############################################################
+-
+-1catalina.org.apache.juli.FileHandler.level = FINE
+-1catalina.org.apache.juli.FileHandler.directory = ${catalina.base}/logs
+-1catalina.org.apache.juli.FileHandler.prefix = catalina.
+-
+-2localhost.org.apache.juli.FileHandler.level = FINE
+-2localhost.org.apache.juli.FileHandler.directory = ${catalina.base}/logs
+-2localhost.org.apache.juli.FileHandler.prefix = localhost.
+-
+-3manager.org.apache.juli.FileHandler.level = FINE
+-3manager.org.apache.juli.FileHandler.directory = ${catalina.base}/logs
+-3manager.org.apache.juli.FileHandler.prefix = manager.
+-
+-4host-manager.org.apache.juli.FileHandler.level = FINE
+-4host-manager.org.apache.juli.FileHandler.directory = ${catalina.base}/logs
+-4host-manager.org.apache.juli.FileHandler.prefix = host-manager.
+-
+-java.util.logging.ConsoleHandler.level = FINE
+-java.util.logging.ConsoleHandler.formatter = java.util.logging.SimpleFormatter
+-
+-
+-############################################################
+-# Facility specific properties.
+-# Provides extra control for each logger.
+-############################################################
+-
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].level = INFO
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].handlers = 2localhost.org.apache.juli.FileHandler
+-
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/manager].level = INFO
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/manager].handlers = 3manager.org.apache.juli.FileHandler
+-
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/host-manager].level = INFO
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/host-manager].handlers = 4host-manager.org.apache.juli.FileHandler
+-
+-# For example, set the com.xyz.foo logger to only log SEVERE
+-# messages:
+-#org.apache.catalina.startup.ContextConfig.level = FINE
+-#org.apache.catalina.startup.HostConfig.level = FINE
+-#org.apache.catalina.session.ManagerBase.level = FINE
+-#org.apache.catalina.core.AprLifecycleListener.level=FINE
+diff --git a/base/kra/shared/conf/logging.properties b/base/kra/shared/conf/logging.properties
+deleted file mode 100644
+index 796cfc07152b08b2afc4102d2ba60f3162f3ba96..0000000000000000000000000000000000000000
+--- a/base/kra/shared/conf/logging.properties
++++ /dev/null
+@@ -1,70 +0,0 @@
+-# --- BEGIN COPYRIGHT BLOCK ---
+-# Copyright (C) 2006-2010 Red Hat, Inc.
+-# All rights reserved.
+-# Modifications: configuration parameters
+-# --- END COPYRIGHT BLOCK ---
+-
+-# Licensed to the Apache Software Foundation (ASF) under one or more
+-# contributor license agreements.  See the NOTICE file distributed with
+-# this work for additional information regarding copyright ownership.
+-# The ASF licenses this file to You under the Apache License, Version 2.0
+-# (the "License"); you may not use this file except in compliance with
+-# the License.  You may obtain a copy of the License at
+-#
+-#     http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-
+-handlers = 1catalina.org.apache.juli.FileHandler, 2localhost.org.apache.juli.FileHandler, 3manager.org.apache.juli.FileHandler, 4host-manager.org.apache.juli.FileHandler, java.util.logging.ConsoleHandler
+-
+-.handlers = 1catalina.org.apache.juli.FileHandler, java.util.logging.ConsoleHandler
+-
+-############################################################
+-# Handler specific properties.
+-# Describes specific configuration info for Handlers.
+-############################################################
+-
+-1catalina.org.apache.juli.FileHandler.level = FINE
+-1catalina.org.apache.juli.FileHandler.directory = ${catalina.base}/logs
+-1catalina.org.apache.juli.FileHandler.prefix = catalina.
+-
+-2localhost.org.apache.juli.FileHandler.level = FINE
+-2localhost.org.apache.juli.FileHandler.directory = ${catalina.base}/logs
+-2localhost.org.apache.juli.FileHandler.prefix = localhost.
+-
+-3manager.org.apache.juli.FileHandler.level = FINE
+-3manager.org.apache.juli.FileHandler.directory = ${catalina.base}/logs
+-3manager.org.apache.juli.FileHandler.prefix = manager.
+-
+-4host-manager.org.apache.juli.FileHandler.level = FINE
+-4host-manager.org.apache.juli.FileHandler.directory = ${catalina.base}/logs
+-4host-manager.org.apache.juli.FileHandler.prefix = host-manager.
+-
+-java.util.logging.ConsoleHandler.level = FINE
+-java.util.logging.ConsoleHandler.formatter = java.util.logging.SimpleFormatter
+-
+-
+-############################################################
+-# Facility specific properties.
+-# Provides extra control for each logger.
+-############################################################
+-
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].level = INFO
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].handlers = 2localhost.org.apache.juli.FileHandler
+-
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/manager].level = INFO
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/manager].handlers = 3manager.org.apache.juli.FileHandler
+-
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/host-manager].level = INFO
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/host-manager].handlers = 4host-manager.org.apache.juli.FileHandler
+-
+-# For example, set the com.xyz.foo logger to only log SEVERE
+-# messages:
+-#org.apache.catalina.startup.ContextConfig.level = FINE
+-#org.apache.catalina.startup.HostConfig.level = FINE
+-#org.apache.catalina.session.ManagerBase.level = FINE
+-#org.apache.catalina.core.AprLifecycleListener.level=FINE
+diff --git a/base/ocsp/shared/conf/logging.properties b/base/ocsp/shared/conf/logging.properties
+deleted file mode 100644
+index 796cfc07152b08b2afc4102d2ba60f3162f3ba96..0000000000000000000000000000000000000000
+--- a/base/ocsp/shared/conf/logging.properties
++++ /dev/null
+@@ -1,70 +0,0 @@
+-# --- BEGIN COPYRIGHT BLOCK ---
+-# Copyright (C) 2006-2010 Red Hat, Inc.
+-# All rights reserved.
+-# Modifications: configuration parameters
+-# --- END COPYRIGHT BLOCK ---
+-
+-# Licensed to the Apache Software Foundation (ASF) under one or more
+-# contributor license agreements.  See the NOTICE file distributed with
+-# this work for additional information regarding copyright ownership.
+-# The ASF licenses this file to You under the Apache License, Version 2.0
+-# (the "License"); you may not use this file except in compliance with
+-# the License.  You may obtain a copy of the License at
+-#
+-#     http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-
+-handlers = 1catalina.org.apache.juli.FileHandler, 2localhost.org.apache.juli.FileHandler, 3manager.org.apache.juli.FileHandler, 4host-manager.org.apache.juli.FileHandler, java.util.logging.ConsoleHandler
+-
+-.handlers = 1catalina.org.apache.juli.FileHandler, java.util.logging.ConsoleHandler
+-
+-############################################################
+-# Handler specific properties.
+-# Describes specific configuration info for Handlers.
+-############################################################
+-
+-1catalina.org.apache.juli.FileHandler.level = FINE
+-1catalina.org.apache.juli.FileHandler.directory = ${catalina.base}/logs
+-1catalina.org.apache.juli.FileHandler.prefix = catalina.
+-
+-2localhost.org.apache.juli.FileHandler.level = FINE
+-2localhost.org.apache.juli.FileHandler.directory = ${catalina.base}/logs
+-2localhost.org.apache.juli.FileHandler.prefix = localhost.
+-
+-3manager.org.apache.juli.FileHandler.level = FINE
+-3manager.org.apache.juli.FileHandler.directory = ${catalina.base}/logs
+-3manager.org.apache.juli.FileHandler.prefix = manager.
+-
+-4host-manager.org.apache.juli.FileHandler.level = FINE
+-4host-manager.org.apache.juli.FileHandler.directory = ${catalina.base}/logs
+-4host-manager.org.apache.juli.FileHandler.prefix = host-manager.
+-
+-java.util.logging.ConsoleHandler.level = FINE
+-java.util.logging.ConsoleHandler.formatter = java.util.logging.SimpleFormatter
+-
+-
+-############################################################
+-# Facility specific properties.
+-# Provides extra control for each logger.
+-############################################################
+-
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].level = INFO
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].handlers = 2localhost.org.apache.juli.FileHandler
+-
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/manager].level = INFO
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/manager].handlers = 3manager.org.apache.juli.FileHandler
+-
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/host-manager].level = INFO
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/host-manager].handlers = 4host-manager.org.apache.juli.FileHandler
+-
+-# For example, set the com.xyz.foo logger to only log SEVERE
+-# messages:
+-#org.apache.catalina.startup.ContextConfig.level = FINE
+-#org.apache.catalina.startup.HostConfig.level = FINE
+-#org.apache.catalina.session.ManagerBase.level = FINE
+-#org.apache.catalina.core.AprLifecycleListener.level=FINE
+diff --git a/base/tks/shared/conf/logging.properties b/base/tks/shared/conf/logging.properties
+deleted file mode 100644
+index 796cfc07152b08b2afc4102d2ba60f3162f3ba96..0000000000000000000000000000000000000000
+--- a/base/tks/shared/conf/logging.properties
++++ /dev/null
+@@ -1,70 +0,0 @@
+-# --- BEGIN COPYRIGHT BLOCK ---
+-# Copyright (C) 2006-2010 Red Hat, Inc.
+-# All rights reserved.
+-# Modifications: configuration parameters
+-# --- END COPYRIGHT BLOCK ---
+-
+-# Licensed to the Apache Software Foundation (ASF) under one or more
+-# contributor license agreements.  See the NOTICE file distributed with
+-# this work for additional information regarding copyright ownership.
+-# The ASF licenses this file to You under the Apache License, Version 2.0
+-# (the "License"); you may not use this file except in compliance with
+-# the License.  You may obtain a copy of the License at
+-#
+-#     http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-
+-handlers = 1catalina.org.apache.juli.FileHandler, 2localhost.org.apache.juli.FileHandler, 3manager.org.apache.juli.FileHandler, 4host-manager.org.apache.juli.FileHandler, java.util.logging.ConsoleHandler
+-
+-.handlers = 1catalina.org.apache.juli.FileHandler, java.util.logging.ConsoleHandler
+-
+-############################################################
+-# Handler specific properties.
+-# Describes specific configuration info for Handlers.
+-############################################################
+-
+-1catalina.org.apache.juli.FileHandler.level = FINE
+-1catalina.org.apache.juli.FileHandler.directory = ${catalina.base}/logs
+-1catalina.org.apache.juli.FileHandler.prefix = catalina.
+-
+-2localhost.org.apache.juli.FileHandler.level = FINE
+-2localhost.org.apache.juli.FileHandler.directory = ${catalina.base}/logs
+-2localhost.org.apache.juli.FileHandler.prefix = localhost.
+-
+-3manager.org.apache.juli.FileHandler.level = FINE
+-3manager.org.apache.juli.FileHandler.directory = ${catalina.base}/logs
+-3manager.org.apache.juli.FileHandler.prefix = manager.
+-
+-4host-manager.org.apache.juli.FileHandler.level = FINE
+-4host-manager.org.apache.juli.FileHandler.directory = ${catalina.base}/logs
+-4host-manager.org.apache.juli.FileHandler.prefix = host-manager.
+-
+-java.util.logging.ConsoleHandler.level = FINE
+-java.util.logging.ConsoleHandler.formatter = java.util.logging.SimpleFormatter
+-
+-
+-############################################################
+-# Facility specific properties.
+-# Provides extra control for each logger.
+-############################################################
+-
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].level = INFO
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].handlers = 2localhost.org.apache.juli.FileHandler
+-
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/manager].level = INFO
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/manager].handlers = 3manager.org.apache.juli.FileHandler
+-
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/host-manager].level = INFO
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/host-manager].handlers = 4host-manager.org.apache.juli.FileHandler
+-
+-# For example, set the com.xyz.foo logger to only log SEVERE
+-# messages:
+-#org.apache.catalina.startup.ContextConfig.level = FINE
+-#org.apache.catalina.startup.HostConfig.level = FINE
+-#org.apache.catalina.session.ManagerBase.level = FINE
+-#org.apache.catalina.core.AprLifecycleListener.level=FINE
+diff --git a/base/tps/shared/conf/logging.properties b/base/tps/shared/conf/logging.properties
+deleted file mode 100644
+index 796cfc07152b08b2afc4102d2ba60f3162f3ba96..0000000000000000000000000000000000000000
+--- a/base/tps/shared/conf/logging.properties
++++ /dev/null
+@@ -1,70 +0,0 @@
+-# --- BEGIN COPYRIGHT BLOCK ---
+-# Copyright (C) 2006-2010 Red Hat, Inc.
+-# All rights reserved.
+-# Modifications: configuration parameters
+-# --- END COPYRIGHT BLOCK ---
+-
+-# Licensed to the Apache Software Foundation (ASF) under one or more
+-# contributor license agreements.  See the NOTICE file distributed with
+-# this work for additional information regarding copyright ownership.
+-# The ASF licenses this file to You under the Apache License, Version 2.0
+-# (the "License"); you may not use this file except in compliance with
+-# the License.  You may obtain a copy of the License at
+-#
+-#     http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-
+-handlers = 1catalina.org.apache.juli.FileHandler, 2localhost.org.apache.juli.FileHandler, 3manager.org.apache.juli.FileHandler, 4host-manager.org.apache.juli.FileHandler, java.util.logging.ConsoleHandler
+-
+-.handlers = 1catalina.org.apache.juli.FileHandler, java.util.logging.ConsoleHandler
+-
+-############################################################
+-# Handler specific properties.
+-# Describes specific configuration info for Handlers.
+-############################################################
+-
+-1catalina.org.apache.juli.FileHandler.level = FINE
+-1catalina.org.apache.juli.FileHandler.directory = ${catalina.base}/logs
+-1catalina.org.apache.juli.FileHandler.prefix = catalina.
+-
+-2localhost.org.apache.juli.FileHandler.level = FINE
+-2localhost.org.apache.juli.FileHandler.directory = ${catalina.base}/logs
+-2localhost.org.apache.juli.FileHandler.prefix = localhost.
+-
+-3manager.org.apache.juli.FileHandler.level = FINE
+-3manager.org.apache.juli.FileHandler.directory = ${catalina.base}/logs
+-3manager.org.apache.juli.FileHandler.prefix = manager.
+-
+-4host-manager.org.apache.juli.FileHandler.level = FINE
+-4host-manager.org.apache.juli.FileHandler.directory = ${catalina.base}/logs
+-4host-manager.org.apache.juli.FileHandler.prefix = host-manager.
+-
+-java.util.logging.ConsoleHandler.level = FINE
+-java.util.logging.ConsoleHandler.formatter = java.util.logging.SimpleFormatter
+-
+-
+-############################################################
+-# Facility specific properties.
+-# Provides extra control for each logger.
+-############################################################
+-
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].level = INFO
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].handlers = 2localhost.org.apache.juli.FileHandler
+-
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/manager].level = INFO
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/manager].handlers = 3manager.org.apache.juli.FileHandler
+-
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/host-manager].level = INFO
+-org.apache.catalina.core.ContainerBase.[Catalina].[localhost].[/host-manager].handlers = 4host-manager.org.apache.juli.FileHandler
+-
+-# For example, set the com.xyz.foo logger to only log SEVERE
+-# messages:
+-#org.apache.catalina.startup.ContextConfig.level = FINE
+-#org.apache.catalina.startup.HostConfig.level = FINE
+-#org.apache.catalina.session.ManagerBase.level = FINE
+-#org.apache.catalina.core.AprLifecycleListener.level=FINE
+-- 
+2.5.5
+

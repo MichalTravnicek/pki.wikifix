@@ -1,0 +1,33 @@
+From 87ceb6f2e0ad93359f6ca94a08a8cb7f2bbfeaaa Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Tue, 7 Feb 2017 21:12:08 +1000
+Subject: [PATCH 161/161] ProfileService: clear profile attributes when
+ modifying
+
+When modifying a profile, attributes are not cleared.  Attributes
+that were removed in the updated profile configuration are not
+actually removed.
+
+When updating a profile via PUT /ca/rest/profiles/{id}/raw, clear
+the config store before loading the new configuration.
+
+Fixes: https://fedorahosted.org/pki/ticket/2588
+---
+ base/ca/src/org/dogtagpki/server/ca/rest/ProfileService.java | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/base/ca/src/org/dogtagpki/server/ca/rest/ProfileService.java b/base/ca/src/org/dogtagpki/server/ca/rest/ProfileService.java
+index 41d009b9d38003f054f45c2dd8070de8f46065f3..26e86c51d388d83fc7070b355505f011426350c0 100644
+--- a/base/ca/src/org/dogtagpki/server/ca/rest/ProfileService.java
++++ b/base/ca/src/org/dogtagpki/server/ca/rest/ProfileService.java
+@@ -738,6 +738,7 @@ public class ProfileService extends PKIService implements ProfileResource {
+             }
+ 
+             // no error thrown, so commit updated profile config
++            profile.getConfigStore().clear();
+             profile.getConfigStore().load(new ByteArrayInputStream(data));
+             ps.disableProfile(profileId);
+             ps.commitProfile(profileId);
+-- 
+2.9.3
+

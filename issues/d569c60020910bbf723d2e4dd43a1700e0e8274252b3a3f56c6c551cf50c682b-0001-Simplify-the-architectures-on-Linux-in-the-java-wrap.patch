@@ -1,0 +1,57 @@
+From 485986b71ed97f43afaf7163fa27c2f3c673b068 Mon Sep 17 00:00:00 2001
+From: David Sommerseth <davids@redhat.com>
+Date: Fri, 17 Apr 2015 20:40:16 +0200
+Subject: [PATCH] Simplify the architectures on Linux in the java wrapper
+ script
+
+When installing pki-tools on an "unexpected" platform, the wrapper script
+will bail out claiming it is not possible to run this script on that
+platform.  The only thing which is prepared on Linux in these wrapper
+scripts is the LD_LIBRARY_PATH enviroment variable.
+
+To remove the need of maintaining a list of supported architectures,
+this patch simplifies the LD_LIBRARY_PATH setup by providing a value
+which is generic for all Linux architectures.
+
+Signed-off-by: David Sommerseth <davids@redhat.com>
+---
+ .../templates/pki_java_command_wrapper.in          | 23 +++++-----------------
+ 1 file changed, 5 insertions(+), 18 deletions(-)
+
+diff --git a/base/java-tools/templates/pki_java_command_wrapper.in b/base/java-tools/templates/pki_java_command_wrapper.in
+index 09e059e..b7d60c3 100644
+--- a/base/java-tools/templates/pki_java_command_wrapper.in
++++ b/base/java-tools/templates/pki_java_command_wrapper.in
+@@ -71,24 +71,11 @@ if [ "${OS}" = "Linux" ] ; then
+     JAVA="java"
+     JAVA_OPTIONS=""
+ 
+-    if [ "${ARCHITECTURE}" = "i686" ] ; then
+-        LD_LIBRARY_PATH=/usr/lib:/lib
+-        LD_LIBRARY_PATH=/usr/lib/jss:${LD_LIBRARY_PATH}
+-        export LD_LIBRARY_PATH
+-    elif [ "${ARCHITECTURE}" = "x86_64" ] ; then
+-        LD_LIBRARY_PATH=/usr/lib:/lib
+-        LD_LIBRARY_PATH=/usr/lib/jss:${LD_LIBRARY_PATH}
+-        LD_LIBRARY_PATH=/usr/lib64:/lib64:${LD_LIBRARY_PATH}
+-        LD_LIBRARY_PATH=/usr/lib64/jss:${LD_LIBRARY_PATH}
+-        export LD_LIBRARY_PATH
+-    elif [ "${ARCHITECTURE}" = "armv7l" ] ; then
+-        LD_LIBRARY_PATH=/usr/lib:/lib
+-        LD_LIBRARY_PATH=/usr/lib/jss:${LD_LIBRARY_PATH}
+-        export LD_LIBRARY_PATH
+-    else
+-        invalid_architecture "${ARCHITECTURE}"
+-        exit 255
+-    fi
++    LD_LIBRARY_PATH=/usr/lib:/lib
++    LD_LIBRARY_PATH=/usr/lib/jss:${LD_LIBRARY_PATH}
++    LD_LIBRARY_PATH=/usr/lib64:/lib64:${LD_LIBRARY_PATH}
++    LD_LIBRARY_PATH=/usr/lib64/jss:${LD_LIBRARY_PATH}
++    export LD_LIBRARY_PATH
+ elif [ "${OS}" = "SunOS" ] ; then
+     ARCHITECTURE=`uname -p`
+     if [ "${ARCHITECTURE}" = "sparc" ] &&
+-- 
+1.8.3.1
+

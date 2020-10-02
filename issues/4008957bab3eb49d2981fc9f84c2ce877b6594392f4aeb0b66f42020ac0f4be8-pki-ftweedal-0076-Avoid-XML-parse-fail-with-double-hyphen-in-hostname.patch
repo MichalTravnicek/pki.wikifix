@@ -1,0 +1,142 @@
+From 8beb5cfa4cd81fbf47ea8cd6839b793c2a12284e Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Thu, 3 Mar 2016 12:14:09 +1100
+Subject: [PATCH] Avoid XML parse fail with double-hyphen in hostname
+
+server.xml contains metadata read by pkidaemon which includes URLs,
+in XML comments.  If the hostname contains `--', the parse fails.
+
+Instead of XML comments, put this information in XML Processing
+instructions[1], which allows double-hyphens to be used.
+
+[1] https://www.w3.org/TR/REC-xml/#NT-PI
+
+Fixes: https://fedorahosted.org/pki/ticket/1260
+---
+ base/server/tomcat7/conf/server.xml | 20 ++++++++++----------
+ base/server/tomcat8/conf/server.xml | 20 ++++++++++----------
+ 2 files changed, 20 insertions(+), 20 deletions(-)
+
+diff --git a/base/server/tomcat7/conf/server.xml b/base/server/tomcat7/conf/server.xml
+index 7deb8a201c717c82b7954018230698fdc876ad5b..55c626d6cebff1840b31bb0fb5abeb02ac623e8a 100644
+--- a/base/server/tomcat7/conf/server.xml
++++ b/base/server/tomcat7/conf/server.xml
+@@ -27,45 +27,45 @@
+ 
+ <!-- DO NOT REMOVE - Begin PKI Status Definitions -->
+ <!-- CA Status Definitions -->
+-<!--
++<?pkidaemon
+ Unsecure URL        = http://[PKI_HOSTNAME]:[PKI_UNSECURE_PORT]/ca/ee/ca
+ Secure Agent URL    = https://[PKI_HOSTNAME]:[PKI_AGENT_SECURE_PORT]/ca/agent/ca
+ Secure EE URL       = https://[PKI_HOSTNAME]:[PKI_EE_SECURE_PORT]/ca/ee/ca
+ Secure Admin URL    = https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/ca/services
+ PKI Console Command = pkiconsole https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/ca
+ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+--->
++?>
+ <!-- KRA Status Definitions -->
+-<!--
++<?pkidaemon
+ Secure Agent URL    = https://[PKI_HOSTNAME]:[PKI_AGENT_SECURE_PORT]/kra/agent/kra
+ Secure Admin URL    = https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/kra/services
+ PKI Console Command = pkiconsole https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/kra
+ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+--->
++?>
+ <!-- OCSP Status Definitions -->
+-<!--
++<?pkidaemon
+ Unsecure URL        = http://[PKI_HOSTNAME]:[PKI_UNSECURE_PORT]/ocsp/ee/ocsp/<ocsp request blob>
+ Secure Agent URL    = https://[PKI_HOSTNAME]:[PKI_AGENT_SECURE_PORT]/ocsp/agent/ocsp
+ Secure EE URL       = https://[PKI_HOSTNAME]:[PKI_EE_SECURE_PORT]/ocsp/ee/ocsp/<ocsp request blob>
+ Secure Admin URL    = https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/ocsp/services
+ PKI Console Command = pkiconsole https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/ocsp
+ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+--->
++?>
+ <!-- TKS Status Definitions -->
+-<!--
++<?pkidaemon
+ Secure Agent URL    = https://[PKI_HOSTNAME]:[PKI_AGENT_SECURE_PORT]/tks/agent/tks
+ Secure Admin URL    = https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/tks/services
+ PKI Console Command = pkiconsole https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/tks
+ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+--->
++?>
+ <!-- TPS Status Definitions -->
+-<!--
++<?pkidaemon
+ Unsecure URL        = http://[PKI_HOSTNAME]:[PKI_UNSECURE_PORT]/tps
+ Secure URL          = https://[PKI_HOSTNAME]:[PKI_SECURE_PORT]/tps
+ Unsecure PHONE HOME = http://[PKI_HOSTNAME]:[PKI_UNSECURE_PORT]/tps/phoneHome
+ Secure PHONE HOME   = https://[PKI_HOSTNAME]:[PKI_SECURE_PORT]/tps/phoneHome
+ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+--->
++?>
+ <!-- DO NOT REMOVE - End PKI Status Definitions -->
+ 
+ <Server port="[TOMCAT_SERVER_PORT]" shutdown="SHUTDOWN">
+diff --git a/base/server/tomcat8/conf/server.xml b/base/server/tomcat8/conf/server.xml
+index 7c74d7ced133d23252d0c9bc1e3d602bc2c8e96f..7694fe159088f99d013ae1336920084614ca62d5 100644
+--- a/base/server/tomcat8/conf/server.xml
++++ b/base/server/tomcat8/conf/server.xml
+@@ -27,45 +27,45 @@
+ 
+ <!-- DO NOT REMOVE - Begin PKI Status Definitions -->
+ <!-- CA Status Definitions -->
+-<!--
++<?pkidaemon
+ Unsecure URL        = http://[PKI_HOSTNAME]:[PKI_UNSECURE_PORT]/ca/ee/ca
+ Secure Agent URL    = https://[PKI_HOSTNAME]:[PKI_AGENT_SECURE_PORT]/ca/agent/ca
+ Secure EE URL       = https://[PKI_HOSTNAME]:[PKI_EE_SECURE_PORT]/ca/ee/ca
+ Secure Admin URL    = https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/ca/services
+ PKI Console Command = pkiconsole https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/ca
+ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+--->
++?>
+ <!-- KRA Status Definitions -->
+-<!--
++<?pkidaemon
+ Secure Agent URL    = https://[PKI_HOSTNAME]:[PKI_AGENT_SECURE_PORT]/kra/agent/kra
+ Secure Admin URL    = https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/kra/services
+ PKI Console Command = pkiconsole https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/kra
+ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+--->
++?>
+ <!-- OCSP Status Definitions -->
+-<!--
++<?pkidaemon
+ Unsecure URL        = http://[PKI_HOSTNAME]:[PKI_UNSECURE_PORT]/ocsp/ee/ocsp/<ocsp request blob>
+ Secure Agent URL    = https://[PKI_HOSTNAME]:[PKI_AGENT_SECURE_PORT]/ocsp/agent/ocsp
+ Secure EE URL       = https://[PKI_HOSTNAME]:[PKI_EE_SECURE_PORT]/ocsp/ee/ocsp/<ocsp request blob>
+ Secure Admin URL    = https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/ocsp/services
+ PKI Console Command = pkiconsole https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/ocsp
+ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+--->
++?>
+ <!-- TKS Status Definitions -->
+-<!--
++<?pkidaemon
+ Secure Agent URL    = https://[PKI_HOSTNAME]:[PKI_AGENT_SECURE_PORT]/tks/agent/tks
+ Secure Admin URL    = https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/tks/services
+ PKI Console Command = pkiconsole https://[PKI_HOSTNAME]:[PKI_ADMIN_SECURE_PORT]/tks
+ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+--->
++?>
+ <!-- TPS Status Definitions -->
+-<!--
++<?pkidaemon
+ Unsecure URL        = http://[PKI_HOSTNAME]:[PKI_UNSECURE_PORT]/tps
+ Secure URL          = https://[PKI_HOSTNAME]:[PKI_SECURE_PORT]/tps
+ Unsecure PHONE HOME = http://[PKI_HOSTNAME]:[PKI_UNSECURE_PORT]/tps/phoneHome
+ Secure PHONE HOME   = https://[PKI_HOSTNAME]:[PKI_SECURE_PORT]/tps/phoneHome
+ Tomcat Port         = [TOMCAT_SERVER_PORT] (for shutdown)
+--->
++?>
+ <!-- DO NOT REMOVE - End PKI Status Definitions -->
+ 
+ <Server port="[TOMCAT_SERVER_PORT]" shutdown="SHUTDOWN">
+-- 
+2.5.0
+

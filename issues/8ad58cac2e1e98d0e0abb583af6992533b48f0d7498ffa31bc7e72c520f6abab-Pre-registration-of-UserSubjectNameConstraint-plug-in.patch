@@ -1,0 +1,36 @@
+From 05487bd750cd12602b486555a637ebe7764ee30b Mon Sep 17 00:00:00 2001
+From: Andrew Wnuk <awnuk@redhat.com>
+Date: Mon, 19 Aug 2013 18:57:27 -0400
+Subject: [PATCH] Pre-registration of UserSubjectNameConstraint plug-in
+
+This patch provides pre-registration of UserSubjectNameConstraint plug-in.
+
+Ticket #682.
+---
+ base/ca/shared/conf/registry.cfg | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/base/ca/shared/conf/registry.cfg b/base/ca/shared/conf/registry.cfg
+index e4be41d..b814e59 100644
+--- a/base/ca/shared/conf/registry.cfg
++++ b/base/ca/shared/conf/registry.cfg
+@@ -1,5 +1,5 @@
+ types=profile,defaultPolicy,constraintPolicy,profileInput,profileOutput,profileUpdater
+-constraintPolicy.ids=noConstraintImpl,subjectNameConstraintImpl,uniqueSubjectNameConstraintImpl,validityConstraintImpl,keyUsageExtConstraintImpl,nsCertTypeExtConstraintImpl,extendedKeyUsageExtConstraintImpl,keyConstraintImpl,basicConstraintsExtConstraintImpl,extensionConstraintImpl,signingAlgConstraintImpl,uniqueKeyConstraintImpl,renewGracePeriodConstraintImpl
++constraintPolicy.ids=noConstraintImpl,subjectNameConstraintImpl,uniqueSubjectNameConstraintImpl,userSubjectNameConstraintImpl,validityConstraintImpl,keyUsageExtConstraintImpl,nsCertTypeExtConstraintImpl,extendedKeyUsageExtConstraintImpl,keyConstraintImpl,basicConstraintsExtConstraintImpl,extensionConstraintImpl,signingAlgConstraintImpl,uniqueKeyConstraintImpl,renewGracePeriodConstraintImpl
+ constraintPolicy.signingAlgConstraintImpl.class=com.netscape.cms.profile.constraint.SigningAlgConstraint
+ constraintPolicy.signingAlgConstraintImpl.desc=Signing Algorithm Constraint
+ constraintPolicy.signingAlgConstraintImpl.name=Signing Algorithm Constraint
+@@ -30,6 +30,9 @@ constraintPolicy.subjectNameConstraintImpl.name=Subject Name Constraint
+ constraintPolicy.uniqueSubjectNameConstraintImpl.class=com.netscape.cms.profile.constraint.UniqueSubjectNameConstraint
+ constraintPolicy.uniqueSubjectNameConstraintImpl.desc=Unique Subject Name Constraint
+ constraintPolicy.uniqueSubjectNameConstraintImpl.name=Unique Subject Name Constraint
++constraintPolicy.userSubjectNameConstraintImpl.class=com.netscape.cms.profile.constraint.UserSubjectNameConstraint
++constraintPolicy.userSubjectNameConstraintImpl.desc=User Subject Name Constraint
++constraintPolicy.userSubjectNameConstraintImpl.name=User Subject Name Constraint
+ constraintPolicy.validityConstraintImpl.class=com.netscape.cms.profile.constraint.ValidityConstraint
+ constraintPolicy.validityConstraintImpl.desc=Validity Constraint
+ constraintPolicy.validityConstraintImpl.name=Validity Constraint
+-- 
+1.8.1.4
+

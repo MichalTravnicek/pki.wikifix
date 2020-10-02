@@ -1,0 +1,44 @@
+From f410b704b11b13298802e2a8acdfeb03ac474ace Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Thu, 24 Mar 2016 23:11:01 +0100
+Subject: [PATCH] Updated Eclipse project to use Tomcat 8.
+
+The Eclipse .classpath has been updated to use Tomcat 8 souce code
+and libraries.
+
+https://fedorahosted.org/pki/ticket/2245
+---
+ .classpath | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/.classpath b/.classpath
+index 9fd5144bf32f3a4af6b6992f7b5027ef55d9f2df..cbb7b2f034c1201f27456e3dd461bdc271b1b2ac 100644
+--- a/.classpath
++++ b/.classpath
+@@ -9,7 +9,6 @@
+ 	<classpathentry excluding="**/CMakeLists.txt" kind="src" path="base/common/src"/>
+ 	<classpathentry excluding="**/CMakeLists.txt" kind="src" path="base/common/functional/src"/>
+ 	<classpathentry excluding="**/CMakeLists.txt" kind="src" path="base/java-tools/src"/>
+-	<classpathentry excluding="**/CMakeLists.txt" kind="src" path="base/server/tomcat7/src"/>
+ 	<classpathentry excluding="**/CMakeLists.txt" kind="src" path="base/server/cms/src"/>
+ 	<classpathentry excluding="**/CMakeLists.txt" kind="src" path="base/server/cmscore/src"/>
+ 	<classpathentry excluding="**/CMakeLists.txt" kind="src" path="base/server/test"/>
+@@ -20,6 +19,7 @@
+ 	<classpathentry excluding="**/CMakeLists.txt" kind="src" path="base/ocsp/src"/>
+ 	<classpathentry excluding="**/CMakeLists.txt" kind="src" path="base/tks/src"/>
+ 	<classpathentry excluding="**/CMakeLists.txt" kind="src" path="base/tps/src"/>
++	<classpathentry kind="src" path="base/server/tomcat8/src"/>
+ 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+ 	<classpathentry kind="lib" path="/usr/share/java/apache-commons-cli.jar"/>
+ 	<classpathentry kind="lib" path="/usr/share/java/apache-commons-logging.jar"/>
+@@ -59,5 +59,7 @@
+ 	<classpathentry kind="lib" path="/usr/lib/java/nuxwdog.jar"/>
+ 	<classpathentry kind="lib" path="/usr/lib/java/jss4.jar"/>
+ 	<classpathentry kind="lib" path="/usr/share/java/tomcatjss.jar"/>
++	<classpathentry kind="lib" path="/usr/share/java/tomcat/tomcat-api.jar"/>
++	<classpathentry kind="lib" path="/usr/share/java/tomcat/tomcat-util-scan.jar"/>
+ 	<classpathentry kind="output" path="build/classes"/>
+ </classpath>
+-- 
+2.4.3
+

@@ -1,0 +1,63 @@
+From 849045c1d9d34a59116784ada4c16d4d5231e492 Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Thu, 8 Jun 2017 14:25:23 +1000
+Subject: [PATCH] KRA PKCS #12 export: add config to use 3DES PBE encryption
+
+In kra/CS.cfg set "kra.legacyPKCS12=true" to active the legacy 3DES
+PBE encryption.
+
+Part of: https://pagure.io/dogtagpki/issue/2728
+
+Change-Id: Ic02fe8ba3a4c2c049913ff48d3f6dfdc830b4360
+---
+ base/kra/src/com/netscape/kra/RecoveryService.java | 27 +++++++++++++++++++++-
+ 1 file changed, 26 insertions(+), 1 deletion(-)
+
+diff --git a/base/kra/src/com/netscape/kra/RecoveryService.java b/base/kra/src/com/netscape/kra/RecoveryService.java
+index eee800aa8590c103b86f9a1ac501303c3d838e3e..a7bdc552c0c416f3014b24bbbf2eb2724d90a210 100644
+--- a/base/kra/src/com/netscape/kra/RecoveryService.java
++++ b/base/kra/src/com/netscape/kra/RecoveryService.java
+@@ -487,6 +487,29 @@ public class RecoveryService implements IService {
+             PasswordConverter passConverter = new
+                     PasswordConverter();
+ 
++            boolean legacyP12 =
++                CMS.getConfigStore().getBoolean("kra.legacyPKCS12", false);
++
++            ASN1Value key;
++          if (legacyP12) {
++
++            Random ran = new SecureRandom();
++            byte[] salt = new byte[20];
++            ran.nextBytes(salt);
++
++            key = EncryptedPrivateKeyInfo.createPBE(
++                    PBEAlgorithm.PBE_SHA1_DES3_CBC,
++                    pass, salt, 1, passConverter, priKey, ct);
++            CMS.debug("RecoverService: createPFX() EncryptedPrivateKeyInfo.createPBE() returned");
++            if (key == null) {
++                CMS.debug("RecoverService: createPFX() key null");
++                throw new EBaseException("EncryptedPrivateKeyInfo.createPBE() failed");
++            } else {
++                CMS.debug("RecoverService: createPFX() key not null");
++            }
++
++          } else { /* not legacyP12 */
++
+             byte[] epkiBytes = ct.getCryptoStore().getEncryptedPrivateKeyInfo(
+                 /* NSS has a bug that causes any AES CBC encryption
+                  * to use AES-256, but AlgorithmID contains chosen
+@@ -499,7 +522,9 @@ public class RecoveryService implements IService {
+             } else {
+                 CMS.debug("RecoverService: createPFX() epkiBytes not null");
+             }
+-            ASN1Value key = new ANY(epkiBytes);
++            key = new ANY(epkiBytes);
++
++          }
+ 
+             SET keyAttrs = createBagAttrs(
+                     x509cert.getSubjectDN().toString(),
+-- 
+2.9.4
+

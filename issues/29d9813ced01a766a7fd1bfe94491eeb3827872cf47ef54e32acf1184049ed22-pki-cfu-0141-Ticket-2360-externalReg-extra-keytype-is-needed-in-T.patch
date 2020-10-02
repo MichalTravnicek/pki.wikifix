@@ -1,0 +1,114 @@
+From d194711df746cc06f94a8e5d355541ddcb65d891 Mon Sep 17 00:00:00 2001
+From: Christina Fu <cfu@redhat.com>
+Date: Tue, 28 Jun 2016 10:02:09 -0700
+Subject: [PATCH] Ticket #2360 externalReg extra keytype is needed in TPS
+ profile for recovering certs (investigation) This is just code changes during
+ investigation
+
+---
+ .../src/org/dogtagpki/server/tps/channel/SecureChannel.java   |  1 +
+ .../org/dogtagpki/server/tps/cms/TKSRemoteRequestHandler.java |  6 +++---
+ .../dogtagpki/server/tps/processor/TPSEnrollProcessor.java    | 11 ++++++++---
+ .../src/org/dogtagpki/server/tps/processor/TPSProcessor.java  |  2 ++
+ 4 files changed, 14 insertions(+), 6 deletions(-)
+
+diff --git a/base/tps/src/org/dogtagpki/server/tps/channel/SecureChannel.java b/base/tps/src/org/dogtagpki/server/tps/channel/SecureChannel.java
+index 8860f48cc7cc5c484f4c541ec1a5cc7910b57c96..4458fdc5ae7cc1d6f6ccba845866d3dc88a8745a 100644
+--- a/base/tps/src/org/dogtagpki/server/tps/channel/SecureChannel.java
++++ b/base/tps/src/org/dogtagpki/server/tps/channel/SecureChannel.java
+@@ -269,6 +269,7 @@ public class SecureChannel {
+         final String keyCapabilities = "keyCapabilities";
+ 
+         try {
++            // should default all capabilities to match that of an encryption key
+ 
+             boolean value = false;
+             String configName = keyTypePrefix + "." + keyType + "." + keyCapabilities + "." + "encrypt";
+diff --git a/base/tps/src/org/dogtagpki/server/tps/cms/TKSRemoteRequestHandler.java b/base/tps/src/org/dogtagpki/server/tps/cms/TKSRemoteRequestHandler.java
+index f38d7def534fac1e6a63fcf7239eb5cee9c153db..c340d77c85fc634c5fa4052925219479a32a0405 100644
+--- a/base/tps/src/org/dogtagpki/server/tps/cms/TKSRemoteRequestHandler.java
++++ b/base/tps/src/org/dogtagpki/server/tps/cms/TKSRemoteRequestHandler.java
+@@ -114,7 +114,7 @@ public class TKSRemoteRequestHandler extends RemoteRequestHandler
+         boolean serverKeygen =
+                 conf.getBoolean("op.enroll." +
+                         tokenType + ".keyGen.encryption.serverKeygen.enable",
+-                        false);
++                        true);
+         if (keySet == null)
+             keySet = conf.getString("tps.connector." + connid + ".keySet", "defKeySet");
+ 
+@@ -133,7 +133,7 @@ public class TKSRemoteRequestHandler extends RemoteRequestHandler
+                 + Util.specialURLEncode(card_cryptogram.toBytesArray()) +
+                 "&" + IRemoteRequest.TOKEN_KEYSET + "=" + keySet;
+ 
+-        //CMS.debug("TKSRemoteRequestHandler.computeSessionKey: outgoing message: " + requestString);
++        CMS.debug("TKSRemoteRequestHandler.computeSessionKey: outgoing message: " + requestString);
+         CMS.debug("TKSRemoteRequestHandler.computeSessionKey: sending request to TKS");
+ 
+         HttpResponse resp =
+@@ -144,6 +144,7 @@ public class TKSRemoteRequestHandler extends RemoteRequestHandler
+         String content = resp.getContent();
+ 
+         if (content != null && !content.equals("")) {
++            CMS.debug("TKSRemoteRequestHandler: computeSessionKey(): got content = " + content);
+             Hashtable<String, Object> response =
+                     parseResponse(content);
+ 
+@@ -157,7 +158,6 @@ public class TKSRemoteRequestHandler extends RemoteRequestHandler
+             String value = (String) response.get(IRemoteRequest.RESPONSE_STATUS);
+             if (value == null) {
+                 CMS.debug("TKSRemoteRequestHandler: computeSessionKey(): status not found.");
+-                //CMS.debug("TKSRemoteRequestHandler: computeSessionKey(): got content = " + content);
+             } else {
+                 CMS.debug("TKSRemoteRequestHandler: computeSessionKey(): got status = " + value);
+                 ist = Integer.parseInt(value);
+diff --git a/base/tps/src/org/dogtagpki/server/tps/processor/TPSEnrollProcessor.java b/base/tps/src/org/dogtagpki/server/tps/processor/TPSEnrollProcessor.java
+index 6240ea69cf44b1600b13a4402ebfde1b6de08ebb..55b19ce0fbe0c3df0ba12b487039f5517fd4bd76 100644
+--- a/base/tps/src/org/dogtagpki/server/tps/processor/TPSEnrollProcessor.java
++++ b/base/tps/src/org/dogtagpki/server/tps/processor/TPSEnrollProcessor.java
+@@ -2489,7 +2489,12 @@ public class TPSEnrollProcessor extends TPSProcessor {
+                 auditEnrollment(userid, "enrollment", aInfo, "success", channel.getKeyInfoData().toHexStringPlain(),
+                         x509Cert.getSerialNumber(), caConnID, null);
+             } else {
+-                String caConnID = getCAConnectorID("keyGen", cEnrollInfo.getKeyType());
++                String caConnID = null;
++                if (getIsExternalReg()) {
++                    caConnID = getCAConnectorID();
++                } else {
++                    caConnID = getCAConnectorID("keyGen", cEnrollInfo.getKeyType());
++                }
+ 
+                 //Import the cert data from the CertEnrollObject or from Renewal object
+ 
+@@ -3149,13 +3154,13 @@ public class TPSEnrollProcessor extends TPSProcessor {
+                     TPSStatus.STATUS_ERROR_MAC_ENROLL_PDU);
+         }
+         IConfigStore configStore = CMS.getConfigStore();
+-        boolean serverSideKeygen = false;
++        boolean serverSideKeygen = true;
+ 
+         try {
+             String configValue = cInfo.getKeyTypePrefix() + "." + TPSEngine.CFG_SERVER_KEYGEN_ENABLE;
+             CMS.debug("TPSEnrollProcessor.checkForServerSideKeyGen: config: " + configValue);
+             serverSideKeygen = configStore.getBoolean(
+-                    configValue, false);
++                    configValue, true);
+ 
+         } catch (EBaseException e) {
+             throw new TPSException(
+diff --git a/base/tps/src/org/dogtagpki/server/tps/processor/TPSProcessor.java b/base/tps/src/org/dogtagpki/server/tps/processor/TPSProcessor.java
+index ff642087945ec36cf9d90e47009c1f0b169ecd63..79cdd01d4705b2d3275cd1aab7d8b47b40d85986 100644
+--- a/base/tps/src/org/dogtagpki/server/tps/processor/TPSProcessor.java
++++ b/base/tps/src/org/dogtagpki/server/tps/processor/TPSProcessor.java
+@@ -2983,6 +2983,8 @@ public class TPSProcessor {
+ 
+         String symmConfig = "op" + "." + currentTokenOperation + "." + selectedTokenType + "."
+                 + TPSEngine.CFG_SYMM_KEY_UPGRADE_ENABLED;
++        CMS.debug("TPSProcessor.checkSymmetricKeysEnabled: getting config: " +
++                symmConfig);
+ 
+         try {
+             result = configStore.getBoolean(symmConfig, true);
+-- 
+2.4.3
+

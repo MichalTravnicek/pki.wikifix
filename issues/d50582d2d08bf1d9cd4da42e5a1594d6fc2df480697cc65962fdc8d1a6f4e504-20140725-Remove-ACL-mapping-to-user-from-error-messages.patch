@@ -1,0 +1,146 @@
+From 77cd266bce7d37bd987d3210ad0735bdc2e6f78b Mon Sep 17 00:00:00 2001
+From: Matthew Harmsen <mharmsen@redhat.com>
+Date: Fri, 25 Jul 2014 18:47:32 -0700
+Subject: [PATCH] Remove ACL mapping to user from error messages
+
+- PKI TRAC Ticket #965 - Improve error message - remove ACL mapping to the user
+---
+ .../netscape/cms/authorization/BasicAclAuthz.java  | 33 ++++++++++++++++++++--
+ .../netscape/cms/authorization/DirAclAuthz.java    | 33 ++++++++++++++++++++--
+ base/server/cmsbundle/src/LogMessages.properties   |  2 +-
+ 3 files changed, 63 insertions(+), 5 deletions(-)
+
+diff --git a/base/server/cms/src/com/netscape/cms/authorization/BasicAclAuthz.java b/base/server/cms/src/com/netscape/cms/authorization/BasicAclAuthz.java
+index 729b017..a0435db 100644
+--- a/base/server/cms/src/com/netscape/cms/authorization/BasicAclAuthz.java
++++ b/base/server/cms/src/com/netscape/cms/authorization/BasicAclAuthz.java
+@@ -53,6 +53,9 @@ public class BasicAclAuthz extends AAclAuthz
+     /* the system logger */
+     private ILogger mLogger = null;
+ 
++    /* the signed audit logger */
++    private ILogger mSignedAuditLogger = CMS.getSignedAuditLogger();
++
+     protected static final String PROP_BASEDN = "basedn";
+ 
+     static {
+@@ -142,11 +145,14 @@ public class BasicAclAuthz extends AAclAuthz
+             authzToken.set(AuthzToken.TOKEN_AUTHZ_STATUS,
+                     AuthzToken.AUTHZ_STATUS_SUCCESS);
+         } catch (EACLsException e) {
+-            // audit here later
+             log(ILogger.LL_FAILURE, CMS.getLogMessage("AUTHZ_EVALUATOR_AUTHORIZATION_FAILED"));
++
++            // Store ACL user mapping in signed audit log
+             String params[] = { resource, operation };
++            String auditMessage = CMS.getLogMessage("AUTHZ_AUTHZ_ACCESS_DENIED_2", params);
++            audit(auditMessage);
+ 
+-            throw new EAuthzAccessDenied(CMS.getUserMessage("CMS_AUTHORIZATION_AUTHZ_ACCESS_DENIED", params));
++            throw new EAuthzAccessDenied(CMS.getUserMessage("CMS_AUTHORIZATION_ERROR"));
+         }
+ 
+         return authzToken;
+@@ -210,4 +216,27 @@ public class BasicAclAuthz extends AAclAuthz
+         mLogger.log(ILogger.EV_SYSTEM, null, ILogger.S_AUTHORIZATION,
+                 level, msg);
+     }
++
++    /**
++     * Signed Audit Log
++     *
++     * This method is called to store messages to the signed audit log.
++     * <P>
++     *
++     * @param msg signed audit log message
++     */
++    private void audit(String msg) {
++        // in this case, do NOT strip preceding/trailing whitespace
++        // from passed-in String parameters
++
++        if (mSignedAuditLogger == null) {
++            return;
++        }
++
++        mSignedAuditLogger.log(ILogger.EV_SIGNED_AUDIT,
++                null,
++                ILogger.S_SIGNED_AUDIT,
++                ILogger.LL_SECURITY,
++                msg);
++    }
+ }
+diff --git a/base/server/cms/src/com/netscape/cms/authorization/DirAclAuthz.java b/base/server/cms/src/com/netscape/cms/authorization/DirAclAuthz.java
+index 133fe75..9941476 100644
+--- a/base/server/cms/src/com/netscape/cms/authorization/DirAclAuthz.java
++++ b/base/server/cms/src/com/netscape/cms/authorization/DirAclAuthz.java
+@@ -66,6 +66,9 @@ public class DirAclAuthz extends AAclAuthz
+     /* the system logger */
+     private ILogger mLogger = null;
+ 
++    /* the signed audit logger */
++    private ILogger mSignedAuditLogger = CMS.getSignedAuditLogger();
++
+     protected static final String PROP_BASEDN = "basedn";
+ 
+     private ILdapConnFactory mLdapConnFactory = null;
+@@ -230,11 +233,14 @@ public class DirAclAuthz extends AAclAuthz
+             authzToken.set(AuthzToken.TOKEN_AUTHZ_STATUS, AuthzToken.AUTHZ_STATUS_SUCCESS);
+             CMS.debug("DirAclAuthz: authorization passed");
+         } catch (EACLsException e) {
+-            // audit here later
+             log(ILogger.LL_FAILURE, CMS.getLogMessage("AUTHZ_EVALUATOR_AUTHORIZATION_FAILED"));
++
++            // Store ACL user mapping in signed audit log
+             String params[] = { resource, operation };
++            String auditMessage = CMS.getLogMessage("AUTHZ_AUTHZ_ACCESS_DENIED_2", params);
++            audit(auditMessage);
+ 
+-            throw new EAuthzAccessDenied(CMS.getUserMessage("CMS_AUTHORIZATION_AUTHZ_ACCESS_DENIED", params));
++            throw new EAuthzAccessDenied(CMS.getUserMessage("CMS_AUTHORIZATION_ERROR"));
+         }
+ 
+         return authzToken;
+@@ -362,4 +368,27 @@ public class DirAclAuthz extends AAclAuthz
+         mLogger.log(ILogger.EV_SYSTEM, null, ILogger.S_AUTHORIZATION,
+                 level, msg);
+     }
++
++    /**
++     * Signed Audit Log
++     *
++     * This method is called to store messages to the signed audit log.
++     * <P>
++     *
++     * @param msg signed audit log message
++     */
++    private void audit(String msg) {
++        // in this case, do NOT strip preceding/trailing whitespace
++        // from passed-in String parameters
++
++        if (mSignedAuditLogger == null) {
++            return;
++        }
++
++        mSignedAuditLogger.log(ILogger.EV_SIGNED_AUDIT,
++                null,
++                ILogger.S_SIGNED_AUDIT,
++                ILogger.LL_SECURITY,
++                msg);
++    }
+ }
+diff --git a/base/server/cmsbundle/src/LogMessages.properties b/base/server/cmsbundle/src/LogMessages.properties
+index 54dd7aa..f1485de 100644
+--- a/base/server/cmsbundle/src/LogMessages.properties
++++ b/base/server/cmsbundle/src/LogMessages.properties
+@@ -599,7 +599,7 @@ AUTHZ_AUTHZ_MGR_PLUGIN_NOT_FOUND_1=Authorization manager plugin name {0} not fou
+ AUTHZ_MISSING_REQUIRED_AUTHZMGR_1=Missing system required authz manager instance of {0}
+ AUTHZ_AUTHZ_INTERNAL_ERROR=Authorization subsystem encountered an internal error
+ AUTHZ_AUTHZ_INTERNAL_ERROR_1=Authorization encountered an internal error. Detailed msg: {0}
+-AUTHZ_AUTHZ_ACCESS_DENIED_2=authorization failed on resource: {0}, operation: {1}
++AUTHZ_AUTHZ_ACCESS_DENIED_2=Authorization failed on resource: {0}, operation: {1}
+ AUTHZ_UNKNOWN_PROTECTED_RESOURCE_1=unknown protected resource specified: {0}
+ AUTHZ_UNKNOWN_OPERATION_1=unknown operation specified: {0}
+ AUTHZ_ILLEGAL_FORMAT=Illegal Format
+-- 
+1.9.3
+

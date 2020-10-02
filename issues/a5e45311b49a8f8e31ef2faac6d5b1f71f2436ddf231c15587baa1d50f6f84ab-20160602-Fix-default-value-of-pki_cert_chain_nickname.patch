@@ -1,0 +1,40 @@
+From acbaa64c116ae106107ab19e25be15ac27cf9f74 Mon Sep 17 00:00:00 2001
+From: Matthew Harmsen <mharmsen@redhat.com>
+Date: Thu, 2 Jun 2016 19:19:32 -0600
+Subject: [PATCH] Fix default value of pki_cert_chain_nickname
+
+- PKI TRAC Ticket #2350 - Fix default value of 'pki_cert_chain_nickname'
+---
+ base/server/cms/src/org/dogtagpki/server/rest/SystemConfigService.java | 2 +-
+ base/server/etc/default.cfg                                            | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/base/server/cms/src/org/dogtagpki/server/rest/SystemConfigService.java b/base/server/cms/src/org/dogtagpki/server/rest/SystemConfigService.java
+index 3720116..c464d59 100644
+--- a/base/server/cms/src/org/dogtagpki/server/rest/SystemConfigService.java
++++ b/base/server/cms/src/org/dogtagpki/server/rest/SystemConfigService.java
+@@ -346,7 +346,7 @@ public class SystemConfigService extends PKIService implements SystemConfigResou
+                             hasSigningCert.setValue(true);
+ 
+                             if (request.getIssuingCA().equals("External CA")) {
+-                                String nickname = certData.getNickname() != null ? certData.getNickname() : "caSigningCert External CA";
++                                String nickname = certData.getNickname() != null ? certData.getNickname() : "CA Signing Certificate Chain for External CA";
+                                 Cert cert = new Cert(tokenName, nickname, tag);
+                                 ConfigurationUtils.setExternalCACert(b64, csSubsystem, cs, cert);
+ 
+diff --git a/base/server/etc/default.cfg b/base/server/etc/default.cfg
+index b2a2490..a780c22 100644
+--- a/base/server/etc/default.cfg
++++ b/base/server/etc/default.cfg
+@@ -137,7 +137,7 @@ pki_token_password=
+ pki_user=pkiuser
+ pki_existing=False
+ pki_cert_chain_path=
+-pki_cert_chain_nickname=caSigningCert External CA
++pki_cert_chain_nickname=CA Signing Certificate Chain for External CA
+ pki_pkcs12_path=
+ pki_pkcs12_password=
+ 
+-- 
+1.8.3.1
+

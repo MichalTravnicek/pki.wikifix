@@ -1,0 +1,33 @@
+From 0e0202f642619d969a7551899cdf4803b4620953 Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Tue, 12 Jan 2016 13:12:17 +1100
+Subject: [PATCH] Remove execute permissions from systemd unit files
+
+Fixes: https://fedorahosted.org/pki/ticket/1723
+---
+ specs/pki-core.spec | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/specs/pki-core.spec b/specs/pki-core.spec
+index df2e3aa9e9de7fe8659074eacbd137d20e09197c..948a0ecdc06757f4baed845e8481ba1efa51f64d 100644
+--- a/specs/pki-core.spec
++++ b/specs/pki-core.spec
+@@ -919,11 +919,11 @@ systemctl daemon-reload
+ %{_datadir}/pki/scripts/operations
+ %{_bindir}/pkidaemon
+ %dir %{_sysconfdir}/systemd/system/pki-tomcatd.target.wants
+-%{_unitdir}/pki-tomcatd@.service
+-%{_unitdir}/pki-tomcatd.target
++%attr(644,-,-) %{_unitdir}/pki-tomcatd@.service
++%attr(644,-,-) %{_unitdir}/pki-tomcatd.target
+ %dir %{_sysconfdir}/systemd/system/pki-tomcatd-nuxwdog.target.wants
+-%{_unitdir}/pki-tomcatd-nuxwdog@.service
+-%{_unitdir}/pki-tomcatd-nuxwdog.target
++%attr(644,-,-) %{_unitdir}/pki-tomcatd-nuxwdog@.service
++%attr(644,-,-) %{_unitdir}/pki-tomcatd-nuxwdog.target
+ %{_javadir}/pki/pki-cms.jar
+ %{_javadir}/pki/pki-cmsbundle.jar
+ %{_javadir}/pki/pki-cmscore.jar
+-- 
+2.5.0
+

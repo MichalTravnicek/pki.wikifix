@@ -1,0 +1,358 @@
+From 77619d8891d9eec9b9d009d903b8118a134be23b Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Fri, 13 May 2016 09:00:44 +1000
+Subject: [PATCH 114/114] Lightweight CAs: add method to renew certificate
+
+Add the CertificateAuthority.renewAuthority() method that creates
+and processes a renewal request for the lightweight CA's signing
+cert.  The new certificate replaces the old certificate in the NSSDB
+and the serial number is stored in the 'authoritySerial' attribute.
+
+Clones observe when the 'authoritySerial' attribute has changed and
+update the certificate in their NSSDB, too.
+
+The renewal behaviour is available in the REST API as a POST to
+/ca/rest/authorities/<id>/renew.
+
+Fixes: https://fedorahosted.org/pki/ticket/2327
+---
+ .../src/com/netscape/ca/CertificateAuthority.java  | 119 ++++++++++++++++++++-
+ .../dogtagpki/server/ca/rest/AuthorityService.java |  34 ++++++
+ .../certsrv/authority/AuthorityResource.java       |   7 ++
+ .../netscape/certsrv/ca/ICertificateAuthority.java |   6 ++
+ .../cms/servlet/cert/RenewalProcessor.java         |  15 ++-
+ 5 files changed, 175 insertions(+), 6 deletions(-)
+
+diff --git a/base/ca/src/com/netscape/ca/CertificateAuthority.java b/base/ca/src/com/netscape/ca/CertificateAuthority.java
+index 8ef6fd4b6dc97b9108f470a38f45eec864f24015..62bfe4de13564983d7e820c6d1dc6a4015431322 100644
+--- a/base/ca/src/com/netscape/ca/CertificateAuthority.java
++++ b/base/ca/src/com/netscape/ca/CertificateAuthority.java
+@@ -120,6 +120,7 @@ import com.netscape.certsrv.security.ISigningUnit;
+ import com.netscape.certsrv.util.IStatsSubsystem;
+ import com.netscape.cms.servlet.cert.CertEnrollmentRequestFactory;
+ import com.netscape.cms.servlet.cert.EnrollmentProcessor;
++import com.netscape.cms.servlet.cert.RenewalProcessor;
+ import com.netscape.cms.servlet.processors.CAProcessor;
+ import com.netscape.cmscore.base.ArgBlock;
+ import com.netscape.cmscore.dbs.CRLRepository;
+@@ -207,6 +208,7 @@ public class CertificateAuthority
+     protected CertificateAuthority hostCA = null;
+     protected AuthorityID authorityID = null;
+     protected AuthorityID authorityParentID = null;
++    protected BigInteger authoritySerial = null;
+     protected String authorityDescription = null;
+     protected Collection<String> authorityKeyHosts = null;
+     protected boolean authorityEnabled = true;
+@@ -343,6 +345,7 @@ public class CertificateAuthority
+             X500Name dn,
+             AuthorityID aid,
+             AuthorityID parentAID,
++            BigInteger serial,
+             String signingKeyNickname,
+             Collection<String> authorityKeyHosts,
+             String authorityDescription,
+@@ -357,6 +360,7 @@ public class CertificateAuthority
+ 
+         this.authorityID = aid;
+         this.authorityParentID = parentAID;
++        this.authoritySerial = serial;
+         this.authorityDescription = authorityDescription;
+         this.authorityEnabled = authorityEnabled;
+         mNickname = signingKeyNickname;
+@@ -523,6 +527,8 @@ public class CertificateAuthority
+                 }
+             }
+ 
++            checkForNewerCert();
++
+             mUseNonces = mConfig.getBoolean("enableNonces", true);
+             mMaxNonces = mConfig.getInteger("maxNumberOfNonces", 100);
+ 
+@@ -601,6 +607,49 @@ public class CertificateAuthority
+         }
+     }
+ 
++    private void checkForNewerCert() throws EBaseException {
++        if (authoritySerial == null)
++            return;
++        if (authoritySerial.equals(mCaCert.getSerialNumber()))
++            return;
++
++        // The authoritySerial recorded in LDAP differs from the
++        // certificate in NSSDB.  Import the newer cert.
++        //
++        // Note that the new serial number need not be greater,
++        // e.g. if random serial numbers are enabled.
++        //
++        CMS.debug(
++            "Updating certificate in NSSDB; new serial number: "
++            + authoritySerial);
++        try {
++            X509Certificate oldCert = mCaX509Cert;
++            CryptoManager manager = CryptoManager.getInstance();
++
++            // add new cert
++            X509CertImpl newCert = mCertRepot.getX509Certificate(authoritySerial);
++            manager.importUserCACertPackage(newCert.getEncoded(), mNickname);
++
++            // delete old cert
++            manager.getInternalKeyStorageToken().getCryptoStore()
++                .deleteCert(oldCert);
++
++            // reinit signing unit
++            initSigUnit(false);
++        } catch (CertificateException e) {
++            throw new ECAException("Failed to update certificate", e);
++        } catch (CryptoManager.NotInitializedException e) {
++            throw new ECAException("CryptoManager not initialized", e);
++        } catch (CryptoManager.NicknameConflictException e) {
++            throw new ECAException("Failed to update certificate; nickname conflict", e);
++        } catch (CryptoManager.UserCertConflictException e) {
++            throw new ECAException("Failed to update certificate; user cert conflict", e);
++        } catch (TokenException | NoSuchItemOnTokenException e) {
++            // really shouldn't happen
++            throw new ECAException("Failed to update certificate", e);
++        }
++    }
++
+     private String authorityBaseDN() {
+         return "ou=authorities,ou=" + getId()
+             + "," + getDBSubsystem().getBaseDN();
+@@ -2572,6 +2621,8 @@ public class CertificateAuthority
+ 
+         addAuthorityEntry(aid, ldapEntry);
+ 
++        X509CertImpl cert = null;
++
+         try {
+             // Generate signing key
+             CryptoManager cryptoManager = CryptoManager.getInstance();
+@@ -2620,7 +2671,7 @@ public class CertificateAuthority
+                 throw new EBaseException("createSubCA: certificate request did not complete; status: " + requestStatus);
+ 
+             // Add certificate to nssdb
+-            X509CertImpl cert = request.getExtDataInCert(IEnrollProfile.REQUEST_ISSUED_CERT);
++            cert = request.getExtDataInCert(IEnrollProfile.REQUEST_ISSUED_CERT);
+             cryptoManager.importCertPackage(cert.getEncoded(), nickname);
+         } catch (Exception e) {
+             // something went wrong; delete just-added entry
+@@ -2636,11 +2687,65 @@ public class CertificateAuthority
+             throw new ECAException("Error creating lightweight CA certificate: " + e);
+         }
+ 
+-        return new CertificateAuthority(
++        CertificateAuthority ca = new CertificateAuthority(
+             hostCA, subjectX500Name,
+-            aid, this.authorityID,
++            aid, this.authorityID, cert.getSerialNumber(),
+             nickname, Collections.singleton(thisClone),
+             description, true);
++
++        // Update authority record with serial of issued cert
++        LDAPModificationSet mods = new LDAPModificationSet();
++        mods.add(
++            LDAPModification.REPLACE,
++            new LDAPAttribute("authoritySerial", cert.getSerialNumber().toString()));
++        ca.modifyAuthorityEntry(mods);
++
++        return ca;
++    }
++
++    /**
++     * Renew certificate of this CA.
++     */
++    public void renewAuthority(IAuthToken authToken) throws EBaseException {
++        if (
++            authorityParentID != null
++            && !authorityParentID.equals(authorityID)
++        ) {
++            ICertificateAuthority issuer = getCA(authorityParentID);
++            issuer.ensureReady();
++        }
++
++        IProfileSubsystem ps = (IProfileSubsystem)
++            CMS.getSubsystem(IProfileSubsystem.ID);
++        IProfile profile = ps.getProfile("caManualRenewal");
++        Locale locale = Locale.getDefault();
++        CertEnrollmentRequest req = CertEnrollmentRequestFactory.create(
++            new ArgBlock(), profile, locale);
++        req.setSerialNum(mCaCert.getSerialNumber().toString());
++        RenewalProcessor processor =
++            new RenewalProcessor("renewAuthority", locale);
++        Map<String, Object> resultMap =
++            processor.processRenewal(req, null, null, authToken);
++        IRequest requests[] = (IRequest[]) resultMap.get(CAProcessor.ARG_REQUESTS);
++        IRequest request = requests[0];
++        Integer result = request.getExtDataInInteger(IRequest.RESULT);
++        if (result != null && !result.equals(IRequest.RES_SUCCESS))
++            throw new EBaseException("renewAuthority: certificate renewal submission resulted in error: " + result);
++        RequestStatus requestStatus = request.getRequestStatus();
++        if (requestStatus != RequestStatus.COMPLETE)
++            throw new EBaseException("renewAuthority: certificate renewal did not complete; status: " + requestStatus);
++        X509CertImpl cert = request.getExtDataInCert(IEnrollProfile.REQUEST_ISSUED_CERT);
++        authoritySerial = cert.getSerialNumber();
++
++        // Update authority record with serial of issued cert
++        LDAPModificationSet mods = new LDAPModificationSet();
++        mods.add(
++            LDAPModification.REPLACE,
++            new LDAPAttribute("authoritySerial", authoritySerial.toString()));
++        modifyAuthorityEntry(mods);
++
++        // update cert in NSSDB
++        checkForNewerCert();
+     }
+ 
+     /**
+@@ -3038,6 +3143,7 @@ public class CertificateAuthority
+         LDAPAttribute dnAttr = entry.getAttribute("authorityDN");
+         LDAPAttribute parentAIDAttr = entry.getAttribute("authorityParentID");
+         LDAPAttribute parentDNAttr = entry.getAttribute("authorityParentDN");
++        LDAPAttribute serialAttr = entry.getAttribute("authoritySerial");
+ 
+         if (aidAttr == null || nickAttr == null || dnAttr == null) {
+             CMS.debug("Malformed authority object; required attribute(s) missing: " + entry.getDN());
+@@ -3112,6 +3218,10 @@ public class CertificateAuthority
+             parentAID = new AuthorityID((String)
+                 parentAIDAttr.getStringValues().nextElement());
+ 
++        BigInteger serial = null;
++        if (serialAttr != null)
++            serial = new BigInteger(serialAttr.getStringValueArray()[0]);
++
+         boolean enabled = true;
+         LDAPAttribute enabledAttr = entry.getAttribute("authorityEnabled");
+         if (enabledAttr != null) {
+@@ -3122,7 +3232,8 @@ public class CertificateAuthority
+ 
+         try {
+             CertificateAuthority ca = new CertificateAuthority(
+-                hostCA, dn, aid, parentAID, keyNick, keyHosts, desc, enabled);
++                hostCA, dn, aid, parentAID, serial,
++                keyNick, keyHosts, desc, enabled);
+             caMap.put(aid, ca);
+             entryUSNs.put(aid, newEntryUSN);
+             nsUniqueIds.put(aid, nsUniqueId);
+diff --git a/base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java b/base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java
+index 199ebef1a30c0cb946731ba448320f33611b3605..1b25f20084e9d495f840228e464d96650cd6946a 100644
+--- a/base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java
++++ b/base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java
+@@ -282,6 +282,40 @@ public class AuthorityService extends PKIService implements AuthorityResource {
+     }
+ 
+     @Override
++    public Response renewCA(String aidString) {
++        AuthorityID aid = null;
++        try {
++            aid = new AuthorityID(aidString);
++        } catch (IllegalArgumentException e) {
++            throw new BadRequestException("Bad AuthorityID: " + aidString);
++        }
++
++        ICertificateAuthority ca = hostCA.getCA(aid);
++        if (ca == null)
++            throw new ResourceNotFoundException("CA \"" + aidString + "\" not found");
++
++        Map<String, String> auditParams = new LinkedHashMap<>();
++
++        PKIPrincipal principal =
++            (PKIPrincipal) servletRequest.getUserPrincipal();
++
++        try {
++            ca.renewAuthority(principal.getAuthToken());
++            audit(ILogger.SUCCESS, OpDef.OP_MODIFY, aidString, null);
++            return createNoContentResponse();
++        } catch (CADisabledException e) {
++            auditParams.put("exception", e.toString());
++            audit(ILogger.FAILURE, OpDef.OP_MODIFY, aidString, auditParams);
++            throw new ConflictingOperationException(e.toString());
++        } catch (EBaseException e) {
++            CMS.debug(e);
++            auditParams.put("exception", e.toString());
++            audit(ILogger.FAILURE, OpDef.OP_MODIFY, aidString, auditParams);
++            throw new PKIException("Error renewing authority: " + e.toString());
++        }
++    }
++
++    @Override
+     public Response deleteCA(String aidString) {
+         AuthorityID aid = null;
+         try {
+diff --git a/base/common/src/com/netscape/certsrv/authority/AuthorityResource.java b/base/common/src/com/netscape/certsrv/authority/AuthorityResource.java
+index c6dc696247122b5f07802696c38c2f3517341106..0f8b70ade12c2b4174d5b9880a9c1bbeb35664cf 100644
+--- a/base/common/src/com/netscape/certsrv/authority/AuthorityResource.java
++++ b/base/common/src/com/netscape/certsrv/authority/AuthorityResource.java
+@@ -94,6 +94,13 @@ public interface AuthorityResource {
+     @ACLMapping("authorities.modify")
+     public Response disableCA(@PathParam("id") String caIDString);
+ 
++    @POST
++    @Path("{id}/renew")
++    @ClientResponseType(entityType=AuthorityData.class)
++    @AuthMethodMapping("authorities")
++    @ACLMapping("authorities.modify")
++    public Response renewCA(@PathParam("id") String caIDString);
++
+     @DELETE
+     @Path("{id}")
+     @ClientResponseType(entityType=Void.class)
+diff --git a/base/common/src/com/netscape/certsrv/ca/ICertificateAuthority.java b/base/common/src/com/netscape/certsrv/ca/ICertificateAuthority.java
+index dd0d1b0851f03b3df8b69f7595a3524e1f9bd9ba..0a17db9243569abd5415c13c274ddc58d63e583e 100644
+--- a/base/common/src/com/netscape/certsrv/ca/ICertificateAuthority.java
++++ b/base/common/src/com/netscape/certsrv/ca/ICertificateAuthority.java
+@@ -598,6 +598,12 @@ public interface ICertificateAuthority extends ISubsystem {
+         throws EBaseException;
+ 
+     /**
++     * Renew certificate of CA.
++     */
++    public void renewAuthority(IAuthToken authToken)
++        throws EBaseException;
++
++    /**
+      * Delete this lightweight CA.
+      */
+     public void deleteAuthority()
+diff --git a/base/server/cms/src/com/netscape/cms/servlet/cert/RenewalProcessor.java b/base/server/cms/src/com/netscape/cms/servlet/cert/RenewalProcessor.java
+index 1e4e02c9e3503ed543ff4a0a1da6c8e85c17bf3d..88111b8a8b8b60fbac070c67bd8028a40242a541 100644
+--- a/base/server/cms/src/com/netscape/cms/servlet/cert/RenewalProcessor.java
++++ b/base/server/cms/src/com/netscape/cms/servlet/cert/RenewalProcessor.java
+@@ -71,6 +71,15 @@ public class RenewalProcessor extends CertProcessor {
+             HttpServletRequest request,
+             AuthCredentials credentials)
+             throws EBaseException {
++        return processRenewal(data, request, credentials, null);
++    }
++
++    public HashMap<String, Object> processRenewal(
++            CertEnrollmentRequest data,
++            HttpServletRequest request,
++            AuthCredentials credentials,
++            IAuthToken authToken)
++            throws EBaseException {
+         try {
+             if (CMS.debugOn()) {
+                 HashMap<String, String> params = data.toParams();
+@@ -79,7 +88,8 @@ public class RenewalProcessor extends CertProcessor {
+             CMS.debug("RenewalSubmitter: isRenewal true");
+ 
+             startTiming("enrollment");
+-            request.setAttribute("reqType", "renewal");
++            if (request != null)
++                request.setAttribute("reqType", "renewal");
+ 
+             // in case of renew, "profile" is the orig profile
+             // while "renewProfile" is the current profile used for renewal
+@@ -210,7 +220,8 @@ public class RenewalProcessor extends CertProcessor {
+                 context.put("origSubjectDN", origSubjectDN);
+ 
+             // before creating the request, authenticate the request
+-            IAuthToken authToken = authenticate(request, origReq, authenticator, context, true, credentials);
++            if (authToken == null)
++                authToken = authenticate(request, origReq, authenticator, context, true, credentials);
+ 
+             // authentication success, now authorize
+             authorize(profileId, renewProfile, authToken);
+-- 
+2.5.5
+

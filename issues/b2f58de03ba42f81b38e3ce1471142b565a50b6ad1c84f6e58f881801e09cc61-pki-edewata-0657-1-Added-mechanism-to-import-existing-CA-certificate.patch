@@ -1,0 +1,677 @@
+From 01d9557933236ebc3b74a5221cea8ef8cda8a91f Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Sat, 7 Nov 2015 00:09:19 +0100
+Subject: [PATCH] Added mechanism to import existing CA certificate.
+
+The deployment procedure for external CA has been modified
+such that it generates the CA CSR before starting the server.
+This allows the same procedure to be used to import CA
+certificate from an existing server. It also removes the
+requirement to keep the server running while waiting to get
+the CSR signed by an external CA.
+
+https://fedorahosted.org/pki/ticket/456
+---
+ base/common/python/pki/nss.py                      |  48 +++++--
+ .../certsrv/system/ConfigurationRequest.java       |  12 ++
+ .../cms/servlet/csadmin/ConfigurationUtils.java    |  87 +++++++++++++
+ .../dogtagpki/server/rest/SystemConfigService.java |  40 +++++-
+ base/server/etc/default.cfg                        |   9 +-
+ .../python/pki/server/deployment/pkihelper.py      |  71 +++++++----
+ .../server/deployment/scriptlets/configuration.py  | 139 ++++++++++++++++++++-
+ .../server/deployment/scriptlets/finalization.py   |  12 +-
+ 8 files changed, 373 insertions(+), 45 deletions(-)
+
+diff --git a/base/common/python/pki/nss.py b/base/common/python/pki/nss.py
+index f36b771f85eb45641022d6033c23a88aca50757a..1330771c08558be98f7c25dc9bd68dd3c6a5c4f4 100644
+--- a/base/common/python/pki/nss.py
++++ b/base/common/python/pki/nss.py
+@@ -123,27 +123,59 @@ class NSSDatabase(object):
+ 
+     def create_request(self,
+         subject_dn,
+-        noise_file,
+-        request_file):
++        request_file,
++        noise_file=None,
++        token=None,
++        key_type=None,
++        key_size=None,
++        curve=None,
++        hash_alg=None):
+ 
+         tmpdir = tempfile.mkdtemp()
+ 
+         try:
++            if not noise_file:
++                noise_file = os.path.join(tmpdir, 'noise.bin')
++                if key_size:
++                    size = key_size
++                else:
++                    size = 2048
++                self.create_noise(
++                    noise_file=noise_file,
++                    size=size)
++
+             binary_request_file = os.path.join(tmpdir, 'request.bin')
+-            b64_request_file = os.path.join(tmpdir, 'request.b64')
+ 
+-            # generate binary request
+-            subprocess.check_call([
++            cmd = [
+                 'certutil',
+                 '-R',
+                 '-d', self.directory,
+                 '-f', self.password_file,
+                 '-s', subject_dn,
+-                '-z', noise_file,
+-                '-o', binary_request_file
+-            ])
++                '-o', binary_request_file,
++                '-z', noise_file
++            ]
++
++            if token:
++                cmd.extend(['-h', token])
++
++            if key_type:
++                cmd.extend(['-k', key_type])
++
++            if key_size:
++                cmd.extend(['-g', str(key_size)])
++
++            if curve:
++                cmd.extend(['-q', curve])
++
++            if hash_alg:
++                cmd.extend(['-Z', hash_alg])
++
++            # generate binary request
++            subprocess.check_call(cmd)
+ 
+             # encode binary request in base-64
++            b64_request_file = os.path.join(tmpdir, 'request.b64')
+             subprocess.check_call([
+                 'BtoA', binary_request_file, b64_request_file])
+ 
+diff --git a/base/common/src/com/netscape/certsrv/system/ConfigurationRequest.java b/base/common/src/com/netscape/certsrv/system/ConfigurationRequest.java
+index 7c6c339f5ddff40018c4d14c97ca63e12e9b9289..8c9da6f373be192a6b5cf99a3cf8cd6ce288c3aa 100644
+--- a/base/common/src/com/netscape/certsrv/system/ConfigurationRequest.java
++++ b/base/common/src/com/netscape/certsrv/system/ConfigurationRequest.java
+@@ -178,6 +178,9 @@ public class ConfigurationRequest {
+     protected String adminCert;
+ 
+     @XmlElement
++    protected Boolean external;
++
++    @XmlElement
+     protected String standAlone;
+ 
+     @XmlElement
+@@ -754,6 +757,14 @@ public class ConfigurationRequest {
+         this.adminCert = adminCert;
+     }
+ 
++    public Boolean isExternal() {
++        return external;
++    }
++
++    public void setExternal(Boolean external) {
++        this.external = external;
++    }
++
+     public boolean getStandAlone() {
+         return (standAlone != null && standAlone.equalsIgnoreCase("true"));
+     }
+@@ -945,6 +956,7 @@ public class ConfigurationRequest {
+                ", adminCert=" + adminCert +
+                ", importAdminCert=" + importAdminCert +
+                ", generateServerCert=" + generateServerCert +
++               ", external=" + external +
+                ", standAlone=" + standAlone +
+                ", stepTwo=" + stepTwo +
+                ", authdbBaseDN=" + authdbBaseDN +
+diff --git a/base/server/cms/src/com/netscape/cms/servlet/csadmin/ConfigurationUtils.java b/base/server/cms/src/com/netscape/cms/servlet/csadmin/ConfigurationUtils.java
+index 88118adf8a7535442d8f1f678ce14f6f6ac07e51..5e2936f3d73089090c9b042ed8900fce62177996 100644
+--- a/base/server/cms/src/com/netscape/cms/servlet/csadmin/ConfigurationUtils.java
++++ b/base/server/cms/src/com/netscape/cms/servlet/csadmin/ConfigurationUtils.java
+@@ -126,6 +126,7 @@ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.EPropertyNotFound;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.ISubsystem;
++import com.netscape.certsrv.base.MetaInfo;
+ import com.netscape.certsrv.base.PKIException;
+ import com.netscape.certsrv.base.ResourceNotFoundException;
+ import com.netscape.certsrv.ca.ICertificateAuthority;
+@@ -133,6 +134,8 @@ import com.netscape.certsrv.client.ClientConfig;
+ import com.netscape.certsrv.client.PKIClient;
+ import com.netscape.certsrv.client.PKIConnection;
+ import com.netscape.certsrv.dbs.IDBSubsystem;
++import com.netscape.certsrv.dbs.certdb.ICertRecord;
++import com.netscape.certsrv.dbs.certdb.ICertificateRepository;
+ import com.netscape.certsrv.dbs.crldb.ICRLIssuingPointRecord;
+ import com.netscape.certsrv.key.KeyData;
+ import com.netscape.certsrv.ldap.ILdapConnFactory;
+@@ -2248,6 +2251,54 @@ public class ConfigurationUtils {
+         certObj.setCertChain(certChainStr);
+     }
+ 
++    public static KeyPair loadKeyPair(String nickname) throws Exception {
++
++        CMS.debug("ConfigurationUtils: loadKeyPair(" + nickname + ")");
++
++        CryptoManager cm = CryptoManager.getInstance();
++
++        X509Certificate cert = cm.findCertByNickname(nickname);
++        PublicKey publicKey = cert.getPublicKey();
++        PrivateKey privateKey = cm.findPrivKeyByCert(cert);
++
++        return new KeyPair(publicKey, privateKey);
++    }
++
++    public static void storeKeyPair(IConfigStore config, String tag, KeyPair pair)
++            throws TokenException, EBaseException {
++
++        CMS.debug("ConfigurationUtils: storeKeyPair(" + tag + ")");
++
++        PublicKey publicKey = pair.getPublic();
++
++        if (publicKey instanceof RSAPublicKey) {
++
++            RSAPublicKey rsaPublicKey = (RSAPublicKey) publicKey;
++
++            byte modulus[] = rsaPublicKey.getModulus().toByteArray();
++            config.putString(PCERT_PREFIX + tag + ".pubkey.modulus",
++                    CryptoUtil.byte2string(modulus));
++
++            byte exponent[] = rsaPublicKey.getPublicExponent().toByteArray();
++            config.putString(PCERT_PREFIX + tag + ".pubkey.exponent",
++                    CryptoUtil.byte2string(exponent));
++
++        } else { // ECC
++
++            CMS.debug("ConfigurationUtils: Public key class: " + publicKey.getClass().getName());
++            byte encoded[] = publicKey.getEncoded();
++            config.putString(PCERT_PREFIX + tag + ".pubkey.encoded", CryptoUtil.byte2string(encoded));
++        }
++
++        PrivateKey privateKey = (PrivateKey) pair.getPrivate();
++        byte id[] = privateKey.getUniqueID();
++        String kid = CryptoUtil.byte2string(id);
++        config.putString(PCERT_PREFIX + tag + ".privkey.id", kid);
++
++        String keyAlgo = config.getString(PCERT_PREFIX + tag + ".signingalgorithm");
++        setSigningAlgorithm(tag, keyAlgo, config);
++    }
++
+     public static void createECCKeyPair(String token, String curveName, IConfigStore config, String ct)
+             throws NoSuchAlgorithmException, NoSuchTokenException, TokenException,
+             CryptoManager.NotInitializedException, EPropertyNotFound, EBaseException {
+@@ -2812,6 +2863,20 @@ public class ConfigurationUtils {
+         }
+     }
+ 
++    public static void loadCertRequest(IConfigStore config, String tag, Cert cert) throws Exception {
++
++        CMS.debug("ConfigurationUtils.loadCertRequest(" + tag + ")");
++
++        String subjectDN = config.getString(PCERT_PREFIX + tag + ".dn");
++        cert.setDN(subjectDN);
++
++        String subsystem = config.getString(PCERT_PREFIX + tag + ".subsystem");
++        String certreq = config.getString(subsystem + "." + tag + ".certreq");
++        String formattedCertreq = CryptoUtil.reqFormat(certreq);
++
++        cert.setRequest(formattedCertreq);
++    }
++
+     public static void handleCertRequest(IConfigStore config, String certTag, Cert cert) throws EPropertyNotFound,
+             EBaseException, InvalidKeyException, NotInitializedException, TokenException, NoSuchAlgorithmException,
+             NoSuchProviderException, CertificateException, SignatureException, IOException {
+@@ -2953,6 +3018,28 @@ public class ConfigurationUtils {
+         return pubk;
+     }
+ 
++    public static void loadCert(Cert cert) throws Exception {
++
++        String tag = cert.getCertTag();
++        CMS.debug("ConfigurationUtils: loadCert(" + tag + ")");
++
++        // load certificate
++        CryptoManager cm = CryptoManager.getInstance();
++        X509Certificate x509Cert = cm.findCertByNickname(cert.getNickname());
++        X509CertImpl x509CertImpl = new X509CertImpl(x509Cert.getEncoded());
++
++        ICertificateAuthority ca = (ICertificateAuthority) CMS.getSubsystem(ICertificateAuthority.ID);
++        ICertificateRepository cr = ca.getCertificateRepository();
++
++        BigInteger serialNo = x509Cert.getSerialNumber();
++
++        MetaInfo meta = new MetaInfo();
++
++        // create certificate record to reserve the serial number in internal database
++        ICertRecord record = cr.createCertRecord(serialNo, x509CertImpl, meta);
++        cr.addCertificateRecord(record);
++    }
++
+     public static int handleCerts(Cert cert) throws IOException, EBaseException, CertificateException,
+             NotInitializedException, TokenException, InvalidKeyException {
+         String certTag = cert.getCertTag();
+diff --git a/base/server/cms/src/org/dogtagpki/server/rest/SystemConfigService.java b/base/server/cms/src/org/dogtagpki/server/rest/SystemConfigService.java
+index a0138681a39baeff272d75408dbee9a74d0529dc..bee6122385fcbb0fda4245f26c6a419c17a81b3f 100644
+--- a/base/server/cms/src/org/dogtagpki/server/rest/SystemConfigService.java
++++ b/base/server/cms/src/org/dogtagpki/server/rest/SystemConfigService.java
+@@ -20,6 +20,7 @@ package org.dogtagpki.server.rest;
+ import java.math.BigInteger;
+ import java.net.MalformedURLException;
+ import java.net.URL;
++import java.security.KeyPair;
+ import java.security.NoSuchAlgorithmException;
+ import java.security.PublicKey;
+ import java.util.ArrayList;
+@@ -420,7 +421,13 @@ public class SystemConfigService extends PKIService implements SystemConfigResou
+                 }
+                 cs.commit(false);
+ 
+-                if (!request.getStepTwo()) {
++                if (request.isExternal() && tag.equals("signing")) {
++                    // load key pair for existing and externally-signed  signing cert
++                    CMS.debug("SystemConfigService: loading signing cert key pair");
++                    KeyPair pair = ConfigurationUtils.loadKeyPair(certData.getNickname());
++                    ConfigurationUtils.storeKeyPair(cs, tag, pair);
++
++                } else if (!request.getStepTwo()) {
+                     if (keytype.equals("ecc")) {
+                         String curvename = certData.getKeyCurveName() != null ?
+                                 certData.getKeyCurveName() : cs.getString("keys.ecc.curve.default");
+@@ -443,7 +450,16 @@ public class SystemConfigService extends PKIService implements SystemConfigResou
+                 cert.setSubsystem(cs.getString("preop.cert." + tag + ".subsystem"));
+                 cert.setType(cs.getString("preop.cert." + tag + ".type"));
+ 
+-                if (!request.getStepTwo()) {
++                if (request.isExternal()
++                        && (tag.equals("signing") || tag.equals("external_signing"))) {
++
++                    // update configuration for existing and externally-signed signing certificates
++                    String certStr = cs.getString("ca." + tag + ".cert" );
++                    cert.setCert(certStr);
++                    CMS.debug("SystemConfigService: certificate " + tag + ": " + certStr);
++                    ConfigurationUtils.updateConfig(cs, tag);
++
++                } else if (!request.getStepTwo()) {
+                     ConfigurationUtils.configCert(null, null, null, cert);
+ 
+                 } else {
+@@ -465,8 +481,17 @@ public class SystemConfigService extends PKIService implements SystemConfigResou
+                     CMS.debug("Step 2:  certStr for '" + tag + "' is " + certStr);
+                 }
+ 
+-                // Handle Cert Requests for everything EXCEPT Stand-alone PKI (Step 2)
+-                if (request.getStandAlone()) {
++                if (request.isExternal()
++                        && (tag.equals("signing") || tag.equals("external_signing"))) {
++
++                    CMS.debug("SystemConfigService: Loading cert request for " + tag + " cert");
++                    ConfigurationUtils.loadCertRequest(cs, tag, cert);
++
++                    CMS.debug("SystemConfigService: Loading cert " + tag);
++                    ConfigurationUtils.loadCert(cert);
++
++                } else if (request.getStandAlone()) {
++                    // Handle Cert Requests for everything EXCEPT Stand-alone PKI (Step 2)
+                     if (!request.getStepTwo()) {
+                         // Stand-alone PKI (Step 1)
+                         ConfigurationUtils.handleCertRequest(cs, tag, cert);
+@@ -489,6 +514,13 @@ public class SystemConfigService extends PKIService implements SystemConfigResou
+                     ConfigurationUtils.updateCloneConfig();
+                 }
+ 
++                if (request.isExternal() && (tag.equals("signing") || tag.equals("external_signing"))) {
++                    CMS.debug("SystemConfigService: External CA has signing cert");
++                    hasSigningCert.setValue(true);
++                    certs.add(cert);
++                    continue;
++                }
++
+                 // to determine if we have the signing cert when using an external ca
+                 // this will only execute on a ca or stand-alone pki
+                 String b64 = certData.getCert();
+diff --git a/base/server/etc/default.cfg b/base/server/etc/default.cfg
+index ddd2d83670dd191f38b8905cdea03172bbbc1e95..5b5224bdcf479271f701733be454e815feec40e6 100644
+--- a/base/server/etc/default.cfg
++++ b/base/server/etc/default.cfg
+@@ -22,6 +22,7 @@ sensitive_parameters=
+     pki_client_pkcs12_password
+     pki_clone_pkcs12_password
+     pki_ds_password
++    pki_external_pkcs12_password
+     pki_one_time_pin
+     pki_pin
+     pki_replication_password
+@@ -365,10 +366,12 @@ pki_req_ext_add=False
+ pki_req_ext_oid=1.3.6.1.4.1.311.20.2
+ pki_req_ext_critical=False
+ pki_req_ext_data=1E0A00530075006200430041
+-pki_external_csr_path=%(pki_instance_configuration_path)s/ca_signing.csr
++pki_external_csr_path=
+ pki_external_step_two=False
+-pki_external_ca_cert_chain_path=%(pki_instance_configuration_path)s/external_ca_chain.cert
+-pki_external_ca_cert_path=%(pki_instance_configuration_path)s/external_ca.cert
++pki_external_ca_cert_chain_path=
++pki_external_ca_cert_path=
++pki_external_pkcs12=
++pki_external_pkcs12_password=
+ pki_import_admin_cert=False
+ pki_ocsp_signing_key_algorithm=SHA256withRSA
+ pki_ocsp_signing_key_size=2048
+diff --git a/base/server/python/pki/server/deployment/pkihelper.py b/base/server/python/pki/server/deployment/pkihelper.py
+index 61f04d215ba3eba48b7e18733fd58b29555ced83..ca54c58b6e87a5e6378cf6dfb058231bd97cf2d3 100644
+--- a/base/server/python/pki/server/deployment/pkihelper.py
++++ b/base/server/python/pki/server/deployment/pkihelper.py
+@@ -757,8 +757,7 @@ class ConfigurationFile:
+             # External CA
+             if not self.external_step_two:
+                 # External CA (Step 1)
+-                self.confirm_data_exists("pki_external_csr_path")
+-                self.confirm_missing_file("pki_external_csr_path")
++                # The pki_external_csr_path is optional.
+                 # generic extension support in CSR - for external CA
+                 if self.add_req_ext:
+                     self.confirm_data_exists("pki_req_ext_oid")
+@@ -766,10 +765,9 @@ class ConfigurationFile:
+                     self.confirm_data_exists("pki_req_ext_data")
+             else:
+                 # External CA (Step 2)
+-                self.confirm_data_exists("pki_external_ca_cert_chain_path")
+-                self.confirm_file_exists("pki_external_ca_cert_chain_path")
+-                self.confirm_data_exists("pki_external_ca_cert_path")
+-                self.confirm_file_exists("pki_external_ca_cert_path")
++                # The pki_external_ca_cert_chain_path and
++                # pki_external_ca_cert_path are optional.
++                pass
+         elif not self.skip_configuration and self.standalone:
+             if not self.external_step_two:
+                 # Stand-alone PKI Admin CSR (Step 1)
+@@ -3813,17 +3811,7 @@ class ConfigClient:
+             if not isinstance(certs, list):
+                 certs = [certs]
+             for cdata in certs:
+-                if (self.subsystem == "CA" and self.external and
+-                        not self.external_step_two):
+-                    # External CA (Step 1)
+-                    if cdata['tag'].lower() == "signing":
+-                        # Save 'External CA Signing Certificate' CSR (Step 1)
+-                        self.save_system_csr(
+-                            cdata['request'],
+-                            log.PKI_CONFIG_EXTERNAL_CSR_SAVE,
+-                            self.mdict['pki_external_csr_path'])
+-                        return
+-                elif self.standalone and not self.external_step_two:
++                if self.standalone and not self.external_step_two:
+                     # Stand-alone PKI (Step 1)
+                     if cdata['tag'].lower() == "audit_signing":
+                         # Save Stand-alone PKI 'Audit Signing Certificate' CSR
+@@ -3991,8 +3979,17 @@ class ConfigClient:
+             data.token = self.mdict['pki_token_name']
+             data.tokenPassword = self.mdict['pki_token_password']
+         data.subsystemName = self.mdict['pki_subsystem_name']
++
++        data.external = self.external
+         data.standAlone = self.standalone
+-        data.stepTwo = self.external_step_two
++
++        if self.standalone:
++            # standalone installation uses two-step process (ticket #1698)
++            data.stepTwo = self.external_step_two
++
++        else:
++            # other installations use only one step in the configuration servlet
++            data.stepTwo = False
+ 
+         # Cloning parameters
+         if self.mdict['pki_instance_type'] == "Tomcat":
+@@ -4122,25 +4119,47 @@ class ConfigClient:
+                             self.mdict['pki_req_ext_critical']
+                         cert1.req_ext_data = \
+                             self.mdict['pki_req_ext_data']
+-                if self.external_step_two:
+-                    # External CA (Step 2) or Stand-alone PKI (Step 2)
+-                    if not self.subsystem == "CA":
+-                        # Stand-alone PKI (Step 2)
+-                        cert1 = pki.system.SystemCertData()
+-                        cert1.tag = self.mdict['pki_ca_signing_tag']
+-                    # Load the External CA or Stand-alone PKI
++
++                if self.external and self.external_step_two:
++
++                    # If specified, load the externally-signed CA cert
++                    if os.path.isfile(self.mdict['pki_external_ca_cert_path']):
++                        self.load_system_cert(
++                            cert1,
++                            log.PKI_CONFIG_EXTERNAL_CA_LOAD,
++                            self.mdict['pki_external_ca_cert_path'])
++
++                    # If specified, load the external CA cert chain
++                    if os.path.isfile(self.mdict['pki_external_ca_cert_chain_path']):
++                        self.load_system_cert_chain(
++                            cert1,
++                            log.PKI_CONFIG_EXTERNAL_CA_CHAIN_LOAD,
++                            self.mdict['pki_external_ca_cert_chain_path'])
++
++                    systemCerts.append(cert1)
++
++                elif self.standalone and self.external_step_two:
++
++                    # Stand-alone PKI (Step 2)
++                    cert1 = pki.system.SystemCertData()
++                    cert1.tag = self.mdict['pki_ca_signing_tag']
++
++                    # Load the stand-alone PKI
+                     # 'External CA Signing Certificate' (Step 2)
+                     self.load_system_cert(
+                         cert1,
+                         log.PKI_CONFIG_EXTERNAL_CA_LOAD,
+                         self.mdict['pki_external_ca_cert_path'])
+-                    # Load the External CA or Stand-alone PKI
++
++                    # Load the stand-alone PKI
+                     # 'External CA Signing Certificate Chain' (Step 2)
+                     self.load_system_cert_chain(
+                         cert1,
+                         log.PKI_CONFIG_EXTERNAL_CA_CHAIN_LOAD,
+                         self.mdict['pki_external_ca_cert_chain_path'])
++
+                     systemCerts.append(cert1)
++
+                 elif self.subsystem == "CA":
+                     # PKI CA or Subordinate CA
+                     systemCerts.append(cert1)
+diff --git a/base/server/python/pki/server/deployment/scriptlets/configuration.py b/base/server/python/pki/server/deployment/scriptlets/configuration.py
+index c6e89023560fc92cb9bd451d9b7f05818807da8a..bed19d9bfee838c44d32ff9f42df24a371e0671a 100644
+--- a/base/server/python/pki/server/deployment/scriptlets/configuration.py
++++ b/base/server/python/pki/server/deployment/scriptlets/configuration.py
+@@ -21,13 +21,19 @@
+ 
+ from __future__ import absolute_import
+ import json
++import os
++import re
+ 
+ # PKI Deployment Imports
+ from .. import pkiconfig as config
+ from .. import pkimessages as log
+ from .. import pkiscriptlet
+-import pki.system
++
+ import pki.encoder
++import pki.nss
++import pki.server
++import pki.system
++import pki.util
+ 
+ 
+ # PKI Deployment Configuration Scriptlet
+@@ -81,6 +87,137 @@ class PkiScriptlet(pkiscriptlet.AbstractBasePkiScriptlet):
+             deployer.mdict['pki_client_secmod_database'],
+             password_file=deployer.mdict['pki_client_password_conf'])
+ 
++        instance = pki.server.PKIInstance(deployer.mdict['pki_instance_name'])
++        instance.load()
++
++        subsystem = instance.get_subsystem(deployer.mdict['pki_subsystem'].lower())
++
++        nssdb = instance.open_nssdb()
++
++        external = config.str2bool(deployer.mdict['pki_external'])
++        step_one = not config.str2bool(deployer.mdict['pki_external_step_two'])
++        step_two = not step_one
++
++        try:
++            if external and step_one: # external CA step 1
++
++                key_type = deployer.mdict['pki_ca_signing_key_type']
++
++                if key_type == 'rsa':
++                    key_size = int(deployer.mdict['pki_ca_signing_key_size'])
++                    curve = None
++
++                    m = re.match(r'(.*)withRSA', deployer.mdict['pki_ca_signing_key_algorithm'])
++                    if not m:
++                        raise Exception('Invalid key algorithm: %s' % deployer.mdict['pki_ca_signing_key_algorithm'])
++                    hash_alg = m.group(1)
++
++                elif key_type == 'ec' or key_type == 'ecc':
++                    key_type = 'ec'
++                    key_size = None
++                    curve = deployer.mdict['pki_ca_signing_key_size']
++
++                    m = re.match(r'(.*)withEC', deployer.mdict['pki_ca_signing_key_algorithm'])
++                    if not m:
++                        raise Exception('Invalid key algorithm: %s' % deployer.mdict['pki_ca_signing_key_algorithm'])
++                    hash_alg = m.group(1)
++
++                else:
++                    raise Exception('Invalid key type: %s' % key_type)
++
++                token = deployer.mdict['pki_ca_signing_token']
++                if token == 'Internal Key Storage Token':
++                    token = None
++
++                # If filename specified, generate CA cert request and
++                # import it into CS.cfg.
++                request_file = deployer.mdict['pki_external_csr_path']
++                if request_file:
++                    nssdb.create_request(
++                        subject_dn=deployer.mdict['pki_ca_signing_subject_dn'],
++                        request_file=request_file,
++                        token=token,
++                        key_type=key_type,
++                        key_size=key_size,
++                        curve=curve,
++                        hash_alg=hash_alg)
++                    with open(request_file) as f:
++                        signing_csr = f.read()
++                    signing_csr = pki.nss.convert_csr(signing_csr, 'pem', 'base64')
++                    subsystem.config['ca.signing.certreq'] = signing_csr
++
++                subsystem.save()
++
++            elif external and step_two: # external CA step 2
++
++                # If specified, import existing CA cert request into CS.cfg.
++                request_file = deployer.mdict['pki_external_csr_path']
++                if os.path.isfile(request_file):
++                    with open(request_file) as f:
++                        signing_csr = f.read()
++                    signing_csr = pki.nss.convert_csr(signing_csr, 'pem', 'base64')
++                    subsystem.config['ca.signing.certreq'] = signing_csr
++
++                # If specified, import external CA cert into NSS database.
++                external_ca_nickname = 'caSigningCert External CA'
++                external_ca_cert_chain_file = deployer.mdict['pki_external_ca_cert_chain_path']
++                if os.path.isfile(external_ca_cert_chain_file):
++                    nssdb.add_cert(
++                        nickname=external_ca_nickname,
++                        cert_file=external_ca_cert_chain_file,
++                        trust_attributes='CTu,CTu,CTu')
++
++                    # Export external CA cert from NSS database and import it into CS.cfg.
++                    external_signing_cert = nssdb.get_cert(
++                        nickname=external_ca_nickname,
++                        output_format='base64')
++                    subsystem.config['ca.external_signing.nickname'] = external_ca_nickname
++                    subsystem.config['ca.external_signing.tokenname'] = deployer.mdict['pki_ca_signing_token']
++                    subsystem.config['ca.external_signing.cert'] = external_signing_cert
++
++                # If specified, import externally-signed CA cert in NSS database.
++                signing_nickname = deployer.mdict['pki_ca_signing_nickname']
++                signing_cert_file = deployer.mdict['pki_external_ca_cert_path']
++                if os.path.isfile(signing_cert_file):
++                    nssdb.add_cert(
++                        nickname=signing_nickname,
++                        cert_file=signing_cert_file,
++                        trust_attributes='CTu,CTu,CTu')
++
++                # If specified, import  CA cert and key from PKCS #12 file into NSS database.
++                pkcs12_file = deployer.mdict['pki_external_pkcs12']
++                if os.path.isfile(pkcs12_file):
++                    pkcs12_password = deployer.mdict['pki_external_pkcs12_password']
++                    nssdb.import_pkcs12(pkcs12_file, pkcs12_password)
++
++                # Export CA cert from NSS database and import it into CS.cfg.
++                signing_cert_data = nssdb.get_cert(
++                    nickname=signing_nickname,
++                    output_format='base64')
++                subsystem.config['ca.signing.nickname'] = signing_nickname
++                subsystem.config['ca.signing.tokenname'] = deployer.mdict['pki_ca_signing_token']
++                subsystem.config['ca.signing.cert'] = signing_cert_data
++                subsystem.config['ca.signing.cacertnickname'] = signing_nickname
++                subsystem.config['ca.signing.defaultSigningAlgorithm'] = deployer.mdict['pki_ca_signing_signing_algorithm']
++
++                subsystem.save()
++
++            else: # self-signed CA
++
++                # To be implemented in ticket #1692.
++
++                # Generate CA cert request.
++                # Self sign CA cert.
++                # Import self-signed CA cert into NSS database.
++
++                pass
++
++        finally:
++            nssdb.close()
++
++        if external and step_one:
++            return self.rv
++
+         # Start/Restart this Tomcat PKI Process
+         # Optionally prepare to enable a java debugger
+         # (e. g. - 'eclipse'):
+diff --git a/base/server/python/pki/server/deployment/scriptlets/finalization.py b/base/server/python/pki/server/deployment/scriptlets/finalization.py
+index 56ddf0219d37dc7258e95464aff9ae925456a1a8..3c4f469aced9eec7928cf2c1a27ac43ebe5e1886 100644
+--- a/base/server/python/pki/server/deployment/scriptlets/finalization.py
++++ b/base/server/python/pki/server/deployment/scriptlets/finalization.py
+@@ -67,9 +67,15 @@ class PkiScriptlet(pkiscriptlet.AbstractBasePkiScriptlet):
+         if len(deployer.instance.tomcat_instance_subsystems()) == 1:
+             # Modify contents of 'serverCertNick.conf' (if necessary)
+             deployer.servercertnick_conf.modify()
+-        # Optionally, programmatically 'restart' the configured PKI instance
+-        if config.str2bool(deployer.mdict['pki_restart_configured_instance']):
+-            deployer.systemd.restart()
++
++        external = config.str2bool(deployer.mdict['pki_external'])
++        step_one = not config.str2bool(deployer.mdict['pki_external_step_two'])
++
++        if not (external and step_one):
++            # Optionally, programmatically 'restart' the configured PKI instance
++            if config.str2bool(deployer.mdict['pki_restart_configured_instance']):
++                deployer.systemd.restart()
++
+         # Optionally, 'purge' the entire temporary client infrastructure
+         # including the client NSS security databases and password files
+         #
+-- 
+2.4.3
+

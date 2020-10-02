@@ -1,0 +1,294 @@
+From 0d3e5611a05d41628b2ddb4225f0e6d9682494f1 Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Thu, 20 Oct 2016 00:54:47 +0200
+Subject: [PATCH] Fixed TPS UI for agent approval.
+
+The TPS UI has been updated to support TPS agent approval process
+for changes in authenticators, connectors, and profile mappings in
+addition to profiles.
+
+The ConfigEntryPage has been updated to display the action links
+consistently in the above components for all possible role and
+status combinations.
+
+The ProfilePage has been removed since the code has been merged
+into its super class.
+
+https://fedorahosted.org/pki/ticket/2523
+---
+ base/tps/shared/webapps/tps/js/profile.js |  85 -------------------
+ base/tps/shared/webapps/tps/js/tps.js     | 132 +++++++++++++++++++++++++++---
+ base/tps/shared/webapps/tps/ui/index.html |   4 +-
+ 3 files changed, 124 insertions(+), 97 deletions(-)
+
+diff --git a/base/tps/shared/webapps/tps/js/profile.js b/base/tps/shared/webapps/tps/js/profile.js
+index 0182a80632b61289e56a22da31ee8328a07853f8..432aa6b22d1368b8f6a8b3091c3b5203fd3ea492 100644
+--- a/base/tps/shared/webapps/tps/js/profile.js
++++ b/base/tps/shared/webapps/tps/js/profile.js
+@@ -81,91 +81,6 @@ var ProfilesTable = ModelTable.extend({
+     }
+ });
+ 
+-var ProfilePage = ConfigEntryPage.extend({
+-    renderContent: function() {
+-        var self = this;
+-
+-        ProfilePage.__super__.renderContent.call(self);
+-
+-        var roles = tps.user.Roles.Role;
+-        var status = self.entry.status;
+-
+-        if (_.contains(roles, "Administrators")) {
+-
+-            // admins can edit disabled entries
+-            if (status == "Disabled") {
+-                self.editAction.show();
+-            } else {
+-                self.editAction.hide();
+-            }
+-
+-        } else {
+-            self.editAction.hide();
+-        }
+-
+-        if (_.contains(roles, "TPS Agents")) {
+-
+-            // agents can enable or disable entries
+-            if (status == "Disabled") {
+-                self.approveAction.hide();
+-                self.rejectAction.hide();
+-                self.enableAction.show();
+-                self.disableAction.hide();
+-
+-            } else if (status == "Enabled") {
+-                self.approveAction.hide();
+-                self.rejectAction.hide();
+-                self.enableAction.hide();
+-                self.disableAction.show();
+-
+-            } else if (status == "Pending_Approval") {
+-                self.approveAction.show();
+-                self.rejectAction.show();
+-                self.enableAction.hide();
+-                self.disableAction.hide();
+-
+-            } else {
+-                self.approveAction.hide();
+-                self.rejectAction.hide();
+-                self.enableAction.hide();
+-                self.disableAction.hide();
+-            }
+-
+-            self.submitAction.hide();
+-            self.cancelAction.hide();
+-
+-        } else if (_.contains(roles, "Administrators")) {
+-
+-            // admins can submit or cancel entries
+-            if (status == "Disabled") {
+-                self.submitAction.show();
+-                self.cancelAction.hide();
+-
+-            } else if (status == "Pending_Approval") {
+-                self.submitAction.hide();
+-                self.cancelAction.show();
+-
+-            } else {
+-                self.submitAction.hide();
+-                self.cancelAction.hide();
+-            }
+-
+-            self.approveAction.hide();
+-            self.rejectAction.hide();
+-            self.enableAction.hide();
+-            self.disableAction.hide();
+-
+-        } else {
+-            self.enableAction.hide();
+-            self.disableAction.hide();
+-            self.approveAction.hide();
+-            self.rejectAction.hide();
+-            self.submitAction.hide();
+-            self.cancelAction.hide();
+-        }
+-    }
+-});
+-
+ var ProfilesPage = Page.extend({
+     load: function() {
+         var self = this;
+diff --git a/base/tps/shared/webapps/tps/js/tps.js b/base/tps/shared/webapps/tps/js/tps.js
+index ac9330d6bb20fbce551995295096be1d6f0fb664..9d47d30d3053ae5af7db6cbbefc4a5eec5eac930 100644
+--- a/base/tps/shared/webapps/tps/js/tps.js
++++ b/base/tps/shared/webapps/tps/js/tps.js
+@@ -241,23 +241,135 @@ var ConfigEntryPage = EntryPage.extend({
+ 
+         ConfigEntryPage.__super__.renderContent.call(self);
+ 
++        var roles = tps.user.Roles.Role;
+         var status = self.entry.status;
+-        if (status == "Disabled") {
+-            self.editAction.show();
+-            self.enableAction.show();
+-            self.disableAction.hide();
++
++        if (_.contains(roles, "Administrators") && _.contains(roles, "TPS Agents")) {
++
++            if (status == "Enabled") {
++                // admin-agent can disable enabled entries
++                self.editAction.hide();
++                self.enableAction.hide();
++                self.disableAction.show();
++                self.submitAction.hide();
++                self.cancelAction.hide();
++                self.approveAction.hide();
++                self.rejectAction.hide();
++
++            } else if (status == "Disabled") {
++                // admin-agent can edit/enable disabled entries
++                self.editAction.show();
++                self.enableAction.show();
++                self.disableAction.hide();
++                self.submitAction.hide();
++                self.cancelAction.hide();
++                self.approveAction.hide();
++                self.rejectAction.hide();
++
++            } else if (status == "Pending_Approval") {
++                // admin-agent can approve/reject pending entries
++                self.editAction.hide();
++                self.enableAction.hide();
++                self.disableAction.hide();
++                self.submitAction.hide();
++                self.cancelAction.hide();
++                self.approveAction.show();
++                self.rejectAction.show();
++
++            } else {
++                self.editAction.hide();
++                self.enableAction.hide();
++                self.disableAction.hide();
++                self.submitAction.hide();
++                self.cancelAction.hide();
++                self.approveAction.hide();
++                self.rejectAction.hide();
++            }
++
++        } else if (_.contains(roles, "Administrators")) {
++
++            if (status == "Disabled") {
++                // admin can edit/submit disabled entries
++                self.editAction.show();
++                self.enableAction.hide();
++                self.disableAction.hide();
++                self.submitAction.show();
++                self.cancelAction.hide();
++                self.approveAction.hide();
++                self.rejectAction.hide();
++
++            } else if (status == "Pending_Approval") {
++                // admin can cancel pending entries
++                self.editAction.hide();
++                self.enableAction.hide();
++                self.disableAction.hide();
++                self.submitAction.hide();
++                self.cancelAction.show();
++                self.approveAction.hide();
++                self.rejectAction.hide();
++
++            } else {
++                self.editAction.hide();
++                self.enableAction.hide();
++                self.disableAction.hide();
++                self.submitAction.hide();
++                self.cancelAction.hide();
++                self.approveAction.hide();
++                self.rejectAction.hide();
++            }
++
++        } else if (_.contains(roles, "TPS Agents")) {
++
++            if (status == "Enabled") {
++                // agent can disable enabled entries
++                self.editAction.hide();
++                self.enableAction.hide();
++                self.disableAction.show();
++                self.submitAction.hide();
++                self.cancelAction.hide();
++                self.approveAction.hide();
++                self.rejectAction.hide();
++
++            } else if (status == "Disabled") {
++                // agent can enable disabled entries
++                self.editAction.hide();
++                self.enableAction.show();
++                self.disableAction.hide();
++                self.submitAction.hide();
++                self.cancelAction.hide();
++                self.approveAction.hide();
++                self.rejectAction.hide();
++
++            } else if (status == "Pending_Approval") {
++                // agent can approve/reject pending entries
++                self.editAction.hide();
++                self.enableAction.hide();
++                self.disableAction.hide();
++                self.submitAction.hide();
++                self.cancelAction.hide();
++                self.approveAction.show();
++                self.rejectAction.show();
++
++            } else {
++                self.editAction.hide();
++                self.enableAction.hide();
++                self.disableAction.hide();
++                self.submitAction.hide();
++                self.cancelAction.hide();
++                self.approveAction.hide();
++                self.rejectAction.hide();
++            }
+ 
+         } else {
+             self.editAction.hide();
+             self.enableAction.hide();
+-            self.disableAction.show();
++            self.disableAction.hide();
++            self.submitAction.hide();
++            self.cancelAction.hide();
++            self.approveAction.hide();
++            self.rejectAction.hide();
+         }
+ 
+-        self.submitAction.hide();
+-        self.cancelAction.hide();
+-        self.approveAction.hide();
+-        self.rejectAction.hide();
+-
+         if (self.mode == "add") {
+             self.propertiesTable.mode = "edit";
+             self.propertiesTextarea.removeAttr("readonly");
+diff --git a/base/tps/shared/webapps/tps/ui/index.html b/base/tps/shared/webapps/tps/ui/index.html
+index 93d3af0b0837b95a6bf4e26c3c5bc2a2ed3b9806..b7776c91cd2526a02401af2f5f0ca62d31a7a982 100644
+--- a/base/tps/shared/webapps/tps/ui/index.html
++++ b/base/tps/shared/webapps/tps/ui/index.html
+@@ -282,7 +282,7 @@ $(function() {
+     });
+ 
+     router.route("profiles/:id", "profile", function(id) {
+-        new ProfilePage({
++        new ConfigEntryPage({
+             el: content,
+             url: "profile.html",
+             model: new ProfileModel({ id: id })
+@@ -290,7 +290,7 @@ $(function() {
+     });
+ 
+     router.route("new-profile", "new-profile", function() {
+-        new ProfilePage({
++        new ConfigEntryPage({
+             el: content,
+             url: "profile.html",
+             model: new ProfileModel(),
+-- 
+2.5.5
+

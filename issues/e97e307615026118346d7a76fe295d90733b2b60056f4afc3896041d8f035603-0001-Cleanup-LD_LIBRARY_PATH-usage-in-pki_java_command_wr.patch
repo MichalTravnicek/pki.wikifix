@@ -1,0 +1,54 @@
+From 0bc1afcdc71279d1ccd68e0d294cc53c1195bfe0 Mon Sep 17 00:00:00 2001
+From: David Sommerseth <davids@redhat.com>
+Date: Fri, 17 Apr 2015 20:13:08 +0200
+Subject: [PATCH] Cleanup LD_LIBRARY_PATH usage in pki_java_command_wrapper.in
+ on Linux
+
+It is believed that there is no need to explicitly set LD_LIBRARY_PATH
+on Linux, especially not when all these paths are default system paths.
+
+This resolves an issue related to support of a broader set of CPU
+architectures.  Otherwise all new architectures needs similar hard-coded
+paths.
+
+For more information, see Red Hat bugzilla #1211638
+https://bugzilla.redhat.com/show_bug.cgi?id=1211638
+
+Signed-off-by: David Sommerseth <davids@redhat.com>
+---
+ base/java-tools/templates/pki_java_command_wrapper.in | 19 -------------------
+ 1 file changed, 19 deletions(-)
+
+diff --git a/base/java-tools/templates/pki_java_command_wrapper.in b/base/java-tools/templates/pki_java_command_wrapper.in
+index 09e059e..404bcf0 100644
+--- a/base/java-tools/templates/pki_java_command_wrapper.in
++++ b/base/java-tools/templates/pki_java_command_wrapper.in
+@@ -70,25 +70,6 @@ if [ "${OS}" = "Linux" ] ; then
+     ARCHITECTURE=`arch`
+     JAVA="java"
+     JAVA_OPTIONS=""
+-
+-    if [ "${ARCHITECTURE}" = "i686" ] ; then
+-        LD_LIBRARY_PATH=/usr/lib:/lib
+-        LD_LIBRARY_PATH=/usr/lib/jss:${LD_LIBRARY_PATH}
+-        export LD_LIBRARY_PATH
+-    elif [ "${ARCHITECTURE}" = "x86_64" ] ; then
+-        LD_LIBRARY_PATH=/usr/lib:/lib
+-        LD_LIBRARY_PATH=/usr/lib/jss:${LD_LIBRARY_PATH}
+-        LD_LIBRARY_PATH=/usr/lib64:/lib64:${LD_LIBRARY_PATH}
+-        LD_LIBRARY_PATH=/usr/lib64/jss:${LD_LIBRARY_PATH}
+-        export LD_LIBRARY_PATH
+-    elif [ "${ARCHITECTURE}" = "armv7l" ] ; then
+-        LD_LIBRARY_PATH=/usr/lib:/lib
+-        LD_LIBRARY_PATH=/usr/lib/jss:${LD_LIBRARY_PATH}
+-        export LD_LIBRARY_PATH
+-    else
+-        invalid_architecture "${ARCHITECTURE}"
+-        exit 255
+-    fi
+ elif [ "${OS}" = "SunOS" ] ; then
+     ARCHITECTURE=`uname -p`
+     if [ "${ARCHITECTURE}" = "sparc" ] &&
+-- 
+1.8.3.1
+

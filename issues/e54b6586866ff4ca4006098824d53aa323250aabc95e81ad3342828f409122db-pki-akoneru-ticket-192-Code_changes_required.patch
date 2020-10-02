@@ -1,0 +1,642 @@
+From 03033da268fd3d312e6d4c19f1874b118052e377 Mon Sep 17 00:00:00 2001
+From: Abhishek Koneru <akoneru@redhat.com>
+Date: Mon, 20 Aug 2012 13:39:52 -0400
+Subject: [PATCH] initial status
+
+---
+ .classpath                                         |    1 +
+ base/common/src/CMakeLists.txt                     |   15 +++++++---
+ .../com/netscape/certsrv/group/GroupClient.java    |    8 ++---
+ .../src/com/netscape/certsrv/group/GroupData.java  |   20 +++++--------
+ .../com/netscape/certsrv/group/GroupResource.java  |   31 +++++++++++---------
+ .../src/com/netscape/certsrv/user/UserClient.java  |    8 ++---
+ .../src/com/netscape/certsrv/user/UserData.java    |   20 +++++--------
+ .../com/netscape/certsrv/user/UserResource.java    |   26 +++++++++-------
+ .../netscape/cms/servlet/admin/GroupService.java   |   24 +++++----------
+ .../netscape/cms/servlet/admin/UserService.java    |   23 +++------------
+ base/deploy/src/scriptlets/pkijython.py            |    1 +
+ base/deploy/src/scriptlets/pkiparser.py            |    7 +++++
+ .../src/com/netscape/cmstools/group/GroupCLI.java  |    4 +--
+ .../src/com/netscape/cmstools/user/UserCLI.java    |    4 ---
+ .../com/netscape/cmsutil/crypto/CryptoUtil.java    |   16 +++++-----
+ 15 files changed, 93 insertions(+), 115 deletions(-)
+
+diff --git a/.classpath b/.classpath
+index 28dddffc296146b7c6bda79bf4dbf41561c359db..40bdc6b271e82fee7306521c5f9e837eceb5e930 100644
+--- a/.classpath
++++ b/.classpath
+@@ -45,5 +45,6 @@
+ 	<classpathentry kind="lib" path="/usr/share/java/resteasy/resteasy-atom-provider.jar"/>
+ 	<classpathentry kind="lib" path="/usr/share/java/tomcat/catalina.jar"/>
+ 	<classpathentry kind="lib" path="/usr/share/java/tomcat/tomcat-util.jar"/>
++	<classpathentry kind="lib" path="/usr/share/java/resteasy/resteasy-links-2.3.3.Final.jar"/>
+ 	<classpathentry kind="output" path="build/classes"/>
+ </classpath>
+diff --git a/base/common/src/CMakeLists.txt b/base/common/src/CMakeLists.txt
+index dc61b4ca762ab3d543f1b65a0959ac0ff29c92fe..d114eb0666c16fb9282681658f9f6088b95a1e03 100644
+--- a/base/common/src/CMakeLists.txt
++++ b/base/common/src/CMakeLists.txt
+@@ -104,6 +104,13 @@ find_file(RESTEASY_ATOM_PROVIDER_JAR
+         /usr/share/java/resteasy
+ )
+ 
++find_file(RESTEASY_LINKS_2.3.3_JAR
++    NAMES
++        resteasy-links-2.3.3.Final.jar
++    PATHS
++        /usr/share/java/resteasy
++)
++
+ find_file(HTTPCLIENT_JAR
+     NAMES
+         httpclient.jar
+@@ -128,7 +135,7 @@ javac(pki-certsrv-classes
+         ${JSS_JAR} ${COMMONS_CODEC_JAR} ${COMMONS_HTTPCLIENT_JAR}
+         ${APACHE_COMMONS_LANG_JAR}
+         ${TOMCAT_CATALINA_JAR} ${TOMCAT_UTIL_JAR} ${SYMKEY_JAR}
+-        ${JAXRS_API_JAR} ${RESTEASY_JAXRS_JAR} ${RESTEASY_ATOM_PROVIDER_JAR}
++        ${JAXRS_API_JAR} ${RESTEASY_JAXRS_JAR} ${RESTEASY_ATOM_PROVIDER_JAR} ${RESTEASY_LINKS_2.3.3_JAR}
+         ${HTTPCLIENT_JAR} ${HTTPCORE_JAR}
+     OUTPUT_DIR
+         ${CMAKE_BINARY_DIR}/classes
+@@ -177,7 +184,7 @@ javac(pki-cms-classes
+         ${JSS_JAR} ${COMMONS_CODEC_JAR} ${COMMONS_HTTPCLIENT_JAR}
+         ${APACHE_COMMONS_LANG_JAR}
+         ${TOMCAT_CATALINA_JAR} ${TOMCAT_UTIL_JAR} ${SYMKEY_JAR}
+-        ${JAXRS_API_JAR} ${RESTEASY_JAXRS_JAR} ${RESTEASY_ATOM_PROVIDER_JAR}
++        ${JAXRS_API_JAR} ${RESTEASY_JAXRS_JAR} ${RESTEASY_ATOM_PROVIDER_JAR} ${RESTEASY_LINKS_2.3.3_JAR}
+         ${HTTPCLIENT_JAR} ${HTTPCORE_JAR}
+     OUTPUT_DIR
+         ${CMAKE_BINARY_DIR}/classes
+@@ -228,7 +235,7 @@ if(WITH_JAVADOC)
+             ${JSS_JAR} ${COMMONS_CODEC_JAR} ${COMMONS_HTTPCLIENT_JAR}
+             ${APACHE_COMMONS_LANG_JAR}
+             ${TOMCAT_CATALINA_JAR} ${TOMCAT_UTIL_JAR} ${SYMKEY_JAR}
+-            ${JAXRS_API_JAR} ${RESTEASY_JAXRS_JAR} ${RESTEASY_ATOM_PROVIDER_JAR}
++            ${JAXRS_API_JAR} ${RESTEASY_JAXRS_JAR} ${RESTEASY_ATOM_PROVIDER_JAR} ${RESTEASY_LINKS_2.3.3_JAR}
+             ${HTTPCLIENT_JAR} ${HTTPCORE_JAR}
+         OPTIONS
+             -windowtitle 'pki-common'
+@@ -259,7 +266,7 @@ javac(pki-cmscore-classes
+         ${JSS_JAR} ${COMMONS_CODEC_JAR} ${COMMONS_HTTPCLIENT_JAR}
+         ${APACHE_COMMONS_LANG_JAR}
+         ${TOMCAT_CATALINA_JAR} ${TOMCAT_UTIL_JAR} ${SYMKEY_JAR}
+-        ${JAXRS_API_JAR} ${RESTEASY_JAXRS_JAR} ${RESTEASY_ATOM_PROVIDER_JAR}
++        ${JAXRS_API_JAR} ${RESTEASY_JAXRS_JAR} ${RESTEASY_ATOM_PROVIDER_JAR} ${RESTEASY_LINKS_2.3.3_JAR}
+         ${HTTPCLIENT_JAR} ${HTTPCORE_JAR}
+     OUTPUT_DIR
+         ${CMAKE_BINARY_DIR}/classes
+diff --git a/base/common/src/com/netscape/certsrv/group/GroupClient.java b/base/common/src/com/netscape/certsrv/group/GroupClient.java
+index 43d0ae5d59f6068f1dca338fe255360b94c7f291..9003064467b8cb4a3d81c003b7e41f24d4b8459e 100644
+--- a/base/common/src/com/netscape/certsrv/group/GroupClient.java
++++ b/base/common/src/com/netscape/certsrv/group/GroupClient.java
+@@ -48,15 +48,11 @@ public class GroupClient extends PKIClient {
+     }
+ 
+     public GroupData addGroup(GroupData groupData) {
+-        @SuppressWarnings("unchecked")
+-        ClientResponse<GroupData> response = (ClientResponse<GroupData>)groupClient.addGroup(groupData);
+-        return getEntity(response);
++        return groupClient.addGroup(groupData);
+     }
+ 
+     public GroupData modifyGroup(String groupID, GroupData groupData) {
+-        @SuppressWarnings("unchecked")
+-        ClientResponse<GroupData> response = (ClientResponse<GroupData>)groupClient.modifyGroup(groupID, groupData);
+-        return getEntity(response);
++        return groupClient.modifyGroup(groupID, groupData);
+     }
+ 
+     public void removeGroup(String groupID) {
+diff --git a/base/common/src/com/netscape/certsrv/group/GroupData.java b/base/common/src/com/netscape/certsrv/group/GroupData.java
+index a21ad7f01ca34e4ef05f58947fd670a6a95d3836..059ac340e11841b17b7b570e7c658b3ee749f67d 100644
+--- a/base/common/src/com/netscape/certsrv/group/GroupData.java
++++ b/base/common/src/com/netscape/certsrv/group/GroupData.java
+@@ -21,9 +21,11 @@ package com.netscape.certsrv.group;
+ import javax.ws.rs.FormParam;
+ import javax.xml.bind.annotation.XmlAttribute;
+ import javax.xml.bind.annotation.XmlElement;
++import javax.xml.bind.annotation.XmlElementRef;
++import javax.xml.bind.annotation.XmlID;
+ import javax.xml.bind.annotation.XmlRootElement;
+ 
+-import org.jboss.resteasy.plugins.providers.atom.Link;
++import org.jboss.resteasy.links.RESTServiceDiscovery;
+ 
+ import com.netscape.certsrv.common.Constants;
+ 
+@@ -32,13 +34,14 @@ import com.netscape.certsrv.common.Constants;
+  */
+ @XmlRootElement(name="Group")
+ public class GroupData {
+-
++    @XmlID
++    @XmlAttribute(name="id")
+     String id;
+     String description;
+ 
+-    Link link;
++    @XmlElementRef
++    private RESTServiceDiscovery rest;
+ 
+-    @XmlAttribute(name="id")
+     public String getID() {
+         return id;
+     }
+@@ -57,15 +60,6 @@ public class GroupData {
+         this.description = description;
+     }
+ 
+-    @XmlElement(name="Link")
+-    public Link getLink() {
+-        return link;
+-    }
+-
+-    public void setLink(Link link) {
+-        this.link = link;
+-    }
+-
+     @Override
+     public int hashCode() {
+         final int prime = 31;
+diff --git a/base/common/src/com/netscape/certsrv/group/GroupResource.java b/base/common/src/com/netscape/certsrv/group/GroupResource.java
+index e0110e6a8692035609d3f3aeca84eb320b2d4723..3ed7a97ad59617e65b9da131211d19074f2281ca 100644
+--- a/base/common/src/com/netscape/certsrv/group/GroupResource.java
++++ b/base/common/src/com/netscape/certsrv/group/GroupResource.java
+@@ -22,48 +22,51 @@ import javax.ws.rs.Consumes;
+ import javax.ws.rs.DELETE;
+ import javax.ws.rs.GET;
+ import javax.ws.rs.POST;
++import javax.ws.rs.PUT;
+ import javax.ws.rs.Path;
+ import javax.ws.rs.PathParam;
+ import javax.ws.rs.Produces;
+ import javax.ws.rs.QueryParam;
+ import javax.ws.rs.core.MediaType;
+-import javax.ws.rs.core.Response;
+ 
+-import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.links.AddLinks;
++import org.jboss.resteasy.links.LinkResource;
+ 
+ /**
+  * @author Endi S. Dewata
+  */
+ @Path("admin/groups")
++@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
++@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+ public interface GroupResource {
+ 
++    @AddLinks
++    @LinkResource(value=GroupData.class)
+     @GET
+-    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+     public GroupCollection findGroups(
+             @QueryParam("filter") String filter,
+             @QueryParam("start") Integer start,
+             @QueryParam("size") Integer size);
+ 
++    @AddLinks
++    @LinkResource(value=GroupData.class)
+     @POST
+-    @ClientResponseType(entityType=GroupData.class)
+-    @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+-    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+-    public Response addGroup(GroupData groupData);
++    public GroupData addGroup(GroupData groupData);
+ 
++    @AddLinks
++    @LinkResource(value=GroupData.class)
+     @GET
+     @Path("{groupID}")
+-    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+     public GroupData getGroup(@PathParam("groupID") String groupID);
+ 
+-    @POST
++    @AddLinks
++    @LinkResource(value=GroupData.class)
++    @PUT
+     @Path("{groupID}")
+-    @ClientResponseType(entityType=GroupData.class)
+-    @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+-    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+-    public Response modifyGroup(@PathParam("groupID") String groupID, GroupData groupData);
++    public GroupData modifyGroup(@PathParam("groupID") String groupID, GroupData groupData);
+ 
++    @LinkResource(value=GroupData.class)
+     @DELETE
+     @Path("{groupID}")
+-    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+     public void removeGroup(@PathParam("groupID") String groupID);
+ }
+diff --git a/base/common/src/com/netscape/certsrv/user/UserClient.java b/base/common/src/com/netscape/certsrv/user/UserClient.java
+index 95960e53ff8f6b5438b1ebfadb082aed25f6627a..8658699b10f8bb85d9972621b4c3287597aa2346 100644
+--- a/base/common/src/com/netscape/certsrv/user/UserClient.java
++++ b/base/common/src/com/netscape/certsrv/user/UserClient.java
+@@ -48,15 +48,11 @@ public class UserClient extends PKIClient {
+     }
+ 
+     public UserData addUser(UserData userData) {
+-        @SuppressWarnings("unchecked")
+-        ClientResponse<UserData> response = (ClientResponse<UserData>)userClient.addUser(userData);
+-        return getEntity(response);
++        return userClient.addUser(userData);
+     }
+ 
+     public UserData modifyUser(String userID, UserData userData) {
+-        @SuppressWarnings("unchecked")
+-        ClientResponse<UserData> response = (ClientResponse<UserData>)userClient.modifyUser(userID, userData);
+-        return getEntity(response);
++        return userClient.modifyUser(userID, userData);
+     }
+ 
+     public void removeUser(String userID) {
+diff --git a/base/common/src/com/netscape/certsrv/user/UserData.java b/base/common/src/com/netscape/certsrv/user/UserData.java
+index b62d0223195caac6d25ebd1cc6c4d1b47766604a..f553b647d6f15bd2ae328fe527627331670d05eb 100644
+--- a/base/common/src/com/netscape/certsrv/user/UserData.java
++++ b/base/common/src/com/netscape/certsrv/user/UserData.java
+@@ -27,9 +27,11 @@ import javax.xml.bind.Marshaller;
+ import javax.xml.bind.Unmarshaller;
+ import javax.xml.bind.annotation.XmlAttribute;
+ import javax.xml.bind.annotation.XmlElement;
++import javax.xml.bind.annotation.XmlElementRef;
++import javax.xml.bind.annotation.XmlID;
+ import javax.xml.bind.annotation.XmlRootElement;
+ 
+-import org.jboss.resteasy.plugins.providers.atom.Link;
++import org.jboss.resteasy.links.RESTServiceDiscovery;
+ 
+ import com.netscape.certsrv.common.Constants;
+ 
+@@ -51,7 +53,8 @@ public class UserData {
+             e.printStackTrace();
+         }
+     }
+-
++    @XmlID
++    @XmlAttribute(name="id")
+     String id;
+     String fullName;
+     String email;
+@@ -60,9 +63,9 @@ public class UserData {
+     String type;
+     String state;
+ 
+-    Link link;
++    @XmlElementRef
++    private RESTServiceDiscovery rest;
+ 
+-    @XmlAttribute(name="id")
+     public String getID() {
+         return id;
+     }
+@@ -131,15 +134,6 @@ public class UserData {
+         this.state = state;
+     }
+ 
+-    @XmlElement(name="Link")
+-    public Link getLink() {
+-        return link;
+-    }
+-
+-    public void setLink(Link link) {
+-        this.link = link;
+-    }
+-
+     @Override
+     public int hashCode() {
+         final int prime = 31;
+diff --git a/base/common/src/com/netscape/certsrv/user/UserResource.java b/base/common/src/com/netscape/certsrv/user/UserResource.java
+index 4a837165f03018c836d4a47c962d7f043622a776..b5ed7f2aafd76cf3bff5b1efabe8303f9149c4d2 100644
+--- a/base/common/src/com/netscape/certsrv/user/UserResource.java
++++ b/base/common/src/com/netscape/certsrv/user/UserResource.java
+@@ -27,16 +27,21 @@ import javax.ws.rs.PathParam;
+ import javax.ws.rs.Produces;
+ import javax.ws.rs.QueryParam;
+ import javax.ws.rs.core.MediaType;
+-import javax.ws.rs.core.Response;
+ 
+ import org.jboss.resteasy.annotations.ClientResponseType;
++import org.jboss.resteasy.links.AddLinks;
++import org.jboss.resteasy.links.LinkResource;
+ 
+ /**
+  * @author Endi S. Dewata
+  */
++@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
++@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+ @Path("admin/users")
+ public interface UserResource {
+ 
++    @AddLinks
++    @LinkResource(value=UserData.class)
+     @GET
+     @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+     public UserCollection findUsers(
+@@ -44,26 +49,27 @@ public interface UserResource {
+             @QueryParam("start") Integer start,
+             @QueryParam("size") Integer size);
+ 
++    @AddLinks
++    @LinkResource(value=UserData.class)
+     @POST
+     @ClientResponseType(entityType=UserData.class)
+-    @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+-    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+-    public Response addUser(UserData userData);
+ 
++    public UserData addUser(UserData userData);
++
++    @AddLinks
++    @LinkResource(value=UserData.class)
+     @GET
+     @Path("{userID}")
+-    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+     public UserData getUser(@PathParam("userID") String userID);
+ 
++    @AddLinks
++    @LinkResource(value=UserData.class)
+     @POST
+     @Path("{userID}")
+-    @ClientResponseType(entityType=UserData.class)
+-    @Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+-    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+-    public Response modifyUser(@PathParam("userID") String userID, UserData userData);
++    public UserData modifyUser(@PathParam("userID") String userID, UserData userData);
+ 
++    @LinkResource(value=UserData.class)
+     @DELETE
+     @Path("{userID}")
+-    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+     public void removeUser(@PathParam("userID") String userID);
+ }
+diff --git a/base/common/src/com/netscape/cms/servlet/admin/GroupService.java b/base/common/src/com/netscape/cms/servlet/admin/GroupService.java
+index b82df9a2fc8d293138ff1920eb4a7c34f7a145d7..d0b4880a6bc58a14f1b9fa871a4314e772b9e70d 100644
+--- a/base/common/src/com/netscape/cms/servlet/admin/GroupService.java
++++ b/base/common/src/com/netscape/cms/servlet/admin/GroupService.java
+@@ -19,13 +19,9 @@
+ package com.netscape.cms.servlet.admin;
+ 
+ import java.net.URI;
+-import java.net.URLEncoder;
+ import java.util.Enumeration;
+ import java.util.Map;
+ 
+-import javax.ws.rs.core.MediaType;
+-import javax.ws.rs.core.Response;
+-
+ import org.apache.commons.lang.StringUtils;
+ import org.jboss.resteasy.plugins.providers.atom.Link;
+ 
+@@ -43,7 +39,6 @@ import com.netscape.certsrv.usrgrp.IGroup;
+ import com.netscape.certsrv.usrgrp.IUGSubsystem;
+ import com.netscape.cms.servlet.base.PKIService;
+ import com.netscape.cmsutil.ldap.LDAPUtil;
+-
+ /**
+  * @author Endi S. Dewata
+  */
+@@ -63,9 +58,9 @@ public class GroupService extends PKIService implements GroupResource {
+         String description = group.getDescription();
+         if (!StringUtils.isEmpty(description)) groupData.setDescription(description);
+ 
+-        String groupID = URLEncoder.encode(groupData.getID(), "UTF-8");
++        /*String groupID = URLEncoder.encode(groupData.getID(), "UTF-8");
+         URI uri = uriInfo.getBaseUriBuilder().path(GroupResource.class).path("{groupID}").build(groupID);
+-        groupData.setLink(new Link("self", uri));
++        groupData.setLink(new Link("self", uri));*/
+ 
+         return groupData;
+     }
+@@ -164,7 +159,7 @@ public class GroupService extends PKIService implements GroupResource {
+      * </ul>
+      */
+     @Override
+-    public Response addGroup(GroupData groupData) {
++    public GroupData addGroup(GroupData groupData) {
+ 
+         String groupID = groupData.getID();
+ 
+@@ -194,11 +189,7 @@ public class GroupService extends PKIService implements GroupResource {
+                 // read the data back
+                 groupData = getGroup(groupID);
+ 
+-                return Response
+-                        .created(groupData.getLink().getHref())
+-                        .entity(groupData)
+-                        .type(MediaType.APPLICATION_XML)
+-                        .build();
++                return groupData;
+ 
+             } catch (Exception e) {
+                 throw new PKIException(getUserMessage("CMS_USRGRP_GROUP_ADD_FAILED"));
+@@ -230,7 +221,7 @@ public class GroupService extends PKIService implements GroupResource {
+      * </ul>
+      */
+     @Override
+-    public Response modifyGroup(String groupID, GroupData groupData) {
++    public GroupData modifyGroup(String groupID, GroupData groupData) {
+ 
+         // ensure that any low-level exceptions are reported
+         // to the signed audit log and stored as failures
+@@ -254,10 +245,11 @@ public class GroupService extends PKIService implements GroupResource {
+                 // read the data back
+                 groupData = getGroup(groupID);
+ 
+-                return Response
++                /*return Response
+                         .ok(groupData)
+                         .type(MediaType.APPLICATION_XML)
+-                        .build();
++                        .build();*/
++                return groupData;
+ 
+             } catch (Exception e) {
+                 log(ILogger.LL_FAILURE, e.toString());
+diff --git a/base/common/src/com/netscape/cms/servlet/admin/UserService.java b/base/common/src/com/netscape/cms/servlet/admin/UserService.java
+index f28a8151f43386df22db0839aafd4ba7f90f8af5..b1f960cdb6daede16ac0e61bb8a4f91b2acf73b7 100644
+--- a/base/common/src/com/netscape/cms/servlet/admin/UserService.java
++++ b/base/common/src/com/netscape/cms/servlet/admin/UserService.java
+@@ -19,13 +19,9 @@
+ package com.netscape.cms.servlet.admin;
+ 
+ import java.net.URI;
+-import java.net.URLEncoder;
+ import java.util.Enumeration;
+ import java.util.Map;
+ 
+-import javax.ws.rs.core.MediaType;
+-import javax.ws.rs.core.Response;
+-
+ import netscape.ldap.LDAPException;
+ 
+ import org.apache.commons.lang.StringUtils;
+@@ -71,10 +67,6 @@ public class UserService extends PKIService implements UserResource {
+         String fullName = user.getFullName();
+         if (!StringUtils.isEmpty(fullName)) userData.setFullName(fullName);
+ 
+-        String userID = URLEncoder.encode(id, "UTF-8");
+-        URI uri = uriInfo.getBaseUriBuilder().path(UserResource.class).path("{userID}").build(userID);
+-        userData.setLink(new Link("self", uri));
+-
+         return userData;
+     }
+ 
+@@ -198,7 +190,7 @@ public class UserService extends PKIService implements UserResource {
+      */
+ 
+     @Override
+-    public Response addUser(UserData userData) {
++    public UserData addUser(UserData userData) {
+ 
+         String userID = userData.getID();
+ 
+@@ -282,11 +274,7 @@ public class UserService extends PKIService implements UserResource {
+                 // read the data back
+                 userData = getUser(userID);
+ 
+-                return Response
+-                        .created(userData.getLink().getHref())
+-                        .entity(userData)
+-                        .type(MediaType.APPLICATION_XML)
+-                        .build();
++                return userData;
+ 
+             } catch (EUsrGrpException e) {
+                 log(ILogger.LL_FAILURE, e.toString());
+@@ -330,7 +318,7 @@ public class UserService extends PKIService implements UserResource {
+      * </ul>
+      */
+     @Override
+-    public Response modifyUser(String userID, UserData userData) {
++    public UserData modifyUser(String userID, UserData userData) {
+ 
+         // ensure that any low-level exceptions are reported
+         // to the signed audit log and stored as failures
+@@ -381,10 +369,7 @@ public class UserService extends PKIService implements UserResource {
+                 // read the data back
+                 userData = getUser(userID);
+ 
+-                return Response
+-                        .ok(userData)
+-                        .type(MediaType.APPLICATION_XML)
+-                        .build();
++                return userData;
+ 
+             } catch (Exception e) {
+                 log(ILogger.LL_FAILURE, e.toString());
+diff --git a/base/deploy/src/scriptlets/pkijython.py b/base/deploy/src/scriptlets/pkijython.py
+index c489fb13ffb054450532000b50ead6c87059fbdf..a94ec69e4e7b4450be5d5e3d7ed4cd269671952b 100644
+--- a/base/deploy/src/scriptlets/pkijython.py
++++ b/base/deploy/src/scriptlets/pkijython.py
+@@ -95,6 +95,7 @@ jarLoad.addFile("/usr/share/java/resteasy/resteasy-jaxb-provider.jar")
+ jarLoad.addFile("/usr/share/java/resteasy/resteasy-jaxrs.jar")
+ jarLoad.addFile("/usr/share/java/resteasy/resteasy-jettison-provider.jar")
+ jarLoad.addFile("/usr/share/java/scannotation.jar")
++jarLoad.addFile("/usr/share/java/resteasy/resteasy-links-2.3.3.Final.jar")
+ #     PKI Jars
+ jarLoad.addFile("/usr/share/java/pki/pki-certsrv.jar")
+ jarLoad.addFile("/usr/share/java/pki/pki-client.jar")
+diff --git a/base/deploy/src/scriptlets/pkiparser.py b/base/deploy/src/scriptlets/pkiparser.py
+index 4b6128440f28ffad5cb615e95cb05f3bd666c1ae..d763b187da87a1eccec294a39926880c5a93de70 100644
+--- a/base/deploy/src/scriptlets/pkiparser.py
++++ b/base/deploy/src/scriptlets/pkiparser.py
+@@ -699,6 +699,9 @@ def compose_pki_master_dictionary():
+             config.pki_master_dict['pki_resteasy_atom_provider_jar'] =\
+                 os.path.join(config.PKI_DEPLOYMENT_RESTEASY_JAR_SOURCE_ROOT,
+                              "resteasy-atom-provider.jar")
++            config.pki_master_dict['pki_resteasy_links_jar'] =\
++                os.path.join(config.PKI_DEPLOYMENT_RESTEASY_JAR_SOURCE_ROOT,
++                             "resteasy-links-2.3.3.Final.jar")
+             config.pki_master_dict['pki_resteasy_jaxb_provider_jar'] =\
+                 os.path.join(config.PKI_DEPLOYMENT_RESTEASY_JAR_SOURCE_ROOT,
+                              "resteasy-jaxb-provider.jar")
+@@ -803,6 +806,10 @@ def compose_pki_master_dictionary():
+                 os.path.join(
+                     config.pki_master_dict['pki_tomcat_common_lib_path'],
+                     "resteasy-atom-provider.jar")
++            config.pki_master_dict['pki_resteasy_links_jar_link'] =\
++                os.path.join(
++                    config.pki_master_dict['pki_tomcat_common_lib_path'],
++                    "resteasy-links-2.3.3.Final.jar")
+             config.pki_master_dict['pki_resteasy_jaxb_provider_jar_link'] =\
+                 os.path.join(
+                     config.pki_master_dict['pki_tomcat_common_lib_path'],
+diff --git a/base/java-tools/src/com/netscape/cmstools/group/GroupCLI.java b/base/java-tools/src/com/netscape/cmstools/group/GroupCLI.java
+index ce28af24375ab38e39da2d9cb2717a9ec12abcd8..ef1cfb281048dd2f1e013c537baa6f093f2da0bd 100644
+--- a/base/java-tools/src/com/netscape/cmstools/group/GroupCLI.java
++++ b/base/java-tools/src/com/netscape/cmstools/group/GroupCLI.java
+@@ -108,10 +108,10 @@ public class GroupCLI extends CLI {
+         String description = groupData.getDescription();
+         if (!StringUtils.isEmpty(description)) System.out.println("  Description: "+description);
+ 
+-        Link link = groupData.getLink();
++        /*Link link = groupData.getLink();
+         if (verbose && link != null) {
+             System.out.println("  Link: " + link.getHref());
+-        }
++        }*/
+     }
+ 
+     public static void printGroupMember(GroupMemberData groupMemberData) {
+diff --git a/base/java-tools/src/com/netscape/cmstools/user/UserCLI.java b/base/java-tools/src/com/netscape/cmstools/user/UserCLI.java
+index 301754a22a00adeff3422c518d75f1b8036c1f31..c53309d089c9f69b3409050ccbd6d475779e300d 100644
+--- a/base/java-tools/src/com/netscape/cmstools/user/UserCLI.java
++++ b/base/java-tools/src/com/netscape/cmstools/user/UserCLI.java
+@@ -126,10 +126,6 @@ public class UserCLI extends CLI {
+         if (!StringUtils.isEmpty(state))
+             System.out.println("  State: " + state);
+ 
+-        Link link = userData.getLink();
+-        if (verbose && link != null) {
+-            System.out.println("  Link: " + link.getHref());
+-        }
+     }
+ 
+     public static void printCert(
+diff --git a/base/util/src/com/netscape/cmsutil/crypto/CryptoUtil.java b/base/util/src/com/netscape/cmsutil/crypto/CryptoUtil.java
+index 81378ac1a428f71c4d1cf1bef1d098092f2c089c..4e251831e869f93e67a892769e94e05ece9af1ff 100644
+--- a/base/util/src/com/netscape/cmsutil/crypto/CryptoUtil.java
++++ b/base/util/src/com/netscape/cmsutil/crypto/CryptoUtil.java
+@@ -692,21 +692,21 @@ public class CryptoUtil {
+      * Creates a Certificate template.
+      */
+     public static X509CertInfo createX509CertInfo(KeyPair pair,
+-            int serialno, String issuername, String subjname,
++            BigInteger serialno, String issuername, String subjname,
+             Date notBefore, Date notAfter)
+             throws IOException,
+-                CertificateException,
+-                InvalidKeyException {
++            CertificateException,
++            InvalidKeyException {
+         return createX509CertInfo(convertPublicKeyToX509Key(pair.getPublic()),
+                 serialno, issuername, subjname, notBefore, notAfter);
+     }
+ 
+     public static X509CertInfo createX509CertInfo(PublicKey publickey,
+-            int serialno, String issuername, String subjname,
++            BigInteger serialno, String issuername, String subjname,
+             Date notBefore, Date notAfter)
+             throws IOException,
+-                CertificateException,
+-                InvalidKeyException {
++            CertificateException,
++            InvalidKeyException {
+         return createX509CertInfo(convertPublicKeyToX509Key(publickey), serialno,
+                 issuername, subjname, notBefore, notAfter);
+     }
+@@ -715,8 +715,8 @@ public class CryptoUtil {
+             BigInteger serialno, String issuername, String subjname,
+             Date notBefore, Date notAfter)
+             throws IOException,
+-                CertificateException,
+-                InvalidKeyException {
++            CertificateException,
++            InvalidKeyException {
+         // set default; use the other call with "alg" to set algorithm
+         String alg = "SHA256withRSA";
+         try {
+-- 
+1.7.10.2
+

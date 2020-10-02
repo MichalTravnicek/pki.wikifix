@@ -1,0 +1,946 @@
+From 24258340454f60cb4b29d07cf3fb34f35739e89c Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Tue, 24 Jan 2017 16:17:10 +0100
+Subject: [PATCH] Replaced CryptoManager.getTokenByName().
+
+Direct invocations of CryptoManager.getTokenByName() have been
+replaced with CryptoUtil.getCryptoToken() and getKeyStorageToken()
+to ensure that internal token names are handled consistently both
+in normal mode and FIPS mode.
+
+https://fedorahosted.org/pki/ticket/2556
+---
+ base/ca/src/com/netscape/ca/SigningUnit.java       |  3 +-
+ .../src/com/netscape/cmstools/CMCEnroll.java       |  8 +--
+ .../src/com/netscape/cmstools/CMCRequest.java      | 12 +---
+ .../src/com/netscape/cmstools/CMCRevoke.java       | 12 +---
+ .../src/com/netscape/cmstools/CRMFPopClient.java   |  9 +--
+ .../src/com/netscape/cmstools/HttpClient.java      |  5 +-
+ .../src/com/netscape/cmstools/KRATool.java         |  6 +-
+ .../src/com/netscape/cmstools/PKCS10Client.java    | 19 +++----
+ .../src/com/netscape/cmstools/PasswordCache.java   | 21 ++-----
+ .../src/com/netscape/cmstools/TestCRLSigning.java  |  8 +--
+ .../src/com/netscape/cmstools/cli/MainCLI.java     |  8 +--
+ .../src/com/netscape/kra/KeyRecoveryAuthority.java | 10 +---
+ base/kra/src/com/netscape/kra/RecoveryService.java | 10 +---
+ base/kra/src/com/netscape/kra/StorageKeyUnit.java  |  9 ++-
+ base/ocsp/src/com/netscape/ocsp/SigningUnit.java   |  6 +-
+ .../com/netscape/cms/authentication/CMCAuth.java   |  8 +--
+ .../netscape/cms/profile/common/EnrollProfile.java | 17 +-----
+ .../netscape/cms/profile/input/EnrollInput.java    |  2 +-
+ .../cms/servlet/admin/CMSAdminServlet.java         |  7 +--
+ .../cms/servlet/cert/scep/CRSEnrollment.java       |  3 +-
+ .../cms/servlet/csadmin/ConfigurationUtils.java    |  2 +-
+ .../netscape/cms/servlet/ocsp/AddCRLServlet.java   |  6 +-
+ .../cms/servlet/tks/SecureChannelProtocol.java     | 26 +++------
+ .../com/netscape/cms/servlet/tks/TokenServlet.java | 10 ++--
+ .../dogtagpki/server/rest/SystemConfigService.java |  3 +-
+ .../netscape/cmscore/security/JssSubsystem.java    | 65 +++++-----------------
+ .../com/netscape/cmscore/security/KeyCertUtil.java | 13 +----
+ .../com/netscape/cmscore/security/PWsdrCache.java  | 25 ++-------
+ 28 files changed, 83 insertions(+), 250 deletions(-)
+
+diff --git a/base/ca/src/com/netscape/ca/SigningUnit.java b/base/ca/src/com/netscape/ca/SigningUnit.java
+index 120b3547c491da7214bdeb2ebd99dfb9685558dc..b909de546cd2fb1be3e5822dd7735926124ad6fe 100644
+--- a/base/ca/src/com/netscape/ca/SigningUnit.java
++++ b/base/ca/src/com/netscape/ca/SigningUnit.java
+@@ -151,11 +151,10 @@ public final class SigningUnit implements ISigningUnit {
+             }
+ 
+             tokenname = config.getString(PROP_TOKEN_NAME);
++            mToken = CryptoUtil.getKeyStorageToken(tokenname);
+             if (CryptoUtil.isInternalToken(tokenname)) {
+-                mToken = mManager.getInternalKeyStorageToken();
+                 setNewNickName(mNickname);
+             } else {
+-                mToken = mManager.getTokenByName(tokenname);
+                 mNickname = tokenname + ":" + mNickname;
+                 setNewNickName(mNickname);
+             }
+diff --git a/base/java-tools/src/com/netscape/cmstools/CMCEnroll.java b/base/java-tools/src/com/netscape/cmstools/CMCEnroll.java
+index 9b435eea2f07232d6cffd551e28c7dbc137447f2..cee97a0ef9170b1c29fba12c11593cd5ac9f66ac 100644
+--- a/base/java-tools/src/com/netscape/cmstools/CMCEnroll.java
++++ b/base/java-tools/src/com/netscape/cmstools/CMCEnroll.java
+@@ -93,13 +93,7 @@ public class CMCEnroll {
+     public static X509Certificate getCertificate(String tokenname,
+             String nickname) throws Exception {
+         CryptoManager manager = CryptoManager.getInstance();
+-        CryptoToken token = null;
+-
+-        if (CryptoUtil.isInternalToken(tokenname)) {
+-            token = manager.getInternalKeyStorageToken();
+-        } else {
+-            token = manager.getTokenByName(tokenname);
+-        }
++        CryptoToken token = CryptoUtil.getKeyStorageToken(tokenname);
+         StringBuffer certname = new StringBuffer();
+ 
+         if (!token.equals(manager.getInternalKeyStorageToken())) {
+diff --git a/base/java-tools/src/com/netscape/cmstools/CMCRequest.java b/base/java-tools/src/com/netscape/cmstools/CMCRequest.java
+index 5a692a031a3fbadd208927725eca2313aaffb866..c518082123f96a30ac0b6fbdec7174bd723ba322 100644
+--- a/base/java-tools/src/com/netscape/cmstools/CMCRequest.java
++++ b/base/java-tools/src/com/netscape/cmstools/CMCRequest.java
+@@ -106,13 +106,8 @@ public class CMCRequest {
+     public static X509Certificate getCertificate(String tokenName,
+             String nickname) throws Exception {
+         CryptoManager manager = CryptoManager.getInstance();
+-        CryptoToken token = null;
++        CryptoToken token = CryptoUtil.getKeyStorageToken(tokenName);
+ 
+-        if (CryptoUtil.isInternalToken(tokenName)) {
+-            token = manager.getInternalKeyStorageToken();
+-        } else {
+-            token = manager.getTokenByName(tokenName);
+-        }
+         StringBuffer certname = new StringBuffer();
+ 
+         if (!token.equals(manager.getInternalKeyStorageToken())) {
+@@ -1019,11 +1014,10 @@ public class CMCRequest {
+             CryptoManager cm = CryptoManager.getInstance();
+             System.out.println("CryptoManger initialized");
+ 
++            token = CryptoUtil.getKeyStorageToken(tokenName);
++
+             if (CryptoUtil.isInternalToken(tokenName)) {
+-                token = cm.getInternalKeyStorageToken();
+                 tokenName = CryptoUtil.INTERNAL_TOKEN_NAME;
+-            } else {
+-                token = cm.getTokenByName(tokenName);
+             }
+             cm.setThreadToken(token);
+ 
+diff --git a/base/java-tools/src/com/netscape/cmstools/CMCRevoke.java b/base/java-tools/src/com/netscape/cmstools/CMCRevoke.java
+index bb0cc44a799d31d00d69f42b54838687951e45b1..c2572e64b518cb54dcf921866fd234bc5709b75e 100644
+--- a/base/java-tools/src/com/netscape/cmstools/CMCRevoke.java
++++ b/base/java-tools/src/com/netscape/cmstools/CMCRevoke.java
+@@ -182,12 +182,9 @@ public class CMCRevoke {
+                 CryptoManager.initialize(vals);
+ 
+                 CryptoManager cm = CryptoManager.getInstance();
+-                CryptoToken token = null;
++                CryptoToken token = CryptoUtil.getKeyStorageToken(hValue);
+                 if (CryptoUtil.isInternalToken(hValue)) {
+-                    token = cm.getInternalKeyStorageToken();
+                     hValue = CryptoUtil.INTERNAL_TOKEN_NAME;
+-                } else {
+-                    token = cm.getTokenByName(hValue);
+                 }
+ 
+                 Password pass = new Password(pValue.toCharArray());
+@@ -257,13 +254,8 @@ public class CMCRevoke {
+     public static X509Certificate getCertificate(CryptoManager manager, String tokenname,
+             String nickname) throws NoSuchTokenException,
+             Exception, TokenException {
+-        CryptoToken token = null;
++        CryptoToken token = CryptoUtil.getKeyStorageToken(tokenname);
+ 
+-        if (CryptoUtil.isInternalToken(tokenname)) {
+-            token = manager.getInternalKeyStorageToken();
+-        } else {
+-            token = manager.getTokenByName(tokenname);
+-        }
+         StringBuffer certname = new StringBuffer();
+ 
+         if (!token.equals(manager.getInternalKeyStorageToken())) {
+diff --git a/base/java-tools/src/com/netscape/cmstools/CRMFPopClient.java b/base/java-tools/src/com/netscape/cmstools/CRMFPopClient.java
+index 5d401f39613326c8c927981f4c105e74e7616339..8d5bd1f8a7537e1fcedac50d19ed08fb76520192 100644
+--- a/base/java-tools/src/com/netscape/cmstools/CRMFPopClient.java
++++ b/base/java-tools/src/com/netscape/cmstools/CRMFPopClient.java
+@@ -393,13 +393,8 @@ public class CRMFPopClient {
+ 
+             CryptoManager manager = CryptoManager.getInstance();
+ 
+-            CryptoToken token;
+-            if (tokenName == null) {
+-                token = manager.getInternalKeyStorageToken();
+-                tokenName = token.getName();
+-            } else {
+-                token = manager.getTokenByName(tokenName);
+-            }
++            CryptoToken token = CryptoUtil.getKeyStorageToken(tokenName);
++            tokenName = token.getName();
+             manager.setThreadToken(token);
+ 
+             Password password = new Password(tokenPassword.toCharArray());
+diff --git a/base/java-tools/src/com/netscape/cmstools/HttpClient.java b/base/java-tools/src/com/netscape/cmstools/HttpClient.java
+index 05f64f9f474cd40284ebc286c23e7bdaec72c979..6a008bf2cba32d5b66c4ade8741fa58d8290b9e8 100644
+--- a/base/java-tools/src/com/netscape/cmstools/HttpClient.java
++++ b/base/java-tools/src/com/netscape/cmstools/HttpClient.java
+@@ -113,12 +113,9 @@ public class HttpClient {
+                         new CryptoManager.InitializationValues(dbdir, "", "", "secmod.db");
+                 CryptoManager.initialize(vals);
+                 CryptoManager cm = CryptoManager.getInstance();
+-                CryptoToken token = null;
++                CryptoToken token = CryptoUtil.getKeyStorageToken(tokenName);
+                 if (CryptoUtil.isInternalToken(tokenName)) {
+-                    token = cm.getInternalKeyStorageToken();
+                     tokenName = CryptoUtil.INTERNAL_TOKEN_NAME;
+-                } else {
+-                    token = cm.getTokenByName(tokenName);
+                 }
+                 cm.setThreadToken(token);
+                 Password pass = new Password(password.toCharArray());
+diff --git a/base/java-tools/src/com/netscape/cmstools/KRATool.java b/base/java-tools/src/com/netscape/cmstools/KRATool.java
+index 2ec09658fdce6b557f7f1d273d4dbdaeb5f4092c..40440c45462775339c76da0d9ac54d3cac37cdd6 100644
+--- a/base/java-tools/src/com/netscape/cmstools/KRATool.java
++++ b/base/java-tools/src/com/netscape/cmstools/KRATool.java
+@@ -1620,11 +1620,7 @@ public class KRATool {
+                     + "'."
+                     + NEWLINE, true);
+ 
+-            if (CryptoUtil.isInternalToken(mSourceStorageTokenName)) {
+-                mSourceToken = cm.getInternalKeyStorageToken();
+-            } else {
+-                mSourceToken = cm.getTokenByName(mSourceStorageTokenName);
+-            }
++            mSourceToken = CryptoUtil.getKeyStorageToken(mSourceStorageTokenName);
+ 
+             if (mSourceToken == null) {
+                 return FAILURE;
+diff --git a/base/java-tools/src/com/netscape/cmstools/PKCS10Client.java b/base/java-tools/src/com/netscape/cmstools/PKCS10Client.java
+index 0a35827549c26cc4317a2a0eb3598c5fbb49cdea..57f879231890d571cdab38a69fff2d16da3a92e2 100644
+--- a/base/java-tools/src/com/netscape/cmstools/PKCS10Client.java
++++ b/base/java-tools/src/com/netscape/cmstools/PKCS10Client.java
+@@ -25,10 +25,6 @@ import java.security.KeyPair;
+ import java.security.MessageDigest;
+ import java.security.PublicKey;
+ 
+-import netscape.security.pkcs.PKCS10;
+-import netscape.security.x509.X500Name;
+-import netscape.security.x509.X509Key;
+-
+ import org.mozilla.jss.CryptoManager;
+ import org.mozilla.jss.asn1.BMPString;
+ import org.mozilla.jss.asn1.INTEGER;
+@@ -55,6 +51,10 @@ import com.netscape.cmsutil.crypto.CryptoUtil;
+ import com.netscape.cmsutil.util.HMACDigest;
+ import com.netscape.cmsutil.util.Utils;
+ 
++import netscape.security.pkcs.PKCS10;
++import netscape.security.x509.X500Name;
++import netscape.security.x509.X509Key;
++
+ /**
+  * Generates an ECC or RSA key pair in the security database, constructs a
+  * PKCS#10 certificate request with the public key, and outputs the request
+@@ -199,14 +199,11 @@ public class PKCS10Client {
+                         mPrefix, "secmod.db");
+ 
+             CryptoManager.initialize(vals);
+-            CryptoToken token = null;
++
+             CryptoManager cm = CryptoManager.getInstance();
+-            if ((tokenName == null) || (tokenName.equals(""))) {
+-                token = cm.getInternalKeyStorageToken();
+-                tokenName = token.getName();
+-            } else {
+-                token = cm.getTokenByName(tokenName);
+-            }
++            CryptoToken token = CryptoUtil.getKeyStorageToken(tokenName);
++            tokenName = token.getName();
++
+             System.out.println("PKCS10Client: Debug: got token.");
+             cm.setThreadToken(token);
+             System.out.println("PKCS10Client: Debug: thread token set.");
+diff --git a/base/java-tools/src/com/netscape/cmstools/PasswordCache.java b/base/java-tools/src/com/netscape/cmstools/PasswordCache.java
+index 3a4f29c11fecf25c754b1f2c64cb1558b799aa04..7f17c8fef1a256832ba28b324ba9a921e177ef33 100644
+--- a/base/java-tools/src/com/netscape/cmstools/PasswordCache.java
++++ b/base/java-tools/src/com/netscape/cmstools/PasswordCache.java
+@@ -41,6 +41,7 @@ import org.mozilla.jss.crypto.TokenException;
+ import org.mozilla.jss.util.Base64OutputStream;
+ import org.mozilla.jss.util.Password;
+ 
++import com.netscape.cmsutil.crypto.CryptoUtil;
+ import com.netscape.cmsutil.util.Utils;
+ 
+ /**
+@@ -246,15 +247,8 @@ public class PasswordCache {
+ 
+             CryptoManager.initialize(vals);
+ 
+-            CryptoManager cm = CryptoManager.getInstance();
+-            CryptoToken token = null;
+-            if (mTokenName == null) {
+-                token = cm.getInternalKeyStorageToken();
+-                System.out.println("token name = internal");
+-            } else {
+-                token = cm.getTokenByName(mTokenName);
+-                System.out.println("token name = " + mTokenName);
+-            }
++            CryptoToken token = CryptoUtil.getKeyStorageToken(mTokenName);
++            System.out.println("token: " + token.getName());
+ 
+             token.login(pass);
+         } catch (Exception e) {
+@@ -377,13 +371,8 @@ class PWsdrCache {
+         }
+ 
+         cm = CryptoManager.getInstance();
+-        if (mTokenName != null) {
+-            mToken = cm.getTokenByName(mTokenName);
+-            debug("PWsdrCache: mToken = " + mTokenName);
+-        } else {
+-            mToken = cm.getInternalKeyStorageToken();
+-            debug("PWsdrCache: mToken = internal");
+-        }
++        mToken = CryptoUtil.getKeyStorageToken(mTokenName);
++        debug("PWsdrCache: token: " + mToken.getName());
+     }
+ 
+     public byte[] getKeyId() {
+diff --git a/base/java-tools/src/com/netscape/cmstools/TestCRLSigning.java b/base/java-tools/src/com/netscape/cmstools/TestCRLSigning.java
+index 90535296a09d6d7700c10b7a62db12317222e2db..6ca949df73f2e6d58fbdb2d0a20e7ef6b6daeaec 100644
+--- a/base/java-tools/src/com/netscape/cmstools/TestCRLSigning.java
++++ b/base/java-tools/src/com/netscape/cmstools/TestCRLSigning.java
+@@ -62,12 +62,8 @@ public class TestCRLSigning {
+         cm = CryptoManager.getInstance();
+ 
+         // Login to token
+-        CryptoToken token = null;
+-        if (CryptoUtil.isInternalToken(tokenname)) {
+-            token = cm.getInternalKeyStorageToken();
+-        } else {
+-            token = cm.getTokenByName(tokenname);
+-        }
++        CryptoToken token = CryptoUtil.getKeyStorageToken(tokenname);
++
+         Password pass = new Password(tokenpwd.toCharArray());
+         token.login(pass);
+ 
+diff --git a/base/java-tools/src/com/netscape/cmstools/cli/MainCLI.java b/base/java-tools/src/com/netscape/cmstools/cli/MainCLI.java
+index 21d16b537ebab9739cc3b05e8d9a8ac01891d27d..caccdafcbcb4fb071cc51210cb1df67de2450ddd 100644
+--- a/base/java-tools/src/com/netscape/cmstools/cli/MainCLI.java
++++ b/base/java-tools/src/com/netscape/cmstools/cli/MainCLI.java
+@@ -457,13 +457,9 @@ public class MainCLI extends CLI {
+             try {
+                 CryptoManager manager = CryptoManager.getInstance();
+ 
+-                CryptoToken token;
+                 String tokenName = config.getTokenName();
+-                if (tokenName == null) {
+-                    token = manager.getInternalKeyStorageToken();
+-                } else {
+-                    token = manager.getTokenByName(tokenName);
+-                }
++                CryptoToken token = CryptoUtil.getKeyStorageToken(tokenName);
++
+                 manager.setThreadToken(token);
+ 
+                 Password password = new Password(config.getCertPassword().toCharArray());
+diff --git a/base/kra/src/com/netscape/kra/KeyRecoveryAuthority.java b/base/kra/src/com/netscape/kra/KeyRecoveryAuthority.java
+index b51057b156b0729277f967e8f6152cd0858bf213..64680ed823811957be7d62d6898a0762949910e6 100644
+--- a/base/kra/src/com/netscape/kra/KeyRecoveryAuthority.java
++++ b/base/kra/src/com/netscape/kra/KeyRecoveryAuthority.java
+@@ -30,7 +30,6 @@ import java.util.Vector;
+ 
+ import org.dogtagpki.legacy.kra.KRAPolicy;
+ import org.dogtagpki.legacy.policy.IPolicyProcessor;
+-import org.mozilla.jss.CryptoManager;
+ import org.mozilla.jss.NoSuchTokenException;
+ import org.mozilla.jss.crypto.CryptoToken;
+ 
+@@ -339,13 +338,8 @@ public class KeyRecoveryAuthority implements IAuthority, IKeyService, IKeyRecove
+             serverKeygenTokenName = CryptoUtil.INTERNAL_TOKEN_NAME;
+ 
+         try {
+-            if (serverKeygenTokenName.equalsIgnoreCase(CryptoUtil.INTERNAL_TOKEN_NAME)) {
+-                CMS.debug("KeyRecoveryAuthority: getting internal crypto token for serverkeygen");
+-                mKeygenToken = CryptoManager.getInstance().getInternalKeyStorageToken();
+-            } else {
+-                CMS.debug("KeyRecoveryAuthority: getting HSM token for serverkeygen");
+-                mKeygenToken = CryptoManager.getInstance().getTokenByName(serverKeygenTokenName);
+-            }
++            mKeygenToken = CryptoUtil.getKeyStorageToken(serverKeygenTokenName);
++            CMS.debug("KeyRecoveryAuthority: token: " + mKeygenToken.getName());
+             CMS.debug("KeyRecoveryAuthority: set up keygenToken");
+         } catch (NoSuchTokenException e) {
+             throw new EBaseException(CMS.getUserMessage("CMS_BASE_TOKEN_NOT_FOUND", serverKeygenTokenName));
+diff --git a/base/kra/src/com/netscape/kra/RecoveryService.java b/base/kra/src/com/netscape/kra/RecoveryService.java
+index e9c357d1ef24bbcfc5f09d0e51fa15c3d347a1df..7bcceb83374e73d745ab6ad387afc388ba622363 100644
+--- a/base/kra/src/com/netscape/kra/RecoveryService.java
++++ b/base/kra/src/com/netscape/kra/RecoveryService.java
+@@ -139,13 +139,9 @@ public class RecoveryService implements IService {
+             cm = CryptoManager.getInstance();
+             config = CMS.getConfigStore();
+             tokName = config.getString("kra.storageUnit.hardware", CryptoUtil.INTERNAL_TOKEN_NAME);
+-            if (CryptoUtil.isInternalToken(tokName)) {
+-                CMS.debug("RecoveryService: serviceRequest: use internal token ");
+-                ct = cm.getInternalCryptoToken();
+-            } else {
+-                CMS.debug("RecoveryService: serviceRequest: tokenName=" + tokName);
+-                ct = cm.getTokenByName(tokName);
+-            }
++            CMS.debug("RecoveryService: serviceRequest: token: " + tokName);
++            ct = CryptoUtil.getCryptoToken(tokName);
++
+             allowEncDecrypt_recovery = config.getBoolean("kra.allowEncDecrypt.recovery", false);
+         } catch (Exception e) {
+             CMS.debug("RecoveryService exception: use internal token :"
+diff --git a/base/kra/src/com/netscape/kra/StorageKeyUnit.java b/base/kra/src/com/netscape/kra/StorageKeyUnit.java
+index 30a0317acc565e9ec0cc793ffcc40c5c63cb760d..83f3e2a79a1738bc92bdd51a3d088209ad654c74 100644
+--- a/base/kra/src/com/netscape/kra/StorageKeyUnit.java
++++ b/base/kra/src/com/netscape/kra/StorageKeyUnit.java
+@@ -60,6 +60,7 @@ import com.netscape.certsrv.kra.IShare;
+ import com.netscape.certsrv.logging.ILogger;
+ import com.netscape.certsrv.security.Credential;
+ import com.netscape.certsrv.security.IStorageKeyUnit;
++import com.netscape.cmsutil.crypto.CryptoUtil;
+ import com.netscape.cmsutil.util.Utils;
+ 
+ /**
+@@ -686,11 +687,9 @@ public class StorageKeyUnit extends EncryptionUnit implements
+ 
+     public CryptoToken getToken() {
+         try {
+-            if (mConfig.getString(PROP_HARDWARE, null) != null) {
+-                return mManager.getTokenByName(mConfig.getString(PROP_HARDWARE));
+-            } else {
+-                return CryptoManager.getInstance().getInternalKeyStorageToken();
+-            }
++            String tokenName = mConfig.getString(PROP_HARDWARE, null);
++            return CryptoUtil.getKeyStorageToken(tokenName);
++
+         } catch (Exception e) {
+             return null;
+         }
+diff --git a/base/ocsp/src/com/netscape/ocsp/SigningUnit.java b/base/ocsp/src/com/netscape/ocsp/SigningUnit.java
+index a802abea4ca009ad4c555c5c17351e00e84d7e90..2ad47080b8d7d04a215e0d0aa14ff079017f3fdd 100644
+--- a/base/ocsp/src/com/netscape/ocsp/SigningUnit.java
++++ b/base/ocsp/src/com/netscape/ocsp/SigningUnit.java
+@@ -138,10 +138,8 @@ public final class SigningUnit implements ISigningUnit {
+             CMS.debug("OCSP nickname " + mNickname);
+ 
+             tokenname = config.getString(PROP_TOKEN_NAME);
+-            if (CryptoUtil.isInternalToken(tokenname)) {
+-                mToken = mManager.getInternalKeyStorageToken();
+-            } else {
+-                mToken = mManager.getTokenByName(tokenname);
++            mToken = CryptoUtil.getKeyStorageToken(tokenname);
++            if (!CryptoUtil.isInternalToken(tokenname)) {
+                 mNickname = tokenname + ":" + mNickname;
+                 setNewNickName(mNickname);
+             }
+diff --git a/base/server/cms/src/com/netscape/cms/authentication/CMCAuth.java b/base/server/cms/src/com/netscape/cms/authentication/CMCAuth.java
+index d1c04ee9b663fdc025edb92b9b93b26f794a2616..44dbed04309e566578b468b73a3edc1f2853dc1e 100644
+--- a/base/server/cms/src/com/netscape/cms/authentication/CMCAuth.java
++++ b/base/server/cms/src/com/netscape/cms/authentication/CMCAuth.java
+@@ -519,11 +519,7 @@ public class CMCAuth implements IAuthManager, IExtendedPluginInfo,
+                                     String tokenName =
+                                         CMS.getConfigStore().getString("ca.requestVerify.token", CryptoUtil.INTERNAL_TOKEN_NAME);
+                                     savedToken = cm.getThreadToken();
+-                                    if (tokenName.equals(CryptoUtil.INTERNAL_TOKEN_NAME)) {
+-                                        signToken = cm.getInternalCryptoToken();
+-                                    } else {
+-                                        signToken = cm.getTokenByName(tokenName);
+-                                    }
++                                    signToken = CryptoUtil.getCryptoToken(tokenName);
+                                     if (!savedToken.getName().equals(signToken.getName())) {
+                                         cm.setThreadToken(signToken);
+                                         tokenSwitched = true;
+@@ -928,7 +924,7 @@ public class CMCAuth implements IAuthManager, IExtendedPluginInfo,
+                             // by default JSS will use internal crypto token
+                             if (!CryptoUtil.isInternalToken(tokenName)) {
+                                 savedToken = cm.getThreadToken();
+-                                signToken = cm.getTokenByName(tokenName);
++                                signToken = CryptoUtil.getCryptoToken(tokenName);
+                                 if(signToken != null) {
+                                     cm.setThreadToken(signToken);
+                                     tokenSwitched = true;
+diff --git a/base/server/cms/src/com/netscape/cms/profile/common/EnrollProfile.java b/base/server/cms/src/com/netscape/cms/profile/common/EnrollProfile.java
+index 3b6916b37df5abc64526fe9b72fbc1028e161e3a..8d10ec26b3db12f68eb9033473b93615d5a6d824 100644
+--- a/base/server/cms/src/com/netscape/cms/profile/common/EnrollProfile.java
++++ b/base/server/cms/src/com/netscape/cms/profile/common/EnrollProfile.java
+@@ -702,11 +702,7 @@ public abstract class EnrollProfile extends BasicProfile
+                     String tokenName =
+                         CMS.getConfigStore().getString("ca.requestVerify.token", CryptoUtil.INTERNAL_TOKEN_NAME);
+                     savedToken = cm.getThreadToken();
+-                    if (CryptoUtil.isInternalToken(tokenName)) {
+-                        signToken = cm.getInternalCryptoToken();
+-                    } else {
+-                        signToken = cm.getTokenByName(tokenName);
+-                    }
++                    signToken = CryptoUtil.getCryptoToken(tokenName);
+                     if (!savedToken.getName().equals(signToken.getName())) {
+                         cm.setThreadToken(signToken);
+                         tokenSwitched = true;
+@@ -1057,14 +1053,7 @@ public abstract class EnrollProfile extends BasicProfile
+                 CMS.debug("EnrollProfile: parsePKCS10: signature verification enabled");
+                 String tokenName = CMS.getConfigStore().getString("ca.requestVerify.token", CryptoUtil.INTERNAL_TOKEN_NAME);
+                 savedToken = cm.getThreadToken();
+-                CryptoToken signToken = null;
+-                if (tokenName.equals(CryptoUtil.INTERNAL_TOKEN_NAME)) {
+-                    CMS.debug("EnrollProfile: parsePKCS10: use internal token");
+-                    signToken = cm.getInternalCryptoToken();
+-                } else {
+-                    CMS.debug("EnrollProfile: parsePKCS10: tokenName=" + tokenName);
+-                    signToken = cm.getTokenByName(tokenName);
+-                }
++                CryptoToken signToken = CryptoUtil.getCryptoToken(tokenName);
+                 CMS.debug("EnrollProfile: parsePKCS10 setting thread token");
+                 cm.setThreadToken(signToken);
+                 pkcs10 = new PKCS10(data);
+@@ -1514,7 +1503,7 @@ public abstract class EnrollProfile extends BasicProfile
+                 certReqMsg.verify();
+             } else {
+                 CMS.debug("POP verification using token:" + tokenName);
+-                verifyToken = cm.getTokenByName(tokenName);
++                verifyToken = CryptoUtil.getCryptoToken(tokenName);
+                 certReqMsg.verify(verifyToken);
+             }
+ 
+diff --git a/base/server/cms/src/com/netscape/cms/profile/input/EnrollInput.java b/base/server/cms/src/com/netscape/cms/profile/input/EnrollInput.java
+index 0a389fe6fe1b3e41eeee5c3b1b080dcbb13e489b..f24695145ef296b393df857214f9abd22826a286 100644
+--- a/base/server/cms/src/com/netscape/cms/profile/input/EnrollInput.java
++++ b/base/server/cms/src/com/netscape/cms/profile/input/EnrollInput.java
+@@ -213,7 +213,7 @@ public abstract class EnrollInput implements IProfileInput {
+                 certReqMsg.verify();
+             } else {
+                 CMS.debug("POP verification using token:" + tokenName);
+-                verifyToken = cm.getTokenByName(tokenName);
++                verifyToken = CryptoUtil.getCryptoToken(tokenName);
+                 certReqMsg.verify(verifyToken);
+             }
+ 
+diff --git a/base/server/cms/src/com/netscape/cms/servlet/admin/CMSAdminServlet.java b/base/server/cms/src/com/netscape/cms/servlet/admin/CMSAdminServlet.java
+index eecbdbcd00cc67c1e853b45bd77241083641dd45..2c3c6beed4356970e99b4fea9ed51253ce476030 100644
+--- a/base/server/cms/src/com/netscape/cms/servlet/admin/CMSAdminServlet.java
++++ b/base/server/cms/src/com/netscape/cms/servlet/admin/CMSAdminServlet.java
+@@ -911,17 +911,12 @@ public final class CMSAdminServlet extends AdminServlet {
+                 ICryptoSubsystem jssSubSystem = (ICryptoSubsystem) CMS.getSubsystem(CMS.SUBSYSTEM_CRYPTO);
+ 
+                 CryptoToken token = null;
+-                CryptoManager mCryptoManager = null;
+-                try {
+-                    mCryptoManager = CryptoManager.getInstance();
+-                } catch (Exception e2) {
+-                }
+ 
+                 if (!jssSubSystem.isTokenLoggedIn(selectedToken)) {
+                     PasswordCallback cpcb = new ConsolePasswordCallback();
+                     while (true) {
+                         try {
+-                            token = mCryptoManager.getTokenByName(selectedToken);
++                            token = CryptoUtil.getKeyStorageToken(selectedToken);
+                             token.login(cpcb);
+                             break;
+                         } catch (Exception e3) {
+diff --git a/base/server/cms/src/com/netscape/cms/servlet/cert/scep/CRSEnrollment.java b/base/server/cms/src/com/netscape/cms/servlet/cert/scep/CRSEnrollment.java
+index 55860fad549dbfed475d6c6844c865341641f022..c2c6cde45f28a4d187bdaab331957ea0292a13c9 100644
+--- a/base/server/cms/src/com/netscape/cms/servlet/cert/scep/CRSEnrollment.java
++++ b/base/server/cms/src/com/netscape/cms/servlet/cert/scep/CRSEnrollment.java
+@@ -1963,12 +1963,11 @@ public class CRSEnrollment extends HttpServlet {
+                 cm = CryptoManager.getInstance();
+                 internalToken = cm.getInternalCryptoToken();
+                 DESkg = internalToken.getKeyGenerator(kga);
++                keyStorageToken = CryptoUtil.getKeyStorageToken(mTokenName);
+                 if (CryptoUtil.isInternalToken(mTokenName)) {
+-                    keyStorageToken = cm.getInternalKeyStorageToken();
+                     internalKeyStorageToken = keyStorageToken;
+                     CMS.debug("CRSEnrollment: CryptoContext: internal token name: '" + mTokenName + "'");
+                 } else {
+-                    keyStorageToken = cm.getTokenByName(mTokenName);
+                     internalKeyStorageToken = null;
+                 }
+                 if (!mUseCA && internalKeyStorageToken == null) {
+diff --git a/base/server/cms/src/com/netscape/cms/servlet/csadmin/ConfigurationUtils.java b/base/server/cms/src/com/netscape/cms/servlet/csadmin/ConfigurationUtils.java
+index e65035ecb8f1a948cf7ee152a1d1a24fa1e613b9..0f3153d3dd0e1783fb2c71f25e6f9cb7f4aaa857 100644
+--- a/base/server/cms/src/com/netscape/cms/servlet/csadmin/ConfigurationUtils.java
++++ b/base/server/cms/src/com/netscape/cms/servlet/csadmin/ConfigurationUtils.java
+@@ -993,7 +993,7 @@ public class ConfigurationUtils {
+                 continue;
+ 
+             String tokenname = cs.getString("preop.module.token", "");
+-            cm.getTokenByName(tokenname); // throw exception if token doesn't exist
++            CryptoUtil.getKeyStorageToken(tokenname); // throw exception if token doesn't exist
+ 
+             String name1 = "preop.master." + tag + ".nickname";
+             String nickname = cs.getString(name1, "");
+diff --git a/base/server/cms/src/com/netscape/cms/servlet/ocsp/AddCRLServlet.java b/base/server/cms/src/com/netscape/cms/servlet/ocsp/AddCRLServlet.java
+index d2dec7310215afc9424582e11b33ea7937ae204b..386ce93e74d95eab8203c8b5c05adab1b4a52f16 100644
+--- a/base/server/cms/src/com/netscape/cms/servlet/ocsp/AddCRLServlet.java
++++ b/base/server/cms/src/com/netscape/cms/servlet/ocsp/AddCRLServlet.java
+@@ -356,11 +356,7 @@ public class AddCRLServlet extends CMSServlet {
+                     String tokenName =
+                         CMS.getConfigStore().getString("ocsp.crlVerify.token", CryptoUtil.INTERNAL_TOKEN_NAME);
+                     savedToken = cmanager.getThreadToken();
+-                    if (CryptoUtil.isInternalToken(tokenName)) {
+-                        verToken = cmanager.getInternalCryptoToken();
+-                    } else {
+-                        verToken = cmanager.getTokenByName(tokenName);
+-                    }
++                    verToken = CryptoUtil.getCryptoToken(tokenName);
+                     if (!savedToken.getName().equals(verToken.getName())) {
+                         cmanager.setThreadToken(verToken);
+                         tokenSwitched = true;
+diff --git a/base/server/cms/src/com/netscape/cms/servlet/tks/SecureChannelProtocol.java b/base/server/cms/src/com/netscape/cms/servlet/tks/SecureChannelProtocol.java
+index a5cae347b5935e5bb56f5dc6a8ce4891a69790de..1766f045901cbbf9219f5c7e4c2c96351e48133f 100644
+--- a/base/server/cms/src/com/netscape/cms/servlet/tks/SecureChannelProtocol.java
++++ b/base/server/cms/src/com/netscape/cms/servlet/tks/SecureChannelProtocol.java
+@@ -4,7 +4,6 @@ import java.io.ByteArrayOutputStream;
+ import java.io.CharConversionException;
+ import java.io.IOException;
+ import java.nio.ByteBuffer;
+-import java.security.InvalidAlgorithmParameterException;
+ import java.security.InvalidKeyException;
+ import java.security.NoSuchAlgorithmException;
+ import java.util.Arrays;
+@@ -13,11 +12,9 @@ import java.util.Map;
+ import org.mozilla.jss.CryptoManager;
+ import org.mozilla.jss.CryptoManager.NotInitializedException;
+ import org.mozilla.jss.NoSuchTokenException;
+-import org.mozilla.jss.crypto.BadPaddingException;
+ import org.mozilla.jss.crypto.Cipher;
+ import org.mozilla.jss.crypto.CryptoToken;
+ import org.mozilla.jss.crypto.EncryptionAlgorithm;
+-import org.mozilla.jss.crypto.IllegalBlockSizeException;
+ import org.mozilla.jss.crypto.KeyGenAlgorithm;
+ import org.mozilla.jss.crypto.KeyGenerator;
+ import org.mozilla.jss.crypto.KeyWrapAlgorithm;
+@@ -687,18 +684,13 @@ public class SecureChannelProtocol {
+         return null;
+     }
+ 
+-    public CryptoToken returnTokenByName(String name, CryptoManager manager) throws NoSuchTokenException {
++    public CryptoToken returnTokenByName(String name, CryptoManager manager) throws NoSuchTokenException, NotInitializedException {
+ 
+         CMS.debug("returnTokenByName: requested name: " + name);
+         if (name == null || manager == null)
+             throw new NoSuchTokenException();
+ 
+-        if(CryptoUtil.isInternalToken(name)) {
+-            return manager.getInternalKeyStorageToken();
+-        } else {
+-            return manager.getTokenByName(name);
+-        }
+-
++        return CryptoUtil.getKeyStorageToken(name);
+     }
+ 
+     public static byte[] makeDes3FromDes2(byte[] des2) {
+@@ -795,8 +787,7 @@ public class SecureChannelProtocol {
+ 
+             symKeyFinal = this.makeDes3KeyDerivedFromDes2(symKey, selectedToken);
+ 
+-        } catch (NoSuchAlgorithmException | TokenException | NoSuchTokenException | IllegalStateException
+-                | CharConversionException e) {
++        } catch (Exception  e) {
+             CMS.debug(method + " " + e);
+             throw new EBaseException(e);
+         }
+@@ -874,7 +865,7 @@ public class SecureChannelProtocol {
+ 
+             des3 = concat.derive();
+ 
+-        } catch (NoSuchTokenException | IllegalStateException | TokenException | InvalidKeyException e) {
++        } catch (Exception e) {
+             CMS.debug(method + " " + e);
+             throw new EBaseException(e);
+         }
+@@ -907,7 +898,7 @@ public class SecureChannelProtocol {
+ 
+             extracted16 = extract16.derive();
+ 
+-        } catch (NoSuchTokenException | IllegalStateException | TokenException | InvalidKeyException e) {
++        } catch (Exception e) {
+             CMS.debug(method + " " + e);
+             throw new EBaseException(e);
+         }
+@@ -945,8 +936,7 @@ public class SecureChannelProtocol {
+             keyWrap = token.getKeyWrapper(KeyWrapAlgorithm.DES3_ECB);
+             keyWrap.initWrap(wrapper, null);
+             wrappedSessKeyData = keyWrap.wrap(sessionKey);
+-        } catch (NoSuchAlgorithmException | TokenException | InvalidKeyException | InvalidAlgorithmParameterException
+-                | NoSuchTokenException e) {
++        } catch (Exception e) {
+             CMS.debug(method + " " + e);
+             throw new EBaseException(e);
+         }
+@@ -982,9 +972,7 @@ public class SecureChannelProtocol {
+             CMS.debug(method + "done doFinal");
+ 
+             // SecureChannelProtocol.debugByteArray(output, "Encrypted data:");
+-        } catch (EBaseException | NoSuchTokenException | NoSuchAlgorithmException | TokenException
+-                | InvalidKeyException | InvalidAlgorithmParameterException |
+-                IllegalStateException | IllegalBlockSizeException | BadPaddingException e) {
++        } catch (Exception e) {
+ 
+             CMS.debug(method + e);
+             throw new EBaseException(method + e);
+diff --git a/base/server/cms/src/com/netscape/cms/servlet/tks/TokenServlet.java b/base/server/cms/src/com/netscape/cms/servlet/tks/TokenServlet.java
+index 39cd429dfb039bcba272ed9472a9bc1e3f2278ff..a282cd26f32c50bc7bad3cbeec1c431e17b2f195 100644
+--- a/base/server/cms/src/com/netscape/cms/servlet/tks/TokenServlet.java
++++ b/base/server/cms/src/com/netscape/cms/servlet/tks/TokenServlet.java
+@@ -615,10 +615,9 @@ public class TokenServlet extends CMSServlet {
+ 
+                     CryptoToken token = null;
+                     if (useSoftToken_s.equals("true")) {
+-                        //token = CryptoManager.getInstance().getTokenByName(selectedToken);
+-                        token = CryptoManager.getInstance().getInternalCryptoToken();
++                        token = CryptoUtil.getCryptoToken(null);
+                     } else {
+-                        token = CryptoManager.getInstance().getTokenByName(selectedToken);
++                        token = CryptoUtil.getCryptoToken(selectedToken);
+                     }
+ 
+                     //Now we have to create a sym key object for the wrapped session_key (dekKey)
+@@ -1242,10 +1241,9 @@ public class TokenServlet extends CMSServlet {
+                         // wrap kek session key with DRM transport public key
+                         CryptoToken token = null;
+                         if (useSoftToken_s.equals("true")) {
+-                            //token = CryptoManager.getInstance().getTokenByName(selectedToken);
+-                            token = CryptoManager.getInstance().getInternalCryptoToken();
++                            token = CryptoUtil.getCryptoToken(null);
+                         } else {
+-                            token = CryptoManager.getInstance().getTokenByName(selectedToken);
++                            token = CryptoUtil.getCryptoToken(selectedToken);
+                         }
+                         PublicKey pubKey = drmTransCert.getPublicKey();
+                         String pubKeyAlgo = pubKey.getAlgorithm();
+diff --git a/base/server/cms/src/org/dogtagpki/server/rest/SystemConfigService.java b/base/server/cms/src/org/dogtagpki/server/rest/SystemConfigService.java
+index 2cf76d80aef7d99720797f89ed7d0e14afd007ad..18263f74f010fb83a9ddbc415b1434897cd42e1c 100644
+--- a/base/server/cms/src/org/dogtagpki/server/rest/SystemConfigService.java
++++ b/base/server/cms/src/org/dogtagpki/server/rest/SystemConfigService.java
+@@ -1025,8 +1025,7 @@ public class SystemConfigService extends PKIService implements SystemConfigResou
+ 
+         if (!CryptoUtil.isInternalToken(token)) {
+             try {
+-                CryptoManager cryptoManager = CryptoManager.getInstance();
+-                CryptoToken ctoken = cryptoManager.getTokenByName(token);
++                CryptoToken ctoken = CryptoUtil.getKeyStorageToken(token);
+                 String tokenpwd = data.getTokenPassword();
+                 ConfigurationUtils.loginToken(ctoken, tokenpwd);
+             } catch (NotInitializedException e) {
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/security/JssSubsystem.java b/base/server/cmscore/src/com/netscape/cmscore/security/JssSubsystem.java
+index a721d4e5218c5ac854cd3ef11f07d94bb37bcda5..dab9ac91a64e80639a71407267df07c5515f3727 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/security/JssSubsystem.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/security/JssSubsystem.java
+@@ -72,7 +72,6 @@ import org.mozilla.jss.pkcs7.SignedData;
+ import org.mozilla.jss.pkix.cert.Certificate;
+ import org.mozilla.jss.ssl.SSLServerSocket;
+ import org.mozilla.jss.ssl.SSLSocket;
+-import org.mozilla.jss.util.IncorrectPasswordException;
+ import org.mozilla.jss.util.Password;
+ import org.mozilla.jss.util.PasswordCallback;
+ 
+@@ -540,35 +539,24 @@ public final class JssSubsystem implements ICryptoSubsystem {
+ 
+     public boolean isTokenLoggedIn(String name) throws EBaseException {
+         try {
+-            if (CryptoUtil.isInternalToken(name))
+-                name = CryptoUtil.INTERNAL_TOKEN_FULL_NAME;
+-            CryptoToken ctoken = mCryptoManager.getTokenByName(name);
++            CryptoToken ctoken = CryptoUtil.getKeyStorageToken(name);
+ 
+             return ctoken.isLoggedIn();
+-        } catch (TokenException e) {
++        } catch (Exception e) {
+             log(ILogger.LL_FAILURE, CMS.getLogMessage("CMSCORE_SECURITY_TOKEN_LOGGED_IN", e.toString()));
+-            throw new EBaseException(CMS.getUserMessage("CMS_BASE_TOKEN_ERROR"));
+-        } catch (NoSuchTokenException e) {
+-            log(ILogger.LL_FAILURE, CMS.getLogMessage("CMSCORE_SECURITY_TOKEN_LOGGED_IN", e.toString()));
+-            throw new EBaseException(CMS.getUserMessage("CMS_BASE_TOKEN_NOT_FOUND", ""));
++            throw new EBaseException(CMS.getUserMessage("CMS_BASE_TOKEN_ERROR"), e);
+         }
+     }
+ 
+     public void loggedInToken(String tokenName, String pwd) throws EBaseException {
+         try {
+-            CryptoToken ctoken = mCryptoManager.getTokenByName(tokenName);
++            CryptoToken ctoken = CryptoUtil.getKeyStorageToken(tokenName);
+             Password clk = new Password(pwd.toCharArray());
+ 
+             ctoken.login(clk);
+-        } catch (TokenException e) {
++        } catch (Exception e) {
+             log(ILogger.LL_FAILURE, CMS.getLogMessage("CMSCORE_SECURITY_TOKEN_LOGGED_IN", e.toString()));
+-            throw new EBaseException(CMS.getUserMessage("CMS_BASE_TOKEN_ERROR"));
+-        } catch (IncorrectPasswordException e) {
+-            log(ILogger.LL_FAILURE, CMS.getLogMessage("CMSCORE_SECURITY_TOKEN_LOGGED_IN", e.toString()));
+-            throw new EBaseException(CMS.getUserMessage("CMS_BASE_LOGIN_FAILED"));
+-        } catch (NoSuchTokenException e) {
+-            log(ILogger.LL_FAILURE, CMS.getLogMessage("CMSCORE_SECURITY_TOKEN_LOGGED_IN", e.toString()));
+-            throw new EBaseException(CMS.getUserMessage("CMS_BASE_TOKEN_NOT_FOUND", ""));
++            throw new EBaseException(CMS.getUserMessage("CMS_BASE_TOKEN_ERROR"), e);
+         }
+     }
+ 
+@@ -631,11 +619,7 @@ public final class JssSubsystem implements ICryptoSubsystem {
+         StringBuffer certNames = new StringBuffer();
+ 
+         try {
+-            if (CryptoUtil.isInternalToken(name)) {
+-                c = mCryptoManager.getInternalKeyStorageToken();
+-            } else {
+-                c = mCryptoManager.getTokenByName(name);
+-            }
++            c = CryptoUtil.getKeyStorageToken(name);
+ 
+             if (c != null) {
+                 CryptoStore store = c.getCryptoStore();
+@@ -658,14 +642,7 @@ public final class JssSubsystem implements ICryptoSubsystem {
+             } else
+                 return "";
+ 
+-        } catch (TokenException e) {
+-            String[] params = { mId, e.toString() };
+-            EBaseException ex = new EBaseException(
+-                    CMS.getUserMessage("CMS_BASE_CREATE_SERVICE_FAILED", params));
+-
+-            log(ILogger.LL_FAILURE, CMS.getLogMessage("CMSCORE_SECURITY_GENERAL_ERROR", ex.toString()));
+-            throw ex;
+-        } catch (NoSuchTokenException e) {
++        } catch (Exception e) {
+             String[] params = { mId, e.toString() };
+             EBaseException ex = new EBaseException(
+                     CMS.getUserMessage("CMS_BASE_CREATE_SERVICE_FAILED", params));
+@@ -681,11 +658,7 @@ public final class JssSubsystem implements ICryptoSubsystem {
+         StringBuffer certNames = new StringBuffer();
+ 
+         try {
+-            if (CryptoUtil.isInternalToken(name)) {
+-                c = mCryptoManager.getInternalKeyStorageToken();
+-            } else {
+-                c = mCryptoManager.getTokenByName(name);
+-            }
++            c = CryptoUtil.getKeyStorageToken(name);
+ 
+             if (c != null) {
+                 CryptoStore store = c.getCryptoStore();
+@@ -706,14 +679,7 @@ public final class JssSubsystem implements ICryptoSubsystem {
+             } else
+                 return "";
+ 
+-        } catch (TokenException e) {
+-            String[] params = { mId, e.toString() };
+-            EBaseException ex = new EBaseException(
+-                    CMS.getUserMessage("CMS_BASE_CREATE_SERVICE_FAILED", params));
+-
+-            log(ILogger.LL_FAILURE, CMS.getLogMessage("CMSCORE_SECURITY_GENERAL_ERROR", ex.toString()));
+-            throw ex;
+-        } catch (NoSuchTokenException e) {
++        } catch (Exception e) {
+             String[] params = { mId, e.toString() };
+             EBaseException ex = new EBaseException(
+                     CMS.getUserMessage("CMS_BASE_CREATE_SERVICE_FAILED", params));
+@@ -793,16 +759,13 @@ public final class JssSubsystem implements ICryptoSubsystem {
+     public KeyPair getKeyPair(String tokenName, String alg,
+             int keySize, PQGParams pqg) throws EBaseException {
+ 
+-        String t = tokenName;
+-        if (CryptoUtil.isInternalToken(tokenName))
+-            t = CryptoUtil.INTERNAL_TOKEN_FULL_NAME;
+         CryptoToken token = null;
+ 
+         try {
+-            token = mCryptoManager.getTokenByName(t);
+-        } catch (NoSuchTokenException e) {
+-            log(ILogger.LL_FAILURE, "Generate Key Pair Error " + e);
+-            throw new EBaseException(CMS.getUserMessage("CMS_BASE_TOKEN_NOT_FOUND", tokenName));
++            token = CryptoUtil.getKeyStorageToken(tokenName);
++        } catch (Exception e) {
++            log(ILogger.LL_FAILURE, "Unable to find token: " + tokenName);
++            throw new EBaseException(e);
+         }
+ 
+         KeyPairAlgorithm kpAlg = null;
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/security/KeyCertUtil.java b/base/server/cmscore/src/com/netscape/cmscore/security/KeyCertUtil.java
+index 802028b2e58aa1897d0261a4c85b397cd8fa21e7..6dabd0c7f2ad4a9853ae3afde489fe47663db2fe 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/security/KeyCertUtil.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/security/KeyCertUtil.java
+@@ -337,13 +337,8 @@ public class KeyCertUtil {
+             String nickname) throws NotInitializedException, NoSuchTokenException,
+             EBaseException, TokenException {
+         CryptoManager manager = CryptoManager.getInstance();
+-        CryptoToken token = null;
++        CryptoToken token = CryptoUtil.getKeyStorageToken(tokenname);
+ 
+-        if (CryptoUtil.isInternalToken(tokenname)) {
+-            token = manager.getInternalKeyStorageToken();
+-        } else {
+-            token = manager.getTokenByName(tokenname);
+-        }
+         StringBuffer certname = new StringBuffer();
+ 
+         if (!token.equals(manager.getInternalKeyStorageToken())) {
+@@ -503,11 +498,7 @@ public class KeyCertUtil {
+             tokenName = CryptoUtil.INTERNAL_TOKEN_NAME;
+ 
+         try {
+-            if (CryptoUtil.isInternalToken(tokenName)) {
+-                token = CryptoManager.getInstance().getInternalKeyStorageToken();
+-            } else {
+-                token = CryptoManager.getInstance().getTokenByName(tokenName);
+-            }
++            token = CryptoUtil.getKeyStorageToken(tokenName);
+         } catch (NoSuchTokenException e) {
+             throw new EBaseException(CMS.getUserMessage("CMS_BASE_TOKEN_NOT_FOUND", tokenName));
+         } catch (NotInitializedException e) {
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/security/PWsdrCache.java b/base/server/cmscore/src/com/netscape/cmscore/security/PWsdrCache.java
+index 729a368f298e1678dd0b4abf221464e863ae66dc..8fd86278b20ca411ff09ff4fdf4b4fdf9a39eecb 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/security/PWsdrCache.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/security/PWsdrCache.java
+@@ -29,8 +29,6 @@ import java.util.Enumeration;
+ import java.util.Hashtable;
+ import java.util.StringTokenizer;
+ 
+-import org.mozilla.jss.CryptoManager;
+-import org.mozilla.jss.CryptoManager.NotInitializedException;
+ import org.mozilla.jss.SecretDecoderRing.Decryptor;
+ import org.mozilla.jss.SecretDecoderRing.Encryptor;
+ import org.mozilla.jss.SecretDecoderRing.KeyManager;
+@@ -42,6 +40,7 @@ import org.mozilla.jss.util.Password;
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.logging.ILogger;
++import com.netscape.cmsutil.crypto.CryptoUtil;
+ import com.netscape.cmsutil.util.Utils;
+ 
+ /*
+@@ -79,18 +78,13 @@ public class PWsdrCache {
+ 
+     private void initToken() throws EBaseException {
+         if (mToken == null) {
+-            CryptoManager cm = null;
+             try {
+-                cm = CryptoManager.getInstance();
+                 mTokenName = CMS.getConfigStore().getString(PROP_PWC_TOKEN_NAME);
+                 log(ILogger.LL_DEBUG, "pwcTokenname specified.  Use token for SDR key. tokenname= " + mTokenName);
+-                mToken = cm.getTokenByName(mTokenName);
+-            } catch (NotInitializedException e) {
++                mToken = CryptoUtil.getKeyStorageToken(mTokenName);
++            } catch (Exception e) {
+                 log(ILogger.LL_FAILURE, e.toString());
+-                throw new EBaseException(e.toString());
+-            } catch (Exception e) {
+-                log(ILogger.LL_DEBUG, "no pwcTokenname specified, use internal token for SDR key");
+-                mToken = cm.getInternalKeyStorageToken();
++                throw new EBaseException(e);
+             }
+         }
+     }
+@@ -119,20 +113,13 @@ public class PWsdrCache {
+         mPWcachedb = pwCache;
+         mIsTool = isTool;
+         mTokenName = pwcTokenname;
+-        CryptoManager cm = null;
+ 
+         if (keyId != null) {
+             mKeyID = keyId;
+         }
+ 
+-        cm = CryptoManager.getInstance();
+-        if (mTokenName != null) {
+-            mToken = cm.getTokenByName(mTokenName);
+-            debug("PWsdrCache: mToken = " + mTokenName);
+-        } else {
+-            mToken = cm.getInternalKeyStorageToken();
+-            debug("PWsdrCache: mToken = internal");
+-        }
++        mToken = CryptoUtil.getKeyStorageToken(mTokenName);
++        debug("PWsdrCache: token: " + mToken.getName());
+     }
+ 
+     public byte[] getKeyId() {
+-- 
+2.5.5
+

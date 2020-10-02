@@ -1,0 +1,173 @@
+From 08922e93df5fed6442814fc4f8ac299fcdf41822 Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Tue, 26 Nov 2013 05:02:33 -0500
+Subject: [PATCH] Replaced Velocity template path.
+
+The Velocity template path in velocity.properties has been replaced with
+the system template path. This way the templates no longer need to be
+copied and the velocity.properties no longer need to be customized.
+
+An upgrade script has been added to modify the path in existing instances.
+
+Ticket #752
+---
+ .../shared/webapps/ca/WEB-INF/velocity.properties  |  2 +-
+ .../shared/webapps/kra/WEB-INF/velocity.properties |  2 +-
+ .../webapps/ocsp/WEB-INF/velocity.properties       |  2 +-
+ .../python/pki/server/deployment/pkiparser.py      |  5 ---
+ .../deployment/scriptlets/slot_substitution.py     |  2 -
+ .../upgrade/10.1.99/02-ReplaceVelocityTemplatePath | 48 ++++++++++++++++++++++
+ .../shared/webapps/tks/WEB-INF/velocity.properties |  2 +-
+ .../shared/webapps/tps/WEB-INF/velocity.properties |  2 +-
+ 8 files changed, 53 insertions(+), 12 deletions(-)
+ create mode 100755 base/server/upgrade/10.1.99/02-ReplaceVelocityTemplatePath
+
+diff --git a/base/ca/shared/webapps/ca/WEB-INF/velocity.properties b/base/ca/shared/webapps/ca/WEB-INF/velocity.properties
+index 2dfae4bca8f95449b1bf3c7671b700d927722301..deaf2735ceb1073493f4ea8ec5de132565ee0b9e 100644
+--- a/base/ca/shared/webapps/ca/WEB-INF/velocity.properties
++++ b/base/ca/shared/webapps/ca/WEB-INF/velocity.properties
+@@ -1,6 +1,6 @@
+ resource.loader = file
+ file.resource.loader.class = org.apache.velocity.runtime.resource.loader.FileResourceLoader
+-file.resource.loader.path = [PKI_INSTANCE_PATH]/[PKI_WEBAPPS_NAME]/[PKI_SUBSYSTEM_TYPE]
++file.resource.loader.path = /usr/share/pki/server/webapps/pki
+ file.resource.loader.cache = true
+ file.resource.loader.modificationCheckInterval = 2
+ input.encoding=UTF-8
+diff --git a/base/kra/shared/webapps/kra/WEB-INF/velocity.properties b/base/kra/shared/webapps/kra/WEB-INF/velocity.properties
+index 2dfae4bca8f95449b1bf3c7671b700d927722301..deaf2735ceb1073493f4ea8ec5de132565ee0b9e 100644
+--- a/base/kra/shared/webapps/kra/WEB-INF/velocity.properties
++++ b/base/kra/shared/webapps/kra/WEB-INF/velocity.properties
+@@ -1,6 +1,6 @@
+ resource.loader = file
+ file.resource.loader.class = org.apache.velocity.runtime.resource.loader.FileResourceLoader
+-file.resource.loader.path = [PKI_INSTANCE_PATH]/[PKI_WEBAPPS_NAME]/[PKI_SUBSYSTEM_TYPE]
++file.resource.loader.path = /usr/share/pki/server/webapps/pki
+ file.resource.loader.cache = true
+ file.resource.loader.modificationCheckInterval = 2
+ input.encoding=UTF-8
+diff --git a/base/ocsp/shared/webapps/ocsp/WEB-INF/velocity.properties b/base/ocsp/shared/webapps/ocsp/WEB-INF/velocity.properties
+index 5cd0454cce3a0a93dccd01fbf4c55cc71b77fc2a..c1c6e4ea9501642bac654c8a4666608a69e61601 100644
+--- a/base/ocsp/shared/webapps/ocsp/WEB-INF/velocity.properties
++++ b/base/ocsp/shared/webapps/ocsp/WEB-INF/velocity.properties
+@@ -5,7 +5,7 @@
+ #
+ resource.loader = file
+ file.resource.loader.class = org.apache.velocity.runtime.resource.loader.FileResourceLoader
+-file.resource.loader.path = [PKI_INSTANCE_PATH]/[PKI_WEBAPPS_NAME]/[PKI_SUBSYSTEM_TYPE]
++file.resource.loader.path = /usr/share/pki/server/webapps/pki
+ file.resource.loader.cache = true
+ file.resource.loader.modificationCheckInterval = 2
+ input.encoding=UTF-8
+diff --git a/base/server/python/pki/server/deployment/pkiparser.py b/base/server/python/pki/server/deployment/pkiparser.py
+index b7cece722110a2f8a1ac1c7e03111854f71339a2..e296fbae0e516446fd961d3acc8e65a2555276e3 100644
+--- a/base/server/python/pki/server/deployment/pkiparser.py
++++ b/base/server/python/pki/server/deployment/pkiparser.py
+@@ -610,11 +610,6 @@ class PKIConfigParser:
+                         self.pki_master_dict['pki_instance_configuration_path'],
+                         "tomcat.conf")
+                 # in-place slot substitution name/value pairs
+-                self.pki_master_dict['pki_target_velocity_properties'] = \
+-                    os.path.join(
+-                        self.pki_master_dict['pki_tomcat_webapps_subsystem_path'],
+-                        "WEB-INF",
+-                        "velocity.properties")
+                 self.pki_master_dict['pki_target_subsystem_web_xml'] = \
+                     os.path.join(
+                         self.pki_master_dict['pki_tomcat_webapps_subsystem_path'],
+diff --git a/base/server/python/pki/server/deployment/scriptlets/slot_substitution.py b/base/server/python/pki/server/deployment/scriptlets/slot_substitution.py
+index a6c21e166bb64aa8cca14b934dfcc60f98167b91..33f7d550e2bcbf9bd95f953d8b2a8a98da581540 100644
+--- a/base/server/python/pki/server/deployment/scriptlets/slot_substitution.py
++++ b/base/server/python/pki/server/deployment/scriptlets/slot_substitution.py
+@@ -68,8 +68,6 @@ class PkiScriptlet(pkiscriptlet.AbstractBasePkiScriptlet):
+                 deployer.master_dict['pki_target_tomcat_conf'],
+                 overwrite_flag=True)
+             deployer.file.apply_slot_substitution(
+-                deployer.master_dict['pki_target_velocity_properties'])
+-            deployer.file.apply_slot_substitution(
+                 deployer.master_dict['pki_target_subsystem_web_xml'])
+             # Strip "<filter>" section from subsystem "web.xml"
+             # This is ONLY necessary because XML comments cannot be "nested"!
+diff --git a/base/server/upgrade/10.1.99/02-ReplaceVelocityTemplatePath b/base/server/upgrade/10.1.99/02-ReplaceVelocityTemplatePath
+new file mode 100755
+index 0000000000000000000000000000000000000000..3059d898867653ba95f92ffb4fd6adb453cb24b7
+--- /dev/null
++++ b/base/server/upgrade/10.1.99/02-ReplaceVelocityTemplatePath
+@@ -0,0 +1,48 @@
++#!/usr/bin/python
++# Authors:
++#     Endi S. Dewata <edewata@redhat.com>
++#
++# This program is free software; you can redistribute it and/or modify
++# it under the terms of the GNU General Public License as published by
++# the Free Software Foundation; version 2 of the License.
++#
++# This program is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License along
++# with this program; if not, write to the Free Software Foundation, Inc.,
++# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++#
++# Copyright (C) 2013 Red Hat, Inc.
++# All rights reserved.
++#
++
++import os
++import re
++
++import pki.server.upgrade
++
++
++class ReplaceVelocityTemplatePath(pki.server.upgrade.PKIServerUpgradeScriptlet):
++
++    def __init__(self):
++
++        self.message = 'Replace Velocity template path'
++
++    def upgrade_subsystem(self, instance, subsystem):
++
++        velocity_properties = os.path.join(
++            instance.base_dir, 'webapps', subsystem.name, 'WEB-INF', 'velocity.properties')
++
++        self.backup(velocity_properties)
++
++        with open(velocity_properties, "r") as f:
++            lines = f.readlines()
++
++        with open(velocity_properties, "w") as f:
++            for line in lines:
++                f.write(re.sub(
++                    '^file.resource.loader.path *=.*',
++                    'file.resource.loader.path = /usr/share/pki/server/webapps/pki', line))
+diff --git a/base/tks/shared/webapps/tks/WEB-INF/velocity.properties b/base/tks/shared/webapps/tks/WEB-INF/velocity.properties
+index 5cd0454cce3a0a93dccd01fbf4c55cc71b77fc2a..c1c6e4ea9501642bac654c8a4666608a69e61601 100644
+--- a/base/tks/shared/webapps/tks/WEB-INF/velocity.properties
++++ b/base/tks/shared/webapps/tks/WEB-INF/velocity.properties
+@@ -5,7 +5,7 @@
+ #
+ resource.loader = file
+ file.resource.loader.class = org.apache.velocity.runtime.resource.loader.FileResourceLoader
+-file.resource.loader.path = [PKI_INSTANCE_PATH]/[PKI_WEBAPPS_NAME]/[PKI_SUBSYSTEM_TYPE]
++file.resource.loader.path = /usr/share/pki/server/webapps/pki
+ file.resource.loader.cache = true
+ file.resource.loader.modificationCheckInterval = 2
+ input.encoding=UTF-8
+diff --git a/base/tps-tomcat/shared/webapps/tps/WEB-INF/velocity.properties b/base/tps-tomcat/shared/webapps/tps/WEB-INF/velocity.properties
+index 5cd0454cce3a0a93dccd01fbf4c55cc71b77fc2a..c1c6e4ea9501642bac654c8a4666608a69e61601 100644
+--- a/base/tps-tomcat/shared/webapps/tps/WEB-INF/velocity.properties
++++ b/base/tps-tomcat/shared/webapps/tps/WEB-INF/velocity.properties
+@@ -5,7 +5,7 @@
+ #
+ resource.loader = file
+ file.resource.loader.class = org.apache.velocity.runtime.resource.loader.FileResourceLoader
+-file.resource.loader.path = [PKI_INSTANCE_PATH]/[PKI_WEBAPPS_NAME]/[PKI_SUBSYSTEM_TYPE]
++file.resource.loader.path = /usr/share/pki/server/webapps/pki
+ file.resource.loader.cache = true
+ file.resource.loader.modificationCheckInterval = 2
+ input.encoding=UTF-8
+-- 
+1.8.4.2
+

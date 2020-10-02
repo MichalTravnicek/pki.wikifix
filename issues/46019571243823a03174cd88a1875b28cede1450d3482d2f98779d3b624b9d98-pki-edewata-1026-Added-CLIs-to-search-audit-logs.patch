@@ -1,0 +1,347 @@
+From b7979344ad7e3fa9976dd87d0d3deb6284dd1b53 Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Tue, 4 Apr 2017 21:28:56 +0200
+Subject: [PATCH] Added CLIs to search audit logs.
+
+New pki audit command has been added to search audit logs.
+
+Change-Id: I3273aba7271277bf37910305f1a6e5dbe1e6a3c7
+---
+ .../com/netscape/certsrv/logging/AuditClient.java  |   5 +
+ .../certsrv/logging/AuditLogFindRequest.java       | 105 +++++++++++++++++++++
+ .../netscape/certsrv/logging/AuditResource.java    |   7 ++
+ .../com/netscape/cmstools/logging/AuditCLI.java    |   3 +
+ .../netscape/cmstools/logging/AuditLogFindCLI.java |  96 +++++++++++++++++++
+ .../org/dogtagpki/server/rest/AuditService.java    |  50 ++++++++++
+ 6 files changed, 266 insertions(+)
+ create mode 100644 base/common/src/com/netscape/certsrv/logging/AuditLogFindRequest.java
+ create mode 100644 base/java-tools/src/com/netscape/cmstools/logging/AuditLogFindCLI.java
+
+diff --git a/base/common/src/com/netscape/certsrv/logging/AuditClient.java b/base/common/src/com/netscape/certsrv/logging/AuditClient.java
+index 9451e83a84a2e83ebf285be32c0615529c4b5d68..1e91a00a2575f211cf35988391916515926e9ef6 100644
+--- a/base/common/src/com/netscape/certsrv/logging/AuditClient.java
++++ b/base/common/src/com/netscape/certsrv/logging/AuditClient.java
+@@ -65,4 +65,9 @@ public class AuditClient extends Client {
+         Response response = resource.getAuditFile(filename);
+         return client.getEntity(response, StreamingOutput.class);
+     }
++
++    public StreamingOutput findAuditLogs(AuditLogFindRequest request) throws Exception {
++        Response response = resource.findAuditLogs(request);
++        return client.getEntity(response, StreamingOutput.class);
++    }
+ }
+diff --git a/base/common/src/com/netscape/certsrv/logging/AuditLogFindRequest.java b/base/common/src/com/netscape/certsrv/logging/AuditLogFindRequest.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..93d1b9127ef3dbd3279e548d6fe7b7c2a95c8b90
+--- /dev/null
++++ b/base/common/src/com/netscape/certsrv/logging/AuditLogFindRequest.java
+@@ -0,0 +1,105 @@
++// --- BEGIN COPYRIGHT BLOCK ---
++// This program is free software; you can redistribute it and/or modify
++// it under the terms of the GNU General Public License as published by
++// the Free Software Foundation; version 2 of the License.
++//
++// This program is distributed in the hope that it will be useful,
++// but WITHOUT ANY WARRANTY; without even the implied warranty of
++// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++// GNU General Public License for more details.
++//
++// You should have received a copy of the GNU General Public License along
++// with this program; if not, write to the Free Software Foundation, Inc.,
++// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++//
++// (C) 2017 Red Hat, Inc.
++// All rights reserved.
++// --- END COPYRIGHT BLOCK ---
++
++package com.netscape.certsrv.logging;
++
++import java.io.StringReader;
++import java.io.StringWriter;
++
++import javax.xml.bind.JAXBContext;
++import javax.xml.bind.Marshaller;
++import javax.xml.bind.Unmarshaller;
++import javax.xml.bind.annotation.XmlAccessType;
++import javax.xml.bind.annotation.XmlAccessorType;
++import javax.xml.bind.annotation.XmlElement;
++import javax.xml.bind.annotation.XmlRootElement;
++
++/**
++ * @author Endi S. Dewata
++ */
++@XmlRootElement(name="AuditLogFindRequest")
++@XmlAccessorType(XmlAccessType.NONE)
++public class AuditLogFindRequest {
++
++    String fileName;
++
++    @XmlElement(name="FileName")
++    public String getFileName() {
++        return fileName;
++    }
++
++    public void setFileName(String fileName) {
++        this.fileName = fileName;
++    }
++
++    @Override
++    public int hashCode() {
++        final int prime = 31;
++        int result = 1;
++        result = prime * result + ((fileName == null) ? 0 : fileName.hashCode());
++        return result;
++    }
++
++    @Override
++    public boolean equals(Object obj) {
++        if (this == obj)
++            return true;
++        if (obj == null)
++            return false;
++        if (getClass() != obj.getClass())
++            return false;
++        AuditLogFindRequest other = (AuditLogFindRequest) obj;
++        if (fileName == null) {
++            if (other.fileName != null)
++                return false;
++        } else if (!fileName.equals(other.fileName))
++            return false;
++        return true;
++    }
++
++    public String toString() {
++        try {
++            Marshaller marshaller = JAXBContext.newInstance(AuditLogFindRequest.class).createMarshaller();
++            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
++
++            StringWriter sw = new StringWriter();
++            marshaller.marshal(this, sw);
++            return sw.toString();
++
++        } catch (Exception e) {
++            throw new RuntimeException(e);
++        }
++    }
++
++    public static AuditLogFindRequest valueOf(String string) throws Exception {
++        Unmarshaller unmarshaller = JAXBContext.newInstance(AuditLogFindRequest.class).createUnmarshaller();
++        return (AuditLogFindRequest)unmarshaller.unmarshal(new StringReader(string));
++    }
++
++    public static void main(String args[]) throws Exception {
++
++        AuditLogFindRequest before = new AuditLogFindRequest();
++        before.setFileName("audit.log");
++
++        String string = before.toString();
++        System.out.println(string);
++
++        AuditLogFindRequest after = AuditLogFindRequest.valueOf(string);
++        System.out.println(before.equals(after));
++    }
++}
+diff --git a/base/common/src/com/netscape/certsrv/logging/AuditResource.java b/base/common/src/com/netscape/certsrv/logging/AuditResource.java
+index 4d33735651c7a7170bd60bb7bf3128bb29c7da74..8aebf192540c0e986ff82b202b14b0e4c577829f 100644
+--- a/base/common/src/com/netscape/certsrv/logging/AuditResource.java
++++ b/base/common/src/com/netscape/certsrv/logging/AuditResource.java
+@@ -69,4 +69,11 @@ public interface AuditResource {
+     @ClientResponseType(entityType=StreamingOutput.class)
+     @ACLMapping("audit-log.read")
+     public Response getAuditFile(@PathParam("filename") String filename);
++
++    @POST
++    @Path("logs")
++    @Produces(MediaType.APPLICATION_OCTET_STREAM)
++    @ClientResponseType(entityType=StreamingOutput.class)
++    @ACLMapping("audit-log.read")
++    public Response findAuditLogs(AuditLogFindRequest request) throws Exception;
+ }
+diff --git a/base/java-tools/src/com/netscape/cmstools/logging/AuditCLI.java b/base/java-tools/src/com/netscape/cmstools/logging/AuditCLI.java
+index 06ba040ecc11cc3e59117aa393bf051223610529..a5812672ec4aa50c07afd37202b7a64d5570d992 100644
+--- a/base/java-tools/src/com/netscape/cmstools/logging/AuditCLI.java
++++ b/base/java-tools/src/com/netscape/cmstools/logging/AuditCLI.java
+@@ -50,6 +50,9 @@ public class AuditCLI extends CLI {
+         // audit files
+         addModule(new AuditFileFindCLI(this));
+         addModule(new AuditFileRetrieveCLI(this));
++
++        // audit logs
++        addModule(new AuditLogFindCLI(this));
+     }
+ 
+     @Override
+diff --git a/base/java-tools/src/com/netscape/cmstools/logging/AuditLogFindCLI.java b/base/java-tools/src/com/netscape/cmstools/logging/AuditLogFindCLI.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..3ae356b08164e1344737d3efbd0431ed3c0d0b96
+--- /dev/null
++++ b/base/java-tools/src/com/netscape/cmstools/logging/AuditLogFindCLI.java
+@@ -0,0 +1,96 @@
++// --- BEGIN COPYRIGHT BLOCK ---
++// This program is free software; you can redistribute it and/or modify
++// it under the terms of the GNU General Public License as published by
++// the Free Software Foundation; version 2 of the License.
++//
++// This program is distributed in the hope that it will be useful,
++// but WITHOUT ANY WARRANTY; without even the implied warranty of
++// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++// GNU General Public License for more details.
++//
++// You should have received a copy of the GNU General Public License along
++// with this program; if not, write to the Free Software Foundation, Inc.,
++// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++//
++// (C) 2017 Red Hat, Inc.
++// All rights reserved.
++// --- END COPYRIGHT BLOCK ---
++
++package com.netscape.cmstools.logging;
++
++import java.io.FileOutputStream;
++import java.io.OutputStream;
++
++import javax.ws.rs.core.StreamingOutput;
++
++import org.apache.commons.cli.CommandLine;
++import org.apache.commons.cli.Option;
++
++import com.netscape.certsrv.logging.AuditClient;
++import com.netscape.certsrv.logging.AuditLogFindRequest;
++import com.netscape.cmstools.cli.CLI;
++
++/**
++ * @author Endi S. Dewata
++ */
++public class AuditLogFindCLI extends CLI {
++
++    public AuditCLI auditCLI;
++
++    public AuditLogFindCLI(AuditCLI auditCLI) {
++        super("log-find", "Find audit logs", auditCLI);
++        this.auditCLI = auditCLI;
++
++        createOptions();
++    }
++
++    public void printHelp() {
++        formatter.printHelp(getFullName() + " [OPTIONS...]", options);
++    }
++
++    public void createOptions() {
++        Option option = new Option(null, "filename", true, "Audit log file name.");
++        option.setArgName("name");
++        options.addOption(option);
++
++        option = new Option(null, "output", true, "Output file to store audit logs.");
++        option.setArgName("path");
++        options.addOption(option);
++
++        options.addOption(null, "help", false, "Show help message.");
++    }
++
++    public void execute(String[] args) throws Exception {
++
++        CommandLine cmd = parser.parse(options, args);
++
++        if (cmd.hasOption("help")) {
++            printHelp();
++            return;
++        }
++
++        String[] cmdArgs = cmd.getArgs();
++
++        if (cmdArgs.length > 0) {
++            throw new Exception("Too many arguments specified.");
++        }
++
++        String filename = cmd.getOptionValue("filename");
++        String output = cmd.getOptionValue("output");
++
++        AuditLogFindRequest request = new AuditLogFindRequest();
++        request.setFileName(filename);
++
++        AuditClient auditClient = auditCLI.getAuditClient();
++        StreamingOutput so = auditClient.findAuditLogs(request);
++
++        if (output == null) {
++            so.write(System.out);
++
++        } else {
++            try (OutputStream out = new FileOutputStream(output)) {
++                so.write(out);
++            }
++        }
++    }
++}
+diff --git a/base/server/cms/src/org/dogtagpki/server/rest/AuditService.java b/base/server/cms/src/org/dogtagpki/server/rest/AuditService.java
+index 7bb048f194a9197ba603af87f0af163d532a8b3c..bffaf5dca3d9cc8f1919915a5dbf2e7aad9ea750 100644
+--- a/base/server/cms/src/org/dogtagpki/server/rest/AuditService.java
++++ b/base/server/cms/src/org/dogtagpki/server/rest/AuditService.java
+@@ -51,6 +51,7 @@ import com.netscape.certsrv.base.ResourceNotFoundException;
+ import com.netscape.certsrv.logging.AuditConfig;
+ import com.netscape.certsrv.logging.AuditFile;
+ import com.netscape.certsrv.logging.AuditFileCollection;
++import com.netscape.certsrv.logging.AuditLogFindRequest;
+ import com.netscape.certsrv.logging.AuditResource;
+ import com.netscape.certsrv.logging.ILogger;
+ import com.netscape.cms.servlet.base.SubsystemService;
+@@ -406,6 +407,55 @@ public class AuditService extends SubsystemService implements AuditResource {
+         return createOKResponse(so);
+     }
+ 
++    @Override
++    public Response findAuditLogs(AuditLogFindRequest request) {
++
++        Collection<File> files;
++
++        String filename = request.getFileName();
++        if (filename == null) {
++            // retrieve logs from all files
++            files = getLogFiles();
++
++        } else {
++            // make sure filename does not contain path
++            if (!new File(filename).getName().equals(filename)) {
++                CMS.debug("Invalid file name: " + filename);
++                throw new BadRequestException("Invalid file name: " + filename);
++            }
++
++            File logDir = getLogDirectory();
++            File file = new File(logDir, filename);
++
++            if (!file.exists()) {
++                throw new ResourceNotFoundException("File not found: " + filename);
++            }
++
++            // retrieve logs from the specified file only
++            files = new ArrayList<>();
++            files.add(file);
++        }
++
++        StreamingOutput so = new StreamingOutput() {
++
++            @Override
++            public void write(OutputStream out) throws IOException, WebApplicationException {
++
++                CMS.debug("Audit files:");
++                for (File file : files) {
++                    String name = file.getName();
++                    CMS.debug(" - " + name);
++
++                    try (InputStream is = new FileInputStream(file)) {
++                        IOUtils.copy(is, out);
++                    }
++                }
++            }
++        };
++
++        return createOKResponse(so);
++    }
++
+     /*
+      * in case of failure, "info" should be in the params
+      */
+-- 
+2.9.3
+

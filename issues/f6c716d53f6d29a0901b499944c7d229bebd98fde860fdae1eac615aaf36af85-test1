@@ -1,0 +1,107 @@
+- test 1 on rootca1 - agent subca1agentuser1 successfully issue a user certificate
+
+note the LDAP error 32 / no such object during authorization, on the entry
+cn=1026,ou=certificateRepository,ou=ca,o=rootca1-CA
+and the continuing issuance process.
+
+some details:
+
+export nssdir=/home/subca1useragent1
+less /home/rootca1user1/testuser.xml
+pki -U https://ca1.example.test:7443/ca -d ${nssdir} -C ${nssdir}/pwdfile.txt -n subca1useragent1 ca-cert-request-submit /home/rootca1user1/testuser.xml
+-----------------------------
+Submitted certificate request
+-----------------------------
+  Request ID: 30
+  Type: enrollment
+  Request Status: pending
+  Operation Result: success
+
+
+tail -f /var/log/pki/rootca1/localhost_access_log.2019-04-28.txt /var/log/pki/rootca1/ca/debug /var/log/dirsrv/slapd-ca1/access &
+pki -U https://ca1.example.test:7443/ca -d ${nssdir} -C ${nssdir}/pwdfile.txt -n subca1useragent1 ca-cert-request-review 30 --action approve
+...
+==> /var/log/pki/rootca1/ca/debug <==
+...
+[28/Apr/2019:18:41:23][http-bio-7443-exec-2]: SignedAuditLogger: event ACCESS_SESSION_ESTABLISH
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: PKIRealm: Authenticating certificate chain:
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: PKIRealm.getAuditUserfromCert: certUID=UID=subca1useragent1
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: PKIRealm:   UID=subca1useragent1
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: CertUserDBAuth: started
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: CertUserDBAuth: Retrieving client certificate
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: CertUserDBAuth: Got client certificate
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: In LdapBoundConnFactory::getConn()
+...
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: authenticated uid=subca1agentuser1,ou=people,o=rootca1-CA
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: PKIRealm: User ID: subca1agentuser1
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: SignedAuditLogger: event AUTH
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: In LdapBoundConnFactory::getConn()
+...
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: PKIRealm: User DN: uid=subca1agentuser1,ou=people,o=rootca1-CA
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: In LdapBoundConnFactory::getConn()
+...
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: PKIRealm: Roles:
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: PKIRealm:   Certificate Manager Agents
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: SessionContextInterceptor: AccountResource.login()
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: SessionContextInterceptor: principal: subca1agentuser1
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: AuthMethodInterceptor: AccountResource.login()
+...
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: GroupAccessEvaluator: evaluate: uid=subca1agentuser1 value="Certificate Manager Agents"
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: GroupAccessEvaluator: evaluate: no groups in authToken
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: In LdapBoundConnFactory::getConn()
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: masterConn is connected: true
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: getConn: conn is connected true
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: getConn: mNumConns now 2
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: returnConn: mNumConns now 3
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: UGSubsystem.isMemberOf() using new lookup code
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: In LdapBoundConnFactory::getConn()
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: masterConn is connected: true
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: getConn: conn is connected true
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: getConn: mNumConns now 2
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: authorization search base: cn=Certificate Manager Agents,ou=groups,o=rootca1-CA
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: authorization search filter: (uniquemember=uid=subca1agentuser1,ou=people,o=rootca1-CA)
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: authorization result: true
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: returnConn: mNumConns now 3
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: evaluated expression: group="Certificate Manager Agents" to be true
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: DirAclAuthz: authorization passed
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: ACLInterceptor: access granted
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: SignedAuditLogger: event AUTHZ
+[28/Apr/2019:18:41:24][http-bio-7443-exec-2]: MessageFormatInterceptor: CertRequestResource.reviewRequest()
+...
+-------------------------------
+Approved certificate request 30
+-------------------------------
+...
+  Request ID: 30
+  Type: enrollment
+  Request Status: complete
+  Operation Result: success
+  Certificate ID: 0xc
+...
+==> /var/log/pki/rootca1/localhost_access_log.2019-04-28.txt <==
+192.168.122.66 - - [28/Apr/2019:18:41:23 +0000] "GET /pki/rest/info HTTP/1.1" 200 106
+192.168.122.66 - subca1agentuser1 [28/Apr/2019:18:41:24 +0000] "GET /ca/rest/account/login HTTP/1.1" 200 203
+192.168.122.66 - subca1agentuser1 [28/Apr/2019:18:41:24 +0000] "GET /ca/rest/agent/certrequests/30 HTTP/1.1" 200 17952
+192.168.122.66 - subca1agentuser1 [28/Apr/2019:18:41:25 +0000] "POST /ca/rest/agent/certrequests/30/approve HTTP/1.1" 204 -
+192.168.122.66 - subca1agentuser1 [28/Apr/2019:18:41:25 +0000] "GET /ca/rest/certrequests/30 HTTP/1.1" 200 412
+192.168.122.66 - subca1agentuser1 [28/Apr/2019:18:41:25 +0000] "GET /ca/rest/account/logout HTTP/1.1" 204 -
+==> /var/log/dirsrv/slapd-ca1/access <==
+[28/Apr/2019:18:41:24.735202264 +0000] conn=47 op=608 SRCH base="cn=1026,ou=certificateRepository,ou=ca,o=rootca1-CA" scope=0 filter="(objectClass=*)" attrs=ALL
+[28/Apr/2019:18:41:24.735466893 +0000] conn=47 op=608 RESULT err=32 tag=101 nentries=0 etime=0.0001128807
+[28/Apr/2019:18:41:24.736929604 +0000] conn=49 op=131 SRCH base="ou=People,o=rootca1-CA" scope=2 filter="(description=2;1026;CN=CA Subordinate Signing subca1 org 8,O=Example Org;UID=subca1useragent1)" attrs=ALL
+[28/Apr/2019:18:41:24.737169362 +0000] conn=49 op=131 RESULT err=0 tag=101 nentries=1 etime=0.0000342070
+[28/Apr/2019:18:41:24.738652124 +0000] conn=49 op=132 SRCH base="uid=subca1agentuser1,ou=People,o=rootca1-CA" scope=0 filter="(objectClass=*)" attrs=ALL
+[28/Apr/2019:18:41:24.738805700 +0000] conn=49 op=132 RESULT err=0 tag=101 nentries=1 etime=0.0001289043
+[28/Apr/2019:18:41:24.740158060 +0000] conn=49 op=133 SRCH base="ou=Groups,o=rootca1-CA" scope=1 filter="(&(objectClass=groupofuniquenames)(uniqueMember=uid=subca1agentuser1,ou=people,o=rootca1-CA))" attrs="cn description"
+[28/Apr/2019:18:41:24.740410709 +0000] conn=49 op=133 RESULT err=0 tag=101 nentries=1 etime=0.0001266820
+[28/Apr/2019:18:41:24.864645267 +0000] conn=49 op=134 SRCH base="uid=subca1agentuser1,ou=People,o=rootca1-CA" scope=0 filter="(objectClass=*)" attrs=ALL
+[28/Apr/2019:18:41:24.864938106 +0000] conn=49 op=134 RESULT err=0 tag=101 nentries=1 etime=0.0124244464
+[28/Apr/2019:18:41:24.867291021 +0000] conn=49 op=135 SRCH base="cn=Certificate Manager Agents,ou=groups,o=rootca1-CA" scope=0 filter="(uniqueMember=uid=subca1agentuser1,ou=people,o=rootca1-CA)" attrs="cn"
+[28/Apr/2019:18:41:24.867491984 +0000] conn=49 op=135 RESULT err=0 tag=101 nentries=1 etime=0.0001505223
+[28/Apr/2019:18:41:24.869828288 +0000] conn=47 op=609 SRCH base="cn=30,ou=ca,ou=requests,o=rootca1-CA" scope=0 filter="(objectClass=*)" attrs=ALL
+[28/Apr/2019:18:41:24.870174548 +0000] conn=47 op=609 RESULT err=0 tag=101 nentries=1 etime=0.0134263536
+...
+tail /var/log/pki/rootca1/ca/transactions
+0.http-bio-7443-exec-2 - [28/Apr/2019:18:41:25 UTC] [20] [1] enrollment reqID 30 fromAgent userID: subca1agentuser1 authenticated by certUserDBAuthMgr is completed DN requested: UID=rootca1user1 cert issued serial number: 0xc time: 49
+
+

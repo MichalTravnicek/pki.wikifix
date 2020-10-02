@@ -1,0 +1,78 @@
+From e4cd7e5974e1be74ac4d360eb881e73b7d5142cc Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Thu, 5 Nov 2015 00:17:24 -0500
+Subject: [PATCH] Allow encoded slashes in HTTP paths
+
+Properly formed GET-based OCSP requests can contain URL-encoded
+slashes in the HTTP path[1] but our Tomcat configuration does not
+permit this (returns 400 Bad Request).  Change catalina.properties
+to allow URL-encoded slashes in HTTP paths.
+
+[1] https://tools.ietf.org/html/rfc6960#appendix-A.1
+
+Also add an upgrade script to update catalina.properties in existing
+instances.
+
+Fixes: https://fedorahosted.org/pki/ticket/1658
+---
+ base/server/share/conf/catalina.properties      |  2 ++
+ base/server/upgrade/10.3.0/01-AllowEncodedSlash | 37 +++++++++++++++++++++++++
+ 2 files changed, 39 insertions(+)
+ create mode 100755 base/server/upgrade/10.3.0/01-AllowEncodedSlash
+
+diff --git a/base/server/share/conf/catalina.properties b/base/server/share/conf/catalina.properties
+index 003089a4310455f68c067ccf669123e37a568fe3..2199a78d881da214130f05d186819a043b5e7ee2 100644
+--- a/base/server/share/conf/catalina.properties
++++ b/base/server/share/conf/catalina.properties
+@@ -123,3 +123,5 @@ tomcat.util.buf.StringCache.byte.enabled=true
+ #tomcat.util.buf.StringCache.char.enabled=true
+ #tomcat.util.buf.StringCache.trainThreshold=500000
+ #tomcat.util.buf.StringCache.cacheSize=5000
++
++org.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH=true
+diff --git a/base/server/upgrade/10.3.0/01-AllowEncodedSlash b/base/server/upgrade/10.3.0/01-AllowEncodedSlash
+new file mode 100755
+index 0000000000000000000000000000000000000000..3225d3a7e754e629eb42b1612684695856720134
+--- /dev/null
++++ b/base/server/upgrade/10.3.0/01-AllowEncodedSlash
+@@ -0,0 +1,37 @@
++#!/usr/bin/python
++# Authors:
++#     Fraser Tweedale <ftweedal@redhat.com>
++#
++# This program is free software; you can redistribute it and/or modify
++# it under the terms of the GNU General Public License as published by
++# the Free Software Foundation; version 2 of the License.
++#
++# This program is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License along
++# with this program; if not, write to the Free Software Foundation, Inc.,
++# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++#
++# Copyright (C) 2016 Red Hat, Inc.
++# All rights reserved.
++
++from __future__ import absolute_import
++import os.path
++import pki.server.upgrade
++
++class AllowEncodedSlash(pki.server.upgrade.PKIServerUpgradeScriptlet):
++
++    def __init__(self):
++        super(AllowEncodedSlash, self).__init__()
++        self.message = 'Enable Tomcat ALLOW_ENCODED_SLASH parameter'
++
++    def upgrade_instance(self, instance):
++        path = os.path.join(instance.base_dir, 'conf', 'catalina.properties')
++        if os.path.isfile(path):
++            with open(path, 'a+') as f:
++                data = f.read()
++                if 'ALLOW_ENCODED_SLASH=' not in data:
++                    f.write('\norg.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH=true\n')
+-- 
+2.5.0
+

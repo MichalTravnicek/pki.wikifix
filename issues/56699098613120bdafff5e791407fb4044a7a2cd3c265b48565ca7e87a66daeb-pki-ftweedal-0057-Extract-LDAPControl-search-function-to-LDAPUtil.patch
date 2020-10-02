@@ -1,0 +1,92 @@
+From 9b3408e446811df06ee83fc4c8078a21bc8a1063 Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Fri, 27 Nov 2015 14:31:18 +1100
+Subject: [PATCH 57/61] Extract LDAPControl search function to LDAPUtil
+
+---
+ .../netscape/cmscore/profile/LDAPProfileSubsystem.java | 15 ++++-----------
+ base/util/src/com/netscape/cmsutil/ldap/LDAPUtil.java  | 18 ++++++++++++++++++
+ 2 files changed, 22 insertions(+), 11 deletions(-)
+
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/profile/LDAPProfileSubsystem.java b/base/server/cmscore/src/com/netscape/cmscore/profile/LDAPProfileSubsystem.java
+index cc2e43dfa2e9b1a4eb3bdb53eeb3ace6cfd1d6ac..7be70dff1315c150422be303d7be50fb2fb245f0 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/profile/LDAPProfileSubsystem.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/profile/LDAPProfileSubsystem.java
+@@ -25,7 +25,6 @@ import java.util.LinkedHashMap;
+ 
+ import netscape.ldap.LDAPAttribute;
+ import netscape.ldap.LDAPConnection;
+-import netscape.ldap.LDAPControl;
+ import netscape.ldap.LDAPDN;
+ import netscape.ldap.LDAPEntry;
+ import netscape.ldap.LDAPException;
+@@ -47,6 +46,7 @@ import com.netscape.certsrv.profile.IProfileSubsystem;
+ import com.netscape.certsrv.registry.IPluginInfo;
+ import com.netscape.certsrv.registry.IPluginRegistry;
+ import com.netscape.cmscore.base.LDAPConfigStore;
++import com.netscape.cmsutil.ldap.LDAPUtil;
+ 
+ public class LDAPProfileSubsystem
+         extends AbstractProfileSubsystem
+@@ -290,16 +290,9 @@ public class LDAPProfileSubsystem
+                     null, false, cons);
+                 while (!stopped && results.hasMoreElements()) {
+                     LDAPEntry entry = results.next();
+-                    LDAPEntryChangeControl changeControl = null;
+-                    LDAPControl[] changeControls = results.getResponseControls();
+-                    if (changeControls != null) {
+-                        for (LDAPControl control : changeControls) {
+-                            if (control instanceof LDAPEntryChangeControl) {
+-                                changeControl = (LDAPEntryChangeControl) control;
+-                                break;
+-                            }
+-                        }
+-                    }
++                    LDAPEntryChangeControl changeControl = (LDAPEntryChangeControl)
++                        LDAPUtil.getControl(
++                            LDAPEntryChangeControl.class, results.getResponseControls());
+                     CMS.debug("Profile change monitor: Processed change controls.");
+                     if (changeControl != null) {
+                         int changeType = changeControl.getChangeType();
+diff --git a/base/util/src/com/netscape/cmsutil/ldap/LDAPUtil.java b/base/util/src/com/netscape/cmsutil/ldap/LDAPUtil.java
+index b02ffee787121b252e9f97e3c0358a200c8940ac..f8162235d191763eb17d798096804b7ba55a9840 100644
+--- a/base/util/src/com/netscape/cmsutil/ldap/LDAPUtil.java
++++ b/base/util/src/com/netscape/cmsutil/ldap/LDAPUtil.java
+@@ -18,11 +18,13 @@
+ package com.netscape.cmsutil.ldap;
+ 
+ import java.io.IOException;
++import java.lang.Class;
+ import java.util.ArrayList;
+ 
+ import netscape.ldap.LDAPAttribute;
+ import netscape.ldap.LDAPAttributeSet;
+ import netscape.ldap.LDAPConnection;
++import netscape.ldap.LDAPControl;
+ import netscape.ldap.LDAPEntry;
+ import netscape.ldap.LDAPException;
+ import netscape.ldap.LDAPModification;
+@@ -145,4 +147,20 @@ public class LDAPUtil {
+             }
+         }
+     }
++
++    /**
++     * Get the control of the specified class from the array of controls.
++     *
++     * @return the LDAPControl, or null if not found
++     */
++    public static LDAPControl getControl(
++            Class<? extends LDAPControl> cls, LDAPControl[] controls) {
++        if (controls != null) {
++            for (LDAPControl control : controls) {
++                if (cls.isInstance(control))
++                    return control;
++            }
++        }
++        return null;
++    }
+ }
+-- 
+2.4.3
+

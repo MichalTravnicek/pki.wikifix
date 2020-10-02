@@ -1,0 +1,90 @@
+From c3e1dfe02483ebe532b2f4ad8a7ab5f59f65c92f Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Sat, 4 Jul 2015 11:00:29 -0400
+Subject: [PATCH] Verify raw profile config before accepting it
+
+Creating or modifying a profile with bad profile data in the "raw"
+format succeeds and saves the bad data.  After restart, the profile
+cannot be loaded and attempting to use, modify or delete or recreate
+the profile will fail.
+
+Verify raw profile data by instantiating a temporary profile and
+attempting to initialise it with the received configuration.
+
+Fixes: https://fedorahosted.org/pki/ticket/1462
+---
+ .../dogtagpki/server/ca/rest/ProfileService.java   | 43 +++++++++++++++++++++-
+ 1 file changed, 42 insertions(+), 1 deletion(-)
+
+diff --git a/base/ca/src/org/dogtagpki/server/ca/rest/ProfileService.java b/base/ca/src/org/dogtagpki/server/ca/rest/ProfileService.java
+index f7d82b05fa6534ba11958f0fd174493f71206f26..a1dba8064314cd36179715272c80f1da2cbc6244 100644
+--- a/base/ca/src/org/dogtagpki/server/ca/rest/ProfileService.java
++++ b/base/ca/src/org/dogtagpki/server/ca/rest/ProfileService.java
+@@ -81,6 +81,7 @@ import com.netscape.cms.servlet.base.PKIService;
+ import com.netscape.cms.servlet.profile.PolicyConstraintFactory;
+ import com.netscape.cms.servlet.profile.PolicyDefaultFactory;
+ import com.netscape.cmscore.base.SimpleProperties;
++import com.netscape.cmscore.base.PropConfigStore;
+ 
+ /**
+  * @author alee
+@@ -583,8 +584,27 @@ public class ProfileService extends PKIService implements ProfileResource {
+             auditParams.put("class_id", classId);
+ 
+             IPluginInfo info = registry.getPluginInfo("profile", classId);
++            String className = info.getClassName();
+ 
+-            profile = ps.createProfile(profileId, classId, info.getClassName());
++            // create temporary profile to verify profile configuration
++            IProfile tempProfile;
++            try {
++                tempProfile = (IProfile) Class.forName(className).newInstance();
++            } catch (Exception e) {
++                throw new PKIException(
++                    "Error instantiating profile class: " + className);
++            }
++            tempProfile.setId(profileId);
++            try {
++                PropConfigStore tempConfig = new PropConfigStore(null);
++                tempConfig.load(new ByteArrayInputStream(data));
++                tempProfile.init(ps, tempConfig);
++            } catch (Exception e) {
++                throw new BadRequestException("Invalid profile data", e);
++            }
++
++            // no error thrown, proceed with profile creation
++            profile = ps.createProfile(profileId, classId, className);
+             profile.getConfigStore().commit(false);
+             profile.getConfigStore().load(new ByteArrayInputStream(data));
+             ps.disableProfile(profileId);
+@@ -698,6 +718,27 @@ public class ProfileService extends PKIService implements ProfileResource {
+             simpleProperties.store(out, null);
+             data = out.toByteArray();  // original data sans profileId, classId
+ 
++            // create temporary profile to verify profile configuration
++            String classId = ps.getProfileClassId(profileId);
++            String className =
++                registry.getPluginInfo("profile", classId).getClassName();
++            IProfile tempProfile;
++            try {
++                tempProfile = (IProfile) Class.forName(className).newInstance();
++            } catch (Exception e) {
++                throw new PKIException(
++                    "Error instantiating profile class: " + className);
++            }
++            tempProfile.setId(profileId);
++            try {
++                PropConfigStore tempConfig = new PropConfigStore(null);
++                tempConfig.load(new ByteArrayInputStream(data));
++                tempProfile.init(ps, tempConfig);
++            } catch (Exception e) {
++                throw new BadRequestException("Invalid profile data", e);
++            }
++
++            // no error thrown, so commit updated profile config
+             profile.getConfigStore().load(new ByteArrayInputStream(data));
+             ps.disableProfile(profileId);
+             profile.getConfigStore().commit(false);
+-- 
+2.1.0
+

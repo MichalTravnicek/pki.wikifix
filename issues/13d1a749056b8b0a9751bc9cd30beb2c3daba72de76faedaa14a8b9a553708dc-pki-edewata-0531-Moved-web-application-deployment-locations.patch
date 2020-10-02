@@ -1,0 +1,466 @@
+From 65e082ca5dac6e23c4e26462223c30560bc585c5 Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Sun, 12 Oct 2014 00:16:55 -0400
+Subject: [PATCH] Moved web application deployment locations.
+
+Currently web applications are deployed into Host's appBase (i.e.
+<instance>/webapps). To allow better control of individual
+subsystem deployments, the web applications have to be moved out
+of the appBase so that the autoDeploy can work properly later.
+This patch moves the common web applications to <instance>/
+common/webapps and subsystem web applications to <instance>/
+<subsystem>/webapps. An upgrade script has been added to update
+existing deployments.
+
+https://fedorahosted.org/pki/ticket/1183
+---
+ base/server/etc/default.cfg                        |   5 +-
+ .../python/pki/server/deployment/pkihelper.py      |  19 ++++
+ .../deployment/scriptlets/instance_layout.py       |  32 +++++-
+ .../deployment/scriptlets/subsystem_layout.py      |   4 -
+ .../deployment/scriptlets/webapp_deployment.py     |  49 +++++----
+ base/server/scripts/operations                     |  25 ++---
+ base/server/upgrade/10.2.0/.gitignore              |   4 -
+ .../01-MoveWebApplicationDeploymentLocations       | 119 +++++++++++++++++++++
+ 8 files changed, 203 insertions(+), 54 deletions(-)
+ delete mode 100644 base/server/upgrade/10.2.0/.gitignore
+ create mode 100755 base/server/upgrade/10.2.0/01-MoveWebApplicationDeploymentLocations
+
+diff --git a/base/server/etc/default.cfg b/base/server/etc/default.cfg
+index ecf436d9f15729ed27e09975ab1f1151e504fe94..98a3628572e78f71525a95cedd0e473be8a14d9d 100644
+--- a/base/server/etc/default.cfg
++++ b/base/server/etc/default.cfg
+@@ -217,6 +217,7 @@ pki_tomcat_common_path=%(pki_instance_path)s/common
+ pki_tomcat_common_lib_path=%(pki_tomcat_common_path)s/lib
+ pki_tomcat_tmpdir_path=%(pki_instance_path)s/temp
+ pki_tomcat_webapps_path=%(pki_instance_path)s/webapps
++pki_tomcat_common_webapps_path=%(pki_instance_path)s/common/webapps
+ pki_tomcat_work_path=%(pki_instance_path)s/work
+ pki_tomcat_work_catalina_path=%(pki_tomcat_work_path)s/Catalina
+ pki_tomcat_work_catalina_host_path=%(pki_tomcat_work_catalina_path)s/localhost
+@@ -231,8 +232,8 @@ pki_instance_lib=%(pki_instance_path)s/lib
+ pki_instance_lib_log4j_properties=%(pki_instance_lib)s/log4j.properties
+ pki_instance_systemd_link=%(pki_instance_path)s/%(pki_instance_name)s
+ pki_subsystem_signed_audit_log_path=%(pki_subsystem_log_path)s/signedAudit
+-pki_subsystem_tomcat_webapps_link=%(pki_subsystem_path)s/webapps
+-pki_tomcat_webapps_subsystem_path=%(pki_tomcat_webapps_path)s/%(pki_subsystem_type)s
++pki_tomcat_subsystem_webapps_path=%(pki_subsystem_path)s/webapps
++pki_tomcat_webapps_subsystem_path=%(pki_tomcat_subsystem_webapps_path)s/%(pki_subsystem_type)s
+ pki_tomcat_webapps_subsystem_webinf_classes_path=%(pki_tomcat_webapps_subsystem_path)s/WEB-INF/classes
+ pki_tomcat_webapps_subsystem_webinf_lib_path=%(pki_tomcat_webapps_subsystem_path)s/WEB-INF/lib
+ pki_certsrv_jar_link=%(pki_tomcat_webapps_subsystem_webinf_lib_path)s/pki-certsrv.jar
+diff --git a/base/server/python/pki/server/deployment/pkihelper.py b/base/server/python/pki/server/deployment/pkihelper.py
+index 96048bdecafe404225ceedf3c17f6c262f64d093..009e01004e4e2074a313502ab74e04caaa48572d 100644
+--- a/base/server/python/pki/server/deployment/pkihelper.py
++++ b/base/server/python/pki/server/deployment/pkihelper.py
+@@ -40,6 +40,7 @@ from grp import getgrnam
+ from pwd import getpwnam
+ from pwd import getpwuid
+ import xml.etree.ElementTree as ET
++from lxml import etree
+ import zipfile
+ import selinux
+ if selinux.is_selinux_enabled():
+@@ -4171,4 +4172,22 @@ class PKIDeployer:
+         self.tps_connector = TPSConnector(self)
+         self.config_client = ConfigClient(self)
+ 
++    def deploy_webapp(self, name, doc_base, descriptor):
+ 
++        new_descriptor = os.path.join(
++            self.mdict['pki_instance_configuration_path'],
++            "Catalina",
++            "localhost",
++            name + ".xml")
++
++        parser = etree.XMLParser(remove_blank_text=True)
++        document = etree.parse(descriptor, parser)
++
++        context = document.getroot()
++        context.set('docBase', doc_base)
++
++        with open(new_descriptor, 'w') as f:
++            f.write(etree.tostring(document, pretty_print=True))
++
++        os.chown(new_descriptor, self.mdict['pki_uid'], self.mdict['pki_gid'])
++        os.chmod(new_descriptor, config.PKI_DEPLOYMENT_DEFAULT_FILE_PERMISSIONS)
+diff --git a/base/server/python/pki/server/deployment/scriptlets/instance_layout.py b/base/server/python/pki/server/deployment/scriptlets/instance_layout.py
+index 9cdecb4f29ccccfe7afdfe11a649e1c2d72a69ba..5079891f92ac498f078cd401f34287fab03e0fd6 100644
+--- a/base/server/python/pki/server/deployment/scriptlets/instance_layout.py
++++ b/base/server/python/pki/server/deployment/scriptlets/instance_layout.py
+@@ -55,6 +55,30 @@ class PkiScriptlet(pkiscriptlet.AbstractBasePkiScriptlet):
+                 deployer.mdict['pki_source_server_path'],
+                 deployer.mdict['pki_instance_configuration_path'])
+ 
++            # Deploy ROOT web application
++            deployer.deploy_webapp(
++                "ROOT",
++                os.path.join(
++                    deployer.mdict['pki_tomcat_common_webapps_path'],
++                    "ROOT"),
++                os.path.join(
++                    deployer.mdict['pki_source_server_path'],
++                    "Catalina",
++                    "localhost",
++                    "ROOT.xml"))
++
++            # Deploy pki web application
++            deployer.deploy_webapp(
++                "pki",
++                os.path.join(
++                    deployer.mdict['pki_tomcat_common_webapps_path'],
++                    "pki"),
++                os.path.join(
++                    deployer.mdict['pki_source_server_path'],
++                    "Catalina",
++                    "localhost",
++                    "pki.xml"))
++
+             # establish Tomcat instance base
+             deployer.directory.create(deployer.mdict['pki_tomcat_common_path'])
+             deployer.directory.create(
+@@ -74,23 +98,23 @@ class PkiScriptlet(pkiscriptlet.AbstractBasePkiScriptlet):
+                 deployer.mdict['pki_instance_lib_log4j_properties'])
+             deployer.directory.create(deployer.mdict['pki_tomcat_tmpdir_path'])
+ 
+-            # Copy /usr/share/pki/server/webapps to <instance>/webapps
++            # Copy /usr/share/pki/server/webapps to <instance>/common/webapps
+             deployer.directory.copy(
+                 os.path.join(
+                     config.PKI_DEPLOYMENT_SOURCE_ROOT,
+                     "server",
+                     "webapps"),
+-                deployer.mdict['pki_tomcat_webapps_path'])
++                deployer.mdict['pki_tomcat_common_webapps_path'])
+ 
+             # If desired and available,
+             # copy selected server theme
+-            # to <instance>/webapps/pki
++            # to <instance>/common/webapps/pki
+             if config.str2bool(deployer.mdict['pki_theme_enable']) and\
+                     os.path.exists(deployer.mdict['pki_theme_server_dir']):
+                 deployer.directory.copy(
+                     deployer.mdict['pki_theme_server_dir'],
+                     os.path.join(
+-                        deployer.mdict['pki_tomcat_webapps_path'],
++                        deployer.mdict['pki_tomcat_common_webapps_path'],
+                         "pki"),
+                     overwrite_flag=True)
+ 
+diff --git a/base/server/python/pki/server/deployment/scriptlets/subsystem_layout.py b/base/server/python/pki/server/deployment/scriptlets/subsystem_layout.py
+index 324accad0d6a9230ac15cebd2c67b0eeb1ec756b..34656cf5eb8d90e0f64a5af6f5cb4e2d4a1faf7d 100644
+--- a/base/server/python/pki/server/deployment/scriptlets/subsystem_layout.py
++++ b/base/server/python/pki/server/deployment/scriptlets/subsystem_layout.py
+@@ -105,10 +105,6 @@ class PkiScriptlet(pkiscriptlet.AbstractBasePkiScriptlet):
+                     deployer.mdict['pki_target_transportcert_profile'])
+             # establish instance-based Tomcat PKI subsystem registry
+             # establish instance-based Tomcat PKI subsystem convenience
+-            # symbolic links
+-            deployer.symlink.create(
+-                deployer.mdict['pki_tomcat_webapps_path'],
+-                deployer.mdict['pki_subsystem_tomcat_webapps_link'])
+         # establish instance-based subsystem convenience symbolic links
+         deployer.symlink.create(
+             deployer.mdict['pki_instance_database_link'],
+diff --git a/base/server/python/pki/server/deployment/scriptlets/webapp_deployment.py b/base/server/python/pki/server/deployment/scriptlets/webapp_deployment.py
+index 962de724fcfc034ce0fb389a056928102122679e..dce327ff871f58fb5a954fe76c7ded31867c2af3 100644
+--- a/base/server/python/pki/server/deployment/scriptlets/webapp_deployment.py
++++ b/base/server/python/pki/server/deployment/scriptlets/webapp_deployment.py
+@@ -44,29 +44,38 @@ class PkiScriptlet(pkiscriptlet.AbstractBasePkiScriptlet):
+             config.pki_log.info(log.WEBAPP_DEPLOYMENT_SPAWN_1, __name__,
+                                 extra=config.PKI_INDENTATION_LEVEL_1)
+ 
++            # Create subsystem webapps folder to store custom webapps:
++            # <instance>/<subsystem>/webapps.
++            deployer.directory.create(
++                deployer.mdict['pki_tomcat_subsystem_webapps_path'])
++
++            # set ownerships, permissions, and acls
++            deployer.directory.set_mode(
++                deployer.mdict['pki_tomcat_subsystem_webapps_path'])
++
+             # For TPS, deploy web application directly from /usr/share/pki.
+             if deployer.mdict['pki_subsystem'] == "TPS":
+-                deployer.file.copy(
++                deployer.deploy_webapp(
++                    "tps",
++                    os.path.join(
++                        config.PKI_DEPLOYMENT_SOURCE_ROOT,
++                        "tps",
++                        "webapps",
++                        "tps"),
+                     os.path.join(
+                         config.PKI_DEPLOYMENT_SOURCE_ROOT,
+                         "tps",
+                         "conf",
+                         "Catalina",
+                         "localhost",
+-                        "tps.xml"),
+-                    os.path.join(
+-                        deployer.mdict['pki_instance_configuration_path'],
+-                        "Catalina",
+-                        "localhost",
+                         "tps.xml"))
++
+                 return self.rv
+ 
+-            # For other subsystems, deploy web application into Tomcat instance.
+-            deployer.directory.create(
+-                deployer.mdict['pki_tomcat_webapps_subsystem_path'])
++            # For other subsystems, deploy as custom web application.
+ 
+             # Copy /usr/share/pki/<subsystem>/webapps/<subsystem>
+-            # to <instance>/webapps/<subsystem>
++            # to <instance>/<subsystem>/webapps/<subsystem>
+             deployer.directory.copy(
+                 os.path.join(
+                     config.PKI_DEPLOYMENT_SOURCE_ROOT,
+@@ -77,7 +86,7 @@ class PkiScriptlet(pkiscriptlet.AbstractBasePkiScriptlet):
+                 overwrite_flag=True)
+ 
+             # Copy /usr/share/pki/server/webapps/pki/admin
+-            # to <instance>/webapps/<subsystem>/admin
++            # to <instance>/<subsystem>/webapps/<subsystem>/admin
+             # TODO: common templates should be deployed in common webapp
+             deployer.directory.copy(
+                 os.path.join(
+@@ -131,26 +140,16 @@ class PkiScriptlet(pkiscriptlet.AbstractBasePkiScriptlet):
+                     deployer.mdict['pki_tks_jar'],
+                     deployer.mdict['pki_tks_jar_link'])
+ 
+-            # set ownerships, permissions, and acls
+-            deployer.directory.set_mode(
+-                deployer.mdict['pki_tomcat_webapps_subsystem_path'])
+-
+-            # Copy web application context file
+-            # from /usr/share/pki/<subsystem>/conf/Catalina/localhost/
+-            # <subsystem>.xml
+-            # to <instance>/conf/Catalina/localhost/<subsystem>.xml
+-            deployer.file.copy(
++            # Deploy subsystem web application.
++            deployer.deploy_webapp(
++                deployer.mdict['pki_subsystem'].lower(),
++                deployer.mdict['pki_tomcat_webapps_subsystem_path'],
+                 os.path.join(
+                     config.PKI_DEPLOYMENT_SOURCE_ROOT,
+                     deployer.mdict['pki_subsystem'].lower(),
+                     "conf",
+                     "Catalina",
+                     "localhost",
+-                    deployer.mdict['pki_subsystem'].lower() + ".xml"),
+-                os.path.join(
+-                    deployer.mdict['pki_instance_configuration_path'],
+-                    "Catalina",
+-                    "localhost",
+                     deployer.mdict['pki_subsystem'].lower() + ".xml"))
+ 
+         return self.rv
+diff --git a/base/server/scripts/operations b/base/server/scripts/operations
+index 37094c037f4a76cfc414a421839c018fdbc4571f..3cd313c6275d69df5ed95f6b5e2e1c2fd9db19e9 100644
+--- a/base/server/scripts/operations
++++ b/base/server/scripts/operations
+@@ -1108,11 +1108,11 @@ verify_symlinks()
+     pki_registry_dir="/etc/sysconfig/pki/${PKI_WEB_SERVER_TYPE}/${PKI_INSTANCE_NAME}"
+     pki_systemd_dir="/etc/systemd/system/pki-tomcatd.target.wants"
+     pki_systemd_link="pki-${PKI_WEB_SERVER_TYPE}d@${PKI_INSTANCE_NAME}.service"
+-    pki_ca_jar_dir="${PKI_INSTANCE_PATH}/webapps/ca/WEB-INF/lib"
+-    pki_kra_jar_dir="${PKI_INSTANCE_PATH}/webapps/kra/WEB-INF/lib"
+-    pki_ocsp_jar_dir="${PKI_INSTANCE_PATH}/webapps/ocsp/WEB-INF/lib"
+-    pki_tks_jar_dir="${PKI_INSTANCE_PATH}/webapps/tks/WEB-INF/lib"
+-    pki_tps_jar_dir="${PKI_INSTANCE_PATH}/webapps/tps/WEB-INF/lib"
++    pki_ca_jar_dir="${PKI_INSTANCE_PATH}/ca/webapps/ca/WEB-INF/lib"
++    pki_kra_jar_dir="${PKI_INSTANCE_PATH}/kra/webapps/kra/WEB-INF/lib"
++    pki_ocsp_jar_dir="${PKI_INSTANCE_PATH}/ocsp/webapps/ocsp/WEB-INF/lib"
++    pki_tks_jar_dir="${PKI_INSTANCE_PATH}/tks/webapps/tks/WEB-INF/lib"
++    pki_tps_jar_dir="${PKI_INSTANCE_PATH}/tps/webapps/tps/WEB-INF/lib"
+ 
+     # '${PKI_INSTANCE_PATH}' symlinks
+     base_symlinks=(
+@@ -1126,8 +1126,7 @@ verify_symlinks()
+         [alias]=${PKI_INSTANCE_PATH}/alias
+         [conf]=/etc/pki/${PKI_INSTANCE_NAME}/ca
+         [logs]=/var/log/pki/${PKI_INSTANCE_NAME}/ca
+-        [registry]=${pki_registry_dir}
+-        [webapps]=${PKI_INSTANCE_PATH}/webapps)
++        [registry]=${pki_registry_dir})
+ 
+     # '${pki_ca_jar_dir}' symlinks
+     ca_jar_symlinks=(
+@@ -1144,8 +1143,7 @@ verify_symlinks()
+         [alias]=${PKI_INSTANCE_PATH}/alias
+         [conf]=/etc/pki/${PKI_INSTANCE_NAME}/kra
+         [logs]=/var/log/pki/${PKI_INSTANCE_NAME}/kra
+-        [registry]=${pki_registry_dir}
+-        [webapps]=${PKI_INSTANCE_PATH}/webapps)
++        [registry]=${pki_registry_dir})
+ 
+     # '${pki_kra_jar_dir}' symlinks
+     kra_jar_symlinks=(
+@@ -1162,8 +1160,7 @@ verify_symlinks()
+         [alias]=${PKI_INSTANCE_PATH}/alias
+         [conf]=/etc/pki/${PKI_INSTANCE_NAME}/ocsp
+         [logs]=/var/log/pki/${PKI_INSTANCE_NAME}/ocsp
+-        [registry]=${pki_registry_dir}
+-        [webapps]=${PKI_INSTANCE_PATH}/webapps)
++        [registry]=${pki_registry_dir})
+ 
+     # '${pki_ocsp_jar_dir}' symlinks
+     ocsp_jar_symlinks=(
+@@ -1180,8 +1177,7 @@ verify_symlinks()
+         [alias]=${PKI_INSTANCE_PATH}/alias
+         [conf]=/etc/pki/${PKI_INSTANCE_NAME}/tks
+         [logs]=/var/log/pki/${PKI_INSTANCE_NAME}/tks
+-        [registry]=${pki_registry_dir}
+-        [webapps]=${PKI_INSTANCE_PATH}/webapps)
++        [registry]=${pki_registry_dir})
+ 
+     # '${pki_tks_jar_dir}' symlinks
+     tks_jar_symlinks=(
+@@ -1198,8 +1194,7 @@ verify_symlinks()
+         [alias]=${PKI_INSTANCE_PATH}/alias
+         [conf]=/etc/pki/${PKI_INSTANCE_NAME}/tps
+         [logs]=/var/log/pki/${PKI_INSTANCE_NAME}/tps
+-        [registry]=${pki_registry_dir}
+-        [webapps]=${PKI_INSTANCE_PATH}/webapps)
++        [registry]=${pki_registry_dir})
+ 
+     # '${pki_tps_jar_dir}' symlinks
+     tps_jar_symlinks=(
+diff --git a/base/server/upgrade/10.2.0/.gitignore b/base/server/upgrade/10.2.0/.gitignore
+deleted file mode 100644
+index 5e7d2734cfc60289debf74293817c0a8f572ff32..0000000000000000000000000000000000000000
+--- a/base/server/upgrade/10.2.0/.gitignore
++++ /dev/null
+@@ -1,4 +0,0 @@
+-# Ignore everything in this directory
+-*
+-# Except this file
+-!.gitignore
+diff --git a/base/server/upgrade/10.2.0/01-MoveWebApplicationDeploymentLocations b/base/server/upgrade/10.2.0/01-MoveWebApplicationDeploymentLocations
+new file mode 100755
+index 0000000000000000000000000000000000000000..20f35e837d2dbce7bfee01187b9763d4ff592d40
+--- /dev/null
++++ b/base/server/upgrade/10.2.0/01-MoveWebApplicationDeploymentLocations
+@@ -0,0 +1,119 @@
++#!/usr/bin/python
++# Authors:
++#     Endi S. Dewata <edewata@redhat.com>
++#
++# This program is free software; you can redistribute it and/or modify
++# it under the terms of the GNU General Public License as published by
++# the Free Software Foundation; version 2 of the License.
++#
++# This program is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License along
++# with this program; if not, write to the Free Software Foundation, Inc.,
++# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++#
++# Copyright (C) 2014 Red Hat, Inc.
++# All rights reserved.
++#
++
++import grp
++import os
++import pwd
++import shutil
++import signal
++import sys
++from lxml import etree
++
++import pki
++import pki.server.upgrade
++
++
++class MoveWebApplicationDeploymentLocations(pki.server.upgrade.PKIServerUpgradeScriptlet):
++
++    def __init__(self):
++
++        self.message = 'Move Web application deployment locations'
++
++        self.parser = etree.XMLParser(remove_blank_text=True)
++
++    def upgrade_subsystem(self, instance, subsystem):
++
++        subsystem_webapps = os.path.join(instance.base_dir, subsystem.name, 'webapps')
++        self.backup(subsystem_webapps)
++
++        # remove old subsystem webapps symlink
++        if os.path.islink(subsystem_webapps):
++            os.unlink(subsystem_webapps)
++
++        # create new subsytem webapps folder
++        if not os.path.exists(subsystem_webapps):
++            os.mkdir(subsystem_webapps)
++
++        uid = pwd.getpwnam('pkiuser').pw_uid
++        gid = grp.getgrnam('pkiuser').gr_gid
++
++        os.chown(subsystem_webapps, uid, gid)
++        os.chmod(subsystem_webapps, 0770)
++
++        # move subsystem webapp
++        subsystem_old_webapp = os.path.join(instance.base_dir, 'webapps', subsystem.name)
++        subsystem_new_webapp = os.path.join(subsystem_webapps, subsystem.name)
++        subsystem_context_xml = os.path.join(instance.conf_dir, 'Catalina', 'localhost', subsystem.name + '.xml')
++
++        self.move_webapp(subsystem_old_webapp, subsystem_new_webapp, subsystem_context_xml)
++
++    def upgrade_instance(self, instance):
++
++        common_webapps = os.path.join(instance.base_dir, 'common', 'webapps')
++        self.backup(common_webapps)
++
++        # create new common webapps folder
++        if not os.path.exists(common_webapps):
++            os.mkdir(common_webapps)
++
++        uid = pwd.getpwnam('pkiuser').pw_uid
++        gid = grp.getgrnam('pkiuser').gr_gid
++
++        os.chown(common_webapps, uid, gid)
++        os.chmod(common_webapps, 0770)
++
++        # move ROOT webapp
++        root_old_webapp = os.path.join(instance.base_dir, 'webapps', 'ROOT')
++        root_new_webapp = os.path.join(common_webapps, 'ROOT')
++        root_context_xml = os.path.join(instance.conf_dir, 'Catalina', 'localhost', 'ROOT.xml')
++
++        self.move_webapp(root_old_webapp, root_new_webapp, root_context_xml)
++
++        # move pki webapp
++        pki_old_webapp = os.path.join(instance.base_dir, 'webapps', 'pki')
++        pki_new_webapp = os.path.join(common_webapps, 'pki')
++        pki_context_xml = os.path.join(instance.conf_dir, 'Catalina', 'localhost', 'pki.xml')
++
++        self.move_webapp(pki_old_webapp, pki_new_webapp, pki_context_xml)
++
++    def move_webapp(self, old_webapp, new_webapp, context_xml):
++
++        if not os.path.exists(old_webapp):
++            return
++
++        # move old webapp to the new webapp
++        self.backup(old_webapp)
++        self.backup(new_webapp)
++
++        shutil.move(old_webapp, new_webapp)
++
++        # update docBase in context.xml
++        self.backup(context_xml)
++
++        document = etree.parse(context_xml, self.parser)
++
++        context = document.getroot()
++        doc_base = context.get('docBase')
++
++        context.set('docBase', new_webapp)
++
++        with open(context_xml, 'w') as f:
++            f.write(etree.tostring(document, pretty_print=True))
+-- 
+1.8.4.2
+

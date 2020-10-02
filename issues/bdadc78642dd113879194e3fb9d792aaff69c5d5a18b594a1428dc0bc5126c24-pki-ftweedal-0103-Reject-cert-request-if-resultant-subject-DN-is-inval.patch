@@ -1,0 +1,73 @@
+From ff7ff61c6cc97f695f3db2058bf3639014278299 Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Mon, 9 May 2016 12:57:32 +1000
+Subject: [PATCH] Reject cert request if resultant subject DN is invalid
+
+An unparseable subject DN is ignored, causing NPE in subsequent
+processing becaues the subject DN was not set.  Throw
+ERejectException if the subject DN is invalid, to ensure that a
+useful response can be returned to the requestor.
+
+Fixes: https://fedorahosted.org/pki/ticket/2317
+---
+ .../com/netscape/certsrv/profile/ERejectException.java   |  8 ++++++++
+ .../com/netscape/cms/profile/def/SubjectNameDefault.java | 16 ++++++----------
+ 2 files changed, 14 insertions(+), 10 deletions(-)
+
+diff --git a/base/common/src/com/netscape/certsrv/profile/ERejectException.java b/base/common/src/com/netscape/certsrv/profile/ERejectException.java
+index cceeb12ab8354b05dec0d0212d7a0f04de9e6184..1ada1c4ebca50ed79a443e2e47b3251a7303ff37 100644
+--- a/base/common/src/com/netscape/certsrv/profile/ERejectException.java
++++ b/base/common/src/com/netscape/certsrv/profile/ERejectException.java
+@@ -43,4 +43,12 @@ public class ERejectException extends EProfileException {
+     public ERejectException(String msg) {
+         super(msg);
+     }
++
++    public ERejectException(String msg, Throwable cause) {
++        super(msg, cause);
++    }
++
++    public ERejectException(Throwable cause) {
++        super(cause.getMessage(), cause);
++    }
+ }
+diff --git a/base/server/cms/src/com/netscape/cms/profile/def/SubjectNameDefault.java b/base/server/cms/src/com/netscape/cms/profile/def/SubjectNameDefault.java
+index 31aee6dd6d9299438fb62493f61879f9a01dd9ed..629f4bcc10869518ff890a96fa6657565df00abe 100644
+--- a/base/server/cms/src/com/netscape/cms/profile/def/SubjectNameDefault.java
++++ b/base/server/cms/src/com/netscape/cms/profile/def/SubjectNameDefault.java
+@@ -27,6 +27,7 @@ import netscape.security.x509.X509CertInfo;
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.profile.EProfileException;
++import com.netscape.certsrv.profile.ERejectException;
+ import com.netscape.certsrv.profile.IProfile;
+ import com.netscape.certsrv.property.Descriptor;
+ import com.netscape.certsrv.property.EPropertyException;
+@@ -166,19 +167,14 @@ public class SubjectNameDefault extends EnrollDefault {
+             return;
+         try {
+             name = new X500Name(subjectName);
+-        } catch (IOException e) {
+-            // failed to build x500 name
+-            CMS.debug("SubjectNameDefault: populate " + e.toString());
+-        }
+-        if (name == null) {
+-            // failed to build x500 name
+-        }
+-        try {
+             info.set(X509CertInfo.SUBJECT,
+                     new CertificateSubjectName(name));
+         } catch (Exception e) {
+-            // failed to insert subject name
+-            CMS.debug("SubjectNameDefault: populate " + e.toString());
++            CMS.debug("SubjectNameDefault: failed to populate: " + e);
++            throw new ERejectException(CMS.getUserMessage(
++                getLocale(request),
++                "CMS_PROFILE_INVALID_SUBJECT_NAME",
++                subjectName), e);
+         }
+     }
+ }
+-- 
+2.5.5
+

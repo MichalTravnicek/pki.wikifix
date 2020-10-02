@@ -1,0 +1,257 @@
+From 24a5ad6f84387055468e0125df90fea6635da484 Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Wed, 14 Sep 2016 19:39:36 +1000
+Subject: [PATCH] Block reads during reload of LDAP-based profiles
+
+LDAP disconnect (e.g. due to DS restart) causes LDAPProfileSubsystem
+to drop all its profiles and reload them.  If a profile is read
+during this time, e.g. to issue a certificate, it might not have
+been reloaded thus causing the operation to fail.
+
+Introduce the AsyncLoader class which allows a consumer to await the
+completion of a (re)load, if one is happening.  Update the
+getProfile and getProfileIds method to use it.
+
+The existing 'initialLoadDone' CountDownLatch for blocking
+LDAPProfileSubsystem init until the inital load of profiles is
+completed was subsumed by AsyncLoader.
+
+Fixes: https://fedorahosted.org/pki/ticket/2453
+---
+ .../src/com/netscape/certsrv/util/AsyncLoader.java | 86 ++++++++++++++++++++++
+ .../cmscore/profile/LDAPProfileSubsystem.java      | 59 ++++++++++-----
+ 2 files changed, 127 insertions(+), 18 deletions(-)
+ create mode 100644 base/common/src/com/netscape/certsrv/util/AsyncLoader.java
+
+diff --git a/base/common/src/com/netscape/certsrv/util/AsyncLoader.java b/base/common/src/com/netscape/certsrv/util/AsyncLoader.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..39f8efd3272607ed6ac219b1b42bf9a4cb076a80
+--- /dev/null
++++ b/base/common/src/com/netscape/certsrv/util/AsyncLoader.java
+@@ -0,0 +1,86 @@
++// --- BEGIN COPYRIGHT BLOCK ---
++// This program is free software; you can redistribute it and/or modify
++// it under the terms of the GNU General Public License as published by
++// the Free Software Foundation; version 2 of the License.
++//
++// This program is distributed in the hope that it will be useful,
++// but WITHOUT ANY WARRANTY; without even the implied warranty of
++// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++// GNU General Public License for more details.
++//
++// You should have received a copy of the GNU General Public License along
++// with this program; if not, write to the Free Software Foundation, Inc.,
++// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++//
++// (C) 2016  Red Hat, Inc.
++// All rights reserved.
++// --- END COPYRIGHT BLOCK ---
++
++package com.netscape.certsrv.util;
++
++import java.util.concurrent.CountDownLatch;
++import java.util.concurrent.locks.ReentrantLock;
++
++/** A locking mechanism for loading or reloading an initially
++ * unknown number of items.
++ *
++ * The "producer" is the thread that loads items, informing the
++ * Loader when each item is loaded and how many items there are
++ * (when that fact becomes known).
++ *
++ * Other threads can await the completion of a (re)loading
++ * process.
++ */
++public class AsyncLoader {
++    private CountDownLatch producerInitialised = new CountDownLatch(1);
++    private ReentrantLock loadingLock = new ReentrantLock();
++    private Integer numItems = null;
++    private int numItemsLoaded = 0;
++
++    /**
++     * Acquire the lock as a producer.
++     */
++    public void startLoading() {
++        numItems = null;
++        numItemsLoaded = 0;
++        loadingLock.lock();
++        producerInitialised.countDown();
++    }
++
++    /**
++     * Increment the number of items loaded by 1.  If the number
++     * of items is known and that many items have been loaded,
++     * unlock the loader.
++     */
++    public void increment() {
++        numItemsLoaded += 1;
++        checkLoadDone();
++    }
++
++    /**
++     * Set the number of items.  If the number of items already
++     * loaded is equal to or greater than the number, unlock the
++     * loader.
++     */
++    public void setNumItems(Integer n) {
++        numItems = n;
++        checkLoadDone();
++    }
++
++    private void checkLoadDone() {
++        if (numItems != null && numItemsLoaded >= numItems) {
++            while (loadingLock.isHeldByCurrentThread())
++                loadingLock.unlock();
++        }
++    }
++
++    public void awaitLoadDone() throws InterruptedException {
++        /* A consumer may await upon the Loader immediately after
++         * starting the producer.  To ensure that the producer
++         * has time to acquire the lock, we use a CountDownLatch.
++         */
++        producerInitialised.await();
++        loadingLock.lock();
++        loadingLock.unlock();
++    }
++}
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/profile/LDAPProfileSubsystem.java b/base/server/cmscore/src/com/netscape/cmscore/profile/LDAPProfileSubsystem.java
+index 6dea1a0d88beaefeea489ea58ad9ad13d2da8bd7..fd5aa64eed8385ad18a307b6addaee6222d9f9cf 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/profile/LDAPProfileSubsystem.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/profile/LDAPProfileSubsystem.java
+@@ -20,11 +20,11 @@ package com.netscape.cmscore.profile;
+ import java.io.ByteArrayInputStream;
+ import java.io.InputStream;
+ import java.util.Arrays;
++import java.util.Enumeration;
+ import java.util.Hashtable;
+ import java.util.LinkedHashMap;
+ import java.util.TreeMap;
+ import java.util.TreeSet;
+-import java.util.concurrent.CountDownLatch;
+ 
+ import netscape.ldap.LDAPAttribute;
+ import netscape.ldap.LDAPAttributeSet;
+@@ -49,6 +49,7 @@ import com.netscape.certsrv.profile.IProfile;
+ import com.netscape.certsrv.profile.IProfileSubsystem;
+ import com.netscape.certsrv.registry.IPluginInfo;
+ import com.netscape.certsrv.registry.IPluginRegistry;
++import com.netscape.certsrv.util.AsyncLoader;
+ import com.netscape.cmscore.base.LDAPConfigStore;
+ import com.netscape.cmsutil.ldap.LDAPUtil;
+ 
+@@ -71,10 +72,7 @@ public class LDAPProfileSubsystem
+     /* Set of nsUniqueIds of deleted entries */
+     private TreeSet<String> deletedNsUniqueIds;
+ 
+-    /* Variables to track initial loading of profiles */
+-    private Integer initialNumProfiles = null;
+-    private int numProfilesLoaded = 0;
+-    private CountDownLatch initialLoadDone = new CountDownLatch(1);
++    private AsyncLoader loader = new AsyncLoader();
+ 
+     /**
+      * Initializes this subsystem with the given configuration
+@@ -118,7 +116,7 @@ public class LDAPProfileSubsystem
+         monitor = new Thread(this, "profileChangeMonitor");
+         monitor.start();
+         try {
+-            initialLoadDone.await();
++            loader.awaitLoadDone();
+         } catch (InterruptedException e) {
+             CMS.debug("LDAPProfileSubsystem: caught InterruptedException "
+                     + "while waiting for initial load of profiles.");
+@@ -126,6 +124,27 @@ public class LDAPProfileSubsystem
+         CMS.debug("LDAPProfileSubsystem: finished init");
+     }
+ 
++    public IProfile getProfile(String id)
++            throws EProfileException {
++        try {
++            loader.awaitLoadDone();
++        } catch (InterruptedException e) {
++            CMS.debug("LDAPProfileSubsystem.getProfile: caught InterruptedException "
++                    + "while waiting for profiles to be loaded.");
++        }
++        return super.getProfile(id);
++    }
++
++    public Enumeration<String> getProfileIds() {
++        try {
++            loader.awaitLoadDone();
++        } catch (InterruptedException e) {
++            CMS.debug("LDAPProfileSubsystem.getProfile: caught InterruptedException "
++                    + "while waiting for profiles to be loaded.");
++        }
++        return super.getProfileIds();
++    }
++
+     /**
+      * Read the given LDAPEntry into the profile subsystem.
+      */
+@@ -395,12 +414,6 @@ public class LDAPProfileSubsystem
+         return "cn=" + id + "," + dn;
+     }
+ 
+-    private void checkInitialLoadDone() {
+-        if (initialNumProfiles != null
+-                && numProfilesLoaded >= initialNumProfiles)
+-            initialLoadDone.countDown();
+-    }
+-
+     private void ensureProfilesOU(LDAPConnection conn) throws LDAPException {
+         try {
+             conn.search(dn, LDAPConnection.SCOPE_BASE, "(objectclass=*)", null, false);
+@@ -431,7 +444,6 @@ public class LDAPProfileSubsystem
+         CMS.debug("Profile change monitor: starting.");
+ 
+         while (!stopped) {
+-            forgetAllProfiles();
+             try {
+                 conn = dbFactory.getConn();
+                 ensureProfilesOU(conn);
+@@ -443,16 +455,28 @@ public class LDAPProfileSubsystem
+                 LDAPSearchResults results = conn.search(
+                     dn, LDAPConnection.SCOPE_SUB, "(objectclass=*)",
+                     attrs, false, cons);
++
++                /* Wait until the last possible moment before taking
++                 * the load lock and dropping all profiles, so that
++                 * we can continue to service requests while LDAP is
++                 * down.
++                 *
++                 * Once we reconnect, we need to forget all profiles
++                 * and reload in case some were removed in the
++                 * interim.
++                 */
++                loader.startLoading();
++                forgetAllProfiles();
++
+                 while (!stopped && results.hasMoreElements()) {
+                     LDAPEntry entry = results.next();
+ 
+                     String[] objectClasses =
+                         entry.getAttribute("objectClass").getStringValueArray();
+                     if (Arrays.asList(objectClasses).contains("organizationalUnit")) {
+-                        initialNumProfiles = new Integer(
++                        loader.setNumItems(new Integer(
+                             entry.getAttribute("numSubordinates")
+-                                .getStringValueArray()[0]);
+-                        checkInitialLoadDone();
++                                .getStringValueArray()[0]));
+                         continue;
+                     }
+ 
+@@ -486,8 +510,7 @@ public class LDAPProfileSubsystem
+                     } else {
+                         CMS.debug("Profile change monitor: immediate result");
+                         readProfile(entry);
+-                        numProfilesLoaded += 1;
+-                        checkInitialLoadDone();
++                        loader.increment();
+                     }
+                 }
+             } catch (ELdapException e) {
+-- 
+2.5.5
+

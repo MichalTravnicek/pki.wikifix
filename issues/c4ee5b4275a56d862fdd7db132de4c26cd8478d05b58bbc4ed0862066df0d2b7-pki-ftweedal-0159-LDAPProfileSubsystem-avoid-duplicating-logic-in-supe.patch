@@ -1,0 +1,95 @@
+From 0a86f63cfe2d5391befe401541e9dcc0dae6ce29 Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Tue, 7 Feb 2017 17:27:06 +1000
+Subject: [PATCH 159/161] LDAPProfileSubsystem: avoid duplicating logic in
+ superclass
+
+Part of: https://fedorahosted.org/pki/ticket/2588
+---
+ .../cmscore/profile/AbstractProfileSubsystem.java  |  7 +++-
+ .../cmscore/profile/LDAPProfileSubsystem.java      | 43 ++++------------------
+ 2 files changed, 13 insertions(+), 37 deletions(-)
+
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/profile/AbstractProfileSubsystem.java b/base/server/cmscore/src/com/netscape/cmscore/profile/AbstractProfileSubsystem.java
+index 116b8e2026e80b012fb87647fd8924b567194fa3..2a209ad5b2656d65db57d36b7ecb2745527ab081 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/profile/AbstractProfileSubsystem.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/profile/AbstractProfileSubsystem.java
+@@ -121,7 +121,7 @@ public abstract class AbstractProfileSubsystem implements IProfileSubsystem {
+     /**
+      * Commits a profile.
+      */
+-    public void commitProfile(String id)
++    public synchronized void commitProfile(String id)
+             throws EProfileException {
+         IConfigStore cs = mProfiles.get(id).getConfigStore();
+ 
+@@ -157,6 +157,11 @@ public abstract class AbstractProfileSubsystem implements IProfileSubsystem {
+ 
+         // finally commit the configStore
+         //
++        commitConfigStore(id, cs);
++    }
++
++    protected void commitConfigStore(String id, IConfigStore cs)
++            throws EProfileException {
+         try {
+             cs.commit(false);
+         } catch (EBaseException e) {
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/profile/LDAPProfileSubsystem.java b/base/server/cmscore/src/com/netscape/cmscore/profile/LDAPProfileSubsystem.java
+index fff8ead3f2088aedaf5856c308dd33be90af7779..bce675e7bf993d97a086fb830e34d50000c4f396 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/profile/LDAPProfileSubsystem.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/profile/LDAPProfileSubsystem.java
+@@ -303,43 +303,14 @@ public class LDAPProfileSubsystem
+             readProfile(entry);
+     }
+ 
++    /**
++     * Commit the configStore and track the resulting
++     * entryUSN and (in case of add) the nsUniqueId
++     */
+     @Override
+-    public synchronized void commitProfile(String id) throws EProfileException {
+-        LDAPConfigStore cs = (LDAPConfigStore) mProfiles.get(id).getConfigStore();
+-
+-        // first create a *new* profile object from the configStore
+-        // and initialise it with the updated configStore
+-        //
+-        IPluginRegistry registry = (IPluginRegistry)
+-            CMS.getSubsystem(CMS.SUBSYSTEM_REGISTRY);
+-        String classId = mProfileClassIds.get(id);
+-        IPluginInfo info = registry.getPluginInfo("profile", classId);
+-        String className = info.getClassName();
+-        IProfile newProfile = null;
+-        try {
+-            newProfile = (IProfile) Class.forName(className).newInstance();
+-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+-            throw new EProfileException("Could not instantiate class '"
+-                    + classId + "' for profile '" + id + "': " + e);
+-        }
+-        newProfile.setId(id);
+-        try {
+-            newProfile.init(this, cs);
+-        } catch (EBaseException e) {
+-            throw new EProfileException(
+-                    "Failed to initialise profile '" + id + "': " + e);
+-        }
+-
+-        // next replace the existing profile with the new profile;
+-        // this is to avoid any intermediate state where the profile
+-        // is not fully initialised with its inputs, outputs and
+-        // policy objects.
+-        //
+-        mProfiles.put(id, newProfile);
+-
+-        // finally commit the configStore and track the resulting
+-        // entryUSN and (in case of add) the nsUniqueId
+-        //
++    protected void commitConfigStore(String id, IConfigStore configStore)
++            throws EProfileException {
++        LDAPConfigStore cs = (LDAPConfigStore) configStore;
+         try {
+             String[] attrs = {"entryUSN", "nsUniqueId"};
+             LDAPEntry entry = cs.commitReturn(false, attrs);
+-- 
+2.9.3
+

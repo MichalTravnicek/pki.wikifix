@@ -1,0 +1,52 @@
+diff --git a/base/java-tools/templates/pki_java_command_wrapper.in b/base/java-tools/templates/pki_java_command_wrapper.in
+index 404bcf0..c82c18b 100644
+--- a/base/java-tools/templates/pki_java_command_wrapper.in
++++ b/base/java-tools/templates/pki_java_command_wrapper.in
+@@ -110,7 +110,7 @@ fi
+ ##      order this command wrapper uses to find jar files.                   ##
+ ###############################################################################
+ 
+-JNI_JAR_DIR=`source /usr/share/pki/etc/pki.conf && source /etc/pki/pki.conf && echo $JNI_JAR_DIR`
++JNI_JAR_DIR=`. /usr/share/pki/etc/pki.conf && . /etc/pki/pki.conf && echo $JNI_JAR_DIR`
+ CP=${JNI_JAR_DIR}/jss4.jar
+ CP=/usr/share/java/commons-cli.jar:${CP}
+ CP=/usr/share/java/commons-codec.jar:${CP}
+diff --git a/base/java-tools/templates/pretty_print_cert_command_wrapper.in b/base/java-tools/templates/pretty_print_cert_command_wrapper.in
+index 6c1abc7..6dc86de 100644
+--- a/base/java-tools/templates/pretty_print_cert_command_wrapper.in
++++ b/base/java-tools/templates/pretty_print_cert_command_wrapper.in
+@@ -110,7 +110,7 @@ fi
+ ##      order this command wrapper uses to find jar files.                   ##
+ ###############################################################################
+ 
+-JNI_JAR_DIR=`source /usr/share/pki/etc/pki.conf && source /etc/pki/pki.conf && echo $JNI_JAR_DIR`
++JNI_JAR_DIR=`. /usr/share/pki/etc/pki.conf && . /etc/pki/pki.conf && echo $JNI_JAR_DIR`
+ CP=${JNI_JAR_DIR}/jss4.jar
+ CP=/usr/share/java/commons-codec.jar:${CP}
+ CP=/usr/share/java/ldapjdk.jar:${CP}
+diff --git a/base/java-tools/templates/pretty_print_crl_command_wrapper.in b/base/java-tools/templates/pretty_print_crl_command_wrapper.in
+index 19f8bd8..2a74d4d 100644
+--- a/base/java-tools/templates/pretty_print_crl_command_wrapper.in
++++ b/base/java-tools/templates/pretty_print_crl_command_wrapper.in
+@@ -110,7 +110,7 @@ fi
+ ##      order this command wrapper uses to find jar files.                   ##
+ ###############################################################################
+ 
+-JNI_JAR_DIR=`source /usr/share/pki/etc/pki.conf && source /etc/pki/pki.conf && echo $JNI_JAR_DIR`
++JNI_JAR_DIR=`. /usr/share/pki/etc/pki.conf && . /etc/pki/pki.conf && echo $JNI_JAR_DIR`
+ CP=${JNI_JAR_DIR}/jss4.jar
+ 
+ CP=/usr/share/java/commons-codec.jar:${CP}
+diff --git a/base/server/scripts/operations b/base/server/scripts/operations
+index ede5f82..7c90227 100644
+--- a/base/server/scripts/operations
++++ b/base/server/scripts/operations
+@@ -1117,7 +1117,7 @@ verify_symlinks()
+         jni_jar_dir="/usr/share/java"
+         tomcat_dir="/usr/share/tomcat7"
+     else
+-        jni_jar_dir=`source /usr/share/pki/etc/pki.conf && source /etc/pki/pki.conf && echo $JNI_JAR_DIR`
++        jni_jar_dir=`. /usr/share/pki/etc/pki.conf && . /etc/pki/pki.conf && echo $JNI_JAR_DIR`
+         tomcat_dir="/usr/share/tomcat"
+     fi
+ 

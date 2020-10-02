@@ -1,0 +1,48 @@
+From 86030eb0c231734a3020b201a9be60e84d023e75 Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Tue, 26 Jul 2016 14:07:10 +1000
+Subject: [PATCH] Fix CA OCSP responder when LWCAs are not in use
+
+The CA subsystem OCSP responder was updated to handle dispatching
+OCSP requests to the relevant CertificateAuthority instance,
+according to the issuer of the certificates identified in the
+request.  Unfortunately, the updated routine assumes that the
+database updates that enable lightweight CAs have occurred.  If they
+have not, the OCSP responder always fails.
+
+Fix the issue by inferring that if 'caMap' is empty, lightweight CAs
+are not in use, the current instance is the one and only CA, and
+proceed straight to validation.
+
+Fixes: https://fedorahosted.org/pki/ticket/2420
+---
+ base/ca/src/com/netscape/ca/CertificateAuthority.java | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/base/ca/src/com/netscape/ca/CertificateAuthority.java b/base/ca/src/com/netscape/ca/CertificateAuthority.java
+index 502ab1856352fb26ed480a3a54d59ffca5facdb3..a5397da0c0dcea654a15f16e5becc5c430a1bb29 100644
+--- a/base/ca/src/com/netscape/ca/CertificateAuthority.java
++++ b/base/ca/src/com/netscape/ca/CertificateAuthority.java
+@@ -2240,6 +2240,10 @@ public class CertificateAuthority
+          * employ some heuristic to deal with this case. Our
+          * heuristic is:
+          *
++         * 0. If caMap contains no CAs, then lightweight CAs are not
++         *    enabled.  There is only one CA, and 'this' is it.  Go
++         *    straight to validation.
++         *
+          * 1. Find the issuer of the cert identified by the first
+          *    CertID in the request.
+          *
+@@ -2254,7 +2258,7 @@ public class CertificateAuthority
+          *    aggregate OCSP response.
+          */
+         ICertificateAuthority ocspCA = this;
+-        if (tbsReq.getRequestCount() > 0) {
++        if (caMap.size() > 0 && tbsReq.getRequestCount() > 0) {
+             com.netscape.cmsutil.ocsp.Request req = tbsReq.getRequestAt(0);
+             BigInteger serialNo = req.getCertID().getSerialNumber();
+             X509CertImpl cert = mCertRepot.getX509Certificate(serialNo);
+-- 
+2.5.5
+

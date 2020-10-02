@@ -1,0 +1,134 @@
+From 9f589adc52090e93f9b86ef1837f5d6e36dcde62 Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Thu, 22 Sep 2016 03:13:09 +0200
+Subject: [PATCH] Added upgrade scripts for PKI server logging service.
+
+New upgrade scripts have been added to create a link to the default
+logging.properties and to remove the unused log4j.properties in
+existing instances.
+
+https://fedorahosted.org/pki/ticket/195
+---
+ base/common/upgrade/10.4.0/.gitignore              |  4 ++
+ base/server/upgrade/10.4.0/01-FixLoggingProperties | 47 ++++++++++++++++++++++
+ .../server/upgrade/10.4.0/02-RemoveLog4jProperties | 43 ++++++++++++++++++++
+ 3 files changed, 94 insertions(+)
+ create mode 100644 base/common/upgrade/10.4.0/.gitignore
+ create mode 100644 base/server/upgrade/10.4.0/01-FixLoggingProperties
+ create mode 100644 base/server/upgrade/10.4.0/02-RemoveLog4jProperties
+
+diff --git a/base/common/upgrade/10.4.0/.gitignore b/base/common/upgrade/10.4.0/.gitignore
+new file mode 100644
+index 0000000000000000000000000000000000000000..5e7d2734cfc60289debf74293817c0a8f572ff32
+--- /dev/null
++++ b/base/common/upgrade/10.4.0/.gitignore
+@@ -0,0 +1,4 @@
++# Ignore everything in this directory
++*
++# Except this file
++!.gitignore
+diff --git a/base/server/upgrade/10.4.0/01-FixLoggingProperties b/base/server/upgrade/10.4.0/01-FixLoggingProperties
+new file mode 100644
+index 0000000000000000000000000000000000000000..1dcb51baba507beafe29395276a7e2fe8a9688df
+--- /dev/null
++++ b/base/server/upgrade/10.4.0/01-FixLoggingProperties
+@@ -0,0 +1,47 @@
++#!/usr/bin/python
++# Authors:
++#     Endi S. Dewata <edewata@redhat.com>
++#
++# This program is free software; you can redistribute it and/or modify
++# it under the terms of the GNU General Public License as published by
++# the Free Software Foundation; version 2 of the License.
++#
++# This program is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License along
++# with this program; if not, write to the Free Software Foundation, Inc.,
++# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++#
++# Copyright (C) 2016 Red Hat, Inc.
++# All rights reserved.
++
++from __future__ import absolute_import
++import os
++import pki.server.upgrade
++
++
++class FixLoggingProperties(pki.server.upgrade.PKIServerUpgradeScriptlet):
++
++    def __init__(self):
++        super(FixLoggingProperties, self).__init__()
++        self.message = 'Fix logging.properties'
++
++    def upgrade_instance(self, instance):
++
++        logging_properties = os.path.join(instance.conf_dir, 'logging.properties')
++
++        # if <instance>/conf/logging.properties is already a link, skip
++        if os.path.islink(logging_properties):
++            return
++
++        # remove old logging.properties
++        self.backup(logging_properties)
++        os.remove(logging_properties)
++
++        # link <instance>/conf/logging.properties
++        # to /usr/share/pki/server/conf/logging.properties
++        os.symlink('/usr/share/pki/server/conf/logging.properties', logging_properties)
++        os.lchown(logging_properties, instance.uid, instance.gid)
+diff --git a/base/server/upgrade/10.4.0/02-RemoveLog4jProperties b/base/server/upgrade/10.4.0/02-RemoveLog4jProperties
+new file mode 100644
+index 0000000000000000000000000000000000000000..8a537c442964f7595ba7cded52631521ab88653f
+--- /dev/null
++++ b/base/server/upgrade/10.4.0/02-RemoveLog4jProperties
+@@ -0,0 +1,43 @@
++#!/usr/bin/python
++# Authors:
++#     Endi S. Dewata <edewata@redhat.com>
++#
++# This program is free software; you can redistribute it and/or modify
++# it under the terms of the GNU General Public License as published by
++# the Free Software Foundation; version 2 of the License.
++#
++# This program is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License along
++# with this program; if not, write to the Free Software Foundation, Inc.,
++# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++#
++# Copyright (C) 2016 Red Hat, Inc.
++# All rights reserved.
++
++from __future__ import absolute_import
++import os
++import pki.server.upgrade
++
++
++class RemoveLog4jProperties(pki.server.upgrade.PKIServerUpgradeScriptlet):
++
++    def __init__(self):
++        super(RemoveLog4jProperties, self).__init__()
++        self.message = 'Remove log4j.properties'
++
++    def upgrade_instance(self, instance):
++
++        log4j_properties = os.path.join(instance.conf_dir, 'log4j.properties')
++        log4j_properties_link = os.path.join(instance.lib_dir, 'log4j.properties')
++
++        if os.path.exists(log4j_properties):
++            self.backup(log4j_properties)
++            os.remove(log4j_properties)
++
++        if os.path.islink(log4j_properties_link):
++            self.backup(log4j_properties_link)
++            os.unlink(log4j_properties_link)
+-- 
+2.7.4
+

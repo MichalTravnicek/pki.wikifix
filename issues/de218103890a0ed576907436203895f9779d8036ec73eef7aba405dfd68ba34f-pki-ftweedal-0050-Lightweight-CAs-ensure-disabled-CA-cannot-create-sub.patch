@@ -1,0 +1,49 @@
+From 4af96699cd1a99e98b31199b2659abfaf6954a9f Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Wed, 30 Sep 2015 23:46:36 -0400
+Subject: [PATCH] Lightweight CAs: ensure disabled CA cannot create sub-CAs
+
+Fixes: https://fedorahosted.org/pki/ticket/1628
+---
+ base/ca/src/com/netscape/ca/CertificateAuthority.java          | 3 +++
+ base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java | 3 ++-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/base/ca/src/com/netscape/ca/CertificateAuthority.java b/base/ca/src/com/netscape/ca/CertificateAuthority.java
+index b3663ed1d497d03651ad1fa753b4e23ae4aea6b0..d5523c14cc0132422c971b840324bd95bfa1fda9 100644
+--- a/base/ca/src/com/netscape/ca/CertificateAuthority.java
++++ b/base/ca/src/com/netscape/ca/CertificateAuthority.java
+@@ -2405,6 +2405,9 @@ public class CertificateAuthority implements ICertificateAuthority, ICertAuthori
+             String subjectDN, String description)
+             throws EBaseException {
+ 
++        if (!authorityEnabled)
++            throw new CADisabledException("Parent CA is disabled");
++
+         // check requested DN
+         X500Name subjectX500Name = null;
+         try {
+diff --git a/base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java b/base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java
+index 820f8ab6499eed9fdb8e3d8d782df64c71ad1fc3..2aa0e97d966d7f879a9999966fb5942bb54dcf42 100644
+--- a/base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java
++++ b/base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java
+@@ -42,6 +42,7 @@ import com.netscape.certsrv.base.ForbiddenException;
+ import com.netscape.certsrv.base.PKIException;
+ import com.netscape.certsrv.base.ResourceNotFoundException;
+ import com.netscape.certsrv.ca.AuthorityID;
++import com.netscape.certsrv.ca.CADisabledException;
+ import com.netscape.certsrv.ca.CANotFoundException;
+ import com.netscape.certsrv.ca.CATypeException;
+ import com.netscape.certsrv.ca.ICertificateAuthority;
+@@ -184,7 +185,7 @@ public class AuthorityService extends PKIService implements AuthorityResource {
+             throw new BadRequestException(e.toString());
+         } catch (CANotFoundException e) {
+             throw new ResourceNotFoundException(e.toString());
+-        } catch (IssuerUnavailableException e) {
++        } catch (IssuerUnavailableException | CADisabledException e) {
+             throw new ConflictingOperationException(e.toString());
+         } catch (Exception e) {
+             CMS.debug(e);
+-- 
+2.4.3
+

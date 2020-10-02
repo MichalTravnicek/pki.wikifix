@@ -1,0 +1,206 @@
+From c3874143eb8d6decdecc0334190cf1879e4964e7 Mon Sep 17 00:00:00 2001
+From: Matthew Harmsen <mharmsen@redhat.com>
+Date: Tue, 14 Apr 2015 10:04:01 -0600
+Subject: [PATCH] Add HSM options to pkispawn
+
+- PKI TRAC Ticket #1346 - pkispawn should have an HSM library option
+---
+ base/server/etc/default.cfg                        |  3 ++
+ base/server/man/man5/pki_default.cfg.5             |  4 ++
+ .../python/pki/server/deployment/pkihelper.py      | 63 ++++++++++++++++++++++
+ .../python/pki/server/deployment/pkimessages.py    |  6 +++
+ .../deployment/scriptlets/security_databases.py    |  5 ++
+ base/server/sbin/pkispawn                          | 27 ++++++++++
+ 6 files changed, 108 insertions(+)
+
+diff --git a/base/server/etc/default.cfg b/base/server/etc/default.cfg
+index ad8adc6..50117a2 100644
+--- a/base/server/etc/default.cfg
++++ b/base/server/etc/default.cfg
+@@ -91,6 +91,9 @@ pki_ds_secure_connection=False
+ pki_ds_secure_connection_ca_nickname=Directory Server CA certificate
+ pki_ds_secure_connection_ca_pem_file=
+ pki_group=pkiuser
++pki_hsm_enable=False
++pki_hsm_libfile=
++pki_hsm_modulename=
+ pki_issuing_ca_hostname=%(pki_security_domain_hostname)s
+ pki_issuing_ca_https_port=%(pki_security_domain_https_port)s
+ pki_issuing_ca_uri=https://%(pki_issuing_ca_hostname)s:%(pki_issuing_ca_https_port)s
+diff --git a/base/server/man/man5/pki_default.cfg.5 b/base/server/man/man5/pki_default.cfg.5
+index ca8e095..bc736a6 100644
+--- a/base/server/man/man5/pki_default.cfg.5
++++ b/base/server/man/man5/pki_default.cfg.5
+@@ -61,6 +61,10 @@ Specifies the default administrative user, group, and auditor group identities f
+ .B pki_token_name, pki_token_password
+ .IP
+ The token and password where this instance's system certificate and keys are stored.  Defaults to the NSS internal software token.
++.TP
++.B pki_hsm_enable, pki_hsm_libfile, pki_hsm_modulename
++.IP
++If an optional hardware security module (HSM) is being utilized (rather than the default software security module included in NSS), then the \fBpki_hsm_enable\fP parameter must be set to 'True' (by default this parameter is 'False'), and values must be supplied for both the \fBpki_hsm_libfile\fP (e. g. - \fBpki_hsm_libfile=/opt/nfast/toolkits/pkcs11/libcknfast.so\fP) and \fPpki_hsm_modulename\fB parameters (e. g. - \fBpki_hsm_modulename=nethsm\fP).
+ 
+ .SS SYSTEM CERTIFICATE PARAMETERS
+ \fBpkispawn\fP sets up a number of system certificates for each subsystem.  The system certificates which are required differ between subsystems.  Each system certificate is denoted by a tag, as noted below.  The different system certificates are:
+diff --git a/base/server/python/pki/server/deployment/pkihelper.py b/base/server/python/pki/server/deployment/pkihelper.py
+index d11badf..5099887 100644
+--- a/base/server/python/pki/server/deployment/pkihelper.py
++++ b/base/server/python/pki/server/deployment/pkihelper.py
+@@ -2531,6 +2531,68 @@ class Certutil:
+         return
+ 
+ 
++class Modutil:
++    """PKI Deployment NSS 'modutil' Class"""
++
++    def __init__(self, deployer):
++        self.mdict = deployer.mdict
++
++    def register_security_module(self, path, modulename, libfile,
++                                 prefix=None, critical_failure=True):
++        try:
++            # Compose this "modutil" command
++            command = ["modutil"]
++            #   Provide a path to the NSS security databases
++            if path:
++                command.extend(["-dbdir", path])
++            else:
++                config.pki_log.error(
++                    log.PKIHELPER_MODUTIL_MISSING_PATH,
++                    extra=config.PKI_INDENTATION_LEVEL_2)
++                raise Exception(log.PKIHELPER_MODUTIL_MISSING_PATH)
++            #   Add optional security database prefix
++            if prefix is not None:
++                command.extend(["--dbprefix", prefix])
++            #   Append '-nocertdb' switch
++            command.extend(["-nocertdb"])
++            #   Specify a 'modulename'
++            if modulename:
++                command.extend(["-add", modulename])
++            else:
++                config.pki_log.error(
++                    log.PKIHELPER_MODUTIL_MISSING_MODULENAME,
++                    extra=config.PKI_INDENTATION_LEVEL_2)
++                raise Exception(log.PKIHELPER_MODUTIL_MISSING_MODULENAME)
++            #   Specify a 'libfile'
++            if libfile:
++                command.extend(["-libfile", libfile])
++            else:
++                config.pki_log.error(
++                    log.PKIHELPER_MODUTIL_MISSING_LIBFILE,
++                    extra=config.PKI_INDENTATION_LEVEL_2)
++                raise Exception(log.PKIHELPER_MODUTIL_MISSING_LIBFILE)
++            #   Append '-force' switch
++            command.extend(["-force"])
++            # Display this "modutil" command
++            config.pki_log.info(
++                log.PKIHELPER_REGISTER_SECURITY_MODULE_1,
++                ' '.join(command),
++                extra=config.PKI_INDENTATION_LEVEL_2)
++            # Execute this "modutil" command
++            subprocess.check_call(command)
++        except subprocess.CalledProcessError as exc:
++            config.pki_log.error(log.PKI_SUBPROCESS_ERROR_1, exc,
++                                 extra=config.PKI_INDENTATION_LEVEL_2)
++            if critical_failure:
++                raise
++        except OSError as exc:
++            config.pki_log.error(log.PKI_OSERROR_1, exc,
++                                 extra=config.PKI_INDENTATION_LEVEL_2)
++            if critical_failure:
++                raise
++        return
++
++
+ class PK12util:
+     """PKI Deployment pk12util class"""
+ 
+@@ -4282,6 +4344,7 @@ class PKIDeployer:
+         self.war = War(self)
+         self.password = Password(self)
+         self.certutil = Certutil(self)
++        self.modutil = Modutil(self)
+         self.pk12util = PK12util(self)
+         self.kra_connector = KRAConnector(self)
+         self.security_domain = SecurityDomain(self)
+diff --git a/base/server/python/pki/server/deployment/pkimessages.py b/base/server/python/pki/server/deployment/pkimessages.py
+index e63bc58..a3e1b6f 100644
+--- a/base/server/python/pki/server/deployment/pkimessages.py
++++ b/base/server/python/pki/server/deployment/pkimessages.py
+@@ -217,6 +217,11 @@ PKIHELPER_MKDIR_1 = "mkdir -p %s"
+ PKIHELPER_MODIFY_DIR_1 = "modifying '%s'"
+ PKIHELPER_MODIFY_FILE_1 = "modifying '%s'"
+ PKIHELPER_MODIFY_SYMLINK_1 = "modifying '%s'"
++PKIHELPER_MODUTIL_MISSING_LIBFILE = \
++    "modutil:  Missing '-libfile libfile' option!"
++PKIHELPER_MODUTIL_MISSING_MODULENAME = \
++    "modutil:  Missing '-add modulename' option!"
++PKIHELPER_MODUTIL_MISSING_PATH = "modutil:  Missing '-dbdir path' option!"
+ PKIHELPER_MUTUALLY_EXCLUSIVE_CLONE_EXTERNAL_CA = \
+     "cloned CAs and external CAs MUST be MUTUALLY EXCLUSIVE in '%s'"
+ PKIHELPER_MUTUALLY_EXCLUSIVE_CLONE_EXTERNAL_SUB_CA = \
+@@ -244,6 +249,7 @@ PKIHELPER_PK12UTIL_MISSING_OUTFILE = \
+     "pk12util missing -o output-file option!"
+ PKIHELPER_PK12UTIL_MISSING_PWFILE = \
+     "pk12util missing -w pw-file option!"
++PKIHELPER_REGISTER_SECURITY_MODULE_1 = "executing '%s'"
+ 
+ PKIHELPER_PKI_INSTANCE_SUBSYSTEMS_2 = \
+     "instance '%s' contains '%d' PKI subsystems"
+diff --git a/base/server/python/pki/server/deployment/scriptlets/security_databases.py b/base/server/python/pki/server/deployment/scriptlets/security_databases.py
+index 5460507..16cd92d 100644
+--- a/base/server/python/pki/server/deployment/scriptlets/security_databases.py
++++ b/base/server/python/pki/server/deployment/scriptlets/security_databases.py
+@@ -54,6 +54,11 @@ class PkiScriptlet(pkiscriptlet.AbstractBasePkiScriptlet):
+             deployer.mdict['pki_key_database'],
+             deployer.mdict['pki_secmod_database'],
+             password_file=deployer.mdict['pki_shared_pfile'])
++        if config.str2bool(deployer.mdict['pki_hsm_enable']):
++            deployer.modutil.register_security_module(
++                deployer.mdict['pki_database_path'],
++                deployer.mdict['pki_hsm_modulename'],
++                deployer.mdict['pki_hsm_libfile'])
+         deployer.file.modify(
+             deployer.mdict['pki_cert_database'],
+             perms=config.PKI_DEPLOYMENT_DEFAULT_SECURITY_DATABASE_PERMISSIONS)
+diff --git a/base/server/sbin/pkispawn b/base/server/sbin/pkispawn
+index 55e87bb..965918f 100755
+--- a/base/server/sbin/pkispawn
++++ b/base/server/sbin/pkispawn
+@@ -197,6 +197,33 @@ def main(argv):
+             parser.read_text('Export certificate to',
+                              config.pki_subsystem,
+                              'pki_client_admin_cert')
++
++            if parser.mdict['pki_hsm_enable'] == 'True':
++                use_hsm = 'Y'
++            else:
++                use_hsm = 'N'
++
++            use_hsm = parser.read_text(
++                'Using hardware security module (HSM) (Yes/No)',
++                default=use_hsm, options=['Yes', 'Y', 'No', 'N'],
++                sign='?', case_sensitive=False).lower()
++
++            if use_hsm == 'y' or use_hsm == 'yes':
++                parser.set_property(config.pki_subsystem,
++                                    'pki_hsm_enable',
++                                    'True')
++                modulename = parser.read_text(
++                    'HSM Module Name (e. g. - nethsm)', allow_empty=False)
++                parser.set_property(config.pki_subsystem,
++                                    'pki_hsm_modulename',
++                                    modulename)
++                libfile = parser.read_text(
++                    'HSM Lib File ' +
++                    '(e. g. - /opt/nfast/toolkits/pkcs11/libcknfast.so)',
++                    allow_empty=False)
++                parser.set_property(config.pki_subsystem,
++                                    'pki_hsm_libfile',
++                                    libfile)
+             print
+ 
+             print "Directory Server:"
+-- 
+1.8.3.1
+

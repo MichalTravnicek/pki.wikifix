@@ -1,0 +1,150 @@
+#!/usr/bin/python -tu
+# Authors:
+#     Christian Heimes <cheimes@redaht.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+# Copyright (C) 2015 Red Hat, Inc.
+# All rights reserved.
+#
+
+# System Imports
+import os
+import sys
+import traceback
+import ConfigParser
+
+if not hasattr(sys, "hexversion") or sys.hexversion < 0x020700f0:
+    print "Python version %s.%s.%s is too old." % sys.version_info[:3]
+    print "Please upgrade to at least Python 2.7.0."
+    sys.exit(1)
+try:
+    from pki.server.deployment import pkiconfig as config
+    from pki.server.deployment.pkiparser import PKIConfigParser
+    from pki.server.deployment import pkimessages as log
+except ImportError:
+    print >> sys.stderr, """\
+There was a problem importing one of the required Python modules. The
+error was:
+
+    %s
+""" % sys.exc_value
+    sys.exit(1)
+
+
+# PKI Deployment Functions
+def main(argv):
+    """main entry point"""
+    config.pki_deployment_executable = os.path.basename(argv[0])
+    # dummy values
+    config.pki_hostname = '<HOSTNAME>'
+    config.pki_dns_domainname = '<DNS_DOMAINNAME>'
+    config.pki_subsystem = '<SUBSYSTEM>'
+
+    # Read and process command-line arguments.
+    parser = PKIConfigParser(
+        'PKI Configuration Test',
+        '')
+
+    parser.mandatory.add_argument(
+        dest='user_deployment_cfg', action='store',
+        nargs=1, metavar='<file>',
+        help='configuration filename '
+        '(MUST specify complete path)')
+
+    args = parser.process_command_line_arguments()
+
+    config.default_deployment_cfg = \
+        config.PKI_DEPLOYMENT_DEFAULT_CONFIGURATION_FILE
+
+    config.user_deployment_cfg = str(args.user_deployment_cfg).strip('[\']')
+
+    # check if files are present
+    parser.validate()
+
+    # load the default cfg
+    parser.init_config()
+
+    # load user cfg,  can't use parser.read_pki_configuration_file() because
+    # it populates both config parser instances.
+    try:
+        with open(config.user_deployment_cfg) as f:
+            config.user_config.readfp(f)
+    except Exception as e:
+        print "Failed to load config file '{}'\n{}".format(
+            config.user_deployment_cfg,
+            ''.join(traceback.format_exception_only(type(e), e))
+        )
+        sys.exit(1)
+
+    try:
+        compare(parser.pki_config, config.user_config)
+    except AdditionalSectionsError as e:
+        print "Config file '{}' has surplus sections: {}".format(
+            config.user_deployment_cfg,
+            ', '.join(sorted(e.sections))
+        )
+        sys.exit(2)
+    except AdditionalOptionsError as e:
+        print "Config file '{}' has surplus options:".format(
+            config.user_deployment_cfg,
+        )
+        for section, option in sorted(e.options):
+            print "  [{}] {}".format(section, option)
+        sys.exit(2)
+    except Exception as e:
+        print "Failed to process config file '{}'\n{}".format(
+            config.user_deployment_cfg,
+            ''.join(traceback.format_exception_only(type(e), e))
+        )
+        sys.exit(1)
+
+    sys.exit(0)
+
+
+class AdditionalSectionsError(ValueError):
+    def __init__(self, sections):
+        super(AdditionalSectionsError, self).__init__(sections)
+        self.sections = sections
+
+
+class AdditionalOptionsError(ValueError):
+    def __init__(self, options):
+        super(AdditionalOptionsError, self).__init__(options)
+        self.options = options
+
+def compare(pki_config, user_config):
+    pki_sections = set(pki_config.sections()) | {ConfigParser.DEFAULTSECT}
+    user_sections = set(user_config.sections()) | {ConfigParser.DEFAULTSECT}
+
+    diff_sections = user_sections.difference(pki_sections)
+    if diff_sections:
+        raise AdditionalSectionsError(diff_sections)
+
+    diff_options = set()
+    for section in user_sections:
+        for option, value in user_config.items(section):
+            if not pki_config.has_option(section, option):
+                if (ConfigParser.DEFAULTSECT, option) in diff_options:
+                    # this has been already reported for the DEFAULT section
+                    continue
+                diff_options.add((section, option))
+
+    if diff_options:
+        raise AdditionalOptionsError(diff_options)
+
+    return True
+
+if __name__ == "__main__":
+    main(sys.argv)

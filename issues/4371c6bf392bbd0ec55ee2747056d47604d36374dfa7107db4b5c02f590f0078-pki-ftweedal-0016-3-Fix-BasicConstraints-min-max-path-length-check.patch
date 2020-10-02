@@ -1,0 +1,123 @@
+From e0a374e49957bc97a2865153aa7beb63804ed88f Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Thu, 25 Sep 2014 01:39:40 -0400
+Subject: [PATCH] Fix BasicConstraints min/max path length check
+
+The BasicConstraintsExtConstraint min/max path length validity check
+ensures that the max length is greater than the min length, however,
+when a negative value is used to represent "no max", the check
+fails.
+
+Only compare the min and max length if all config parameters are set
+and both the min and max length can be parsed and both are
+non-negative integers.  Also run the check when either value is
+modified, since setting the min path length could invalidate the
+configuration.
+
+Ticket #1035
+---
+ .../constraint/BasicConstraintsExtConstraint.java  | 54 ++++++++++++++--------
+ .../cms/profile/constraint/EnrollConstraint.java   | 17 +++++++
+ 2 files changed, 52 insertions(+), 19 deletions(-)
+
+diff --git a/base/server/cms/src/com/netscape/cms/profile/constraint/BasicConstraintsExtConstraint.java b/base/server/cms/src/com/netscape/cms/profile/constraint/BasicConstraintsExtConstraint.java
+index ca2668f7db305122f330fca058b27801820a75b4..4449a8ddf5e71379f24f8cef3e7f324a6c796ffb 100644
+--- a/base/server/cms/src/com/netscape/cms/profile/constraint/BasicConstraintsExtConstraint.java
++++ b/base/server/cms/src/com/netscape/cms/profile/constraint/BasicConstraintsExtConstraint.java
+@@ -195,30 +195,46 @@ public class BasicConstraintsExtConstraint extends EnrollConstraint {
+ 
+     public void setConfig(String name, String value)
+             throws EPropertyException {
++        IConfigStore cs = mConfig.getSubStore("params");
+ 
+-        if (mConfig.getSubStore("params") == null) {
++        if (cs == null) {
+             CMS.debug("BasicConstraintsExt: mConfig.getSubStore is null");
+-            //
+         } else {
+-
+             CMS.debug("BasicConstraintsExt: setConfig name " + name + " value " + value);
+-
+-            if (name.equals(CONFIG_MAX_PATH_LEN)) {
+-
+-                String minPathLen = getConfig(CONFIG_MIN_PATH_LEN);
+-
+-                int minLen = getInt(minPathLen);
+-
+-                int maxLen = getInt(value);
+-
+-                if (minLen >= maxLen) {
+-                    CMS.debug("BasicConstraintExt:  minPathLen >= maxPathLen!");
+-
+-                    throw new EPropertyException("bad value");
+-                }
+-
++            String origValue = getConfig(name);
++            cs.putString(name, value);
++            try {
++                validateConfig();
++            } catch (Exception e) {
++                cs.putString(name, origValue);
++                throw e;
+             }
+-            mConfig.getSubStore("params").putString(name, value);
++        }
++    }
++
++    private void validateConfig() throws EPropertyException {
++        if (!allConfigsSet())
++            return;
++
++        int minLen = -1;
++        int maxLen = -1;
++        try {
++            minLen = getConfigInt(CONFIG_MIN_PATH_LEN);
++        } catch (NumberFormatException e) {
++            CMS.debug("BasicConstraintExt:  minPathLen not a number");
++            throw new EPropertyException("Min path length is not an integral number.");
++        }
++        try {
++            maxLen = getConfigInt(CONFIG_MAX_PATH_LEN);
++        } catch (NumberFormatException e) {
++            CMS.debug("BasicConstraintExt:  maxPathLen not a number");
++            throw new EPropertyException("Max path length is not an integral number.");
++        }
++        if (maxLen >= 0 && maxLen >= 0 && minLen >= maxLen) {
++            CMS.debug("BasicConstraintExt:  minPathLen >= maxPathLen!");
++            throw new EPropertyException(
++                "Max path length (" + maxLen +
++                ") must be greater than min path length (" + minLen + ").");
+         }
+     }
+ }
+diff --git a/base/server/cms/src/com/netscape/cms/profile/constraint/EnrollConstraint.java b/base/server/cms/src/com/netscape/cms/profile/constraint/EnrollConstraint.java
+index eb3eb14f67a6dff5bcd8b048eba316daf6223cb4..a29b9409a27f00662cc8a86c7b38f6c90fd441df 100644
+--- a/base/server/cms/src/com/netscape/cms/profile/constraint/EnrollConstraint.java
++++ b/base/server/cms/src/com/netscape/cms/profile/constraint/EnrollConstraint.java
+@@ -102,6 +102,23 @@ public abstract class EnrollConstraint implements IPolicyConstraint {
+         return "";
+     }
+ 
++    protected boolean allConfigsSet() {
++        if (mConfig == null)
++            return false;
++        IConfigStore cs = mConfig.getSubStore("params");
++        if (cs == null)
++            return false;
++
++        for (String name : mConfigNames) {
++            try {
++                cs.getString(name);
++            } catch (EBaseException e) {
++                return false;
++            }
++        }
++        return true;
++    }
++
+     public void init(IProfile profile, IConfigStore config)
+             throws EProfileException {
+         mConfig = config;
+-- 
+1.9.3
+

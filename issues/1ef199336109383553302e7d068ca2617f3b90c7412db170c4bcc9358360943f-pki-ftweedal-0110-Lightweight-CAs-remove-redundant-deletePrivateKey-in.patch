@@ -1,0 +1,55 @@
+From 09d01f2d5faf5448e4b3b9795f157992a55fe56d Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Mon, 16 May 2016 12:19:21 +1000
+Subject: [PATCH] Lightweight CAs: remove redundant deletePrivateKey invocation
+
+When deleting lightweight CAs, the call to
+CryptoStore.deletePrivateKey() throws an exception because the
+preceding call to CryptoStore.deleteCert() also deletes the key.
+Remove the redundant call and add some commentary.
+
+Fixes: https://fedorahosted.org/pki/ticket/1640
+---
+ base/ca/src/com/netscape/ca/CertificateAuthority.java | 19 +++++--------------
+ 1 file changed, 5 insertions(+), 14 deletions(-)
+
+diff --git a/base/ca/src/com/netscape/ca/CertificateAuthority.java b/base/ca/src/com/netscape/ca/CertificateAuthority.java
+index 8ef6fd4b6dc97b9108f470a38f45eec864f24015..88ca829aaf5624392f561b3eb2d87706d739c788 100644
+--- a/base/ca/src/com/netscape/ca/CertificateAuthority.java
++++ b/base/ca/src/com/netscape/ca/CertificateAuthority.java
+@@ -2861,7 +2861,11 @@ public class CertificateAuthority
+             throw new ECAException("CryptoManager not initialized");
+         }
+ 
+-        // delete cert
++        // NOTE: PK11Store.deleteCert deletes the cert AND the
++        // private key (which is what we want).  A subsequent call
++        // to PK11Store.deletePrivateKey() is not necessary and
++        // indeed would throw an exception.
++        //
+         CryptoStore cryptoStore =
+             cryptoManager.getInternalKeyStorageToken().getCryptoStore();
+         try {
+@@ -2873,19 +2877,6 @@ public class CertificateAuthority
+             CMS.debug("deleteAuthority: TokenExcepetion while deleting cert: " + e);
+             throw new ECAException("TokenException while deleting cert: " + e);
+         }
+-
+-        // delete key
+-        try {
+-            cryptoStore.deletePrivateKey(mSigningUnit.getPrivateKey());
+-        } catch (NoSuchItemOnTokenException e) {
+-            CMS.debug("deleteAuthority: private key is not on token: " + e);
+-            // if the key isn't there, never mind
+-        } catch (TokenException e) {
+-            CMS.debug("deleteAuthority: TokenExcepetion while deleting private key: " + e);
+-            // TODO don't know what causes this yet, or how to
+-            // prevent it.
+-            //throw new ECAException("TokenException while deleting private key: " + e);
+-        }
+     }
+ 
+     private void deleteAuthorityEntry(AuthorityID aid) throws ELdapException {
+-- 
+2.5.5
+

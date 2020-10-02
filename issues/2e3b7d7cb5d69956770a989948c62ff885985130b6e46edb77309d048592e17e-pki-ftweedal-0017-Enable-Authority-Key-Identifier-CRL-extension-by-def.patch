@@ -1,0 +1,35 @@
+From eeff7b51c948086ac86d8da9d55cd3c36dfffc81 Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Thu, 30 Oct 2014 01:58:15 -0400
+Subject: [PATCH] Enable Authority Key Identifier CRL extension by default
+
+RFC 5280 states:
+
+   Conforming CRL issuers are REQUIRED to include the authority key
+   identifier (Section 5.2.1) and the CRL number (Section 5.2.3)
+   extensions in all CRLs issued.
+
+Accordingly, update CS.cfg so that the Authority Key Identifier
+extension is enabled by default.
+
+Fixes https://fedorahosted.org/pki/ticket/1189
+---
+ base/ca/shared/conf/CS.cfg.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/base/ca/shared/conf/CS.cfg.in b/base/ca/shared/conf/CS.cfg.in
+index 4ab8974e6340d81d23bb7f5ea05a07b0936b6463..f5469408b5a2da26321871d64e76da8e07344aeb 100644
+--- a/base/ca/shared/conf/CS.cfg.in
++++ b/base/ca/shared/conf/CS.cfg.in
+@@ -604,7 +604,7 @@ ca.crl.MasterCRL.extension.AuthorityInformationAccess.numberOfAccessDescriptions
+ ca.crl.MasterCRL.extension.AuthorityInformationAccess.type=CRLExtension
+ ca.crl.MasterCRL.extension.AuthorityKeyIdentifier.class=com.netscape.cms.crl.CMSAuthorityKeyIdentifierExtension
+ ca.crl.MasterCRL.extension.AuthorityKeyIdentifier.critical=false
+-ca.crl.MasterCRL.extension.AuthorityKeyIdentifier.enable=false
++ca.crl.MasterCRL.extension.AuthorityKeyIdentifier.enable=true
+ ca.crl.MasterCRL.extension.AuthorityKeyIdentifier.type=CRLExtension
+ ca.crl.MasterCRL.extension.CRLNumber.class=com.netscape.cms.crl.CMSCRLNumberExtension
+ ca.crl.MasterCRL.extension.CRLNumber.critical=false
+-- 
+1.9.3
+

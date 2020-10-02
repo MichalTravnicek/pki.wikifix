@@ -1,0 +1,383 @@
+From 3e24faebd2eae73baf2ecf68c1149dbf4feb22f1 Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Sat, 6 Feb 2016 04:08:44 +0100
+Subject: [PATCH] Replaced confirmation dialog with HTML dialog.
+
+The TPS UI has been modified such that it will use an HTML-based
+dialog instead of the browser's built-in dialog such that the
+option to "prevent this page from creating additional dialogs"
+will no longer appear.
+
+https://fedorahosted.org/pki/ticket/1685
+---
+ base/server/share/webapps/pki/js/pki-ui.js |  29 ++++--
+ base/tps/shared/webapps/tps/js/audit.js    |  65 +++++++-------
+ base/tps/shared/webapps/tps/js/tps.js      | 137 ++++++++---------------------
+ base/tps/shared/webapps/tps/ui/index.html  |  19 ++++
+ 4 files changed, 108 insertions(+), 142 deletions(-)
+
+diff --git a/base/server/share/webapps/pki/js/pki-ui.js b/base/server/share/webapps/pki/js/pki-ui.js
+index 0729895aa03c346bb634e662b06d0c9e1bc25203..73043f51f9ae0ff00318aad80bd550af02bc5c72 100644
+--- a/base/server/share/webapps/pki/js/pki-ui.js
++++ b/base/server/share/webapps/pki/js/pki-ui.js
+@@ -197,11 +197,13 @@ var Dialog = Backbone.View.extend({
+         self.body = self.$(".modal-body");
+ 
+         self.title = options.title;
++        self.content = options.content;
+ 
+-        self.readonly = options.readonly;
++        // list of readonly fields
+         // by default all fields are editable
+-        if (self.readonly == undefined) self.readonly = [];
++        self.readonly = options.readonly || [];
+ 
++        // list of active actions
+         self.actions = options.actions;
+         if (self.actions == undefined) {
+             // by default all buttons are active
+@@ -232,6 +234,10 @@ var Dialog = Backbone.View.extend({
+             self.$(".modal-title").text(self.title);
+         }
+ 
++        if (self.content) {
++            self.body.html(self.content);
++        }
++
+         // setup input fields
+         // TODO: handle drop-down lists
+         $("input, textarea", self.body).each(function(index) {
+@@ -533,7 +539,7 @@ var Table = Backbone.View.extend({
+         // setup remove button handler
+         self.removeButton.click(function(e) {
+             var items = [];
+-            var message = "Are you sure you want to remove the following entries?\n";
++            var message = "<p>Are you sure you want to remove the following entries?</p>\n<ul>\n";
+ 
+             // get selected items
+             $("input:checked", self.tbody).each(function(index) {
+@@ -541,13 +547,24 @@ var Table = Backbone.View.extend({
+                 var id = input.val();
+                 if (id == "") return;
+                 items.push(id);
+-                message = message + " - " + id + "\n";
++                message = message + "<li>" + id + "</li>\n";
+             });
+ 
++            message = message + "</ul>\n";
++
+             if (items.length == 0) return;
+-            if (!confirm(message)) return;
+ 
+-            self.remove(items);
++            var dialog = new Dialog({
++                el: $("#confirm-dialog"),
++                content: message
++            });
++
++            dialog.handler("ok", function() {
++                self.remove(items);
++                dialog.close();
++            });
++
++            dialog.open();
+         });
+ 
+         // setup select all handler
+diff --git a/base/tps/shared/webapps/tps/js/audit.js b/base/tps/shared/webapps/tps/js/audit.js
+index cc0be46280f15aff14fa5aee8229af5b9f2756ef..53fe61d6976d4f8e812102f41dc58fd66bac807e 100644
+--- a/base/tps/shared/webapps/tps/js/audit.js
++++ b/base/tps/shared/webapps/tps/js/audit.js
+@@ -133,45 +133,13 @@ var AuditPage = EntryPage.extend({
+         self.disableAction = $("[name='disable']", self.viewMenu);
+ 
+         $("a", self.enableAction).click(function(e) {
+-
+             e.preventDefault();
+-
+-            var message = "Are you sure you want to enable this entry?";
+-            if (!confirm(message)) return;
+-            self.model.changeStatus("enable", {
+-                success: function(data, textStatus, jqXHR) {
+-                    self.entry = _.clone(self.model.attributes);
+-                    self.render();
+-                },
+-                error: function(jqXHR, textStatus, errorThrown) {
+-                    new ErrorDialog({
+-                        el: $("#error-dialog"),
+-                        title: "HTTP Error " + jqXHR.responseJSON.Code,
+-                        content: jqXHR.responseJSON.Message
+-                    }).open();
+-                }
+-            });
++            self.changeStatus("enable", "Are you sure you want to enable this entry?");
+         });
+ 
+         $("a", self.disableAction).click(function(e) {
+-
+             e.preventDefault();
+-
+-            var message = "Are you sure you want to disable this entry?";
+-            if (!confirm(message)) return;
+-            self.model.changeStatus("disable", {
+-                success: function(data, textStatus, jqXHR) {
+-                    self.entry = _.clone(self.model.attributes);
+-                    self.render();
+-                },
+-                error: function(jqXHR, textStatus, errorThrown) {
+-                    new ErrorDialog({
+-                        el: $("#error-dialog"),
+-                        title: "HTTP Error " + jqXHR.responseJSON.Code,
+-                        content: jqXHR.responseJSON.Message
+-                    }).open();
+-                }
+-            });
++            self.changeStatus("disable", "Are you sure you want to disable this entry?");
+         });
+ 
+         self.eventsTable = new Table({
+@@ -184,6 +152,35 @@ var AuditPage = EntryPage.extend({
+             parent: self
+         });
+     },
++    changeStatus: function(action, message) {
++        var self = this;
++
++        var dialog = new Dialog({
++            el: $("#confirm-dialog"),
++            content: message
++        });
++
++        dialog.handler("ok", function() {
++
++            self.model.changeStatus(action, {
++                success: function(data, textStatus, jqXHR) {
++                    self.entry = _.clone(self.model.attributes);
++                    self.render();
++                },
++                error: function(jqXHR, textStatus, errorThrown) {
++                    new ErrorDialog({
++                        el: $("#error-dialog"),
++                        title: "HTTP Error " + jqXHR.responseJSON.Code,
++                        content: jqXHR.responseJSON.Message
++                    }).open();
++                }
++            });
++
++            dialog.close();
++        });
++
++        dialog.open();
++    },
+     renderContent: function() {
+         var self = this;
+ 
+diff --git a/base/tps/shared/webapps/tps/js/tps.js b/base/tps/shared/webapps/tps/js/tps.js
+index cf1cc0b836812c2aa28e0544aa24d07cfb61e0f0..d6c989d1877f03f7405d6a6370c3a72bbe8c490d 100644
+--- a/base/tps/shared/webapps/tps/js/tps.js
++++ b/base/tps/shared/webapps/tps/js/tps.js
+@@ -168,129 +168,33 @@ var ConfigEntryPage = EntryPage.extend({
+         self.disableAction = $("[name='disable']", self.viewMenu);
+ 
+         $("a", self.submitAction).click(function(e) {
+-
+             e.preventDefault();
+-
+-            var message = "Are you sure you want to submit this entry?";
+-            if (!confirm(message)) return;
+-            self.model.changeStatus("submit", {
+-                success: function(data, textStatus, jqXHR) {
+-                    self.entry = _.clone(self.model.attributes);
+-                    self.render();
+-                },
+-                error: function(jqXHR, textStatus, errorThrown) {
+-                    new ErrorDialog({
+-                        el: $("#error-dialog"),
+-                        title: "HTTP Error " + jqXHR.responseJSON.Code,
+-                        content: jqXHR.responseJSON.Message
+-                    }).open();
+-                }
+-            });
++            self.changeStatus("submit", "Are you sure you want to submit this entry?");
+         });
+ 
+         $("a", self.cancelAction).click(function(e) {
+-
+             e.preventDefault();
+-
+-            var message = "Are you sure you want to cancel this entry?";
+-            if (!confirm(message)) return;
+-            self.model.changeStatus("cancel", {
+-                success: function(data, textStatus, jqXHR) {
+-                    self.entry = _.clone(self.model.attributes);
+-                    self.render();
+-                },
+-                error: function(jqXHR, textStatus, errorThrown) {
+-                    new ErrorDialog({
+-                        el: $("#error-dialog"),
+-                        title: "HTTP Error " + jqXHR.responseJSON.Code,
+-                        content: jqXHR.responseJSON.Message
+-                    }).open();
+-                }
+-            });
++            self.changeStatus("cancel", "Are you sure you want to cancel this entry?");
+         });
+ 
+         $("a", self.approveAction).click(function(e) {
+-
+             e.preventDefault();
+-
+-            var message = "Are you sure you want to approve this entry?";
+-            if (!confirm(message)) return;
+-            self.model.changeStatus("approve", {
+-                success: function(data, textStatus, jqXHR) {
+-                    self.entry = _.clone(self.model.attributes);
+-                    self.render();
+-                },
+-                error: function(jqXHR, textStatus, errorThrown) {
+-                    new ErrorDialog({
+-                        el: $("#error-dialog"),
+-                        title: "HTTP Error " + jqXHR.responseJSON.Code,
+-                        content: jqXHR.responseJSON.Message
+-                    }).open();
+-                }
+-            });
++            self.changeStatus("approve", "Are you sure you want to approve this entry?");
+         });
+ 
+         $("a", self.rejectAction).click(function(e) {
+-
+             e.preventDefault();
+-
+-            var message = "Are you sure you want to reject this entry?";
+-            if (!confirm(message)) return;
+-            self.model.changeStatus("reject", {
+-                success: function(data, textStatus, jqXHR) {
+-                    self.entry = _.clone(self.model.attributes);
+-                    self.render();
+-                },
+-                error: function(jqXHR, textStatus, errorThrown) {
+-                    new ErrorDialog({
+-                        el: $("#error-dialog"),
+-                        title: "HTTP Error " + jqXHR.responseJSON.Code,
+-                        content: jqXHR.responseJSON.Message
+-                    }).open();
+-                }
+-            });
++            self.changeStatus("reject", "Are you sure you want to reject this entry?");
+         });
+ 
+         $("a", self.enableAction).click(function(e) {
+-
+             e.preventDefault();
+-
+-            var message = "Are you sure you want to enable this entry?";
+-            if (!confirm(message)) return;
+-            self.model.changeStatus("enable", {
+-                success: function(data, textStatus, jqXHR) {
+-                    self.entry = _.clone(self.model.attributes);
+-                    self.render();
+-                },
+-                error: function(jqXHR, textStatus, errorThrown) {
+-                    new ErrorDialog({
+-                        el: $("#error-dialog"),
+-                        title: "HTTP Error " + jqXHR.responseJSON.Code,
+-                        content: jqXHR.responseJSON.Message
+-                    }).open();
+-                }
+-            });
++            self.changeStatus("enable", "Are you sure you want to enable this entry?");
+         });
+ 
+         $("a", self.disableAction).click(function(e) {
+-
+             e.preventDefault();
+-
+-            var message = "Are you sure you want to disable this entry?";
+-            if (!confirm(message)) return;
+-            self.model.changeStatus("disable", {
+-                success: function(data, textStatus, jqXHR) {
+-                    self.entry = _.clone(self.model.attributes);
+-                    self.render();
+-                },
+-                error: function(jqXHR, textStatus, errorThrown) {
+-                    new ErrorDialog({
+-                        el: $("#error-dialog"),
+-                        title: "HTTP Error " + jqXHR.responseJSON.Code,
+-                        content: jqXHR.responseJSON.Message
+-                    }).open();
+-                }
+-            });
++            self.changeStatus("disable", "Are you sure you want to disable this entry?");
+         });
+ 
+         var dialog = self.$("#property-dialog");
+@@ -332,6 +236,35 @@ var ConfigEntryPage = EntryPage.extend({
+             self.propertiesEditor.hide();
+         });
+     },
++    changeStatus: function(action, message) {
++        var self = this;
++
++        var dialog = new Dialog({
++            el: $("#confirm-dialog"),
++            content: message
++        });
++
++        dialog.handler("ok", function() {
++
++            self.model.changeStatus(action, {
++                success: function(data, textStatus, jqXHR) {
++                    self.entry = _.clone(self.model.attributes);
++                    self.render();
++                },
++                error: function(jqXHR, textStatus, errorThrown) {
++                    new ErrorDialog({
++                        el: $("#error-dialog"),
++                        title: "HTTP Error " + jqXHR.responseJSON.Code,
++                        content: jqXHR.responseJSON.Message
++                    }).open();
++                }
++            });
++
++            dialog.close();
++        });
++
++        dialog.open();
++    },
+     renderContent: function() {
+         var self = this;
+ 
+diff --git a/base/tps/shared/webapps/tps/ui/index.html b/base/tps/shared/webapps/tps/ui/index.html
+index 8080a125cb277024af3ff7e837247c86fd9fccc6..8c6092098b7e3e9c7f4225c8079a41913060da10 100644
+--- a/base/tps/shared/webapps/tps/ui/index.html
++++ b/base/tps/shared/webapps/tps/ui/index.html
+@@ -444,6 +444,25 @@ $(function() {
+ <div id="content">
+ </div>
+ 
++<div id="confirm-dialog" class="modal">
++    <div class="modal-dialog">
++        <div class="modal-content">
++            <div class="modal-header">
++                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
++                    <span class="pficon pficon-close"></span>
++                </button>
++                <h4 class="modal-title">Confirmation</h4>
++            </div>
++            <div class="modal-body">
++            </div>
++            <div class="modal-footer">
++                <button name="ok" class="btn btn-danger">OK</button>
++                <button name="cancel" class="btn btn-default" data-dismiss="modal">Cancel</button>
++            </div>
++        </div>
++    </div>
++</div>
++
+ <div id="error-dialog" class="modal">
+     <div class="modal-dialog">
+         <div class="modal-content">
+-- 
+2.4.3
+

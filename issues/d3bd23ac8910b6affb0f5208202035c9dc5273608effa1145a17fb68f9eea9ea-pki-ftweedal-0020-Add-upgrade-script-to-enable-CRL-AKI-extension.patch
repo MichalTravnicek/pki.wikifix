@@ -1,0 +1,75 @@
+From f77b04a831141847bd181f7aef81aba8f4974d1f Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Thu, 30 Oct 2014 01:58:15 -0400
+Subject: [PATCH] Add upgrade script to enable CRL AKI extension
+
+RFC 5280 states:
+
+   Conforming CRL issuers are REQUIRED to include the authority key
+   identifier (Section 5.2.1) and the CRL number (Section 5.2.3)
+   extensions in all CRLs issued.
+
+Prior to the recent change that fixes it, the default configuration
+did not include this extension.  Old instances are therefore
+nonconformant.  Add an upgrade script to enable the extension.
+---
+ .../server/upgrade/10.2.2/01-EnableCRLAKIExtension | 47 ++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
+ create mode 100755 base/server/upgrade/10.2.2/01-EnableCRLAKIExtension
+
+diff --git a/base/server/upgrade/10.2.2/01-EnableCRLAKIExtension b/base/server/upgrade/10.2.2/01-EnableCRLAKIExtension
+new file mode 100755
+index 0000000000000000000000000000000000000000..dd4c51c223ce1a7faa3bac11f40fa7e118b75d4f
+--- /dev/null
++++ b/base/server/upgrade/10.2.2/01-EnableCRLAKIExtension
+@@ -0,0 +1,47 @@
++#!/usr/bin/python
++# Authors:
++#     Fraser Tweedale <ftweedal@redhat.com>
++#
++# This program is free software; you can redistribute it and/or modify
++# it under the terms of the GNU General Public License as published by
++# the Free Software Foundation; version 2 of the License.
++#
++# This program is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License along
++# with this program; if not, write to the Free Software Foundation, Inc.,
++# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++#
++# Copyright (C) 2014 Red Hat, Inc.
++# All rights reserved.
++
++import os
++
++import pki.server.upgrade
++
++class EnableCRLAKIExtension(pki.server.upgrade.PKIServerUpgradeScriptlet):
++    def __init__(self):
++        self.message = "Enable CRL AuthorityKeyIdentifier extension"
++
++    def upgrade_subsystem(self, instance, subsystem):
++        cfg_path = os.path.join(subsystem.conf_dir, 'CS.cfg')
++
++        lines = []
++        with open(cfg_path) as f:
++            lines = f.readlines()
++
++        prop = "ca.crl.MasterCRL.extension.AuthorityKeyIdentifier.enable"
++
++        try:
++            prop_index = lines.index(prop + "=false\n")
++        except ValueError:
++            prop_index = None
++
++        if prop_index is not None:
++            lines[prop_index] = prop + "=true\n"
++            self.backup(cfg_path)
++            with open(cfg_path, 'w') as f:
++                f.writelines(lines)
+-- 
+1.9.3
+

@@ -1,0 +1,227 @@
+From 53b1ddf9a2e58138eb4e2d132a6df6a67f6d8ee0 Mon Sep 17 00:00:00 2001
+From: Joshua Roys <roysjosh@gmail.com>
+Date: Tue, 5 Jun 2012 16:03:26 -0400
+Subject: [PATCH] Add LDAP cert publisher using LDAP auth DN
+
+If LDAP authentication is used to submit certificate profiles, the DN
+used to authenticate the request is saved.  Use that DN when publishing
+certs back out to the same LDAP directory.
+---
+ base/common/src/CMakeLists.txt                     |    1 +
+ .../cms/publish/mappers/LdapAuthNameMap.java       |  192 ++++++++++++++++++++
+ 2 files changed, 193 insertions(+), 0 deletions(-)
+ create mode 100644 base/common/src/com/netscape/cms/publish/mappers/LdapAuthNameMap.java
+
+diff --git a/base/common/src/CMakeLists.txt b/base/common/src/CMakeLists.txt
+index 0a9fcdd..97e62bb 100644
+--- a/base/common/src/CMakeLists.txt
++++ b/base/common/src/CMakeLists.txt
+@@ -433,6 +433,7 @@ set(pki-cms_java_SRCS
+     com/netscape/cms/publish/mappers/LdapCrlIssuerCompsMap.java
+     com/netscape/cms/publish/mappers/LdapDNCompsMap.java
+     com/netscape/cms/publish/mappers/LdapSimpleMap.java
++    com/netscape/cms/publish/mappers/LdapAuthNameMap.java
+     com/netscape/cms/publish/publishers/LdapEncryptCertPublisher.java
+     com/netscape/cms/publish/publishers/LdapUserCertPublisher.java
+     com/netscape/cms/publish/publishers/LdapCaCertPublisher.java
+diff --git a/base/common/src/com/netscape/cms/publish/mappers/LdapAuthNameMap.java b/base/common/src/com/netscape/cms/publish/mappers/LdapAuthNameMap.java
+new file mode 100644
+index 0000000..6238cc4
+--- /dev/null
++++ b/base/common/src/com/netscape/cms/publish/mappers/LdapAuthNameMap.java
+@@ -0,0 +1,192 @@
++// --- BEGIN COPYRIGHT BLOCK ---
++// This program is free software; you can redistribute it and/or modify
++// it under the terms of the GNU General Public License as published by
++// the Free Software Foundation; version 2 of the License.
++//
++// This program is distributed in the hope that it will be useful,
++// but WITHOUT ANY WARRANTY; without even the implied warranty of
++// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++// GNU General Public License for more details.
++//
++// You should have received a copy of the GNU General Public License along
++// with this program; if not, write to the Free Software Foundation, Inc.,
++// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++//
++// (C) 2012 Red Hat, Inc.
++// All rights reserved.
++// --- END COPYRIGHT BLOCK ---
++package com.netscape.cms.publish.mappers;
++
++import java.io.IOException;
++import java.security.cert.X509Certificate;
++import java.util.Locale;
++import java.util.Vector;
++
++import netscape.ldap.LDAPConnection;
++import netscape.ldap.LDAPEntry;
++import netscape.ldap.LDAPException;
++import netscape.ldap.LDAPSearchResults;
++import netscape.ldap.LDAPv2;
++import netscape.ldap.LDAPv3;
++
++import com.netscape.certsrv.apps.CMS;
++import com.netscape.certsrv.base.EBaseException;
++import com.netscape.certsrv.base.IConfigStore;
++import com.netscape.certsrv.base.IExtendedPluginInfo;
++import com.netscape.certsrv.ldap.ELdapException;
++import com.netscape.certsrv.ldap.ELdapServerDownException;
++import com.netscape.certsrv.logging.ILogger;
++import com.netscape.certsrv.profile.IProfileAuthenticator;
++import com.netscape.certsrv.publish.ILdapMapper;
++import com.netscape.certsrv.request.IRequest;
++
++/**
++ * Maps a request to an entry in the LDAP server.
++ * This mapper requires LDAP authentication to be used to submit a profile.
++ * Grab the extdata-authenticatedName from the request and use that as the DN.
++ *
++ * @version $Revision$, $Date$
++ */
++public class LdapAuthNameMap implements ILdapMapper, IExtendedPluginInfo {
++    private ILogger mLogger = CMS.getLogger();
++    protected IConfigStore mConfig = null;
++
++    /**
++     * Constructor.
++     */
++    public LdapAuthNameMap() {
++    }
++
++    public String[] getExtendedPluginInfo(Locale locale) {
++        String params[] = {
++                IExtendedPluginInfo.HELP_TOKEN + ";configuration-ldappublish-mapper-simplemapper",
++                IExtendedPluginInfo.HELP_TEXT + ";This mapper requires LDAP authentication to be used to submit a " +
++                                                        "profile."
++            };
++
++        return params;
++    }
++
++    public IConfigStore getConfigStore() {
++        return mConfig;
++    }
++
++    /**
++     * for initializing from config store.
++     */
++    public void init(IConfigStore config)
++            throws EBaseException {
++        mConfig = config;
++    }
++
++    /**
++     * Maps a X500 subject name to LDAP entry.
++     *
++     * @param conn the LDAP connection.
++     * @param obj the object to map.
++     * @exception ELdapException if any LDAP exceptions occured.
++     */
++    public String map(LDAPConnection conn, Object obj)
++            throws ELdapException {
++        return map(conn, null, obj);
++    }
++
++    /**
++     * Maps a X500 subject name to LDAP entry.
++     *
++     * @param conn the LDAP connection.
++     * @param req the request to map.
++     * @param obj the object to map.
++     * @exception ELdapException if any LDAP exceptions occured.
++     */
++    public String map(LDAPConnection conn, IRequest req, Object obj)
++            throws ELdapException {
++        if (conn == null)
++            return null;
++        String dn = null;
++
++        try {
++            dn = req.getExtDataInString(IProfileAuthenticator.AUTHENTICATED_NAME);
++            if (dn == null) {
++                log(ILogger.LL_FAILURE, CMS.getLogMessage("PUBLISH_DN_NOT_FORMED"));
++                String s1 = "";
++
++                if (req != null)
++                    s1 = req.getRequestId().toString();
++                throw new ELdapException(
++                        CMS.getUserMessage("CMS_LDAP_NO_DN_MATCH", s1));
++            }
++            int scope = LDAPv2.SCOPE_BASE;
++            String filter = "(objectclass=*)";
++
++            // search for entry
++            String[] attrs = new String[] { LDAPv3.NO_ATTRS };
++
++            log(ILogger.LL_INFO, "searching for dn: " + dn + " filter:"
++                    + filter + " scope: base");
++
++            LDAPSearchResults results =
++                    conn.search(dn, scope, filter, attrs, false);
++            LDAPEntry entry = results.next();
++
++            if (results.hasMoreElements()) {
++                log(ILogger.LL_FAILURE, CMS.getLogMessage("PUBLISH_MORE_THAN_ONE_ENTRY", dn, ((req == null) ? "" :
++                        req.getRequestId().toString())));
++                throw new ELdapException(CMS.getUserMessage("CMS_LDAP_MORE_THAN_ONE_ENTRY",
++                            ((req == null) ? "" : req.getRequestId().toString())));
++            }
++            if (entry != null)
++                return entry.getDN();
++            else {
++                log(ILogger.LL_FAILURE,
++                        CMS.getLogMessage("PUBLISH_ENTRY_NOT_FOUND", dn, ((req == null) ? "" : req.getRequestId()
++                                .toString())));
++                throw new ELdapException(CMS.getUserMessage("CMS_LDAP_NO_MATCH_FOUND",
++                            "null entry"));
++            }
++        } catch (ELdapException e) {
++            throw e;
++        } catch (LDAPException e) {
++            if (e.getLDAPResultCode() == LDAPException.UNAVAILABLE) {
++                // need to intercept this because message from LDAP is
++                // "DSA is unavailable" which confuses with DSA PKI.
++                log(ILogger.LL_FAILURE,
++                        CMS.getLogMessage("PUBLISH_NO_LDAP_SERVER"));
++                throw new ELdapServerDownException(CMS.getUserMessage("CMS_LDAP_SERVER_UNAVAILABLE", conn.getHost(), ""
++                        + conn.getPort()));
++            } else {
++                log(ILogger.LL_FAILURE, CMS.getLogMessage("PUBLISH_DN_MAP_EXCEPTION", "", e.toString()));
++                throw new ELdapException(CMS.getUserMessage("CMS_LDAP_NO_MATCH_FOUND", e.toString()));
++            }
++        } catch (EBaseException e) {
++            log(ILogger.LL_FAILURE, CMS.getLogMessage("PUBLISH_EXCEPTION_CAUGHT", e.toString()));
++            throw new ELdapException(CMS.getUserMessage("CMS_LDAP_NO_MATCH_FOUND", e.toString()));
++        }
++    }
++
++    public String getImplName() {
++        return "LdapAuthNameMap";
++    }
++
++    public String getDescription() {
++        return "LdapAuthNameMap";
++    }
++
++    public Vector<String> getDefaultParams() {
++        Vector<String> v = new Vector<String>();
++
++        return v;
++    }
++
++    public Vector<String> getInstanceParams() {
++        Vector<String> v = new Vector<String>();
++
++        return v;
++    }
++
++    private void log(int level, String msg) {
++        mLogger.log(ILogger.EV_SYSTEM, ILogger.S_LDAP, level,
++                "LdapAuthNameMap: " + msg);
++    }
++
++}
+-- 
+1.7.4.1
+

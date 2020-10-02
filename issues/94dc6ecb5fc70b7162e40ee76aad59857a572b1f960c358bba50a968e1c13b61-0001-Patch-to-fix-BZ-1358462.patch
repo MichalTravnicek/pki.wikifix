@@ -1,0 +1,38 @@
+From 1bf02108d58e5b8f6f6ef9044a3b505396308eb4 Mon Sep 17 00:00:00 2001
+From: Geetika Kapoor <gkapoor@redhat.com>
+Date: Thu, 11 Aug 2016 05:44:35 -0400
+Subject: [PATCH] Patch to fix BZ 1358462
+
+Signed-off-by: Geetika Kapoor <gkapoor@redhat.com>
+---
+ .../com/netscape/cmstools/pkcs12/PKCS12CertRemoveCLI.java  | 14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/base/java-tools/src/com/netscape/cmstools/pkcs12/PKCS12CertRemoveCLI.java b/base/java-tools/src/com/netscape/cmstools/pkcs12/PKCS12CertRemoveCLI.java
+index 8f7f11398c8fd9760ca0e709d19fd0af2a4b689b..6970303707a63b0e02ea1fac73c36c369aef418b 100644
+--- a/base/java-tools/src/com/netscape/cmstools/pkcs12/PKCS12CertRemoveCLI.java
++++ b/base/java-tools/src/com/netscape/cmstools/pkcs12/PKCS12CertRemoveCLI.java
+@@ -137,9 +137,17 @@ public class PKCS12CertRemoveCLI extends CLI {
+             PKCS12Util util = new PKCS12Util();
+ 
+             PKCS12 pkcs12 = util.loadFromFile(filename, password);
+-            pkcs12.removeCertInfoByNickname(nickname);
+-            util.storeIntoFile(pkcs12, filename, password);
+-
++            Collection<PKCS12CertInfo> certInfos = pkcs12.getCertInfos();
++            Collection<PKCS12CertInfo> certInfosnick = pkcs12.getCertInfosByNickname(nickname);
++                if (certInfosnick.addAll(certInfosnick)){
++                    MainCLI.printMessage(certInfos.size() + " entries found");
++                    pkcs12.removeCertInfoByNickname(nickname);
++                    util.storeIntoFile(pkcs12, filename, password);
++                    }
++                else {
++                    System.out.println("Certificate Nickname" +" " + nickname + " " + "doesn't exist");
++                    System.exit(-1);
++                }
+         } finally {
+             password.clear();
+         }
+-- 
+1.8.3.1
+

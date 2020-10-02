@@ -1,0 +1,37 @@
+From fe1a89b705b8dca70fed4b2744f1761be98558da Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Tue, 24 May 2016 15:21:22 +1000
+Subject: [PATCH] Include serial of revoked cert in CertRequestInfo
+
+When manufacturing a CertRequestInfo, CertRequestInfoFactory
+includes the serial number of issued certs, but does not show serial
+numbers of revoked certs for completed revocation requests.
+Include the serial number for this case.
+
+Fixes: https://fedorahosted.org/pki/ticket/1073
+---
+ .../src/com/netscape/cms/servlet/cert/CertRequestInfoFactory.java | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/base/server/cms/src/com/netscape/cms/servlet/cert/CertRequestInfoFactory.java b/base/server/cms/src/com/netscape/cms/servlet/cert/CertRequestInfoFactory.java
+index 59cca22e4f576b417a8e29568b0097bdf7b14074..68f65bc9cc70c299710b15d69b0cafda8c6a4dae 100644
+--- a/base/server/cms/src/com/netscape/cms/servlet/cert/CertRequestInfoFactory.java
++++ b/base/server/cms/src/com/netscape/cms/servlet/cert/CertRequestInfoFactory.java
+@@ -70,6 +70,14 @@ public class CertRequestInfoFactory {
+             return info;
+ 
+         X509CertImpl impl = request.getExtDataInCert(IEnrollProfile.REQUEST_ISSUED_CERT);
++        if (impl == null && requestType.equals(IRequest.REVOCATION_REQUEST)) {
++            // revocation request; try and get serial of revoked cert
++            X509CertImpl[] certs =
++                request.getExtDataInCertArray(IRequest.OLD_CERTS);
++            if (certs != null && certs.length > 0)
++                impl = certs[0];
++        }
++
+         if (impl == null)
+             return info;
+ 
+-- 
+2.5.5
+

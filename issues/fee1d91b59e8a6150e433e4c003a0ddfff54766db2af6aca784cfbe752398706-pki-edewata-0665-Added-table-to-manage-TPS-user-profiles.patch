@@ -1,0 +1,693 @@
+From 31972666380c97fc29f3095cfe7eb026b2e6e81d Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Thu, 24 Dec 2015 17:20:58 +0100
+Subject: [PATCH] Added table to manage TPS user profiles.
+
+The TPS UI has been modified to provide a table as an interface
+to manage the user profiles. When adding a profile, the profile
+can be selected from a list of available profiles.
+
+The UserService and UGSubsystem have been modified to allow adding
+a user with no assigned profiles.
+
+https://fedorahosted.org/pki/ticket/1478
+---
+ .../src/org/dogtagpki/server/rest/UserService.java |  97 +++++++---
+ .../com/netscape/cmscore/usrgrp/UGSubsystem.java   |  86 ++++-----
+ base/server/share/webapps/pki/js/pki-ui.js         |   8 +-
+ base/tps/shared/webapps/tps/js/user.js             | 196 +++++++++++++++++++--
+ base/tps/shared/webapps/tps/ui/user.html           |  78 +++++++-
+ 5 files changed, 358 insertions(+), 107 deletions(-)
+
+diff --git a/base/server/cms/src/org/dogtagpki/server/rest/UserService.java b/base/server/cms/src/org/dogtagpki/server/rest/UserService.java
+index 53ecc2b9e778db3bf6e14bc05989446d4a741223..3de7384ee0dc8789e74b619191e7e4c4e739ae6f 100644
+--- a/base/server/cms/src/org/dogtagpki/server/rest/UserService.java
++++ b/base/server/cms/src/org/dogtagpki/server/rest/UserService.java
+@@ -39,9 +39,6 @@ import javax.ws.rs.core.Request;
+ import javax.ws.rs.core.Response;
+ import javax.ws.rs.core.UriInfo;
+ 
+-import netscape.security.pkcs.PKCS7;
+-import netscape.security.x509.X509CertImpl;
+-
+ import org.apache.commons.lang.StringUtils;
+ import org.jboss.resteasy.plugins.providers.atom.Link;
+ import org.mozilla.jss.CryptoManager;
+@@ -79,6 +76,9 @@ import com.netscape.cms.servlet.base.PKIService;
+ import com.netscape.cmsutil.util.Cert;
+ import com.netscape.cmsutil.util.Utils;
+ 
++import netscape.security.pkcs.PKCS7;
++import netscape.security.x509.X509CertImpl;
++
+ /**
+  * @author Endi S. Dewata
+  */
+@@ -209,6 +209,7 @@ public class UserService extends PKIService implements UserResource {
+                 throw new BadRequestException(getUserMessage("CMS_ADMIN_SRVLT_NULL_RS_ID", headers));
+             }
+ 
++            IConfigStore cs = CMS.getConfigStore();
+             IUser user;
+ 
+             try {
+@@ -237,17 +238,22 @@ public class UserService extends PKIService implements UserResource {
+             String type = user.getUserType();
+             if (!StringUtils.isEmpty(type)) userData.setType(type);
+ 
+-            List<String> profiles = user.getTpsProfiles();
+-            if (profiles != null) {
+-                StringBuilder sb = new StringBuilder();
+-                String prefix = "";
+-                for (String profile: profiles) {
+-                    sb.append(prefix);
+-                    prefix = ",";
+-                    sb.append(profile);
++            // TODO: refactor into TPSUserService
++            String csType = cs.getString("cs.type");
++            if (csType.equals("TPS")) {
++
++                List<String> profiles = user.getTpsProfiles();
++                if (profiles != null) {
++                    StringBuilder sb = new StringBuilder();
++                    String prefix = "";
++                    for (String profile: profiles) {
++                        sb.append(prefix);
++                        prefix = ",";
++                        sb.append(profile);
++                    }
++
++                    userData.setAttribute(ATTR_TPS_PROFILES, sb.toString());
+                 }
+-
+-                userData.setAttribute(ATTR_TPS_PROFILES, sb.toString());
+             }
+ 
+             return userData;
+@@ -363,15 +369,23 @@ public class UserService extends PKIService implements UserResource {
+                 user.setState(state);
+             }
+ 
+-            String tpsProfiles = userData.getAttribute(ATTR_TPS_PROFILES);
+-            CMS.debug("TPS profiles: " + tpsProfiles);
++            // TODO: refactor into TPSUserService
+             String csType = cs.getString("cs.type");
+-            if (tpsProfiles != null) {
+-                if (!csType.equals("TPS")) {
+-                    throw new BadRequestException("Cannot set tpsProfiles on a non-TPS subsystem");
++            if (csType.equals("TPS")) {
++
++                String tpsProfiles = userData.getAttribute(ATTR_TPS_PROFILES);
++                CMS.debug("TPS profiles: " + tpsProfiles);
++                if (tpsProfiles != null) { // update profiles if specified
++
++                    String[] profiles;
++                    if (StringUtils.isEmpty(tpsProfiles)) {
++                        profiles = new String[0];
++                    } else {
++                        profiles = tpsProfiles.split(",");
++                    }
++
++                    user.setTpsProfiles(Arrays.asList(profiles));
+                 }
+-                String[] profiles = tpsProfiles.split(",");
+-                user.setTpsProfiles(Arrays.asList(profiles));
+             }
+ 
+             userGroupManager.addUser(user);
+@@ -443,11 +457,23 @@ public class UserService extends PKIService implements UserResource {
+             String state = userData.getState();
+             user.setState(state);
+ 
++            // TODO: refactor into TPSUserService
+             String csType = cs.getString("cs.type");
+             if (csType.equals("TPS")) {
++
+                 String tpsProfiles = userData.getAttribute(ATTR_TPS_PROFILES);
+-                String[] profiles = tpsProfiles.split(",");
+-                user.setTpsProfiles(Arrays.asList(profiles));
++                CMS.debug("TPS Profiles: " + tpsProfiles);
++                if (tpsProfiles != null) { // update profiles if specified
++
++                    String[] profiles;
++                    if (StringUtils.isEmpty(tpsProfiles)) {
++                        profiles = new String[0];
++                    } else {
++                        profiles = tpsProfiles.split(",");
++                    }
++
++                    user.setTpsProfiles(Arrays.asList(profiles));
++                }
+             }
+ 
+             userGroupManager.modifyUser(user);
+@@ -485,6 +511,8 @@ public class UserService extends PKIService implements UserResource {
+     @Override
+     public Response modifyUser(String userID, UserData userData) {
+ 
++        CMS.debug("UserService.modifyUser(" + userID + ")");
++
+         if (userData == null) throw new BadRequestException("User data is null.");
+ 
+         // ensure that any low-level exceptions are reported
+@@ -499,11 +527,13 @@ public class UserService extends PKIService implements UserResource {
+             IUser user = userGroupManager.createUser(userID);
+ 
+             String fullName = userData.getFullName();
++            CMS.debug("Full name: " + fullName);
+             if (fullName != null) {
+                 user.setFullName(fullName);
+             }
+ 
+             String email = userData.getEmail();
++            CMS.debug("Email: " + email);
+             if (email != null) {
+                 user.setEmail(email);
+             }
+@@ -520,23 +550,34 @@ public class UserService extends PKIService implements UserResource {
+             }
+ 
+             String phone = userData.getPhone();
++            CMS.debug("Phone: " + phone);
+             if (phone != null) {
+                 user.setPhone(phone);
+             }
+ 
+             String state = userData.getState();
++            CMS.debug("State: " + state);
+             if (state != null) {
+                 user.setState(state);
+             }
+ 
+-            String tpsProfiles = userData.getAttribute(ATTR_TPS_PROFILES);
++            // TODO: refactor into TPSUserService
+             String csType = cs.getString("cs.type");
+-            if (tpsProfiles != null) {
+-                if (!csType.equals("TPS")) {
+-                    throw new BadRequestException("Cannot set tpsProfiles on a non-TPS subsystem");
++            if (csType.equals("TPS")) {
++
++                String tpsProfiles = userData.getAttribute(ATTR_TPS_PROFILES);
++                CMS.debug("TPS Profiles: " + tpsProfiles);
++                if (tpsProfiles != null) { // update profiles if specified
++
++                    String[] profiles;
++                    if (StringUtils.isEmpty(tpsProfiles)) {
++                        profiles = new String[0];
++                    } else {
++                        profiles = tpsProfiles.split(",");
++                    }
++
++                    user.setTpsProfiles(Arrays.asList(profiles));
+                 }
+-                String[] profiles = tpsProfiles.split(",");
+-                user.setTpsProfiles(Arrays.asList(profiles));
+             }
+ 
+             userGroupManager.modifyUser(user);
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/usrgrp/UGSubsystem.java b/base/server/cmscore/src/com/netscape/cmscore/usrgrp/UGSubsystem.java
+index d1277279e5c020aa688d1dedce9230d293fe3fac..a11c551e5424c55b41a53318689866c66aacff73 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/usrgrp/UGSubsystem.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/usrgrp/UGSubsystem.java
+@@ -25,19 +25,6 @@ import java.util.Enumeration;
+ import java.util.List;
+ import java.util.Vector;
+ 
+-import netscape.ldap.LDAPAttribute;
+-import netscape.ldap.LDAPAttributeSet;
+-import netscape.ldap.LDAPConnection;
+-import netscape.ldap.LDAPDN;
+-import netscape.ldap.LDAPEntry;
+-import netscape.ldap.LDAPException;
+-import netscape.ldap.LDAPModification;
+-import netscape.ldap.LDAPModificationSet;
+-import netscape.ldap.LDAPSearchConstraints;
+-import netscape.ldap.LDAPSearchResults;
+-import netscape.ldap.LDAPv2;
+-import netscape.security.x509.X509CertImpl;
+-
+ import org.apache.commons.lang.StringUtils;
+ 
+ import com.netscape.certsrv.apps.CMS;
+@@ -60,6 +47,19 @@ import com.netscape.cmscore.ldapconn.LdapBoundConnFactory;
+ import com.netscape.cmscore.util.Debug;
+ import com.netscape.cmsutil.ldap.LDAPUtil;
+ 
++import netscape.ldap.LDAPAttribute;
++import netscape.ldap.LDAPAttributeSet;
++import netscape.ldap.LDAPConnection;
++import netscape.ldap.LDAPDN;
++import netscape.ldap.LDAPEntry;
++import netscape.ldap.LDAPException;
++import netscape.ldap.LDAPModification;
++import netscape.ldap.LDAPModificationSet;
++import netscape.ldap.LDAPSearchConstraints;
++import netscape.ldap.LDAPSearchResults;
++import netscape.ldap.LDAPv2;
++import netscape.security.x509.X509CertImpl;
++
+ /**
+  * This class defines low-level LDAP usr/grp management
+  * usr/grp information is located remotely on another
+@@ -738,11 +738,15 @@ public final class UGSubsystem implements IUGSubsystem {
+         }
+ 
+         // TODO add audit logging for profile
+-        if (id.getTpsProfiles() != null) {
+-            List<String> profiles = id.getTpsProfiles();
+-            for (String profile: profiles) {
+-                attrs.add(new LDAPAttribute(LDAP_ATTR_PROFILE_ID, profile));
++        List<String> profiles = id.getTpsProfiles();
++        if (profiles != null && profiles.size() > 0) {
++            CMS.debug("Adding " + LDAP_ATTR_PROFILE_ID + ":");
++            LDAPAttribute attr = new LDAPAttribute(LDAP_ATTR_PROFILE_ID);
++            for (String profile : profiles) {
++                CMS.debug(" - " + profile);
++                attr.addValue(profile);
+             }
++            attrs.add(attr);
+         }
+ 
+         LDAPEntry entry = new LDAPEntry("uid=" + LDAPUtil.escapeRDNValue(id.getUserID()) +
+@@ -763,12 +767,14 @@ public final class UGSubsystem implements IUGSubsystem {
+             ldapconn.add(entry);
+ 
+         } catch (LDAPException e) {
++            CMS.debug(e);
+             log(ILogger.LL_FAILURE, CMS.getLogMessage("CMSCORE_USRGRP_ADD_USER", e.toString()));
+             throw LDAPExceptionConverter.toPKIException(e);
+ 
+         } catch (ELdapException e) {
++            CMS.debug(e);
+             log(ILogger.LL_FAILURE, CMS.getLogMessage("CMSCORE_USRGRP_ADD_USER", e.toString()));
+-            throw new EUsrGrpException(CMS.getUserMessage("CMS_USRGRP_ADD_USER_FAIL"));
++            throw new EUsrGrpException(CMS.getUserMessage("CMS_USRGRP_ADD_USER_FAIL"), e);
+ 
+         } finally {
+             if (ldapconn != null)
+@@ -1229,7 +1235,8 @@ public final class UGSubsystem implements IUGSubsystem {
+                 }
+             }
+ 
+-            if (user.getTpsProfiles() != null) {
++            List<String> profiles = user.getTpsProfiles();
++            if (profiles != null) {
+                 // TODO add audit logging for profile
+ 
+                 // replace the objectclass in case tpsProfile is not present
+@@ -1238,44 +1245,11 @@ public final class UGSubsystem implements IUGSubsystem {
+                 attrs.add(LDAPModification.REPLACE,
+                         new LDAPAttribute(OBJECTCLASS_ATTR, oc));
+ 
+-                User ldapUser = (User) getUser(user.getUserID());
+-                List<String> oldProfiles = ldapUser.getTpsProfiles();
+-                List<String> profiles = user.getTpsProfiles();
+-
+-                if (oldProfiles == null) {
+-                    for (String profile : profiles) {
+-                        attrs.add(LDAPModification.ADD,
+-                                new LDAPAttribute(LDAP_ATTR_PROFILE_ID, profile));
+-                    }
+-                } else {
+-                    for (String profile : profiles) {
+-                        boolean found = false;
+-                        for (String oldProfile : oldProfiles) {
+-                            if (profile.equals(oldProfile)) {
+-                                found = true;
+-                                break;
+-                            }
+-                        }
+-                        if (!found) {
+-                            attrs.add(LDAPModification.ADD,
+-                                    new LDAPAttribute(LDAP_ATTR_PROFILE_ID, profile));
+-                        }
+-                    }
+-
+-                    for (String oldProfile : oldProfiles) {
+-                        boolean found = false;
+-                        for (String profile : profiles) {
+-                            if (profile.equals(oldProfile)) {
+-                                found = true;
+-                                break;
+-                            }
+-                        }
+-                        if (!found) {
+-                            attrs.add(LDAPModification.DELETE,
+-                                    new LDAPAttribute(LDAP_ATTR_PROFILE_ID, oldProfile));
+-                        }
+-                    }
++                LDAPAttribute attr = new LDAPAttribute(LDAP_ATTR_PROFILE_ID);
++                for (String profile : profiles) {
++                    attr.addValue(profile);
+                 }
++                attrs.add(LDAPModification.REPLACE, attr);
+             }
+ 
+             /**
+diff --git a/base/server/share/webapps/pki/js/pki-ui.js b/base/server/share/webapps/pki/js/pki-ui.js
+index 2fa47ccc48a65ff781c694662734c5ca26d055d6..cf4b44e241aee2ab7817fbebcc26b1f28dfc5148 100644
+--- a/base/server/share/webapps/pki/js/pki-ui.js
++++ b/base/server/share/webapps/pki/js/pki-ui.js
+@@ -621,7 +621,7 @@ var Table = Backbone.View.extend({
+         // check filter against all values in the entry
+         var matches = false;
+         _(entry).each(function(value, key) {
+-            if (entry.name.indexOf(filter) >= 0) matches = true;
++            if (value && value.indexOf(filter) >= 0) matches = true;
+         });
+ 
+         return matches;
+@@ -704,7 +704,7 @@ var Table = Backbone.View.extend({
+ 
+             // save new entry
+             dialog.save();
+-            self.entries.push(dialog.entry);
++            self.addEntry(dialog.entry);
+ 
+             // redraw table
+             self.render();
+@@ -713,6 +713,10 @@ var Table = Backbone.View.extend({
+ 
+         dialog.open();
+     },
++    addEntry: function(entry) {
++        var self = this;
++        self.entries.push(entry);
++    },
+     remove: function(items) {
+         var self = this;
+ 
+diff --git a/base/tps/shared/webapps/tps/js/user.js b/base/tps/shared/webapps/tps/js/user.js
+index 3a29f1dd137afc8f1157b627166c43734185f0bd..663b66fc57b77c0b5cbb146ce081cacc339680f2 100644
+--- a/base/tps/shared/webapps/tps/js/user.js
++++ b/base/tps/shared/webapps/tps/js/user.js
+@@ -86,41 +86,199 @@ var UserCollection = Collection.extend({
+     }
+ });
+ 
++var UserProfilesTableItem = TableItem.extend({
++    initialize: function(options) {
++        var self = this;
++        UserProfilesTableItem.__super__.initialize.call(self, options);
++    },
++    renderColumn: function(td, templateTD) {
++        var self = this;
++
++        UserProfilesTableItem.__super__.renderColumn.call(self, td, templateTD);
++
++        $("a", td).click(function(e) {
++            e.preventDefault();
++            self.table.open(self);
++        });
++    }
++});
++
++var UserProfilesTable = Table.extend({
++    initialize: function(options) {
++        var self = this;
++        options.tableItem = UserProfilesTableItem;
++        UserProfilesTable.__super__.initialize.call(self, options);
++    },
++    sort: function() {
++        var self = this;
++
++        // sort profiles by id
++        self.filteredEntries = _.sortBy(self.filteredEntries, function(entry) {
++            return entry.id;
++        });
++    },
++    add: function() {
++        var self = this;
++
++        profiles = new ProfileCollection();
++        profiles.fetch({
++            success: function(collection, response, options) {
++
++                var dialog = self.addDialog;
++                var select = dialog.$(".modal-body select").empty();
++
++                $('<option/>', {
++                    text: 'All Profiles',
++                    selected: true
++                }).appendTo(select);
++
++                profiles.each(function(profile) {
++
++                    if (_.find(self.entries, function(e) { return e.id == profile.id; })) {
++                        // profile already exists
++
++                    } else {
++                        // show profile option
++                        $('<option/>', {
++                            text: profile.id
++                        }).appendTo(select);
++                    }
++                });
++
++                UserProfilesTable.__super__.add.call(self);
++            }
++        });
++    },
++    addEntry: function(entry) {
++        var self = this;
++
++        if (entry.id == 'All Profiles') {
++            // replace existing profiles
++            self.entries = [];
++            self.entries.push(entry);
++
++        } else if (_.find(self.entries, function(e) { return e.id == entry.id; })) {
++            // profile already exists
++
++        } else {
++            // add new profile
++            self.entries.push(entry);
++        }
++    },
++    remove: function(items) {
++        var self = this;
++
++        // remove selected profiles
++        self.entries = _.reject(self.entries, function(entry) {
++            return _.contains(items, entry.id);
++        });
++
++        // redraw table
++        self.render();
++    },
++    renderControls: function() {
++        var self = this;
++
++        UserProfilesTable.__super__.renderControls.call(self);
++
++        if (self.mode == "edit") {
++
++            if (_.find(self.entries, function(e) { return e.id == 'All Profiles'; })) {
++                self.addButton.hide();
++
++            } else {
++                self.addButton.show();
++            }
++        }
++    }
++});
++
+ var UserPage = EntryPage.extend({
+     initialize: function(options) {
+         var self = this;
+         UserPage.__super__.initialize.call(self, options);
+     },
+-    loadField: function(input) {
++    setup: function() {
+         var self = this;
+ 
+-        var name = input.attr("name");
+-        if (name != "tpsProfiles") {
+-            UserPage.__super__.loadField.call(self, input);
+-            return;
+-        }
+-
+-        var attributes = self.entry.attributes;
+-        if (attributes) {
+-            var value = attributes.tpsProfiles;
+-            input.val(value);
+-        }
++        UserPage.__super__.setup.call(self);
++
++        var dialog = self.$("#user-profile-dialog");
++
++        var addDialog = new Dialog({
++            el: dialog,
++            title: "Add Profile",
++            actions: ["cancel", "add"]
++        });
++
++        self.profilesSection = self.$("[name='profiles']");
++        self.profilesList = $("[name='list']", self.profilesSection);
++
++        self.profilesTable = new UserProfilesTable({
++            el: self.profilesList,
++            addDialog: addDialog,
++            pageSize: 10,
++            parent: self
++        });
++
+     },
+-    saveField: function(input) {
++    saveFields: function() {
+         var self = this;
+ 
+-        var name = input.attr("name");
+-        if (name != "tpsProfiles") {
+-            UserPage.__super__.saveField.call(self, input);
+-            return;
+-        }
++        UserPage.__super__.saveFields.call(self);
+ 
+         var attributes = self.entry.attributes;
+         if (attributes == undefined) {
+             attributes = {};
+             self.entry.attributes = attributes;
+         }
+-        attributes.tpsProfiles = input.val();
++        attributes.tpsProfiles = self.getProfiles().join();
++    },
++    renderContent: function() {
++        var self = this;
++
++        UserPage.__super__.renderContent.call(self);
++
++        if (self.mode == "add") {
++            self.profilesTable.mode = "edit";
++
++        } else if (self.mode == "edit") {
++            self.profilesTable.mode = "edit";
++
++        } else { // self.mode == "view"
++            self.profilesTable.mode = "view";
++        }
++
++        var profiles = [];
++        var attributes = self.entry.attributes;
++        if (attributes) {
++            var value = attributes.tpsProfiles;
++            if (value) {
++                profiles = value.split(',');
++            }
++        }
++
++        self.setProfiles(profiles);
++    },
++    setProfiles: function(profiles) {
++        var self = this;
++
++        self.profilesTable.entries = [];
++        _.each(profiles, function(profile) {
++            self.profilesTable.entries.push({ id: profile });
++        });
++
++        self.profilesTable.render();
++    },
++    getProfiles: function() {
++        var self = this;
++
++        var profiles = [];
++        _.each(self.profilesTable.entries, function(profile) {
++            profiles.push(profile.id);
++        });
++
++        return profiles;
+     }
+ });
+ 
+diff --git a/base/tps/shared/webapps/tps/ui/user.html b/base/tps/shared/webapps/tps/ui/user.html
+index 9a9f9505b3e07a9a62ef6de17a956a03376e17f2..79867f900744ec3e8c65464c42cc44dccb86f1be 100644
+--- a/base/tps/shared/webapps/tps/ui/user.html
++++ b/base/tps/shared/webapps/tps/ui/user.html
+@@ -51,7 +51,81 @@
+     <input name="type" readonly="readonly"><br>
+     <label>State</label>
+     <input name="state" readonly="readonly"><br>
+-    <label>TPS Profiles</label>
+-    <input name="tpsProfiles" readonly="readonly"><br>
+ </fieldset>
+ </div>
++
++<div name="profiles">
++
++<h2>Profiles</h2>
++
++<table name="list">
++<thead>
++    <tr>
++         <th class="pki-table-actions" colspan="2">
++             <span name="search">
++                 <input name="search" type="text" placeholder="Search...">
++             </span>
++             <span class="pki-table-buttons">
++                 <button name="add">Add</button>
++                 <button name="remove">Remove</button>
++             </span>
++         </th>
++    </tr>
++    <tr>
++        <th class="pki-select-column"><input id="user-profiles-selectall" type="checkbox"><label for="user-profiles-selectall">&nbsp;</label></th>
++        <th>Profile ID</th>
++    </tr>
++</thead>
++<tbody>
++    <tr>
++        <td class="pki-select-column"><input id="user-profiles-select" type="checkbox"><label for="user-profiles-select">&nbsp;</label></td>
++        <td name="id">${id}</td>
++    </tr>
++</tbody>
++<tfoot>
++    <tr>
++         <th class="pki-table-actions" colspan="2">
++             <div class="pki-table-info">
++                 Total: <span name="totalEntries">0</span> entries
++             </div>
++             <div class="pki-page-controls">
++                 <ul class="pagination">
++                     <li><a href="#" name="first"><span class="i fa fa-angle-double-left"></span></a></li>
++                     <li><a href="#" name="prev"><span class="i fa fa-angle-left"></span></a></li>
++                 </ul>
++                 <span class="pki-page-jump">
++                     <input name="page" type="text" value="1"> of <span name="totalPages">1</span>
++                 </span>
++                 <ul class="pagination">
++                     <li><a href="#" name="next"><span class="i fa fa-angle-right"></span></a></li>
++                     <li><a href="#" name="last"><span class="i fa fa-angle-double-right"></span></a></li>
++                 </ul>
++             </div>
++         </th>
++    </tr>
++</tfoot>
++</table>
++
++</div>
++
++<div id="user-profile-dialog" class="modal">
++    <div class="modal-dialog">
++        <div class="modal-content">
++            <div class="modal-header">
++                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
++                    <span class="pficon pficon-close"></span>
++                </button>
++                <h4 class="modal-title">Add Profile</h4>
++            </div>
++            <div class="modal-body">
++                Profile:
++                <select name="id">
++                </select>
++            </div>
++            <div class="modal-footer">
++                <button name="add" class="btn btn-primary">Add</button>
++                <button name="cancel" class="btn btn-default" data-dismiss="modal">Cancel</button>
++            </div>
++        </div>
++    </div>
++</div>
+-- 
+2.4.3
+

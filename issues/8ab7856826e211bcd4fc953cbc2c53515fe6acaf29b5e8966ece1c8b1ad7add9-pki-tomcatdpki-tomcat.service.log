@@ -1,0 +1,190 @@
+-- Logs begin at Wed 2013-11-27 14:48:21 CET, end at Fri 2014-01-31 15:36:51 CET. --
+Jan 31 15:27:19 vm-140.idm.lab.eng.brq.redhat.com systemd[1]: Starting PKI Tomcat Server pki-tomcat...
+Jan 31 15:27:19 vm-140.idm.lab.eng.brq.redhat.com pkidaemon[2125]: 'pki-tomcat' must still be CONFIGURED!
+Jan 31 15:27:19 vm-140.idm.lab.eng.brq.redhat.com pkidaemon[2125]: (see /var/log/pki-tomcat-install.log)
+Jan 31 15:27:19 vm-140.idm.lab.eng.brq.redhat.com systemd[1]: Started PKI Tomcat Server pki-tomcat.
+Jan 31 15:27:20 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Java virtual machine used: /usr/lib/jvm/jre/bin/java
+Jan 31 15:27:20 vm-140.idm.lab.eng.brq.redhat.com server[2272]: classpath used: /usr/share/tomcat/bin/bootstrap.jar:/usr/share/tomcat/bin/tomcat-juli.jar:/usr/share/java/commons-daemon.jar
+Jan 31 15:27:20 vm-140.idm.lab.eng.brq.redhat.com server[2272]: main class used: org.apache.catalina.startup.Bootstrap
+Jan 31 15:27:20 vm-140.idm.lab.eng.brq.redhat.com server[2272]: flags used: -DRESTEASY_LIB=/usr/share/java/resteasy
+Jan 31 15:27:20 vm-140.idm.lab.eng.brq.redhat.com server[2272]: options used: -Dcatalina.base=/var/lib/pki/pki-tomcat -Dcatalina.home=/usr/share/tomcat -Djava.endorsed.dirs= -Djava.io.tmpdir=/var/lib/pki/pki-tomcat/temp -Djava.util.logging.config.file=/var/lib/pki/pki-tomcat/conf/logging.properties -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager     -Djava.security.manager     -Djava.security.policy==/var/lib/pki/pki-tomcat/conf/catalina.policy
+Jan 31 15:27:20 vm-140.idm.lab.eng.brq.redhat.com server[2272]: arguments used: start
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:22 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'enableOCSP' to 'false' did not find a matching property.
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:22 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'ocspResponderURL' to 'http://vm-140.idm.lab.eng.brq.redhat.com:9080/ca/ocsp' did not find a matching property.
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:22 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'ocspResponderCertNickname' to 'ocspSigningCert cert-pki-ca' did not find a matching property.
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:22 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'ocspCacheSize' to '1000' did not find a matching property.
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:22 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'ocspMinCacheEntryDuration' to '60' did not find a matching property.
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:22 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'ocspMaxCacheEntryDuration' to '120' did not find a matching property.
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:22 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'ocspTimeout' to '10' did not find a matching property.
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:22 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'strictCiphers' to 'false' did not find a matching property.
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:22 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'sslOptions' to 'ssl2=true,ssl3=true,tls=true' did not find a matching property.
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:22 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'ssl2Ciphers' to '-SSL2_RC4_128_WITH_MD5,-SSL2_RC4_128_EXPORT40_WITH_MD5,-SSL2_RC2_128_CBC_WITH_MD5,-SSL2_RC2_128_CBC_EXPORT40_WITH_MD5,-SSL2_DES_64_CBC_WITH_MD5,-SSL2_DES_192_EDE3_CBC_WITH_MD5' did not find a matching property.
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:22 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'ssl3Ciphers' to '-SSL3_FORTEZZA_DMS_WITH_NULL_SHA,-SSL3_FORTEZZA_DMS_WITH_RC4_128_SHA,+SSL3_RSA_WITH_RC4_128_SHA,-SSL3_RSA_EXPORT_WITH_RC4_40_MD5,+SSL3_RSA_WITH_3DES_EDE_CBC_SHA,-SSL3_RSA_WITH_DES_CBC_SHA,-SSL3_RSA_EXPORT_WITH_RC2_CBC_40_MD5,-SSL3_FORTEZZA_DMS_WITH_FORTEZZA_CBC_SHA,-SSL_RSA_FIPS_WITH_DES_CBC_SHA,+SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA,-SSL3_RSA_WITH_NULL_MD5,-TLS_RSA_EXPORT1024_WITH_RC4_56_SHA,-TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA,+TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA' did not find a matching property.
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:22 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'tlsCiphers' to '-TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA,-TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA,+TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA,+TLS_ECDH_RSA_WITH_AES_128_CBC_SHA,+TLS_ECDH_RSA_WITH_AES_256_CBC_SHA,-TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA,+TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,+TLS_RSA_WITH_3DES_EDE_CBC_SHA,+TLS_RSA_WITH_AES_128_CBC_SHA,+TLS_RSA_WITH_AES_256_CBC_SHA,+TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA,+TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,-TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,-TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,-TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,+TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA,+TLS_DHE_DSS_WITH_AES_128_CBC_SHA,+TLS_DHE_DSS_WITH_AES_256_CBC_SHA,+TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA,+TLS_DHE_RSA_WITH_AES_128_CBC_SHA,+TLS_DHE_RSA_WITH_AES_256_CBC_SHA' did not find a matching property.
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:22 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'serverCertNickFile' to '/var/lib/pki/pki-tomcat/conf/serverCertNick.conf' did not find a matching property.
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:22 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'passwordFile' to '/var/lib/pki/pki-tomcat/conf/password.conf' did not find a matching property.
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:22 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'passwordClass' to 'org.apache.tomcat.util.net.jss.PlainPasswordFile' did not find a matching property.
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:22 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'certdbDir' to '/var/lib/pki/pki-tomcat/alias' did not find a matching property.
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:22 PM org.apache.tomcat.util.digester.SetPropertiesRule begin
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: WARNING: [SetPropertiesRule]{Server/Service/Engine/Host} Setting property 'xmlValidation' to 'false' did not find a matching property.
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:22 PM org.apache.tomcat.util.digester.SetPropertiesRule begin
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: WARNING: [SetPropertiesRule]{Server/Service/Engine/Host} Setting property 'xmlNamespaceAware' to 'false' did not find a matching property.
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:22 PM org.apache.coyote.AbstractProtocol init
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: INFO: Initializing ProtocolHandler ["http-bio-8080"]
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:22 PM org.apache.coyote.AbstractProtocol init
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: INFO: Initializing ProtocolHandler ["http-bio-8443"]
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: JSSSocketFactory init - exception thrown:java.lang.NullPointerException
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:22 PM org.apache.coyote.AbstractProtocol init
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: INFO: Initializing ProtocolHandler ["ajp-bio-127.0.0.1-8009"]
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:22 PM org.apache.catalina.startup.Catalina load
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: INFO: Initialization processed in 1960 ms
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:22 PM org.apache.catalina.core.StandardService startInternal
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: INFO: Starting service Catalina
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:22 PM org.apache.catalina.core.StandardEngine startInternal
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: INFO: Starting Servlet Engine: Apache Tomcat/7.0.47
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:22 PM org.apache.catalina.startup.HostConfig deployDirectory
+Jan 31 15:27:22 vm-140.idm.lab.eng.brq.redhat.com server[2272]: INFO: Deploying web application directory /var/lib/pki/pki-tomcat/webapps/ca
+Jan 31 15:27:23 vm-140.idm.lab.eng.brq.redhat.com server[2272]: SSLAuthenticatorWithFallback: Creating SSL authenticator with fallback
+Jan 31 15:27:23 vm-140.idm.lab.eng.brq.redhat.com server[2272]: SSLAuthenticatorWithFallback: Setting container
+Jan 31 15:27:27 vm-140.idm.lab.eng.brq.redhat.com server[2272]: SSLAuthenticatorWithFallback: Initializing authenticators
+Jan 31 15:27:27 vm-140.idm.lab.eng.brq.redhat.com server[2272]: SSLAuthenticatorWithFallback: Starting authenticators
+Jan 31 15:27:29 vm-140.idm.lab.eng.brq.redhat.com server[2272]: CMS Warning: FAILURE: Cannot build CA chain. Error java.security.cert.CertificateException: Certificate is not a PKCS #11 certificate|FAILURE: authz instance DirAclAuthz initialization failed and skipped, error=Property internaldb.ldapconn.port missing value|
+Jan 31 15:27:29 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Server is started.
+Jan 31 15:27:29 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:29 PM org.apache.catalina.startup.HostConfig deployDirectory
+Jan 31 15:27:29 vm-140.idm.lab.eng.brq.redhat.com server[2272]: INFO: Deploying web application directory /var/lib/pki/pki-tomcat/webapps/pki
+Jan 31 15:27:31 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:31 PM org.apache.catalina.startup.HostConfig deployDirectory
+Jan 31 15:27:31 vm-140.idm.lab.eng.brq.redhat.com server[2272]: INFO: Deploying web application directory /var/lib/pki/pki-tomcat/webapps/ROOT
+Jan 31 15:27:31 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:31 PM org.apache.coyote.AbstractProtocol start
+Jan 31 15:27:31 vm-140.idm.lab.eng.brq.redhat.com server[2272]: INFO: Starting ProtocolHandler ["http-bio-8080"]
+Jan 31 15:27:32 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:32 PM org.apache.coyote.AbstractProtocol start
+Jan 31 15:27:32 vm-140.idm.lab.eng.brq.redhat.com server[2272]: INFO: Starting ProtocolHandler ["http-bio-8443"]
+Jan 31 15:27:32 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:32 PM org.apache.coyote.AbstractProtocol start
+Jan 31 15:27:32 vm-140.idm.lab.eng.brq.redhat.com server[2272]: INFO: Starting ProtocolHandler ["ajp-bio-127.0.0.1-8009"]
+Jan 31 15:27:32 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:27:32 PM org.apache.catalina.startup.Catalina start
+Jan 31 15:27:32 vm-140.idm.lab.eng.brq.redhat.com server[2272]: INFO: Server startup in 9192 ms
+Jan 31 15:27:33 vm-140.idm.lab.eng.brq.redhat.com server[2272]: 15:27:33,515  INFO (org.jboss.resteasy.plugins.server.servlet.ServletContainerDispatcher:82) - Deploying javax.ws.rs.core.Application: class com.netscape.ca.CertificateAuthorityApplication
+Jan 31 15:27:33 vm-140.idm.lab.eng.brq.redhat.com server[2272]: 15:27:33,525  INFO (org.jboss.resteasy.plugins.server.servlet.ServletContainerDispatcher:82) - Adding class resource com.netscape.cms.servlet.account.AccountService from Application class com.netscape.ca.CertificateAuthorityApplication
+Jan 31 15:27:33 vm-140.idm.lab.eng.brq.redhat.com server[2272]: 15:27:33,531  INFO (org.jboss.resteasy.plugins.server.servlet.ServletContainerDispatcher:82) - Adding class resource com.netscape.cmscore.logging.AuditService from Application class com.netscape.ca.CertificateAuthorityApplication
+Jan 31 15:27:33 vm-140.idm.lab.eng.brq.redhat.com server[2272]: 15:27:33,532  INFO (org.jboss.resteasy.plugins.server.servlet.ServletContainerDispatcher:82) - Adding class resource com.netscape.cms.servlet.csadmin.SystemConfigService from Application class com.netscape.ca.CertificateAuthorityApplication
+Jan 31 15:27:33 vm-140.idm.lab.eng.brq.redhat.com server[2272]: 15:27:33,532  INFO (org.jboss.resteasy.plugins.server.servlet.ServletContainerDispatcher:82) - Adding class resource com.netscape.cms.servlet.cert.CertService from Application class com.netscape.ca.CertificateAuthorityApplication
+Jan 31 15:27:33 vm-140.idm.lab.eng.brq.redhat.com server[2272]: 15:27:33,533  INFO (org.jboss.resteasy.plugins.server.servlet.ServletContainerDispatcher:82) - Adding class resource com.netscape.cms.servlet.request.CertRequestService from Application class com.netscape.ca.CertificateAuthorityApplication
+Jan 31 15:27:33 vm-140.idm.lab.eng.brq.redhat.com server[2272]: 15:27:33,534  INFO (org.jboss.resteasy.plugins.server.servlet.ServletContainerDispatcher:82) - Adding class resource com.netscape.cms.servlet.profile.ProfileService from Application class com.netscape.ca.CertificateAuthorityApplication
+Jan 31 15:27:33 vm-140.idm.lab.eng.brq.redhat.com server[2272]: 15:27:33,547  INFO (org.jboss.resteasy.plugins.server.servlet.ServletContainerDispatcher:82) - Adding class resource com.netscape.cmscore.selftests.SelfTestService from Application class com.netscape.ca.CertificateAuthorityApplication
+Jan 31 15:27:33 vm-140.idm.lab.eng.brq.redhat.com server[2272]: 15:27:33,548  INFO (org.jboss.resteasy.plugins.server.servlet.ServletContainerDispatcher:82) - Adding class resource com.netscape.cms.servlet.admin.GroupService from Application class com.netscape.ca.CertificateAuthorityApplication
+Jan 31 15:27:33 vm-140.idm.lab.eng.brq.redhat.com server[2272]: 15:27:33,549  INFO (org.jboss.resteasy.plugins.server.servlet.ServletContainerDispatcher:82) - Adding class resource com.netscape.cms.servlet.admin.UserService from Application class com.netscape.ca.CertificateAuthorityApplication
+Jan 31 15:27:33 vm-140.idm.lab.eng.brq.redhat.com server[2272]: 15:27:33,549  INFO (org.jboss.resteasy.plugins.server.servlet.ServletContainerDispatcher:82) - Adding class resource com.netscape.cms.servlet.admin.SystemCertService from Application class com.netscape.ca.CertificateAuthorityApplication
+Jan 31 15:27:33 vm-140.idm.lab.eng.brq.redhat.com server[2272]: 15:27:33,550  INFO (org.jboss.resteasy.plugins.server.servlet.ServletContainerDispatcher:82) - Adding class resource com.netscape.cms.servlet.admin.KRAConnectorService from Application class com.netscape.ca.CertificateAuthorityApplication
+Jan 31 15:27:33 vm-140.idm.lab.eng.brq.redhat.com server[2272]: 15:27:33,554  INFO (org.jboss.resteasy.plugins.server.servlet.ServletContainerDispatcher:82) - Adding provider class com.netscape.certsrv.base.PKIException$Mapper from Application class com.netscape.ca.CertificateAuthorityApplication
+Jan 31 15:27:33 vm-140.idm.lab.eng.brq.redhat.com server[2272]: 15:27:33,555  INFO (org.jboss.resteasy.plugins.server.servlet.ServletContainerDispatcher:82) - Adding singleton provider com.netscape.cms.authorization.AuthMethodInterceptor from Application class com.netscape.ca.CertificateAuthorityApplication
+Jan 31 15:27:33 vm-140.idm.lab.eng.brq.redhat.com server[2272]: 15:27:33,555  INFO (org.jboss.resteasy.plugins.server.servlet.ServletContainerDispatcher:82) - Adding singleton provider com.netscape.cms.authorization.ACLInterceptor from Application class com.netscape.ca.CertificateAuthorityApplication
+Jan 31 15:27:34 vm-140.idm.lab.eng.brq.redhat.com server[2272]: 15:27:34,066 DEBUG (org.jboss.resteasy.core.SynchronousDispatcher:60) - PathInfo: /installer/configure
+Jan 31 15:28:33 vm-140.idm.lab.eng.brq.redhat.com systemd[1]: Stopping PKI Tomcat Server pki-tomcat...
+Jan 31 15:28:33 vm-140.idm.lab.eng.brq.redhat.com server[2439]: Java virtual machine used: /usr/lib/jvm/jre/bin/java
+Jan 31 15:28:33 vm-140.idm.lab.eng.brq.redhat.com server[2439]: classpath used: /usr/share/tomcat/bin/bootstrap.jar:/usr/share/tomcat/bin/tomcat-juli.jar:/usr/share/java/commons-daemon.jar
+Jan 31 15:28:33 vm-140.idm.lab.eng.brq.redhat.com server[2439]: main class used: org.apache.catalina.startup.Bootstrap
+Jan 31 15:28:33 vm-140.idm.lab.eng.brq.redhat.com server[2439]: flags used: -DRESTEASY_LIB=/usr/share/java/resteasy
+Jan 31 15:28:33 vm-140.idm.lab.eng.brq.redhat.com server[2439]: options used: -Dcatalina.base=/var/lib/pki/pki-tomcat -Dcatalina.home=/usr/share/tomcat -Djava.endorsed.dirs= -Djava.io.tmpdir=/var/lib/pki/pki-tomcat/temp -Djava.util.logging.config.file=/var/lib/pki/pki-tomcat/conf/logging.properties -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
+Jan 31 15:28:33 vm-140.idm.lab.eng.brq.redhat.com server[2439]: arguments used: stop
+Jan 31 15:28:33 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:28:33 PM org.apache.catalina.core.StandardServer await
+Jan 31 15:28:33 vm-140.idm.lab.eng.brq.redhat.com server[2272]: INFO: A valid shutdown command was received via the shutdown port. Stopping the Server instance.
+Jan 31 15:28:33 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:28:33 PM org.apache.coyote.AbstractProtocol pause
+Jan 31 15:28:33 vm-140.idm.lab.eng.brq.redhat.com server[2272]: INFO: Pausing ProtocolHandler ["http-bio-8080"]
+Jan 31 15:28:33 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:28:33 PM org.apache.coyote.AbstractProtocol pause
+Jan 31 15:28:33 vm-140.idm.lab.eng.brq.redhat.com server[2272]: INFO: Pausing ProtocolHandler ["http-bio-8443"]
+Jan 31 15:28:33 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:28:33 PM org.apache.coyote.AbstractProtocol pause
+Jan 31 15:28:33 vm-140.idm.lab.eng.brq.redhat.com server[2272]: INFO: Pausing ProtocolHandler ["ajp-bio-127.0.0.1-8009"]
+Jan 31 15:28:33 vm-140.idm.lab.eng.brq.redhat.com server[2272]: Jan 31, 2014 3:28:33 PM org.apache.catalina.core.StandardService stopInternal
+Jan 31 15:28:33 vm-140.idm.lab.eng.brq.redhat.com server[2272]: INFO: Stopping service Catalina
+Jan 31 15:28:34 vm-140.idm.lab.eng.brq.redhat.com systemd[1]: Stopped PKI Tomcat Server pki-tomcat.
+Jan 31 15:28:34 vm-140.idm.lab.eng.brq.redhat.com systemd[1]: Starting PKI Tomcat Server pki-tomcat...
+Jan 31 15:28:34 vm-140.idm.lab.eng.brq.redhat.com systemd[1]: Started PKI Tomcat Server pki-tomcat.
+Jan 31 15:28:34 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Java virtual machine used: /usr/lib/jvm/jre/bin/java
+Jan 31 15:28:34 vm-140.idm.lab.eng.brq.redhat.com server[2624]: classpath used: /usr/share/tomcat/bin/bootstrap.jar:/usr/share/tomcat/bin/tomcat-juli.jar:/usr/share/java/commons-daemon.jar
+Jan 31 15:28:34 vm-140.idm.lab.eng.brq.redhat.com server[2624]: main class used: org.apache.catalina.startup.Bootstrap
+Jan 31 15:28:34 vm-140.idm.lab.eng.brq.redhat.com server[2624]: flags used: -DRESTEASY_LIB=/usr/share/java/resteasy
+Jan 31 15:28:34 vm-140.idm.lab.eng.brq.redhat.com server[2624]: options used: -Dcatalina.base=/var/lib/pki/pki-tomcat -Dcatalina.home=/usr/share/tomcat -Djava.endorsed.dirs= -Djava.io.tmpdir=/var/lib/pki/pki-tomcat/temp -Djava.util.logging.config.file=/var/lib/pki/pki-tomcat/conf/logging.properties -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager     -Djava.security.manager     -Djava.security.policy==/var/lib/pki/pki-tomcat/conf/catalina.policy
+Jan 31 15:28:34 vm-140.idm.lab.eng.brq.redhat.com server[2624]: arguments used: start
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:36 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'enableOCSP' to 'false' did not find a matching property.
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:36 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'ocspResponderURL' to 'http://vm-140.idm.lab.eng.brq.redhat.com:9080/ca/ocsp' did not find a matching property.
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:36 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'ocspResponderCertNickname' to 'ocspSigningCert cert-pki-ca' did not find a matching property.
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:36 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'ocspCacheSize' to '1000' did not find a matching property.
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:36 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'ocspMinCacheEntryDuration' to '60' did not find a matching property.
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:36 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'ocspMaxCacheEntryDuration' to '120' did not find a matching property.
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:36 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'ocspTimeout' to '10' did not find a matching property.
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:36 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'strictCiphers' to 'false' did not find a matching property.
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:36 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'sslOptions' to 'ssl2=true,ssl3=true,tls=true' did not find a matching property.
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:36 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'ssl2Ciphers' to '-SSL2_RC4_128_WITH_MD5,-SSL2_RC4_128_EXPORT40_WITH_MD5,-SSL2_RC2_128_CBC_WITH_MD5,-SSL2_RC2_128_CBC_EXPORT40_WITH_MD5,-SSL2_DES_64_CBC_WITH_MD5,-SSL2_DES_192_EDE3_CBC_WITH_MD5' did not find a matching property.
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:36 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'ssl3Ciphers' to '-SSL3_FORTEZZA_DMS_WITH_NULL_SHA,-SSL3_FORTEZZA_DMS_WITH_RC4_128_SHA,+SSL3_RSA_WITH_RC4_128_SHA,-SSL3_RSA_EXPORT_WITH_RC4_40_MD5,+SSL3_RSA_WITH_3DES_EDE_CBC_SHA,-SSL3_RSA_WITH_DES_CBC_SHA,-SSL3_RSA_EXPORT_WITH_RC2_CBC_40_MD5,-SSL3_FORTEZZA_DMS_WITH_FORTEZZA_CBC_SHA,-SSL_RSA_FIPS_WITH_DES_CBC_SHA,+SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA,-SSL3_RSA_WITH_NULL_MD5,-TLS_RSA_EXPORT1024_WITH_RC4_56_SHA,-TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA,+TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA' did not find a matching property.
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:36 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'tlsCiphers' to '-TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA,-TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA,+TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA,+TLS_ECDH_RSA_WITH_AES_128_CBC_SHA,+TLS_ECDH_RSA_WITH_AES_256_CBC_SHA,-TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA,+TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,+TLS_RSA_WITH_3DES_EDE_CBC_SHA,+TLS_RSA_WITH_AES_128_CBC_SHA,+TLS_RSA_WITH_AES_256_CBC_SHA,+TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA,+TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,-TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,-TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,-TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,+TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA,+TLS_DHE_DSS_WITH_AES_128_CBC_SHA,+TLS_DHE_DSS_WITH_AES_256_CBC_SHA,+TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA,+TLS_DHE_RSA_WITH_AES_128_CBC_SHA,+TLS_DHE_RSA_WITH_AES_256_CBC_SHA' did not find a matching property.
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:36 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'serverCertNickFile' to '/var/lib/pki/pki-tomcat/conf/serverCertNick.conf' did not find a matching property.
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:36 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'passwordFile' to '/var/lib/pki/pki-tomcat/conf/password.conf' did not find a matching property.
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:36 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'passwordClass' to 'org.apache.tomcat.util.net.jss.PlainPasswordFile' did not find a matching property.
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:36 PM org.apache.catalina.startup.SetAllPropertiesRule begin
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: WARNING: [SetAllPropertiesRule]{Server/Service/Connector} Setting property 'certdbDir' to '/var/lib/pki/pki-tomcat/alias' did not find a matching property.
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:36 PM org.apache.tomcat.util.digester.SetPropertiesRule begin
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: WARNING: [SetPropertiesRule]{Server/Service/Engine/Host} Setting property 'xmlValidation' to 'false' did not find a matching property.
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:36 PM org.apache.tomcat.util.digester.SetPropertiesRule begin
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: WARNING: [SetPropertiesRule]{Server/Service/Engine/Host} Setting property 'xmlNamespaceAware' to 'false' did not find a matching property.
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:36 PM org.apache.coyote.AbstractProtocol init
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: INFO: Initializing ProtocolHandler ["http-bio-8080"]
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:36 PM org.apache.coyote.AbstractProtocol init
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: INFO: Initializing ProtocolHandler ["http-bio-8443"]
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: JSSSocketFactory init - exception thrown:java.lang.NullPointerException
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:36 PM org.apache.coyote.AbstractProtocol init
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: INFO: Initializing ProtocolHandler ["ajp-bio-127.0.0.1-8009"]
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:36 PM org.apache.catalina.startup.Catalina load
+Jan 31 15:28:36 vm-140.idm.lab.eng.brq.redhat.com server[2624]: INFO: Initialization processed in 1893 ms
+Jan 31 15:28:37 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:37 PM org.apache.catalina.core.StandardService startInternal
+Jan 31 15:28:37 vm-140.idm.lab.eng.brq.redhat.com server[2624]: INFO: Starting service Catalina
+Jan 31 15:28:37 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:37 PM org.apache.catalina.core.StandardEngine startInternal
+Jan 31 15:28:37 vm-140.idm.lab.eng.brq.redhat.com server[2624]: INFO: Starting Servlet Engine: Apache Tomcat/7.0.47
+Jan 31 15:28:37 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:37 PM org.apache.catalina.startup.HostConfig deployDirectory
+Jan 31 15:28:37 vm-140.idm.lab.eng.brq.redhat.com server[2624]: INFO: Deploying web application directory /var/lib/pki/pki-tomcat/webapps/ca
+Jan 31 15:28:37 vm-140.idm.lab.eng.brq.redhat.com server[2624]: SSLAuthenticatorWithFallback: Creating SSL authenticator with fallback
+Jan 31 15:28:37 vm-140.idm.lab.eng.brq.redhat.com server[2624]: SSLAuthenticatorWithFallback: Setting container
+Jan 31 15:28:42 vm-140.idm.lab.eng.brq.redhat.com server[2624]: SSLAuthenticatorWithFallback: Initializing authenticators
+Jan 31 15:28:42 vm-140.idm.lab.eng.brq.redhat.com server[2624]: SSLAuthenticatorWithFallback: Starting authenticators
+Jan 31 15:28:44 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Invalid class name repositorytop
+Jan 31 15:28:44 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:44 PM org.apache.catalina.startup.HostConfig deployDirectory
+Jan 31 15:28:44 vm-140.idm.lab.eng.brq.redhat.com server[2624]: INFO: Deploying web application directory /var/lib/pki/pki-tomcat/webapps/pki
+Jan 31 15:28:45 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:45 PM org.apache.catalina.startup.HostConfig deployDirectory
+Jan 31 15:28:45 vm-140.idm.lab.eng.brq.redhat.com server[2624]: INFO: Deploying web application directory /var/lib/pki/pki-tomcat/webapps/ROOT
+Jan 31 15:28:46 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:46 PM org.apache.coyote.AbstractProtocol start
+Jan 31 15:28:46 vm-140.idm.lab.eng.brq.redhat.com server[2624]: INFO: Starting ProtocolHandler ["http-bio-8080"]
+Jan 31 15:28:46 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:46 PM org.apache.coyote.AbstractProtocol start
+Jan 31 15:28:46 vm-140.idm.lab.eng.brq.redhat.com server[2624]: INFO: Starting ProtocolHandler ["http-bio-8443"]
+Jan 31 15:28:46 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:46 PM org.apache.coyote.AbstractProtocol start
+Jan 31 15:28:46 vm-140.idm.lab.eng.brq.redhat.com server[2624]: INFO: Starting ProtocolHandler ["ajp-bio-127.0.0.1-8009"]
+Jan 31 15:28:46 vm-140.idm.lab.eng.brq.redhat.com server[2624]: Jan 31, 2014 3:28:46 PM org.apache.catalina.startup.Catalina start
+Jan 31 15:28:46 vm-140.idm.lab.eng.brq.redhat.com server[2624]: INFO: Server startup in 9816 ms

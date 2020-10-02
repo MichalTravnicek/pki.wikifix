@@ -1,0 +1,203 @@
+From 913fced6709f30da2ac05e5367fcfc05e1698a75 Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Fri, 13 May 2016 14:22:08 +1000
+Subject: [PATCH] Lightweight CAs: add issuer DN and serial to AuthorityData
+
+Add issuer DN and serial number to the AuthorityData object, as
+read-only attributes.  Values are displayed in the CLI, when present
+in the response data.
+
+Fixes: https://fedorahosted.org/pki/ticket/1618
+---
+ .../dogtagpki/server/ca/rest/AuthorityService.java | 18 +++++++++++++++---
+ .../netscape/certsrv/authority/AuthorityData.java  | 22 ++++++++++++++++++++++
+ .../netscape/cmstools/authority/AuthorityCLI.java  | 14 +++++++++++++-
+ .../cmstools/authority/AuthorityCreateCLI.java     |  2 +-
+ .../cmstools/authority/AuthorityDisableCLI.java    |  2 +-
+ .../cmstools/authority/AuthorityEnableCLI.java     |  2 +-
+ 6 files changed, 53 insertions(+), 7 deletions(-)
+
+diff --git a/base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java b/base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java
+index 29b7f78434a433360f34e9f821e6166ed19c604c..199ebef1a30c0cb946731ba448320f33611b3605 100644
+--- a/base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java
++++ b/base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java
+@@ -20,6 +20,7 @@ package org.dogtagpki.server.ca.rest;
+ 
+ import java.io.ByteArrayOutputStream;
+ import java.io.IOException;
++import java.math.BigInteger;
+ import java.security.cert.CertificateEncodingException;
+ import java.util.ArrayList;
+ import java.util.LinkedHashMap;
+@@ -270,14 +271,14 @@ public class AuthorityService extends PKIService implements AuthorityResource {
+     public Response enableCA(String aidString) {
+         return modifyCA(
+             aidString,
+-            new AuthorityData(null, null, null, null, true, null, null));
++            new AuthorityData(null, null, null, null, null, null, true, null, null));
+     }
+ 
+     @Override
+     public Response disableCA(String aidString) {
+         return modifyCA(
+             aidString,
+-            new AuthorityData(null, null, null, null, false, null, null));
++            new AuthorityData(null, null, null, null, null, null, false, null, null));
+     }
+ 
+     @Override
+@@ -321,7 +322,16 @@ public class AuthorityService extends PKIService implements AuthorityResource {
+         try {
+             dn = ca.getX500Name().toLdapDNString();
+         } catch (IOException e) {
+-            throw new PKIException("Error reading CA data: could not determine Issuer DN");
++            throw new PKIException("Error reading CA data: could not determine subject DN");
++        }
++
++        String issuerDN;
++        BigInteger serial;
++        try {
++            issuerDN = ca.getCACert().getIssuerDN().toString();
++            serial = ca.getCACert().getSerialNumber();
++        } catch (EBaseException e) {
++            throw new PKIException("Error reading CA data: missing CA cert", e);
+         }
+ 
+         AuthorityID parentAID = ca.getAuthorityParentID();
+@@ -330,6 +340,8 @@ public class AuthorityService extends PKIService implements AuthorityResource {
+             dn,
+             ca.getAuthorityID().toString(),
+             parentAID != null ? parentAID.toString() : null,
++            issuerDN,
++            serial,
+             ca.getAuthorityEnabled(),
+             ca.getAuthorityDescription(),
+             ca.isReady()
+diff --git a/base/common/src/com/netscape/certsrv/authority/AuthorityData.java b/base/common/src/com/netscape/certsrv/authority/AuthorityData.java
+index 84679567eb527cbf9fedd21705a72ca9c1a34a93..7d74caf97366ab79e14f9afce94041e17cea341a 100644
+--- a/base/common/src/com/netscape/certsrv/authority/AuthorityData.java
++++ b/base/common/src/com/netscape/certsrv/authority/AuthorityData.java
+@@ -21,6 +21,8 @@
+  */
+ package com.netscape.certsrv.authority;
+ 
++import java.math.BigInteger;
++
+ import javax.xml.bind.JAXBContext;
+ import javax.xml.bind.Marshaller;
+ import javax.xml.bind.Unmarshaller;
+@@ -70,6 +72,23 @@ public class AuthorityData {
+         return parentID;
+     }
+ 
++    /* Read-only for existing CAs */
++    @XmlAttribute
++    protected String issuerDN;
++
++    public String getIssuerDN() {
++        return issuerDN;
++    }
++
++
++    /* Read-only attribute */
++    @XmlAttribute
++    protected BigInteger serial;
++
++    public BigInteger getSerial() {
++        return serial;
++    }
++
+ 
+     @XmlAttribute
+     protected String dn;
+@@ -124,12 +143,15 @@ public class AuthorityData {
+     public AuthorityData(
+             Boolean isHostAuthority,
+             String dn, String id, String parentID,
++            String issuerDN, BigInteger serial,
+             Boolean enabled, String description,
+             Boolean ready) {
+         this.isHostAuthority = isHostAuthority;
+         this.dn = dn;
+         this.id = id;
+         this.parentID = parentID;
++        this.issuerDN = issuerDN;
++        this.serial = serial;
+         this.enabled = enabled;
+         this.description = description;
+         this.ready = ready;
+diff --git a/base/java-tools/src/com/netscape/cmstools/authority/AuthorityCLI.java b/base/java-tools/src/com/netscape/cmstools/authority/AuthorityCLI.java
+index f42660d6727059bc76ab7ccd0bd0b22a87bc5f9a..a3fccbb027e4391b2fb83621ff829117a07fa76f 100644
+--- a/base/java-tools/src/com/netscape/cmstools/authority/AuthorityCLI.java
++++ b/base/java-tools/src/com/netscape/cmstools/authority/AuthorityCLI.java
+@@ -1,5 +1,7 @@
+ package com.netscape.cmstools.authority;
+ 
++import java.math.BigInteger;
++
+ import com.netscape.certsrv.authority.AuthorityClient;
+ import com.netscape.certsrv.authority.AuthorityData;
+ import com.netscape.cmstools.cli.CLI;
+@@ -42,9 +44,19 @@ public class AuthorityCLI extends CLI {
+             System.out.println("  Host authority: true");
+         System.out.println("  Authority DN:   " + data.getDN());
+         System.out.println("  ID:             " + data.getID());
++
+         String parentAID = data.getParentID();
+         if (parentAID != null)
+-            System.out.println("  Parent ID:      " + data.getParentID());
++            System.out.println("  Parent ID:      " + parentAID);
++
++        String issuerDN = data.getIssuerDN();
++        if (issuerDN != null)
++            System.out.println("  Issuer DN:      " + issuerDN);
++
++        BigInteger serial = data.getSerial();
++        if (serial != null)
++            System.out.println("  Serial no:      " + serial);
++
+         System.out.println("  Enabled:        " + data.getEnabled());
+         System.out.println("  Ready to sign:  " + data.getReady());
+         String desc = data.getDescription();
+diff --git a/base/java-tools/src/com/netscape/cmstools/authority/AuthorityCreateCLI.java b/base/java-tools/src/com/netscape/cmstools/authority/AuthorityCreateCLI.java
+index 3c36ac756aeedde8d89505be871da3555b548434..7f40662b6b20844a05ee9bed1ad89fc77ee1118c 100644
+--- a/base/java-tools/src/com/netscape/cmstools/authority/AuthorityCreateCLI.java
++++ b/base/java-tools/src/com/netscape/cmstools/authority/AuthorityCreateCLI.java
+@@ -81,7 +81,7 @@ public class AuthorityCreateCLI extends CLI {
+ 
+         String dn = cmdArgs[0];
+         AuthorityData data = new AuthorityData(
+-            null, dn, null, parentAIDString, true /* enabled */, desc, null);
++            null, dn, null, parentAIDString, null, null, true /* enabled */, desc, null);
+         AuthorityData newData = authorityCLI.authorityClient.createCA(data);
+         AuthorityCLI.printAuthorityData(newData);
+     }
+diff --git a/base/java-tools/src/com/netscape/cmstools/authority/AuthorityDisableCLI.java b/base/java-tools/src/com/netscape/cmstools/authority/AuthorityDisableCLI.java
+index 85b38f0810a6cff3a8c2293feab3153c85e8fee2..b1265b50393a6c23b44f3fd290d468551c1e5a09 100644
+--- a/base/java-tools/src/com/netscape/cmstools/authority/AuthorityDisableCLI.java
++++ b/base/java-tools/src/com/netscape/cmstools/authority/AuthorityDisableCLI.java
+@@ -48,7 +48,7 @@ public class AuthorityDisableCLI extends CLI {
+         }
+ 
+         AuthorityData data = new AuthorityData(
+-            null, null, cmdArgs[0], null, false, null, null);
++            null, null, cmdArgs[0], null, null, null, false, null, null);
+         data = authorityCLI.authorityClient.modifyCA(data);
+         AuthorityCLI.printAuthorityData(data);
+     }
+diff --git a/base/java-tools/src/com/netscape/cmstools/authority/AuthorityEnableCLI.java b/base/java-tools/src/com/netscape/cmstools/authority/AuthorityEnableCLI.java
+index 936edca599b7d6391370284535584953f0180bc8..5afef455bfc6cb2cb6a24375c892a5585872538a 100644
+--- a/base/java-tools/src/com/netscape/cmstools/authority/AuthorityEnableCLI.java
++++ b/base/java-tools/src/com/netscape/cmstools/authority/AuthorityEnableCLI.java
+@@ -48,7 +48,7 @@ public class AuthorityEnableCLI extends CLI {
+         }
+ 
+         AuthorityData data = new AuthorityData(
+-            null, null, cmdArgs[0], null, true, null, null);
++            null, null, cmdArgs[0], null, null, null, true, null, null);
+         data = authorityCLI.authorityClient.modifyCA(data);
+         AuthorityCLI.printAuthorityData(data);
+     }
+-- 
+2.5.5
+

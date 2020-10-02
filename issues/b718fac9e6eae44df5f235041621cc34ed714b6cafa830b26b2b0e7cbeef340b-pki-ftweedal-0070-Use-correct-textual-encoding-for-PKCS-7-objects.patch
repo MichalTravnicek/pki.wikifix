@@ -1,0 +1,158 @@
+From 2e43f93d0727acdcc68f8c42809723fb099072be Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Wed, 13 Jan 2016 17:41:05 +1100
+Subject: [PATCH] Use correct textual encoding for PKCS #7 objects
+
+PKCS #7 objects are being output with the "CERTIFICATE CHAIN" label
+which is invalid (RFC 7468) and unrecognised by many programs
+(including OpenSSL).  Use the correct "PKCS7" label instead.
+
+Also do a drive-by refactor of the normalizeCertAndReq to remove
+some redundant code.
+
+Fixes: https://fedorahosted.org/pki/ticket/1699
+---
+ .../webapps/ca/agent/ca/displayBySerial.template   |  4 +--
+ .../webapps/ca/agent/ca/displayBySerial2.template  |  4 +--
+ .../ca/agent/ca/displayCertFromRequest.template    |  4 +--
+ .../webapps/ca/ee/ca/displayBySerial.template      |  4 +--
+ .../shared/webapps/ca/ee/ca/displayCaCert.template |  4 +--
+ .../com/netscape/cmsutil/crypto/CryptoUtil.java    | 35 ++--------------------
+ 6 files changed, 12 insertions(+), 43 deletions(-)
+
+diff --git a/base/ca/shared/webapps/ca/agent/ca/displayBySerial.template b/base/ca/shared/webapps/ca/agent/ca/displayBySerial.template
+index 3b58a47790dd9e99dbcdeb5fc520d5c3dd0eeec6..e02fe30ebb7fe29f68bf4032d026be2c4ddac02e 100644
+--- a/base/ca/shared/webapps/ca/agent/ca/displayBySerial.template
++++ b/base/ca/shared/webapps/ca/agent/ca/displayBySerial.template
+@@ -192,9 +192,9 @@ Base 64 encoded certificate with CA certificate chain in pkcs7 format
+ </font>
+ <p><pre>
+ <SCRIPT type="text/javascript">
+-document.writeln('-----BEGIN CERTIFICATE CHAIN-----');
++document.writeln('-----BEGIN PKCS7-----');
+ document.write(result.header.pkcs7ChainBase64);
+-document.writeln('-----END CERTIFICATE CHAIN-----');
++document.writeln('-----END PKCS7-----');
+ </SCRIPT>
+ </pre>
+ 
+diff --git a/base/ca/shared/webapps/ca/agent/ca/displayBySerial2.template b/base/ca/shared/webapps/ca/agent/ca/displayBySerial2.template
+index 7923f415326325acfc02b99e6c4caad60cbd7c01..f0604ef7fc3a7a9ec4c1dd016f0652c507e204dd 100644
+--- a/base/ca/shared/webapps/ca/agent/ca/displayBySerial2.template
++++ b/base/ca/shared/webapps/ca/agent/ca/displayBySerial2.template
+@@ -98,9 +98,9 @@ Base 64 encoded certificate
+ </font>
+ <p><pre>
+ <SCRIPT type="text/javascript">
+-document.writeln('-----BEGIN CERTIFICATE CHAIN-----');
++document.writeln('-----BEGIN PKCS7-----');
+ document.write(result.header.certChainBase64);
+-document.writeln('-----END CERTIFICATE CHAIN-----');
++document.writeln('-----END PKCS7-----');
+ </SCRIPT>
+ </pre>
+ 
+diff --git a/base/ca/shared/webapps/ca/agent/ca/displayCertFromRequest.template b/base/ca/shared/webapps/ca/agent/ca/displayCertFromRequest.template
+index f1148570c5e1cd3c251ee64008228da2e710b421..402154037790343061dc4a711de0d0fba738dbf2 100644
+--- a/base/ca/shared/webapps/ca/agent/ca/displayCertFromRequest.template
++++ b/base/ca/shared/webapps/ca/agent/ca/displayCertFromRequest.template
+@@ -102,9 +102,9 @@ function displayCert(cert)
+ 		'Base 64 encoded certificate with CA certificate chain in pkcs7 format'+
+ 		'</font>'+
+ 		'<p><pre>'+
+-		'-----BEGIN CERTIFICATE CHAIN-----');
++		'-----BEGIN PKCS7-----');
+ 		document.writeln(cert.pkcs7ChainBase64);
+-		document.writeln('-----END CERTIFICATE CHAIN-----'+
++		document.writeln('-----END PKCS7-----'+
+ 		'</pre>');
+ 
+ }
+diff --git a/base/ca/shared/webapps/ca/ee/ca/displayBySerial.template b/base/ca/shared/webapps/ca/ee/ca/displayBySerial.template
+index d1e65fa631e0107297cf8b5383197bb9e6f5c160..33bc45f22273a3fe537df81ce12d79b119e72991 100644
+--- a/base/ca/shared/webapps/ca/ee/ca/displayBySerial.template
++++ b/base/ca/shared/webapps/ca/ee/ca/displayBySerial.template
+@@ -117,9 +117,9 @@ Base 64 encoded certificate with CA certificate chain in pkcs7 format
+ </font>
+ <p><pre>
+ <SCRIPT LANGUAUGE="JavaScript">
+-document.writeln('-----BEGIN CERTIFICATE CHAIN-----');
++document.writeln('-----BEGIN PKCS7-----');
+ document.write(result.header.pkcs7ChainBase64);
+-document.writeln('-----END CERTIFICATE CHAIN-----');
++document.writeln('-----END PKCS7-----');
+ </SCRIPT>
+ </pre>
+ 
+diff --git a/base/ca/shared/webapps/ca/ee/ca/displayCaCert.template b/base/ca/shared/webapps/ca/ee/ca/displayCaCert.template
+index 49a91af11500daef2a5e7fbc042aba12595bf874..3e6a44da73f8d84286d37965096ff9dc8c8fbb1b 100644
+--- a/base/ca/shared/webapps/ca/ee/ca/displayCaCert.template
++++ b/base/ca/shared/webapps/ca/ee/ca/displayCaCert.template
+@@ -43,9 +43,9 @@ if (result.header.displayFormat == "chain") {
+     document.writeln('<center><b>' + result.header.subjectdn);
+     document.writeln('</b></center><p></font><br>');
+     document.writeln('<pre>');
+-    document.writeln('-----BEGIN CERTIFICATE CHAIN-----');
++    document.writeln('-----BEGIN PKCS7-----');
+     document.write(result.header.chainBase64);
+-    document.writeln('-----END CERTIFICATE CHAIN-----');
++    document.writeln('-----END PKCS7-----');
+     document.writeln('</pre>');
+ } else if (result.header.displayFormat == "individual") {
+     if (result.recordSet.length == 0) {
+diff --git a/base/util/src/com/netscape/cmsutil/crypto/CryptoUtil.java b/base/util/src/com/netscape/cmsutil/crypto/CryptoUtil.java
+index 2a3f95528251a326d8e66e44fa10e527d0c87f7f..e98027dcee49c0abf0176b6a932223ac74dbaeb1 100644
+--- a/base/util/src/com/netscape/cmsutil/crypto/CryptoUtil.java
++++ b/base/util/src/com/netscape/cmsutil/crypto/CryptoUtil.java
+@@ -1116,46 +1116,15 @@ public class CryptoUtil {
+         if (s == null) {
+             return s;
+         }
+-        s = s.replaceAll("-----BEGIN CERTIFICATE REQUEST-----", "");
+-        s = s.replaceAll("-----BEGIN NEW CERTIFICATE REQUEST-----", "");
+-        s = s.replaceAll("-----END CERTIFICATE REQUEST-----", "");
+-        s = s.replaceAll("-----END NEW CERTIFICATE REQUEST-----", "");
+-        s = s.replaceAll("-----BEGIN CERTIFICATE-----", "");
+-        s = s.replaceAll("-----END CERTIFICATE-----", "");
+-        s = s.replaceAll("-----BEGIN CERTIFICATE CHAIN-----", "");
+-        s = s.replaceAll("-----END CERTIFICATE CHAIN-----", "");
++        // grammar defined at https://tools.ietf.org/html/rfc7468#section-3
++        s = s.replaceAll("-----(BEGIN|END) [\\p{Print}&&[^- ]]([- ]?[\\p{Print}&&[^- ]])*-----", "");
+ 
+         StringBuffer sb = new StringBuffer();
+         StringTokenizer st = new StringTokenizer(s, "\r\n ");
+ 
+         while (st.hasMoreTokens()) {
+             String nextLine = st.nextToken();
+-
+             nextLine = nextLine.trim();
+-            if (nextLine.equals("-----BEGIN CERTIFICATE REQUEST-----")) {
+-                continue;
+-            }
+-            if (nextLine.equals("-----BEGIN NEW CERTIFICATE REQUEST-----")) {
+-                continue;
+-            }
+-            if (nextLine.equals("-----END CERTIFICATE REQUEST-----")) {
+-                continue;
+-            }
+-            if (nextLine.equals("-----END NEW CERTIFICATE REQUEST-----")) {
+-                continue;
+-            }
+-            if (nextLine.equals("-----BEGIN CERTIFICATE-----")) {
+-                continue;
+-            }
+-            if (nextLine.equals("-----END CERTIFICATE-----")) {
+-                continue;
+-            }
+-            if (nextLine.equals("-----BEGIN CERTIFICATE CHAIN-----")) {
+-                continue;
+-            }
+-            if (nextLine.equals("-----END CERTIFICATE CHAIN-----")) {
+-                continue;
+-            }
+             sb.append(nextLine);
+         }
+         return sb.toString();
+-- 
+2.5.0
+

@@ -1,0 +1,248 @@
+Index: tps/src/processor/RA_Enroll_Processor.cpp
+===================================================================
+--- tps/src/processor/RA_Enroll_Processor.cpp	(revision 2497)
++++ tps/src/processor/RA_Enroll_Processor.cpp	(working copy)
+@@ -4215,6 +4215,12 @@
+     int isGenerateandRecover = 0;
+     const char *FN="RA_Enroll_Processor::ProcessRecovery";
+ 
++    bool isECC = false;
++    BYTE algorithm;
++    CERTSubjectPublicKeyInfo*  spkix = NULL;
++    SECKEYECParams  *eccParams = NULL;
++    SECKEYPublicKey *pk_p = NULL;
++
+     RA::Debug("RA_Enroll_Processor::ProcessRecovery","entering...");
+     // get key version for audit logs
+     if (channel != NULL) {
+@@ -4235,6 +4241,16 @@
+         goto loser;
+     }
+ 
++    PR_snprintf((char *)configname, 256, "op.enroll.%s.keyGen.encryption.alg", tokenType);
++    //Default RSA_CRT=2
++    algorithm = (BYTE) RA::GetConfigStore()->GetConfigAsInt(configname, 2);
++    isECC = RA::isAlgorithmECC(algorithm);
++    if (isECC) {
++        RA::Debug("RA_Enroll_Processor::ProcessRecovery", "algorithm is ECC");
++    } else {
++        RA::Debug("RA_Enroll_Processor::ProcessRecovery", "algorithm is not ECC");
++    }
++
+     //We will have to rifle through the configuration to see if there any recovery operations with
+     //scheme "GenerateNewKeyandRecoverLast" which allows for recovering the old key AND generating a new
+     // one for the encryption type only. If this scheme is present, the number of certs for bump by
+@@ -4419,14 +4435,13 @@
+        
+ 			RA::Debug("RA_Enroll_Processor::ProcessRecovery", "begin recovery code");
+ 
+-			SECKEYPublicKey *pk_p = NULL;
+ 			SECItem si_mod;
+ 			Buffer *modulus=NULL;
+ 			SECItem *si_kid = NULL;
+ 			Buffer *keyid=NULL;
+ 			SECItem si_exp;
+ 			Buffer *exponent=NULL;
+-	CERTSubjectPublicKeyInfo*  spkix = NULL;
++            CERTSubjectPublicKeyInfo*  spki = NULL;
+ 
+                         //Now we have to get the original config params for the encryption cert and keys
+ 
+@@ -4601,7 +4616,7 @@
+ 			     goto rloser;
+ 			  */
+ 			} else
+-			  RA::Debug(LL_PER_PDU, "DoEnrollment", "o_priv = %s", o_priv);
++			  RA::Debug(LL_PER_PDU, "DoEnrollment", "o_priv not NULL");
+ 
+                         if (ivParam == NULL) {
+                             RA::Debug(LL_PER_CONNECTION,"RA_Enroll_Processor::ProcessRecovery",
+@@ -4621,7 +4636,6 @@
+ 			 */
+ 			SECStatus rv;
+ 			SECItem der;
+-			CERTSubjectPublicKeyInfo*  spki;
+                
+ 			der.type = (SECItemType) 0; /* initialize it, since convertAsciiToItem does not set it */
+ 			rv = ATOB_ConvertAsciiToItem (&der, o_pub);
+@@ -4636,7 +4650,6 @@
+ 			  RA::Debug(LL_PER_PDU, "ProcessRecovery", "item len=%d, item type=%d",der.len, der.type);
+ 
+ 			  spki = SECKEY_DecodeDERSubjectPublicKeyInfo(&der);
+-			  SECITEM_FreeItem(&der, PR_FALSE);
+ 
+ 			  if (spki != NULL) {
+ 			    RA::Debug("RA_Enroll_Processor::ProcessRecovery", "after converting public key spki is not NULL");
+@@ -4649,6 +4662,7 @@
+ 			    RA::Debug("RA_Enroll_Processor::ProcessRecovery", "after converting public key, spki is NULL");
+ 
+ 			}
++            SECITEM_FreeItem(&der, PR_FALSE);
+ 			SECKEY_DestroySubjectPublicKeyInfo(spki);
+ 
+ 			if( pk_p == NULL ) {
+@@ -4676,10 +4690,12 @@
+                           "key recovered successfully");
+ 
+ 
+-			/* fill in keyid, modulus, and exponent */
++            if (!isECC) {
++                /* fill in keyid, modulus, and exponent */
+ 
+-			si_mod = pk_p->u.rsa.modulus;
+-			modulus = new Buffer((BYTE*) si_mod.data, si_mod.len);
++                si_mod = pk_p->u.rsa.modulus;
++                modulus = new Buffer((BYTE*) si_mod.data, si_mod.len);
++            }
+ 
+ 			spkix = SECKEY_CreateSubjectPublicKeyInfo(pk_p);
+ 
+@@ -4695,12 +4711,15 @@
+ 			SECKEY_DestroySubjectPublicKeyInfo(spkix);
+ 
+ 			keyid = new Buffer((BYTE*) si_kid->data, si_kid->len);
+-			si_exp = pk_p->u.rsa.publicExponent;
+-			exponent =  new Buffer((BYTE*) si_exp.data, si_exp.len);
+ 
+-			RA::Debug(LL_PER_PDU, "RA_Enroll_Processor::Process",
+-				  " keyid, modulus and exponent are retrieved");
++            if (!isECC) {
++                si_exp = pk_p->u.rsa.publicExponent;
++                exponent =  new Buffer((BYTE*) si_exp.data, si_exp.len);
+ 
++                RA::Debug(LL_PER_PDU, "RA_Enroll_Processor::Process",
++                    " keyid, modulus and exponent are retrieved");
++            }
++
+                         ktypes[actualCertIndex] = PL_strdup(keyTypeValue);
+                         // We now store the token id of the original token
+                         // that generates this certificate so we can
+@@ -4829,8 +4848,9 @@
+ 			  pkcs11objx->AddObjectSpec(objSpec);
+ 			}
+ 			{
+-			  Buffer b = channel->CreatePKCS11CertAttrsBuffer(
+-									  KEY_TYPE_ENCRYPTION , certAttrId, label, keyid);
++              Buffer b = channel->CreatePKCS11CertAttrsBuffer(
++                  KEY_TYPE_ENCRYPTION , certAttrId, label, keyid);
++
+ 			  ObjectSpec *objSpec = 
+ 			    ObjectSpec::ParseFromTokenData(
+ 							   (certAttrId[0] << 24) +
+@@ -4840,9 +4860,17 @@
+ 			}
+ 
+ 			{
+-			  Buffer b = channel->CreatePKCS11PriKeyAttrsBuffer(KEY_TYPE_ENCRYPTION, 
+-									    privateKeyAttrId, label, keyid, modulus, OP_PREFIX, 
+-									    tokenType, keyTypePrefix);
++              Buffer b;
++              if (!isECC) {
++                  b = channel->CreatePKCS11PriKeyAttrsBuffer(KEY_TYPE_ENCRYPTION, 
++                      privateKeyAttrId, label, keyid, modulus, OP_PREFIX, 
++                      tokenType, keyTypePrefix);
++              } else { //isECC
++                  eccParams  =   &pk_p->u.ec.DEREncodedParams;
++                  b = channel->CreatePKCS11ECCPriKeyAttrsBuffer(KEY_TYPE_ENCRYPTION,
++                      privateKeyAttrId, label, keyid, eccParams, OP_PREFIX,
++                      tokenType, keyTypePrefix);
++              }
+ 			  ObjectSpec *objSpec = 
+ 			    ObjectSpec::ParseFromTokenData(
+ 							   (privateKeyAttrId[0] << 24) +
+@@ -4852,9 +4880,16 @@
+ 			}
+ 
+ 			{
+-			  Buffer b = channel->CreatePKCS11PubKeyAttrsBuffer(KEY_TYPE_ENCRYPTION, 
+-									    publicKeyAttrId, label, keyid, 
+-									    exponent, modulus, OP_PREFIX, tokenType, keyTypePrefix);
++              Buffer b;
++              if (!isECC) {
++                  b = channel->CreatePKCS11PubKeyAttrsBuffer(KEY_TYPE_ENCRYPTION, 
++                  publicKeyAttrId, label, keyid, 
++                  exponent, modulus, OP_PREFIX, tokenType, keyTypePrefix);
++             } else {
++                 b = channel->CreatePKCS11ECCPubKeyAttrsBuffer(KEY_TYPE_ENCRYPTION,
++                        publicKeyAttrId, label, keyid,&pk_p->u.ec, eccParams,
++                        OP_PREFIX, tokenType, keyTypePrefix);
++             }
+ 			  ObjectSpec *objSpec = 
+ 			    ObjectSpec::ParseFromTokenData(
+ 							   (publicKeyAttrId[0] << 24) +
+@@ -4979,8 +5014,11 @@
+     if( result != NULL ) {
+         ldap_msgfree( result );
+     }
++    if (pk_p != NULL) {
++            RA::Debug(LL_PER_CONNECTION,FN,"ProcessRecovery  about to call SECKEY_DestroyPublicKey on pk_p");
++            SECKEY_DestroyPublicKey(pk_p);
++    }
+ 
+-    
+      RA::Debug("RA_Enroll_Processor::ProcessRecovery","leaving whole function...");
+     return r;
+ }
+Index: tps/src/engine/RA.cpp
+===================================================================
+--- tps/src/engine/RA.cpp	(revision 2497)
++++ tps/src/engine/RA.cpp	(working copy)
+@@ -1238,7 +1238,10 @@
+ 	goto loser;
+       } else {
+ 	RA::Debug(LL_PER_PDU, "RecoverKey", "got public key =%s", tmp);
+-	*publicKey_s  = PL_strdup(tmp);
++          char *tmp_publicKey_s  = PL_strdup(tmp);
++          Buffer *decodePubKey = Util::URLDecode(tmp_publicKey_s);
++          *publicKey_s =
++              BTOA_DataToAscii(decodePubKey->getBuf(), decodePubKey->getLen());
+       }
+ 
+       tmp = NULL;
+@@ -1256,7 +1259,7 @@
+           RA::Error(LL_PER_PDU, "RecoverKey",
+               "did not get iv_param for recovered  key in DRM response");
+       } else {
+-          RA::Debug(LL_PER_PDU, "ServerSideKeyGen", "got iv_param for recovered key =%s", tmp);
++          RA::Debug(LL_PER_PDU, "RecoverKey", "got iv_param for recovered key =%s", tmp);
+           *ivParam_s  = PL_strdup(tmp);
+       }
+ 
+Index: kra/src/com/netscape/kra/TokenKeyRecoveryService.java
+===================================================================
+--- kra/src/com/netscape/kra/TokenKeyRecoveryService.java	(revision 2492)
++++ kra/src/com/netscape/kra/TokenKeyRecoveryService.java	(working copy)
+@@ -524,18 +524,18 @@
+         }
+ 
+ 		//convert and put in the public key
+-		String b64PKey = base64Encode(pubData);
++		String PubKey = com.netscape.cmsutil.util.Utils.SpecialEncode(pubData);
+ 
+ 		auditMessage = CMS.getLogMessage(
+ 			 LOGGING_SIGNED_AUDIT_KEY_RECOVERY_REQUEST,
+ 			 auditSubjectID,
+                         ILogger.SUCCESS,
+ 			 auditRecoveryID,
+-			 b64PKey);
++			 PubKey);
+ 
+                 audit(auditMessage);
+ 	    
+-		if (b64PKey == null) {
++		if (PubKey == null) {
+ 		    request.setExtData(IRequest.RESULT, Integer.valueOf(4));
+ 		    CMS.debug("TokenKeyRecoveryService: failed getting publickey encoded");
+             auditMessage = CMS.getLogMessage(
+@@ -549,9 +549,9 @@
+ 		    return false;
+ 		} else {
+ 		    CMS.debug("TokenKeyRecoveryService: got publicKeyData b64 = "+
+-			      b64PKey);
++			      PubKey);
+ 		}
+-		request.setExtData("public_key", b64PKey);
++		request.setExtData("public_key", PubKey);
+         auditMessage = CMS.getLogMessage(
+                LOGGING_SIGNED_AUDIT_KEY_RECOVERY_REQUEST_PROCESSED,
+                auditSubjectID,

@@ -1,0 +1,48 @@
+diff -ur pki-common-patch0/src/com/netscape/cms/servlet/tks/TokenServlet.java pki-common/src/com/netscape/cms/servlet/tks/TokenServlet.java
+--- pki-common-patch0/src/com/netscape/cms/servlet/tks/TokenServlet.java	2014-01-28 11:00:05.000000000 -0500
++++ pki-common/src/com/netscape/cms/servlet/tks/TokenServlet.java	2014-01-28 14:08:44.000000000 -0500
+@@ -656,18 +656,29 @@
+             cryptogram = 
+                 com.netscape.cmsutil.util.Utils.SpecialEncode(host_cryptogram);
+         } else {
+-            status = "2";
++            // AC: Bugfix: Don't override status's value if an error was already flagged
++            if (status.equals("0") == true){
++                status = "2";
++            }
+         }
+ 
+         if (selectedToken == null || keyNickName == null) {
+-            status = "4";
++            // AC: Bugfix: Don't override status's value if an error was already flagged
++            if (status.equals("0") == true){
++                status = "4";
++            }
+         }
+ 
+         if (!sameCardCrypto) {
+-            status = "3";
++            // AC: Bugfix: Don't override status's value if an error was already flagged
++            if (status.equals("0") == true){
++                // AC: Bugfix: Don't mis-represent host cryptogram mismatch errors as TPS parameter issues
++                status = "5";
++            }
+         }
+ 
+         if (missingParam) {
++            // AC: Intentionally override previous errors if parameters were missing.
+             status = "3";
+         }
+  
+@@ -681,6 +692,11 @@
+            if(status.equals("2")) {
+                errorMsg = "Problem creating host_cryptogram.";
+            }
++           
++           // AC: Bugfix: Don't mis-represent card cryptogram mismatch errors as TPS parameter issues
++           if(status.equals("5")){
++               errorMsg = "Card cryptogram mismatch. Token likely has incorrect keys.";
++           }
+  
+            if(status.equals("4")) {
+                errorMsg = "Problem obtaining token information.";

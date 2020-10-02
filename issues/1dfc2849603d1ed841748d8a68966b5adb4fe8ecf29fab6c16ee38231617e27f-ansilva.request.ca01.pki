@@ -1,0 +1,257 @@
+[15/Dec/2016:13:25:23][http-bio-8443-exec-13]: MainPageServlet process
+[15/Dec/2016:13:25:23][http-bio-8443-exec-13]: CMSServlet: curDate=Thu Dec 15 13:25:23 UTC 2016 id=services time=1
+[15/Dec/2016:13:26:29][http-bio-8443-exec-13]: according to ccMode, authorization for servlet: caProfileSelect is LDAP based, not XML {1}, use default authz mgr: {2}.
+[15/Dec/2016:13:26:29][http-bio-8443-exec-13]: according to ccMode, authorization for servlet: caProfileSelect is LDAP based, not XML {1}, use default authz mgr: {2}.
+[15/Dec/2016:13:26:29][http-bio-8443-exec-13]: CMSServlet:service() uri = /ca/ee/ca/profileSelect
+[15/Dec/2016:13:26:29][http-bio-8443-exec-13]: CMSServlet::service() param name='profileId' value='caECDirUserCert'
+[15/Dec/2016:13:26:29][http-bio-8443-exec-13]: CMSServlet: caProfileSelect start to service.
+[15/Dec/2016:13:26:29][http-bio-8443-exec-13]: ProfileSelectServlet: start serving
+[15/Dec/2016:13:26:29][http-bio-8443-exec-13]: CMSServlet: in auditSubjectID
+[15/Dec/2016:13:26:29][http-bio-8443-exec-13]: CMSServlet: auditSubjectID auditContext null
+[15/Dec/2016:13:26:29][http-bio-8443-exec-13]: CMSServlet: in auditGroupID
+[15/Dec/2016:13:26:29][http-bio-8443-exec-13]: CMSServlet: auditGroupID auditContext null
+[15/Dec/2016:13:26:29][http-bio-8443-exec-13]: checkACLS(): ACLEntry expressions= user="anybody"
+[15/Dec/2016:13:26:29][http-bio-8443-exec-13]: evaluating expressions: user="anybody"
+[15/Dec/2016:13:26:29][http-bio-8443-exec-13]: evaluated expression: user="anybody" to be true
+[15/Dec/2016:13:26:29][http-bio-8443-exec-13]: DirAclAuthz: authorization passed
+[15/Dec/2016:13:26:29][http-bio-8443-exec-13]: SignedAuditEventFactory: create() message=[AuditEvent=AUTHZ_SUCCESS][SubjectID=$Unidentified$][Outcome=Success][aclResource=certServer.ee.profile][Op=read] authorization success
+[15/Dec/2016:13:26:29][http-bio-8443-exec-13]: SignedAuditEventFactory: create() message=[AuditEvent=ROLE_ASSUME][SubjectID=$Unidentified$][Outcome=Success][Role=<null>] assume privileged role
+[15/Dec/2016:13:26:29][http-bio-8443-exec-13]: ProfileSelectServlet: SubId=profile
+[15/Dec/2016:13:26:29][http-bio-8443-exec-13]: ProfileSelectServlet: profileId=caECDirUserCert
+[15/Dec/2016:13:26:29][http-bio-8443-exec-13]: ProfileSelectServlet: keyArchivalEnabled is true
+[15/Dec/2016:13:26:29][http-bio-8443-exec-13]: CMSServlet: curDate=Thu Dec 15 13:26:29 UTC 2016 id=caProfileSelect time=10
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: according to ccMode, authorization for servlet: caProfileSubmit is LDAP based, not XML {1}, use default authz mgr: {2}.
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: according to ccMode, authorization for servlet: caProfileSubmit is LDAP based, not XML {1}, use default authz mgr: {2}.
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: CMSServlet:service() uri = /ca/ee/ca/profileSubmit
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: CMSServlet::service() param name='uid' value='ansilva'
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: CMSServlet::service() param name='pwd' value='(sensitive)'
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: CMSServlet::service() param name='cert_request_type' value='keygen'
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: CMSServlet::service() param name='cert_request' value='MIHxMHowdjAQBgcqhkjOPQIBBgUrgQQAIgNiAATDbLq4xAEugBhhlFpTB2TtmEyI
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: CMSServlet::service() param name='selectKeyType' value='EC'
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: CMSServlet::service() param name='sn_cert_name' value=''
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: CMSServlet::service() param name='profileId' value='caECDirUserCert'
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: CMSServlet::service() param name='renewal' value='false'
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: CMSServlet::service() param name='xmlOutput' value='false'
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: CMSServlet: caProfileSubmit start to service.
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: xmlOutput false
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: ProfileSubmitServlet: isRenewal false
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: according to ccMode, authorization for servlet: caProfileSubmit is LDAP based, not XML {1}, use default authz mgr: {2}.
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: ProfileSubmitServlet: profile: caECDirUserCert
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: CAProcessor: Input Parameters:
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: CAProcessor: - isRenewal: false
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: CAProcessor: - remoteHost: 10.13.97.79
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: CAProcessor: - cert_request_type: keygen
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: CAProcessor: - sn_cert_name: 
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: CAProcessor: - profileId: caECDirUserCert
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: CAProcessor: - cert_request: MIHxMHowdjAQBgcqhkjOPQIBBgUrgQQAIgNiAATDbLq4xAEugBhhlFpTB2TtmEyI
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: CAProcessor: - remoteAddr: 10.13.97.79
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: EnrollmentProcessor: isRenewal false
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: EnrollmentProcessor: profileId caECDirUserCert
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: EnrollmentProcessor: set Inputs into profile Context
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: EnrollmentProcessor: authenticator UserDirEnrollment found
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: CertProcessor: Authentication credentials:
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: EnrollmentProcessor: set sslClientCertProvider
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: authenticate: authentication required.
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: CMSServlet: in auditSubjectID
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: CMSServlet: auditSubjectID auditContext {sslClientCertProvider=com.netscape.cms.servlet.profile.SSLClientCertProvider@3f6a7f65, profileContext=com.netscape.cms.profile.common.ProfileContext@38a0ae30}
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: CMSServlet auditSubjectID: subjectID: null
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: DirBasedAuthentication: authenticate: begins...mBoundConnEnable=true
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: DirBasedAuthentication: authenticate: mConnFactory class name = com.netscape.cmscore.ldapconn.LdapBoundConnFactory
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: DirBasedAuthentication: authenticate: mConnFactory not null, calling getConn
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: In LdapBoundConnFactory::getConn()
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: masterConn is connected: true
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: getConn: conn is connected true
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: getConn: mNumConns now 4
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: DirBasedAuthentication: authenticate: before authenticate() call
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: Authenticating UID=ansilva
+[15/Dec/2016:13:26:47][http-bio-8443-exec-13]: UidPwdDirAuthentication: Authenticating: Searching for uid=ansilva base DN=dc=redhat,dc=com
+[15/Dec/2016:13:42:16][http-bio-8443-exec-13]: SSL handshake happened
+[15/Dec/2016:13:42:16][http-bio-8443-exec-13]: UidPwdDirAuthentication: Authenticating: Found User DN=uid=ansilva,ou=users,dc=redhat,dc=com
+[15/Dec/2016:13:42:16][http-bio-8443-exec-13]: SSL handshake happened
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: UidPwdDirAuthentication: Authenticate: Found memberOf attribute
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: DirBasedAuthentication: authenticate: after authenticate() call
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: DirBasedAuthentication: formed DN 'E=ansilva@redhat.com,CN=Anderson Silva'
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: returnConn: mNumConns now 5
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: SignedAuditEventFactory: create() message=[AuditEvent=AUTH_SUCCESS][SubjectID=$NonRoleUser$ : MAkTB2Fuc2lsdmE=
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor authToken not null
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: authz using acl: 
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: Repository: in getNextSerialNumber. 
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: Repository: checkRange  mLastSerialNo=1852
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: Repository: getNextSerialNumber: returning retSerial 1852
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: EnrollProfile: setDefaultCertInfo: setting issuerDN using exact CA signing cert subjectDN encoding
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: EnrollProfile: createRequest 1852
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: profileSetid=userCertSet
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: request 1852
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: populating request inputs
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: BasicProfile: populate() policy setid =userCertSet
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: SubjectNameDefault: populate start
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: subjectName=CN=Anderson Silva ,e=ansilva@redhat.com,UID=ansilva,OU=users,DC=redhat,DC=com
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: SubjectNameDefault: populate end
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: ValidityDefault: populate start
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: ValidityDefault: start time: 0
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: ValidityDefault: not before: Thu Dec 15 13:42:17 UTC 2016
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: ValidityDefault: range: 730
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: ValidityDefault: range unit: day
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: ValidityDefault: not after: Sat Dec 15 13:42:17 UTC 2018
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: ValidityDefault: populate end
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: UserKeyDefault: populate start
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: UserKeyDefault: populate end
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: AuthorityKeyIdentifierExtDefault: populate start
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: AuthorityKeyIdentifierExtDefault: populate end
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: AuthInfoAccessExtDefault: populate start
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: AuthInfoAccess: createExtension i=0
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: AuthInfoAccessExtDefault: populate end
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: KeyUsageExtDefault: populate start
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: KeyUsageExtDefault: populate end
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: ExtendedKeyUsageExtDefault: populate start
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: ExtendedKeyUsageExtDefault: populate end
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: SubjectAltNameExtDefault: populate start
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: SubjectAltNameExtDefault: createExtension i=0
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: SubjectAltNameExtDefault: createExtension() pattern=$request.auth_token.mail[0]$
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: SubjectAltNameExtDefault: createExtension got gname=ansilva@redhat.com with type=RFC822Name
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: adding gname: ansilva@redhat.com
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: SubjectAlternativeNameExtension: n not null
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: SubjectAltNameExtDefault: populate end
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: SigningAlgDefault: populate start
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: SigningAlgDefault: populate end
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CMSServlet: in auditSubjectID
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CMSServlet: auditSubjectID auditContext {sslClientCertProvider=com.netscape.cms.servlet.profile.SSLClientCertProvider@3f6a7f65, userid=ansilva, profileContext=com.netscape.cms.profile.common.ProfileContext@38a0ae30, authManagerId=UserDirEnrollment}
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CMSServlet auditSubjectID: subjectID: ansilva
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: Request:
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - cert_request: MIHxMHowdjAQBgcqhkjOPQIBBgUrgQQAIgNiAATDbLq4xAEugBhhlFpTB2TtmEyI
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - req_x509info: MIICOaADAgECAgEAMA0GCSqGSIb3DQEBCwUAMEExEDAOBgNVBAoMB1JlZCBIYXQx
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - auth_token.userid: ansilva
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - auth_token.mail[0]: ansilva@redhat.com
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - profile: true
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - profileid: caECDirUserCert
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - profileremoteaddr: 10.13.97.79
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - req_extensions: owIwAA==
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - auth_token.groups[1]: cn=Employee,ou=userClass,dc=redhat,dc=com
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - sn_cert_name: 
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - req_locale: en
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - auth_token.groups[4]: cn=GCA-EvmGroup-super_administrator,ou=servicegroups,dc=redhat,dc=com
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - auth_token.groups[7]: cn=rhev-lts-access,ou=servicegroups,dc=redhat,dc=com
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - auth_token.groups[11]: cn=extidp-client-access,ou=servicegroups,dc=redhat,dc=com
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - auth_token.tokencertsubject: E=ansilva@redhat.com,CN=Anderson Silva
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - auth_token.authmgrinstname: UserDirEnrollment
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - authenticatedname: uid=ansilva,ou=users,dc=redhat,dc=com
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - auth_token.authtime: 1481808407726
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - profilesetid: userCertSet
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - profileapprovedby: admin
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - auth_token.groups[0]: cn=Directory Administrators,dc=redhat,dc=com
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - auth_token.cn[0]: Anderson Silva
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - auth_token.groups[3]: cn=gcapc-access-rhev,ou=servicegroups,dc=redhat,dc=com
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - auth_token.groups[6]: cn=rhev-cpls-access,ou=servicegroups,dc=redhat,dc=com
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - auth_token.groups[10]: cn=itos-dev-access,ou=servicegroups,dc=redhat,dc=com
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - auth_token.userdn: uid=ansilva,ou=users,dc=redhat,dc=com
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - auth_token.groups[9]: cn=pki-itdevs,ou=servicegroups,dc=redhat,dc=com
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - auth_token.groups[13]: cn=it-iam-ops-prod,ou=itpaasGroups,dc=redhat,dc=com
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - dbstatus: NOT_UPDATED
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - auth_token.uid[0]: ansilva
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - req_seq_num: 0
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - profileremotehost: 10.13.97.79
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - req_key: MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEw2y6uMQBLoAYYZRaUwdk7ZhMiG4oBb+H
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - requestversion: 1.0.0
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - requeststatus: begin
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - requesttype: enrollment
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - auth_token.groups[2]: cn=soc-access,ou=servicegroups,dc=redhat,dc=com
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - cert_request_type: keygen
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - auth_token.groups[5]: cn=devlab-tower-iam-access,ou=servicegroups,dc=redhat,dc=com
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - auth_token.authmgrimplname: UidPwdDirAuth
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - auth_token.groups[8]: cn=pki-ops,ou=servicegroups,dc=redhat,dc=com
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - requestid: 1852
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertProcessor: - auth_token.groups[12]: cn=it-iam-dev,ou=itpaasGroups,dc=redhat,dc=com
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: In LdapBoundConnFactory::getConn()
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: masterConn is connected: true
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: getConn: conn is connected true
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: getConn: mNumConns now 4
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: returnConn: mNumConns now 5
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: EnrollProfile: auth token is not null
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: SignedAuditEventFactory: create() message=[AuditEvent=PROFILE_CERT_REQUEST][SubjectID=ansilva][Outcome=Success][ReqID=1852][ProfileID=caECDirUserCert][CertSubject=CN=Anderson Silva,E=ansilva@redhat.com,UID=ansilva,OU=users,DC=redhat,DC=com] certificate request made with certificate profiles
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: BasicProfile: validate start on setId=userCertSet
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: RenewGracePeriodConstraint: validate start
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: RenewGracePeriodConstraint: validate end
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: ValidityConstraint: validate start
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: ValidityConstraint: not before: Thu Dec 15 13:42:17 UTC 2016
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: ValidityConstraint: not after: Sat Dec 15 13:42:17 UTC 2018
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: ValidityConstraint: range: 730
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: ValidityConstraint: range unit: day
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: ValidityConstraint: limit: Sat Dec 15 13:42:17 UTC 2018
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: ValidityConstraint: validate end
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: KeyConstraint: validate start
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: vect: [nistp384, secp384r1]
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: keyParams[i]: 0 param: nistp256
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: keyParams[i]: 1 param: nistp384
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: KeyConstraint.validate: EC key constrainst passed.
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: KeyConstraint: validate end
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: KeyUsageExtConstraint: validate start
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: KeyUsageExtConstraint: validate end
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: SigningAlgConstraint: validate start
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: SigningAlgConstraint: validate end
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: BasicProfile: change to pending state
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: BasicProfile: validate end
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: EnrollProfile certInfo : [
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CAEnrollProfile: execute reqId=1852
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: issueX509Cert
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: dnUTF8Encoding false
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CertificateRepository: getNextSerialNumber  mEnableRandomSerialNumbers=false
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: Repository: in getNextSerialNumber. 
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: Repository: checkRange  mLastSerialNo=1702
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: Repository: getNextSerialNumber: returning retSerial 1702
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CAService: issueX509Cert: setting issuerDN using exact CA signing cert subjectDN encoding
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: About to mCA.sign cert.
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: sign cert get algorithm
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: sign cert encoding cert
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: sign cert encoding algorithm
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CA cert signing: signing cert
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: Getting algorithm context for SHA256withRSA RSASignatureWithSHA256Digest
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: Signing Certificate
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: storeX509Cert 1702
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: In storeX509Cert
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: In LdapBoundConnFactory::getConn()
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: masterConn is connected: true
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: getConn: conn is connected true
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: getConn: mNumConns now 4
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: returnConn: mNumConns now 5
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: done storeX509Cert
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: SignedAuditEventFactory: create() message=[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=ansilva][Outcome=Success][ReqID=1852][InfoName=certificate][InfoValue=MIIDUjCCAjqgAwIBAgICBqYwDQYJKoZIhvcNAQELBQAwQTEQMA4GA1UECgwHUmVkIEhhdDENMAsGA1UECwwEcHJvZDEeMBwGA1UEAwwVQ2VydGlmaWNhdGUgQXV0aG9yaXR5MB4XDTE2MTIxNTEzNDIxN1oXDTE4MTIxNTEzNDIxN1owgZIxEzARBgoJkiaJk/IsZAEZFgNjb20xFjAUBgoJkiaJk/IsZAEZFgZyZWRoYXQxDjAMBgNVBAsMBXVzZXJzMRcwFQYKCZImiZPyLGQBAQwHYW5zaWx2YTEhMB8GCSqGSIb3DQEJARYSYW5zaWx2YUByZWRoYXQuY29tMRcwFQYDVQQDDA5BbmRlcnNvbiBTaWx2YTB2MBAGByqGSM49AgEGBSuBBAAiA2IABMNsurjEAS6AGGGUWlMHZO2YTIhuKAW/h9H6ArCt5Lh6/FikaP2sbnUcN8uqW9knTjed75/05lx5vaE94M7ZSL0Jl9W3ahNbEespJDP/Ipd54mmEQphw8ot2st1lKYdTs6OBrzCBrDAfBgNVHSMEGDAWgBR72gn1SV3Z11zJNvhV0huXnhEvfjA7BggrBgEFBQcBAQQvMC0wKwYIKwYBBQUHMAGGH2h0dHA6Ly9vY3NwLnJlZGhhdC5jb20vY2Evb2NzcC8wDgYDVR0PAQH/BAQDAgXgMB0GA1UdJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcDBDAdBgNVHREEFjAUgRJhbnNpbHZhQHJlZGhhdC5jb20wDQYJKoZIhvcNAQELBQADggEBACQ1pUywww1AOmyJJexN3WFinm+Yy9BjnBDbkxzfo9/webpCcQe4XZNbT40s2u2eMj8suJKqtcnpoX89o1X6RhYxPl+/CI6q38+gdnJPJZgLeAMUBUl008bmD2EySkrjy6rl0Bm0AdLk34GmRSyywntUL3Dcg9bNmXDXDKxGER7hJEA2zC3Yd1+/Llahk5Rv8nLse6kHzQgufOGQ9idXyjQsu8XJbWINv9ZCk5XeWMMfvR4OEy0uOnhVfBw8CWE/Ut+pZXPkmmfIAtiaN5JMKL87sMXzpc7T8oa0rdw8c7fWgv7mkG222BUrfjI/wmh3amg/Fk4y48Sj9nV0rud4weE=] certificate request processed
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: In LdapBoundConnFactory::getConn()
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: masterConn is connected: true
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: getConn: conn is connected true
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: getConn: mNumConns now 4
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: returnConn: mNumConns now 5
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: ARequestNotifier  notify mIsPublishingQueueEnabled=true mMaxThreads=3
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: addToNotify  extended buffer to 1(40) requests by adding request 1852
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: morePublishingThreads  moreThreads: true
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: Number of publishing threads: 1
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: EnrollmentSubmitter: done serving
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: ProfileSubmitServlet: done serving
+[15/Dec/2016:13:42:17][http-bio-8443-exec-13]: CMSServlet: curDate=Thu Dec 15 13:42:17 UTC 2016 id=caProfileSubmit time=930179
+[15/Dec/2016:13:43:44][http-bio-8443-exec-13]: CMSServlet:service() uri = /ca/services
+[15/Dec/2016:13:43:44][http-bio-8443-exec-13]: CMSServlet: services start to service.
+[15/Dec/2016:13:43:44][http-bio-8443-exec-13]: MainPageServlet process
+[15/Dec/2016:13:43:44][http-bio-8443-exec-13]: CMSServlet: curDate=Thu Dec 15 13:43:44 UTC 2016 id=services time=1
+[15/Dec/2016:13:44:54][http-bio-8443-exec-13]: CMSServlet:service() uri = /ca/services
+[15/Dec/2016:13:44:54][http-bio-8443-exec-13]: CMSServlet: services start to service.
+[15/Dec/2016:13:44:54][http-bio-8443-exec-13]: MainPageServlet process
+[15/Dec/2016:13:44:54][http-bio-8443-exec-13]: CMSServlet: curDate=Thu Dec 15 13:44:54 UTC 2016 id=services time=1
+[15/Dec/2016:13:47:59][http-bio-8443-exec-13]: CMSServlet:service() uri = /ca/services
+[15/Dec/2016:13:47:59][http-bio-8443-exec-13]: CMSServlet: services start to service.
+[15/Dec/2016:13:47:59][http-bio-8443-exec-13]: MainPageServlet process
+[15/Dec/2016:13:47:59][http-bio-8443-exec-13]: CMSServlet: curDate=Thu Dec 15 13:47:59 UTC 2016 id=services time=1
+[15/Dec/2016:13:50:54][http-bio-8443-exec-13]: CMSServlet:service() uri = /ca/services
+[15/Dec/2016:13:50:54][http-bio-8443-exec-13]: CMSServlet: services start to service.
+[15/Dec/2016:13:50:54][http-bio-8443-exec-13]: MainPageServlet process
+[15/Dec/2016:13:50:54][http-bio-8443-exec-13]: CMSServlet: curDate=Thu Dec 15 13:50:54 UTC 2016 id=services time=1
+[15/Dec/2016:13:51:44][http-bio-8443-exec-13]: CMSServlet:service() uri = /ca/services
+[15/Dec/2016:13:51:44][http-bio-8443-exec-13]: CMSServlet: services start to service.
+[15/Dec/2016:13:51:44][http-bio-8443-exec-13]: MainPageServlet process
+[15/Dec/2016:13:51:44][http-bio-8443-exec-13]: CMSServlet: curDate=Thu Dec 15 13:51:44 UTC 2016 id=services time=1
+[15/Dec/2016:13:52:27][http-bio-8443-exec-13]: CMSServlet:service() uri = /ca/services
+[15/Dec/2016:13:52:27][http-bio-8443-exec-13]: CMSServlet: services start to service.
+[15/Dec/2016:13:52:27][http-bio-8443-exec-13]: MainPageServlet process
+[15/Dec/2016:13:52:27][http-bio-8443-exec-13]: CMSServlet: curDate=Thu Dec 15 13:52:27 UTC 2016 id=services time=1
+[15/Dec/2016:13:53:14][http-bio-8443-exec-13]: CMSServlet:service() uri = /ca/services
+[15/Dec/2016:13:53:14][http-bio-8443-exec-13]: CMSServlet: services start to service.
+[15/Dec/2016:13:53:14][http-bio-8443-exec-13]: MainPageServlet process
+[15/Dec/2016:13:53:14][http-bio-8443-exec-13]: CMSServlet: curDate=Thu Dec 15 13:53:14 UTC 2016 id=services time=0

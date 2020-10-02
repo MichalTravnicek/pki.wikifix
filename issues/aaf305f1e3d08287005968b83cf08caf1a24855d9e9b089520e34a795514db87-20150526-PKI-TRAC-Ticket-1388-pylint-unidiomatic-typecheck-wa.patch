@@ -1,0 +1,52 @@
+From cd4ef496ffa3ad8e56e4f9817bfdcb34bbb0541c Mon Sep 17 00:00:00 2001
+From: Matthew Harmsen <mharmsen@redhat.com>
+Date: Tue, 26 May 2015 19:28:09 -0600
+Subject: [PATCH] PKI TRAC Ticket #1388 - pylint unidiomatic-typecheck warnings
+ cause koji builds to fail
+
+---
+ base/common/python/pki/encoder.py | 5 +++--
+ base/common/python/pki/system.py  | 4 ++--
+ 2 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/base/common/python/pki/encoder.py b/base/common/python/pki/encoder.py
+index 7b621f2..1af0fea 100644
+--- a/base/common/python/pki/encoder.py
++++ b/base/common/python/pki/encoder.py
+@@ -36,8 +36,9 @@ class CustomTypeEncoder(json.JSONEncoder):
+         for k, v in TYPES.items():
+             if isinstance(obj, v):
+                 return {k: obj.__dict__}
+-        if type(obj) in NOTYPES.itervalues():
+-            return self.attr_name_conversion(obj.__dict__, type(obj))
++        for t in NOTYPES.itervalues():
++            if isinstance(obj, t):
++                return self.attr_name_conversion(obj.__dict__, type(obj))
+         return json.JSONEncoder.default(self, obj)
+ 
+     @staticmethod
+diff --git a/base/common/python/pki/system.py b/base/common/python/pki/system.py
+index 24deefc..76b5059 100644
+--- a/base/common/python/pki/system.py
++++ b/base/common/python/pki/system.py
+@@ -111,7 +111,7 @@ class SecurityDomainSubsystem(object):
+             subsystem.name = json_value['@id']
+ 
+         hosts = json_value['Host']
+-        if type(hosts) is dict:
++        if isinstance(hosts, dict):
+             hosts = [ hosts ]
+ 
+         for h in hosts:
+@@ -154,7 +154,7 @@ class SecurityDomainInfo(object):
+             security_domain.name = domain_info['@id']
+ 
+             subsystems = domain_info['Subsystem']
+-            if type(subsystems) is dict:
++            if isinstance(subsystems, dict):
+                 subsystems = [ subsystems ]
+ 
+         for s in subsystems:
+-- 
+1.8.3.1
+

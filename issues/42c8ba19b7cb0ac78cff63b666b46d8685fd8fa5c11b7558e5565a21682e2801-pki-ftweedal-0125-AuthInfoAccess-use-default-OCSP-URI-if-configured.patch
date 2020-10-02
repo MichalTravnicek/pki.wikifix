@@ -1,0 +1,59 @@
+From 53064626ec30f2d15d6e8a62ab159e3b541f2971 Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Mon, 27 Jun 2016 15:04:44 +1000
+Subject: [PATCH] AuthInfoAccess: use default OCSP URI if configured
+
+The AuthInfoAccessExtDefault profile component constructs an OCSP
+URI based on the current host and port, if no URI is explicitly
+configured in the profile.
+
+Update the component to look in CS.cfg for the "ca.defaultOcspUri"
+config, and use its value if present.  If not present, the old
+behaviour prevails.
+
+Also add the 'pki_default_ocsp_uri' pkispawn config to add the
+config during instance creation, so that the value will be used for
+the CA and system certificates.
+
+Fixes: https://fedorahosted.org/pki/ticket/2387
+---
+ .../src/com/netscape/cms/profile/def/AuthInfoAccessExtDefault.java   | 5 +++--
+ base/server/python/pki/server/deployment/scriptlets/configuration.py | 5 +++++
+ 2 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/base/server/cms/src/com/netscape/cms/profile/def/AuthInfoAccessExtDefault.java b/base/server/cms/src/com/netscape/cms/profile/def/AuthInfoAccessExtDefault.java
+index 36818a90753b75f958cca4dd4c93f18629b93411..1190f28a326c9243b6791b7eeb7a01ad77aa74b2 100644
+--- a/base/server/cms/src/com/netscape/cms/profile/def/AuthInfoAccessExtDefault.java
++++ b/base/server/cms/src/com/netscape/cms/profile/def/AuthInfoAccessExtDefault.java
+@@ -430,9 +430,10 @@ public class AuthInfoAccessExtDefault extends EnrollExtDefault {
+                         if (method.equals("1.3.6.1.5.5.7.48.1")) {
+                             String hostname = CMS.getEENonSSLHost();
+                             String port = CMS.getEENonSSLPort();
++                            String uri = "";
+                             if (hostname != null && port != null)
+-                                // location = "http://"+hostname+":"+port+"/ocsp/ee/ocsp";
+-                                location = "http://" + hostname + ":" + port + "/ca/ocsp";
++                                uri = "http://" + hostname + ":" + port + "/ca/ocsp";
++                            location = CMS.getConfigStore().getString("ca.defaultOcspUri", uri);
+                         }
+                     }
+ 
+diff --git a/base/server/python/pki/server/deployment/scriptlets/configuration.py b/base/server/python/pki/server/deployment/scriptlets/configuration.py
+index b8505dd9b7d59a527f21c07f2fb55bde1f46eafa..64ee4e5f6f5cbc920c7ac5a27ab995d7155cf1cc 100644
+--- a/base/server/python/pki/server/deployment/scriptlets/configuration.py
++++ b/base/server/python/pki/server/deployment/scriptlets/configuration.py
+@@ -87,6 +87,11 @@ class PkiScriptlet(pkiscriptlet.AbstractBasePkiScriptlet):
+         subsystem = instance.get_subsystem(
+             deployer.mdict['pki_subsystem'].lower())
+ 
++        ocsp_uri = deployer.mdict.get('pki_default_ocsp_uri')
++        if ocsp_uri:
++            subsystem.config['ca.defaultOcspUri'] = ocsp_uri
++            subsystem.save()
++
+         token = deployer.mdict['pki_token_name']
+         nssdb = instance.open_nssdb(token)
+ 
+-- 
+2.5.5
+

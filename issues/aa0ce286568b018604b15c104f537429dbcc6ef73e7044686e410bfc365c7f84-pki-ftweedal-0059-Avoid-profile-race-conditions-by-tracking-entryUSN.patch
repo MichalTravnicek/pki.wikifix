@@ -1,0 +1,434 @@
+From e585953a1c8dc32b74ba1a1293286e2d555114eb Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Mon, 30 Nov 2015 14:04:08 +1100
+Subject: [PATCH 59/61] Avoid profile race conditions by tracking entryUSN
+
+Avoid race conditions in the LDAPProfileSubsystem by tracking the
+most recently known entryUSN of profiles' LDAP entries.
+
+As part of this change, add the commitProfile method to the
+IProfileSubsystem interface, remove commit behaviour from the
+enableProfile and disableProfile methods and update ProfileService
+and ProfileApproveServlet to commit the profile (using the
+commitProfile method) where needed.
+
+Part of: https://fedorahosted.org/pki/ticket/1700
+---
+ .../dogtagpki/server/ca/rest/ProfileService.java   | 12 +++--
+ .../certsrv/profile/IProfileSubsystem.java         |  5 ++
+ .../cms/servlet/profile/ProfileApproveServlet.java |  3 ++
+ .../com/netscape/cmscore/base/LDAPConfigStore.java | 57 ++++++++++++++++------
+ .../cmscore/profile/AbstractProfileSubsystem.java  | 15 ++++--
+ .../cmscore/profile/LDAPProfileSubsystem.java      | 56 ++++++++++++++++++---
+ 6 files changed, 118 insertions(+), 30 deletions(-)
+
+diff --git a/base/ca/src/org/dogtagpki/server/ca/rest/ProfileService.java b/base/ca/src/org/dogtagpki/server/ca/rest/ProfileService.java
+index 488dd5ab960fd45fa3dad0dd83398b4317f2cb4f..807c3f98bd4df57d33b8e427b5d3f59b522c2c0b 100644
+--- a/base/ca/src/org/dogtagpki/server/ca/rest/ProfileService.java
++++ b/base/ca/src/org/dogtagpki/server/ca/rest/ProfileService.java
+@@ -419,6 +419,7 @@ public class ProfileService extends PKIService implements ProfileResource {
+             }
+             try {
+                 ps.enableProfile(profileId, principal.getName());
++                ps.commitProfile(profileId);
+                 auditProfileChangeState(profileId, "approve", ILogger.SUCCESS);
+             } catch (EProfileException e) {
+                 CMS.debug("modifyProfileState: error enabling profile. " + e);
+@@ -436,6 +437,7 @@ public class ProfileService extends PKIService implements ProfileResource {
+                 if (ps.checkOwner()) {
+                     if (ps.getProfileEnableBy(profileId).equals(userid)) {
+                         ps.disableProfile(profileId);
++                        ps.commitProfile(profileId);
+                         auditProfileChangeState(profileId, "disapprove", ILogger.SUCCESS);
+                     } else {
+                         auditProfileChangeState(profileId, "disapprove", ILogger.FAILURE);
+@@ -444,6 +446,7 @@ public class ProfileService extends PKIService implements ProfileResource {
+                     }
+                 } else {
+                     ps.disableProfile(profileId);
++                    ps.commitProfile(profileId);
+                     auditProfileChangeState(profileId, "disapprove", ILogger.SUCCESS);
+                 }
+             } catch (EProfileException e) {
+@@ -493,7 +496,7 @@ public class ProfileService extends PKIService implements ProfileResource {
+             profile.setName(getLocale(headers), data.getName());
+             profile.setDescription(getLocale(headers), data.getDescription());
+             profile.setVisible(data.isVisible());
+-            profile.getConfigStore().commit(false);
++            ps.commitProfile(profileId);
+ 
+             if (profile instanceof IProfileEx) {
+                 // populates profile specific plugins such as
+@@ -606,7 +609,8 @@ public class ProfileService extends PKIService implements ProfileResource {
+             // no error thrown, proceed with profile creation
+             profile = ps.createProfile(profileId, classId, className);
+             profile.getConfigStore().load(new ByteArrayInputStream(data));
+-            ps.disableProfile(profileId);  // also commits
++            ps.disableProfile(profileId);
++            ps.commitProfile(profileId);
+ 
+             auditProfileChange(
+                     ScopeDef.SC_PROFILE_RULES,
+@@ -740,7 +744,7 @@ public class ProfileService extends PKIService implements ProfileResource {
+             // no error thrown, so commit updated profile config
+             profile.getConfigStore().load(new ByteArrayInputStream(data));
+             ps.disableProfile(profileId);
+-            profile.getConfigStore().commit(false);
++            ps.commitProfile(profileId);
+ 
+             return createOKResponse(data);
+         } catch (EBaseException | IOException e) {
+@@ -817,7 +821,7 @@ public class ProfileService extends PKIService implements ProfileResource {
+             populateProfileInputs(data, profile);
+             populateProfileOutputs(data, profile);
+             populateProfilePolicies(data, profile);
+-            profile.getConfigStore().commit(false);
++            ps.commitProfile(profileId);
+         } catch (EBaseException e) {
+             CMS.debug("changeProfileData: Error changing profile inputs/outputs/policies: " + e);
+             e.printStackTrace();
+diff --git a/base/common/src/com/netscape/certsrv/profile/IProfileSubsystem.java b/base/common/src/com/netscape/certsrv/profile/IProfileSubsystem.java
+index b7071fe7526132d7f9ff1945819f0d1f67c18719..b7b06b92b92bf74f9d7ce9fd504a9e99fdd4839c 100644
+--- a/base/common/src/com/netscape/certsrv/profile/IProfileSubsystem.java
++++ b/base/common/src/com/netscape/certsrv/profile/IProfileSubsystem.java
+@@ -94,6 +94,11 @@ public interface IProfileSubsystem extends ISubsystem {
+             throws EProfileException;
+ 
+     /**
++     * Commit a profile's underlying config store.
++     */
++    public void commitProfile(String id) throws EProfileException;
++
++    /**
+      * Retrieves the id of the implementation of the given profile.
+      *
+      * @param id profile id
+diff --git a/base/server/cms/src/com/netscape/cms/servlet/profile/ProfileApproveServlet.java b/base/server/cms/src/com/netscape/cms/servlet/profile/ProfileApproveServlet.java
+index 7ae623f32eeae02290432e7e218ade93ce038213..89ba1bd8c785a745f0dd64a1e4be97626fd0e251 100644
+--- a/base/server/cms/src/com/netscape/cms/servlet/profile/ProfileApproveServlet.java
++++ b/base/server/cms/src/com/netscape/cms/servlet/profile/ProfileApproveServlet.java
+@@ -267,6 +267,7 @@ public class ProfileApproveServlet extends ProfileServlet {
+                     if (ps.checkOwner()) {
+                         if (ps.getProfileEnableBy(profileId).equals(userid)) {
+                             ps.disableProfile(profileId);
++                            ps.commitProfile(profileId);
+                         } else {
+                             // only enableBy can disable profile
+                             args.set(ARG_ERROR_CODE, "1");
+@@ -288,9 +289,11 @@ public class ProfileApproveServlet extends ProfileServlet {
+                         }
+                     } else {
+                         ps.disableProfile(profileId);
++                        ps.commitProfile(profileId);
+                     }
+                 } else {
+                     ps.enableProfile(profileId, userid);
++                    ps.commitProfile(profileId);
+                 }
+ 
+                 // store a message in the signed audit log file
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/base/LDAPConfigStore.java b/base/server/cmscore/src/com/netscape/cmscore/base/LDAPConfigStore.java
+index b7b4ca46ee3e4cebfd169338dede3c9f64a45410..0b4ff707dddee6bd40447b85219f5a84edfe76db 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/base/LDAPConfigStore.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/base/LDAPConfigStore.java
+@@ -26,13 +26,17 @@ import java.util.Map;
+ import netscape.ldap.LDAPAttribute;
+ import netscape.ldap.LDAPAttributeSet;
+ import netscape.ldap.LDAPConnection;
++import netscape.ldap.LDAPConstraints;
++import netscape.ldap.LDAPControl;
+ import netscape.ldap.LDAPEntry;
+ import netscape.ldap.LDAPException;
+ import netscape.ldap.LDAPModification;
+ 
+-import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.IConfigStore;
++import com.netscape.certsrv.ldap.ELdapException;
+ import com.netscape.certsrv.ldap.ILdapConnFactory;
++import com.netscape.cmsutil.ldap.LDAPPostReadControl;
++import com.netscape.cmsutil.ldap.LDAPUtil;
+ 
+ /**
+  * LDAPConfigStore:
+@@ -65,8 +69,6 @@ public class LDAPConfigStore extends PropConfigStore implements IConfigStore {
+      * @param attr Name of attribute containing config store
+      * @param createAttrs Set of initial attributes if creating the entry.  Should
+      *              contain cn, objectclass and possibly other attributes.
+-     *
+-     * @exception EBaseException failed to create file configuration
+      */
+     public LDAPConfigStore(
+         ILdapConnFactory dbFactory,
+@@ -102,7 +104,17 @@ public class LDAPConfigStore extends PropConfigStore implements IConfigStore {
+      *
+      * @param createBackup Ignored.
+      */
+-    public void commit(boolean createBackup) throws EBaseException {
++    public void commit(boolean createBackup) throws ELdapException {
++        String[] attrs = {};
++        commitReturn(createBackup, attrs);
++    }
++
++    /**
++     * This version of commit also returns the post-read entry that
++     * the change resulted in.
++     */
++    public LDAPEntry commitReturn(boolean createBackup, String[] attrs)
++            throws ELdapException {
+         ByteArrayOutputStream data = new ByteArrayOutputStream();
+         save(data, null);
+ 
+@@ -110,26 +122,37 @@ public class LDAPConfigStore extends PropConfigStore implements IConfigStore {
+ 
+         LDAPConnection conn = dbFactory.getConn();
+ 
++        LDAPConstraints cons = new LDAPConstraints();
++        cons.setServerControls(new LDAPPostReadControl(true, attrs));
++
++        LDAPControl[] responseControls;
++
+         // first attempt to modify; if modification fails (due
+         // to no such object), try and add the entry instead.
+         try {
+             try {
+-                commitModify(conn, configAttr);
++                commitModify(conn, configAttr, cons);
+             } catch (LDAPException e) {
+                 if (e.getLDAPResultCode() == LDAPException.NO_SUCH_OBJECT) {
+-                    commitAdd(conn, configAttr);
++                    commitAdd(conn, configAttr, cons);
+                 } else {
+                     throw e;
+                 }
+             }
++            responseControls = conn.getResponseControls();
+         } catch (LDAPException e) {
+-            throw new EBaseException(
++            throw new ELdapException(
+                 "Error writing LDAPConfigStore '"
+                 + dn + "': " + e.toString()
+             );
+         } finally {
+             dbFactory.returnConn(conn);
+         }
++
++        LDAPPostReadControl control = (LDAPPostReadControl)
++            LDAPUtil.getControl(LDAPPostReadControl.class, responseControls);
++
++        return control.getEntry();
+     }
+ 
+     /**
+@@ -139,12 +162,14 @@ public class LDAPConfigStore extends PropConfigStore implements IConfigStore {
+      * @param configAttr Config store attribute.
+      * @return true on success, false if the entry does not exist.
+      */
+-    private void commitModify(LDAPConnection conn, LDAPAttribute configAttr)
+-        throws LDAPException
+-    {
++    private void commitModify(
++            LDAPConnection conn,
++            LDAPAttribute configAttr,
++            LDAPConstraints cons)
++            throws LDAPException {
+         LDAPModification ldapMod =
+             new LDAPModification(LDAPModification.REPLACE, configAttr);
+-        conn.modify(dn, ldapMod);
++        conn.modify(dn, ldapMod, cons);
+     }
+ 
+     /**
+@@ -154,12 +179,14 @@ public class LDAPConfigStore extends PropConfigStore implements IConfigStore {
+      * @param configAttr Config store attribute.
+      * @return true on success, false if the entry already exists.
+      */
+-    private void commitAdd(LDAPConnection conn, LDAPAttribute configAttr)
+-        throws LDAPException
+-    {
++    private void commitAdd(
++            LDAPConnection conn,
++            LDAPAttribute configAttr,
++            LDAPConstraints cons)
++            throws LDAPException {
+         LDAPAttributeSet attrSet = new LDAPAttributeSet(createAttrs);
+         attrSet.add(configAttr);
+         LDAPEntry ldapEntry = new LDAPEntry(dn, attrSet);
+-        conn.add(ldapEntry);
++        conn.add(ldapEntry, cons);
+     }
+ }
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/profile/AbstractProfileSubsystem.java b/base/server/cmscore/src/com/netscape/cmscore/profile/AbstractProfileSubsystem.java
+index cf5d77f191af93b05e71f0b1cce085a7d8161874..076e9c93e461f00e7a6dcde92f9fdd06d23a0283 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/profile/AbstractProfileSubsystem.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/profile/AbstractProfileSubsystem.java
+@@ -95,10 +95,6 @@ public abstract class AbstractProfileSubsystem implements IProfileSubsystem {
+ 
+         profile.getConfigStore().putString(PROP_ENABLE, "true");
+         profile.getConfigStore().putString(PROP_ENABLE_BY, enableBy);
+-        try {
+-            profile.getConfigStore().commit(false);
+-        } catch (EBaseException e) {
+-        }
+     }
+ 
+     /**
+@@ -117,9 +113,18 @@ public abstract class AbstractProfileSubsystem implements IProfileSubsystem {
+         IProfile profile = mProfiles.get(id);
+ 
+         profile.getConfigStore().putString(PROP_ENABLE, "false");
++    }
++
++    /**
++     * Commits a profile.
++     */
++    public void commitProfile(String id)
++            throws EProfileException {
+         try {
+-            profile.getConfigStore().commit(false);
++            mProfiles.get(id).getConfigStore().commit(false);
+         } catch (EBaseException e) {
++            throw new EProfileException(
++                "Failed to commit config store of profile '" + id + ": " + e);
+         }
+     }
+ 
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/profile/LDAPProfileSubsystem.java b/base/server/cmscore/src/com/netscape/cmscore/profile/LDAPProfileSubsystem.java
+index 7be70dff1315c150422be303d7be50fb2fb245f0..b16a33fe25881956051e2f65a5a99b73f7a624b4 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/profile/LDAPProfileSubsystem.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/profile/LDAPProfileSubsystem.java
+@@ -19,9 +19,9 @@ package com.netscape.cmscore.profile;
+ 
+ import java.io.ByteArrayInputStream;
+ import java.io.InputStream;
+-import java.util.Enumeration;
+ import java.util.Hashtable;
+ import java.util.LinkedHashMap;
++import java.util.TreeMap;
+ 
+ import netscape.ldap.LDAPAttribute;
+ import netscape.ldap.LDAPConnection;
+@@ -58,6 +58,10 @@ public class LDAPProfileSubsystem
+     private boolean stopped = false;
+     private Thread monitor;
+ 
++    /* Map of profileId -> entryUSN for the most recent view
++     * of the profile entry that this instance has seen */
++    private TreeMap<String,Integer> entryUSNs;
++
+     /**
+      * Initializes this subsystem with the given configuration
+      * store.
+@@ -74,6 +78,7 @@ public class LDAPProfileSubsystem
+         // (re)init member collections
+         mProfiles = new LinkedHashMap<String, IProfile>();
+         mProfileClassIds = new Hashtable<String, String>();
++        entryUSNs = new TreeMap<>();
+ 
+         IConfigStore cs = CMS.getConfigStore();
+         IConfigStore dbCfg = cs.getSubStore("internaldb");
+@@ -101,7 +106,7 @@ public class LDAPProfileSubsystem
+     /**
+      * Read the given LDAPEntry into the profile subsystem.
+      */
+-    private void readProfile(LDAPEntry ldapProfile) {
++    private synchronized void readProfile(LDAPEntry ldapProfile) {
+         IPluginRegistry registry = (IPluginRegistry)
+             CMS.getSubsystem(CMS.SUBSYSTEM_REGISTRY);
+ 
+@@ -113,12 +118,24 @@ public class LDAPProfileSubsystem
+         }
+         profileId = LDAPDN.explodeDN(dn, true)[0];
+ 
++        Integer newEntryUSN = new Integer(
++                ldapProfile.getAttribute("entryUSN").getStringValueArray()[0]);
++        CMS.debug("readProfile: new entryUSN = " + newEntryUSN);
++
++        Integer knownEntryUSN = entryUSNs.get(profileId);
++        if (knownEntryUSN != null) {
++            CMS.debug("readProfile: known entryUSN = " + knownEntryUSN);
++            if (newEntryUSN <= knownEntryUSN) {
++                CMS.debug("readProfile: data is current");
++                return;
++            }
++        }
++
+         String classId = (String)
+             ldapProfile.getAttribute("classId").getStringValues().nextElement();
+ 
+-        Enumeration<String> vals =
+-            ldapProfile.getAttribute("certProfileConfig").getStringValues();
+-        InputStream data = new ByteArrayInputStream(vals.nextElement().getBytes());
++        InputStream data = new ByteArrayInputStream(
++                ldapProfile.getAttribute("certProfileConfig").getByteValueArray()[0]);
+ 
+         IPluginInfo info = registry.getPluginInfo("profile", classId);
+         if (info == null) {
+@@ -127,6 +144,7 @@ public class LDAPProfileSubsystem
+             try {
+                 CMS.debug("Start Profile Creation - " + profileId + " " + classId + " " + info.getClassName());
+                 createProfile(profileId, classId, info.getClassName(), data);
++                entryUSNs.put(profileId, newEntryUSN);
+                 CMS.debug("Done Profile Creation - " + profileId);
+             } catch (EProfileException e) {
+                 CMS.debug("Error creating profile '" + profileId + "'; skipping.");
+@@ -210,6 +228,29 @@ public class LDAPProfileSubsystem
+             readProfile(entry);
+     }
+ 
++    @Override
++    public synchronized void commitProfile(String id) throws EProfileException {
++        LDAPConfigStore cs = (LDAPConfigStore) mProfiles.get(id).getConfigStore();
++        try {
++            String[] attrs = {"entryUSN"};
++            LDAPEntry entry = cs.commitReturn(false, attrs);
++
++            LDAPAttribute attr = null;
++            if (entry != null)
++                attr = entry.getAttribute("entryUSN");
++
++            Integer entryUSN = null;
++            if (attr != null)
++                entryUSN = new Integer(attr.getStringValueArray()[0]);
++
++            entryUSNs.put(id, entryUSN);
++            CMS.debug("commitProfile: new entryUSN = " + entryUSN);
++        } catch (ELdapException e) {
++            throw new EProfileException(
++                "Failed to commit config store of profile '" + id + ": " + e);
++        }
++    }
++
+     /**
+      * Forget a profile without deleting it from the database.
+      *
+@@ -219,6 +260,7 @@ public class LDAPProfileSubsystem
+     private void forgetProfile(String id) {
+         mProfiles.remove(id);
+         mProfileClassIds.remove(id);
++        entryUSNs.remove(id);
+     }
+ 
+     private void forgetProfile(LDAPEntry entry) {
+@@ -253,6 +295,7 @@ public class LDAPProfileSubsystem
+     private void forgetAllProfiles() {
+         mProfiles.clear();
+         mProfileClassIds.clear();
++        entryUSNs.clear();
+     }
+ 
+     /**
+@@ -285,9 +328,10 @@ public class LDAPProfileSubsystem
+                 cons.setServerControls(persistCtrl);
+                 cons.setBatchSize(1);
+                 cons.setServerTimeLimit(0 /* seconds */);
++                String[] attrs = {"*", "entryUSN"};
+                 LDAPSearchResults results = conn.search(
+                     dn, LDAPConnection.SCOPE_ONE, "(objectclass=*)",
+-                    null, false, cons);
++                    attrs, false, cons);
+                 while (!stopped && results.hasMoreElements()) {
+                     LDAPEntry entry = results.next();
+                     LDAPEntryChangeControl changeControl = (LDAPEntryChangeControl)
+-- 
+2.4.3
+

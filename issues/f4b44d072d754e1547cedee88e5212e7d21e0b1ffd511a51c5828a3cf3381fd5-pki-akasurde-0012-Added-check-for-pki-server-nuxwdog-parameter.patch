@@ -1,0 +1,39 @@
+From 9dafcc2082fe917e65517e10d2c5defe8c4b18b8 Mon Sep 17 00:00:00 2001
+From: Abhijeet Kasurde <akasurde@redhat.com>
+Date: Wed, 10 Aug 2016 11:58:49 +0530
+Subject: [PATCH] Added check for pki-server-nuxwdog parameter
+
+Partially fixes: https://bugzilla.redhat.com/show_bug.cgi?id=1353245
+
+Signed-off-by: Abhijeet Kasurde <akasurde@redhat.com>
+---
+ base/server/sbin/pki-server-nuxwdog | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/base/server/sbin/pki-server-nuxwdog b/base/server/sbin/pki-server-nuxwdog
+index 31fff5ede37f51cce854034bc669efcaba553162..ead925303b90c771c1bd9133580bceccd47f43d9 100755
+--- a/base/server/sbin/pki-server-nuxwdog
++++ b/base/server/sbin/pki-server-nuxwdog
+@@ -1,8 +1,18 @@
+ #!/bin/sh
+ 
++if [ "$#" -ne 1 ]; then
++    echo "ERROR: $0 requires parameter"
++    exit 1
++fi
++
+ . /etc/tomcat/tomcat.conf
+ NAME=$1
+-. /etc/sysconfig/$NAME
++if [ -f /etc/sysconfig/$NAME ]; then
++    . /etc/sysconfig/$NAME
++else
++    echo "ERROR: Unable to find /etc/sysconfig/$NAME file"
++    exit 1
++fi
+ . /usr/libexec/tomcat/preamble
+ 
+ NUXWDOG_PID=${CATALINA_BASE}/logs/wd-$NAME.pid
+-- 
+2.5.5
+

@@ -1,0 +1,64 @@
+From 04fdde1be263d00b6c62f60338c2d298ae59bd86 Mon Sep 17 00:00:00 2001
+From: Matthew Harmsen <mharmsen@redhat.com>
+Date: Fri, 15 May 2015 00:51:41 -0600
+Subject: [PATCH] disable backup keys when using an HSM
+
+- PKI TRAC Ticket #1371 - pkispawn: need to disable backup_keys when using an HSM (and provide recommendation); allow clones to share keys
+---
+ .../cms/src/org/dogtagpki/server/rest/SystemConfigService.java     | 4 ++++
+ base/server/python/pki/server/deployment/pkihelper.py              | 7 +++++++
+ base/server/python/pki/server/deployment/pkimessages.py            | 5 +++++
+ 3 files changed, 16 insertions(+)
+
+diff --git a/base/server/cms/src/org/dogtagpki/server/rest/SystemConfigService.java b/base/server/cms/src/org/dogtagpki/server/rest/SystemConfigService.java
+index c341d14..93cfd62 100644
+--- a/base/server/cms/src/org/dogtagpki/server/rest/SystemConfigService.java
++++ b/base/server/cms/src/org/dogtagpki/server/rest/SystemConfigService.java
+@@ -1177,6 +1177,10 @@ public class SystemConfigService extends PKIService implements SystemConfigResou
+         }
+ 
+         if ((data.getBackupKeys() != null) && data.getBackupKeys().equals("true")) {
++            if (! data.getToken().equals(ConfigurationRequest.TOKEN_DEFAULT)) {
++                throw new BadRequestException("HSMs cannot publish private keys to PKCS #12 files");
++            }
++
+             if ((data.getBackupFile() == null) || (data.getBackupFile().length()<=0)) {
+                 //TODO: also check for valid path, perhaps by touching file there
+                 throw new BadRequestException("Invalid key backup file name");
+diff --git a/base/server/python/pki/server/deployment/pkihelper.py b/base/server/python/pki/server/deployment/pkihelper.py
+index 4f1c136..6355635 100644
+--- a/base/server/python/pki/server/deployment/pkihelper.py
++++ b/base/server/python/pki/server/deployment/pkihelper.py
+@@ -559,6 +559,13 @@ class ConfigurationFile:
+         # Verify existence of Admin Password (except for Clones)
+         if not self.clone:
+             self.confirm_data_exists("pki_admin_password")
++        if (config.str2bool(self.mdict['pki_hsm_enable']) and
++            config.str2bool(self.mdict['pki_backup_keys'])):
++            config.pki_log.error(
++                log.PKIHELPER_HSM_KEYS_CANNOT_BE_BACKED_UP_TO_PKCS12_FILES,
++                extra=config.PKI_INDENTATION_LEVEL_2)
++            raise Exception(
++                log.PKIHELPER_HSM_KEYS_CANNOT_BE_BACKED_UP_TO_PKCS12_FILES)
+         # If required, verify existence of Backup Password
+         if config.str2bool(self.mdict['pki_backup_keys']):
+             self.confirm_data_exists("pki_backup_password")
+diff --git a/base/server/python/pki/server/deployment/pkimessages.py b/base/server/python/pki/server/deployment/pkimessages.py
+index 321ea78..9248a1c 100644
+--- a/base/server/python/pki/server/deployment/pkimessages.py
++++ b/base/server/python/pki/server/deployment/pkimessages.py
+@@ -199,6 +199,11 @@ PKIHELPER_GROUP_ADD_2 = "adding GID '%s' for group '%s' . . ."
+ PKIHELPER_GROUP_ADD_DEFAULT_2 = "adding default GID '%s' for group '%s' . . ."
+ PKIHELPER_GROUP_ADD_GID_KEYERROR_1 = "KeyError:  pki_gid %s"
+ PKIHELPER_GROUP_ADD_KEYERROR_1 = "KeyError:  pki_group %s"
++PKIHELPER_HSM_KEYS_CANNOT_BE_BACKED_UP_TO_PKCS12_FILES = \
++    "Since Hardware Security Modules (HSMs) do not allow their private keys "\
++    "to be extracted to PKCS #12 files, the 'pki_backup_keys' and "\
++    "'pki_backup_password' variables may not be utilized with HSMs.\n"\
++    "Please contact the HSM vendor regarding their specific backup mechanism."
+ PKIHELPER_INVALID_SELINUX_CONTEXT_FOR_PORT = \
+     "port %s has invalid selinux context %s"
+ PKIHELPER_IS_A_DIRECTORY_1 = "'%s' is a directory"
+-- 
+1.8.3.1
+

@@ -1,0 +1,19 @@
+Description: Fix GCC -Wformat-security warnings
+Author: Benjamin Drung <benjamin.drung@profitbricks.com>
+
+--- a/base/tps-client/src/include/modules/tps/AP_Context.h
++++ b/base/tps-client/src/include/modules/tps/AP_Context.h
+@@ -46,9 +46,9 @@
+         virtual ~AP_Context();
+     public:
+         virtual void LogError( const char *func, int line,
+-                               const char *fmt, ... );
++                               const char *fmt, ... ) __attribute__((format(printf,4,5)));
+         virtual void LogInfo( const char *func, int line,
+-                              const char *fmt, ... );
++                              const char *fmt, ... ) __attribute__((format(printf,4,5)));
+         virtual void InitializationError( const char *func, int line );
+     private:
+         server_rec *m_sv;
+ 
+ 

@@ -1,0 +1,76 @@
+From 52fe81ef1c1a8e44b769a4d9d6bebcad622917dd Mon Sep 17 00:00:00 2001
+From: Christian Heimes <cheimes@redhat.com>
+Date: Wed, 25 Nov 2015 20:42:17 +0100
+Subject: [PATCH] sslget must set Host HTTP header
+
+The sslget tool sends a TLS SNI header. Apache doesn't like server name
+indication without a matching HTTP header. Requests without a Host
+header are refused with
+
+HTTP/1.1 400 Bad Request
+Hostname example.org provided via SNI, but no hostname provided in HTTP request
+
+sslget now sets a Host HTTP header for all requests.
+
+https://fedorahosted.org/pki/ticket/1704
+
+Signed-off-by: Christian Heimes <cheimes@redhat.com>
+---
+ base/native-tools/src/sslget/sslget.c | 19 ++++++-------------
+ 1 file changed, 6 insertions(+), 13 deletions(-)
+
+diff --git a/base/native-tools/src/sslget/sslget.c b/base/native-tools/src/sslget/sslget.c
+index c453096babaadd2fa5b5554652e6803417a868fa..39a4fb5119bdcc3fa6974268f7cd9cd861ed14a2 100644
+--- a/base/native-tools/src/sslget/sslget.c
++++ b/base/native-tools/src/sslget/sslget.c
+@@ -299,14 +299,6 @@ printSecurityInfo(PRFileDesc *fd)
+ 
+ PRBool useModelSocket = PR_TRUE;
+ 
+-static const char outHeader[] = {
+-    "HTTP/1.0 200 OK\r\n"
+-    "Server: Netscape-Enterprise/2.0a\r\n"
+-    "Date: Tue, 26 Aug 1997 22:10:05 GMT\r\n"
+-    "Content-type: text/plain\r\n"
+-    "\r\n"
+-};
+-
+ 
+ PRInt32
+ do_writes(
+@@ -703,18 +695,19 @@ client_main(
+ 
+ 
+ SECStatus
+-createRequest(char * url, char *post)
++createRequest(char * url, char *post, const char *hostName)
+ {
+ 	char * newstr;
+ 
+     if (post == NULL) {
+         newstr = PR_smprintf(
+-			"GET %s HTTP/1.0\r\n\r\n",
+-			url);
++			"GET %s HTTP/1.0\r\nHost: %s\r\n\r\n",
++			url, hostName);
+     } else {
+         int len = strlen(post);
+         newstr = PR_smprintf(
+-			"POST %s HTTP/1.0\r\nContent-Length: %d\r\nContent-Type: application/x-www-form-urlencoded\r\n\r\n%s", url, len, post);
++			"POST %s HTTP/1.0\r\nHost: %s\r\nContent-Length: %d\r\nContent-Type: application/x-www-form-urlencoded\r\n\r\n%s",
++                        url, hostName, len, post);
+     }
+ 
+     bigBuf.data = (unsigned char *)newstr;
+@@ -833,7 +826,7 @@ main(int argc, char **argv)
+ 	Usage(progName);
+     }
+ 
+-    createRequest(url, post);
++    createRequest(url, post, hostName);
+ 
+ 	if (passwdfile) {
+ 		fp = fopen(passwdfile,"r");
+-- 
+2.4.3
+

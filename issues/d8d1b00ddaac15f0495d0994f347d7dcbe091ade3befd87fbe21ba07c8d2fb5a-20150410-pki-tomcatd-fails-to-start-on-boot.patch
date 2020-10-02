@@ -1,0 +1,342 @@
+From d1f1ba5dc4e0a6249d10fa27d559341855cb4ce3 Mon Sep 17 00:00:00 2001
+From: Matthew Harmsen <mharmsen@pki.usersys.redhat.com>
+Date: Fri, 10 Apr 2015 17:20:33 -0600
+Subject: [PATCH] pki-tomcatd fails to start on system boot
+
+- PKI TRAC Ticket #1315 - pki-tomcatd fails to start on system boot
+- PKI TRAC Ticket #1340 - pkidestroy should not remove /var/lib/pki
+---
+ base/server/etc/default.cfg                        |   1 +
+ base/server/man/man5/pki_default.cfg.5             |  15 +++
+ .../python/pki/server/deployment/pkihelper.py      | 102 +++++++++++++++++++++
+ .../python/pki/server/deployment/pkimessages.py    |  24 ++---
+ .../server/deployment/scriptlets/finalization.py   |  11 +++
+ .../deployment/scriptlets/infrastructure_layout.py |  10 +-
+ base/server/sbin/pkispawn                          |  17 ++--
+ .../share/lib/systemd/system/pki-tomcatd.target    |   5 +-
+ .../share/lib/systemd/system/pki-tomcatd@.service  |   4 -
+ 9 files changed, 162 insertions(+), 27 deletions(-)
+
+diff --git a/base/server/etc/default.cfg b/base/server/etc/default.cfg
+index 5b22b33..db2bcc6 100644
+--- a/base/server/etc/default.cfg
++++ b/base/server/etc/default.cfg
+@@ -188,6 +188,7 @@ pki_clone_setup_replication=True
+ pki_clone_uri=
+ pki_enable_access_log=True
+ pki_enable_java_debugger=False
++pki_enable_on_system_boot=True
+ pki_enable_proxy=False
+ pki_proxy_http_port=80
+ pki_proxy_https_port=443
+diff --git a/base/server/man/man5/pki_default.cfg.5 b/base/server/man/man5/pki_default.cfg.5
+index 1cf5c51..ca8e095 100644
+--- a/base/server/man/man5/pki_default.cfg.5
++++ b/base/server/man/man5/pki_default.cfg.5
+@@ -206,6 +206,21 @@ Located in the [Tomcat] section, this variable determines whether the instance w
+ .IP
+ Sets whether to attach a Java debugger such as Eclipse to the instance for troubleshooting.  Defaults to False.
+ .PP
++.B pki_enable_on_system_boot
++.IP
++Sets whether or not PKI instances should be started upon system boot.
++.IP
++Currently, if this PKI subsystem exists within a shared instance, and it has been configured to start upon system boot, then ALL other previously configured PKI subsystems within this shared instance will start upon system boot.
++.IP
++Similarly, if this PKI subsystem exists within a shared instance, and it has been configured to NOT start upon system boot, then ALL other previously configured PKI subsystems within this shared instance will NOT start upon system boot.
++.IP
++Additionally, if more than one PKI instance exists, no granularity exists which allows one PKI instance to be enabled while another PKI instance is disabled (i.e. - PKI instances are either all enabled or all disabled).  To provide this capability, the PKI instances must reside on separate machines.
++.IP
++Defaults to True (see the following note on why this was previously 'False').
++.TP
++\fBNote:\fP
++Since this parameter did not exist prior to Dogtag 10.2.3, the default behavior of PKI instances in Dogtag 10.2.2 and prior was False.  To manually enable this behavior, obtain superuser privileges, and execute '\fBsystemctl enable pki-tomcatd.target\fP'; to manually disable this behavior, execute '\fBsystemctl disable pki-tomcatd.target\fP'.
++.PP
+ .B pki_security_manager
+ .IP
+ Enables the Java security manager policies provided by the JDK to be used with the instance.  Defaults to True.
+diff --git a/base/server/python/pki/server/deployment/pkihelper.py b/base/server/python/pki/server/deployment/pkihelper.py
+index 665922c..d11badf 100644
+--- a/base/server/python/pki/server/deployment/pkihelper.py
++++ b/base/server/python/pki/server/deployment/pkihelper.py
+@@ -3248,6 +3248,108 @@ class Systemd(object):
+                 raise
+         return
+ 
++    def disable(self, critical_failure=True):
++        # Legacy SysVinit shutdown (kill) script on system shutdown values:
++        #
++        #    /etc/rc3.d/K13<TPS instance>  --> /etc/init.d/<TPS instance>
++        #    /etc/rc3.d/K14<RA instance>   --> /etc/init.d/<RA instance>
++        #    /etc/rc3.d/K16<TKS instance>  --> /etc/init.d/<TKS instance>
++        #    /etc/rc3.d/K17<OCSP instance> --> /etc/init.d/<OCSP instance>
++        #    /etc/rc3.d/K18<KRA instance>  --> /etc/init.d/<KRA instance>
++        #    /etc/rc3.d/K19<CA instance>   --> /etc/init.d/<CA instance>
++        #
++        """PKI Deployment execution management 'disable' method.
++
++        Executes a 'systemd disable pki-tomcatd.target' system command, or
++        an 'rm /etc/rc3.d/*<instance>' system command on Debian systems.
++
++        Args:
++          critical_failure (boolean, optional):  Raise exception on failures;
++                                                 defaults to 'True'.
++
++        Attributes:
++
++        Returns:
++
++        Raises:
++          subprocess.CalledProcessError:  If 'critical_failure' is 'True'.
++
++        Examples:
++
++        """
++        try:
++            if pki.system.SYSTEM_TYPE == "debian":
++                command = ["rm", "/etc/rc3.d/*" +
++                           self.mdict['pki_instance_name']]
++            else:
++                command = ["systemctl", "disable", "pki-tomcatd.target"]
++
++            # Display this "systemd" execution managment command
++            config.pki_log.info(
++                log.PKIHELPER_SYSTEMD_COMMAND_1, ' '.join(command),
++                extra=config.PKI_INDENTATION_LEVEL_2)
++            # Execute this "systemd" execution management command
++            subprocess.check_call(command)
++        except subprocess.CalledProcessError as exc:
++            config.pki_log.error(log.PKI_SUBPROCESS_ERROR_1, exc,
++                                 extra=config.PKI_INDENTATION_LEVEL_2)
++            if critical_failure:
++                raise
++        return
++
++    def enable(self, critical_failure=True):
++        # Legacy SysVinit startup script on system boot values:
++        #
++        #    /etc/rc3.d/S81<CA instance>   --> /etc/init.d/<CA instance>
++        #    /etc/rc3.d/S82<KRA instance>  --> /etc/init.d/<KRA instance>
++        #    /etc/rc3.d/S83<OCSP instance> --> /etc/init.d/<OCSP instance>
++        #    /etc/rc3.d/S84<TKS instance>  --> /etc/init.d/<TKS instance>
++        #    /etc/rc3.d/S86<RA instance>   --> /etc/init.d/<RA instance>
++        #    /etc/rc3.d/S87<TPS instance>  --> /etc/init.d/<TPS instance>
++        #
++        """PKI Deployment execution management 'enable' method.
++
++           Executes a 'systemd enable pki-tomcatd.target' system command, or
++           an 'ln -s /etc/init.d/pki-tomcatd /etc/rc3.d/S89<instance>'
++           system command on Debian systems.
++
++        Args:
++          critical_failure (boolean, optional):  Raise exception on failures;
++                                                 defaults to 'True'.
++
++        Attributes:
++
++        Returns:
++
++        Raises:
++          subprocess.CalledProcessError:  If 'critical_failure' is 'True'.
++
++        Examples:
++
++        """
++        try:
++            if pki.system.SYSTEM_TYPE == "debian":
++                command = ["ln", "-s", "/etc/init.d/pki-tomcatd",
++                           "/etc/rc3.d/S89" + self.mdict['pki_instance_name']]
++            else:
++                command = ["systemctl", "enable", "pki-tomcatd.target"]
++
++            # Display this "systemd" execution managment command
++            config.pki_log.info(
++                log.PKIHELPER_SYSTEMD_COMMAND_1, ' '.join(command),
++                extra=config.PKI_INDENTATION_LEVEL_2)
++            # Execute this "systemd" execution management command
++            subprocess.check_call(command)
++        except subprocess.CalledProcessError as exc:
++            if pki.system.SYSTEM_TYPE == "debian":
++                if exc.returncode == 6:
++                    return
++            config.pki_log.error(log.PKI_SUBPROCESS_ERROR_1, exc,
++                                 extra=config.PKI_INDENTATION_LEVEL_2)
++            if critical_failure:
++                raise
++        return
++
+     def start(self, critical_failure=True, reload_daemon=True):
+         """PKI Deployment execution management 'start' method.
+ 
+diff --git a/base/server/python/pki/server/deployment/pkimessages.py b/base/server/python/pki/server/deployment/pkimessages.py
+index 57752ff..e63bc58 100644
+--- a/base/server/python/pki/server/deployment/pkimessages.py
++++ b/base/server/python/pki/server/deployment/pkimessages.py
+@@ -63,8 +63,7 @@ VERBOSITY FLAGS    CONSOLE MESSAGE LEVEL       LOG MESSAGE LEVEL
+ PKI_BADZIPFILE_ERROR_1 = "zipfile.BadZipFile:  %s!"
+ PKI_CONFIGURATION_STANDALONE_1 = '''
+       Please obtain the necessary certificates for this stand-alone %s,
+-      and re-run the configuration for step two.
+-'''
++      and re-run the configuration for step two.'''
+ PKI_DIRECTORY_ALREADY_EXISTS_1 = "Directory '%s' already exists!"
+ PKI_DIRECTORY_ALREADY_EXISTS_NOT_A_DIRECTORY_1 = \
+     "Directory '%s' already exists BUT it is NOT a directory!"
+@@ -351,15 +350,16 @@ PKI_CONFIG_RESPONSE_STATUS = "status:"
+ PKI_CONFIG_NOT_YET_IMPLEMENTED_1 = " %s NOT YET IMPLEMENTED"
+ PKI_CHECK_STATUS_MESSAGE = '''
+       To check the status of the subsystem:
+-            systemctl status pki-tomcatd@%s.service
+-'''
+-PKI_ACCESS_URL = "      The URL for the subsystem is: \n"\
+-                 "            https://%s:%s/%s/services"
+-PKI_ACCESS_TPS_URL = "      The URL for the subsystem is: \n"\
+-                     "            https://%s:%s/%s"
+-PKI_INSTANCE_RESTART_MESSAGE = \
+-    "      To restart the subsystem: \n"\
+-    "            systemctl restart pki-tomcatd@%s.service"
++            systemctl status pki-tomcatd@%s.service'''
++PKI_ACCESS_URL = '''
++      The URL for the subsystem is:
++            https://%s:%s/%s/services'''
++PKI_ACCESS_TPS_URL = '''
++      The URL for the subsystem is:
++            https://%s:%s/%s'''
++PKI_INSTANCE_RESTART_MESSAGE = '''
++      To restart the subsystem:
++            systemctl restart pki-tomcatd@%s.service'''
+ 
+ 
+ PKI_SPAWN_INFORMATION_HEADER = '''
+@@ -371,6 +371,8 @@ PKI_SPAWN_INFORMATION_HEADER = '''
+ PKI_SPAWN_INFORMATION_FOOTER = '''
+     ==========================================================================
+ '''
++PKI_SYSTEM_BOOT_STATUS_MESSAGE = '''
++      PKI instances will be %s upon system boot'''
+ 
+ 
+ # PKI Deployment "Scriptlet" Messages
+diff --git a/base/server/python/pki/server/deployment/scriptlets/finalization.py b/base/server/python/pki/server/deployment/scriptlets/finalization.py
+index 7d38a52..c8b5409 100644
+--- a/base/server/python/pki/server/deployment/scriptlets/finalization.py
++++ b/base/server/python/pki/server/deployment/scriptlets/finalization.py
+@@ -56,6 +56,12 @@ class PkiScriptlet(pkiscriptlet.AbstractBasePkiScriptlet):
+         deployer.file.copy(
+             deployer.mdict['pki_manifest'],
+             deployer.mdict['pki_manifest_spawn_archive'])
++        # Optionally, programmatically 'enable' the configured PKI instance
++        # to be started upon system boot (default is True)
++        if not config.str2bool(deployer.mdict['pki_enable_on_system_boot']):
++            deployer.systemd.disable()
++        else:
++            deployer.systemd.enable()
+         # Optionally, programmatically 'restart' the configured PKI instance
+         if config.str2bool(deployer.mdict['pki_restart_configured_instance']):
+             deployer.systemd.restart()
+@@ -84,6 +90,11 @@ class PkiScriptlet(pkiscriptlet.AbstractBasePkiScriptlet):
+         config.pki_log.info(log.FINALIZATION_DESTROY_1, __name__,
+                             extra=config.PKI_INDENTATION_LEVEL_1)
+         deployer.file.modify(deployer.mdict['pki_destroy_log'], silent=True)
++        # If this is the last remaining PKI instance, ALWAYS remove the
++        # link to start configured PKI instances upon system reboot
++        if deployer.mdict['pki_subsystem'] in config.PKI_SUBSYSTEMS and\
++           deployer.instance.pki_instance_subsystems() == 0:
++            deployer.systemd.disable()
+         # Start this Tomcat PKI Process
+         if deployer.mdict['pki_subsystem'] in config.PKI_TOMCAT_SUBSYSTEMS \
+                 and len(deployer.instance.tomcat_instance_subsystems()) >= 1:
+diff --git a/base/server/python/pki/server/deployment/scriptlets/infrastructure_layout.py b/base/server/python/pki/server/deployment/scriptlets/infrastructure_layout.py
+index 60ce601..fcd9fa6 100644
+--- a/base/server/python/pki/server/deployment/scriptlets/infrastructure_layout.py
++++ b/base/server/python/pki/server/deployment/scriptlets/infrastructure_layout.py
+@@ -76,7 +76,9 @@ class PkiScriptlet(pkiscriptlet.AbstractBasePkiScriptlet):
+         # establish top-level infrastructure, instance, and subsystem
+         # base directories and create the "registry" symbolic link that
+         # the "pkidestroy" executable relies upon
+-        deployer.directory.create(deployer.mdict['pki_path'])
++        if deployer.mdict['pki_path'] != "/var/lib/pki":
++            # create relocated top-level infrastructure base
++            deployer.directory.create(deployer.mdict['pki_path'])
+         deployer.directory.create(deployer.mdict['pki_instance_path'])
+         deployer.directory.create(deployer.mdict['pki_subsystem_path'])
+         deployer.symlink.create(
+@@ -104,8 +106,10 @@ class PkiScriptlet(pkiscriptlet.AbstractBasePkiScriptlet):
+         # remove top-level infrastructure base
+         if deployer.mdict['pki_subsystem'] in config.PKI_SUBSYSTEMS and\
+            deployer.instance.pki_instance_subsystems() == 0:
+-            # remove top-level infrastructure base
+-            deployer.directory.delete(deployer.mdict['pki_path'])
++
++            if deployer.mdict['pki_path'] != "/var/lib/pki":
++                # remove relocated top-level infrastructure base
++                deployer.directory.delete(deployer.mdict['pki_path'])
+             # do NOT remove top-level infrastructure logs
+             # since it now stores 'pkispawn'/'pkidestroy' logs
+             # deployer.directory.delete(deployer.mdict['pki_log_path'])
+diff --git a/base/server/sbin/pkispawn b/base/server/sbin/pkispawn
+index edc14a6..55e87bb 100755
+--- a/base/server/sbin/pkispawn
++++ b/base/server/sbin/pkispawn
+@@ -587,14 +587,19 @@ def print_install_information(mdict):
+             not config.str2bool(mdict['pki_external_step_two'])):
+             # Stand-alone PKI KRA/OCSP (External CA Step 1)
+             print log.PKI_CONFIGURATION_STANDALONE_1 % config.pki_subsystem
+-        elif (config.pki_subsystem == "TPS"):
+-            print log.PKI_ACCESS_TPS_URL % (mdict['pki_hostname'],
++        else:
++            if (config.pki_subsystem == "TPS"):
++                print log.PKI_ACCESS_TPS_URL % (mdict['pki_hostname'],
++                                                mdict['pki_https_port'],
++                                                config.pki_subsystem.lower())
++            else:
++                print log.PKI_ACCESS_URL % (mdict['pki_hostname'],
+                                             mdict['pki_https_port'],
+                                             config.pki_subsystem.lower())
+-        else:
+-            print log.PKI_ACCESS_URL % (mdict['pki_hostname'],
+-                                        mdict['pki_https_port'],
+-                                        config.pki_subsystem.lower())
++            if not config.str2bool(mdict['pki_enable_on_system_boot']):
++                print log.PKI_SYSTEM_BOOT_STATUS_MESSAGE % "disabled"
++            else:
++                print log.PKI_SYSTEM_BOOT_STATUS_MESSAGE % "enabled"
+     print log.PKI_SPAWN_INFORMATION_FOOTER
+ 
+ 
+diff --git a/base/server/share/lib/systemd/system/pki-tomcatd.target b/base/server/share/lib/systemd/system/pki-tomcatd.target
+index 633beae..035f76a 100644
+--- a/base/server/share/lib/systemd/system/pki-tomcatd.target
++++ b/base/server/share/lib/systemd/system/pki-tomcatd.target
+@@ -1,8 +1,7 @@
+ [Unit]
+ Description=PKI Tomcat Server
+-After=syslog.target network.target
++Wants=dirsrv.target
++After=syslog.target network.target dirsrv.target
+ 
+ [Install]
+ WantedBy=multi-user.target
+-
+-
+diff --git a/base/server/share/lib/systemd/system/pki-tomcatd@.service b/base/server/share/lib/systemd/system/pki-tomcatd@.service
+index c003126..be54242 100644
+--- a/base/server/share/lib/systemd/system/pki-tomcatd@.service
++++ b/base/server/share/lib/systemd/system/pki-tomcatd@.service
+@@ -1,6 +1,5 @@
+ [Unit]
+ Description=PKI Tomcat Server %i
+-After=pki-tomcatd.target syslog.target network.target
+ PartOf=pki-tomcatd.target
+ 
+ [Service]
+@@ -14,6 +13,3 @@ ExecStop=/usr/libexec/tomcat/server stop
+ SuccessExitStatus=143
+ User=pkiuser
+ Group=pkiuser
+-
+-[Install]
+-WantedBy=multi-user.target
+-- 
+2.1.0
+

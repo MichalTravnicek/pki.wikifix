@@ -1,0 +1,30 @@
+From fff3c3296b5ab150e0c5a760c782cb028f207572 Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Thu, 3 Nov 2016 01:31:16 +0100
+Subject: [PATCH] Updated pki-core.spec.
+
+The pki-core.spec has been updated to include the new man pages
+for PKCS #12 utilities.
+
+https://fedorahosted.org/pki/ticket/1920
+---
+ specs/pki-core.spec | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/specs/pki-core.spec b/specs/pki-core.spec
+index dfb911c786aeb39f63f24f6141d264680053fd4a..aa5966c7f59e7895825e86fdaeec2a4b05c89052 100644
+--- a/specs/pki-core.spec
++++ b/specs/pki-core.spec
+@@ -1188,6 +1188,9 @@ systemctl daemon-reload
+ %{_mandir}/man1/pki-group.1.gz
+ %{_mandir}/man1/pki-group-member.1.gz
+ %{_mandir}/man1/pki-key.1.gz
++%{_mandir}/man1/pki-pkcs12-cert.1.gz
++%{_mandir}/man1/pki-pkcs12-key.1.gz
++%{_mandir}/man1/pki-pkcs12.1.gz
+ %{_mandir}/man1/pki-securitydomain.1.gz
+ %{_mandir}/man1/pki-tps-profile.1.gz
+ %{_mandir}/man1/pki-user.1.gz
+-- 
+2.5.5
+

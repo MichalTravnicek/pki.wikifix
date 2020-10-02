@@ -1,0 +1,30 @@
+From 7bed80ef6b1529f948da260a6b43f2052c6ffb21 Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Mon, 8 Aug 2016 14:39:01 +1000
+Subject: [PATCH] Fix lightweight CA PEM-encoded PKCS #7 cert chain retrieval
+
+The method to retrieve a lightweight CA's PEM-encoded PKCS #7 cert
+chain incorrectly returns X.509 data wrapped in PKCS7 PEM header.
+Return proper PKCS #7 data.
+
+Fixes: https://fedorahosted.org/pki/ticket/2433
+---
+ base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java b/base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java
+index 7bca10fa1dfbfe7dbae5b5c0288c4c59c1075cf9..246a3f08c0919807fb39ff0b49d5e37ef30e992c 100644
+--- a/base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java
++++ b/base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java
+@@ -173,7 +173,7 @@ public class AuthorityService extends PKIService implements AuthorityResource {
+ 
+     @Override
+     public Response getChainPEM(String aidString) {
+-        byte[] der = (byte[]) getCert(aidString).getEntity();
++        byte[] der = (byte[]) getChain(aidString).getEntity();
+         return Response.ok(toPem("PKCS7", der)).build();
+     }
+ 
+-- 
+2.5.5
+

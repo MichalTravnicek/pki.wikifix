@@ -1,0 +1,14 @@
+diff -ur pki-common-orig/src/com/netscape/cms/servlet/tks/TokenServlet.java pki-common/src/com/netscape/cms/servlet/tks/TokenServlet.java
+--- pki-common-orig/src/com/netscape/cms/servlet/tks/TokenServlet.java	2013-12-21 19:34:35.000000000 -0500
++++ pki-common/src/com/netscape/cms/servlet/tks/TokenServlet.java	2014-01-23 11:09:21.000000000 -0500
+@@ -874,7 +874,9 @@
+               oldKeyNickName = st.nextToken();
+           }
+ 
+-          String newKeyInfoMap = "tks.mk_mappings." + rnewKeyInfo; //#xx#xx
++          // AC: Bugfix:  Use mk_mappings value associated with specified keyset.
++          //   Note:  I assume this is a bug since there is no documentation explaining why a different mk_mappings value is used.
++          String newKeyInfoMap = "tks." + keySet + ".mk_mappings." + rnewKeyInfo; //#xx#xx
+           String newMappingValue = CMS.getConfigStore().getString(newKeyInfoMap, null);
+           String newSelectedToken = null;
+           String newKeyNickName = null;

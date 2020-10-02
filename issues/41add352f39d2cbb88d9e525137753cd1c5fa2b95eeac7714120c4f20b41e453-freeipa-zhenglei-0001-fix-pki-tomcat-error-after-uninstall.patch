@@ -1,0 +1,28 @@
+From 1dd08b6aa6d97597483b951cb8f5337bfc1c31b0 Mon Sep 17 00:00:00 2001
+From: shanyin <zhenglei@kylinos.cn>
+Date: Wed, 19 Oct 2016 14:39:47 +0800
+Subject: [PATCH] fix pki-tomcat error after uninstall
+
+---
+ ipaserver/install/cainstance.py | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/ipaserver/install/cainstance.py b/ipaserver/install/cainstance.py
+index 384abc3fe429e16faab55ac63058d8d0696d7f42..55184f00e7a93affcf97de8de84adacfa8c53484 100644
+--- a/ipaserver/install/cainstance.py
++++ b/ipaserver/install/cainstance.py
+@@ -585,6 +585,11 @@ class CAInstance(DogtagInstance):
+         with open(cfg_file, "wb") as f:
+             config.write(f)
+ 
++        # Create parent directory for pki-tomcatd service file
++        PKI_SERVICE_LOCATION="/etc/systemd/system/pki-tomcatd.target.wants"
++        if not os.path.exists(PKI_SERVICE_LOCATION):
++            os.mkdir(PKI_SERVICE_LOCATION)
++
+         self.backup_state('installed', True)
+         try:
+             DogtagInstance.spawn_instance(self, cfg_file)
+-- 
+2.7.4
+

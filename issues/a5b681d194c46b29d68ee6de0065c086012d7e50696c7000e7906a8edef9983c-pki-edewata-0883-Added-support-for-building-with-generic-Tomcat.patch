@@ -1,0 +1,253 @@
+From 98a46ac826122194fa239da9ce4d4ad5b6e70db2 Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Sat, 10 Dec 2016 19:00:28 +0100
+Subject: [PATCH] Added support for building with generic Tomcat.
+
+Previously the build scripts would only work with specific Tomcat
+versions officially supported by the operating system. To support
+other Tomcat versions the build scripts have been modified such
+that they will use the Tomcat installation specified in the
+TOMCAT_HOME variable. The Tomcat-specific PKI source folder to use
+can now be specified in the PKI_TOMCAT_SRC variable.
+
+https://fedorahosted.org/pki/ticket/2560
+---
+ CMakeLists.txt             |  2 --
+ base/CMakeLists.txt        | 10 ++++++----
+ base/ca/CMakeLists.txt     |  9 +--------
+ base/kra/CMakeLists.txt    |  9 +--------
+ base/ocsp/CMakeLists.txt   |  9 +--------
+ base/server/CMakeLists.txt |  9 +--------
+ base/tks/CMakeLists.txt    |  9 +--------
+ base/tps/CMakeLists.txt    |  9 +--------
+ specs/pki-core.spec        | 21 +++++++++------------
+ 9 files changed, 21 insertions(+), 66 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 457e144a307d0e58aaf9f57d96efa523456e8ff4..186a88cf62bb24200dfda3ba965ecd91cfc92fad 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -17,8 +17,6 @@ string(REGEX REPLACE "^([0-9]+).*" "\\1" APPLICATION_VERSION_MAJOR ${VERSION})
+ string(REGEX REPLACE "^[0-9]+\\.([0-9]+).*" "\\1" APPLICATION_VERSION_MINOR ${VERSION})
+ string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" APPLICATION_VERSION_PATCH ${VERSION})
+ 
+-option(WITH_TOMCAT7 "Build Tomcat 7" ON)
+-option(WITH_TOMCAT8 "Build Tomcat 8" ON)
+ option(WITH_SERVER "Build Server" ON)
+ option(WITH_JAVADOC "Build Javadoc" ON)
+ 
+diff --git a/base/CMakeLists.txt b/base/CMakeLists.txt
+index ef3189de8939674c6514dc3fafbb77f9cef3d663..29d4cc47ecb038a710c969f1939ba2787c810699 100644
+--- a/base/CMakeLists.txt
++++ b/base/CMakeLists.txt
+@@ -2,8 +2,10 @@ project(base)
+ 
+ find_file(SERVLET_JAR
+     NAMES
++        servlet-api.jar
+         servlet.jar
+     PATHS
++        ${TOMCAT_HOME}/lib
+         /usr/share/java
+ )
+ 
+@@ -34,28 +36,28 @@ find_file(TOMCAT_API_JAR
+     NAMES
+         tomcat-api.jar
+     PATHS
+-        /usr/share/java/tomcat
++        ${TOMCAT_HOME}/lib
+ )
+ 
+ find_file(TOMCAT_CATALINA_JAR
+     NAMES
+         catalina.jar
+     PATHS
+-        /usr/share/java/tomcat
++        ${TOMCAT_HOME}/lib
+ )
+ 
+ find_file(TOMCAT_UTIL_JAR
+     NAMES
+         tomcat-util.jar
+     PATHS
+-        /usr/share/java/tomcat
++        ${TOMCAT_HOME}/lib
+ )
+ 
+ find_file(TOMCAT_UTIL_SCAN_JAR
+     NAMES
+         tomcat-util-scan.jar
+     PATHS
+-        /usr/share/java/tomcat
++        ${TOMCAT_HOME}/lib
+ )
+ 
+ # The order is important!
+diff --git a/base/ca/CMakeLists.txt b/base/ca/CMakeLists.txt
+index 1492d5a10609483799092756196d9537bee89c00..67cf12295450b1674a7440076a74c1009d1486d0 100644
+--- a/base/ca/CMakeLists.txt
++++ b/base/ca/CMakeLists.txt
+@@ -3,14 +3,7 @@ project(ca NONE)
+ add_subdirectory(src)
+ add_subdirectory(setup)
+ add_subdirectory(shared/conf)
+-
+-if(WITH_TOMCAT7)
+-    add_subdirectory(tomcat7)
+-endif(WITH_TOMCAT7)
+-
+-if(WITH_TOMCAT8)
+-    add_subdirectory(tomcat8)
+-endif(WITH_TOMCAT8)
++add_subdirectory(${PKI_TOMCAT_SRC})
+ 
+ # install directories
+ install(
+diff --git a/base/kra/CMakeLists.txt b/base/kra/CMakeLists.txt
+index 2c3b4697c658eca23590458627581b78ee36ea3e..b47cb1fadad88a5d9eaa3628fa5b86d84fad4855 100644
+--- a/base/kra/CMakeLists.txt
++++ b/base/kra/CMakeLists.txt
+@@ -3,14 +3,7 @@ project(kra NONE)
+ add_subdirectory(src)
+ add_subdirectory(setup)
+ add_subdirectory(shared/conf)
+-
+-if(WITH_TOMCAT7)
+-    add_subdirectory(tomcat7)
+-endif(WITH_TOMCAT7)
+-
+-if(WITH_TOMCAT8)
+-    add_subdirectory(tomcat8)
+-endif(WITH_TOMCAT8)
++add_subdirectory(${PKI_TOMCAT_SRC})
+ 
+ # install directories
+ install(
+diff --git a/base/ocsp/CMakeLists.txt b/base/ocsp/CMakeLists.txt
+index 8ffa9d76c6700c72f1374bdcda5727de15ce16cd..0f4e520712f389513723237f0bf8e8dc802fd0b1 100644
+--- a/base/ocsp/CMakeLists.txt
++++ b/base/ocsp/CMakeLists.txt
+@@ -3,14 +3,7 @@ project(ocsp NONE)
+ add_subdirectory(src)
+ add_subdirectory(setup)
+ add_subdirectory(shared/conf)
+-
+-if(WITH_TOMCAT7)
+-    add_subdirectory(tomcat7)
+-endif(WITH_TOMCAT7)
+-
+-if(WITH_TOMCAT8)
+-    add_subdirectory(tomcat8)
+-endif(WITH_TOMCAT8)
++add_subdirectory(${PKI_TOMCAT_SRC})
+ 
+ # install directories
+ install(
+diff --git a/base/server/CMakeLists.txt b/base/server/CMakeLists.txt
+index e0669ca5c0f7d990b8ab8a10f9babf96cf36e4a3..e173b103ebfdbf6f2477865309cdefe7939cc572 100644
+--- a/base/server/CMakeLists.txt
++++ b/base/server/CMakeLists.txt
+@@ -191,14 +191,7 @@ install(
+ install(CODE "file(MAKE_DIRECTORY \$ENV{DESTDIR}${VAR_INSTALL_DIR}/lock/pki)")
+ install(CODE "file(MAKE_DIRECTORY \$ENV{DESTDIR}${VAR_INSTALL_DIR}/run/pki)")
+ 
+-if(WITH_TOMCAT7)
+-    add_subdirectory(tomcat7)
+-endif(WITH_TOMCAT7)
+-
+-if(WITH_TOMCAT8)
+-    add_subdirectory(tomcat8)
+-endif(WITH_TOMCAT8)
+-
++add_subdirectory(${PKI_TOMCAT_SRC})
+ add_subdirectory(tomcat)
+ add_subdirectory(cms)
+ add_subdirectory(cmsbundle)
+diff --git a/base/tks/CMakeLists.txt b/base/tks/CMakeLists.txt
+index 7fa9f2210c3d13f0b21b2421ac43eb5d05b82fc3..86e8b0e8a94ce1f0866f78dcb57c8a1db6c24682 100644
+--- a/base/tks/CMakeLists.txt
++++ b/base/tks/CMakeLists.txt
+@@ -3,14 +3,7 @@ project(tks NONE)
+ add_subdirectory(src)
+ add_subdirectory(setup)
+ add_subdirectory(shared/conf)
+-
+-if(WITH_TOMCAT7)
+-    add_subdirectory(tomcat7)
+-endif(WITH_TOMCAT7)
+-
+-if(WITH_TOMCAT8)
+-    add_subdirectory(tomcat8)
+-endif(WITH_TOMCAT8)
++add_subdirectory(${PKI_TOMCAT_SRC})
+ 
+ # install directories
+ install(
+diff --git a/base/tps/CMakeLists.txt b/base/tps/CMakeLists.txt
+index 964a254bdc9af69309d5c563b349596d58759d8b..f524266d06e282eb090a49543d1b0e203d1d6023 100644
+--- a/base/tps/CMakeLists.txt
++++ b/base/tps/CMakeLists.txt
+@@ -5,14 +5,7 @@ add_subdirectory(src)
+ # install files
+ add_subdirectory(setup)
+ add_subdirectory(shared/conf)
+-
+-if(WITH_TOMCAT7)
+-    add_subdirectory(tomcat7)
+-endif(WITH_TOMCAT7)
+-
+-if(WITH_TOMCAT8)
+-    add_subdirectory(tomcat8)
+-endif(WITH_TOMCAT8)
++add_subdirectory(${PKI_TOMCAT_SRC})
+ 
+ # install manual pages
+ install(
+diff --git a/specs/pki-core.spec b/specs/pki-core.spec
+index d8034df802113d51ef9a0d5fb400798bb67b726c..c4f7e57d3f5c5977f403dc106e64250e4e13d301 100644
+--- a/specs/pki-core.spec
++++ b/specs/pki-core.spec
+@@ -20,17 +20,18 @@
+ %global package_fedora_packages 1
+ %endif
+ 
+-# Java
++# Java home
+ %define java_home /usr/lib/jvm/jre-1.8.0-openjdk
+ 
+-# Tomcat
++# Tomcat home
++%define tomcat_home /usr/share/tomcat
++
++# PKI Tomcat source folder
+ %if 0%{?fedora} >= 23
+-%define with_tomcat7 0
+-%define with_tomcat8 1
++%define pki_tomcat_src tomcat8
+ %else
+ # 0%{?rhel} || 0%{?fedora} <= 22
+-%define with_tomcat7 1
+-%define with_tomcat8 0
++%define pki_tomcat_src tomcat7
+ %endif
+ 
+ # RESTEasy
+@@ -869,12 +870,8 @@ cd build
+ %if %{version_phase}
+ 	-DAPPLICATION_VERSION_PHASE="%{version_phase}" \
+ %endif
+-%if ! %{with_tomcat7}
+-	-DWITH_TOMCAT7:BOOL=OFF \
+-%endif
+-%if ! %{with_tomcat8}
+-	-DWITH_TOMCAT8:BOOL=OFF \
+-%endif
++	-DTOMCAT_HOME=%{tomcat_home} \
++	-DPKI_TOMCAT_SRC=%{pki_tomcat_src} \
+ 	-DJAXRS_API_JAR=%{jaxrs_api_jar} \
+ 	-DRESTEASY_LIB=%{resteasy_lib} \
+ %if ! %{with server}
+-- 
+2.5.5
+

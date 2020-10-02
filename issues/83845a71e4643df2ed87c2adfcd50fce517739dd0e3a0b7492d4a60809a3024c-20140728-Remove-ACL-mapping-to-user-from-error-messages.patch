@@ -1,0 +1,58 @@
+From fa9b301d120536ddcff3936e23984c3dc9cbd83b Mon Sep 17 00:00:00 2001
+From: Matthew Harmsen <mharmsen@redhat.com>
+Date: Mon, 28 Jul 2014 14:27:20 -0700
+Subject: [PATCH] Remove ACL mapping to user from error messages
+
+- PKI TRAC Ticket #965 - Improve error message - remove ACL mapping to the user
+---
+ base/server/cms/src/com/netscape/cms/authorization/BasicAclAuthz.java | 3 ++-
+ base/server/cms/src/com/netscape/cms/authorization/DirAclAuthz.java   | 3 ++-
+ base/server/cmsbundle/src/LogMessages.properties                      | 2 +-
+ 3 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/base/server/cms/src/com/netscape/cms/authorization/BasicAclAuthz.java b/base/server/cms/src/com/netscape/cms/authorization/BasicAclAuthz.java
+index 729b017..c883758 100644
+--- a/base/server/cms/src/com/netscape/cms/authorization/BasicAclAuthz.java
++++ b/base/server/cms/src/com/netscape/cms/authorization/BasicAclAuthz.java
+@@ -145,8 +145,9 @@ public class BasicAclAuthz extends AAclAuthz
+             // audit here later
+             log(ILogger.LL_FAILURE, CMS.getLogMessage("AUTHZ_EVALUATOR_AUTHORIZATION_FAILED"));
+             String params[] = { resource, operation };
++            log(ILogger.LL_FAILURE, CMS.getLogMessage("AUTHZ_AUTHZ_ACCESS_DENIED_2", params));
+ 
+-            throw new EAuthzAccessDenied(CMS.getUserMessage("CMS_AUTHORIZATION_AUTHZ_ACCESS_DENIED", params));
++            throw new EAuthzAccessDenied(CMS.getUserMessage("CMS_AUTHORIZATION_ERROR"));
+         }
+ 
+         return authzToken;
+diff --git a/base/server/cms/src/com/netscape/cms/authorization/DirAclAuthz.java b/base/server/cms/src/com/netscape/cms/authorization/DirAclAuthz.java
+index 133fe75..d067787 100644
+--- a/base/server/cms/src/com/netscape/cms/authorization/DirAclAuthz.java
++++ b/base/server/cms/src/com/netscape/cms/authorization/DirAclAuthz.java
+@@ -233,8 +233,9 @@ public class DirAclAuthz extends AAclAuthz
+             // audit here later
+             log(ILogger.LL_FAILURE, CMS.getLogMessage("AUTHZ_EVALUATOR_AUTHORIZATION_FAILED"));
+             String params[] = { resource, operation };
++            log(ILogger.LL_FAILURE, CMS.getLogMessage("AUTHZ_AUTHZ_ACCESS_DENIED_2", params));
+ 
+-            throw new EAuthzAccessDenied(CMS.getUserMessage("CMS_AUTHORIZATION_AUTHZ_ACCESS_DENIED", params));
++            throw new EAuthzAccessDenied(CMS.getUserMessage("CMS_AUTHORIZATION_ERROR"));
+         }
+ 
+         return authzToken;
+diff --git a/base/server/cmsbundle/src/LogMessages.properties b/base/server/cmsbundle/src/LogMessages.properties
+index 54dd7aa..f1485de 100644
+--- a/base/server/cmsbundle/src/LogMessages.properties
++++ b/base/server/cmsbundle/src/LogMessages.properties
+@@ -599,7 +599,7 @@ AUTHZ_AUTHZ_MGR_PLUGIN_NOT_FOUND_1=Authorization manager plugin name {0} not fou
+ AUTHZ_MISSING_REQUIRED_AUTHZMGR_1=Missing system required authz manager instance of {0}
+ AUTHZ_AUTHZ_INTERNAL_ERROR=Authorization subsystem encountered an internal error
+ AUTHZ_AUTHZ_INTERNAL_ERROR_1=Authorization encountered an internal error. Detailed msg: {0}
+-AUTHZ_AUTHZ_ACCESS_DENIED_2=authorization failed on resource: {0}, operation: {1}
++AUTHZ_AUTHZ_ACCESS_DENIED_2=Authorization failed on resource: {0}, operation: {1}
+ AUTHZ_UNKNOWN_PROTECTED_RESOURCE_1=unknown protected resource specified: {0}
+ AUTHZ_UNKNOWN_OPERATION_1=unknown operation specified: {0}
+ AUTHZ_ILLEGAL_FORMAT=Illegal Format
+-- 
+1.9.3
+

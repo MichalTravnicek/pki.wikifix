@@ -1,0 +1,484 @@
+From c9cd3c59ad862fa2576e680a7e9fc53ce15fae02 Mon Sep 17 00:00:00 2001
+From: Matthew Harmsen <mharmsen@pki.usersys.redhat.com>
+Date: Tue, 26 Apr 2016 11:06:10 -0600
+Subject: [PATCH] fix bashisms
+
+- PKI TRAC Ticket #2249 - fix bashisms
+  - changes 'source' to '.'
+  - changes 'bash' to 'sh'
+---
+ base/java-tools/templates/pki_java_command_wrapper.in          |  4 ++--
+ base/java-tools/templates/pretty_print_cert_command_wrapper.in |  2 +-
+ base/java-tools/templates/pretty_print_crl_command_wrapper.in  |  2 +-
+ base/scripts/enable_cvs_keywords_in_svn                        |  2 +-
+ base/scripts/pkicheck                                          |  2 +-
+ base/scripts/pkiclihelp                                        |  2 +-
+ base/scripts/pkimanifest                                       |  2 +-
+ base/server/sbin/pki-server-nuxwdog                            |  2 +-
+ base/server/scripts/operations                                 | 10 +++++-----
+ base/server/scripts/pkidaemon                                  |  2 +-
+ base/tps-client/etc/init.d/pki-tpsd                            |  2 +-
+ base/tps-client/scripts/nss_pcache                             |  2 +-
+ dogtag/common-ui/build_dogtag                                  |  2 +-
+ dogtag/console-ui/build_dogtag                                 |  2 +-
+ scripts/build_dogtag_pki                                       |  2 +-
+ scripts/compose_dogtag_pki_meta_packages                       |  4 ++--
+ scripts/compose_dogtag_pki_theme_packages                      |  8 ++++----
+ scripts/compose_functions                                      |  2 +-
+ scripts/compose_pki_console_packages                           |  8 ++++----
+ scripts/compose_pki_core_packages                              |  8 ++++----
+ scripts/compose_pki_test_package                               |  2 +-
+ scripts/create_beaker_job                                      |  2 +-
+ scripts/create_pki_yum_repos                                   |  2 +-
+ scripts/dev_setup                                              |  2 +-
+ scripts/install_default_ca_instance                            |  2 +-
+ scripts/install_default_pki_instances                          |  2 +-
+ scripts/pki_patch_maker                                        |  2 +-
+ scripts/prepare_dogtag_pki                                     |  2 +-
+ scripts/remove_default_pki_instances                           |  2 +-
+ scripts/remove_pki_components                                  |  2 +-
+ 30 files changed, 45 insertions(+), 45 deletions(-)
+
+diff --git a/base/java-tools/templates/pki_java_command_wrapper.in b/base/java-tools/templates/pki_java_command_wrapper.in
+index 56ca9f1..c6dfc64 100644
+--- a/base/java-tools/templates/pki_java_command_wrapper.in
++++ b/base/java-tools/templates/pki_java_command_wrapper.in
+@@ -110,7 +110,7 @@ fi
+ ##      order this command wrapper uses to find jar files.                   ##
+ ###############################################################################
+ 
+-JNI_JAR_DIR=`source /usr/share/pki/etc/pki.conf && source /etc/pki/pki.conf && echo $JNI_JAR_DIR`
++JNI_JAR_DIR=`. /usr/share/pki/etc/pki.conf && . /etc/pki/pki.conf && echo $JNI_JAR_DIR`
+ CP=${JNI_JAR_DIR}/jss4.jar
+ CP=/usr/share/java/commons-cli.jar:${CP}
+ CP=/usr/share/java/commons-codec.jar:${CP}
+@@ -124,7 +124,7 @@ CP=/usr/share/java/${PRODUCT}/pki-cmsutil.jar:${CP}
+ CP=/usr/share/java/${PRODUCT}/pki-tools.jar:${CP}
+ export CP
+ 
+-LOGGING_CONFIG=`source /usr/share/pki/etc/pki.conf && source /etc/pki/pki.conf && echo $LOGGING_CONFIG`
++LOGGING_CONFIG=`. /usr/share/pki/etc/pki.conf && . /etc/pki/pki.conf && echo $LOGGING_CONFIG`
+ 
+ ###############################################################################
+ ##  (6) Execute the java command specified by this java command wrapper      ##
+diff --git a/base/java-tools/templates/pretty_print_cert_command_wrapper.in b/base/java-tools/templates/pretty_print_cert_command_wrapper.in
+index 6c1abc7..6dc86de 100644
+--- a/base/java-tools/templates/pretty_print_cert_command_wrapper.in
++++ b/base/java-tools/templates/pretty_print_cert_command_wrapper.in
+@@ -110,7 +110,7 @@ fi
+ ##      order this command wrapper uses to find jar files.                   ##
+ ###############################################################################
+ 
+-JNI_JAR_DIR=`source /usr/share/pki/etc/pki.conf && source /etc/pki/pki.conf && echo $JNI_JAR_DIR`
++JNI_JAR_DIR=`. /usr/share/pki/etc/pki.conf && . /etc/pki/pki.conf && echo $JNI_JAR_DIR`
+ CP=${JNI_JAR_DIR}/jss4.jar
+ CP=/usr/share/java/commons-codec.jar:${CP}
+ CP=/usr/share/java/ldapjdk.jar:${CP}
+diff --git a/base/java-tools/templates/pretty_print_crl_command_wrapper.in b/base/java-tools/templates/pretty_print_crl_command_wrapper.in
+index 19f8bd8..2a74d4d 100644
+--- a/base/java-tools/templates/pretty_print_crl_command_wrapper.in
++++ b/base/java-tools/templates/pretty_print_crl_command_wrapper.in
+@@ -110,7 +110,7 @@ fi
+ ##      order this command wrapper uses to find jar files.                   ##
+ ###############################################################################
+ 
+-JNI_JAR_DIR=`source /usr/share/pki/etc/pki.conf && source /etc/pki/pki.conf && echo $JNI_JAR_DIR`
++JNI_JAR_DIR=`. /usr/share/pki/etc/pki.conf && . /etc/pki/pki.conf && echo $JNI_JAR_DIR`
+ CP=${JNI_JAR_DIR}/jss4.jar
+ 
+ CP=/usr/share/java/commons-codec.jar:${CP}
+diff --git a/base/scripts/enable_cvs_keywords_in_svn b/base/scripts/enable_cvs_keywords_in_svn
+index fd14a88..e8f5864 100755
+--- a/base/scripts/enable_cvs_keywords_in_svn
++++ b/base/scripts/enable_cvs_keywords_in_svn
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ # BEGIN COPYRIGHT BLOCK
+ # (C) 2010 Red Hat, Inc.
+ # All rights reserved.
+diff --git a/base/scripts/pkicheck b/base/scripts/pkicheck
+index 3ff548d..f5e2e17 100755
+--- a/base/scripts/pkicheck
++++ b/base/scripts/pkicheck
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ 
+ # This script may ONLY be run on Linux!
+ PKI_OS=`uname`
+diff --git a/base/scripts/pkiclihelp b/base/scripts/pkiclihelp
+index b9a2ed3..1df4df5 100755
+--- a/base/scripts/pkiclihelp
++++ b/base/scripts/pkiclihelp
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ ##  BEGIN COPYRIGHT BLOCK
+ ##  (C) 2014 Red Hat, Inc.
+ ##  All rights reserved.
+diff --git a/base/scripts/pkimanifest b/base/scripts/pkimanifest
+index 31d443c..309e81c 100755
+--- a/base/scripts/pkimanifest
++++ b/base/scripts/pkimanifest
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ # BEGIN COPYRIGHT BLOCK
+ # (C) 2010 Red Hat, Inc.
+ # All rights reserved.
+diff --git a/base/server/sbin/pki-server-nuxwdog b/base/server/sbin/pki-server-nuxwdog
+index 78ce8fb..31fff5e 100755
+--- a/base/server/sbin/pki-server-nuxwdog
++++ b/base/server/sbin/pki-server-nuxwdog
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ 
+ . /etc/tomcat/tomcat.conf
+ NAME=$1
+diff --git a/base/server/scripts/operations b/base/server/scripts/operations
+index ede5f82..14ab4af 100644
+--- a/base/server/scripts/operations
++++ b/base/server/scripts/operations
+@@ -1,4 +1,4 @@
+-#!/bin/bash -X
++#!/bin/sh -X
+ 
+ # From "http://fedoraproject.org/wiki/FCNewInit/Initscripts":
+ #
+@@ -1117,7 +1117,7 @@ verify_symlinks()
+         jni_jar_dir="/usr/share/java"
+         tomcat_dir="/usr/share/tomcat7"
+     else
+-        jni_jar_dir=`source /usr/share/pki/etc/pki.conf && source /etc/pki/pki.conf && echo $JNI_JAR_DIR`
++        jni_jar_dir=`. /usr/share/pki/etc/pki.conf && . /etc/pki/pki.conf && echo $JNI_JAR_DIR`
+         tomcat_dir="/usr/share/tomcat"
+     fi
+ 
+@@ -1637,12 +1637,12 @@ catalina_sh() {
+     AUTHBIND_COMMAND=""
+     if [ "$AUTHBIND" = "yes" -a "$1" = "start" ]; then
+             JAVA_OPTS="$JAVA_OPTS -Djava.net.preferIPv4Stack=true"
+-            AUTHBIND_COMMAND="/usr/bin/authbind --deep /bin/bash -c "
++            AUTHBIND_COMMAND="/usr/bin/authbind --deep /bin/sh -c "
+     fi
+ 
+     # Define the command to run Tomcat's catalina.sh as a daemon
+     # set -a tells sh to export assigned variables to spawned shells.
+-    TOMCAT_SH="set -a; JAVA_HOME=\"$JAVA_HOME\"; source \"$DEFAULT\"; \
++    TOMCAT_SH="set -a; JAVA_HOME=\"$JAVA_HOME\"; . \"$DEFAULT\"; \
+             CATALINA_HOME=\"$CATALINA_HOME\"; \
+             CATALINA_BASE=\"$CATALINA_BASE\"; \
+             JAVA_OPTS=\"$JAVA_OPTS\"; \
+@@ -1661,7 +1661,7 @@ catalina_sh() {
+     chown $TOMCAT7_USER "$CATALINA_PID" "$CATALINA_BASE"/logs/catalina.out
+     start-stop-daemon --start -b -u "$TOMCAT7_USER" -g "$TOMCAT7_GROUP" \
+             -c "$TOMCAT7_USER" -d "$CATALINA_TMPDIR" -p "$CATALINA_PID" \
+-            -x /bin/bash -- -c "$AUTHBIND_COMMAND $TOMCAT_SH"
++            -x /bin/sh -- -c "$AUTHBIND_COMMAND $TOMCAT_SH"
+     status="$?"
+     set +a
+     return $status
+diff --git a/base/server/scripts/pkidaemon b/base/server/scripts/pkidaemon
+index e4bc249..c9bdece 100755
+--- a/base/server/scripts/pkidaemon
++++ b/base/server/scripts/pkidaemon
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ #
+ # --- BEGIN COPYRIGHT BLOCK ---
+ # This program is free software; you can redistribute it and/or modify
+diff --git a/base/tps-client/etc/init.d/pki-tpsd b/base/tps-client/etc/init.d/pki-tpsd
+index b061d2a..34e444f 100755
+--- a/base/tps-client/etc/init.d/pki-tpsd
++++ b/base/tps-client/etc/init.d/pki-tpsd
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ #
+ # --- BEGIN COPYRIGHT BLOCK ---
+ # This program is free software; you can redistribute it and/or modify
+diff --git a/base/tps-client/scripts/nss_pcache b/base/tps-client/scripts/nss_pcache
+index 6c4b21e..ef486f0 100755
+--- a/base/tps-client/scripts/nss_pcache
++++ b/base/tps-client/scripts/nss_pcache
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ #
+ # --- BEGIN COPYRIGHT BLOCK ---
+ # This library is free software; you can redistribute it and/or
+diff --git a/dogtag/common-ui/build_dogtag b/dogtag/common-ui/build_dogtag
+index 194bfbc..09edf2f 100755
+--- a/dogtag/common-ui/build_dogtag
++++ b/dogtag/common-ui/build_dogtag
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ # BEGIN COPYRIGHT BLOCK
+ # This program is free software; you can redistribute it and/or modify
+ # it under the terms of the GNU General Public License as published by
+diff --git a/dogtag/console-ui/build_dogtag b/dogtag/console-ui/build_dogtag
+index 5cfa142..42a6352 100755
+--- a/dogtag/console-ui/build_dogtag
++++ b/dogtag/console-ui/build_dogtag
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ # BEGIN COPYRIGHT BLOCK
+ # This program is free software; you can redistribute it and/or modify
+ # it under the terms of the GNU General Public License as published by
+diff --git a/scripts/build_dogtag_pki b/scripts/build_dogtag_pki
+index 653b9f2..24015f1 100755
+--- a/scripts/build_dogtag_pki
++++ b/scripts/build_dogtag_pki
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ # BEGIN COPYRIGHT BLOCK
+ # (C) 2011 Red Hat, Inc.
+ # All rights reserved.
+diff --git a/scripts/compose_dogtag_pki_meta_packages b/scripts/compose_dogtag_pki_meta_packages
+index a70213c..c19ab00 100755
+--- a/scripts/compose_dogtag_pki_meta_packages
++++ b/scripts/compose_dogtag_pki_meta_packages
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ # BEGIN COPYRIGHT BLOCK
+ # (C) 2010 Red Hat, Inc.
+ # All rights reserved.
+@@ -9,7 +9,7 @@
+ ##
+ 
+ COMPOSE_PWD=`dirname $0`
+-source ${COMPOSE_PWD}/compose_functions
++. ${COMPOSE_PWD}/compose_functions
+ 
+ 
+ ## Always switch into the base directory three levels
+diff --git a/scripts/compose_dogtag_pki_theme_packages b/scripts/compose_dogtag_pki_theme_packages
+index 7df834c..12c7e6a 100755
+--- a/scripts/compose_dogtag_pki_theme_packages
++++ b/scripts/compose_dogtag_pki_theme_packages
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ # BEGIN COPYRIGHT BLOCK
+ # (C) 2010 Red Hat, Inc.
+ # All rights reserved.
+@@ -9,7 +9,7 @@
+ ##
+ 
+ COMPOSE_PWD=`dirname $0`
+-source ${COMPOSE_PWD}/compose_functions
++. ${COMPOSE_PWD}/compose_functions
+ 
+ 
+ ## Always switch into the base directory three levels
+@@ -187,7 +187,7 @@ fi
+ ##
+ 
+ rm -rf ${DOGTAG_PKI_THEME_PACKAGE_SCRIPT}
+-printf "#!/bin/bash\n\n"                >  ${DOGTAG_PKI_THEME_PACKAGE_SCRIPT}
++printf "#!/bin/sh\n\n"                >  ${DOGTAG_PKI_THEME_PACKAGE_SCRIPT}
+ printf "${DOGTAG_PKI_THEME_PACKAGE_COMMAND}\n\n" >> ${DOGTAG_PKI_THEME_PACKAGE_SCRIPT}
+ chmod 775 ${DOGTAG_PKI_THEME_PACKAGE_SCRIPT}
+ 
+@@ -197,5 +197,5 @@ chmod 775 ${DOGTAG_PKI_THEME_PACKAGE_SCRIPT}
+ ##
+ 
+ cd ${PKI_PACKAGES} ;
+-bash ./package_${DOGTAG_PKI_THEME} | tee package_${DOGTAG_PKI_THEME}.log 2>&1
++sh ./package_${DOGTAG_PKI_THEME} | tee package_${DOGTAG_PKI_THEME}.log 2>&1
+ 
+diff --git a/scripts/compose_functions b/scripts/compose_functions
+index 3e8f2cc..9b55f88 100644
+--- a/scripts/compose_functions
++++ b/scripts/compose_functions
+@@ -298,7 +298,7 @@ Create_repo_after_build()
+              exit -1
+ 	fi
+ 
+-	source $1
++	. $1
+ 
+ 	### Remove leading and trailing whitespaces ###
+ 	repo_location=`echo $REPOSITORY_LOCATION |sed -e 's/^ *//g' -e 's/ *$//g'`
+diff --git a/scripts/compose_pki_console_packages b/scripts/compose_pki_console_packages
+index bdee121..92ffb7f 100755
+--- a/scripts/compose_pki_console_packages
++++ b/scripts/compose_pki_console_packages
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ # BEGIN COPYRIGHT BLOCK
+ # (C) 2010 Red Hat, Inc.
+ # All rights reserved.
+@@ -9,7 +9,7 @@
+ ##
+ 
+ COMPOSE_PWD=`dirname $0`
+-source ${COMPOSE_PWD}/compose_functions
++. ${COMPOSE_PWD}/compose_functions
+ 
+ 
+ ## Always switch into the base directory three levels
+@@ -185,7 +185,7 @@ fi
+ ##
+ 
+ rm -rf ${PKI_CONSOLE_PACKAGE_SCRIPT}
+-printf "#!/bin/bash\n\n"                    >  ${PKI_CONSOLE_PACKAGE_SCRIPT}
++printf "#!/bin/sh\n\n"                    >  ${PKI_CONSOLE_PACKAGE_SCRIPT}
+ printf "${PKI_CONSOLE_PACKAGE_COMMAND}\n\n" >> ${PKI_CONSOLE_PACKAGE_SCRIPT}
+ chmod 775 ${PKI_CONSOLE_PACKAGE_SCRIPT}
+ 
+@@ -195,5 +195,5 @@ chmod 775 ${PKI_CONSOLE_PACKAGE_SCRIPT}
+ ##
+ 
+ cd ${PKI_PACKAGES} ;
+-bash ./package_${PKI_CONSOLE} | tee package_${PKI_CONSOLE}.log 2>&1
++sh ./package_${PKI_CONSOLE} | tee package_${PKI_CONSOLE}.log 2>&1
+ 
+diff --git a/scripts/compose_pki_core_packages b/scripts/compose_pki_core_packages
+index 21fa550..c79004d 100755
+--- a/scripts/compose_pki_core_packages
++++ b/scripts/compose_pki_core_packages
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ # BEGIN COPYRIGHT BLOCK
+ # (C) 2010 Red Hat, Inc.
+ # All rights reserved.
+@@ -9,7 +9,7 @@
+ ##
+ 
+ COMPOSE_PWD=`dirname $0`
+-source ${COMPOSE_PWD}/compose_functions
++. ${COMPOSE_PWD}/compose_functions
+ 
+ ## Always switch into the base directory three levels
+ ## above this shell script prior to executing it so
+@@ -202,7 +202,7 @@ fi
+ ##
+ 
+ rm -rf ${PKI_CORE_PACKAGE_SCRIPT}
+-printf "#!/bin/bash\n\n"                 >  ${PKI_CORE_PACKAGE_SCRIPT}
++printf "#!/bin/sh\n\n"                 >  ${PKI_CORE_PACKAGE_SCRIPT}
+ printf "${PKI_CORE_PACKAGE_COMMAND}\n\n" >> ${PKI_CORE_PACKAGE_SCRIPT}
+ chmod 775 ${PKI_CORE_PACKAGE_SCRIPT}
+ 
+@@ -212,7 +212,7 @@ chmod 775 ${PKI_CORE_PACKAGE_SCRIPT}
+ ##
+ 
+ cd ${PKI_PACKAGES} ;
+-bash ./package_${PKI_CORE} | tee package_${PKI_CORE}.log 2>&1
++sh ./package_${PKI_CORE} | tee package_${PKI_CORE}.log 2>&1
+ 
+ if [ "$CREATEREPO" == "Y" ] ; then
+    echo "Creating a repository of the built rpms"
+diff --git a/scripts/compose_pki_test_package b/scripts/compose_pki_test_package
+index 0692920..b62ecf4 100755
+--- a/scripts/compose_pki_test_package
++++ b/scripts/compose_pki_test_package
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ # BEGIN COPYRIGHT BLOCK
+ # (C) 2010 Red Hat, Inc.
+ # All rights reserved.
+diff --git a/scripts/create_beaker_job b/scripts/create_beaker_job
+index 5184d48..f7602dc 100755
+--- a/scripts/create_beaker_job
++++ b/scripts/create_beaker_job
+@@ -1,4 +1,4 @@
+-#! /bin/bash
++#! /bin/sh
+ 
+ ### Exit if there not enough parameters specified.
+ if [ $# -lt 2 ];
+diff --git a/scripts/create_pki_yum_repos b/scripts/create_pki_yum_repos
+index 69167f3..750c86a 100755
+--- a/scripts/create_pki_yum_repos
++++ b/scripts/create_pki_yum_repos
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ 
+ # This script may ONLY be run on Linux!
+ PKI_OS=`uname`
+diff --git a/scripts/dev_setup b/scripts/dev_setup
+index 7dd12a4..fa4536d 100755
+--- a/scripts/dev_setup
++++ b/scripts/dev_setup
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ # BEGIN COPYRIGHT BLOCK
+ # (C) 2012 Red Hat, Inc.
+ # All rights reserved.
+diff --git a/scripts/install_default_ca_instance b/scripts/install_default_ca_instance
+index 7de0980..183ce3d 100755
+--- a/scripts/install_default_ca_instance
++++ b/scripts/install_default_ca_instance
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ # BEGIN COPYRIGHT BLOCK
+ # (C) 2010 Red Hat, Inc.
+ # All rights reserved.
+diff --git a/scripts/install_default_pki_instances b/scripts/install_default_pki_instances
+index 7c1bc9d..6b21c69 100755
+--- a/scripts/install_default_pki_instances
++++ b/scripts/install_default_pki_instances
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ # BEGIN COPYRIGHT BLOCK
+ # (C) 2010 Red Hat, Inc.
+ # All rights reserved.
+diff --git a/scripts/pki_patch_maker b/scripts/pki_patch_maker
+index 2803d26..9cf2fdb 100755
+--- a/scripts/pki_patch_maker
++++ b/scripts/pki_patch_maker
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ ## BEGIN COPYRIGHT BLOCK
+ ## (C) 2011 Red Hat, Inc.
+ ## All rights reserved.
+diff --git a/scripts/prepare_dogtag_pki b/scripts/prepare_dogtag_pki
+index 0b0f814..5854d90 100755
+--- a/scripts/prepare_dogtag_pki
++++ b/scripts/prepare_dogtag_pki
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ # BEGIN COPYRIGHT BLOCK
+ # (C) 2011 Red Hat, Inc.
+ # All rights reserved.
+diff --git a/scripts/remove_default_pki_instances b/scripts/remove_default_pki_instances
+index 3ec355f..428daf0 100755
+--- a/scripts/remove_default_pki_instances
++++ b/scripts/remove_default_pki_instances
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ ##  BEGIN COPYRIGHT BLOCK
+ ##  (C) 2008 Red Hat, Inc.
+ ##  All rights reserved.
+diff --git a/scripts/remove_pki_components b/scripts/remove_pki_components
+index b673d0a..a0ccfc8 100755
+--- a/scripts/remove_pki_components
++++ b/scripts/remove_pki_components
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ ##  BEGIN COPYRIGHT BLOCK
+ ##  (C) 2008 Red Hat, Inc.
+ ##  All rights reserved.
+-- 
+2.5.5
+

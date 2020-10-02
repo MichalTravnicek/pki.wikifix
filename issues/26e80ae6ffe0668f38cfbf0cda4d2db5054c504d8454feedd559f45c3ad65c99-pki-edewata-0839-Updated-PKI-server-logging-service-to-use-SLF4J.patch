@@ -1,0 +1,176 @@
+From 3180e43d9e314c7135bb8368a464d1fb6d3c5bc4 Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Fri, 7 Oct 2016 01:31:44 +0200
+Subject: [PATCH] Updated PKI server logging service to use SLF4J.
+
+The PKI server logging service has been modified to utilize SLF4J.
+This allows the admin to use the logging framework of choice.
+
+https://fedorahosted.org/pki/ticket/195
+---
+ .classpath                                               |  1 +
+ base/server/CMakeLists.txt                               |  2 ++
+ base/server/cmscore/src/CMakeLists.txt                   | 10 +++++++++-
+ .../cmscore/src/com/netscape/cmscore/util/Debug.java     | 16 ++++++++--------
+ specs/pki-core.spec                                      |  7 ++++++-
+ 5 files changed, 26 insertions(+), 10 deletions(-)
+
+diff --git a/.classpath b/.classpath
+index 9fd5144bf32f3a4af6b6992f7b5027ef55d9f2df..de36a429870d5418dcf4dcf90477443851659ed4 100644
+--- a/.classpath
++++ b/.classpath
+@@ -59,5 +59,6 @@
+ 	<classpathentry kind="lib" path="/usr/lib/java/nuxwdog.jar"/>
+ 	<classpathentry kind="lib" path="/usr/lib/java/jss4.jar"/>
+ 	<classpathentry kind="lib" path="/usr/share/java/tomcatjss.jar"/>
++	<classpathentry kind="lib" path="/usr/share/java/slf4j/slf4j-api.jar"/>
+ 	<classpathentry kind="output" path="build/classes"/>
+ </classpath>
+diff --git a/base/server/CMakeLists.txt b/base/server/CMakeLists.txt
+index be58c055eb159ed7d9e0ff1b76a2476e4e309454..72be760ed28cac0a9b6d52619472a139dc2b9ba2 100644
+--- a/base/server/CMakeLists.txt
++++ b/base/server/CMakeLists.txt
+@@ -53,6 +53,8 @@ add_custom_command(
+     COMMAND ${CMAKE_COMMAND} -E create_symlink ${RESTEASY_LIB}/jaxrs-api.jar common/lib/resteasy-jaxrs-api.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink ${RESTEASY_LIB}/resteasy-jaxrs.jar common/lib/resteasy-jaxrs.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/scannotation.jar common/lib/scannotation.jar
++    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/slf4j/slf4j-api.jar common/lib/slf4j-api.jar
++    COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/slf4j/slf4j-jdk14.jar common/lib/slf4j-jdk14.jar
+     COMMAND /usr/bin/ln -sf /usr/lib/java/symkey.jar ${CMAKE_CURRENT_BINARY_DIR}/common/lib/symkey.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/tomcatjss.jar common/lib/tomcatjss.jar
+     COMMAND ${CMAKE_COMMAND} -E create_symlink /usr/share/java/velocity.jar common/lib/velocity.jar
+diff --git a/base/server/cmscore/src/CMakeLists.txt b/base/server/cmscore/src/CMakeLists.txt
+index fe8dba2077734468d983e850201150f88cb129f4..4ffb13fc96953f2adbb477d1d56699f9a9f80863 100644
+--- a/base/server/cmscore/src/CMakeLists.txt
++++ b/base/server/cmscore/src/CMakeLists.txt
+@@ -59,6 +59,13 @@ find_file(SERVLET_JAR
+         /usr/share/java
+ )
+ 
++find_file(SLF4J_JAR
++    NAMES
++        slf4j-api.jar
++    PATHS
++        /usr/share/java/slf4j
++)
++
+ find_file(VELOCITY_JAR
+     NAMES
+         velocity.jar
+@@ -124,14 +131,15 @@ javac(pki-cmscore-classes
+     SOURCES
+         com/netscape/cmscore/*.java
+     CLASSPATH
+-        ${PKI_NSUTIL_JAR} ${PKI_CMSUTIL_JAR} ${PKI_CERTSRV_JAR} ${PKI_CMS_JAR} ${PKI_TOMCAT_JAR}
+         ${LDAPJDK_JAR} ${SERVLET_JAR} ${VELOCITY_JAR} ${XALAN_JAR} ${XERCES_JAR}
+         ${JSS_JAR} ${COMMONS_CODEC_JAR} ${COMMONS_HTTPCLIENT_JAR}
+         ${APACHE_COMMONS_LANG_JAR}
+         ${TOMCAT_CATALINA_JAR} ${TOMCAT_UTIL_JAR} ${SYMKEY_JAR}
+         ${JAXRS_API_JAR} ${RESTEASY_JAXRS_JAR} ${RESTEASY_ATOM_PROVIDER_JAR}
+         ${HTTPCLIENT_JAR} ${HTTPCORE_JAR}
++        ${SLF4J_JAR}
+         ${NUXWDOG_JAR}
++        ${PKI_NSUTIL_JAR} ${PKI_CMSUTIL_JAR} ${PKI_CERTSRV_JAR} ${PKI_CMS_JAR} ${PKI_TOMCAT_JAR}
+     OUTPUT_DIR
+         ${CMAKE_CURRENT_BINARY_DIR}/classes
+     DEPENDS
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/util/Debug.java b/base/server/cmscore/src/com/netscape/cmscore/util/Debug.java
+index d1bb5c5a638c065a504d56a187a8164243fb60e5..0f68487fd8c19c28d250431180d5321091c5a530 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/util/Debug.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/util/Debug.java
+@@ -19,10 +19,10 @@ package com.netscape.cmscore.util;
+ 
+ import java.util.Hashtable;
+ import java.util.StringTokenizer;
+-import java.util.logging.Level;
+-import java.util.logging.Logger;
+ 
+ import org.apache.commons.lang.time.FastDateFormat;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
+ 
+ import com.netscape.certsrv.base.IConfigStore;
+ import com.netscape.certsrv.base.ISubsystem;
+@@ -30,7 +30,7 @@ import com.netscape.certsrv.base.ISubsystem;
+ public class Debug
+         implements ISubsystem {
+ 
+-    private static Logger logger = Logger.getLogger(Debug.class.getName());
++    private static Logger logger = LoggerFactory.getLogger(Debug.class);
+ 
+     private static Debug mInstance = new Debug();
+     private static boolean mShowCaller = false;
+@@ -127,7 +127,7 @@ public class Debug
+     private static void outputTraceMessage(String t) {
+         if (!TRACE_ON)
+             return;
+-        logger.finest("[" + Thread.currentThread().getName() + "] " + t);
++        logger.trace("[" + Thread.currentThread().getName() + "] " + t);
+     }
+ 
+     private static boolean hkdotype(String type) {
+@@ -177,10 +177,10 @@ public class Debug
+             logger.info(t);
+ 
+         } else if (level == VERBOSE) {
+-            logger.fine(t);
++            logger.debug(t);
+ 
+         } else { // level == OBNOXIOUS
+-            logger.finest(t);
++            logger.trace(t);
+         }
+     }
+ 
+@@ -205,7 +205,7 @@ public class Debug
+                 sb.append("\n");
+         }
+ 
+-        logger.fine(sb.toString());
++        logger.debug(sb.toString());
+     }
+ 
+     /**
+@@ -227,7 +227,7 @@ public class Debug
+         if (!TRACE_ON)
+             return;
+ 
+-        logger.log(Level.SEVERE, e.getMessage(), e);
++        logger.error(e.getMessage(), e);
+     }
+ 
+     /**
+diff --git a/specs/pki-core.spec b/specs/pki-core.spec
+index efdde69e6cbac86b67dfea03331fbbd9fe7be976..16d96c67fa33156e3f179313d7b5136fc816314d 100644
+--- a/specs/pki-core.spec
++++ b/specs/pki-core.spec
+@@ -84,6 +84,7 @@ BuildRequires:    apache-commons-codec
+ BuildRequires:    apache-commons-io
+ BuildRequires:    apache-commons-lang
+ BuildRequires:    jakarta-commons-httpclient
++BuildRequires:    slf4j
+ BuildRequires:    nspr-devel
+ BuildRequires:    nss-devel >= 3.14.3
+ 
+@@ -368,13 +369,17 @@ Summary:          Certificate System - Java Framework
+ Group:            System Environment/Base
+ BuildArch:        noarch
+ 
++Requires:         java-1.8.0-openjdk-headless
+ Requires:         apache-commons-cli
+ Requires:         apache-commons-codec
+ Requires:         apache-commons-io
+ Requires:         apache-commons-lang
+ Requires:         apache-commons-logging
+ Requires:         jakarta-commons-httpclient
+-Requires:         java-1.8.0-openjdk-headless
++Requires:         slf4j
++%if ! 0%{?rhel}
++Requires:         slf4j-jdk14
++%endif
+ Requires:         javassist
+ Requires:         jpackage-utils >= 0:1.7.5-10
+ Requires:         jss >= 4.2.6-40
+-- 
+2.5.5
+

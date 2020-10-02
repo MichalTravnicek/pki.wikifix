@@ -1,0 +1,802 @@
+From ddc4d3744c270d91cf3390e8ad1b8126ccf1d7a0 Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Thu, 5 Mar 2015 23:05:40 -0500
+Subject: [PATCH] Added server migration command.
+
+New pki-server CLI commands have been added to migrate the server
+configuration from Tomcat 7 to Tomcat 8 and vice versa. These
+commands can be used later during system upgrade to migrate
+existing instances from Tomcat 7 in F22 to Tomcat 8 in F23.
+
+The Python CLI framework has been refactored to provide a way to
+find other CLI modules by the command names.
+
+https://fedorahosted.org/pki/ticket/1264
+---
+ base/common/python/pki/cli.py                 |  72 ++++-
+ base/server/python/pki/server/__init__.py     |  28 +-
+ base/server/python/pki/server/cli/instance.py |  70 +++++
+ base/server/python/pki/server/cli/migrate.py  | 431 ++++++++++++++++++++++++++
+ base/server/sbin/pki-server                   |  12 +-
+ 5 files changed, 597 insertions(+), 16 deletions(-)
+ create mode 100644 base/server/python/pki/server/cli/migrate.py
+
+diff --git a/base/common/python/pki/cli.py b/base/common/python/pki/cli.py
+index 2b6811314a2fde3e735f9547138c17ffe96bf839..4379780b23ff0fd3bae59dc58a7962b57e24c436 100644
+--- a/base/common/python/pki/cli.py
++++ b/base/common/python/pki/cli.py
+@@ -19,8 +19,9 @@
+ # All rights reserved.
+ #
+ 
+-import sys
+ import collections
++import getopt
++import sys
+ 
+ 
+ class CLI(object):
+@@ -30,8 +31,11 @@ class CLI(object):
+         self.name = name
+         self.description = description
+         self.parent = None
++        self.top = self
+ 
+         self.verbose = False
++        self.debug = False
++
+         self.modules = collections.OrderedDict()
+ 
+     def set_verbose(self, verbose):
+@@ -39,6 +43,11 @@ class CLI(object):
+         if self.parent:
+             self.parent.set_verbose(verbose)
+ 
++    def set_debug(self, debug):
++        self.debug = debug
++        if self.parent:
++            self.parent.set_debug(debug)
++
+     def get_full_name(self):
+         if self.parent:
+             return self.parent.get_full_module_name(self.name)
+@@ -50,6 +59,7 @@ class CLI(object):
+     def add_module(self, module):
+         self.modules[module.name] = module
+         module.parent = self
++        module.top = self.top
+ 
+     def get_module(self, name):
+         return self.modules.get(name)
+@@ -67,18 +77,20 @@ class CLI(object):
+             full_name = module.get_full_name()
+             print ' {:30}{:30}'.format(full_name, module.description)
+ 
+-    def init(self):
+-        pass
++    def find_module(self, command):
+ 
+-    def execute(self, args):
++        module = self
+ 
+-        if len(args) == 0:
+-            self.print_help()
+-            sys.exit()
++        while True:
++            (module, command) = module.parse_command(command)
++
++            if not module or not command:
++                return module
++
++    def parse_command(self, command):
+ 
+         # A command consists of parts joined by dashes: <part 1>-<part 2>-...-<part N>.
+         # For example: cert-request-find
+-        command = args[0]
+ 
+         # The command will be split into module name and sub command, for example:
+         #  - module name: cert
+@@ -104,7 +116,7 @@ class CLI(object):
+                 module_name = command
+                 sub_command = None
+ 
+-            if self.verbose:
++            if self.debug:
+                 print 'Module: %s' % module_name
+ 
+             m = self.get_module(module_name)
+@@ -129,8 +141,15 @@ class CLI(object):
+ 
+             position = i + 1
+ 
++        return (module, sub_command)
++
++    def parse_args(self, args):
++
++        command = args[0]
++        (module, sub_command) = self.parse_command(command)
++
+         if not module:
+-            raise Exception('Invalid module "%s".' % self.get_full_module_name(module_name))
++            raise Exception('Invalid module "%s".' % command)
+ 
+         # Prepare module arguments.
+         if sub_command:
+@@ -141,5 +160,36 @@ class CLI(object):
+             # Otherwise, pass the original arguments: <args>...
+             module_args = args[1:]
+ 
+-        module.init()
++        return (module, module_args)
++
++    def execute(self, argv):
++
++        try:
++            opts, args = getopt.getopt(argv, 'v', [
++                'verbose', 'help'])
++
++        except getopt.GetoptError as e:
++            print 'ERROR: ' + str(e)
++            self.print_help()
++            sys.exit(1)
++
++        if len(args) == 0:
++            self.print_help()
++            sys.exit()
++
++        for o, _ in opts:
++            if o in ('-v', '--verbose'):
++                self.set_verbose(True)
++
++            elif o == '--help':
++                self.print_help()
++                sys.exit()
++
++            else:
++                print 'ERROR: unknown option %s' % o
++                self.print_help()
++                sys.exit(1)
++
++        (module, module_args) = self.parse_args(argv)
++
+         module.execute(module_args)
+diff --git a/base/server/python/pki/server/__init__.py b/base/server/python/pki/server/__init__.py
+index 063acd73868ffdb68f1116689e779a34379cc41e..bbdfedc2c36a73662762b817bb1c0054b762cdbf 100644
+--- a/base/server/python/pki/server/__init__.py
++++ b/base/server/python/pki/server/__init__.py
+@@ -33,6 +33,23 @@ REGISTRY_DIR = '/etc/sysconfig/pki'
+ SUBSYSTEM_TYPES = ['ca', 'kra', 'ocsp', 'tks', 'tps']
+ 
+ 
++class PKIServer(object):
++
++    @classmethod
++    def instances(cls):
++
++        instances = []
++
++        if not os.path.exists(os.path.join(REGISTRY_DIR, 'tomcat')):
++            return instances
++
++        for instance_name in os.listdir(pki.server.INSTANCE_BASE_DIR):
++            instance = pki.server.PKIInstance(instance_name)
++            instance.load()
++            instances.append(instance)
++
++        return instances
++
+ class PKISubsystem(object):
+ 
+     def __init__(self, instance, subsystem_name):
+@@ -92,14 +109,16 @@ class PKIInstance(object):
+             self.base_dir = os.path.join(pki.BASE_DIR, name)
+             self.conf_dir = os.path.join(self.base_dir, 'conf')
+ 
+-        self.registry_file = os.path.join(
+-            pki.server.REGISTRY_DIR, 'tomcat', self.name, self.name)
++        self.registry_dir = os.path.join(pki.server.REGISTRY_DIR, 'tomcat', self.name)
++        self.registry_file = os.path.join(self.registry_dir, self.name)
+ 
+         self.service_name = 'pki-tomcatd@%s.service' % self.name
+ 
+         self.user = None
+         self.group = None
+ 
++        self.subsystems = []
++
+     def is_valid(self):
+         return os.path.exists(self.conf_dir)
+ 
+@@ -132,6 +151,11 @@ class PKIInstance(object):
+             if m:
+                 self.group = m.group(1)
+ 
++        for subsystem_name in os.listdir(self.registry_dir):
++            if subsystem_name in pki.server.SUBSYSTEM_TYPES:
++                subsystem = PKISubsystem(self, subsystem_name)
++                self.subsystems.append(subsystem)
++
+     def is_deployed(self, webapp_name):
+         context_xml = os.path.join(
+             self.conf_dir, 'Catalina', 'localhost', webapp_name + '.xml')
+diff --git a/base/server/python/pki/server/cli/instance.py b/base/server/python/pki/server/cli/instance.py
+index c1ec9ddd728950d2b39384249b25335d25820c6a..b4a9ec05a803673adcf4d56441faf39cd23941f2 100644
+--- a/base/server/python/pki/server/cli/instance.py
++++ b/base/server/python/pki/server/cli/instance.py
+@@ -36,6 +36,7 @@ class InstanceCLI(pki.cli.CLI):
+         self.add_module(InstanceShowCLI())
+         self.add_module(InstanceStartCLI())
+         self.add_module(InstanceStopCLI())
++        self.add_module(InstanceMigrateCLI())
+ 
+     @staticmethod
+     def print_instance(instance):
+@@ -250,3 +251,72 @@ class InstanceStopCLI(pki.cli.CLI):
+         instance.stop()
+ 
+         self.print_message('%s instance stopped' % instance_name)
++
++class InstanceMigrateCLI(pki.cli.CLI):
++
++    def __init__(self):
++        super(InstanceMigrateCLI, self).__init__('migrate', 'Migrate instance')
++
++    def print_help(self):
++        print 'Usage: pki-server instance-migrate [OPTIONS] <instance ID>'
++        print
++        print '      --tomcat <version>       Use the specified Tomcat version.'
++        print '  -v, --verbose                Run in verbose mode.'
++        print '      --debug                  Show debug messages.'
++        print '      --help                   Show help message.'
++        print
++
++    def execute(self, argv):
++
++        try:
++            opts, args = getopt.getopt(argv, 'i:v', [
++                'tomcat=', 'verbose', 'debug', 'help'])
++
++        except getopt.GetoptError as e:
++            print 'ERROR: ' + str(e)
++            self.print_help()
++            sys.exit(1)
++
++        if len(args) != 1:
++            print 'ERROR: missing instance ID'
++            self.print_help()
++            sys.exit(1)
++
++        instance_name = args[0]
++        tomcat_version = None
++
++        for o, a in opts:
++            if o == '--tomcat':
++                tomcat_version = a
++
++            elif o in ('-v', '--verbose'):
++                self.set_verbose(True)
++
++            elif o == '--debug':
++                self.set_verbose(True)
++                self.set_debug(True)
++
++            elif o == '--help':
++                self.print_help()
++                sys.exit()
++
++            else:
++                print 'ERROR: unknown option ' + o
++                self.print_help()
++                sys.exit(1)
++
++        if not tomcat_version:
++            print 'ERROR: missing Tomcat version'
++            self.print_help()
++            sys.exit(1)
++
++        module = self.top.find_module('migrate')
++        module.set_verbose(self.verbose)
++        module.set_debug(self.debug)
++
++        instance = pki.server.PKIInstance(instance_name)
++        instance.load()
++
++        module.migrate(instance, tomcat_version) # pylint: disable=no-member,maybe-no-member
++
++        self.print_message('%s instance migrated' % instance_name)
+diff --git a/base/server/python/pki/server/cli/migrate.py b/base/server/python/pki/server/cli/migrate.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..5b387cd6728dfcc44e808359c3740e8cd9d59c52
+--- /dev/null
++++ b/base/server/python/pki/server/cli/migrate.py
+@@ -0,0 +1,431 @@
++#!/usr/bin/python
++# Authors:
++#     Endi S. Dewata <edewata@redhat.com>
++#
++# This program is free software; you can redistribute it and/or modify
++# it under the terms of the GNU General Public License as published by
++# the Free Software Foundation; version 2 of the License.
++#
++# This program is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License along
++# with this program; if not, write to the Free Software Foundation, Inc.,
++# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++#
++# Copyright (C) 2015 Red Hat, Inc.
++# All rights reserved.
++#
++
++import getopt
++import os
++import sys
++
++from lxml import etree
++
++import pki.cli
++import pki.server
++
++
++class MigrateCLI(pki.cli.CLI):
++
++    def __init__(self):
++        super(MigrateCLI, self).__init__('migrate', 'Migrate system')
++
++        self.parser = etree.XMLParser(remove_blank_text=True)
++
++    def print_help(self):
++        print 'Usage: pki-server migrate [OPTIONS]'
++        print
++        print '      --tomcat <version>       Use the specified Tomcat version.'
++        print '  -v, --verbose                Run in verbose mode.'
++        print '      --debug                  Show debug messages.'
++        print '      --help                   Show help message.'
++        print
++
++    def execute(self, argv):
++
++        try:
++            opts, _ = getopt.getopt(argv, 'i:v', [
++                'tomcat=', 'verbose', 'debug', 'help'])
++
++        except getopt.GetoptError as e:
++            print 'ERROR: ' + str(e)
++            self.print_help()
++            sys.exit(1)
++
++        tomcat_version = None
++
++        for o, a in opts:
++            if o == '--tomcat':
++                tomcat_version = a
++
++            elif o in ('-v', '--verbose'):
++                self.set_verbose(True)
++
++            elif o == '--debug':
++                self.set_verbose(True)
++                self.set_debug(True)
++
++            elif o == '--help':
++                self.print_help()
++                sys.exit()
++
++            else:
++                print 'ERROR: unknown option ' + o
++                self.print_help()
++                sys.exit(1)
++
++        if not tomcat_version:
++            print 'ERROR: missing Tomcat version'
++            self.print_help()
++            sys.exit(1)
++
++        instances = pki.server.PKIServer.instances()
++
++        for instance in instances:
++            self.migrate(instance, tomcat_version)
++
++        self.print_message('System migrated')
++
++    def migrate(self, instance, tomcat_version):
++
++        self.migrate_instance(instance, tomcat_version)
++        self.migrate_subsystems(instance, tomcat_version)
++
++    def migrate_instance(self, instance, tomcat_version):
++
++        server_xml = os.path.join(instance.conf_dir, 'server.xml')
++        self.migrate_server_xml(server_xml, tomcat_version)
++
++        root_context_xml = os.path.join(instance.conf_dir, 'Catalina', 'localhost', 'ROOT.xml')
++        self.migrate_context_xml(root_context_xml, tomcat_version)
++
++        pki_context_xml = os.path.join(instance.conf_dir, 'Catalina', 'localhost', 'pki.xml')
++        self.migrate_context_xml(pki_context_xml, tomcat_version)
++
++    def migrate_server_xml(self, filename, tomcat_version):
++
++        if self.verbose:
++            print 'Migrating %s' % filename
++
++        document = etree.parse(filename, self.parser)
++
++        if tomcat_version == '7':
++            self.migrate_server_xml_to_tomcat7(document)
++
++        elif tomcat_version == '8':
++            self.migrate_server_xml_to_tomcat8(document)
++
++        elif tomcat_version:
++            print 'ERROR: invalid Tomcat version %s' % tomcat_version
++            self.print_help()
++            sys.exit(1)
++
++        with open(filename, 'w') as f:
++            f.write(etree.tostring(document, pretty_print=True))
++
++    def migrate_server_xml_to_tomcat7(self, document):
++
++        server = document.getroot()
++
++        jasper_comment = etree.Comment('Initialize Jasper prior to webapps are loaded. Documentation at /docs/jasper-howto.html ')
++
++        jasper_listener = etree.Element('Listener')
++        jasper_listener.set('className', 'org.apache.catalina.core.JasperListener')
++
++        jmx_support_comment = etree.Comment(' JMX Support for the Tomcat server. Documentation at /docs/non-existent.html ')
++
++        excluded_comment1 = etree.Comment(' The following class has been commented out because it ')
++        excluded_comment2 = etree.Comment(' has been EXCLUDED from the Tomcat 7 \'tomcat-lib\' RPM! ')
++
++        server_lifecycle_comment = etree.Comment(' Listener className="org.apache.catalina.mbeans.ServerLifecycleListener" ')
++
++        global_resources_lifecycle_listener = None
++
++        children = list(server)
++        for child in children:
++
++            if isinstance(child, etree._Comment): # pylint: disable=protected-access
++
++                if 'org.apache.catalina.security.SecurityListener' in child.text:
++                    server.remove(child)
++
++                elif 'Initialize Jasper prior to webapps are loaded.' in child.text:
++                    jasper_comment = None
++
++                elif 'JMX Support for the Tomcat server.' in child.text:
++                    jmx_support_comment = None
++
++                elif 'The following class has been commented out because it' in child.text:
++                    excluded_comment1 = None
++
++                elif 'has been EXCLUDED from the Tomcat 7 \'tomcat-lib\' RPM!' in child.text:
++                    excluded_comment2 = None
++
++                elif 'org.apache.catalina.mbeans.ServerLifecycleListener' in child.text:
++                    server_lifecycle_comment = None
++
++                if 'Prevent memory leaks due to use of particular java/javax APIs' in child.text:
++                    server.remove(child)
++
++            elif child.tag == 'Listener':
++                class_name = child.get('className')
++
++                if class_name == 'org.apache.catalina.startup.VersionLoggerListener'\
++                    or class_name == 'org.apache.catalina.security.SecurityListener'\
++                    or class_name == 'org.apache.catalina.mbeans.ServerLifecycleListener'\
++                    or class_name == 'org.apache.catalina.core.JreMemoryLeakPreventionListener'\
++                    or class_name == 'org.apache.catalina.core.ThreadLocalLeakPreventionListener':
++
++                    if self.debug:
++                        print '* removing %s' % class_name
++
++                    server.remove(child)
++
++                elif class_name == 'org.apache.catalina.core.JasperListener':
++                    jasper_listener = None
++
++                elif class_name == 'org.apache.catalina.mbeans.GlobalResourcesLifecycleListener':
++                    global_resources_lifecycle_listener = child
++
++        # add before GlobalResourcesLifecycleListener if exists
++        if global_resources_lifecycle_listener is not None:
++            index = list(server).index(global_resources_lifecycle_listener)
++
++        else:
++            index = 0
++
++        if jasper_comment is not None:
++            server.insert(index, jasper_comment)
++            index += 1
++
++        if jasper_listener is not None:
++            if self.debug:
++                print '* adding %s' % jasper_listener.get('className')
++            server.insert(index, jasper_listener)
++            index += 1
++
++        if jmx_support_comment is not None:
++            server.insert(index, jmx_support_comment)
++            index += 1
++
++        if excluded_comment1 is not None:
++            server.insert(index, excluded_comment1)
++            index += 1
++
++        if excluded_comment2 is not None:
++            server.insert(index, excluded_comment2)
++            index += 1
++
++        if server_lifecycle_comment is not None:
++            server.insert(index, server_lifecycle_comment)
++            index += 1
++
++        if self.debug:
++            print '* updating secure Connector'
++
++        connectors = server.findall('Service/Connector')
++        for connector in connectors:
++
++            if connector.get('secure') == 'true':
++                connector.set('protocol', 'HTTP/1.1')
++
++        if self.debug:
++            print '* updating AccessLogValve'
++
++        valves = server.findall('Service/Engine/Host/Valve')
++        for valve in valves:
++
++            if valve.get('className') == 'org.apache.catalina.valves.AccessLogValve':
++                valve.set('prefix', 'localhost_access_log.')
++
++    def migrate_server_xml_to_tomcat8(self, document):
++
++        server = document.getroot()
++
++        version_logger_listener = etree.Element('Listener')
++        version_logger_listener.set('className', 'org.apache.catalina.startup.VersionLoggerListener')
++
++        security_listener_comment = etree.Comment(''' Security listener. Documentation at /docs/config/listeners.html
++  <Listener className="org.apache.catalina.security.SecurityListener" />
++  ''')
++
++        jre_memory_leak_prevention_listener = etree.Element('Listener')
++        jre_memory_leak_prevention_listener.set('className', 'org.apache.catalina.core.JreMemoryLeakPreventionListener')
++
++        global_resources_lifecycle_listener = None
++
++        thread_local_leak_prevention_listener = etree.Element('Listener')
++        thread_local_leak_prevention_listener.set('className', 'org.apache.catalina.core.ThreadLocalLeakPreventionListener')
++
++        prevent_comment = etree.Comment(' Prevent memory leaks due to use of particular java/javax APIs')
++
++        children = list(server)
++        for child in children:
++
++            if isinstance(child, etree._Comment): # pylint: disable=protected-access
++
++                if 'org.apache.catalina.security.SecurityListener' in child.text:
++                    security_listener_comment = None
++
++                elif 'Initialize Jasper prior to webapps are loaded.' in child.text:
++                    server.remove(child)
++
++                elif 'JMX Support for the Tomcat server.' in child.text:
++                    server.remove(child)
++
++                elif 'The following class has been commented out because it' in child.text:
++                    server.remove(child)
++
++                elif 'has been EXCLUDED from the Tomcat 7 \'tomcat-lib\' RPM!' in child.text:
++                    server.remove(child)
++
++                elif 'org.apache.catalina.mbeans.ServerLifecycleListener' in child.text:
++                    server.remove(child)
++
++                elif 'Prevent memory leaks due to use of particular java/javax APIs' in child.text:
++                    prevent_comment = None
++
++            elif child.tag == 'Listener':
++
++                class_name = child.get('className')
++
++                if class_name == 'org.apache.catalina.core.JasperListener'\
++                    or class_name == 'org.apache.catalina.mbeans.ServerLifecycleListener':
++
++                    if self.debug:
++                        print '* removing %s' % class_name
++
++                    server.remove(child)
++
++                elif class_name == 'org.apache.catalina.startup.VersionLoggerListener':
++                    version_logger_listener = None
++
++                elif class_name == 'org.apache.catalina.core.JreMemoryLeakPreventionListener':
++                    jre_memory_leak_prevention_listener = None
++
++                elif class_name == 'org.apache.catalina.mbeans.GlobalResourcesLifecycleListener':
++                    global_resources_lifecycle_listener = child
++
++                elif class_name == 'org.apache.catalina.core.ThreadLocalLeakPreventionListener':
++                    thread_local_leak_prevention_listener = None
++
++        # add at the top
++        index = 0
++
++        if version_logger_listener is not None:
++            if self.debug:
++                print '* adding VersionLoggerListener'
++            server.insert(index, version_logger_listener)
++            index += 1
++
++        if security_listener_comment is not None:
++            server.insert(index, security_listener_comment)
++            index += 1
++
++        # add before GlobalResourcesLifecycleListener if exists
++        if global_resources_lifecycle_listener is not None:
++            index = list(server).index(global_resources_lifecycle_listener)
++
++        if prevent_comment is not None:
++            server.insert(index, prevent_comment)
++            index += 1
++
++        if jre_memory_leak_prevention_listener is not None:
++            if self.debug:
++                print '* adding JreMemoryLeakPreventionListener'
++            server.insert(index, jre_memory_leak_prevention_listener)
++            index += 1
++
++        # add after GlobalResourcesLifecycleListener if exists
++        if global_resources_lifecycle_listener is not None:
++            index = list(server).index(global_resources_lifecycle_listener) + 1
++
++        if thread_local_leak_prevention_listener is not None:
++            if self.debug:
++                print '* adding ThreadLocalLeakPreventionListener'
++            server.insert(index, thread_local_leak_prevention_listener)
++            index += 1
++
++        if self.debug:
++            print '* updating secure Connector'
++
++        connectors = server.findall('Service/Connector')
++        for connector in connectors:
++
++            if connector.get('secure') == 'true':
++                connector.set('protocol', 'org.apache.coyote.http11.Http11Protocol')
++
++        if self.debug:
++            print '* updating AccessLogValve'
++
++        valves = server.findall('Service/Engine/Host/Valve')
++        for valve in valves:
++
++            if valve.get('className') == 'org.apache.catalina.valves.AccessLogValve':
++                valve.set('prefix', 'localhost_access_log')
++
++    def migrate_subsystems(self, instance, tomcat_version):
++
++        for subsystem in instance.subsystems:
++            self.migrate_subsystem(subsystem, tomcat_version)
++
++    def migrate_subsystem(self, subsystem, tomcat_version):
++
++        self.migrate_context_xml(subsystem.context_xml, tomcat_version)
++
++    def migrate_context_xml(self, filename, tomcat_version):
++
++        if self.verbose:
++            print 'Migrating %s' % filename
++
++        document = etree.parse(filename, self.parser)
++
++        if tomcat_version == '7':
++            self.migrate_context_xml_to_tomcat7(document)
++
++        elif tomcat_version == '8':
++            self.migrate_context_xml_to_tomcat8(document)
++
++        elif tomcat_version:
++            print 'ERROR: invalid Tomcat version %s' % tomcat_version
++            self.print_help()
++            sys.exit(1)
++
++        with open(filename, 'w') as f:
++            f.write(etree.tostring(document, pretty_print=True))
++
++    def migrate_context_xml_to_tomcat7(self, document):
++
++        context = document.getroot()
++        context.set('allowLinking', 'true')
++
++        resources = context.find('Resources')
++
++        if resources is not None:
++
++            if self.debug:
++                print '* removing Resources'
++
++            context.remove(resources)
++
++    def migrate_context_xml_to_tomcat8(self, document):
++
++        context = document.getroot()
++        if context.attrib.has_key('allowLinking'):
++            context.attrib.pop('allowLinking')
++
++        resources = context.find('Resources')
++
++        if resources is None:
++
++            if self.debug:
++                print '* adding Resources'
++
++            resources = etree.Element('Resources')
++            context.append(resources)
++
++        resources.set('allowLinking', 'true')
+diff --git a/base/server/sbin/pki-server b/base/server/sbin/pki-server
+index c730ebd20feef9ef6d853b4a186422af7c3e3a71..2fb41bd146eebdd1ee9b81854e731f01e3adcd67 100644
+--- a/base/server/sbin/pki-server
++++ b/base/server/sbin/pki-server
+@@ -25,6 +25,7 @@ import sys
+ import pki.cli
+ import pki.server.cli.instance
+ import pki.server.cli.subsystem
++import pki.server.cli.migrate
+ 
+ class PKIServerCLI(pki.cli.CLI):
+ 
+@@ -34,6 +35,7 @@ class PKIServerCLI(pki.cli.CLI):
+ 
+         self.add_module(pki.server.cli.instance.InstanceCLI())
+         self.add_module(pki.server.cli.subsystem.SubsystemCLI())
++        self.add_module(pki.server.cli.migrate.MigrateCLI())
+ 
+     def get_full_module_name(self, module_name):
+         return module_name
+@@ -43,6 +45,7 @@ class PKIServerCLI(pki.cli.CLI):
+         print 'Usage: pki-server [OPTIONS]'
+         print
+         print '  -v, --verbose                Run in verbose mode.'
++        print '      --debug                  Show debug messages.'
+         print '      --help                   Show help message.'
+         print
+ 
+@@ -52,7 +55,7 @@ class PKIServerCLI(pki.cli.CLI):
+ 
+         try:
+             opts, args = getopt.getopt(argv[1:], 'v', [
+-                'verbose', 'help'])
++                'verbose', 'debug', 'help'])
+ 
+         except getopt.GetoptError as e:
+             print 'ERROR: ' + str(e)
+@@ -61,7 +64,11 @@ class PKIServerCLI(pki.cli.CLI):
+ 
+         for o, _ in opts:
+             if o in ('-v', '--verbose'):
+-                self.verbose = True
++                self.set_verbose(True)
++
++            elif o == '--debug':
++                self.set_verbose(True)
++                self.set_debug(True)
+ 
+             elif o == '--help':
+                 self.print_help()
+@@ -80,5 +87,4 @@ class PKIServerCLI(pki.cli.CLI):
+ 
+ if __name__ == '__main__':
+     cli = PKIServerCLI()
+-    cli.init()
+     cli.execute(sys.argv)
+-- 
+1.9.3
+

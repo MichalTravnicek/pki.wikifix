@@ -1,0 +1,495 @@
+From 1a31b007907bc555193956bed8cfe03c10803358 Mon Sep 17 00:00:00 2001
+From: Matthew Harmsen <mharmsen@redhat.com>
+Date: Fri, 13 Mar 2015 16:53:52 -0600
+Subject: [PATCH] Allow use of secure LDAPS connection
+
+- PKI TRAC Ticket #1144 - pkispawn needs option to specify ca cert for ldap
+---
+ base/ca/shared/conf/CS.cfg.in                      |  2 +-
+ .../certsrv/system/ConfigurationRequest.java       |  2 +-
+ base/kra/shared/conf/CS.cfg.in                     |  2 +-
+ base/ocsp/shared/conf/CS.cfg.in                    |  2 +-
+ .../dogtagpki/server/rest/SystemConfigService.java |  4 +-
+ base/server/config/pkislots.cfg                    |  1 +
+ base/server/etc/default.cfg                        |  2 +
+ base/server/man/man5/pki_default.cfg.5             |  8 +++
+ base/server/man/man8/pkispawn.8                    | 72 +++++++++++++++++++++-
+ .../python/pki/server/deployment/pkihelper.py      | 23 +++++--
+ .../python/pki/server/deployment/pkiparser.py      |  8 +++
+ .../server/deployment/scriptlets/initialization.py |  2 +
+ .../deployment/scriptlets/security_databases.py    | 26 +++++++-
+ base/server/sbin/pkispawn                          | 41 +++++++++++-
+ base/tks/shared/conf/CS.cfg.in                     |  2 +-
+ base/tps/shared/conf/CS.cfg.in                     |  2 +-
+ 16 files changed, 179 insertions(+), 20 deletions(-)
+
+diff --git a/base/ca/shared/conf/CS.cfg.in b/base/ca/shared/conf/CS.cfg.in
+index 74f4329..1831f3c 100644
+--- a/base/ca/shared/conf/CS.cfg.in
++++ b/base/ca/shared/conf/CS.cfg.in
+@@ -820,7 +820,7 @@ internaldb.ldapauth.bindPWPrompt=Internal LDAP Database
+ internaldb.ldapauth.clientCertNickname=
+ internaldb.ldapconn.host=
+ internaldb.ldapconn.port=
+-internaldb.ldapconn.secureConn=false
++internaldb.ldapconn.secureConn=[PKI_DS_SECURE_CONNECTION]
+ preop.internaldb.schema.ldif=/usr/share/pki/server/conf/schema.ldif
+ preop.internaldb.ldif=/usr/share/pki/server/conf/database.ldif
+ preop.internaldb.data_ldif=/usr/share/pki/ca/conf/db.ldif,/usr/share/pki/ca/conf/acl.ldif
+diff --git a/base/common/src/com/netscape/certsrv/system/ConfigurationRequest.java b/base/common/src/com/netscape/certsrv/system/ConfigurationRequest.java
+index 5eca184..0caa215 100644
+--- a/base/common/src/com/netscape/certsrv/system/ConfigurationRequest.java
++++ b/base/common/src/com/netscape/certsrv/system/ConfigurationRequest.java
+@@ -171,7 +171,7 @@ public class ConfigurationRequest {
+     @XmlElement
+     protected String database;
+ 
+-    @XmlElement(defaultValue = "off")
++    @XmlElement(defaultValue = "false")
+     protected String secureConn;
+ 
+     @XmlElement
+diff --git a/base/kra/shared/conf/CS.cfg.in b/base/kra/shared/conf/CS.cfg.in
+index 937c4ae..1e725d3 100644
+--- a/base/kra/shared/conf/CS.cfg.in
++++ b/base/kra/shared/conf/CS.cfg.in
+@@ -227,7 +227,7 @@ internaldb.ldapauth.bindPWPrompt=Internal LDAP Database
+ internaldb.ldapauth.clientCertNickname=
+ internaldb.ldapconn.host=
+ internaldb.ldapconn.port=
+-internaldb.ldapconn.secureConn=false
++internaldb.ldapconn.secureConn=[PKI_DS_SECURE_CONNECTION]
+ preop.internaldb.schema.ldif=/usr/share/pki/server/conf/schema.ldif
+ preop.internaldb.ldif=/usr/share/pki/server/conf/database.ldif
+ preop.internaldb.data_ldif=/usr/share/pki/kra/conf/db.ldif,/usr/share/pki/kra/conf/acl.ldif
+diff --git a/base/ocsp/shared/conf/CS.cfg.in b/base/ocsp/shared/conf/CS.cfg.in
+index cfb3325..eea4cb4 100644
+--- a/base/ocsp/shared/conf/CS.cfg.in
++++ b/base/ocsp/shared/conf/CS.cfg.in
+@@ -186,7 +186,7 @@ internaldb.ldapauth.bindPWPrompt=Internal LDAP Database
+ internaldb.ldapauth.clientCertNickname=
+ internaldb.ldapconn.host=
+ internaldb.ldapconn.port=
+-internaldb.ldapconn.secureConn=false
++internaldb.ldapconn.secureConn=[PKI_DS_SECURE_CONNECTION]
+ preop.internaldb.schema.ldif=/usr/share/pki/server/conf/schema.ldif
+ preop.internaldb.ldif=/usr/share/pki/server/conf/database.ldif
+ preop.internaldb.data_ldif=/usr/share/pki/ocsp/conf/db.ldif,/usr/share/pki/ocsp/conf/acl.ldif
+diff --git a/base/server/cms/src/org/dogtagpki/server/rest/SystemConfigService.java b/base/server/cms/src/org/dogtagpki/server/rest/SystemConfigService.java
+index a594dad..7067c24 100644
+--- a/base/server/cms/src/org/dogtagpki/server/rest/SystemConfigService.java
++++ b/base/server/cms/src/org/dogtagpki/server/rest/SystemConfigService.java
+@@ -632,7 +632,7 @@ public class SystemConfigService extends PKIService implements SystemConfigResou
+         cs.putString("internaldb.database", data.getDatabase());
+         cs.putString("internaldb.basedn", data.getBaseDN());
+         cs.putString("internaldb.ldapauth.bindDN", data.getBindDN());
+-        cs.putBoolean("internaldb.ldapconn.secureConn", data.getSecureConn().equals("on"));
++        cs.putBoolean("internaldb.ldapconn.secureConn", data.getSecureConn().equals("true"));
+         cs.putString("preop.database.removeData", data.getRemoveData());
+         cs.putBoolean("preop.database.createNewDB", data.getCreateNewDB());
+         cs.putBoolean("preop.database.setupReplication", data.getSetupReplication());
+@@ -675,7 +675,7 @@ public class SystemConfigService extends PKIService implements SystemConfigResou
+             cs.putString("internaldb.ldapconn.cloneReplicationPort", cloneReplicationPort);
+ 
+             String replicationSecurity = data.getReplicationSecurity();
+-            if ((cloneReplicationPort == data.getDsPort()) && (data.getSecureConn().equals("on"))) {
++            if ((cloneReplicationPort == data.getDsPort()) && (data.getSecureConn().equals("true"))) {
+                 replicationSecurity = "SSL";
+             } else if (replicationSecurity == null) {
+                 replicationSecurity = "None";
+diff --git a/base/server/config/pkislots.cfg b/base/server/config/pkislots.cfg
+index 38ed6b9..fffaab8 100644
+--- a/base/server/config/pkislots.cfg
++++ b/base/server/config/pkislots.cfg
+@@ -18,6 +18,7 @@ PKI_CLOSE_SEPARATE_PORTS_SERVER_COMMENT_SLOT=[PKI_CLOSE_SEPARATE_PORTS_SERVER_CO
+ PKI_CLOSE_SEPARATE_PORTS_WEB_COMMENT_SLOT=[PKI_CLOSE_SEPARATE_PORTS_WEB_COMMENT]
+ PKI_CLOSE_STANDALONE_COMMENT_SLOT=[PKI_CLOSE_STANDALONE_COMMENT]
+ PKI_CLOSE_TOMCAT_ACCESS_LOG_COMMENT_SLOT=[PKI_CLOSE_TOMCAT_ACCESS_LOG_COMMENT]
++PKI_DS_SECURE_CONNECTION_SLOT=[PKI_DS_SECURE_CONNECTION]
+ PKI_EE_SECURE_CLIENT_AUTH_PORT_SLOT=[PKI_EE_SECURE_CLIENT_AUTH_PORT]
+ PKI_EE_SECURE_CLIENT_AUTH_PORT_CONNECTOR_NAME_SLOT=[PKI_EE_SECURE_CLIENT_AUTH_PORT_CONNECTOR_NAME]
+ PKI_EE_SECURE_CLIENT_AUTH_PORT_SERVER_COMMENT_SLOT=[PKI_EE_SECURE_CLIENT_AUTH_PORT_SERVER_COMMENT]
+diff --git a/base/server/etc/default.cfg b/base/server/etc/default.cfg
+index d6b5021..5b22b33 100644
+--- a/base/server/etc/default.cfg
++++ b/base/server/etc/default.cfg
+@@ -88,6 +88,8 @@ pki_ds_ldaps_port=636
+ pki_ds_password=
+ pki_ds_remove_data=True
+ pki_ds_secure_connection=False
++pki_ds_secure_connection_ca_nickname=Directory Server CA certificate
++pki_ds_secure_connection_ca_pem_file=
+ pki_group=pkiuser
+ pki_issuing_ca_hostname=%(pki_security_domain_hostname)s
+ pki_issuing_ca_https_port=%(pki_security_domain_https_port)s
+diff --git a/base/server/man/man5/pki_default.cfg.5 b/base/server/man/man5/pki_default.cfg.5
+index a770665..1cf5c51 100644
+--- a/base/server/man/man5/pki_default.cfg.5
++++ b/base/server/man/man5/pki_default.cfg.5
+@@ -169,6 +169,14 @@ Credentials to connect to the database during installation.  Directory Manager-l
+ .IP
+ Sets whether to require connections to the Directory Server using LDAPS.  This requires SSL to be set up on the Directory Server first.  Defaults to false.
+ .PP
++.B pki_ds_secure_connection_ca_nickname
++.IP
++Once a Directory Server CA certificate has been imported into the PKI security databases (see \fBpki_ds_secure_connection_ca_pem_file\fP), \fBpki_ds_secure_connection_ca_nickname\fP will contain the nickname under which it is stored.  The \fBdefault.cfg\fP file contains a default value for this nickname.  This parameter is only utilized when \fBpki_ds_secure_connection\fP has been set to true.
++.PP
++.B pki_ds_secure_connection_ca_pem_file
++.IP
++The \fBpki_ds_secure_connection_ca_pem_file\fP parameter will consist of the fully-qualified path including the filename of a file which contains an exported copy of a Directory Server's CA certificate.  While this parameter is only utilized when \fBpki_ds_secure_connection\fP has been set to true, a valid value is required for this parameter whenever this condition exists.
++.PP
+ .B pki_ds_remove_data
+ .IP
+ Sets whether to remove any data from the base DN before starting the installation.  Defaults to True.
+diff --git a/base/server/man/man8/pkispawn.8 b/base/server/man/man8/pkispawn.8
+index fc50fd3..1d38b11 100644
+--- a/base/server/man/man8/pkispawn.8
++++ b/base/server/man/man8/pkispawn.8
+@@ -136,8 +136,21 @@ setup the path where the admin certificate of this <subsystem> should be stored.
+ \fIHostname:\fP
+ Hostname of the directory server instance.  The default value is the hostname of the system.
+ .TP
+-\fIPort:\fP
+-Port for the directory server instance. The default value is 389.
++\fIUse a secure LDAPS connection?\fP
++Answering yes to this question will cause prompts for \fISecure LDAPS Port:\fP and \fIDirectory Server CA certificate pem file:\fP.  Answering no to this question will cause a prompt for \fILDAP Port\fP.  The initial default value for this question is no.
++.TP
++\fISecure LDAPS Port:\fP
++Secure LDAPS port for the directory server instance. The default value is 636.
++.TP
++\fIDirectory Server CA certificate pem file:\fP
++The fully-qualified path including the filename of the file which contains an exported copy of the Directory Server's CA certificate (e. g. - /root/dscacert.pem).  This file must exist prior to \fBpkispawn\fP being able to utilize it.  For details on creation of this file see the
++.B EXAMPLES
++section below entitled
++.B Installing a CA connecting securely to a Directory Server via LDAPS.
++.
++.TP
++\fILDAP Port:\fP
++LDAP port for the directory server instance. The default value is 389.
+ .TP
+ \fIBase DN:\fP
+ the Base DN to be used for the internal database for this subsystem. The default value is o=pki-tomcat-<subsystem>.
+@@ -201,6 +214,7 @@ where subsystem is KRA, OCSP, or TKS, and \fImyconfig.txt\fP contains the follow
+ .nf
+ [DEFAULT]
+ pki_admin_password=\fIpassword123\fP
++pki_client_database_password=\fIpassword123\fP
+ pki_client_pkcs12_password=\fIpassword123\fP
+ pki_ds_password=\fIpassword123\fP
+ pki_security_domain_password=\fIpassword123\fP
+@@ -215,6 +229,7 @@ where subsystem is KRA, OCSP, or TKS, and \fImyconfig.txt\fP contains the follow
+ .nf
+ [DEFAULT]
+ pki_admin_password=\fIpassword123\fP
++pki_client_database_password=\fIpassword123\fP
+ pki_client_pkcs12_password=\fIpassword123\fP
+ pki_ds_password=\fIpassword123\fP
+ pki_security_domain_password=\fIpassword123\fP
+@@ -240,6 +255,7 @@ where \fImyconfig.txt\fP contains the following text:
+ .nf
+ [DEFAULT]
+ pki_admin_password=\fIpassword123\fP
++pki_client_database_password=\fIpassword123\fP
+ pki_client_pkcs12_password=\fIpassword123\fP
+ pki_ds_password=\fIpassword123\fP
+ pki_security_domain_password=\fIpassword123\fP
+@@ -267,6 +283,7 @@ where subsystem is KRA, OCSP, or TKS, and \fImyconfig.txt\fP contains the follow
+ .nf
+ [DEFAULT]
+ pki_admin_password=\fIpassword123\fP
++pki_client_database_password=\fIpassword123\fP
+ pki_client_pkcs12_password=\fIpassword123\fP
+ pki_ds_password=\fIpassword123\fP
+ pki_security_domain_password=\fIpassword123\fP
+@@ -294,6 +311,7 @@ where \fImyconfig.txt\fP contains the following text:
+ .nf
+ [DEFAULT]
+ pki_admin_password=\fIpassword123\fP
++pki_client_database_password=\fIpassword123\fP
+ pki_client_pkcs12_password=\fIpassword123\fP
+ pki_ds_password=\fIpassword123\fP
+ pki_security_domain_password=\fIpassword123\fP
+@@ -318,6 +336,7 @@ where \fImyconfig.txt\fP contains the following text:
+ .nf
+ [DEFAULT]
+ pki_admin_password=\fIpassword123\fP
++pki_client_database_password=\fIpassword123\fP
+ pki_client_pkcs12_password=\fIpassword123\fP
+ pki_ds_password=\fIpassword123\fP
+ pki_security_domain_password=\fIpassword123\fP
+@@ -346,6 +365,7 @@ In the first step, a certificate signing request (CSR) is generated for the sign
+ .nf
+ [DEFAULT]
+ pki_admin_password=\fIpassword123\fP
++pki_client_database_password=\fIpassword123\fP
+ pki_client_pkcs12_password=\fIpassword123\fP
+ pki_ds_password=\fIpassword123\fP
+ pki_security_domain_password=\fIpassword123\fP
+@@ -367,6 +387,7 @@ In the second step, the configuration file has been modified to install the issu
+ .nf
+ [DEFAULT]
+ pki_admin_password=\fIpassword123\fP
++pki_client_database_password=\fIpassword123\fP
+ pki_client_pkcs12_password=\fIpassword123\fP
+ pki_ds_password=\fIpassword123\fP
+ pki_security_domain_password=\fIpassword123\fP
+@@ -382,7 +403,54 @@ pki_ca_signing_subject_dn=cn=CA Signing Certificate,ou=External,o=example.com
+ Then, the \fBpkispawn\fP command is run again:
+ .PP
+ .B pkispawn -s CA -f myconfig.txt
++.SS Installing a CA connecting securely to a Directory Server via LDAPS
++\x'-1'\fBpkispawn \-s CA \-f myconfig.txt\fR
++.PP
++where \fImyconfig.txt\fP contains the following text:
++.IP
++.nf
++[DEFAULT]
++pki_admin_password=\fIpassword123\fP
++pki_client_database_password=\fIpassword123\fP
++pki_client_pkcs12_password=\fIpassword123\fP
++pki_ds_password=\fIpassword123\fP
++pki_ds_secure_connection=True
++pki_ds_secure_connection_ca_pem_file=\fI/root/dscacert.pem\fP
+ 
++[CA]
++pki_base_dn=\fIdc=example, dc=com\fP
++.fi
++.TP
++\fBImportant:\fP
++Although this example is specifically for a CA, the \fB[CA]\fP section may be replaced by the appropriate PKI subsystem (i. e. - \fb[KRA]\fP, \fb[OCSP]\fP, \fb[TKS]\fP, or \fb[TPS]\fP) being installed.  Additionally, if a KRA, OCSP, TKS, or TPS subsystem is being installed, they must also include the name/value pair \fBpki_security_domain_password=\fIpassword123\fP in the \fB[DEFAULT]\fP section.
++.PP
++Prior to running this command, a Directory Server instance must be configured to run securely over LDAPS using a self-signed certificate, and its self-signed CA certificate exported to a file so that it may be utilized by a PKI instance:
++.IP
++* \fBsetup-ds.pl\fP or \fBsetup-ds-admin.pl\fP
++.IP
++* \fB/usr/sbin/setupssl2.sh /etc/dirsrv/\fIslapd-pki\fP 389 636 \fIpassword123\fP
++.TP
++\fBNote:\fP
++The \fBsetupssl2.sh\fP script may be downloaded from \fBhttps://github.com/richm/scripts/blob/master/setupssl2.sh\fP.
++.IP
++* \fBsystemctl restart dirsrv.target\fP
++.IP
++* \fBcd /etc/dirsrv/\fIslapd-pki\fP
++.IP
++* \fB/usr/lib64/mozldap/ldapsearch -Z -h \fIpki.example.com\fP -p 636 -D 'cn=Directory Manager' -w \fIpassword123\fP -b \fI"dc=example, dc=com"\fP "objectclass=*"\fP
++.TP
++\fBNote:\fP
++The \fBmozldap ldapsearch\fP utility may be downloaded via running \fByum install mozldap-tools\fP.
++.IP
++* \fBcertutil -L -d /etc/dirsrv/\fIslapd-pki\fP -n "CA certificate" -a > \fI/root/dscacert.pem\fP
++.PP
++It should be noted that there are basically three scenarios in which a PKI subsystem (e. g. - a CA) needs to communicate securely via LDAPS with a directory server:
++.IP
++* A directory server exists which is already running LDAPS using a CA certificate that has been issued by some other CA.  For this scenario, the CA certificate must be made available via a PEM file during \fBpkispawn\fP installation/configuration such that the CA may be installed and configured to communicate with this directory server using LDAPS.
++.IP
++* A directory server exists which is currently running LDAP.  Once a CA has been created, there is a desire to use its CA certificate to issue an SSL certificate for this directory server so that this CA and this directory server can communicate via LDAPS.  For this scenario, since there is no need to communicate securely during the \fBpkispawn\fP installation/configuration, simply use \fBpkispawn\fP to install and configure the CA using the LDAP port of the directory server, issue an SSL certificate from this CA for the directory server, and then reconfigure the CA and directory server to communicate with each other via LDAPS.
++.IP
++* Similar to the previous scenario, a directory server exists which is currently running LDAP, and the desire is to create a CA and use it to establish LDAPS communications between this CA and this directory server.  However, for this scenario, there is a need for the CA and the directory server to communicate securely during \fBpkispawn\fP installation/configuration.  For this to succeed, the directory server must generate a temporary self-signed certificate for use during \fBpkispawn\fP installation/creation.  Once the CA has been created, swap things out to reconfigure the CA and directory server to utilize LDAPS through the desired certificates.  This example demonstrates the \fBpkispawn\fP portion of this particular scenario.
+ .SS Execution management of a PKI instance (start, stop, status, etc.)
+ .BR
+ .PP
+diff --git a/base/server/python/pki/server/deployment/pkihelper.py b/base/server/python/pki/server/deployment/pkihelper.py
+index ec0f0a2..665922c 100644
+--- a/base/server/python/pki/server/deployment/pkihelper.py
++++ b/base/server/python/pki/server/deployment/pkihelper.py
+@@ -817,6 +817,18 @@ class ConfigurationFile:
+                     (port, context))
+         return
+ 
++    def verify_ds_secure_connection_data(self):
++        # Check to see if a secure connection is being used for the DS
++        if config.str2bool(self.mdict['pki_ds_secure_connection']):
++            # Verify existence of a local PEM file containing a
++            # directory server CA certificate
++            self.confirm_file_exists("pki_ds_secure_connection_ca_pem_file")
++            # Verify existence of a nickname for this
++            # directory server CA certificate
++            self.confirm_data_exists("pki_ds_secure_connection_ca_nickname")
++            # Set trustargs for this directory server CA certificate
++            self.mdict['pki_ds_secure_connection_ca_trustargs'] = "CT,CT,CT"
++
+     def verify_command_matches_configuration_file(self):
+         # Silently verify that the command-line parameters match the values
+         # that are present in the corresponding configuration file
+@@ -3957,7 +3969,12 @@ class ConfigClient:
+ 
+     def set_database_parameters(self, data):
+         data.dsHost = self.mdict['pki_ds_hostname']
+-        data.dsPort = self.mdict['pki_ds_ldap_port']
++        if config.str2bool(self.mdict['pki_ds_secure_connection']):
++            data.secureConn = "true"
++            data.dsPort = self.mdict['pki_ds_ldaps_port']
++        else:
++            data.secureConn = "false"
++            data.dsPort = self.mdict['pki_ds_ldap_port']
+         data.baseDN = self.mdict['pki_ds_base_dn']
+         data.bindDN = self.mdict['pki_ds_bind_dn']
+         data.database = self.mdict['pki_ds_database']
+@@ -3970,10 +3987,6 @@ class ConfigClient:
+             data.removeData = "true"
+         else:
+             data.removeData = "false"
+-        if config.str2bool(self.mdict['pki_ds_secure_connection']):
+-            data.secureConn = "true"
+-        else:
+-            data.secureConn = "false"
+         if config.str2bool(self.mdict['pki_share_db']):
+             data.sharedDB = "true"
+             data.sharedDBUserDN = self.mdict['pki_share_dbuser_dn']
+diff --git a/base/server/python/pki/server/deployment/pkiparser.py b/base/server/python/pki/server/deployment/pkiparser.py
+index 1e39120..6fb9e98 100644
+--- a/base/server/python/pki/server/deployment/pkiparser.py
++++ b/base/server/python/pki/server/deployment/pkiparser.py
+@@ -400,6 +400,12 @@ class PKIConfigParser:
+         if config.str2bool(self.mdict['pki_ds_secure_connection']):
+             protocol = 'ldaps'
+             port = self.mdict['pki_ds_ldaps_port']
++            # ldap.set_option(ldap.OPT_DEBUG_LEVEL, 255)
++            ldap.set_option(ldap.OPT_X_TLS_DEMAND, True)
++            ldap.set_option(ldap.OPT_X_TLS, ldap.OPT_X_TLS_DEMAND)
++            ldap.set_option(ldap.OPT_X_TLS_CACERTFILE,
++                            self.mdict['pki_ds_secure_connection_ca_pem_file'])
++            ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_DEMAND)
+         else:
+             protocol = 'ldap'
+             port = self.mdict['pki_ds_ldap_port']
+@@ -774,6 +780,8 @@ class PKIConfigParser:
+                     "-->"
+                 self.mdict['PKI_CLOSE_SEPARATE_PORTS_WEB_COMMENT_SLOT'] = \
+                     "-->"
++                self.mdict['PKI_DS_SECURE_CONNECTION_SLOT'] = \
++                    self.mdict['pki_ds_secure_connection'].lower()
+                 self.mdict['PKI_EE_SECURE_CLIENT_AUTH_PORT_SLOT'] = \
+                     self.mdict['pki_https_port']
+                 self.mdict\
+diff --git a/base/server/python/pki/server/deployment/scriptlets/initialization.py b/base/server/python/pki/server/deployment/scriptlets/initialization.py
+index 48b120c..0aa4e1c 100644
+--- a/base/server/python/pki/server/deployment/scriptlets/initialization.py
++++ b/base/server/python/pki/server/deployment/scriptlets/initialization.py
+@@ -71,6 +71,8 @@ class PkiScriptlet(pkiscriptlet.AbstractBasePkiScriptlet):
+         # verify selinux context of selected ports
+         deployer.configuration_file.populate_non_default_ports()
+         deployer.configuration_file.verify_selinux_ports()
++        # If secure DS connection is required, verify parameters
++        deployer.configuration_file.verify_ds_secure_connection_data()
+         return self.rv
+ 
+     def destroy(self, deployer):
+diff --git a/base/server/python/pki/server/deployment/scriptlets/security_databases.py b/base/server/python/pki/server/deployment/scriptlets/security_databases.py
+index 8adb3c4..5460507 100644
+--- a/base/server/python/pki/server/deployment/scriptlets/security_databases.py
++++ b/base/server/python/pki/server/deployment/scriptlets/security_databases.py
+@@ -95,8 +95,30 @@ class PkiScriptlet(pkiscriptlet.AbstractBasePkiScriptlet):
+                 # Delete the temporary 'noise' file
+                 deployer.file.delete(
+                     deployer.mdict['pki_self_signed_noise_file'])
+-            # Delete the temporary 'pfile'
+-            deployer.file.delete(deployer.mdict['pki_shared_pfile'])
++
++            # Check to see if a secure connection is being used for the DS
++            if config.str2bool(deployer.mdict['pki_ds_secure_connection']):
++                # Check to see if a directory server CA certificate
++                # using the same nickname already exists
++                rv = deployer.certutil.verify_certificate_exists(
++                    deployer.mdict['pki_database_path'],
++                    deployer.mdict['pki_cert_database'],
++                    deployer.mdict['pki_key_database'],
++                    deployer.mdict['pki_secmod_database'],
++                    deployer.mdict['pki_self_signed_token'],
++                    deployer.mdict['pki_ds_secure_connection_ca_nickname'],
++                    password_file=deployer.mdict['pki_shared_pfile'])
++                if not rv:
++                    # Import the directory server CA certificate
++                    rv = deployer.certutil.import_cert(
++                        deployer.mdict['pki_ds_secure_connection_ca_nickname'],
++                        deployer.mdict['pki_ds_secure_connection_ca_trustargs'],
++                        deployer.mdict['pki_ds_secure_connection_ca_pem_file'],
++                        password_file=deployer.mdict['pki_shared_pfile'],
++                        path=deployer.mdict['pki_database_path'])
++
++        # Always delete the temporary 'pfile'
++        deployer.file.delete(deployer.mdict['pki_shared_pfile'])
+         return self.rv
+ 
+     def destroy(self, deployer):
+diff --git a/base/server/sbin/pkispawn b/base/server/sbin/pkispawn
+index 1d3d90d..edc14a6 100755
+--- a/base/server/sbin/pkispawn
++++ b/base/server/sbin/pkispawn
+@@ -204,9 +204,44 @@ def main(argv):
+                 parser.read_text('Hostname',
+                                  config.pki_subsystem,
+                                  'pki_ds_hostname')
+-                parser.read_text('Port',
+-                                 config.pki_subsystem,
+-                                 'pki_ds_ldap_port')
++
++                if parser.mdict['pki_ds_secure_connection'] == 'True':
++                    secure = 'Y'
++                else:
++                    secure = 'N'
++
++                secure = parser.read_text(
++                    'Use a secure LDAPS connection (Yes/No/Quit)',
++                    default=secure,
++                    options=['Yes', 'Y', 'No', 'N', 'Quit', 'Q'],
++                    sign='?', case_sensitive=False).lower()
++
++                if secure == 'q' or secure == 'quit':
++                    print "Installation canceled."
++                    sys.exit(0)
++
++                if secure == 'y' or secure == 'yes':
++                    # Set secure DS connection to true
++                    parser.set_property(config.pki_subsystem,
++                                        'pki_ds_secure_connection',
++                                        'True')
++                    # Prompt for secure 'ldaps' port
++                    parser.read_text('Secure LDAPS Port',
++                                     config.pki_subsystem,
++                                     'pki_ds_ldaps_port')
++                    # Specify complete path to a directory server
++                    # CA certificate pem file
++                    pem_file = parser.read_text(
++                        'Directory Server CA certificate pem file',
++                        allow_empty=False)
++                    parser.set_property(config.pki_subsystem,
++                                        'pki_ds_secure_connection_ca_pem_file',
++                                        pem_file)
++                else:
++                    parser.read_text('LDAP Port',
++                                     config.pki_subsystem,
++                                     'pki_ds_ldap_port')
++
+                 parser.read_text('Bind DN',
+                                  config.pki_subsystem,
+                                  'pki_ds_bind_dn')
+diff --git a/base/tks/shared/conf/CS.cfg.in b/base/tks/shared/conf/CS.cfg.in
+index feca14b..99660cc 100644
+--- a/base/tks/shared/conf/CS.cfg.in
++++ b/base/tks/shared/conf/CS.cfg.in
+@@ -178,7 +178,7 @@ internaldb.ldapauth.bindPWPrompt=Internal LDAP Database
+ internaldb.ldapauth.clientCertNickname=
+ internaldb.ldapconn.host=
+ internaldb.ldapconn.port=
+-internaldb.ldapconn.secureConn=false
++internaldb.ldapconn.secureConn=[PKI_DS_SECURE_CONNECTION]
+ preop.internaldb.schema.ldif=/usr/share/pki/server/conf/schema.ldif
+ preop.internaldb.ldif=/usr/share/pki/server/conf/database.ldif
+ preop.internaldb.data_ldif=/usr/share/pki/tks/conf/db.ldif,/usr/share/pki/tks/conf/acl.ldif
+diff --git a/base/tps/shared/conf/CS.cfg.in b/base/tps/shared/conf/CS.cfg.in
+index 0ddb244..85c2f35 100644
+--- a/base/tps/shared/conf/CS.cfg.in
++++ b/base/tps/shared/conf/CS.cfg.in
+@@ -167,7 +167,7 @@ internaldb.ldapauth.bindPWPrompt=Internal LDAP Database
+ internaldb.ldapauth.clientCertNickname=
+ internaldb.ldapconn.host=
+ internaldb.ldapconn.port=
+-internaldb.ldapconn.secureConn=false
++internaldb.ldapconn.secureConn=[PKI_DS_SECURE_CONNECTION]
+ internaldb.maxConns=15
+ internaldb.minConns=3
+ internaldb.multipleSuffix.enable=false
+-- 
+1.8.3.1
+

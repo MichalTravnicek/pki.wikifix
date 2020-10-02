@@ -1,0 +1,340 @@
+From f98e599b1e95572a589b8813bc6cb0c2e70fdd0b Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <frase@frase.id.au>
+Date: Mon, 16 Mar 2015 02:15:39 -0400
+Subject: [PATCH] Store groups on AuthToken and update group evaluator
+
+Update the UidPwdDirAuthentication plugin to retrieve all the user's
+groups from a directory and store them on the AuthToken.
+
+Also update the group evaluator to match against all the groups
+stored in the AuthToken.  The "gid" and "groups" are merged into a
+single collection, if the ACL operation is "=" the collection is
+checked under disjunction, and if the operation is "!=", then
+conjunction.
+
+Fixes https://fedorahosted.org/pki/ticket/1174
+---
+ .../certsrv/authentication/IAuthToken.java         |   2 +
+ .../cms/authentication/DirBasedAuthentication.java |  36 ++++++-
+ .../cms/authentication/TokenAuthentication.java    |   9 +-
+ .../authentication/UidPwdDirAuthentication.java    | 104 ++++++++++++++++++---
+ .../cms/evaluators/GroupAccessEvaluator.java       |  23 +++--
+ 5 files changed, 140 insertions(+), 34 deletions(-)
+
+diff --git a/base/common/src/com/netscape/certsrv/authentication/IAuthToken.java b/base/common/src/com/netscape/certsrv/authentication/IAuthToken.java
+index 3c03cc1f5e85a92237067fde98e20d9f13a0b947..a71432446edcf6b5d838f1115df16b26acd01dce 100644
+--- a/base/common/src/com/netscape/certsrv/authentication/IAuthToken.java
++++ b/base/common/src/com/netscape/certsrv/authentication/IAuthToken.java
+@@ -38,6 +38,8 @@ public interface IAuthToken {
+      * Constant for userid.
+      */
+     public static final String USER_ID = "userid";
++    public static final String UID = "uid";
++    public static final String GROUPS = "groups";
+ 
+     /**
+      * Sets an attribute value within this AttrSet.
+diff --git a/base/server/cms/src/com/netscape/cms/authentication/DirBasedAuthentication.java b/base/server/cms/src/com/netscape/cms/authentication/DirBasedAuthentication.java
+index f2d09df9e410ac817e2a90d4f82bbd4c488a8ab2..78aa399b41263c3da1b050f1729eb48157d730e4 100644
+--- a/base/server/cms/src/com/netscape/cms/authentication/DirBasedAuthentication.java
++++ b/base/server/cms/src/com/netscape/cms/authentication/DirBasedAuthentication.java
+@@ -74,6 +74,13 @@ public abstract class DirBasedAuthentication
+     /* configuration parameter keys */
+     protected static final String PROP_LDAP = "ldap";
+     protected static final String PROP_BASEDN = "basedn";
++    protected static final String PROP_GROUPS_ENABLE = "groupsEnable";
++    protected static final String PROP_GROUPS_BASEDN = "groupsBasedn";
++    protected static final String PROP_GROUPS = "groups";
++    protected static final String PROP_GROUP_OBJECT_CLASS = "groupObjectClass";
++    protected static final String PROP_GROUP_USERID_NAME = "groupUseridName";
++    protected static final String PROP_USERID_NAME = "useridName";
++    protected static final String PROP_SEARCH_GROUP_USER_BY_USERDN = "searchGroupUserByUserdn";
+     protected static final String PROP_DNPATTERN = "dnpattern";
+     protected static final String PROP_LDAPSTRINGATTRS = "ldapStringAttributes";
+     protected static final String PROP_LDAPBYTEATTRS = "ldapByteAttributes";
+@@ -94,6 +101,14 @@ public abstract class DirBasedAuthentication
+ 
+     /* ldap base dn */
+     protected String mBaseDN = null;
++    protected boolean mGroupsEnable = false;
++    protected String mGroups = null; // e.g. "ou=Groups"
++    protected String mGroupsBaseDN = null; // in case it's different from mBaseDN
++    protected String mGroupObjectClass = null;
++    protected String mUserIDName = null; // e.g. "uid"
++    protected String mGroupUserIDName = null;  // in case it's different from mUserIDName
++    /* whether to search for member=<userDN> or member=<mGroupUserIdName>=<uid> */
++    protected boolean mSearchGroupUserByUserdn = true;
+ 
+     /* factory of anonymous ldap connections */
+     protected ILdapConnFactory mConnFactory = null;
+@@ -243,10 +258,25 @@ public abstract class DirBasedAuthentication
+ 
+         /* initialize ldap server configuration */
+         mLdapConfig = mConfig.getSubStore(PROP_LDAP);
+-        if (needBaseDN)
++        if (needBaseDN) {
+             mBaseDN = mLdapConfig.getString(PROP_BASEDN);
+-        if (needBaseDN && ((mBaseDN == null) || (mBaseDN.length() == 0) || (mBaseDN.trim().equals(""))))
+-            throw new EPropertyNotFound(CMS.getUserMessage("CMS_BASE_GET_PROPERTY_FAILED", "basedn"));
++            if (mBaseDN == null || mBaseDN.trim().equals(""))
++                throw new EPropertyNotFound(CMS.getUserMessage("CMS_BASE_GET_PROPERTY_FAILED", "basedn"));
++            mGroupsEnable = mLdapConfig.getBoolean(PROP_GROUPS_ENABLE, false);
++            CMS.debug("DirBasedAuthentication: mGroupsEnable=" + (mGroupsEnable ? "true" : "false"));
++            mGroupsBaseDN = mLdapConfig.getString(PROP_GROUPS_BASEDN, mBaseDN);
++            CMS.debug("DirBasedAuthentication: mGroupsBaseDN="+ mGroupsBaseDN);
++            mGroups= mLdapConfig.getString(PROP_GROUPS, "ou=groups");
++            CMS.debug("DirBasedAuthentication: mGroups="+ mGroups);
++            mGroupObjectClass = mLdapConfig.getString(PROP_GROUP_OBJECT_CLASS, "groupofuniquenames");
++            CMS.debug("DirBasedAuthentication: mGroupObjectClass="+ mGroupObjectClass);
++            mUserIDName = mLdapConfig.getString(PROP_USERID_NAME, "uid");
++            CMS.debug("DirBasedAuthentication: mUserIDName="+ mUserIDName);
++            mSearchGroupUserByUserdn = mLdapConfig.getBoolean(PROP_SEARCH_GROUP_USER_BY_USERDN, true);
++            CMS.debug("DirBasedAuthentication: mSearchGroupUserByUserdn="+ mSearchGroupUserByUserdn);
++            mGroupUserIDName = mLdapConfig.getString(PROP_GROUP_USERID_NAME, "cn");
++            CMS.debug("DirBasedAuthentication: mGroupUserIDName="+ mGroupUserIDName);
++        }
+         mConnFactory = CMS.getLdapAnonConnFactory();
+         mConnFactory.init(mLdapConfig);
+ 
+diff --git a/base/server/cms/src/com/netscape/cms/authentication/TokenAuthentication.java b/base/server/cms/src/com/netscape/cms/authentication/TokenAuthentication.java
+index 99abad7eb6ccd676f1d4f09d569f2f83c13adfbc..5eeddecb38c5a780fcab22a54dd9a13bdf88537c 100644
+--- a/base/server/cms/src/com/netscape/cms/authentication/TokenAuthentication.java
++++ b/base/server/cms/src/com/netscape/cms/authentication/TokenAuthentication.java
+@@ -54,10 +54,6 @@ import com.netscape.cmsutil.xml.XMLObject;
+ public class TokenAuthentication implements IAuthManager,
+         IProfileAuthenticator {
+ 
+-    /* result auth token attributes */
+-    public static final String TOKEN_UID = "uid";
+-    public static final String TOKEN_GID = "gid";
+-
+     /* required credentials */
+     public static final String CRED_SESSION_ID = IAuthManager.CRED_SESSION_ID;
+     protected String[] mRequiredCreds = { CRED_SESSION_ID };
+@@ -191,9 +187,10 @@ public class TokenAuthentication implements IAuthManager,
+ 
+                 String uid = parser.getValue("uid");
+                 String gid = parser.getValue("gid");
++                String[] groups = {gid};
+ 
+-                authToken.set(TOKEN_UID, uid);
+-                authToken.set(TOKEN_GID, gid);
++                authToken.set(IAuthToken.UID, uid);
++                authToken.set(IAuthToken.GROUPS, groups);
+ 
+                 if (context != null) {
+                     CMS.debug("SessionContext.USER_ID " + uid + " SessionContext.GROUP_ID " + gid);
+diff --git a/base/server/cms/src/com/netscape/cms/authentication/UidPwdDirAuthentication.java b/base/server/cms/src/com/netscape/cms/authentication/UidPwdDirAuthentication.java
+index c85644d59eb4ab0354517140c623f3e36eb5d93c..21e024fc43f91624b37b49d00ef63f77750cdfdf 100644
+--- a/base/server/cms/src/com/netscape/cms/authentication/UidPwdDirAuthentication.java
++++ b/base/server/cms/src/com/netscape/cms/authentication/UidPwdDirAuthentication.java
+@@ -18,10 +18,12 @@
+ package com.netscape.cms.authentication;
+ 
+ // ldap java sdk
++import java.util.ArrayList;
+ import java.util.Enumeration;
+ import java.util.Locale;
+ import java.util.Vector;
+ 
++import netscape.ldap.LDAPAttribute;
+ import netscape.ldap.LDAPConnection;
+ import netscape.ldap.LDAPEntry;
+ import netscape.ldap.LDAPException;
+@@ -45,6 +47,8 @@ import com.netscape.certsrv.profile.IProfileAuthenticator;
+ import com.netscape.certsrv.property.Descriptor;
+ import com.netscape.certsrv.property.IDescriptor;
+ import com.netscape.certsrv.request.IRequest;
++import com.netscape.certsrv.usrgrp.EUsrGrpException;
++import com.netscape.cmsutil.ldap.LDAPUtil;
+ 
+ /**
+  * uid/pwd directory based authentication manager
+@@ -59,7 +63,6 @@ public class UidPwdDirAuthentication extends DirBasedAuthentication
+     public static final String CRED_UID = "uid";
+     public static final String CRED_PWD = "pwd";
+     protected static String[] mRequiredCreds = { CRED_UID, CRED_PWD };
+-    public static final String USERID = "userid";
+ 
+     /* Holds configuration parameters accepted by this implementation.
+      * This list is passed to the configuration console so configuration
+@@ -89,10 +92,58 @@ public class UidPwdDirAuthentication extends DirBasedAuthentication
+     };
+ 
+     /**
+-     * Default constructor, initialization must follow.
++     * Retrieves group base dn.
+      */
+-    public UidPwdDirAuthentication() {
+-        super();
++    private String getGroupBaseDN() {
++        return mGroups + "," + mGroupsBaseDN;
++    }
++
++    /**
++     * List groups of which user is a member.
++     */
++    private ArrayList<String> listGroups(LDAPConnection ldapconn, String uid, String userdn)
++            throws EUsrGrpException, LDAPException {
++        String method = "UidPwdDirAuthentication: listGroups: ";
++        CMS.debug(method + " begins");
++        String[] attrs = {};
++
++        String k = null;
++        if (mGroupObjectClass.equalsIgnoreCase("groupOfUniqueNames"))
++            k = "uniquemember";
++        else if (mGroupObjectClass.equalsIgnoreCase("groupOfNames"))
++            k = "member";
++        else {
++            CMS.debug("UidPwdDirAuthentication: isMemberOfLdapGroup: unrecognized mGroupObjectClass: " + mGroupObjectClass);
++            return null;
++        }
++
++        String filter = null;
++        if (mSearchGroupUserByUserdn)
++            filter = k + "=" + LDAPUtil.escapeFilter(userdn);
++        else
++            filter = k + "=" + mGroupUserIDName + "=" + LDAPUtil.escapeFilter(uid);
++
++        CMS.debug(method + "searching " + getGroupBaseDN() + " for (&(objectclass=" + mGroupObjectClass + ")(" + filter + "))");
++        LDAPSearchResults res = ldapconn.search(
++            getGroupBaseDN(),
++            LDAPv2.SCOPE_SUB,
++            "(&(objectclass=" + mGroupObjectClass + ")(" + filter + "))",
++            attrs, true /* attrsOnly */ );
++
++        CMS.debug(method + " ends");
++        return buildGroups(res);
++    }
++
++    private ArrayList<String> buildGroups(LDAPSearchResults res) {
++        ArrayList<String> v = new ArrayList<>();
++
++        while (res.hasMoreElements()) {
++            LDAPEntry entry = (LDAPEntry) res.nextElement();
++            String groupDN = entry.getDN();
++            CMS.debug("UidPwdDirAuthentication: Authenticate: Found group membership: " + groupDN);
++            v.add(groupDN);
++        }
++        return v;
+     }
+ 
+     /**
+@@ -131,18 +182,29 @@ public class UidPwdDirAuthentication extends DirBasedAuthentication
+                 throw new EInvalidCredentials(CMS.getUserMessage("CMS_AUTHENTICATION_INVALID_CREDENTIAL"));
+             }
+ 
++            /*
++             * first try and see if the directory server supports "memberOf"
++             * if so, use it, if not, then pull all groups to check
++             */
++            String emptyAttrs[] = {};
++            String groupAttrs[] = {"memberOf"};
++
+             // get user dn.
+-            CMS.debug("Authenticating: Searching for UID=" + uid +
+-                      " base DN=" + mBaseDN);
+-            LDAPSearchResults res = conn.search(mBaseDN,
+-                    LDAPv2.SCOPE_SUB, "(uid=" + uid + ")", null, false);
++            CMS.debug("UidPwdDirAuthentication: Authenticating: Searching for " +
++                    mUserIDName + "=" + uid + " base DN=" + mBaseDN);
++            LDAPSearchResults res = conn.search(
++                mBaseDN,
++                LDAPv2.SCOPE_SUB,
++                "(" + mUserIDName + "=" + LDAPUtil.escapeFilter(uid) + ")",
++                (mGroupsEnable ? groupAttrs : emptyAttrs),
++                false);
+ 
++            LDAPEntry entry = null;
+             if (res.hasMoreElements()) {
+-                //LDAPEntry entry = (LDAPEntry)res.nextElement();
+-                LDAPEntry entry = res.next();
++                entry = res.next();
+ 
+                 userdn = entry.getDN();
+-                CMS.debug("Authenticating: Found User DN=" + userdn);
++                CMS.debug("UidPwdDirAuthentication: Authenticating: Found User DN=" + userdn);
+             } else {
+                 log(ILogger.LL_SECURITY, CMS.getLogMessage("CMS_AUTH_USER_NOT_EXIST", uid));
+                 throw new EInvalidCredentials(CMS.getUserMessage("CMS_AUTHENTICATION_INVALID_CREDENTIAL"));
+@@ -150,9 +212,25 @@ public class UidPwdDirAuthentication extends DirBasedAuthentication
+ 
+             // bind as user dn and pwd - authenticates user with pwd.
+             conn.authenticate(userdn, pwd);
++
++            LDAPAttribute attribute = entry.getAttribute("memberOf");
++            if ( attribute != null ) {
++                CMS.debug("UidPwdDirAuthentication: Authenticate: Found memberOf attribute");
++                String[] groups = attribute.getStringValueArray();
++                token.set(IAuthToken.GROUPS, groups);
++            } else if (mGroupsEnable) {
++                CMS.debug("UidPwdDirAuthentication: Authenticate: memberOf attribute not found.");
++                ArrayList<String> groups = null;
++                groups = listGroups(conn, uid, userdn);
++                if (groups != null) {
++                    String[] groupsArray = new String[groups.size()];
++                    token.set(IAuthToken.GROUPS, groups.toArray(groupsArray));
++                }
++            }
++
+             // set uid in the token.
+-            token.set(CRED_UID, uid);
+-            token.set(USERID, uid);
++            token.set(IAuthToken.UID, uid);
++            token.set(IAuthToken.USER_ID, uid);
+ 
+             return userdn;
+         } catch (ELdapException e) {
+diff --git a/base/server/cms/src/com/netscape/cms/evaluators/GroupAccessEvaluator.java b/base/server/cms/src/com/netscape/cms/evaluators/GroupAccessEvaluator.java
+index e8a32d752be327bf8cbb4c45d5717f84900fbc4a..a6a74752a56571a8a3c2006a2f49a827adfae6f7 100644
+--- a/base/server/cms/src/com/netscape/cms/evaluators/GroupAccessEvaluator.java
++++ b/base/server/cms/src/com/netscape/cms/evaluators/GroupAccessEvaluator.java
+@@ -17,6 +17,7 @@
+ // --- END COPYRIGHT BLOCK ---
+ package com.netscape.cms.evaluators;
+ 
++import java.util.Arrays;
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.authentication.IAuthToken;
+ import com.netscape.certsrv.base.EBaseException;
+@@ -101,9 +102,9 @@ public class GroupAccessEvaluator implements IAccessEvaluator {
+             // should define "uid" at a common place
+             String uid = null;
+ 
+-            uid = authToken.getInString("userid");
++            uid = authToken.getInString(IAuthToken.USER_ID);
+             if (uid == null) {
+-                uid = authToken.getInString("uid");
++                uid = authToken.getInString(IAuthToken.UID);
+                 if (uid == null) {
+                     CMS.debug("GroupAccessEvaluator: evaluate: uid null");
+                     log(ILogger.LL_FAILURE, CMS.getLogMessage("EVALUTOR_UID_NULL"));
+@@ -112,17 +113,15 @@ public class GroupAccessEvaluator implements IAccessEvaluator {
+             }
+             CMS.debug("GroupAccessEvaluator: evaluate: uid=" + uid + " value=" + value);
+ 
+-            String groupname = authToken.getInString("gid");
+-
+-            if (groupname != null) {
+-                CMS.debug("GroupAccessEvaluator: evaluate: authToken gid=" + groupname);
+-                if (op.equals("=")) {
+-                    return groupname.equals(Utils.stripQuotes(value));
+-                } else if (op.equals("!=")) {
+-                    return !groupname.equals(Utils.stripQuotes(value));
+-                }
++            String[] groups = authToken.getInStringArray(IAuthToken.GROUPS);
++            if (groups != null) {
++                boolean matched = Arrays.asList(groups).contains(Utils.stripQuotes(value));
++                if (op.equals("="))
++                    return matched;
++                else if (op.equals("!="))
++                    return !matched;
+             } else {
+-                CMS.debug("GroupAccessEvaluator: evaluate: no gid in authToken");
++                CMS.debug("GroupAccessEvaluator: evaluate: no groups in authToken");
+                 IUser id = null;
+                 try {
+                     id = mUG.getUser(uid);
+-- 
+2.1.0
+

@@ -1,0 +1,119 @@
+From b735e466dc74f543488252e4b79d6349f7869058 Mon Sep 17 00:00:00 2001
+From: Matthew Harmsen <mharmsen@redhat.com>
+Date: Thu, 2 Jun 2016 15:31:23 -0600
+Subject: [PATCH] Fix default value of pki_ds_secure_connection_ca_nickname
+
+- PKI TRAC Ticket #2347 - Fix default value of
+  'pki_ds_secure_connection_ca_nickname'
+---
+ base/server/etc/default.cfg                                         | 2 +-
+ base/server/man/man5/pki_default.cfg.5                              | 2 +-
+ base/server/man/man8/pkispawn.8                                     | 4 ++--
+ base/server/python/pki/server/deployment/pkihelper.py               | 6 +++---
+ .../python/pki/server/deployment/scriptlets/security_databases.py   | 4 ++--
+ base/server/sbin/pkispawn                                           | 2 +-
+ 6 files changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/base/server/etc/default.cfg b/base/server/etc/default.cfg
+index b2a2490..4b96075 100644
+--- a/base/server/etc/default.cfg
++++ b/base/server/etc/default.cfg
+@@ -93,7 +93,7 @@ pki_ds_ldaps_port=636
+ pki_ds_password=
+ pki_ds_remove_data=True
+ pki_ds_secure_connection=False
+-pki_ds_secure_connection_ca_nickname=Directory Server CA certificate
++pki_ds_secure_connection_ca_nickname=Directory Server CA Certificate
+ pki_ds_secure_connection_ca_pem_file=
+ pki_group=pkiuser
+ pki_hsm_enable=False
+diff --git a/base/server/man/man5/pki_default.cfg.5 b/base/server/man/man5/pki_default.cfg.5
+index edb338e..a582aac 100644
+--- a/base/server/man/man5/pki_default.cfg.5
++++ b/base/server/man/man5/pki_default.cfg.5
+@@ -212,7 +212,7 @@ Sets whether to require connections to the Directory Server using LDAPS.  This r
+ .PP
+ .B pki_ds_secure_connection_ca_nickname
+ .IP
+-Once a Directory Server CA certificate has been imported into the PKI security databases (see \fBpki_ds_secure_connection_ca_pem_file\fP), \fBpki_ds_secure_connection_ca_nickname\fP will contain the nickname under which it is stored.  The \fBdefault.cfg\fP file contains a default value for this nickname.  This parameter is only utilized when \fBpki_ds_secure_connection\fP has been set to true.
++Once a Directory Server CA Certificate has been imported into the PKI security databases (see \fBpki_ds_secure_connection_ca_pem_file\fP), \fBpki_ds_secure_connection_ca_nickname\fP will contain the nickname under which it is stored.  The \fBdefault.cfg\fP file contains a default value for this nickname.  This parameter is only utilized when \fBpki_ds_secure_connection\fP has been set to true.
+ .PP
+ .B pki_ds_secure_connection_ca_pem_file
+ .IP
+diff --git a/base/server/man/man8/pkispawn.8 b/base/server/man/man8/pkispawn.8
+index fa601fc..d1c34f1 100644
+--- a/base/server/man/man8/pkispawn.8
++++ b/base/server/man/man8/pkispawn.8
+@@ -156,12 +156,12 @@ setup the path where the admin certificate of this <subsystem> should be stored.
+ Hostname of the directory server instance.  The default value is the hostname of the system.
+ .TP
+ \fIUse a secure LDAPS connection?\fP
+-Answering yes to this question will cause prompts for \fISecure LDAPS Port:\fP and \fIDirectory Server CA certificate pem file:\fP.  Answering no to this question will cause a prompt for \fILDAP Port\fP.  The initial default value for this question is no.
++Answering yes to this question will cause prompts for \fISecure LDAPS Port:\fP and \fIDirectory Server CA Certificate pem file:\fP.  Answering no to this question will cause a prompt for \fILDAP Port\fP.  The initial default value for this question is no.
+ .TP
+ \fISecure LDAPS Port:\fP
+ Secure LDAPS port for the directory server instance. The default value is 636.
+ .TP
+-\fIDirectory Server CA certificate pem file:\fP
++\fIDirectory Server CA Certificate pem file:\fP
+ The fully-qualified path including the filename of the file which contains an exported copy of the Directory Server's CA certificate (e. g. - $HOME/dscacert.pem).  This file must exist prior to \fBpkispawn\fP being able to utilize it.  For details on creation of this file see the
+ .B EXAMPLES
+ section below entitled
+diff --git a/base/server/python/pki/server/deployment/pkihelper.py b/base/server/python/pki/server/deployment/pkihelper.py
+index 4fc8afd..dc51ff9 100644
+--- a/base/server/python/pki/server/deployment/pkihelper.py
++++ b/base/server/python/pki/server/deployment/pkihelper.py
+@@ -922,12 +922,12 @@ class ConfigurationFile:
+         # Check to see if a secure connection is being used for the DS
+         if config.str2bool(self.mdict['pki_ds_secure_connection']):
+             # Verify existence of a local PEM file containing a
+-            # directory server CA certificate
++            # Directory Server CA Certificate
+             self.confirm_file_exists("pki_ds_secure_connection_ca_pem_file")
+             # Verify existence of a nickname for this
+-            # directory server CA certificate
++            # Directory Server CA Certificate
+             self.confirm_data_exists("pki_ds_secure_connection_ca_nickname")
+-            # Set trustargs for this directory server CA certificate
++            # Set trustargs for this Directory Server CA Certificate
+             self.mdict['pki_ds_secure_connection_ca_trustargs'] = "CT,CT,CT"
+ 
+     def verify_command_matches_configuration_file(self):
+diff --git a/base/server/python/pki/server/deployment/scriptlets/security_databases.py b/base/server/python/pki/server/deployment/scriptlets/security_databases.py
+index 18fc3e1..32fe3e1 100644
+--- a/base/server/python/pki/server/deployment/scriptlets/security_databases.py
++++ b/base/server/python/pki/server/deployment/scriptlets/security_databases.py
+@@ -136,7 +136,7 @@ class PkiScriptlet(pkiscriptlet.AbstractBasePkiScriptlet):
+ 
+             # Check to see if a secure connection is being used for the DS
+             if config.str2bool(deployer.mdict['pki_ds_secure_connection']):
+-                # Check to see if a directory server CA certificate
++                # Check to see if a Directory Server CA Certificate
+                 # using the same nickname already exists
+                 #
+                 # NOTE:  ALWAYS use the software DB regardless of whether
+@@ -151,7 +151,7 @@ class PkiScriptlet(pkiscriptlet.AbstractBasePkiScriptlet):
+                     deployer.mdict['pki_ds_secure_connection_ca_nickname'],
+                     password_file=deployer.mdict['pki_shared_pfile'])
+                 if not rv:
+-                    # Import the directory server CA certificate
++                    # Import the Directory Server CA Certificate
+                     rv = deployer.certutil.import_cert(
+                         deployer.mdict['pki_ds_secure_connection_ca_nickname'],
+                         deployer.mdict[
+diff --git a/base/server/sbin/pkispawn b/base/server/sbin/pkispawn
+index d3a111f..87d4c46 100755
+--- a/base/server/sbin/pkispawn
++++ b/base/server/sbin/pkispawn
+@@ -296,7 +296,7 @@ def main(argv):
+                     # Specify complete path to a directory server
+                     # CA certificate pem file
+                     pem_file = parser.read_text(
+-                        'Directory Server CA certificate pem file',
++                        'Directory Server CA Certificate pem file',
+                         allow_empty=False)
+                     parser.set_property(config.pki_subsystem,
+                                         'pki_ds_secure_connection_ca_pem_file',
+-- 
+1.8.3.1
+

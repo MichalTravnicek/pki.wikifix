@@ -1,0 +1,217 @@
+From d09114698667d16c56fbc0eaa31bf9bf2a1a3275 Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Mon, 2 Nov 2015 01:43:26 -0500
+Subject: [PATCH] Lightweight CAs: add audit events
+
+Add audit events for lightweight CA administration.
+
+Fixes: https://fedorahosted.org/pki/ticket/1590
+---
+ base/ca/shared/conf/CS.cfg.in                      |  4 +-
+ .../dogtagpki/server/ca/rest/AuthorityService.java | 62 ++++++++++++++--------
+ .../src/com/netscape/certsrv/common/ScopeDef.java  |  3 ++
+ base/server/cmsbundle/src/LogMessages.properties   |  8 +++
+ 4 files changed, 54 insertions(+), 23 deletions(-)
+
+diff --git a/base/ca/shared/conf/CS.cfg.in b/base/ca/shared/conf/CS.cfg.in
+index 05508f8b289e027cc4e97df3fe584dfbc2290f7e..c679af5b3fd7f1fcda79848f68a9258580457b63 100644
+--- a/base/ca/shared/conf/CS.cfg.in
++++ b/base/ca/shared/conf/CS.cfg.in
+@@ -901,11 +901,11 @@ log.instance.SignedAudit._001=## Signed Audit Logging
+ log.instance.SignedAudit._002=##
+ log.instance.SignedAudit._003=##
+ log.instance.SignedAudit._004=## Available Audit events:
+-log.instance.SignedAudit._005=## AUDIT_LOG_STARTUP,AUDIT_LOG_SHUTDOWN,ROLE_ASSUME,CONFIG_CERT_POLICY,CONFIG_CERT_PROFILE,CONFIG_CRL_PROFILE,CONFIG_OCSP_PROFILE,CONFIG_AUTH,CONFIG_ROLE,CONFIG_ACL,CONFIG_SIGNED_AUDIT,CONFIG_ENCRYPTION,CONFIG_TRUSTED_PUBLIC_KEY,CONFIG_DRM,SELFTESTS_EXECUTION,AUDIT_LOG_DELETE,LOG_PATH_CHANGE,LOG_EXPIRATION_CHANGE,PRIVATE_KEY_ARCHIVE_REQUEST,PRIVATE_KEY_ARCHIVE_REQUEST_PROCESSED,PRIVATE_KEY_EXPORT_REQUEST_PROCESSED_SUCCESS,PRIVATE_KEY_EXPORT_REQUEST_PROCESSED_FAILURE,KEY_RECOVERY_REQUEST,KEY_RECOVERY_REQUEST_ASYNC,KEY_RECOVERY_AGENT_LOGIN,KEY_RECOVERY_REQUEST_PROCESSED,KEY_RECOVERY_REQUEST_PROCESSED_ASYNC,KEY_GEN_ASYMMETRIC,NON_PROFILE_CERT_REQUEST,PROFILE_CERT_REQUEST,CERT_REQUEST_PROCESSED,CERT_STATUS_CHANGE_REQUEST,CERT_STATUS_CHANGE_REQUEST_PROCESSED,AUTHZ_SUCCESS,AUTHZ_FAIL,INTER_BOUNDARY,AUTH_FAIL,AUTH_SUCCESS,CERT_PROFILE_APPROVAL,PROOF_OF_POSSESSION,CRL_RETRIEVAL,CRL_VALIDATION,CMC_SIGNED_REQUEST_SIG_VERIFY,SERVER_SIDE_KEYGEN_REQUEST_PROCESSED_FAILURE,SERVER_SIDE_KEYGEN_REQUEST_PROCESSED_SUCCESS,SERVER_SIDE_KEYGEN_REQUEST,COMPUTE_SESSION_KEY_REQUEST,COMPUTE_SESSION_KEY_REQUEST_PROCESSED_SUCCESS, COMPUTE_SESSION_KEY_REQUEST_PROCESSED_FAILURE,DIVERSIFY_KEY_REQUEST,DIVERSIFY_KEY_REQUEST_PROCESSED_SUCCESS, DIVERSIFY_KEY_REQUEST_PROCESSED_FAILURE,ENCRYPT_DATA_REQUEST,ENCRYPT_DATA_REQUEST_PROCESSED_SUCCESS,ENCRYPT_DATA_REQUEST_PROCESSED_FAILURE,OCSP_ADD_CA_REQUEST,OCSP_ADD_CA_REQUEST_PROCESSED,OCSP_REMOVE_CA_REQUEST,OCSP_REMOVE_CA_REQUEST_PROCESSED_SUCCESS,OCSP_REMOVE_CA_REQUEST_PROCESSED_FAILURE,COMPUTE_RANDOM_DATA_REQUEST,COMPUTE_RANDOM_DATA_REQUEST_PROCESSED_SUCCESS,COMPUTE_RANDOM_DATA_REQUEST_PROCESSED_FAILURE,CIMC_CERT_VERIFICATION,SECURITY_DOMAIN_UPDATE,CONFIG_SERIAL_NUMBER
++log.instance.SignedAudit._005=## AUDIT_LOG_STARTUP,AUDIT_LOG_SHUTDOWN,ROLE_ASSUME,CONFIG_CERT_POLICY,CONFIG_CERT_PROFILE,CONFIG_CRL_PROFILE,CONFIG_OCSP_PROFILE,CONFIG_AUTH,CONFIG_ROLE,CONFIG_ACL,CONFIG_SIGNED_AUDIT,CONFIG_ENCRYPTION,CONFIG_TRUSTED_PUBLIC_KEY,CONFIG_DRM,SELFTESTS_EXECUTION,AUDIT_LOG_DELETE,LOG_PATH_CHANGE,LOG_EXPIRATION_CHANGE,PRIVATE_KEY_ARCHIVE_REQUEST,PRIVATE_KEY_ARCHIVE_REQUEST_PROCESSED,PRIVATE_KEY_EXPORT_REQUEST_PROCESSED_SUCCESS,PRIVATE_KEY_EXPORT_REQUEST_PROCESSED_FAILURE,KEY_RECOVERY_REQUEST,KEY_RECOVERY_REQUEST_ASYNC,KEY_RECOVERY_AGENT_LOGIN,KEY_RECOVERY_REQUEST_PROCESSED,KEY_RECOVERY_REQUEST_PROCESSED_ASYNC,KEY_GEN_ASYMMETRIC,NON_PROFILE_CERT_REQUEST,PROFILE_CERT_REQUEST,CERT_REQUEST_PROCESSED,CERT_STATUS_CHANGE_REQUEST,CERT_STATUS_CHANGE_REQUEST_PROCESSED,AUTHZ_SUCCESS,AUTHZ_FAIL,INTER_BOUNDARY,AUTH_FAIL,AUTH_SUCCESS,CERT_PROFILE_APPROVAL,PROOF_OF_POSSESSION,CRL_RETRIEVAL,CRL_VALIDATION,CMC_SIGNED_REQUEST_SIG_VERIFY,SERVER_SIDE_KEYGEN_REQUEST_PROCESSED_FAILURE,SERVER_SIDE_KEYGEN_REQUEST_PROCESSED_SUCCESS,SERVER_SIDE_KEYGEN_REQUEST,COMPUTE_SESSION_KEY_REQUEST,COMPUTE_SESSION_KEY_REQUEST_PROCESSED_SUCCESS, COMPUTE_SESSION_KEY_REQUEST_PROCESSED_FAILURE,DIVERSIFY_KEY_REQUEST,DIVERSIFY_KEY_REQUEST_PROCESSED_SUCCESS, DIVERSIFY_KEY_REQUEST_PROCESSED_FAILURE,ENCRYPT_DATA_REQUEST,ENCRYPT_DATA_REQUEST_PROCESSED_SUCCESS,ENCRYPT_DATA_REQUEST_PROCESSED_FAILURE,OCSP_ADD_CA_REQUEST,OCSP_ADD_CA_REQUEST_PROCESSED,OCSP_REMOVE_CA_REQUEST,OCSP_REMOVE_CA_REQUEST_PROCESSED_SUCCESS,OCSP_REMOVE_CA_REQUEST_PROCESSED_FAILURE,COMPUTE_RANDOM_DATA_REQUEST,COMPUTE_RANDOM_DATA_REQUEST_PROCESSED_SUCCESS,COMPUTE_RANDOM_DATA_REQUEST_PROCESSED_FAILURE,CIMC_CERT_VERIFICATION,SECURITY_DOMAIN_UPDATE,CONFIG_SERIAL_NUMBER,AUTHORITY_CONFIG
+ log.instance.SignedAudit._006=##
+ log.instance.SignedAudit.bufferSize=512
+ log.instance.SignedAudit.enable=true
+-log.instance.SignedAudit.events=AUDIT_LOG_STARTUP,AUDIT_LOG_SHUTDOWN,ROLE_ASSUME,CONFIG_CERT_POLICY,CONFIG_CERT_PROFILE,CONFIG_CRL_PROFILE,CONFIG_OCSP_PROFILE,CONFIG_AUTH,CONFIG_ROLE,CONFIG_ACL,CONFIG_SIGNED_AUDIT,CONFIG_ENCRYPTION,CONFIG_TRUSTED_PUBLIC_KEY,CONFIG_DRM,SELFTESTS_EXECUTION,AUDIT_LOG_DELETE,LOG_PATH_CHANGE,PRIVATE_KEY_ARCHIVE_REQUEST,PRIVATE_KEY_ARCHIVE_REQUEST_PROCESSED,PRIVATE_KEY_EXPORT_REQUEST_PROCESSED_SUCCESS,PRIVATE_KEY_EXPORT_REQUEST_PROCESSED_FAILURE,KEY_RECOVERY_REQUEST,KEY_RECOVERY_REQUEST_ASYNC,KEY_RECOVERY_AGENT_LOGIN,KEY_RECOVERY_REQUEST_PROCESSED,KEY_RECOVERY_REQUEST_PROCESSED_ASYNC,KEY_GEN_ASYMMETRIC,NON_PROFILE_CERT_REQUEST,PROFILE_CERT_REQUEST,CERT_REQUEST_PROCESSED,CERT_STATUS_CHANGE_REQUEST,CERT_STATUS_CHANGE_REQUEST_PROCESSED,AUTHZ_SUCCESS,AUTHZ_FAIL,INTER_BOUNDARY,AUTH_FAIL,AUTH_SUCCESS,CERT_PROFILE_APPROVAL,PROOF_OF_POSSESSION,CRL_RETRIEVAL,CRL_VALIDATION,CMC_SIGNED_REQUEST_SIG_VERIFY,SERVER_SIDE_KEYGEN_REQUEST_PROCESSED_FAILURE,SERVER_SIDE_KEYGEN_REQUEST_PROCESSED_SUCCESS,SERVER_SIDE_KEYGEN_REQUEST,COMPUTE_SESSION_KEY_REQUEST,COMPUTE_SESSION_KEY_REQUEST_PROCESSED_SUCCESS, COMPUTE_SESSION_KEY_REQUEST_PROCESSED_FAILURE,DIVERSIFY_KEY_REQUEST,DIVERSIFY_KEY_REQUEST_PROCESSED_SUCCESS, DIVERSIFY_KEY_REQUEST_PROCESSED_FAILURE,ENCRYPT_DATA_REQUEST,ENCRYPT_DATA_REQUEST_PROCESSED_SUCCESS,ENCRYPT_DATA_REQUEST_PROCESSED_FAILURE,OCSP_ADD_CA_REQUEST,OCSP_ADD_CA_REQUEST_PROCESSED,OCSP_REMOVE_CA_REQUEST,OCSP_REMOVE_CA_REQUEST_PROCESSED_SUCCESS,OCSP_REMOVE_CA_REQUEST_PROCESSED_FAILURE,COMPUTE_RANDOM_DATA_REQUEST,COMPUTE_RANDOM_DATA_REQUEST_PROCESSED_SUCCESS,COMPUTE_RANDOM_DATA_REQUEST_PROCESSED_FAILURE,CIMC_CERT_VERIFICATION,SECURITY_DOMAIN_UPDATE,CONFIG_SERIAL_NUMBER
++log.instance.SignedAudit.events=AUDIT_LOG_STARTUP,AUDIT_LOG_SHUTDOWN,ROLE_ASSUME,CONFIG_CERT_POLICY,CONFIG_CERT_PROFILE,CONFIG_CRL_PROFILE,CONFIG_OCSP_PROFILE,CONFIG_AUTH,CONFIG_ROLE,CONFIG_ACL,CONFIG_SIGNED_AUDIT,CONFIG_ENCRYPTION,CONFIG_TRUSTED_PUBLIC_KEY,CONFIG_DRM,SELFTESTS_EXECUTION,AUDIT_LOG_DELETE,LOG_PATH_CHANGE,PRIVATE_KEY_ARCHIVE_REQUEST,PRIVATE_KEY_ARCHIVE_REQUEST_PROCESSED,PRIVATE_KEY_EXPORT_REQUEST_PROCESSED_SUCCESS,PRIVATE_KEY_EXPORT_REQUEST_PROCESSED_FAILURE,KEY_RECOVERY_REQUEST,KEY_RECOVERY_REQUEST_ASYNC,KEY_RECOVERY_AGENT_LOGIN,KEY_RECOVERY_REQUEST_PROCESSED,KEY_RECOVERY_REQUEST_PROCESSED_ASYNC,KEY_GEN_ASYMMETRIC,NON_PROFILE_CERT_REQUEST,PROFILE_CERT_REQUEST,CERT_REQUEST_PROCESSED,CERT_STATUS_CHANGE_REQUEST,CERT_STATUS_CHANGE_REQUEST_PROCESSED,AUTHZ_SUCCESS,AUTHZ_FAIL,INTER_BOUNDARY,AUTH_FAIL,AUTH_SUCCESS,CERT_PROFILE_APPROVAL,PROOF_OF_POSSESSION,CRL_RETRIEVAL,CRL_VALIDATION,CMC_SIGNED_REQUEST_SIG_VERIFY,SERVER_SIDE_KEYGEN_REQUEST_PROCESSED_FAILURE,SERVER_SIDE_KEYGEN_REQUEST_PROCESSED_SUCCESS,SERVER_SIDE_KEYGEN_REQUEST,COMPUTE_SESSION_KEY_REQUEST,COMPUTE_SESSION_KEY_REQUEST_PROCESSED_SUCCESS, COMPUTE_SESSION_KEY_REQUEST_PROCESSED_FAILURE,DIVERSIFY_KEY_REQUEST,DIVERSIFY_KEY_REQUEST_PROCESSED_SUCCESS, DIVERSIFY_KEY_REQUEST_PROCESSED_FAILURE,ENCRYPT_DATA_REQUEST,ENCRYPT_DATA_REQUEST_PROCESSED_SUCCESS,ENCRYPT_DATA_REQUEST_PROCESSED_FAILURE,OCSP_ADD_CA_REQUEST,OCSP_ADD_CA_REQUEST_PROCESSED,OCSP_REMOVE_CA_REQUEST,OCSP_REMOVE_CA_REQUEST_PROCESSED_SUCCESS,OCSP_REMOVE_CA_REQUEST_PROCESSED_FAILURE,COMPUTE_RANDOM_DATA_REQUEST,COMPUTE_RANDOM_DATA_REQUEST_PROCESSED_SUCCESS,COMPUTE_RANDOM_DATA_REQUEST_PROCESSED_FAILURE,CIMC_CERT_VERIFICATION,SECURITY_DOMAIN_UPDATE,CONFIG_SERIAL_NUMBER,AUTHORITY_CONFIG
+ log.instance.SignedAudit.expirationTime=0
+ log.instance.SignedAudit.fileName=[PKI_INSTANCE_PATH]/logs/[PKI_SUBSYSTEM_TYPE]/signedAudit/ca_audit
+ log.instance.SignedAudit.flushInterval=5
+diff --git a/base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java b/base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java
+index b23a4b853252dd4e5dadef3b3ef508113e1d5337..e915579a4735d82a9673c3cb18bc2397eb619ec8 100644
+--- a/base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java
++++ b/base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java
+@@ -22,7 +22,9 @@ import java.io.ByteArrayOutputStream;
+ import java.io.IOException;
+ import java.security.cert.CertificateEncodingException;
+ import java.util.ArrayList;
++import java.util.LinkedHashMap;
+ import java.util.List;
++import java.util.Map;
+ 
+ import javax.servlet.http.HttpServletRequest;
+ import javax.ws.rs.core.Context;
+@@ -48,6 +50,9 @@ import com.netscape.certsrv.ca.CANotLeafException;
+ import com.netscape.certsrv.ca.CATypeException;
+ import com.netscape.certsrv.ca.ICertificateAuthority;
+ import com.netscape.certsrv.ca.IssuerUnavailableException;
++import com.netscape.certsrv.common.OpDef;
++import com.netscape.certsrv.common.ScopeDef;
++import com.netscape.certsrv.logging.ILogger;
+ import com.netscape.cms.servlet.base.PKIService;
+ import com.netscape.cmsutil.util.Utils;
+ 
+@@ -74,12 +79,9 @@ public class AuthorityService extends PKIService implements AuthorityResource {
+     @Context
+     private HttpServletRequest servletRequest;
+ 
+-    /*
+-    private final static String LOGGING_SIGNED_AUDIT_CERT_PROFILE_APPROVAL =
+-            "LOGGING_SIGNED_AUDIT_CERT_PROFILE_APPROVAL_4";
+-    private final static String LOGGING_SIGNED_AUDIT_CONFIG_CERT_PROFILE =
+-            "LOGGING_SIGNED_AUDIT_CONFIG_CERT_PROFILE_3";
+-    */
++    private final static String LOGGING_SIGNED_AUDIT_AUTHORITY_CONFIG =
++            "LOGGING_SIGNED_AUDIT_AUTHORITY_CONFIG_3";
++
+ 
+     @Override
+     public Response listCAs() {
+@@ -178,18 +180,29 @@ public class AuthorityService extends PKIService implements AuthorityResource {
+             throw new BadRequestException("Bad Authority ID: " + parentAIDString);
+         }
+ 
++        Map<String, String> auditParams = new LinkedHashMap<>();
++        auditParams.put("dn", data.getDN());
++        if (parentAID != null)
++            auditParams.put("parent", parentAIDString);
++        if (data.getDescription() != null)
++            auditParams.put("description", data.getDescription());
++
+         try {
+             ICertificateAuthority subCA = hostCA.createCA(
+                 data.getDN(), parentAID, data.getDescription());
++            audit(ILogger.SUCCESS, OpDef.OP_ADD,
++                    subCA.getAuthorityID().toString(), auditParams);
+             return createOKResponse(readAuthorityData(subCA));
+         } catch (IllegalArgumentException e) {
+             throw new BadRequestException(e.toString());
+         } catch (CANotFoundException e) {
+             throw new ResourceNotFoundException(e.toString());
+         } catch (IssuerUnavailableException e) {
++            audit(ILogger.FAILURE, OpDef.OP_ADD, "<unknown>", auditParams);
+             throw new ConflictingOperationException(e.toString());
+         } catch (Exception e) {
+             CMS.debug(e);
++            audit(ILogger.FAILURE, OpDef.OP_ADD, "<unknown>", auditParams);
+             throw new PKIException("Error creating CA: " + e.toString());
+         }
+     }
+@@ -207,15 +220,28 @@ public class AuthorityService extends PKIService implements AuthorityResource {
+         if (ca == null)
+             throw new ResourceNotFoundException("CA \"" + aidString + "\" not found");
+ 
++        Map<String, String> auditParams = new LinkedHashMap<>();
++        if (data.getEnabled() != ca.getAuthorityEnabled())
++            auditParams.put("enabled", data.getEnabled().toString());
++        String curDesc = ca.getAuthorityDescription();
++        String newDesc = data.getDescription();
++        if (curDesc != null && !curDesc.equals(newDesc)
++                || curDesc == null && newDesc != null)
++            auditParams.put("description", data.getDescription());
++
+         try {
+             ca.modifyAuthority(data.getEnabled(), data.getDescription());
++            audit(ILogger.SUCCESS, OpDef.OP_MODIFY, ca.getAuthorityID().toString(), auditParams);
+             return createOKResponse(readAuthorityData(ca));
+         } catch (CATypeException e) {
++            audit(ILogger.FAILURE, OpDef.OP_MODIFY, ca.getAuthorityID().toString(), auditParams);
+             throw new ForbiddenException(e.toString());
+         } catch (IssuerUnavailableException e) {
++            audit(ILogger.FAILURE, OpDef.OP_MODIFY, ca.getAuthorityID().toString(), auditParams);
+             throw new ConflictingOperationException(e.toString());
+         } catch (EBaseException e) {
+             CMS.debug(e);
++            audit(ILogger.FAILURE, OpDef.OP_MODIFY, ca.getAuthorityID().toString(), auditParams);
+             throw new PKIException("Error modifying authority: " + e.toString());
+         }
+     }
+@@ -249,13 +275,17 @@ public class AuthorityService extends PKIService implements AuthorityResource {
+ 
+         try {
+             ca.deleteAuthority();
++            audit(ILogger.SUCCESS, OpDef.OP_DELETE, aidString, null);
+             return createNoContentResponse();
+         } catch (CATypeException e) {
++            audit(ILogger.FAILURE, OpDef.OP_DELETE, aidString, null);
+             throw new ForbiddenException(e.toString());
+         } catch (CAEnabledException | CANotLeafException e) {
++            audit(ILogger.FAILURE, OpDef.OP_DELETE, aidString, null);
+             throw new ConflictingOperationException(e.toString());
+         } catch (EBaseException e) {
+             CMS.debug(e);
++            audit(ILogger.FAILURE, OpDef.OP_DELETE, aidString, null);
+             throw new PKIException("Error modifying authority: " + e.toString());
+         }
+     }
+@@ -286,25 +316,15 @@ public class AuthorityService extends PKIService implements AuthorityResource {
+                 "-----END " + name + "-----\n";
+     }
+ 
+-    /* TODO work out what audit messages are needed
+-    public void auditProfileChangeState(String profileId, String op, String status) {
++    private void audit(
++            String status, String op, String id,
++            Map<String, String> params) {
+         String msg = CMS.getLogMessage(
+-                LOGGING_SIGNED_AUDIT_CERT_PROFILE_APPROVAL,
++                LOGGING_SIGNED_AUDIT_AUTHORITY_CONFIG,
+                 auditor.getSubjectID(),
+                 status,
+-                profileId,
+-                op);
++                auditor.getParamString(ScopeDef.SC_AUTHORITY, op, id, params));
+         auditor.log(msg);
+     }
+ 
+-    public void auditProfileChange(String scope, String type, String id, String status, Map<String, String> params) {
+-        String msg = CMS.getLogMessage(
+-                LOGGING_SIGNED_AUDIT_CONFIG_CERT_PROFILE,
+-                auditor.getSubjectID(),
+-                status,
+-                auditor.getParamString(scope, type, id, params));
+-        auditor.log(msg);
+-    }
+-    */
+-
+ }
+diff --git a/base/common/src/com/netscape/certsrv/common/ScopeDef.java b/base/common/src/com/netscape/certsrv/common/ScopeDef.java
+index f689d1504d2cebf8868246e0ce51653a3d78d291..a06696e4b05e2f63e544bd2c0deaa2b8f6abd732 100644
+--- a/base/common/src/com/netscape/certsrv/common/ScopeDef.java
++++ b/base/common/src/com/netscape/certsrv/common/ScopeDef.java
+@@ -41,6 +41,9 @@ public interface ScopeDef {
+     public final static String SC_ADMIN = "admin";
+     public final static String SC_NETWORK = "network";
+ 
++    // lightweight authorities
++    public final static String SC_AUTHORITY = "authority";
++
+     // profile
+     public final static String SC_PROFILE_IMPLS = "profile";
+     public final static String SC_PROFILE_RULES = "rules";
+diff --git a/base/server/cmsbundle/src/LogMessages.properties b/base/server/cmsbundle/src/LogMessages.properties
+index e0e926ccb43a94c01bcb40cad81f7f04ee437f45..b3355f06869744fc29932d0e19c4a14a40f38845 100644
+--- a/base/server/cmsbundle/src/LogMessages.properties
++++ b/base/server/cmsbundle/src/LogMessages.properties
+@@ -2596,6 +2596,14 @@ LOGGING_SIGNED_AUDIT_CONFIG_TOKEN_PROFILE_3=<type=CONFIG_TOKEN_PROFILE>:[AuditEv
+ # - used when token state changed
+ #
+ LOGGING_SIGNED_AUDIT_TOKEN_STATE_CHANGE_5=<type=TOKEN_STATE_CHANGE>:[AuditEvent=TOKEN_STATE_CHANGE][SubjectID={0}][Outcome={1}][CUID={2}][oldState={3}][newState={4}] token state changed
++#
++# LOGGING_SIGNED_AUDIT_AUTHORITY_CONFIG
++# - used when configuring lightweight authorities
++# ParamNameValPairs must be a name;;value pair
++#    (where name and value are separated by the delimiter ;;)
++#    separated by + (if more than one name;;value pair) of config params changed
++#
++LOGGING_SIGNED_AUDIT_AUTHORITY_CONFIG_3=<type=AUTHORITY_CONFIG>:[AuditEvent=AUTHORITY_CONFIG][SubjectID={0}][Outcome={1}][ParamNameValPairs={2}] lightweight authority configuration change
+ 
+ 
+ ###########################
+-- 
+2.4.3
+

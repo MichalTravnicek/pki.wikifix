@@ -1,0 +1,55 @@
+From c9f7d91295f673055201ca528ebdadd9018e4978 Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Tue, 14 Jun 2016 12:19:25 +1000
+Subject: [PATCH] Do not attempt cert update unless signing key is present
+
+If an authority entry is read with the authoritySerial attribute,
+and the serial differs from the known serial or the serial was
+previously unknown, Dogtag attempts to update the certificate in the
+NSSDB. The procedure is carried out during initialisation, and if it
+fails an exception is thrown, causing the CA to remain unknown.
+
+If the signing key is not yet in the NSSDB, the update is certain to
+fail.  This can happen e.g. if CA is created on one clone while
+another clone is down.  When the other clone comes up, it will
+immediately see the authoritySerial and trigger this scenario.
+
+To avoid this scenario, only attempt to update the certificate if
+the signing unit initialisation completed successfully, implying the
+presence of the signing key.
+
+Fixes: https://fedorahosted.org/pki/ticket/2359
+---
+ base/ca/src/com/netscape/ca/CertificateAuthority.java | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/base/ca/src/com/netscape/ca/CertificateAuthority.java b/base/ca/src/com/netscape/ca/CertificateAuthority.java
+index c9de9f9a58ce91a56043e21d47cd63020b20c085..e501380c8dd6d2d6fc400ad9f43677bfae7e258e 100644
+--- a/base/ca/src/com/netscape/ca/CertificateAuthority.java
++++ b/base/ca/src/com/netscape/ca/CertificateAuthority.java
+@@ -517,8 +517,9 @@ public class CertificateAuthority
+             }
+ 
+             // init signing unit & CA cert.
++            boolean initSigUnitSucceeded = false;
+             try {
+-                initSigUnit(/* retrieveKeys */ true);
++                initSigUnitSucceeded = initSigUnit(/* retrieveKeys */ true);
+                 // init default CA attributes like cert version, validity.
+                 initDefCaAttrs();
+ 
+@@ -531,7 +532,10 @@ public class CertificateAuthority
+                 }
+             }
+ 
+-            checkForNewerCert();
++            /* Don't try to update the cert unless we already have
++             * the cert and key. */
++            if (initSigUnitSucceeded)
++                checkForNewerCert();
+ 
+             mUseNonces = mConfig.getBoolean("enableNonces", true);
+             mMaxNonces = mConfig.getInteger("maxNumberOfNonces", 100);
+-- 
+2.5.5
+

@@ -1,0 +1,49 @@
+From 773f0f4ae704065e4216d133ea79ad13355e9b80 Mon Sep 17 00:00:00 2001
+From: Endi Sukma Dewata <edewata@redhat.com>
+Date: Fri, 3 Aug 2012 09:55:53 -0500
+Subject: [PATCH] Enabled realm authentication for certificate requests.
+
+---
+ base/ca/shared/conf/acl.ldif                      | 1 +
+ base/ca/shared/webapps/ca/WEB-INF/auth.properties | 1 +
+ base/ca/shared/webapps/ca/WEB-INF/web.xml         | 2 +-
+ 3 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/base/ca/shared/conf/acl.ldif b/base/ca/shared/conf/acl.ldif
+index aec1447e56eafbc334f6b5d8fff662e2c976284e..79b7501b337676fd8b9055475ab7738cef2c78ac 100644
+--- a/base/ca/shared/conf/acl.ldif
++++ b/base/ca/shared/conf/acl.ldif
+@@ -51,6 +51,7 @@ resourceACLS: certServer.ca.connectorInfo:read,modify:allow (modify,read) group=
+ resourceACLS: certServer.ca.registerUser:read,modify:allow (modify,read) group="Enterprise CA Administrators" || group="Enterprise KRA Administrators" || group="Enterprise RA Administrators" || group="Enterprise OCSP Administrators" || group="Enterprise TKS Administrators" || group="Enterprise TPS Administrators":Only Enterprise Administrators are allowed to register a new agent
+ resourceACLS: certServer.clone.configuration:read,modify:allow (modify,read) group="Enterprise CA Administrators" || group="Enterprise KRA Administrators" || group="Enterprise RA Administrators" || group="Enterprise OCSP Administrators" || group="Enterprise TKS Administrators":Only Enterprise Administrators are allowed to clone the configuration.
+ resourceACLS: certServer.admin.ocsp:read,modify:allow (modify,read) group="Enterprise OCSP Administrators":Only Enterprise Administrators are allowed to read or update the OCSP configuration.
++resourceACLS: certServer.ca.certrequests:execute:allow (execute) group="Certificate Manager Agents":Agents may execute cert request operations
+ resourceACLS: certServer.ca.certs:execute:allow (execute) group="Certificate Manager Agents":Agents may execute cert operations
+ resourceACLS: certServer.ca.groups:execute:allow (execute) group="Administrators":Admins may execute group operations
+ resourceACLS: certServer.ca.users:execute:allow (execute) group="Administrators":Admins may execute user operations
+diff --git a/base/ca/shared/webapps/ca/WEB-INF/auth.properties b/base/ca/shared/webapps/ca/WEB-INF/auth.properties
+index ebb1c6c3fd6a80addf52575d3bbfda21c352312a..97a9b4322e53238d280c0e7b57a3aa42a9d6d958 100644
+--- a/base/ca/shared/webapps/ca/WEB-INF/auth.properties
++++ b/base/ca/shared/webapps/ca/WEB-INF/auth.properties
+@@ -6,4 +6,5 @@
+ 
+ /ca/rest/admin/users = certServer.ca.users,execute
+ /ca/rest/admin/groups = certServer.ca.groups,execute
++/ca/rest/agent/certrequests = certServer.ca.certrequests,execute
+ /ca/rest/agent/certs = certServer.ca.certs,execute
+diff --git a/base/ca/shared/webapps/ca/WEB-INF/web.xml b/base/ca/shared/webapps/ca/WEB-INF/web.xml
+index af474872e94e2ade596bfb1ed44b0d70069b3b20..4b87c82500ee17e4e1f100c8d85179ffd418f27f 100644
+--- a/base/ca/shared/webapps/ca/WEB-INF/web.xml
++++ b/base/ca/shared/webapps/ca/WEB-INF/web.xml
+@@ -2399,7 +2399,7 @@
+     <security-constraint>
+         <web-resource-collection>
+             <web-resource-name>Agent Services</web-resource-name>
+-            <url-pattern>/rest/agent/certs/*</url-pattern>
++            <url-pattern>/rest/agent/*</url-pattern>
+         </web-resource-collection>
+         <auth-constraint>
+             <role-name>*</role-name>
+-- 
+1.7.11.2
+

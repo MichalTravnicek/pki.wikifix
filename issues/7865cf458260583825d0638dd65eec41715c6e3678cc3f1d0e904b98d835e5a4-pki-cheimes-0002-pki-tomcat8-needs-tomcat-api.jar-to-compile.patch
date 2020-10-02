@@ -1,0 +1,44 @@
+From e6adb6ec835462ecd247315f7928e964a0e21e31 Mon Sep 17 00:00:00 2001
+From: Christian Heimes <cheimes@redhat.com>
+Date: Thu, 25 Feb 2016 12:33:34 +0100
+Subject: [PATCH 2/3] pki-tomcat8 needs tomcat-api.jar to compile
+
+Tomcat 8.0.32 has moved org.apache.tomcat.ContextBind into
+tomcat-api.jar. Add tomcat-api.jar to javac classpath to compile pki
+with latest Tomcat.
+
+https://fedorahosted.org/pki/attachment/ticket/2222
+---
+ base/server/tomcat8/src/CMakeLists.txt | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/base/server/tomcat8/src/CMakeLists.txt b/base/server/tomcat8/src/CMakeLists.txt
+index df55916bc0bc0e2bb010239115c68b8bc5ad6c84..8aed1fc18e8173b3db841ed2cd3d730b9f45753f 100644
+--- a/base/server/tomcat8/src/CMakeLists.txt
++++ b/base/server/tomcat8/src/CMakeLists.txt
+@@ -44,6 +44,13 @@ find_file(TOMCAT_CATALINA_JAR
+         /usr/share/java/tomcat
+ )
+ 
++find_file(TOMCAT_API_JAR
++    NAMES
++        tomcat-api.jar
++    PATHS
++        /usr/share/java/tomcat
++)
++
+ find_file(TOMCAT_UTIL_SCAN_JAR
+     NAMES
+         tomcat-util-scan.jar
+@@ -123,7 +130,7 @@ javac(pki-tomcat8-classes
+     SOURCES
+         com/netscape/cms/tomcat/*.java
+     CLASSPATH
+-        ${SERVLET_JAR} ${TOMCAT_CATALINA_JAR} ${TOMCAT_UTIL_SCAN_JAR}
++        ${SERVLET_JAR} ${TOMCAT_CATALINA_JAR} ${TOMCAT_UTIL_SCAN_JAR} ${TOMCAT_API_JAR}
+             ${CMAKE_BINARY_DIR}/../../tomcat
+     OUTPUT_DIR
+         ${CMAKE_BINARY_DIR}/../../tomcat
+-- 
+2.5.0
+

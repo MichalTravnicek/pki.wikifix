@@ -1,0 +1,59 @@
+From 96d5814089ace906d59d44a57f16fadadc148a31 Mon Sep 17 00:00:00 2001
+From: Matthew Harmsen <mharmsen@redhat.com>
+Date: Tue, 24 Jun 2014 17:42:48 -0700
+Subject: [PATCH] Swap numeric values of OBNOXIOUS and INFO debug logging for
+ correctness
+
+* PKI TRAC Ticket #898 - Giant /var/log/pki-ca/debug
+---
+ base/common/src/com/netscape/certsrv/apps/CMS.java           | 4 ++--
+ base/server/cmscore/src/com/netscape/cmscore/util/Debug.java | 8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/base/common/src/com/netscape/certsrv/apps/CMS.java b/base/common/src/com/netscape/certsrv/apps/CMS.java
+index fbcf65a..63c1a2c 100644
+--- a/base/common/src/com/netscape/certsrv/apps/CMS.java
++++ b/base/common/src/com/netscape/certsrv/apps/CMS.java
+@@ -113,9 +113,9 @@ import com.netscape.cmsutil.password.IPasswordStore;
+  */
+ public final class CMS {
+ 
+-    public static final int DEBUG_OBNOXIOUS = 10;
++    public static final int DEBUG_OBNOXIOUS = 1;
+     public static final int DEBUG_VERBOSE = 5;
+-    public static final int DEBUG_INFORM = 1;
++    public static final int DEBUG_INFORM = 10;
+ 
+     private static final String CONFIG_FILE = "CS.cfg";
+     private static ICMSEngine _engine = null;
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/util/Debug.java b/base/server/cmscore/src/com/netscape/cmscore/util/Debug.java
+index bd10a49..0365734 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/util/Debug.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/util/Debug.java
+@@ -52,9 +52,9 @@ public class Debug
+     }
+ 
+     public static final boolean ON = false;
+-    public static final int OBNOXIOUS = 10;
++    public static final int OBNOXIOUS = 1;
+     public static final int VERBOSE = 5;
+-    public static final int INFORM = 1;
++    public static final int INFORM = 10;
+ 
+     // the difference between this and 'ON' is that this is always
+     // guaranteed to log to 'mOut', whereas other parts of the server
+@@ -261,9 +261,9 @@ public class Debug
+      * Set the current debugging level. You can use:
+      *
+      * <pre>
+-     * OBNOXIOUS = 10
++     * OBNOXIOUS = 1
+      * VERBOSE   = 5
+-     * INFORM    = 1
++     * INFORM    = 10
+      * </pre>
+      *
+      * Or another value
+-- 
+1.9.3
+

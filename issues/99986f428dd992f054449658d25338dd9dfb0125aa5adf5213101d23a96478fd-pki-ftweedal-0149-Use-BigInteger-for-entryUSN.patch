@@ -1,0 +1,122 @@
+From 4201b2c02546e4d404816a4932ba2d0d688f2c55 Mon Sep 17 00:00:00 2001
+From: Fraser Tweedale <ftweedal@redhat.com>
+Date: Mon, 23 Jan 2017 17:11:26 +1000
+Subject: [PATCH] Use BigInteger for entryUSN
+
+Currently we try to parse the entryUSN into an Integer, which wraps
+the 'int' primitive type.  If entryUSN value is too large to fit in
+'int', NumberFormatException is raised.
+
+Change LDAPProfileSubsystem and CertificateAuthority to use
+BigInteger for entryUSN values.
+
+Fixes: https://fedorahosted.org/pki/ticket/2579
+---
+ base/ca/src/com/netscape/ca/CertificateAuthority.java       | 12 ++++++------
+ .../com/netscape/cmscore/profile/LDAPProfileSubsystem.java  | 13 +++++++------
+ 2 files changed, 13 insertions(+), 12 deletions(-)
+
+diff --git a/base/ca/src/com/netscape/ca/CertificateAuthority.java b/base/ca/src/com/netscape/ca/CertificateAuthority.java
+index 92bf64412c0edcf5540830438e6c356dbb4811bc..7ad40a9f6e436d4d3c4c947165a2c7ae18dc960a 100644
+--- a/base/ca/src/com/netscape/ca/CertificateAuthority.java
++++ b/base/ca/src/com/netscape/ca/CertificateAuthority.java
+@@ -334,7 +334,7 @@ public class CertificateAuthority
+ 
+     /* Maps and sets of entryUSNs and nsUniqueIds for avoiding race
+      * conditions and unnecessary reloads related to replication */
+-    private static TreeMap<AuthorityID,Integer> entryUSNs = new TreeMap<>();
++    private static TreeMap<AuthorityID,BigInteger> entryUSNs = new TreeMap<>();
+     private static TreeMap<AuthorityID,String> nsUniqueIds = new TreeMap<>();
+     private static TreeSet<String> deletedNsUniqueIds = new TreeSet<>();
+ 
+@@ -2902,7 +2902,7 @@ public class CertificateAuthority
+ 
+         LDAPAttribute attr = entry.getAttribute("entryUSN");
+         if (attr != null) {
+-            Integer entryUSN = new Integer(attr.getStringValueArray()[0]);
++            BigInteger entryUSN = new BigInteger(attr.getStringValueArray()[0]);
+             entryUSNs.put(aid, entryUSN);
+             CMS.debug("postCommit: new entryUSN = " + entryUSN);
+         }
+@@ -3268,7 +3268,7 @@ public class CertificateAuthority
+             return;
+         }
+ 
+-        Integer newEntryUSN = null;
++        BigInteger newEntryUSN = null;
+         LDAPAttribute entryUSNAttr = entry.getAttribute("entryUSN");
+         if (entryUSNAttr == null) {
+             CMS.debug("readAuthority: no entryUSN");
+@@ -3285,14 +3285,14 @@ public class CertificateAuthority
+                 // entryUSN attribute being added.
+             }
+         } else {
+-            newEntryUSN = new Integer(entryUSNAttr.getStringValueArray()[0]);
++            newEntryUSN = new BigInteger(entryUSNAttr.getStringValueArray()[0]);
+             CMS.debug("readAuthority: new entryUSN = " + newEntryUSN);
+         }
+ 
+-        Integer knownEntryUSN = entryUSNs.get(aid);
++        BigInteger knownEntryUSN = entryUSNs.get(aid);
+         if (newEntryUSN != null && knownEntryUSN != null) {
+             CMS.debug("readAuthority: known entryUSN = " + knownEntryUSN);
+-            if (newEntryUSN <= knownEntryUSN) {
++            if (newEntryUSN.compareTo(knownEntryUSN) <= 0) {
+                 CMS.debug("readAuthority: data is current");
+                 return;
+             }
+diff --git a/base/server/cmscore/src/com/netscape/cmscore/profile/LDAPProfileSubsystem.java b/base/server/cmscore/src/com/netscape/cmscore/profile/LDAPProfileSubsystem.java
+index 213c7a9f19f93ded4c42b6c06768a893a1257f71..fff8ead3f2088aedaf5856c308dd33be90af7779 100644
+--- a/base/server/cmscore/src/com/netscape/cmscore/profile/LDAPProfileSubsystem.java
++++ b/base/server/cmscore/src/com/netscape/cmscore/profile/LDAPProfileSubsystem.java
+@@ -19,6 +19,7 @@ package com.netscape.cmscore.profile;
+ 
+ import java.io.ByteArrayInputStream;
+ import java.io.InputStream;
++import java.math.BigInteger;
+ import java.util.Arrays;
+ import java.util.Enumeration;
+ import java.util.Hashtable;
+@@ -65,7 +66,7 @@ public class LDAPProfileSubsystem
+ 
+     /* Map of profileId -> entryUSN for the most recent view
+      * of the profile entry that this instance has seen */
+-    private TreeMap<String,Integer> entryUSNs;
++    private TreeMap<String,BigInteger> entryUSNs;
+ 
+     private TreeMap<String,String> nsUniqueIds;
+ 
+@@ -168,14 +169,14 @@ public class LDAPProfileSubsystem
+         }
+         profileId = LDAPDN.explodeDN(dn, true)[0];
+ 
+-        Integer newEntryUSN = new Integer(
++        BigInteger newEntryUSN = new BigInteger(
+                 ldapProfile.getAttribute("entryUSN").getStringValueArray()[0]);
+         CMS.debug("readProfile: new entryUSN = " + newEntryUSN);
+ 
+-        Integer knownEntryUSN = entryUSNs.get(profileId);
++        BigInteger knownEntryUSN = entryUSNs.get(profileId);
+         if (knownEntryUSN != null) {
+             CMS.debug("readProfile: known entryUSN = " + knownEntryUSN);
+-            if (newEntryUSN <= knownEntryUSN) {
++            if (newEntryUSN.compareTo(knownEntryUSN) <= 0) {
+                 CMS.debug("readProfile: data is current");
+                 return;
+             }
+@@ -347,10 +348,10 @@ public class LDAPProfileSubsystem
+                 return;
+             }
+ 
+-            Integer entryUSN = null;
++            BigInteger entryUSN = null;
+             LDAPAttribute attr = entry.getAttribute("entryUSN");
+             if (attr != null)
+-                entryUSN = new Integer(attr.getStringValueArray()[0]);
++                entryUSN = new BigInteger(attr.getStringValueArray()[0]);
+             entryUSNs.put(id, entryUSN);
+             CMS.debug("commitProfile: new entryUSN = " + entryUSN);
+ 
+-- 
+2.9.3
+

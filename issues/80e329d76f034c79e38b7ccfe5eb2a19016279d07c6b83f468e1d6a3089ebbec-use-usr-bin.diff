@@ -1,0 +1,89 @@
+--- a/base/java-tools/src/com/netscape/cmstools/cli/HelpCLI.java
++++ b/base/java-tools/src/com/netscape/cmstools/cli/HelpCLI.java
+@@ -77,7 +77,7 @@ public class HelpCLI extends CLI {
+         while (true) {
+             // display man page for the command
+             ProcessBuilder pb = new ProcessBuilder(
+-                    "/bin/man",
++                    "/usr/bin/man",
+                     manPage);
+ 
+             pb.inheritIO();
+--- a/base/java-tools/src/com/netscape/cmstools/client/ClientCertImportCLI.java
++++ b/base/java-tools/src/com/netscape/cmstools/client/ClientCertImportCLI.java
+@@ -282,7 +282,7 @@ public class ClientCertImportCLI extends
+         }
+ 
+         String[] command = {
+-                "/bin/certutil", "-A",
++                "/usr/bin/certutil", "-A",
+                 "-d", dbPath,
+                 "-i", certPath,
+                 "-n", nickname,
+@@ -304,7 +304,7 @@ public class ClientCertImportCLI extends
+             String pkcs12PasswordPath) throws Exception {
+ 
+         String[] command = {
+-                "/bin/pk12util",
++                "/usr/bin/pk12util",
+                 "-d", dbPath,
+                 "-K", dbPassword,
+                 "-i", pkcs12Path,
+--- a/base/java-tools/src/com/netscape/cmstools/client/ClientCertShowCLI.java
++++ b/base/java-tools/src/com/netscape/cmstools/client/ClientCertShowCLI.java
+@@ -196,7 +196,7 @@ public class ClientCertShowCLI extends C
+             String nickname) throws Exception {
+ 
+         String[] command = {
+-                "/bin/pk12util",
++                "/usr/bin/pk12util",
+                 "-d", dbPath,
+                 "-K", dbPassword,
+                 "-o", pkcs12Path,
+@@ -218,7 +218,7 @@ public class ClientCertShowCLI extends C
+             String certPath) throws Exception {
+ 
+         String[] command = {
+-                "/bin/openssl",
++                "/usr/bin/openssl",
+                 "pkcs12",
+                 "-clcerts", // certificate only
+                 "-nokeys",
+@@ -241,7 +241,7 @@ public class ClientCertShowCLI extends C
+             String privateKeyPath) throws Exception {
+ 
+         String[] command = {
+-                "/bin/openssl",
++                "/usr/bin/openssl",
+                 "pkcs12",
+                 "-nocerts", // private key only
+                 "-nodes",   // no encryption
+@@ -264,7 +264,7 @@ public class ClientCertShowCLI extends C
+             String clientCertPath) throws Exception {
+ 
+         String[] command = {
+-                "/bin/openssl",
++                "/usr/bin/openssl",
+                 "pkcs12",
+                 "-clcerts", // client certificate and private key
+                 "-nodes",   // no encryption
+--- a/base/server/python/pki/server/deployment/pkihelper.py
++++ b/base/server/python/pki/server/deployment/pkihelper.py
+@@ -3112,7 +3112,7 @@ class KRAConnector:
+     def execute_using_pki(
+             self, caport, cahost, subsystemnick,
+             token_pwd, krahost, kraport, critical_failure=False):
+-        command = ["/bin/pki",
++        command = ["/usr/bin/pki",
+                    "-p", str(caport),
+                    "-h", cahost,
+                    "-n", subsystemnick,
+@@ -3262,7 +3262,7 @@ class TPSConnector:
+     def execute_using_pki(
+             self, tkshost, tksport, subsystemnick,
+             token_pwd, tpshost, tpsport, critical_failure=False):
+-        command = ["/bin/pki",
++        command = ["/usr/bin/pki",
+                    "-p", str(tksport),
+                    "-h", tkshost,
+                    "-n", subsystemnick,

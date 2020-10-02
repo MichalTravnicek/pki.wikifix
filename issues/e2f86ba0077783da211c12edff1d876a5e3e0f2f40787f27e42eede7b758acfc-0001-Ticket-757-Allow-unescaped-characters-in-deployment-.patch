@@ -1,0 +1,103 @@
+From 6524defd559461863d90fcd4f372c41a0f9de431 Mon Sep 17 00:00:00 2001
+From: Nathan Kinder <nkinder@redhat.com>
+Date: Tue, 8 Oct 2013 15:22:01 -0700
+Subject: [PATCH] Ticket 757 - Allow unescaped '%' characters in deployment
+ file password values
+
+This patch allows password values in pkispawn deployment files to
+contain unescaped '%' characters.  Non password settings support
+interpolation, so they still require escaping.
+
+This patch has been tested with deployment file based installs as
+well as interactive installs.  The way it works is that we escape
+the password settings internally immediately after reading the
+deployment config file.  The interactive installation code already
+escapes password values as it receives them from the user.  This
+approach allows the rest of the installation code to remain as-is.
+---
+ base/server/man/man5/pki_default.cfg.5             |  4 +--
+ base/server/man/man8/pkispawn.8                    |  2 +-
+ .../python/pki/server/deployment/pkiparser.py      | 33 ++++++++++++++++++++++
+ 3 files changed, 36 insertions(+), 3 deletions(-)
+
+diff --git a/base/server/man/man5/pki_default.cfg.5 b/base/server/man/man5/pki_default.cfg.5
+index 395bb31..f5be33c 100644
+--- a/base/server/man/man5/pki_default.cfg.5
++++ b/base/server/man/man5/pki_default.cfg.5
+@@ -30,10 +30,10 @@ There are a small number of bootstrap parameters which are passed in the configu
+ .PP
+ \fBpki_ca_signing_nickname=caSigningCert cert-%(pki_instance_name)s CA\fP
+ .PP
+-This substitutes the value of pki_instance_name into the parameter value.  It is possible to interpolate any parameter within a section or in [DEFAULT]. Any parameter used in interpolation can \fBONLY\fP be overridden within the same section.  So, for example, pki_instance_name should only be overridden in [DEFAULT]; otherwise, interpolations can fail.
++This substitutes the value of pki_instance_name into the parameter value.  It is possible to interpolate any non-password parameter within a section or in [DEFAULT]. Any parameter used in interpolation can \fBONLY\fP be overridden within the same section.  So, for example, pki_instance_name should only be overridden in [DEFAULT]; otherwise, interpolations can fail.
+ .TP
+ \fBNote:\fP
+-Any parameter values in the configuration file that needs to contain a \fB%\fP character must be properly escaped.  For example, a value of \fBfoo%bar\fP would be specified as \fBfoo%%bar\fP in the configuration file.
++Any non-password related parameter values in the configuration file that needs to contain a \fB%\fP character must be properly escaped.  For example, a value of \fBfoo%bar\fP would be specified as \fBfoo%%bar\fP in the configuration file.
+ 
+ .SH GENERAL INSTANCE PARAMETERS
+ The parameters described below, as well as the parameters located in the following sections, can be customized as part of a deployment.  This list is not exhaustive.
+diff --git a/base/server/man/man8/pkispawn.8 b/base/server/man/man8/pkispawn.8
+index a636fbb..ebed2cb 100644
+--- a/base/server/man/man8/pkispawn.8
++++ b/base/server/man/man8/pkispawn.8
+@@ -41,7 +41,7 @@ The instances are created based on values for configuration parameters in the de
+ This configuration file contains directives that are divided into sections for different subsystem types (such as [DEFAULT], [CA], and [KRA]).  These sections are stacked, so that parameters read in earlier sections can be overwritten by parameters in later sections.  For the Java subsystems (CA, KRA, OCSP and TKS), the sections read are [DEFAULT], [Tomcat] and the subsystem-type section ([CA], [KRA], [OCSP], or [TKS]), in that order.  This allows the ability to specify parameters to be shared by all subsystems in [DEFAULT] or [Tomcat], and system-specific upgrades in the [CA], [KRA], and other sections.
+ .TP
+ \fBNote:\fP
+-Any parameter values in the configuration file that needs to contain a \fB%\fP character must be properly escaped.  For example, a value of \fBfoo%bar\fP would be specified as \fBfoo%%bar\fP in the configuration file.
++Any non-password related parameter values in the configuration file that needs to contain a \fB%\fP character must be properly escaped.  For example, a value of \fBfoo%bar\fP would be specified as \fBfoo%%bar\fP in the configuration file.
+ .PP
+ At a minimum, the user-defined configuration file must provide some passwords needed for the install.  An example configuration file is provided in the 
+ .B EXAMPLES
+diff --git a/base/server/python/pki/server/deployment/pkiparser.py b/base/server/python/pki/server/deployment/pkiparser.py
+index d4062bf..ba9c5b8 100644
+--- a/base/server/python/pki/server/deployment/pkiparser.py
++++ b/base/server/python/pki/server/deployment/pkiparser.py
+@@ -325,10 +325,43 @@ class PKIConfigParser:
+         rv = 0
+         try:
+             if config.user_deployment_cfg:
++                # We don't allow interpolation in password settings, which
++                # means that we need to deal with escaping '%' characters
++                # that might be present.
++                no_interpolation = ('pki_admin_password', 'pki_backup_password',
++                                    'pki_client_database_password',
++                                    'pki_client_pkcs12_password',
++                                    'pki_ds_password', 'pki_security_domain_password')
++
+                 print 'Loading deployment configuration from ' + config.user_deployment_cfg + '.'
+                 self.pki_config.read([config.user_deployment_cfg])
+                 config.user_config.read([config.user_deployment_cfg])
+ 
++                # Look through each section and see if any password settings
++                # are present.  If so, escape any '%' characters.
++                sections = self.pki_config.sections()
++                if sections:
++                    sections.append('DEFAULT')
++                    for section in sections:
++                        for key in no_interpolation:
++                            try:
++                                val =  self.pki_config.get(section, key, raw=True)
++                                if val:
++                                    self.pki_config.set(section, key, val.replace("%", "%%"))
++                            except ConfigParser.NoOptionError:
++                                continue
++
++                sections = config.user_config.sections()
++                if sections:
++                    sections.append('DEFAULT')
++                    for section in sections:
++                        for key in no_interpolation:
++                            try:
++                                val =  config.user_config.get(section, key, raw=True)
++                                if val:
++                                    config.user_config.set(section, key, val.replace("%", "%%"))
++                            except ConfigParser.NoOptionError:
++                                continue
+         except ConfigParser.ParsingError, err:
+             print err
+             rv = err
+-- 
+1.8.1.4
+

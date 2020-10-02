@@ -1,0 +1,427 @@
+From d5a6931a7442dcf6c76a2880a6eb43c2d385661a Mon Sep 17 00:00:00 2001
+From: Andrew Wnuk <awnuk@redhat.com>
+Date: Fri, 15 Nov 2013 18:35:01 -0800
+Subject: [PATCH] REST interface extension
+
+This patch provides REST interface extension allowing recovery of asymmetric keys.
+
+Ticket #439.
+---
+ .../src/com/netscape/certsrv/key/KeyData.java      | 16 +++++
+ .../netscape/certsrv/key/KeyRecoveryRequest.java   | 33 ++++++++++
+ .../src/com/netscape/certsrv/kra/KRAClient.java    | 22 +++++++
+ .../src/com/netscape/cms/servlet/test/DRMTest.java | 38 ++++++++++++
+ .../com/netscape/cms/servlet/key/KeyService.java   | 70 +++++++++++++++++++++-
+ .../cms/servlet/request/KeyRequestService.java     | 65 ++++++++++++++++++--
+ 6 files changed, 237 insertions(+), 7 deletions(-)
+
+diff --git a/base/common/src/com/netscape/certsrv/key/KeyData.java b/base/common/src/com/netscape/certsrv/key/KeyData.java
+index 2ee7d1b..b718614 100644
+--- a/base/common/src/com/netscape/certsrv/key/KeyData.java
++++ b/base/common/src/com/netscape/certsrv/key/KeyData.java
+@@ -39,6 +39,9 @@ public class KeyData {
+     @XmlElement
+     String nonceData;
+ 
++    @XmlElement
++    String p12Data;
++
+     public KeyData() {
+         // required for JAXB (defaults)
+     }
+@@ -73,4 +76,17 @@ public class KeyData {
+         this.nonceData = nonceData;
+     }
+ 
++    /**
++     * @return the p12Data
++     */
++    public String getP12Data() {
++        return p12Data;
++    }
++
++    /**
++     * @param p12Data the p12Data to set
++     */
++    public void setP12Data(String p12Data) {
++        this.p12Data = p12Data;
++    }
+ }
+diff --git a/base/common/src/com/netscape/certsrv/key/KeyRecoveryRequest.java b/base/common/src/com/netscape/certsrv/key/KeyRecoveryRequest.java
+index d14f612..aa69d83 100644
+--- a/base/common/src/com/netscape/certsrv/key/KeyRecoveryRequest.java
++++ b/base/common/src/com/netscape/certsrv/key/KeyRecoveryRequest.java
+@@ -64,6 +64,12 @@ public class KeyRecoveryRequest {
+     @XmlElement
+     protected String nonceData;
+ 
++    @XmlElement
++    protected String certificate;
++
++    @XmlElement
++    protected String passphrase;
++
+     public KeyRecoveryRequest() {
+         // required for JAXB (defaults)
+     }
+@@ -152,4 +158,31 @@ public class KeyRecoveryRequest {
+         this.nonceData = nonceData;
+     }
+ 
++    /**
++     * @return the certificate
++     */
++    public String getCertificate() {
++        return certificate;
++    }
++
++    /**
++     * @param certificate the certificate to set
++     */
++    public void setCertificate(String certificate) {
++        this.certificate = certificate;
++    }
++
++    /**
++     * @return the passphrase
++     */
++    public String getPassphrase() {
++        return passphrase;
++    }
++
++    /**
++     * @param passphrase the passphrase to set
++     */
++    public void setPassphrase(String passphrase) {
++        this.passphrase = passphrase;
++    }
+ }
+diff --git a/base/common/src/com/netscape/certsrv/kra/KRAClient.java b/base/common/src/com/netscape/certsrv/kra/KRAClient.java
+index 21f1a95..81d600c 100644
+--- a/base/common/src/com/netscape/certsrv/kra/KRAClient.java
++++ b/base/common/src/com/netscape/certsrv/kra/KRAClient.java
+@@ -144,4 +144,26 @@ public class KRAClient extends SubsystemClient {
+     public KeyRequestInfo getRequest(RequestId id) {
+         return keyRequestClient.getRequestInfo(id);
+     }
++
++    public RequestId requestKeyRecovery(String keyId, String b64Certificate) {
++        // create key recovery request
++        KeyRecoveryRequest data = new KeyRecoveryRequest();
++        data.setKeyId(new KeyId(keyId));
++        data.setCertificate(b64Certificate);
++
++        @SuppressWarnings("unchecked")
++        ClientResponse<KeyRequestInfo> response = (ClientResponse<KeyRequestInfo>)
++                keyRequestClient.recoverKey(data);
++        return client.getEntity(response).getRequestId();
++    }
++
++    public KeyData recoverKey(RequestId requestId, String passphrase) {
++        // recover key based on approved request
++        KeyRecoveryRequest data = new KeyRecoveryRequest();
++        data.setRequestId(requestId);
++        data.setPassphrase(passphrase);
++
++        KeyData key = keyClient.retrieveKey(data);
++        return key;
++    }
+ }
+diff --git a/base/kra/functional/src/com/netscape/cms/servlet/test/DRMTest.java b/base/kra/functional/src/com/netscape/cms/servlet/test/DRMTest.java
+index 8b254a5..06c368e 100644
+--- a/base/kra/functional/src/com/netscape/cms/servlet/test/DRMTest.java
++++ b/base/kra/functional/src/com/netscape/cms/servlet/test/DRMTest.java
+@@ -491,6 +491,44 @@ public class DRMTest {
+         } catch (RequestNotFoundException e) {
+             log("Success: getting non-existent request throws an exception: "+e.getMessage()+" ("+e.getRequestId().toHexString()+")");
+         }
++
++        // Test 24: Request x509 key recovery
++        // This test requires to retrieve keyId and matching certificate
++        // from installed instances of CA and DRM
++        String keyID = "1";
++        String b64Certificate = "MIIC+TCCAeGgAwIBAgIBDDANBgkqhkiG9w0BAQsFADBOMSswKQYDVQQKDCJ1c2Vy"+
++                                "c3lzLnJlZGhhdC5jb20gU2VjdXJpdHkgRG9tYWluMR8wHQYDVQQDDBZDQSBTaWdu"+
++                                "aW5nIENlcnRpZmljYXRlMB4XDTEzMTAyNTE5MzQwM1oXDTE0MDQyMzE5MzQwM1ow"+
++                                "EzERMA8GCgmSJomT8ixkAQEMAXgwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGB"+
++                                "ALhLfGmKvxFsKXPh49q1QsluXU3WlyS1XnpDLgOAhgTNgO4sG6CpPdv6hZYIvQBb"+
++                                "ZQ5bhuML+NXK+Q+EIiNk1cUTxgL3a30sPzy6QaFWxwM8i4uXm4nCBYv7T+n4V6/O"+
++                                "xHIM2Ch/dviAb3vz+M9trErv9t+d2H8jNXT3sHuDb/kvAgMBAAGjgaAwgZ0wHwYD"+
++                                "VR0jBBgwFoAUh1cxWFRY+nMsx4odQQI1GqyFxP8wSwYIKwYBBQUHAQEEPzA9MDsG"+
++                                "CCsGAQUFBzABhi9odHRwOi8vZG9ndGFnMjAudXNlcnN5cy5yZWRoYXQuY29tOjgw"+
++                                "ODAvY2Evb2NzcDAOBgNVHQ8BAf8EBAMCBSAwHQYDVR0lBBYwFAYIKwYBBQUHAwIG"+
++                                "CCsGAQUFBwMEMA0GCSqGSIb3DQEBCwUAA4IBAQCvmbUzQOouE2LgQQcKfmgwwJMJ"+
++                                "9tMrPwDUtyFdaIFoPL4uZaujSscaN4IWK2r5vIMJ65jwYCI7sI9En2ZfO28J9dQj"+
++                                "lpqu6TaJ+xtaMk7OvXpVB7lJk73HAttMGjETlkoq/6EjxcugmJsDqVD0b2tO7Vd0"+
++                                "hroBe2uPDHM2ASewZF415lUcRh0URtmxSazTInbyxpmy1wgSJQ0C6fMCeT+hUFlA"+
++                                "0P4k1TIprapGVq7FpKcqlhK2gTBfTSnoO7gmXG/9MxJiYpb/Aph8ptXq6quHz1Mj"+
++                                "greWr3xTsy6gF2yphUEkGHh4v22XvK+FLx9Jb6zloMWA2GG9gpUpvMnl1fH4";
++
++        log("Requesting X509 key recovery.");
++        recoveryRequestId = client.requestKeyRecovery(keyID, b64Certificate);
++        log("Requesting X509 key recovery request: " + recoveryRequestId);
++
++        // Test 25: Approve x509 key recovery
++        log("Approving X509 key recovery request: " + recoveryRequestId);
++        client.approveRecovery(recoveryRequestId);
++
++        // Test 26: Recover x509 key
++        log("Recovering X509 key based on request: " + recoveryRequestId);
++        try {
++            KeyData recoveredX509Key = client.recoverKey(recoveryRequestId, "netscape");
++            log("Success: X509Key recovered: "+ recoveredX509Key.getP12Data());
++        } catch (RequestNotFoundException e) {
++            log("Error: recovering X509Key");
++        }
+     }
+ 
+     private static void log(String string) {
+diff --git a/base/server/cms/src/com/netscape/cms/servlet/key/KeyService.java b/base/server/cms/src/com/netscape/cms/servlet/key/KeyService.java
+index 27cc909..a2e48b9 100644
+--- a/base/server/cms/src/com/netscape/cms/servlet/key/KeyService.java
++++ b/base/server/cms/src/com/netscape/cms/servlet/key/KeyService.java
+@@ -53,6 +53,7 @@ import com.netscape.certsrv.key.KeyRecoveryRequest;
+ import com.netscape.certsrv.key.KeyRequestInfo;
+ import com.netscape.certsrv.key.KeyResource;
+ import com.netscape.certsrv.kra.IKeyRecoveryAuthority;
++import com.netscape.certsrv.kra.IKeyService;
+ import com.netscape.certsrv.logging.ILogger;
+ import com.netscape.certsrv.request.IRequest;
+ import com.netscape.certsrv.request.IRequestQueue;
+@@ -60,6 +61,7 @@ import com.netscape.certsrv.request.RequestId;
+ import com.netscape.certsrv.request.RequestStatus;
+ import com.netscape.cms.servlet.base.PKIService;
+ import com.netscape.cmsutil.ldap.LDAPUtil;
++import com.netscape.cmsutil.util.Utils;
+ 
+ /**
+  * @author alee
+@@ -89,11 +91,13 @@ public class KeyService extends PKIService implements KeyResource {
+     private IKeyRepository repo;
+     private IKeyRecoveryAuthority kra;
+     private IRequestQueue queue;
++    private IKeyService service;
+ 
+     public KeyService() {
+         kra = ( IKeyRecoveryAuthority ) CMS.getSubsystem( "kra" );
+         repo = kra.getKeyRepository();
+         queue = kra.getRequestQueue();
++        service = (IKeyService) kra;
+     }
+ 
+     /**
+@@ -108,11 +112,25 @@ public class KeyService extends PKIService implements KeyResource {
+             throw new BadRequestException("Cannot retrieve key. Invalid request");
+         }
+         // auth and authz
+-        KeyId keyId = validateRequest(data);
+         RequestId requestID = data.getRequestId();
++        IRequest request;
++        try {
++            request = queue.findRequest(requestID);
++        } catch (EBaseException e) {
++            e.printStackTrace();
++            auditRetrieveKey(ILogger.FAILURE, requestID, null, e.getMessage());
++            throw new PKIException(e.getMessage());
++        }
++        String type = request.getRequestType();
++        KeyId keyId = null;
+         KeyData keyData;
+         try {
+-            keyData = getKey(keyId, data);
++            if (IRequest.KEYRECOVERY_REQUEST.equals(type)) {
++                keyData = recoverKey(data);
++            } else {
++                keyId = validateRequest(data);
++                keyData = getKey(keyId, data);
++            }
+         } catch (EBaseException e) {
+             e.printStackTrace();
+             auditRetrieveKey(ILogger.FAILURE, requestID, keyId, e.getMessage());
+@@ -403,4 +421,52 @@ public class KeyService extends PKIService implements KeyResource {
+                 reason);
+         auditor.log(msg);
+     }
++
++    /**
++     * Used to retrieve a key
++     * @param data
++     * @return
++     */
++    private KeyData recoverKey(KeyRecoveryRequest data) {
++        // confirm request exists
++        RequestId reqId = data.getRequestId();
++
++        IRequest request = null;
++        try {
++            request = queue.findRequest(reqId);
++        } catch (EBaseException e) {
++        }
++        if (request == null) {
++            throw new HTTPGoneException("No request record.");
++        }
++        String type = request.getRequestType();
++        RequestStatus status = request.getRequestStatus();
++        if (!IRequest.KEYRECOVERY_REQUEST.equals(type) ||
++            !status.equals(RequestStatus.APPROVED)) {
++            auditRetrieveKey(ILogger.FAILURE, reqId, null, "Unauthorized request.");
++            throw new UnauthorizedException("Unauthorized request.");
++        }
++
++        String passphrase = data.getPassphrase();
++        byte pkcs12[] = null;
++        try {
++            pkcs12 = service.doKeyRecovery(reqId.toString(), passphrase);
++        } catch (EBaseException e) {
++        }
++        if (pkcs12 == null) {
++            throw new HTTPGoneException("Key not recovered.");
++        }
++        String pkcs12base64encoded = Utils.base64encode(pkcs12);
++
++        KeyData keyData = new KeyData();
++        keyData.setP12Data(pkcs12base64encoded);
++
++        try {
++            queue.processRequest(request);
++            queue.markAsServiced(request);
++        } catch (EBaseException e) {
++        }
++
++        return keyData;
++    }
+ }
+diff --git a/base/server/cms/src/com/netscape/cms/servlet/request/KeyRequestService.java b/base/server/cms/src/com/netscape/cms/servlet/request/KeyRequestService.java
+index 06b0317..ada11be 100644
+--- a/base/server/cms/src/com/netscape/cms/servlet/request/KeyRequestService.java
++++ b/base/server/cms/src/com/netscape/cms/servlet/request/KeyRequestService.java
+@@ -18,8 +18,10 @@
+ 
+ package com.netscape.cms.servlet.request;
+ 
++import java.math.BigInteger;
+ import java.net.URI;
+ import java.net.URISyntaxException;
++import java.security.cert.CertificateException;
+ 
+ import javax.servlet.http.HttpServletRequest;
+ import javax.ws.rs.core.Context;
+@@ -30,6 +32,8 @@ import javax.ws.rs.core.Request;
+ import javax.ws.rs.core.Response;
+ import javax.ws.rs.core.UriInfo;
+ 
++import netscape.security.x509.X509CertImpl;
++
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.base.BadRequestException;
+ import com.netscape.certsrv.base.EBaseException;
+@@ -40,12 +44,17 @@ import com.netscape.certsrv.key.KeyRecoveryRequest;
+ import com.netscape.certsrv.key.KeyRequestInfo;
+ import com.netscape.certsrv.key.KeyRequestInfos;
+ import com.netscape.certsrv.key.KeyRequestResource;
++import com.netscape.certsrv.kra.IKeyRecoveryAuthority;
++import com.netscape.certsrv.kra.IKeyService;
+ import com.netscape.certsrv.logging.ILogger;
++import com.netscape.certsrv.request.IRequest;
++import com.netscape.certsrv.request.IRequestQueue;
+ import com.netscape.certsrv.request.RequestId;
+ import com.netscape.certsrv.request.RequestNotFoundException;
+ import com.netscape.cms.servlet.base.PKIService;
+ import com.netscape.cms.servlet.key.KeyRequestDAO;
+ import com.netscape.cmsutil.ldap.LDAPUtil;
++import com.netscape.cmsutil.util.Utils;
+ 
+ /**
+  * @author alee
+@@ -79,6 +88,16 @@ public class KeyRequestService extends PKIService implements KeyRequestResource
+     public static final int DEFAULT_MAXRESULTS = 100;
+     public static final int DEFAULT_MAXTIME = 10;
+ 
++    private IKeyRecoveryAuthority kra;
++    private IRequestQueue queue;
++    private IKeyService service;
++
++    public KeyRequestService() {
++        kra = ( IKeyRecoveryAuthority ) CMS.getSubsystem( "kra" );
++        queue = kra.getRequestQueue();
++        service = (IKeyService) kra;
++    }
++
+     /**
+      * Used to retrieve key request info for a specific request
+      */
+@@ -160,14 +179,16 @@ public class KeyRequestService extends PKIService implements KeyRequestResource
+         if (data == null) {
+             throw new BadRequestException("Invalid request.");
+         }
+-        if (data.getTransWrappedSessionKey() == null
+-                && data.getSessionWrappedPassphrase() != null) {
++        if (data.getCertificate() == null &&
++            data.getTransWrappedSessionKey() == null &&
++            data.getSessionWrappedPassphrase() != null) {
+             throw new BadRequestException("No wrapped session key.");
+         }
+         KeyRequestDAO dao = new KeyRequestDAO();
+         KeyRequestInfo info;
+         try {
+-            info = dao.submitRequest(data, uriInfo);
++            info = (data.getCertificate() != null)?
++                    requestKeyRecovery(data): dao.submitRequest(data, uriInfo);
+             auditRecoveryRequestMade(info.getRequestId(), ILogger.SUCCESS, data.getKeyId());
+ 
+             return Response
+@@ -182,6 +203,33 @@ public class KeyRequestService extends PKIService implements KeyRequestResource
+         }
+     }
+ 
++    private KeyRequestInfo requestKeyRecovery(KeyRecoveryRequest data) {
++        KeyRequestInfo info = null;
++        if (data == null) {
++            throw new BadRequestException("Invalid request.");
++        }
++        String keyId = data.getKeyId().toString();
++        String b64Certificate = data.getCertificate();
++        byte[] certData = Utils.base64decode(b64Certificate);
++        String agentID = servletRequest.getUserPrincipal().getName();
++        String requestId = null;
++        try {
++            requestId = service.initAsyncKeyRecovery(new BigInteger(keyId), new X509CertImpl(certData), agentID);
++        } catch (EBaseException | CertificateException e) {
++            e.printStackTrace();
++            throw new PKIException(e.toString());
++        }
++        IRequest request = null;
++        try {
++            request = queue.findRequest(new RequestId(requestId));
++        } catch (EBaseException e) {
++        }
++        KeyRequestDAO dao = new KeyRequestDAO();
++        info = dao.createCMSRequestInfo(request, uriInfo);
++
++        return info;
++    }
++
+     @Override
+     public void approveRequest(RequestId id) {
+         if (id == null) {
+@@ -190,8 +238,15 @@ public class KeyRequestService extends PKIService implements KeyRequestResource
+         // auth and authz
+         KeyRequestDAO dao = new KeyRequestDAO();
+         try {
+-            dao.approveRequest(id);
+-            auditRecoveryRequestChange(id, ILogger.SUCCESS, "approve");
++            IRequest request = queue.findRequest(id);
++            String type = request.getRequestType();
++            if (IRequest.KEYRECOVERY_REQUEST.equals(type)) {
++                service.addAgentAsyncKeyRecovery(id.toString(), servletRequest.getUserPrincipal().getName());
++                auditRecoveryRequestChange(id, ILogger.SUCCESS, "approve");
++            } else if (IRequest.SECURITY_DATA_RECOVERY_REQUEST.equals(type)) {
++                dao.approveRequest(id);
++                auditRecoveryRequestChange(id, ILogger.SUCCESS, "approve");
++            }
+         } catch (EBaseException e) {
+             e.printStackTrace();
+             auditRecoveryRequestChange(id, ILogger.FAILURE, "approve");
+-- 
+1.8.3.1
+

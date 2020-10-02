@@ -1,0 +1,137 @@
+From 4f49b642d269137ba5bd9247cecc30a64d4d51a6 Mon Sep 17 00:00:00 2001
+From: Endi S. Dewata <edewata@redhat.com>
+Date: Tue, 20 Jan 2015 09:25:32 -0500
+Subject: [PATCH] Added support for exception chains in EBaseException.
+
+The EBaseException has been modified to provide constructors that
+can be used to chain the cause of the exception. This way the root
+cause of the exception can be traced back to help troubleshooting.
+
+https://fedorahosted.org/pki/ticket/1326
+---
+ .../com/netscape/certsrv/base/EBaseException.java  |   75 ++++++++++++++------
+ 1 files changed, 53 insertions(+), 22 deletions(-)
+
+diff --git a/base/common/src/com/netscape/certsrv/base/EBaseException.java b/base/common/src/com/netscape/certsrv/base/EBaseException.java
+index 728b412c492b99fd1010292fa324b4ab8167c4c8..422aaf50ebd0ea8686b453c217ce3af512def090 100644
+--- a/base/common/src/com/netscape/certsrv/base/EBaseException.java
++++ b/base/common/src/com/netscape/certsrv/base/EBaseException.java
+@@ -18,15 +18,12 @@
+ package com.netscape.certsrv.base;
+ 
+ 
+-import java.io.*;
+-import java.util.*;
+-import java.text.*;
+-import java.lang.reflect.*;
++import java.util.Locale;
+ 
+ 
+ /**
+- * An exception with localizable error messages.  It is the 
+- * base class for all exceptions in certificate server. 
++ * An exception with localizable error messages.  It is the
++ * base class for all exceptions in certificate server.
+  * <P>
+  *
+  * @version $Revision: 1211 $, $Date: 2010-08-18 10:15:37 -0700 (Wed, 18 Aug 2010) $
+@@ -48,7 +45,7 @@ public class EBaseException extends Exception {
+ 
+     /**
+      * Constructs an instance of this exception with the given resource key.
+-     * If resource key is not found in the resource bundle, the resource key 
++     * If resource key is not found in the resource bundle, the resource key
+      * specified is used as the error message.
+      * <pre>
+      *      new EBaseException(BaseResources.PERMISSION_DENIED);
+@@ -63,7 +60,7 @@ public class EBaseException extends Exception {
+ 
+     /**
+      * Constructs an instance of this exception with the given resource key
+-     * and a parameter as a string. 
++     * and a parameter as a string.
+      * <PRE>
+      *      new EBaseException(BaseResource.NO_CONFIG_FILE, fileName);
+      * </PRE>
+@@ -78,23 +75,24 @@ public class EBaseException extends Exception {
+     }
+ 
+     /**
+-     * Constructs an instance of the exception given the resource key and 
+-     * a exception parameter. 
+-     * <PRE>
+-     * 		try {
+-     *  		...
+-     * 		} catch (IOExeption e) {
+-     * 		 	throw new EBaseException(BaseResources.INTERNAL_ERROR_1, e);
+-     *      }
+-     * </PRE>
+-     * <P>
++     * Constructs an instance of this exception given the resource key and
++     * the cause exception.
++     *
++     * <pre>
++     *     try {
++     *         ...
++     *     } catch (IOExeption e) {
++     *         throw new EBaseException(BaseResources.INTERNAL_ERROR_1, e);
++     *     }
++     * </pre>
++     *
+      * @param msgFormat The resource key
+-     * @param param The parameter as an exception
++     * @param cause The cause exception
+      */
+-    public EBaseException(String msgFormat, Exception param) {
+-        super(msgFormat);
++    public EBaseException(String msgFormat, Exception cause) {
++        super(msgFormat, cause);
+         mParams = new Exception[1];
+-        mParams[0] = param;
++        mParams[0] = cause;
+     }
+ 
+     /**
+@@ -110,6 +108,39 @@ public class EBaseException extends Exception {
+     }
+ 
+     /**
++     * Constructs an instance of this exception given the resource key,
++     * an array of parameters, and the cause exception.
++     * <P>
++     *
++     * @param msgFormat The resource key
++     * @param params Array of params
++     * @param cause The cause exception
++     */
++    public EBaseException(String msgFormat, Object params[], Exception cause) {
++        super(msgFormat, cause);
++        mParams = params;
++    }
++
++    /**
++     * Constructs an instance of this exception given the cause exception.
++     *
++     * <pre>
++     *     try {
++     *         ...
++     *     } catch (IOExeption e) {
++     *         throw new EBaseException(e);
++     *     }
++     * </pre>
++     *
++     * @param cause The cause exception
++     */
++    public EBaseException(Exception cause) {
++        super(cause.getMessage() == null ? cause.getClass().getName() : cause.getMessage(), cause);
++        mParams = new Exception[1];
++        mParams[0] = cause;
++    }
++
++    /**
+      * Returns the list of parameters.
+      * <P>
+      *
+-- 
+1.7.1
+

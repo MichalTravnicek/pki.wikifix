@@ -1,0 +1,86 @@
+From 3ad777d8009f025f1aac1159910dd0a4d327bd13 Mon Sep 17 00:00:00 2001
+From: "Endi S. Dewata" <edewata@redhat.com>
+Date: Sat, 25 Jun 2016 00:14:11 +0200
+Subject: [PATCH] Respond 400 if lightweight CA cert issuance fails
+
+If certificate issuance fails during lightweight CA creation (e.g.
+due to a profile constraint violation such as Subject DN not
+matching pattern) the API responds with status 500.
+
+Raise BadRequestDataException if cert issuance fails in a way that
+indicates bad or invalid CSR data, and catch it to respond with
+status 400.
+
+Fixes: https://fedorahosted.org/pki/ticket/2388
+---
+ base/ca/src/com/netscape/ca/CertificateAuthority.java  | 18 +++++++++++++++---
+ .../org/dogtagpki/server/ca/rest/AuthorityService.java |  3 ++-
+ 2 files changed, 17 insertions(+), 4 deletions(-)
+
+diff --git a/base/ca/src/com/netscape/ca/CertificateAuthority.java b/base/ca/src/com/netscape/ca/CertificateAuthority.java
+index e501380c8dd6d2d6fc400ad9f43677bfae7e258e..9f6445c56369f00cd857890fe63b577b6db81350 100644
+--- a/base/ca/src/com/netscape/ca/CertificateAuthority.java
++++ b/base/ca/src/com/netscape/ca/CertificateAuthority.java
+@@ -74,6 +74,7 @@ import org.mozilla.jss.pkix.primitive.Name;
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.authentication.IAuthToken;
+ import com.netscape.certsrv.authority.ICertAuthority;
++import com.netscape.certsrv.base.BadRequestDataException;
+ import com.netscape.certsrv.base.EBaseException;
+ import com.netscape.certsrv.base.EPropertyNotFound;
+ import com.netscape.certsrv.base.IConfigStore;
+@@ -2680,8 +2681,16 @@ public class CertificateAuthority
+             if (result != null && !result.equals(IRequest.RES_SUCCESS))
+                 throw new EBaseException("createSubCA: certificate request submission resulted in error: " + result);
+             RequestStatus requestStatus = request.getRequestStatus();
+-            if (requestStatus != RequestStatus.COMPLETE)
+-                throw new EBaseException("createSubCA: certificate request did not complete; status: " + requestStatus);
++            if (requestStatus != RequestStatus.COMPLETE) {
++                // The request did not complete.  Inference: something
++                // incorrect in the request (e.g. profile constraint
++                // violated).
++                String msg = "Failed to issue CA certificate. Final status: " + requestStatus + ".";
++                String errorMsg = request.getExtDataInString(IRequest.ERROR);
++                if (errorMsg != null)
++                    msg += " Additional info: " + errorMsg;
++                throw new BadRequestDataException(msg);
++            }
+ 
+             // Add certificate to nssdb
+             cert = request.getExtDataInCert(IEnrollProfile.REQUEST_ISSUED_CERT);
+@@ -2697,7 +2706,10 @@ public class CertificateAuthority
+                 // log this error.
+                 CMS.debug("Error deleting new authority entry after failure during certificate generation: " + e2);
+             }
+-            throw new ECAException("Error creating lightweight CA certificate: " + e);
++            if (e instanceof BadRequestDataException)
++                throw (BadRequestDataException) e;  // re-throw
++            else
++                throw new ECAException("Error creating lightweight CA certificate: " + e);
+         }
+ 
+         CertificateAuthority ca = new CertificateAuthority(
+diff --git a/base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java b/base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java
+index 5ecabacd9a84a4d06e529ca0099f561155f7d791..7bca10fa1dfbfe7dbae5b5c0288c4c59c1075cf9 100644
+--- a/base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java
++++ b/base/ca/src/org/dogtagpki/server/ca/rest/AuthorityService.java
+@@ -38,6 +38,7 @@ import javax.ws.rs.core.UriInfo;
+ import com.netscape.certsrv.apps.CMS;
+ import com.netscape.certsrv.authority.AuthorityData;
+ import com.netscape.certsrv.authority.AuthorityResource;
++import com.netscape.certsrv.base.BadRequestDataException;
+ import com.netscape.certsrv.base.BadRequestException;
+ import com.netscape.certsrv.base.ConflictingOperationException;
+ import com.netscape.certsrv.base.EBaseException;
+@@ -207,7 +208,7 @@ public class AuthorityService extends PKIService implements AuthorityResource {
+             audit(ILogger.SUCCESS, OpDef.OP_ADD,
+                     subCA.getAuthorityID().toString(), auditParams);
+             return createOKResponse(readAuthorityData(subCA));
+-        } catch (IllegalArgumentException e) {
++        } catch (IllegalArgumentException | BadRequestDataException e) {
+             throw new BadRequestException(e.toString());
+         } catch (CANotFoundException e) {
+             throw new ResourceNotFoundException(e.toString());
+-- 
+2.5.5
+

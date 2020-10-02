@@ -1,0 +1,1261 @@
+diff -ur pki-common-patch1/src/com/netscape/cms/selftests/tks/TKSKnownSessionKey.java pki-common/src/com/netscape/cms/selftests/tks/TKSKnownSessionKey.java
+--- pki-common-patch1/src/com/netscape/cms/selftests/tks/TKSKnownSessionKey.java	2014-01-28 14:13:21.000000000 -0500
++++ pki-common/src/com/netscape/cms/selftests/tks/TKSKnownSessionKey.java	2014-01-28 16:34:14.000000000 -0500
+@@ -66,7 +66,9 @@
+     private byte[] mCUID          = null;
+     private byte[] mMacKey        = null;
+     private byte[] mSessionKey    = null;
+-
++    private byte   mNistSP800_108KdfOnKeyVersion = 0;       // AC: KDF SPEC CHANGE
++    private boolean mNistSP800_108KdfUseCuidAsKdd = false;  // AC: KDF SPEC CHANGE
++    private byte[] mKDD           = null;                   // AC: KDF SPEC CHANGE
+ 
+     /**
+      * Initializes this subsystem with the configuration store
+@@ -103,6 +105,46 @@
+         mMacKey = getConfigByteArray("macKey", 16);
+         mUseSoftToken = getConfigString("useSoftToken");
+ 
++        // AC: KDF SPEC CHANGE 
++        // read CUID for the KDD field
++        mKDD = getConfigByteArray("CUID", 10);
++        //
++        //
++        // read self-test configuration item for nistSP800-108KdfOnKeyVersion
++        //
++        // read setting as string
++        String nistSP800_108KdfOnKeyVersion_str = getConfigString("nistSP800-108KdfOnKeyVersion");
++        short nistSP800_108KdfOnKeyVersion_short;
++        // convert setting value (in ASCII-hex) to short
++        try{
++                nistSP800_108KdfOnKeyVersion_short = Short.parseShort(nistSP800_108KdfOnKeyVersion_str,16);
++                if ((nistSP800_108KdfOnKeyVersion_short < 0) || (nistSP800_108KdfOnKeyVersion_short > (short)0x00FF)){
++                        throw new Exception("Out of range.");
++                }
++        }catch(Throwable t){
++                mSelfTestSubsystem.log (mSelfTestSubsystem.getSelfTestLogger(),
++                    CMS.getLogMessage("SELFTESTS_MISSING_VALUES",
++                    getSelfTestName(), mPrefix + ".nistSP800-108KdfOnKeyVersion"));
++                throw new EMissingSelfTestException("nistSP800-108KdfOnKeyVersion");
++        }
++        // convert to byte (anything higher than 0x7F is represented as negative)
++        mNistSP800_108KdfOnKeyVersion = (byte)nistSP800_108KdfOnKeyVersion_short;
++        //
++        //
++        // read self-test configuration item for nistSP800-108KdfUseCuidAsKdd
++        //
++        // read setting as string
++        String nistSP800_108KdfUseCuidAsKdd_str = getConfigString("nistSP800-108KdfUseCuidAsKdd");
++        // convert setting value to boolean
++        try{
++                mNistSP800_108KdfUseCuidAsKdd = Boolean.parseBoolean(nistSP800_108KdfUseCuidAsKdd_str);
++        }catch(Throwable t){
++                mSelfTestSubsystem.log (mSelfTestSubsystem.getSelfTestLogger(),
++                    CMS.getLogMessage("SELFTESTS_MISSING_VALUES",
++                    getSelfTestName(), mPrefix + ".nistSP800-108KdfUseCuidAsKdd"));
++                throw new EMissingSelfTestException("nistSP800-108KdfUseCuidAsKdd");
++        }
++        
+         String defKeySetMacKey = null;
+         tks = (ISubsystem) CMS.getSubsystem(mTksSubId);
+         if (tks != null) {
+@@ -134,7 +176,12 @@
+             if (mSessionKey == null) {
+                 mSessionKey = SessionKey.ComputeSessionKey (mToken, mKeyName,
+                                                             mCardChallenge, mHostChallenge,
+-                                                            mKeyInfo, mCUID, mMacKey, mUseSoftToken, null, null);
++                                                            mKeyInfo, 
++                                                            mNistSP800_108KdfOnKeyVersion,   // AC: KDF SPEC CHANGE - pass in configuration self-test value
++                                                            mNistSP800_108KdfUseCuidAsKdd,   // AC: KDF SPEC CHANGE - pass in configuration self-test value
++                                                            mCUID,
++                                                            mKDD,                            // AC: KDF SPEC CHANGE - pass in KDD
++                                                            mMacKey, mUseSoftToken, null, null);
+                 if (mSessionKey == null || mSessionKey.length != 16) {
+                     mSelfTestSubsystem.log (mSelfTestSubsystem.getSelfTestLogger(),
+                                             CMS.getLogMessage("SELFTESTS_MISSING_VALUES",
+@@ -303,7 +350,12 @@
+ 
+         byte[] sessionKey = SessionKey.ComputeSessionKey (mToken, mKeyName,
+                                                           mCardChallenge, mHostChallenge,
+-                                                          mKeyInfo, mCUID, mMacKey, mUseSoftToken, keySet, null);
++                                                          mKeyInfo, 
++                                                          mNistSP800_108KdfOnKeyVersion,   // AC: KDF SPEC CHANGE - pass in configuration self-test value
++                                                          mNistSP800_108KdfUseCuidAsKdd,   // AC: KDF SPEC CHANGE - pass in configuration self-test value
++                                                          mCUID,
++                                                          mKDD,                            // AC: KDF SPEC CHANGE - pass in KDD
++                                                          mMacKey, mUseSoftToken, keySet, null);
+ 
+         // Now we just see if we can successfully generate a session key.
+         // For FIPS compliance, the routine now returns a wrapped key, which can't be extracted and compared.
+diff -ur pki-common-patch1/src/com/netscape/cms/servlet/tks/TokenServlet.java pki-common/src/com/netscape/cms/servlet/tks/TokenServlet.java
+--- pki-common-patch1/src/com/netscape/cms/servlet/tks/TokenServlet.java	2014-01-28 14:14:06.000000000 -0500
++++ pki-common/src/com/netscape/cms/servlet/tks/TokenServlet.java	2014-01-28 16:44:51.000000000 -0500
+@@ -75,40 +75,40 @@
+ 
+     private final static String
+         LOGGING_SIGNED_AUDIT_COMPUTE_SESSION_KEY_REQUEST =
+-        "LOGGING_SIGNED_AUDIT_COMPUTE_SESSION_KEY_REQUEST_3";
++        "LOGGING_SIGNED_AUDIT_COMPUTE_SESSION_KEY_REQUEST_4"; // AC: KDF SPEC CHANGE:  Need to log both KDD and CUID.
+ 
+    private final static String
+         LOGGING_SIGNED_AUDIT_COMPUTE_SESSION_KEY_REQUEST_PROCESSED_SUCCESS =
+-        "LOGGING_SIGNED_AUDIT_COMPUTE_SESSION_KEY_REQUEST_PROCESSED_SUCCESS_8";
++        "LOGGING_SIGNED_AUDIT_COMPUTE_SESSION_KEY_REQUEST_PROCESSED_SUCCESS_13"; // AC: KDF SPEC CHANGE:  Need to log both KDD and CUID.  Also added TKSKeyset, KeyInfo_KeyVersion, NistSP800_108KdfOnKeyVersion, NistSP800_108KdfUseCuidAsKdd.
+ 
+    private final static String
+         LOGGING_SIGNED_AUDIT_COMPUTE_SESSION_KEY_REQUEST_PROCESSED_FAILURE =
+-        "LOGGING_SIGNED_AUDIT_COMPUTE_SESSION_KEY_REQUEST_PROCESSED_FAILURE_9";
++        "LOGGING_SIGNED_AUDIT_COMPUTE_SESSION_KEY_REQUEST_PROCESSED_FAILURE_14"; // AC: KDF SPEC CHANGE:  Need to log both KDD and CUID.  Also added TKSKeyset, KeyInfo_KeyVersion, NistSP800_108KdfOnKeyVersion, NistSP800_108KdfUseCuidAsKdd.
+ 
+    private final static String
+         LOGGING_SIGNED_AUDIT_DIVERSIFY_KEY_REQUEST =
+-        "LOGGING_SIGNED_AUDIT_DIVERSIFY_KEY_REQUEST_5";
++        "LOGGING_SIGNED_AUDIT_DIVERSIFY_KEY_REQUEST_6"; // AC: KDF SPEC CHANGE:  Need to log both KDD and CUID.
+ 
+    private final static String
+         LOGGING_SIGNED_AUDIT_DIVERSIFY_KEY_REQUEST_PROCESSED_SUCCESS =
+-        "LOGGING_SIGNED_AUDIT_DIVERSIFY_KEY_REQUEST_PROCESSED_SUCCESS_6";
++        "LOGGING_SIGNED_AUDIT_DIVERSIFY_KEY_REQUEST_PROCESSED_SUCCESS_12"; // AC: KDF SPEC CHANGE:  Need to log both KDD and CUID.  Also added TKSKeyset, OldKeyInfo_KeyVersion, NewKeyInfo_KeyVersion, NistSP800_108KdfOnKeyVersion, NistSP800_108KdfUseCuidAsKdd.
+ 
+    private final static String
+         LOGGING_SIGNED_AUDIT_DIVERSIFY_KEY_REQUEST_PROCESSED_FAILURE =
+-        "LOGGING_SIGNED_AUDIT_DIVERSIFY_KEY_REQUEST_PROCESSED_FAILURE_7";
++        "LOGGING_SIGNED_AUDIT_DIVERSIFY_KEY_REQUEST_PROCESSED_FAILURE_13"; // AC: KDF SPEC CHANGE:  Need to log both KDD and CUID.  Also added TKSKeyset, OldKeyInfo_KeyVersion, NewKeyInfo_KeyVersion, NistSP800_108KdfOnKeyVersion, NistSP800_108KdfUseCuidAsKdd.
+ 
+ 
+    private final static String
+         LOGGING_SIGNED_AUDIT_ENCRYPT_DATA_REQUEST =
+-        "LOGGING_SIGNED_AUDIT_ENCRYPT_DATA_REQUEST_4";
++        "LOGGING_SIGNED_AUDIT_ENCRYPT_DATA_REQUEST_5"; // AC: KDF SPEC CHANGE:  Need to log both KDD and CUID.
+ 
+    private final static String
+         LOGGING_SIGNED_AUDIT_ENCRYPT_DATA_REQUEST_PROCESSED_SUCCESS =
+-        "LOGGING_SIGNED_AUDIT_ENCRYPT_DATA_REQUEST_PROCESSED_SUCCESS_7";
++        "LOGGING_SIGNED_AUDIT_ENCRYPT_DATA_REQUEST_PROCESSED_SUCCESS_12"; // AC: KDF SPEC CHANGE:  Need to log both KDD and CUID.  Also added TKSKeyset, KeyInfo_KeyVersion, NistSP800_108KdfOnKeyVersion, NistSP800_108KdfUseCuidAsKdd.
+ 
+    private final static String
+         LOGGING_SIGNED_AUDIT_ENCRYPT_DATA_REQUEST_PROCESSED_FAILURE =
+-        "LOGGING_SIGNED_AUDIT_ENCRYPT_DATA_REQUEST_PROCESSED_FAILURE_8";
++        "LOGGING_SIGNED_AUDIT_ENCRYPT_DATA_REQUEST_PROCESSED_FAILURE_13"; // AC: KDF SPEC CHANGE:  Need to log both KDD and CUID.  Also added TKSKeyset, KeyInfo_KeyVersion, NistSP800_108KdfOnKeyVersion, NistSP800_108KdfUseCuidAsKdd.
+ 
+    private final static String
+         LOGGING_SIGNED_AUDIT_COMPUTE_RANDOM_DATA_REQUEST = 
+@@ -241,10 +241,106 @@
+ 
+     }
+ 
++    // AC: KDF SPEC CHANGE - read new setting value from config file 
++    // (This value allows configuration of which master keys use the NIST SP800-108 KDF and which use the original KDF for backwards compatibility)
++    // CAREFUL:  Result returned may be negative due to java's lack of unsigned types.
++    //           Negative values need to be treated as higher key numbers than positive key numbers.
++    private static byte read_setting_nistSP800_108KdfOnKeyVersion(String keySet) throws Exception{
++        String nistSP800_108KdfOnKeyVersion_map = "tks." + keySet + ".nistSP800-108KdfOnKeyVersion";
++        String nistSP800_108KdfOnKeyVersion_value = CMS.getConfigStore().getString(nistSP800_108KdfOnKeyVersion_map, null);
++        short nistSP800_108KdfOnKeyVersion_short = 0;
++        // if value does not exist in file
++        if (nistSP800_108KdfOnKeyVersion_value == null){
++            // throw
++            //  (we want admins to pay attention to this configuration item rather than guessing for them)
++            throw new Exception("Required configuration value \"" + nistSP800_108KdfOnKeyVersion_map + "\" missing from configuration file.");
++        }
++        // convert setting value (in ASCII-hex) to short
++        try{
++            nistSP800_108KdfOnKeyVersion_short = Short.parseShort(nistSP800_108KdfOnKeyVersion_value,16);
++            if ((nistSP800_108KdfOnKeyVersion_short < 0) || (nistSP800_108KdfOnKeyVersion_short > (short)0x00FF)){
++                throw new Exception("Out of range.");
++            }
++        }catch(Throwable t){
++            throw new Exception("Configuration value \"" + nistSP800_108KdfOnKeyVersion_map + "\" is in incorrect format. " + 
++                                "Correct format is \"" + nistSP800_108KdfOnKeyVersion_map + "=xx\" where xx is key version specified in ASCII-HEX format.", t);
++        }
++        // convert to byte (anything higher than 0x7F is represented as a negative)
++        byte nistSP800_108KdfOnKeyVersion_byte = (byte)nistSP800_108KdfOnKeyVersion_short;
++        return nistSP800_108KdfOnKeyVersion_byte;
++    }
++    
++    // AC: KDF SPEC CHANGE - read new setting value from config file 
++    // (This value allows configuration of the NIST SP800-108 KDF:
++    //   If "true" we use the CUID parameter within the NIST SP800-108 KDF.
++    //   If "false" we use the KDD parameter within the NIST SP800-108 KDF.
++    private static boolean read_setting_nistSP800_108KdfUseCuidAsKdd(String keySet) throws Exception{
++        String setting_map = "tks." + keySet + ".nistSP800-108KdfUseCuidAsKdd";
++        String setting_str = CMS.getConfigStore().getString(setting_map, null);
++        boolean setting_boolean = false;
++        // if value does not exist in file
++        if (setting_str == null){
++            // throw
++            //  (we want admins to pay attention to this configuration item rather than guessing for them)
++            throw new Exception("Required configuration value \"" + setting_map + "\" missing from configuration file.");
++        }
++        // convert setting value to boolean
++        try{
++            setting_boolean = Boolean.parseBoolean(setting_str);
++        }catch(Throwable t){
++            throw new Exception("Configuration value \"" + setting_map + "\" is in incorrect format.  Should be either \"true\" or \"false\".", t);
++        }
++        return setting_boolean;
++    }
++    
++    // AC: KDF SPEC CHANGE - Audit logging helper functions.
++    // Converts a byte array to an ASCII-hex string.
++    //   We implemented this ourselves rather than using this.pp.toHexArray() because 
++    //   the team preferred CUID and KDD strings to be without ":" separators every byte. 
++    final char[] bytesToHex_hexArray = "0123456789ABCDEF".toCharArray();
++    private String bytesToHex(byte[] bytes){
++        char[] hexChars = new char[bytes.length * 2];
++        for (int i = 0; i < bytes.length; i++){
++            int thisChar = bytes[i] & 0x000000FF;
++            hexChars[i * 2] = bytesToHex_hexArray[thisChar >>> 4];    // div 16
++            hexChars[i*2 + 1] = bytesToHex_hexArray[thisChar & 0x0F];
++        }
++        return new String(hexChars);
++    }
++    
++    // AC: KDF SPEC CHANGE - Audit logging helper functions.
++    // Safely converts a keyInfo byte array to a Key version hex string in the format: 0xa
++    // Since key version is always the first byte, this function returns the unsigned hex string representation of parameter[0]. 
++    //   Returns "null" if parameter is null.
++    //   Returns "invalid" if parameter.length < 1
++    private String log_string_from_keyInfo(byte[] xkeyInfo){
++        return (xkeyInfo == null) ? "null" : (xkeyInfo.length < 1 ? "invalid" : "0x" + Integer.toHexString((int)(xkeyInfo[0]) & 0x000000FF) );
++    }
++    
++    // AC: KDF SPEC CHANGE - Audit logging helper functions.
++    // Safely converts a byte array containing specialDecoded information to an ASCII-hex string.
++    // Parameters:
++    //   specialDecoded - byte array containing data.  May be null.
++    // Returns:
++    //   if specialDecoded is blank, returns "null"
++    //   if specialDecoded != null, returns <ASCII-HEX string representation of specialDecoded>
++    private String log_string_from_specialDecoded_byte_array(byte[] specialDecoded){
++        if (specialDecoded == null){
++            return "null";
++        }else{
++            return bytesToHex(specialDecoded);
++        }
++    }
++    
+     private void processComputeSessionKey(HttpServletRequest req,
+       HttpServletResponse resp) throws EBaseException
+     {
+-        byte[] card_challenge ,host_challenge,keyInfo, xCUID, CUID, session_key;
++        byte[] card_challenge ,host_challenge,keyInfo, xCUID, session_key, xKDD;  // AC: KDF SPEC CHANGE: removed duplicative 'CUID' variable and added xKDD
++        
++        // AC: KDF SPEC CHANGE - new config file values (needed for symkey)
++        byte nistSP800_108KdfOnKeyVersion = (byte)0xff;
++        boolean nistSP800_108KdfUseCuidAsKdd = false;
++        
+         byte[] card_crypto, host_cryptogram, input_card_crypto;
+         byte[] xcard_challenge, xhost_challenge;
+         byte[] enc_session_key, xkeyInfo;
+@@ -253,7 +349,11 @@
+         String badParams = "";
+         String transportKeyName = "";
+    
+-        String rCUID = req.getParameter("CUID"); 
++        String rCUID = req.getParameter("CUID");
++        
++        // AC: KDF SPEC CHANGE - read new KDD parameter from TPS
++        String rKDD = req.getParameter("KDD");
++        
+         String keySet = req.getParameter("keySet");
+         if (keySet == null || keySet.equals("")) {
+           keySet = "defKeySet";
+@@ -269,6 +369,10 @@
+         IConfigStore sconfig = CMS.getConfigStore();
+         boolean isCryptoValidate = true;
+         boolean missingParam = false;
++        
++        // AC: KDF SPEC CHANGE - flag for if there is an error reading our new setting
++        Exception missingSetting_exception = null;
++        
+         session_key = null;
+         card_crypto = null;
+         host_cryptogram = null;
+@@ -283,9 +387,11 @@
+                 (String) sContext.get(SessionContext.USER_ID);
+         }
+ 
++        // AC: KDF SPEC CHANGE:  Need to log both KDD and CUID
+         auditMessage = CMS.getLogMessage(
+                          LOGGING_SIGNED_AUDIT_COMPUTE_SESSION_KEY_REQUEST,
+                         rCUID,
++                        rKDD,            // AC: KDF SPEC CHANGE - Log both CUID and KDD.
+                         ILogger.SUCCESS,
+                         agentId);
+ 
+@@ -329,6 +435,13 @@
+             badParams += " CUID,";
+             missingParam = true;
+         }
++        
++        // AC: KDF SPEC CHANGE - read new KDD parameter from TPS
++        if ((rKDD == null) || (rKDD.length() == 0)) {
++            CMS.debug("TokenServlet: ComputeSessionKey(): missing request parameter: KDD");
++            badParams += " KDD,";
++            missingParam = true;
++        }
+ 
+         if ((rcard_challenge == null) || (rcard_challenge.equals(""))) {
+             badParams += " card_challenge,";
+@@ -353,6 +466,11 @@
+         String keyNickName = null;
+         boolean sameCardCrypto = true;
+ 
++        // AC: KDF SPEC CHANGE 
++        xCUID = null;       // avoid errors about non-initialization
++        xKDD = null;        // avoid errors about non-initialization
++        xkeyInfo = null;    // avoid errors about non-initialization
++        
+         if (!missingParam) {
+ 
+             xCUID = com.netscape.cmsutil.util.Utils.SpecialDecode(rCUID);
+@@ -361,6 +479,15 @@
+                         CMS.debug("TokenServlet: Invalid CUID length");
+                         missingParam = true;
+             }
++            
++            // AC: KDF SPEC CHANGE - read new KDD parameter from TPS
++            xKDD = com.netscape.cmsutil.util.Utils.SpecialDecode(rKDD);
++            if (xKDD == null || xKDD.length != 10) {
++                        badParams += " KDD length,";
++                        CMS.debug("TokenServlet: Invalid KDD length");
++                        missingParam = true;
++            }
++            
+             xkeyInfo = com.netscape.cmsutil.util.Utils.SpecialDecode(rKeyInfo);
+             if (xkeyInfo == null || xkeyInfo.length != 2) {
+                         badParams += " KeyInfo length,";
+@@ -384,7 +511,9 @@
+  
+         }
+ 
+-        CUID = null;
++        // AC: KDF SPEC CHANGE - Remove duplicative variable.
++        // CUID = null;  
++        
+         if (!missingParam) {
+             card_challenge = 
+                 com.netscape.cmsutil.util.Utils.SpecialDecode(rcard_challenge);
+@@ -392,7 +521,32 @@
+             host_challenge = com.netscape.cmsutil.util.Utils.SpecialDecode(rhost_challenge);
+             keyInfo = com.netscape.cmsutil.util.Utils.SpecialDecode(rKeyInfo);
+ 
+-            CUID =com.netscape.cmsutil.util.Utils.SpecialDecode(rCUID);
++            // CUID =com.netscape.cmsutil.util.Utils.SpecialDecode(rCUID);  // AC: KDF SPEC CHANGE: Removed duplicative variable/processing.
++
++            // AC: KDF SPEC CHANGE - read new config file values (needed for symkey)
++            try{
++                nistSP800_108KdfOnKeyVersion = TokenServlet.read_setting_nistSP800_108KdfOnKeyVersion(keySet);
++                nistSP800_108KdfUseCuidAsKdd = TokenServlet.read_setting_nistSP800_108KdfUseCuidAsKdd(keySet);
++                
++                // log settings read in to debug log along with xkeyInfo
++                CMS.debug("TokenServlet: ComputeSessionKey():  xkeyInfo[0] = 0x"
++                         + Integer.toHexString((int)(xkeyInfo[0]) & 0x0000000FF)
++                         + ",  xkeyInfo[1] = 0x"
++                         + Integer.toHexString((int)(xkeyInfo[1]) & 0x0000000FF)
++                         );
++                CMS.debug("TokenServlet: ComputeSessionKey():  Nist SP800-108 KDF will be used for key versions >= 0x"
++                         + Integer.toHexString((int)(nistSP800_108KdfOnKeyVersion) & 0x0000000FF)
++                         );
++                if (nistSP800_108KdfUseCuidAsKdd == true){
++                    CMS.debug("TokenServlet: ComputeSessionKey():  Nist SP800-108 KDF (if used) will use CUID instead of KDD.");
++                }else{
++                    CMS.debug("TokenServlet: ComputeSessionKey():  Nist SP800-108 KDF (if used) will use KDD.");
++                }
++            // conform to the set-an-error-flag mentality
++            }catch(Exception e){
++                missingSetting_exception = e;
++                CMS.debug("TokenServlet: ComputeSessionKey():  Exception reading Nist SP800-108 KDF config values: " + e.toString());
++            }
+ 
+             String keyInfoMap = "tks." + keySet + ".mk_mappings." + rKeyInfo; //#xx#xx
+             String mappingValue = CMS.getConfigStore().getString(keyInfoMap, null);
+@@ -408,7 +562,9 @@
+                     keyNickName = st.nextToken();
+             }
+ 
+-            if (selectedToken != null && keyNickName != null) {
++            if (selectedToken != null && keyNickName != null
++                    // AC: KDF SPEC CHANGE - check for error flag
++                    && missingSetting_exception == null) {
+ 
+                 try {
+ 
+@@ -416,7 +572,12 @@
+                     CMS.debug("TokenServlet about to try ComputeSessionKey selectedToken=" + selectedToken + " keyNickName=" + keyNickName);
+                         session_key = SessionKey.ComputeSessionKey(
+ 			     selectedToken,keyNickName,card_challenge,
+-			     host_challenge,keyInfo,CUID, macKeyArray, useSoftToken_s, keySet, transportKeyName );
++                             host_challenge,keyInfo,
++                             nistSP800_108KdfOnKeyVersion,    // AC: KDF SPEC CHANGE - pass in configuration file value
++                             nistSP800_108KdfUseCuidAsKdd,    // AC: KDF SPEC CHANGE - pass in configuration file value
++                             xCUID,                           // AC: KDF SPEC CHANGE - removed duplicative 'CUID' variable and replaced with 'xCUID'
++                             xKDD,                            // AC: KDF SPEC CHANGE - pass in KDD so symkey can make decision about which value (KDD,CUID) to use
++                             macKeyArray, useSoftToken_s, keySet, transportKeyName );
+ 
+                     if(session_key == null)
+                     {
+@@ -428,7 +589,12 @@
+                     byte encKeyArray[] = com.netscape.cmsutil.util.Utils.SpecialDecode(sconfig.getString("tks." + keySet + ".auth_key"));
+                     enc_session_key = SessionKey.ComputeEncSessionKey(
+                       selectedToken,keyNickName,card_challenge,
+-		      host_challenge,keyInfo,CUID, encKeyArray, useSoftToken_s, keySet);
++                      host_challenge,keyInfo,
++                      nistSP800_108KdfOnKeyVersion,    // AC: KDF SPEC CHANGE - pass in configuration file value
++                      nistSP800_108KdfUseCuidAsKdd,    // AC: KDF SPEC CHANGE - pass in configuration file value
++                      xCUID,                           // AC: KDF SPEC CHANGE - removed duplicative 'CUID' variable and replaced with 'xCUID'
++                      xKDD,                            // AC: KDF SPEC CHANGE - pass in KDD so symkey can make decision about which value (KDD,CUID) to use
++                      encKeyArray, useSoftToken_s, keySet);
+ 
+                     if(enc_session_key == null)
+                     {
+@@ -453,7 +619,12 @@
+ 
+                         kek_key = SessionKey.ComputeKekKey(
+ 			     selectedToken,keyNickName,card_challenge,
+-			     host_challenge,keyInfo,CUID, kekKeyArray, useSoftToken_s,keySet);
++                             host_challenge,keyInfo,
++                             nistSP800_108KdfOnKeyVersion,    // AC: KDF SPEC CHANGE - pass in configuration file value
++                             nistSP800_108KdfUseCuidAsKdd,    // AC: KDF SPEC CHANGE - pass in configuration file value
++                             xCUID,                           // AC: KDF SPEC CHANGE - removed duplicative 'CUID' variable and replaced with 'xCUID'
++                             xKDD,                            // AC: KDF SPEC CHANGE - pass in KDD so symkey can make decision about which value (KDD,CUID) to use
++                             kekKeyArray, useSoftToken_s,keySet);
+ 
+ 
+                         CMS.debug("TokenServlet: called ComputeKekKey");
+@@ -492,9 +663,17 @@
+ 			    desKey = SessionKey.GenerateSymkey(selectedToken);
+                         }
+ 			if (desKey != null)
+-			    CMS.debug("TokenServlet: key encryption key generated for "+rCUID);
++                            // AC: KDF SPEC CHANGE - Output using CUID and KDD
++                            CMS.debug("TokenServlet: key encryption key generated for CUID=" + 
++                                trim(pp.toHexString(xCUID)) +
++                                ", KDD=" + 
++                                trim(pp.toHexString(xKDD)));
+ 			else {
+-			    CMS.debug("TokenServlet: key encryption key generation failed for "+rCUID);
++                            // AC: KDF SPEC CHANGE - Output using CUID and KDD
++                            CMS.debug("TokenServlet: key encryption key generation failed for CUID=" + 
++                                trim(pp.toHexString(xCUID)) +
++                                ", KDD=" + 
++                                trim(pp.toHexString(xKDD)));
+ 			    throw new Exception ("can't generate key encryption key");
+ 			}
+ 
+@@ -565,7 +744,12 @@
+                     byte authKeyArray[] = com.netscape.cmsutil.util.Utils.SpecialDecode(sconfig.getString("tks." + keySet + ".auth_key"));
+                     host_cryptogram = SessionKey.ComputeCryptogram(
+                       selectedToken,keyNickName,card_challenge,
+-		      host_challenge,keyInfo,CUID,0, authKeyArray, useSoftToken_s, keySet);
++                      host_challenge,keyInfo,
++                      nistSP800_108KdfOnKeyVersion,    // AC: KDF SPEC CHANGE - pass in configuration file value
++                      nistSP800_108KdfUseCuidAsKdd,    // AC: KDF SPEC CHANGE - pass in configuration file value
++                      xCUID,                           // AC: KDF SPEC CHANGE - removed duplicative 'CUID' variable and replaced with 'xCUID'
++                      xKDD,                            // AC: KDF SPEC CHANGE - pass in KDD so symkey can make decision about which value (KDD,CUID) to use
++                      0, authKeyArray, useSoftToken_s, keySet);
+ 
+                     if(host_cryptogram == null)
+                     {
+@@ -575,7 +759,12 @@
+                     }
+                     card_crypto = SessionKey.ComputeCryptogram(
+                       selectedToken,keyNickName,card_challenge,
+-		      host_challenge,keyInfo,CUID,1, authKeyArray, useSoftToken_s, keySet);
++                      host_challenge,keyInfo,
++                      nistSP800_108KdfOnKeyVersion,    // AC: KDF SPEC CHANGE - pass in configuration file value
++                      nistSP800_108KdfUseCuidAsKdd,    // AC: KDF SPEC CHANGE - pass in configuration file value
++                      xCUID,                           // AC: KDF SPEC CHANGE - removed duplicative 'CUID' variable and replaced with 'xCUID'
++                      xKDD,                            // AC: KDF SPEC CHANGE - pass in KDD so symkey can make decision about which value (KDD,CUID) to use
++                      1, authKeyArray, useSoftToken_s, keySet);
+ 
+                     if(card_crypto == null)
+                     {
+@@ -604,10 +793,13 @@
+                         }
+                     }
+ 
++                    // AC: KDF SPEC CHANGE - print both KDD and CUID
+                     CMS.getLogger().log(ILogger.EV_AUDIT,
+                             ILogger.S_TKS,
+                             ILogger.LL_INFO,"processComputeSessionKey for CUID=" + 
+-                            trim(pp.toHexString(CUID)));
++                            trim(pp.toHexString(xCUID)) +
++                            ", KDD=" + 
++                            trim(pp.toHexString(xKDD))); 
+                 }    catch (Exception e) {
+                     CMS.debug(e);
+                     CMS.debug("TokenServlet Computing Session Key: " + e.toString());
+@@ -677,6 +869,12 @@
+             }
+         }
+ 
++        // AC: KDF SPEC CHANGE - check for settings file issue (flag)
++        if (missingSetting_exception != null){
++            // AC: Intentionally override previous errors if config file settings were missing.
++            status = "6";
++        }
++        
+         if (missingParam) {
+             // AC: Intentionally override previous errors if parameters were missing.
+             status = "3";
+@@ -702,6 +900,11 @@
+                errorMsg = "Problem obtaining token information.";
+            }
+ 
++           // AC: KDF SPEC CHANGE - handle missing configuration item
++           if (status.equals("6")) {
++               errorMsg = "Problem reading required configuration value.";
++           }
++           
+            if(status.equals("3")) {
+                if(badParams.endsWith(","))  {
+                   badParams = badParams.substring(0,badParams.length() -1);         
+@@ -755,31 +958,46 @@
+         }
+        
+         if(status.equals("0")) {
+-
+-           auditMessage = CMS.getLogMessage(
+-                         LOGGING_SIGNED_AUDIT_COMPUTE_SESSION_KEY_REQUEST_PROCESSED_SUCCESS,
+-                        rCUID,
+-                        ILogger.SUCCESS,
+-                        status,
+-                        agentId,
+-                        isCryptoValidate? "true":"false",
+-                        serversideKeygen? "true":"false",
+-                        selectedToken,
+-                        keyNickName);
++            // AC: KDF SPEC CHANGE - Log both CUID and KDD.  
++            //                       Also added TKSKeyset, KeyInfo_KeyVersion, NistSP800_108KdfOnKeyVersion, NistSP800_108KdfUseCuidAsKdd
++            //                       Finally, log CUID and KDD in ASCII-HEX format, as long as special-decoded version is available.
++            String[] logParams = {  log_string_from_specialDecoded_byte_array(xCUID),                                   // CUID_decoded
++                                    log_string_from_specialDecoded_byte_array(xKDD),                                    // KDD_decoded
++                                    ILogger.SUCCESS,                                                                    // Outcome
++                                    status,                                                                             // status
++                                    agentId,                                                                            // AgentID
++                                    isCryptoValidate? "true":"false",                                                   // IsCryptoValidate
++                                    serversideKeygen? "true":"false",                                                   // IsServerSideKeygen
++                                    selectedToken,                                                                      // SelectedToken
++                                    keyNickName,                                                                        // KeyNickName
++                                    keySet,                                                                             // TKSKeyset
++                                    log_string_from_keyInfo(xkeyInfo),                                                  // KeyInfo_KeyVersion
++                                    "0x" + Integer.toHexString((int)nistSP800_108KdfOnKeyVersion & 0x000000FF),         // NistSP800_108KdfOnKeyVersion
++                                    Boolean.toString(nistSP800_108KdfUseCuidAsKdd)                                      // NistSP800_108KdfUseCuidAsKdd
++                                 };
++            auditMessage = CMS.getLogMessage(LOGGING_SIGNED_AUDIT_COMPUTE_SESSION_KEY_REQUEST_PROCESSED_SUCCESS, logParams);
+ 
+         } else {
+-
+-           auditMessage = CMS.getLogMessage(
+-                         LOGGING_SIGNED_AUDIT_COMPUTE_SESSION_KEY_REQUEST_PROCESSED_FAILURE,
+-                        rCUID,
+-                        ILogger.FAILURE,
+-                        status,
+-                        agentId,
+-                        isCryptoValidate? "true":"false",
+-                        serversideKeygen? "true":"false",
+-                        selectedToken,
+-                        keyNickName,
+-                        errorMsg);
++            // AC: KDF SPEC CHANGE - Log both CUID and KDD
++            //                       Also added TKSKeyset, KeyInfo_KeyVersion, NistSP800_108KdfOnKeyVersion, NistSP800_108KdfUseCuidAsKdd
++            //                       Finally, log CUID and KDD in ASCII-HEX format, as long as special-decoded version is available.
++            String[] logParams = {  log_string_from_specialDecoded_byte_array(xCUID),                                   // CUID_decoded
++                                    log_string_from_specialDecoded_byte_array(xKDD),                                    // KDD_decoded
++                                    ILogger.FAILURE,                                                                    // Outcome
++                                    status,                                                                             // status
++                                    agentId,                                                                            // AgentID
++                                    isCryptoValidate? "true":"false",                                                   // IsCryptoValidate
++                                    serversideKeygen? "true":"false",                                                   // IsServerSideKeygen
++                                    selectedToken,                                                                      // SelectedToken
++                                    keyNickName,                                                                        // KeyNickName
++                                    keySet,                                                                             // TKSKeyset
++                                    log_string_from_keyInfo(xkeyInfo),                                                  // KeyInfo_KeyVersion
++                                    "0x" + Integer.toHexString((int)nistSP800_108KdfOnKeyVersion & 0x000000FF),         // NistSP800_108KdfOnKeyVersion
++                                    Boolean.toString(nistSP800_108KdfUseCuidAsKdd),                                     // NistSP800_108KdfUseCuidAsKdd
++                                    errorMsg                                                                            // Error
++                                 };
++            auditMessage = CMS.getLogMessage(LOGGING_SIGNED_AUDIT_COMPUTE_SESSION_KEY_REQUEST_PROCESSED_FAILURE, logParams);
++                         
+        }
+  
+         audit(auditMessage);
+@@ -787,8 +1005,22 @@
+ 
+     private void processDiversifyKey(HttpServletRequest req,
+       HttpServletResponse resp) throws EBaseException {
+-        byte[] KeySetData,KeysValues,CUID,xCUID;
+-        byte[] xkeyInfo,xnewkeyInfo;
++        byte[] KeySetData,KeysValues,xCUID,xKDD;  // AC: KDF SPEC CHANGE: removed duplicative 'CUID' variable and added xKDD
++
++        // AC: BUGFIX:  Record the actual parameters to DiversifyKey in the audit log.
++        String oldKeyNickName = null;
++        String newKeyNickName = null;
++        
++        // AC: KDF SPEC CHANGE - new config file values (needed for symkey)
++        byte nistSP800_108KdfOnKeyVersion = (byte)0xff;
++        boolean nistSP800_108KdfUseCuidAsKdd = false;
++
++        // AC: BUGFIX for key versions higher than 09:  We need to initialize these variables in order for the compiler not to complain when we pass them to DiversifyKey.
++        byte[] xkeyInfo = null,xnewkeyInfo = null;
++        
++        // AC: KDF SPEC CHANGE - flag for if there is an error reading our new setting
++        Exception missingSetting_exception = null;
++        
+         boolean missingParam = false;
+         String errorMsg = "";
+         String badParams = "";
+@@ -798,6 +1030,10 @@
+         String newMasterKeyName = req.getParameter("newKeyInfo");
+         String oldMasterKeyName = req.getParameter("KeyInfo");
+         String rCUID =req.getParameter("CUID");
++        
++        // AC: KDF SPEC CHANGE - read new KDD parameter from TPS
++        String rKDD = req.getParameter("KDD");
++        
+         String auditMessage="";
+ 
+         String keySet = req.getParameter("keySet");
+@@ -814,9 +1050,11 @@
+                 (String) sContext.get(SessionContext.USER_ID);
+         }
+ 
++        // AC: KDF SPEC CHANGE:  Need to log both KDD and CUID
+         auditMessage = CMS.getLogMessage(
+                         LOGGING_SIGNED_AUDIT_DIVERSIFY_KEY_REQUEST,
+                         rCUID,
++                        rKDD,            // AC: KDF SPEC CHANGE - Log both CUID and KDD.
+                         ILogger.SUCCESS,
+                         agentId,
+                         oldMasterKeyName,
+@@ -830,6 +1068,14 @@
+             CMS.debug("TokenServlet: processDiversifyKey(): missing request parameter: CUID");
+             missingParam = true;
+         }
++        
++        // AC: KDF SPEC CHANGE - read new KDD parameter from TPS
++        if ((rKDD == null) || (rKDD.length() == 0)) {
++            CMS.debug("TokenServlet: processDiversifyKey(): missing request parameter: KDD");
++            badParams += " KDD,";
++            missingParam = true;
++        }
++        
+         if ((rnewKeyInfo == null) || (rnewKeyInfo.equals(""))) {
+             badParams += " newKeyInfo,";
+             CMS.debug("TokenServlet: processDiversifyKey(): missing request parameter: newKeyInfo");
+@@ -841,6 +1087,12 @@
+             missingParam = true;
+         }
+ 
++        // AC: KDF SPEC CHANGE 
++        xCUID = null;       // avoid errors about non-initialization
++        xKDD = null;        // avoid errors about non-initialization
++        xkeyInfo = null;    // avoid errors about non-initialization
++        xnewkeyInfo = null; // avoid errors about non-initialization
++
+         if (!missingParam) {
+                 xkeyInfo = com.netscape.cmsutil.util.Utils.SpecialDecode(oldMasterKeyName);
+                     if (xkeyInfo == null || xkeyInfo.length != 2) {
+@@ -868,10 +1120,47 @@
+                         CMS.debug("TokenServlet: Invalid CUID length");
+             missingParam = true;
+                    }
+-                }
++            
++            // AC: KDF SPEC CHANGE - read new KDD parameter from TPS
++            xKDD = com.netscape.cmsutil.util.Utils.SpecialDecode(rKDD);
++            if (xKDD == null || xKDD.length != 10) {
++                badParams += " KDD length,";
++                CMS.debug("TokenServlet: Invalid KDD length");
++                missingParam = true;
++            }
++        }
+         if (!missingParam) {
+-          CUID = com.netscape.cmsutil.util.Utils.SpecialDecode(rCUID);
++          // CUID = com.netscape.cmsutil.util.Utils.SpecialDecode(rCUID); // AC: KDF SPEC CHANGE: Removed duplicative variable/processing.
+ 
++          // AC: KDF SPEC CHANGE - read new config file values (needed for symkey)
++          try{
++              nistSP800_108KdfOnKeyVersion = TokenServlet.read_setting_nistSP800_108KdfOnKeyVersion(keySet);
++              nistSP800_108KdfUseCuidAsKdd = TokenServlet.read_setting_nistSP800_108KdfUseCuidAsKdd(keySet);
++              
++              // log settings read in to debug log along with xkeyInfo and xnewkeyInfo
++              CMS.debug("TokenServlet: processDiversifyKey():  xkeyInfo[0] (old) = 0x"
++                        + Integer.toHexString((int)(xkeyInfo[0]) & 0x0000000FF)
++                        + ",  xkeyInfo[1] (old) = 0x"
++                        + Integer.toHexString((int)(xkeyInfo[1]) & 0x0000000FF)
++                        + ",  xnewkeyInfo[0] = 0x"
++                        + Integer.toHexString((int)(xnewkeyInfo[0]) & 0x000000FF)
++                        + ",  xnewkeyInfo[1] = 0x"
++                        + Integer.toHexString((int)(xnewkeyInfo[1]) & 0x000000FF)
++                       );
++              CMS.debug("TokenServlet: processDiversifyKey():  Nist SP800-108 KDF will be used for key versions >= 0x"
++                        + Integer.toHexString((int)(nistSP800_108KdfOnKeyVersion) & 0x0000000FF)
++                       );
++              if (nistSP800_108KdfUseCuidAsKdd == true){
++                  CMS.debug("TokenServlet: processDiversifyKey():  Nist SP800-108 KDF (if used) will use CUID instead of KDD.");
++              }else{
++                  CMS.debug("TokenServlet: processDiversifyKey():  Nist SP800-108 KDF (if used) will use KDD.");
++              }
++          // conform to the set-an-error-flag mentality
++          }catch(Exception e){
++              missingSetting_exception = e;
++              CMS.debug("TokenServlet: processDiversifyKey():  Exception reading Nist SP800-108 KDF config values: " + e.toString());
++          }
++          
+           if (mKeyNickName!=null)
+               oldMasterKeyName =   mKeyNickName;
+           if (mNewKeyNickName!=null)
+@@ -880,7 +1169,6 @@
+           String oldKeyInfoMap = "tks." + keySet + ".mk_mappings." + req.getParameter("KeyInfo"); //#xx#xx
+           String oldMappingValue = CMS.getConfigStore().getString(oldKeyInfoMap, null);
+           String oldSelectedToken = null;
+-          String oldKeyNickName = null;
+           if (oldMappingValue == null) {
+               oldSelectedToken = CMS.getConfigStore().getString("tks.defaultSlot", "internal");
+               oldKeyNickName = req.getParameter("KeyInfo");
+@@ -895,7 +1183,6 @@
+           String newKeyInfoMap = "tks." + keySet + ".mk_mappings." + rnewKeyInfo; //#xx#xx
+           String newMappingValue = CMS.getConfigStore().getString(newKeyInfoMap, null);
+           String newSelectedToken = null;
+-          String newKeyNickName = null;
+           if (newMappingValue == null) {
+               newSelectedToken = CMS.getConfigStore().getString("tks.defaultSlot", "internal");
+               newKeyNickName = rnewKeyInfo;
+@@ -911,9 +1198,20 @@
+                 newKeyNickName);
+ 
+           byte kekKeyArray[] = com.netscape.cmsutil.util.Utils.SpecialDecode(sconfig.getString("tks." + keySet + ".kek_key"));
++          
++          // AC: KDF SPEC CHANGE - check for error reading settings
++          if (missingSetting_exception == null){
++          
+           KeySetData = SessionKey.DiversifyKey(oldSelectedToken, 
+                      newSelectedToken, oldKeyNickName,
+-		 newKeyNickName,rnewKeyInfo,CUID, kekKeyArray, useSoftToken_s, keySet);
++                     newKeyNickName,
++                     xkeyInfo,                        // AC: KDF SPEC CHANGE - pass in old key info so symkey can make decision about which KDF version to use
++                     xnewkeyInfo,                     // AC: BUGFIX for key versions higher than 09:  We need to specialDecode keyInfo parameters before sending them into symkey!  This means the parameters must be byte[]
++                     nistSP800_108KdfOnKeyVersion,    // AC: KDF SPEC CHANGE - pass in configuration file value
++                     nistSP800_108KdfUseCuidAsKdd,    // AC: KDF SPEC CHANGE - pass in configuration file value
++                     xCUID,                           // AC: KDF SPEC CHANGE - removed duplicative 'CUID' variable and replaced with 'xCUID'
++                     xKDD,                            // AC: KDF SPEC CHANGE - pass in KDD so symkey can make decision about which value (KDD,CUID) to use
++                     kekKeyArray, useSoftToken_s, keySet);
+ 
+           if (KeySetData == null || KeySetData.length<=1) {
+                   CMS.getLogger().log(ILogger.EV_AUDIT,
+@@ -923,7 +1221,11 @@
+ 
+           CMS.getLogger().log(ILogger.EV_AUDIT,
+                   ILogger.S_TKS,
+-                  ILogger.LL_INFO,"process DiversifyKey for CUID ="+ trim(pp.toHexString(CUID))
++                  ILogger.LL_INFO,
++                  "process DiversifyKey for CUID=" + 
++                     trim(pp.toHexString(xCUID)) +  // AC: KDF SPEC CHANGE:  Log both CUID and KDD
++                  ", KDD=" +
++                     trim(pp.toHexString(xKDD))
+                   + ";from oldMasterKeyName="+oldSelectedToken + ":" + oldKeyNickName
+                   +";to newMasterKeyName="+newSelectedToken + ":" + newKeyNickName);
+ 
+@@ -932,6 +1234,9 @@
+           if (KeySetData != null) {
+               outputString  = new String(KeySetData);
+           }
++          
++          } // AC: KDF SPEC CHANGE - endif no error reading settings from settings file
++          
+         } // ! missingParam
+ 
+         //CMS.debug("TokenServlet:processDiversifyKey " +outputString);
+@@ -944,6 +1249,11 @@
+             value = "status=0&"+"keySetData=" + 
+                      com.netscape.cmsutil.util.Utils.SpecialEncode(KeySetData);
+             CMS.debug("TokenServlet:process DiversifyKey.encode " +value);
++        // AC: KDF SPEC CHANGE - check for settings file issue (flag)
++        } else if (missingSetting_exception != null){
++            status = "6";
++            errorMsg = "Problem reading required configuration value.";
++            value = "status=" + status;
+         } else if (missingParam) {
+             status = "3";
+             if(badParams.endsWith(","))  {
+@@ -970,27 +1280,48 @@
+         }
+ 
+          if(status.equals("0")) {
+-
+-           auditMessage = CMS.getLogMessage(
+-                         LOGGING_SIGNED_AUDIT_DIVERSIFY_KEY_REQUEST_PROCESSED_SUCCESS,
+-                        rCUID,
+-                        ILogger.SUCCESS,
+-                        status,
+-                        agentId,
+-                        oldMasterKeyName,
+-                        newMasterKeyName);
+-
++                // AC: KDF SPEC CHANGE - Log both CUID and KDD
++                //                       Also added TKSKeyset, OldKeyInfo_KeyVersion, NewKeyInfo_KeyVersion, NistSP800_108KdfOnKeyVersion, NistSP800_108KdfUseCuidAsKdd
++                //                       Finally, log CUID and KDD in ASCII-HEX format, as long as special-decoded version is available.
++                String[] logParams = {  log_string_from_specialDecoded_byte_array(xCUID),                               // CUID_decoded
++                                        log_string_from_specialDecoded_byte_array(xKDD),                                // KDD_decoded
++                                        ILogger.SUCCESS,                                                                // Outcome
++                                        status,                                                                         // status
++                                        agentId,                                                                        // AgentID
++                                        
++                                        // AC: BUGFIX:  Record the actual parameters to DiversifyKey in the audit log.
++                                        oldKeyNickName,                                                                 // oldMasterKeyName
++                                        newKeyNickName,                                                                 // newMasterKeyName
++                                        
++                                        keySet,                                                                         // TKSKeyset
++                                        log_string_from_keyInfo(xkeyInfo),                                              // OldKeyInfo_KeyVersion
++                                        log_string_from_keyInfo(xnewkeyInfo),                                           // NewKeyInfo_KeyVersion
++                                        "0x" + Integer.toHexString((int)nistSP800_108KdfOnKeyVersion & 0x000000FF),     // NistSP800_108KdfOnKeyVersion
++                                        Boolean.toString(nistSP800_108KdfUseCuidAsKdd)                                  // NistSP800_108KdfUseCuidAsKdd
++                                     };
++                auditMessage = CMS.getLogMessage(LOGGING_SIGNED_AUDIT_DIVERSIFY_KEY_REQUEST_PROCESSED_SUCCESS, logParams);
+         } else {
+-
+-           auditMessage = CMS.getLogMessage(
+-                         LOGGING_SIGNED_AUDIT_DIVERSIFY_KEY_REQUEST_PROCESSED_FAILURE,
+-                        rCUID,
+-                        ILogger.FAILURE,
+-                        status,
+-                        agentId,
+-                        oldMasterKeyName,
+-                        newMasterKeyName,
+-                        errorMsg);
++                // AC: KDF SPEC CHANGE - Log both CUID and KDD
++                //                       Also added TKSKeyset, OldKeyInfo_KeyVersion, NewKeyInfo_KeyVersion, NistSP800_108KdfOnKeyVersion, NistSP800_108KdfUseCuidAsKdd
++                //                       Finally, log CUID and KDD in ASCII-HEX format, as long as special-decoded version is available.
++                String[] logParams = {  log_string_from_specialDecoded_byte_array(xCUID),                               // CUID_decoded
++                                        log_string_from_specialDecoded_byte_array(xKDD),                                // KDD_decoded
++                                        ILogger.FAILURE,                                                                // Outcome
++                                        status,                                                                         // status
++                                        agentId,                                                                        // AgentID
++                                        
++                                        // AC: BUGFIX:  Record the actual parameters to DiversifyKey in the audit log.
++                                        oldKeyNickName,                                                                 // oldMasterKeyName
++                                        newKeyNickName,                                                                 // newMasterKeyName
++                                        
++                                        keySet,                                                                         // TKSKeyset
++                                        log_string_from_keyInfo(xkeyInfo),                                              // OldKeyInfo_KeyVersion
++                                        log_string_from_keyInfo(xnewkeyInfo),                                           // NewKeyInfo_KeyVersion
++                                        "0x" + Integer.toHexString((int)nistSP800_108KdfOnKeyVersion & 0x000000FF),     // NistSP800_108KdfOnKeyVersion
++                                        Boolean.toString(nistSP800_108KdfUseCuidAsKdd),                                 // NistSP800_108KdfUseCuidAsKdd
++                                        errorMsg                                                                        // Error
++                                     };
++                auditMessage = CMS.getLogMessage(LOGGING_SIGNED_AUDIT_DIVERSIFY_KEY_REQUEST_PROCESSED_FAILURE, logParams);
+        }
+ 
+        audit(auditMessage);
+@@ -998,7 +1329,15 @@
+ 
+     private void processEncryptData(HttpServletRequest req,
+       HttpServletResponse resp) throws EBaseException {
+-        byte[] keyInfo, CUID, xCUID, encryptedData, xkeyInfo;
++        byte[] keyInfo, xCUID, encryptedData, xkeyInfo, xKDD;  // AC: KDF SPEC CHANGE: removed duplicative 'CUID' variable and added xKDD
++
++        // AC: KDF SPEC CHANGE - new config file values (needed for symkey)
++        byte nistSP800_108KdfOnKeyVersion = (byte)0xff;
++        boolean nistSP800_108KdfUseCuidAsKdd = false;
++
++        // AC: KDF SPEC CHANGE - flag for if there is an error reading our new setting
++        Exception missingSetting_exception = null;
++
+         boolean missingParam = false;
+         byte[] data = null;
+         boolean isRandom = true; // randomly generate the data to be encrypted
+@@ -1010,6 +1349,10 @@
+         String rdata = req.getParameter("data");
+         String rKeyInfo = req.getParameter("KeyInfo");
+         String rCUID = req.getParameter("CUID");
++        
++        // AC: KDF SPEC CHANGE - read new KDD parameter from TPS
++        String rKDD = req.getParameter("KDD");
++        
+         String keySet = req.getParameter("keySet");
+         if (keySet == null || keySet.equals("")) {
+             keySet = "defKeySet";
+@@ -1034,9 +1377,11 @@
+             isRandom = true;
+         }
+ 
++        // AC: KDF SPEC CHANGE:  Need to log both KDD and CUID
+         String auditMessage = CMS.getLogMessage(
+                        LOGGING_SIGNED_AUDIT_ENCRYPT_DATA_REQUEST,
+                        rCUID,
++                       rKDD,            // AC: KDF SPEC CHANGE - Log both CUID and KDD.
+                        ILogger.SUCCESS,
+                        agentId,
+                        s_isRandom);
+@@ -1069,6 +1414,13 @@
+             CMS.debug("TokenServlet: processEncryptData(): missing request parameter: CUID");
+             missingParam = true;
+         }
++        
++        // AC: KDF SPEC CHANGE - read new KDD parameter from TPS
++        if ((rKDD == null) || (rKDD.length() == 0)) {
++            CMS.debug("TokenServlet: processDiversifyKey(): missing request parameter: KDD");
++            badParams += " KDD,";
++            missingParam = true;
++        }
+  
+         if ((rKeyInfo == null) || (rKeyInfo.equals(""))) {
+             badParams += " KeyInfo,";
+@@ -1076,6 +1428,10 @@
+             missingParam = true;
+         }
+ 
++        // AC: KDF SPEC CHANGE 
++        xCUID = null;       // avoid errors about non-initialization
++        xKDD = null;        // avoid errors about non-initialization
++        xkeyInfo = null;    // avoid errors about non-initialization
+ 
+         if (!missingParam) {
+              xCUID = com.netscape.cmsutil.util.Utils.SpecialDecode(rCUID);
+@@ -1084,6 +1440,15 @@
+                         CMS.debug("TokenServlet: Invalid CUID length");
+                         missingParam = true;
+                       }
++             
++             // AC: KDF SPEC CHANGE - read new KDD parameter from TPS
++             xKDD = com.netscape.cmsutil.util.Utils.SpecialDecode(rKDD);
++             if (xKDD == null || xKDD.length != 10) {
++                 badParams += " KDD length,";
++                 CMS.debug("TokenServlet: Invalid KDD length");
++                 missingParam = true;
++             }
++             
+              xkeyInfo = com.netscape.cmsutil.util.Utils.SpecialDecode(rKeyInfo);
+                      if (xkeyInfo == null || xkeyInfo.length != 2) {
+                         badParams += " KeyInfo length,";
+@@ -1099,10 +1464,36 @@
+         String selectedToken = null;
+         String keyNickName = null;
+         if (!missingParam) {
++            
++            // AC: KDF SPEC CHANGE - read new config file values (needed for symkey)
++            try{
++                nistSP800_108KdfOnKeyVersion = TokenServlet.read_setting_nistSP800_108KdfOnKeyVersion(keySet);
++                nistSP800_108KdfUseCuidAsKdd = TokenServlet.read_setting_nistSP800_108KdfUseCuidAsKdd(keySet);
++                
++                // log settings read in to debug log along with xkeyInfo
++                CMS.debug("TokenServlet: processEncryptData():  xkeyInfo[0] = 0x"
++                          + Integer.toHexString((int)(xkeyInfo[0]) & 0x0000000FF)
++                          + ",  xkeyInfo[1] = 0x"
++                          + Integer.toHexString((int)(xkeyInfo[1]) & 0x0000000FF)
++                         );
++                CMS.debug("TokenServlet: processEncryptData():  Nist SP800-108 KDF will be used for key versions >= 0x"
++                          + Integer.toHexString((int)(nistSP800_108KdfOnKeyVersion) & 0x0000000FF)
++                         );
++                if (nistSP800_108KdfUseCuidAsKdd == true){
++                    CMS.debug("TokenServlet: processEncryptData():  Nist SP800-108 KDF (if used) will use CUID instead of KDD.");
++                }else{
++                    CMS.debug("TokenServlet: processEncryptData():  Nist SP800-108 KDF (if used) will use KDD.");
++                }
++            // conform to the set-an-error-flag mentality
++            }catch(Exception e){
++                missingSetting_exception = e;
++                CMS.debug("TokenServlet: processEncryptData():  Exception reading Nist SP800-108 KDF config values: " + e.toString());
++            }
++            
+           if (!isRandom)
+             data = com.netscape.cmsutil.util.Utils.SpecialDecode(rdata);
+           keyInfo = com.netscape.cmsutil.util.Utils.SpecialDecode(rKeyInfo);
+-          CUID = com.netscape.cmsutil.util.Utils.SpecialDecode(rCUID);
++          //CUID = com.netscape.cmsutil.util.Utils.SpecialDecode(rCUID);  // AC: KDF SPEC CHANGE: Removed duplicative variable/processing.
+ 
+           String keyInfoMap = "tks." + keySet + ".mk_mappings." + rKeyInfo;
+           String mappingValue = CMS.getConfigStore().getString(keyInfoMap, null);
+@@ -1116,12 +1507,28 @@
+           }
+           
+           byte kekKeyArray[] = com.netscape.cmsutil.util.Utils.SpecialDecode(sconfig.getString("tks." + keySet + ".kek_key"));
++          
++          // AC: KDF SPEC CHANGE - check for error reading settings
++          if (missingSetting_exception == null){
++
+           encryptedData = SessionKey.EncryptData(
+-                       selectedToken,keyNickName,data,keyInfo,CUID, kekKeyArray, useSoftToken_s, keySet);
++                       selectedToken,keyNickName,data,keyInfo,
++                       nistSP800_108KdfOnKeyVersion,    // AC: KDF SPEC CHANGE - pass in configuration file value
++                       nistSP800_108KdfUseCuidAsKdd,    // AC: KDF SPEC CHANGE - pass in configuration file value
++                       xCUID,                           // AC: KDF SPEC CHANGE - removed duplicative 'CUID' variable and replaced with 'xCUID'
++                       xKDD,                            // AC: KDF SPEC CHANGE - pass in KDD so symkey can make decision about which value (KDD,CUID) to use
++                       kekKeyArray, useSoftToken_s, keySet);
+         
++          // AC: KDF SPEC CHANGE - Log both CUID and KDD
+           CMS.getLogger().log(ILogger.EV_AUDIT,
+                      ILogger.S_TKS,
+-                     ILogger.LL_INFO,"process EncryptData for CUID ="+ trim(pp.toHexString(CUID)));
++                     ILogger.LL_INFO,"process EncryptData for CUID="+
++                       trim(pp.toHexString(xCUID)) +
++                       ", KDD=" +
++                       trim(pp.toHexString(xKDD)));
++          
++          } // AC: KDF SPEC CHANGE - endif no error reading settings from settings file
++          
+         } // !missingParam
+ 
+         resp.setContentType("text/html");
+@@ -1135,6 +1542,11 @@
+                          com.netscape.cmsutil.util.Utils.SpecialEncode(data)+
+                          "&encryptedData=" + 
+                          com.netscape.cmsutil.util.Utils.SpecialEncode(encryptedData);
++        // AC: KDF SPEC CHANGE - check for settings file issue (flag)
++        } else if (missingSetting_exception != null){
++            status = "6";
++            errorMsg = "Problem reading required configuration value.";
++            value = "status=" + status;
+         } else if (missingParam) {
+             if(badParams.endsWith(","))  {
+                 badParams = badParams.substring(0,badParams.length() -1);
+@@ -1163,29 +1575,42 @@
+         }
+ 
+          if(status.equals("0")) {
+-
+-           auditMessage = CMS.getLogMessage(
+-                         LOGGING_SIGNED_AUDIT_ENCRYPT_DATA_REQUEST_PROCESSED_SUCCESS,
+-                        rCUID,
+-                        ILogger.SUCCESS,
+-                        status,
+-                        agentId,
+-                        s_isRandom,
+-                        selectedToken,
+-                        keyNickName);
+-
++                // AC: KDF SPEC CHANGE - Log both CUID and KDD
++                //                       Also added TKSKeyset, KeyInfo_KeyVersion, NistSP800_108KdfOnKeyVersion, NistSP800_108KdfUseCuidAsKdd
++                //                       Finally, log CUID and KDD in ASCII-HEX format, as long as special-decoded version is available.
++                String[] logParams = {  log_string_from_specialDecoded_byte_array(xCUID),                               // CUID_decoded
++                                        log_string_from_specialDecoded_byte_array(xKDD),                                // KDD_decoded
++                                        ILogger.SUCCESS,                                                                // Outcome
++                                        status,                                                                         // status
++                                        agentId,                                                                        // AgentID
++                                        s_isRandom,                                                                     // isRandom
++                                        selectedToken,                                                                  // SelectedToken
++                                        keyNickName,                                                                    // KeyNickName
++                                        keySet,                                                                         // TKSKeyset
++                                        log_string_from_keyInfo(xkeyInfo),                                              // KeyInfo_KeyVersion
++                                        "0x" + Integer.toHexString((int)nistSP800_108KdfOnKeyVersion & 0x000000FF),     // NistSP800_108KdfOnKeyVersion
++                                        Boolean.toString(nistSP800_108KdfUseCuidAsKdd)                                  // NistSP800_108KdfUseCuidAsKdd
++                                     };
++                auditMessage = CMS.getLogMessage(LOGGING_SIGNED_AUDIT_ENCRYPT_DATA_REQUEST_PROCESSED_SUCCESS, logParams);
+         } else {
+-
+-           auditMessage = CMS.getLogMessage(
+-                         LOGGING_SIGNED_AUDIT_ENCRYPT_DATA_REQUEST_PROCESSED_FAILURE,
+-                        rCUID,
+-                        ILogger.FAILURE,
+-                        status,
+-                        agentId,
+-                        s_isRandom,
+-                        selectedToken,
+-                        keyNickName,
+-                        errorMsg);
++                // AC: KDF SPEC CHANGE - Log both CUID and KDD
++                //                       Also added TKSKeyset, KeyInfo_KeyVersion, NistSP800_108KdfOnKeyVersion, NistSP800_108KdfUseCuidAsKdd
++                //                       Finally, log CUID and KDD in ASCII-HEX format, as long as special-decoded version is available.
++                String[] logParams = {  log_string_from_specialDecoded_byte_array(xCUID),                               // CUID_decoded
++                                        log_string_from_specialDecoded_byte_array(xKDD),                                // KDD_decoded
++                                        ILogger.FAILURE,                                                                // Outcome
++                                        status,                                                                         // status
++                                        agentId,                                                                        // AgentID
++                                        s_isRandom,                                                                     // isRandom
++                                        selectedToken,                                                                  // SelectedToken
++                                        keyNickName,                                                                    // KeyNickName
++                                        keySet,                                                                         // TKSKeyset
++                                        log_string_from_keyInfo(xkeyInfo),                                              // KeyInfo_KeyVersion
++                                        "0x" + Integer.toHexString((int)nistSP800_108KdfOnKeyVersion & 0x000000FF),     // NistSP800_108KdfOnKeyVersion
++                                        Boolean.toString(nistSP800_108KdfUseCuidAsKdd),                                 // NistSP800_108KdfUseCuidAsKdd
++                                        errorMsg                                                                        // Error
++                                     };
++                auditMessage = CMS.getLogMessage(LOGGING_SIGNED_AUDIT_ENCRYPT_DATA_REQUEST_PROCESSED_FAILURE, logParams);
+        }
+ 
+        audit(auditMessage);
+diff -ur pki-common-patch1/src/LogMessages_en.properties pki-common/src/LogMessages_en.properties
+--- pki-common-patch1/src/LogMessages_en.properties	2014-01-28 14:13:22.000000000 -0500
++++ pki-common/src/LogMessages_en.properties	2014-01-28 16:34:14.000000000 -0500
+@@ -2255,16 +2255,21 @@
+ 
+ #
+ #
++## AC: KDF SPEC CHANGE - Need to log both the KDD and CUID, not just the CUID.  Renamed to "CUID_encoded" and "KDD_encoded" to reflect fact that encoded parameters are being logged.
+ # LOGGING_SIGNED_AUDIT_COMPUTE_SESSION_KEY_REQUEST
+ # - used for TPS to TKS to get a sessoin key for secure channel setup
+-# SubjectID must be the CUID of the token establishing the secure channel
++# CUID_encoded must be the special-encoded CUID of the token establishing the secure channel
++# KDD_encoded must be the special-encoded KDD of the token establishing the secure channel
+ # AgentID must be the trusted agent id used to make the request
+-LOGGING_SIGNED_AUDIT_COMPUTE_SESSION_KEY_REQUEST_3=<type=COMPUTE_SESSION_KEY_REQUEST>:[AuditEvent=COMPUTE_SESSION_KEY_REQUEST][SubjectID={0}][Outcome={1}][AgentID={2}] TKS Compute session key request
++LOGGING_SIGNED_AUDIT_COMPUTE_SESSION_KEY_REQUEST_4=<type=COMPUTE_SESSION_KEY_REQUEST>:[AuditEvent=COMPUTE_SESSION_KEY_REQUEST][CUID_encoded={0}][KDD_encoded={1}][Outcome={2}][AgentID={3}] TKS Compute session key request
+ #
+ #
++## AC: KDF SPEC CHANGE - Need to log both the KDD and CUID, not just the CUID.  Renamed to "CUID_decoded" and "KDD_decoded" to reflect fact that decoded parameters are now logged.
++##                       Also added TKSKeyset, KeyInfo_KeyVersion, NistSP800_108KdfOnKeyVersion, NistSP800_108KdfUseCuidAsKdd
+ # LOGGING_SIGNED_AUDIT_COMPUTE_SESSION_KEY_REQUEST_PROCESSED_SUCCESS
+ # - request for TPS to TKS to get a sessoin key for secure channel processed
+-# SubjectID must be the CUID of the token establishing the secure channel
++# CUID_decoded must be the ASCII-HEX representation of the CUID of the token establishing the secure channel
++# KDD_decoded must be the ASCII-HEX representation of the KDD of the token establishing the secure channel
+ # AgentID must be the trusted agent id used to make the request
+ # Outcome is SUCCESS or FAILURE 
+ # Status is 0 for no error.
+@@ -2272,13 +2277,19 @@
+ # IsServerSideKeygen tells if the keys are to be generated on server
+ # SelectedToken is the cryptographic token performing key operations
+ # KeyNickName is the number keyset ex: #01#01
+-#
+-LOGGING_SIGNED_AUDIT_COMPUTE_SESSION_KEY_REQUEST_PROCESSED_SUCCESS_8=<type=COMPUTE_SESSION_KEY_REQUEST_PROCESSED_SUCCESS>:[AuditEvent=COMPUTE_SESSION_KEY_REQUEST_PROCESSED_SUCCESS][SubjectID={0}][Outcome={1}][status={2}][AgentID={3}][IsCryptoValidate={4}][IsServerSideKeygen={5}][SelectedToken={6}][KeyNickName={7}] TKS Compute session key request processed successfully
++# TKSKeyset is the name of the TKS keyset being used for this request.
++# KeyInfo_KeyVersion is the key version number requested in hex.
++# NistSP800_108KdfOnKeyVersion lists the value of the corresponding setting in hex.
++# NistSP800_108KdfUseCuidAsKdd lists the value of the corresponding setting in hex.
++LOGGING_SIGNED_AUDIT_COMPUTE_SESSION_KEY_REQUEST_PROCESSED_SUCCESS_13=<type=COMPUTE_SESSION_KEY_REQUEST_PROCESSED_SUCCESS>:[AuditEvent=COMPUTE_SESSION_KEY_REQUEST_PROCESSED_SUCCESS][CUID_decoded={0}][KDD_decoded={1}][Outcome={2}][status={3}][AgentID={4}][IsCryptoValidate={5}][IsServerSideKeygen={6}][SelectedToken={7}][KeyNickName={8}][TKSKeyset={9}][KeyInfo_KeyVersion={10}][NistSP800_108KdfOnKeyVersion={11}][NistSP800_108KdfUseCuidAsKdd={12}] TKS Compute session key request processed successfully
+ #
+ #
++## AC: KDF SPEC CHANGE - Need to log both the KDD and CUID, not just the CUID.  Renamed to "CUID_decoded" and "KDD_decoded" to reflect fact that decoded parameters are now logged.
++##                       Also added TKSKeyset, KeyInfo_KeyVersion, NistSP800_108KdfOnKeyVersion, NistSP800_108KdfUseCuidAsKdd
+ # LOGGING_SIGNED_AUDIT_COMPUTE_SESSION_KEY_REQUEST_PROCESSED_FAILURE
+ # - request for TPS to TKS to get a sessoin key for secure channel processed
+-# SubjectID must be the CUID of the token establishing the secure channel
++# CUID_decoded must be the ASCII-HEX representation of the CUID of the token establishing the secure channel
++# KDD_decoded must be the ASCII-HEX representation of the KDD of the token establishing the secure channel
+ # Outcome is SUCCESS or FAILURE
+ # Status is error code or 0 for no error.
+ # AgentID must be the trusted agent id used to make the request
+@@ -2287,79 +2298,117 @@
+ # IsServerSideKeygen tells if the keys are to be generated on server
+ # SelectedToken is the cryptographic token performing key operations
+ # KeyNickName is the numeric keyset ex: #01#01
++# TKSKeyset is the name of the TKS keyset being used for this request.
++# KeyInfo_KeyVersion is the key version number requested in hex.
++# NistSP800_108KdfOnKeyVersion lists the value of the corresponding setting in hex.
++# NistSP800_108KdfUseCuidAsKdd lists the value of the corresponding setting in hex.
+ # Error gives the error message
+-LOGGING_SIGNED_AUDIT_COMPUTE_SESSION_KEY_REQUEST_PROCESSED_FAILURE_9=<type=COMPUTE_SESSION_KEY_REQUEST_PROCESSED_FAILURE>:[AuditEvent=COMPUTE_SESSION_KEY_REQUEST_PROCESSED_FAILURE][SubjectID={0}][Outcome={1}][status={2}][AgentID={3}][IsCryptoValidate={4}][IsServerSideKeygen={5}][SelectedToken={7}][KeyNickName={7}][Error={8}] TKS Compute session key request failed 
++LOGGING_SIGNED_AUDIT_COMPUTE_SESSION_KEY_REQUEST_PROCESSED_FAILURE_14=<type=COMPUTE_SESSION_KEY_REQUEST_PROCESSED_FAILURE>:[AuditEvent=COMPUTE_SESSION_KEY_REQUEST_PROCESSED_FAILURE][CUID_decoded={0}][KDD_decoded={1}][Outcome={2}][status={3}][AgentID={4}][IsCryptoValidate={5}][IsServerSideKeygen={6}][SelectedToken={7}][KeyNickName={8}][TKSKeyset={9}][KeyInfo_KeyVersion={10}][NistSP800_108KdfOnKeyVersion={11}][NistSP800_108KdfUseCuidAsKdd={12}][Error={13}] TKS Compute session key request failed 
+ #
+ 
++## AC: KDF SPEC CHANGE - Need to log both the KDD and CUID, not just the CUID.  Renamed to "CUID_encoded" and "KDD_encoded" to reflect fact that encoded parameters are being logged.
+ # LOGGING_SIGNED_AUDIT_DIVERSIFY_KEY_REQUEST
+ # - request for TPS to TKS to do key change over
+-# SubjectID must be the CUID of the token requesting key change over
++# CUID_encoded must be the special-encoded CUID of the token establishing the secure channel
++# KDD_encoded must be the special-encoded KDD of the token establishing the secure channel
+ # AgentID must be the trusted agent id used to make the request
+ # status is 0 for success, non-zero for various errors
+ # oldMasterKeyName is the old master key name
+ # newMasterKeyName is the new master key name
+-LOGGING_SIGNED_AUDIT_DIVERSIFY_KEY_REQUEST_5=<type=DIVERSIFY_KEY_REQUEST>:[AuditEvent=DIVERSIFY_KEY_REQUEST][SubjectID={0}][Outcome={1}][AgentID={2}][oldMasterKeyName={3}][newMasterKeyName={4}] TKS Key Change Over request
++LOGGING_SIGNED_AUDIT_DIVERSIFY_KEY_REQUEST_6=<type=DIVERSIFY_KEY_REQUEST>:[AuditEvent=DIVERSIFY_KEY_REQUEST][CUID_encoded={0}][KDD_encoded={1}][Outcome={2}][AgentID={3}][oldMasterKeyName={4}][newMasterKeyName={5}] TKS Key Change Over request
+ #
+ ###########################
++## AC: KDF SPEC CHANGE - Need to log both the KDD and CUID, not just the CUID.  Renamed to "CUID_decoded" and "KDD_decoded" to reflect fact that decoded parameters are now logged.
++##                       Also added TKSKeyset, OldKeyInfo_KeyVersion, NewKeyInfo_KeyVersion, NistSP800_108KdfOnKeyVersion, NistSP800_108KdfUseCuidAsKdd
+ # LOGGING_SIGNED_AUDIT_DIVERSIFY_KEY_REQUEST_PROCESSED_SUCCESS
+ # - request for TPS to TKS to do key change over request processed
+-# SubjectID must be the CUID of the token requesting key change over
++# CUID_decoded must be the ASCII-HEX representation of the CUID of the token establishing the secure channel
++# KDD_decoded must be the ASCII-HEX representation of the KDD of the token establishing the secure channel
+ # AgentID must be the trusted agent id used to make the request
+ # Outcome is SUCCESS or FAILURE
+ # status is 0 for success, non-zero for various errors
+ # oldMasterKeyName is the old master key name
+ # newMasterKeyName is the new master key name
+-LOGGING_SIGNED_AUDIT_DIVERSIFY_KEY_REQUEST_PROCESSED_SUCCESS_6=<type=DIVERSIFY_KEY_REQUEST_PROCESSED_SUCCESS>:[AuditEvent=DIVERSIFY_KEY_REQUEST_PROCESSED_SUCCESS][SubjectID={0}][Outcome={1}][status={2}][AgentID={3}][oldMasterKeyName={4}][newMasterKeyName={5}] TKS Key Change Over request processed successfully
++# TKSKeyset is the name of the TKS keyset being used for this request.
++# OldKeyInfo_KeyVersion is the old key version number in hex.
++# NewKeyInfo_KeyVersion is the new key version number in hex.
++# NistSP800_108KdfOnKeyVersion lists the value of the corresponding setting in hex.
++# NistSP800_108KdfUseCuidAsKdd lists the value of the corresponding setting in hex.
++LOGGING_SIGNED_AUDIT_DIVERSIFY_KEY_REQUEST_PROCESSED_SUCCESS_12=<type=DIVERSIFY_KEY_REQUEST_PROCESSED_SUCCESS>:[AuditEvent=DIVERSIFY_KEY_REQUEST_PROCESSED_SUCCESS][CUID_decoded={0}][KDD_decoded={1}][Outcome={2}][status={3}][AgentID={4}][oldMasterKeyName={5}][newMasterKeyName={6}][TKSKeyset={7}][OldKeyInfo_KeyVersion={8}][NewKeyInfo_KeyVersion={9}][NistSP800_108KdfOnKeyVersion={10}][NistSP800_108KdfUseCuidAsKdd={11}] TKS Key Change Over request processed successfully
+ #
+ #
+ ###########################
++## AC: KDF SPEC CHANGE - Need to log both the KDD and CUID, not just the CUID.  Renamed to "CUID_decoded" and "KDD_decoded" to reflect fact that decoded parameters are now logged.
++##                       Also added TKSKeyset, OldKeyInfo_KeyVersion, NewKeyInfo_KeyVersion, NistSP800_108KdfOnKeyVersion, NistSP800_108KdfUseCuidAsKdd
+ # LOGGING_SIGNED_AUDIT_DIVERSIFY_KEY_REQUEST_PROCESSED_FAILURE
+ # - request for TPS to TKS to do key change over request processed
+-# SubjectID must be the CUID of the token requesting key change over
++# CUID_decoded must be the ASCII-HEX representation of the CUID of the token establishing the secure channel
++# KDD_decoded must be the ASCII-HEX representation of the KDD of the token establishing the secure channel
+ # AgentID must be the trusted agent id used to make the request
+ # Outcome is SUCCESS or FAILURE
+ # status is 0 for success, non-zero for various errors
+ # oldMasterKeyName is the old master key name
+ # newMasterKeyName is the new master key name
++# TKSKeyset is the name of the TKS keyset being used for this request.
++# OldKeyInfo_KeyVersion is the old key version number in hex.
++# NewKeyInfo_KeyVersion is the new key version number in hex.
++# NistSP800_108KdfOnKeyVersion lists the value of the corresponding setting in hex.
++# NistSP800_108KdfUseCuidAsKdd lists the value of the corresponding setting in hex.
+ # Error gives the error message
+-LOGGING_SIGNED_AUDIT_DIVERSIFY_KEY_REQUEST_PROCESSED_FAILURE_7=<type=DIVERSIFY_KEY_REQUEST_PROCESSED_FAILURE>:[AuditEvent=DIVERSIFY_KEY_REQUEST_PROCESSED_FAILURE][SubjectID={0}][Outcome={1}][status={2}][AgentID={3}][oldMasterKeyName={4}][newMasterKeyName={5}][Error={6}] TKS Key Change Over request failed 
++LOGGING_SIGNED_AUDIT_DIVERSIFY_KEY_REQUEST_PROCESSED_FAILURE_13=<type=DIVERSIFY_KEY_REQUEST_PROCESSED_FAILURE>:[AuditEvent=DIVERSIFY_KEY_REQUEST_PROCESSED_FAILURE][CUID_decoded={0}][KDD_decoded={1}][Outcome={2}][status={3}][AgentID={4}][oldMasterKeyName={5}][newMasterKeyName={6}][TKSKeyset={7}][OldKeyInfo_KeyVersion={8}][NewKeyInfo_KeyVersion={9}][NistSP800_108KdfOnKeyVersion={10}][NistSP800_108KdfUseCuidAsKdd={11}][Error={12}] TKS Key Change Over request failed 
+ #
+ 
++## AC: KDF SPEC CHANGE - Need to log both the KDD and CUID, not just the CUID.  Renamed to "CUID_encoded" and "KDD_encoded" to reflect fact that encoded parameters are being logged.
+ # LOGGING_SIGNED_AUDIT_ENCRYPT_DATA_REQUEST
+ # - request from TPS to TKS to encrypt data 
+ #        (or generate random data and encrypt)
+-# SubjectID must be the CUID of the token requesting encrypt data
++# CUID_encoded must be the special-encoded CUID of the token establishing the secure channel
++# KDD_encoded must be the special-encoded KDD of the token establishing the secure channel
+ # AgentID must be the trusted agent id used to make the request
+ # status is 0 for success, non-zero for various errors
+ # isRandom tells if the data is randomly generated on TKS
+-LOGGING_SIGNED_AUDIT_ENCRYPT_DATA_REQUEST_4=<type=ENCRYPT_DATA_REQUEST>:[AuditEvent=ENCRYPT_DATA_REQUEST][SubjectID={0}][status={1}][AgentID={2}][isRandom={3}] TKS encrypt data request
++LOGGING_SIGNED_AUDIT_ENCRYPT_DATA_REQUEST_5=<type=ENCRYPT_DATA_REQUEST>:[AuditEvent=ENCRYPT_DATA_REQUEST][CUID_encoded={0}][KDD_encoded={1}][status={2}][AgentID={3}][isRandom={4}] TKS encrypt data request
+ #
+ #
++## AC: KDF SPEC CHANGE - Need to log both the KDD and CUID, not just the CUID.  Renamed to "CUID_decoded" and "KDD_decoded" to reflect fact that decoded parameters are now logged.
++##                       Also added TKSKeyset, KeyInfo_KeyVersion, NistSP800_108KdfOnKeyVersion, NistSP800_108KdfUseCuidAsKdd
+ # LOGGING_SIGNED_AUDIT_ENCRYPT_DATA_REQUEST_PROCESSED_SUCCESS
+ # - request from TPS to TKS to encrypt data 
+ #        (or generate random data and encrypt)
+-# SubjectID must be the CUID of the token requesting encrypt data
++# CUID_decoded must be the ASCII-HEX representation of the CUID of the token establishing the secure channel
++# KDD_decoded must be the ASCII-HEX representation of the KDD of the token establishing the secure channel
+ # AgentID must be the trusted agent id used to make the request
+ # Outcome is SUCCESS or FAILURE
+ # status is 0 for success, non-zero for various errors
+ # isRandom tells if the data is randomly generated on TKS
+ # SelectedToken is the cryptographic token performing key operations
+ # KeyNickName is the numeric keyset ex: #01#01
+-LOGGING_SIGNED_AUDIT_ENCRYPT_DATA_REQUEST_PROCESSED_SUCCESS_7=<type=ENCRYPT_DATA_REQUEST_PROCESSED_SUCCESS>:[AuditEvent=ENCRYPT_DATA_REQUEST_PROCESSED_SUCCESS][SubjectID={0}][Outcome={1}][status={2}][AgentID={3}][isRandom={4}][SelectedToken={5}][KeyNickName={6}] TKS encrypt data request processed successfully
++# TKSKeyset is the name of the TKS keyset being used for this request.
++# KeyInfo_KeyVersion is the key version number requested in hex.
++# NistSP800_108KdfOnKeyVersion lists the value of the corresponding setting in hex.
++# NistSP800_108KdfUseCuidAsKdd lists the value of the corresponding setting in hex.
++LOGGING_SIGNED_AUDIT_ENCRYPT_DATA_REQUEST_PROCESSED_SUCCESS_12=<type=ENCRYPT_DATA_REQUEST_PROCESSED_SUCCESS>:[AuditEvent=ENCRYPT_DATA_REQUEST_PROCESSED_SUCCESS][CUID_decoded={0}][KDD_decoded={1}][Outcome={2}][status={3}][AgentID={4}][isRandom={5}][SelectedToken={6}][KeyNickName={7}][TKSKeyset={8}][KeyInfo_KeyVersion={9}][NistSP800_108KdfOnKeyVersion={10}][NistSP800_108KdfUseCuidAsKdd={11}] TKS encrypt data request processed successfully
+ #
+ #
++## AC: KDF SPEC CHANGE - Need to log both the KDD and CUID, not just the CUID.  Renamed to "CUID_decoded" and "KDD_decoded" to reflect fact that decoded parameters are now logged.
++##                       Also added TKSKeyset, KeyInfo_KeyVersion, NistSP800_108KdfOnKeyVersion, NistSP800_108KdfUseCuidAsKdd
+ # LOGGING_SIGNED_AUDIT_ENCRYPT_DATA_REQUEST_PROCESSED_FAILURE
+ # - request from TPS to TKS to encrypt data 
+ #        (or generate random data and encrypt)
+-# SubjectID must be the CUID of the token requesting encrypt data
++# CUID_decoded must be the ASCII-HEX representation of the CUID of the token establishing the secure channel
++# KDD_decoded must be the ASCII-HEX representation of the KDD of the token establishing the secure channel
+ # AgentID must be the trusted agent id used to make the request
+ # Outocme is SUCCESS or FAILURE
+ # status is 0 for success, non-zero for various errors
+ # isRandom tells if the data is randomly generated on TKS
+ # SelectedToken is the cryptographic token performing key operations
+ # KeyNickName is the numeric keyset ex: #01#01
++# TKSKeyset is the name of the TKS keyset being used for this request.
++# KeyInfo_KeyVersion is the key version number requested in hex.
++# NistSP800_108KdfOnKeyVersion lists the value of the corresponding setting in hex.
++# NistSP800_108KdfUseCuidAsKdd lists the value of the corresponding setting in hex.
+ # Error gives the error message
+-LOGGING_SIGNED_AUDIT_ENCRYPT_DATA_REQUEST_PROCESSED_FAILURE_8=<type=ENCRYPT_DATA_REQUEST_PROCESSED_FAILURE>:[AuditEvent=ENCRYPT_DATA_REQUEST_PROCESSED_FAILURE][SubjectID={0}][Outcome={1}][status={2}][AgentID={3}][isRandom={4}][SelectedToken={5}][KeyNickName={6}][Error={7}] TKS encrypt data request failed 
++LOGGING_SIGNED_AUDIT_ENCRYPT_DATA_REQUEST_PROCESSED_FAILURE_13=<type=ENCRYPT_DATA_REQUEST_PROCESSED_FAILURE>:[AuditEvent=ENCRYPT_DATA_REQUEST_PROCESSED_FAILURE][CUID_decoded={0}][KDD_decoded={1}][Outcome={2}][status={3}][AgentID={4}][isRandom={5}][SelectedToken={6}][KeyNickName={7}][TKSKeyset={8}][KeyInfo_KeyVersion={9}][NistSP800_108KdfOnKeyVersion={10}][NistSP800_108KdfUseCuidAsKdd={11}][Error={12}] TKS encrypt data request failed 
+ #
+ #
+ #

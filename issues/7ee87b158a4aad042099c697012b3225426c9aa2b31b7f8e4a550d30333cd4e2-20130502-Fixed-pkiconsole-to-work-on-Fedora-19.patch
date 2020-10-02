@@ -1,0 +1,28 @@
+From fcf70cc04d47cd8f834e81a75b1faa10f0d5ea3f Mon Sep 17 00:00:00 2001
+From: Matthew Harmsen <mharmsen@redhat.com>
+Date: Thu, 2 May 2013 11:14:08 -0700
+Subject: [PATCH] Fixed pkiconsole to work on Fedora 19
+
+* TRAC Ticket #602 - pkiconsole cannot find 'jss4.jar' on Fedora 19
+---
+ base/console/templates/pki_console_wrapper |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/base/console/templates/pki_console_wrapper b/base/console/templates/pki_console_wrapper
+index b1b9593..cc95906 100755
+--- a/base/console/templates/pki_console_wrapper
++++ b/base/console/templates/pki_console_wrapper
+@@ -142,8 +142,8 @@ CP=/usr/lib/java/jss4.jar
+ CP=/usr/lib/java/dirsec/jss4.jar:${CP}
+ if [ "${OS}" = "Linux" ] &&
+    [ "${ARCHITECTURE}" = "x86_64" ] ; then
+-    # Fedora 16+
+-    CP=/usr/lib64/java/jss4.jar
++    # Fedora 16, 17, 18
++    CP=/usr/lib64/java/jss4.jar:${CP}
+ fi
+ CP=/usr/share/java/ldapjdk.jar:${CP}
+ CP=/usr/share/java/idm-console-nmclf.jar:${CP}
+-- 
+1.7.7.6
+
