@@ -6,7 +6,7 @@ This document describes the process to install basic PKI subsystems.
 
 Install 389-ds-base and dogtag-pki packages:
 
-<pre>
+----
 $ yum install 389-ds-base dogtag-pki
 yum install 389-ds-base dogtag-pki
 Loaded plugins: auto-update-debuginfo, langpacks, presto, refresh-packagekit
@@ -14,17 +14,17 @@ Resolving Dependencies
 ...
 
 Complete!
-</pre>
+----
 
 = Creating DS Instance =
 
-See [[DS Installation]].
+See link:DS-Installation[DS Installation].
 
 = Creating CA Subsystem =
 
 Run pkispawn to create CA subsystem in interactive mode:
 
-<pre>
+----
 $ pkispawn
 Subsystem (CA/KRA/OCSP/TKS/TPS) [CA]:
 
@@ -74,15 +74,15 @@ Storing deployment configuration into /etc/sysconfig/pki/tomcat/pki-tomcat/ca/de
             https://server.example.com:8443/ca
 
     ==========================================================================
-</pre>
+----
 
-See also [https://github.com/dogtagpki/pki/blob/master/docs/installation/ca/Installing_CA.md Installing CA].
+See also link:https://github.com/dogtagpki/pki/blob/master/docs/installation/ca/Installing_CA.md[Installing CA].
 
 = Creating KRA Subsystem =
 
 Run pkispawn to create KRA subsystem in interactive mode:
 
-<pre>
+----
 $ pkispawn
 Subsystem (CA/KRA/OCSP/TKS/TPS) [CA]: KRA
 
@@ -135,39 +135,40 @@ Storing deployment configuration into /etc/sysconfig/pki/tomcat/pki-tomcat/kra/d
             https://server.example.com:8443/kra
 
     ==========================================================================
-</pre>
+----
 
-See also [https://github.com/dogtagpki/pki/blob/master/docs/installation/kra/Installing_KRA.md Installing KRA].
+See also link:https://github.com/dogtagpki/pki/blob/master/docs/installation/kra/Installing_KRA.md[Installing KRA].
 
 = Accessing PKI Services =
 
-To access PKI services via Web UI open [https://server.example.com:8443/ https://server.example.com:8443/] with a browser.
+To access PKI services via Web UI open https://server.example.com:8443 with a browser.
 
-To access PKI services via command-line, use the [[PKI CLI]].
+To access PKI services via command-line, use the link:PKI-CLI[PKI CLI].
 
-By default only the [https://www.dogtagpki.org/wiki/Default_CA_Admin Default CA Admin] and end-entities can access PKI services. Follow [https://www.dogtagpki.org/wiki/User_Certificate_Setup User Certificate Setup] to add additional system users.
+By default only the link:https://www.dogtagpki.org/wiki/Default_CA_Admin[Default CA Admin] and end-entities can access PKI services. Follow link:https://www.dogtagpki.org/wiki/User_Certificate_Setup[User Certificate Setup] to add additional system users.
 
 = Managing PKI Services =
 
 To manage PKI services via PKI Console:
-<pre>
-$ pkiconsole https://server.example.com:8443/<subsystem>
-</pre>
 
-To manage PKI services via CLI, use the [[PKI Server CLI]].
+----
+$ pkiconsole https://server.example.com:8443/<subsystem>
+----
+
+To manage PKI services via CLI, use the link:PKI-Server-CLI[PKI Server CLI].
 
 = Common PKI Tasks =
 
-* [https://www.dogtagpki.org/wiki/CA_Admin_Setup CA Admin Setup]
-* [https://www.dogtagpki.org/wiki/CA_Agent_Setup CA Agent Setup]
-* [https://www.dogtagpki.org/wiki/User_Certificate_Setup User Certificate Setup]
-* [https://www.dogtagpki.org/wiki/Server_Certificate_Setup Server Certificate Setup]
-* [https://www.dogtagpki.org/wiki/Enabling_SSL_Connection_with_Internal_Database Enabling SSL Connection with Internal Database]
-* [https://www.dogtagpki.org/wiki/Enabling_Client_Certificate_Authentication_with_Internal_Database Enabling Client Certificate Authentication with Internal Database]
+* link:https://www.dogtagpki.org/wiki/CA_Admin_Setup[CA Admin Setup]
+* link:https://www.dogtagpki.org/wiki/CA_Agent_Setup[CA Agent Setup]
+* link:https://www.dogtagpki.org/wiki/User_Certificate_Setup[User Certificate Setup]
+* link:https://www.dogtagpki.org/wiki/Server_Certificate_Setup[Server Certificate Setup]
+* link:https://www.dogtagpki.org/wiki/Enabling_SSL_Connection_with_Internal_Database[Enabling SSL Connection with Internal Database]
+* link:https://www.dogtagpki.org/wiki/Enabling_Client_Certificate_Authentication_with_Internal_Database[Enabling Client Certificate Authentication with Internal Database]
 
 = Removing PKI Subsystem =
 
-<pre>
+----
 $ pkidestroy
 Subsystem (CA/KRA/OCSP/TKS/TPS) [CA]:
 Instance [pki-tomcat]:
@@ -178,8 +179,8 @@ Loading deployment configuration from /var/lib/pki/pki-tomcat/ca/registry/ca/dep
 Uninstalling CA from /var/lib/pki/pki-tomcat.
 
 Uninstallation complete.
-</pre>
+----
 
 = References =
 
-* [https://www.dogtagpki.org/wiki/PKI_10_Installation PKI 10 Installation]
+* link:Installation-Guide[Installation Guide]
