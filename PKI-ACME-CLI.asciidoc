@@ -1,0 +1,41 @@
+= Overview =
+
+PKI CLI provides commands to access the ACME service.
+
+= Displaying ACME Service Status =
+
+To display ACME service status, execute `pki acme-info`.
+
+If the service is enabled, it will show the status as `Available` with the ACME metadata:
+
+----
+$ pki acme-info
+  Status: Available
+  Terms of Service: https://www.dogtagpki.org/wiki/PKI_ACME_Responder
+  Website: https://www.dogtagpki.org
+  CAA Identities: dogtagpki.org
+  External Account Required: false
+----
+
+If the service is disabled, it will show the status as `Unavailable` without the ACME metadata:
+
+----
+$ pki acme-info
+  Status: Unavailable
+----
+
+= Enabling ACME Service =
+
+To enable ACME service:
+
+----
+$ pki -u admin -w Secret.123 acme-disable
+----
+
+= Disabling ACME Service =
+
+To disable ACME service:
+
+----
+$ pki -u admin -w Secret.123 acme-disable
+----
