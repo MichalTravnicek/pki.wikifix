@@ -1,0 +1,94 @@
+= Generating CSR =
+
+----
+$ certutil -R \
+   -d nssdb \
+   -f password.txt \
+   -z noise.bin \
+   -s "CN=DRM Storage Certificate,OU=pki-tomcat,O=EXAMPLE" \
+   -o kra_storage.csr.bin \
+   -k rsa \
+   -g 2048 \
+   -Z SHA256 \
+   --keyUsage critical,dataEncipherment,keyEncipherment,digitalSignature,nonRepudiation \
+   --extKeyUsage clientAuth
+$ openssl req -inform der -in kra_storage.csr.bin -out kra_storage.csr
+----
+
+= Restoring CSR =
+
+If the CSR is missing, it can be restored from the existing certificate and key with the following commands:
+
+----
+$ certutil -R \
+   -d nssdb \
+   -f password.txt \
+   -z noise.bin \
+   -s "CN=DRM Storage Certificate,OU=pki-tomcat,O=EXAMPLE" \
+   -o kra_storage.csr.bin \
+   -k "kra_storage" \
+   -g 2048 \
+   -Z SHA256 \
+   --keyUsage critical,dataEncipherment,keyEncipherment,digitalSignature,nonRepudiation \
+   --extKeyUsage clientAuth
+$ openssl req -inform der -in kra_storage.csr.bin -out kra_storage.csr
+----
+
+= Verification =
+
+----
+$ openssl req -text -noout -in kra_storage.csr
+Certificate Request:
+    Data:
+        Version: 1 (0x0)
+        Subject: O = EXAMPLE, OU = pki-tomcat, CN = DRM Storage Certificate
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:c4:e0:de:a6:1a:e7:3b:24:46:e6:43:d0:18:1d:
+                    07:a1:83:80:90:b4:27:2f:c8:d6:4d:c2:dd:cc:b2:
+                    20:1b:94:1e:a1:98:9e:48:3d:3e:04:1f:96:e0:44:
+                    04:18:be:45:9e:8d:37:34:50:52:cb:1d:58:1d:d3:
+                    e7:3e:4a:49:5c:64:0a:29:3b:7a:70:29:d2:11:51:
+                    5f:3b:b1:4d:b2:bd:35:a4:ff:f2:46:4c:1e:3d:d8:
+                    30:77:73:91:21:88:f5:7b:28:24:20:ff:bb:c5:5f:
+                    3e:7b:88:84:a2:28:7e:91:d8:24:d4:1a:66:e7:bc:
+                    c2:7a:2e:17:71:6b:ab:0a:32:81:f2:05:b6:f7:ad:
+                    00:f5:fa:87:0e:b5:12:05:d0:6e:fe:b4:d9:d9:e5:
+                    64:24:f7:80:9a:ce:c2:5a:df:59:8f:6e:73:66:5f:
+                    69:e4:a0:d8:c3:ac:82:50:b6:09:20:aa:30:cc:a1:
+                    d6:a0:5c:7b:60:0a:54:27:15:bf:d2:f8:8b:f4:7b:
+                    72:66:5b:95:f7:fd:83:bb:5a:34:ac:ad:3e:16:35:
+                    08:59:22:44:db:97:54:f7:dd:99:39:fa:82:ec:77:
+                    81:5a:08:3c:5d:b9:9c:c9:96:97:37:3d:fe:3b:5a:
+                    da:0f:f1:56:ce:64:5e:87:01:62:95:18:d0:e6:c2:
+                    a5:15
+                Exponent: 65537 (0x10001)
+        Attributes:
+        Requested Extensions:
+            X509v3 Extended Key Usage:
+                TLS Web Client Authentication
+            X509v3 Key Usage: critical
+                Digital Signature, Non Repudiation, Key Encipherment, Data Encipherment
+    Signature Algorithm: sha256WithRSAEncryption
+         6a:1d:79:74:5d:d1:b4:c0:7d:86:a6:c1:8c:fb:65:84:a3:df:
+         30:87:af:23:eb:72:a0:d3:72:78:5c:11:cf:b2:25:43:0c:a1:
+         61:05:aa:a5:64:91:1a:28:c4:8a:79:48:52:36:4f:84:5f:2f:
+         ef:af:8b:a5:cc:11:b2:48:fc:a0:ed:66:d1:7d:98:66:19:b4:
+         a8:8d:d9:2f:54:eb:5c:d7:0c:42:42:da:a6:ba:1f:a7:6b:c4:
+         29:89:22:e8:29:52:7f:cc:f2:90:e9:98:d6:1c:e1:b3:5c:59:
+         98:f0:49:42:31:c4:6f:d5:48:3a:1d:49:52:1b:d2:e5:90:94:
+         ac:2c:07:a0:e7:80:54:f4:dd:b1:ab:88:2c:b3:e1:8a:4f:ee:
+         2e:29:13:a1:b0:a5:85:bc:96:9b:20:a3:b9:7f:ae:2e:bf:66:
+         e4:a6:dd:99:8d:9e:ab:55:73:0b:0c:69:6e:08:35:bd:9b:7f:
+         59:d8:58:42:19:fa:61:7b:5b:f7:23:59:d0:b3:45:5c:07:e6:
+         e5:13:f2:47:bf:ec:e1:8e:54:3b:7d:68:ac:e5:4f:23:e5:a7:
+         64:95:ed:ab:b3:25:ab:1e:02:56:b4:6a:4c:31:63:34:7f:66:
+         5b:c3:d3:f4:3b:df:1d:e4:32:3f:e2:47:06:8f:5a:44:bf:c2:
+         b7:0c:ad:d3
+----
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/Generating_System_Certificates[Generating System Certificates]
