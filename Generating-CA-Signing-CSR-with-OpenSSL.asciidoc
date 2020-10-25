@@ -1,0 +1,87 @@
+= Generating CA Signing CSR with New Key =
+
+----
+$ openssl req \
+    -newkey rsa:2048 \
+    -nodes \
+    -keyout ca_signing.key \
+    -new \
+    -days 365
+    -subj "/O=EXAMPLE/CN=CA Signing Certificate" \
+    -out ca_signing.csr
+----
+
+= Generating CA Signing Key =
+
+----
+$ openssl genrsa -out ca_signing.key 2048
+----
+
+= Generating CA Signing CSR with Existing Key =
+
+----
+$ openssl req \
+    -nodes \
+    -key ca_signing.key \
+    -new \
+    -days 365
+    -subj "/O=EXAMPLE/CN=CA Signing Certificate" \
+    -out ca_signing.csr
+----
+
+= Verification =
+
+----
+$ openssl req -text -noout -in ca_signing.csr
+Certificate Request:
+    Data:
+        Version: 1 (0x0)
+        Subject: O = EXAMPLE, CN = CA Signing Certificate
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:ce:8a:7b:fd:37:2c:58:49:55:32:3c:e3:69:a0:
+                    1c:8f:92:87:73:d1:fa:ae:a8:45:98:eb:0b:fd:56:
+                    1d:6c:dc:d3:91:90:f7:8b:90:d5:07:8b:05:14:41:
+                    d3:33:01:28:28:aa:41:2a:1f:61:91:8f:25:69:15:
+                    16:8e:d8:9d:0c:9b:b6:f8:d0:4f:2c:96:be:93:44:
+                    3e:29:45:88:42:4a:35:ae:d8:12:8e:60:8d:fa:83:
+                    19:16:1e:cc:a3:c7:d5:d5:62:d2:06:73:63:c1:b5:
+                    2b:31:e4:4a:c4:e6:91:fe:ba:1a:62:02:30:1f:94:
+                    5a:e9:cc:6c:54:71:a7:80:07:eb:8d:73:ed:8a:e1:
+                    69:ee:a8:f3:51:b6:d1:04:14:4f:d8:ba:4a:0e:4e:
+                    39:47:39:65:48:b8:73:d3:da:a0:a3:5d:f9:6f:2d:
+                    b3:12:b7:d4:b1:6a:26:6b:e7:73:bd:f5:95:23:6e:
+                    ee:9b:60:c4:cc:73:0c:00:71:0b:64:ce:81:48:91:
+                    18:68:65:16:fb:2e:1c:1d:0b:ae:87:3e:81:a3:56:
+                    18:2f:a4:47:a7:a4:61:b8:cc:e5:20:b3:7b:6b:f5:
+                    f3:9d:2e:99:73:c3:95:fe:14:65:91:95:54:52:16:
+                    ba:b6:a4:90:fe:e5:cd:4d:a7:9f:6b:ab:06:ad:15:
+                    8d:75
+                Exponent: 65537 (0x10001)
+        Attributes:
+            a0:00
+    Signature Algorithm: sha256WithRSAEncryption
+         7b:b5:3e:64:79:42:46:79:49:41:49:36:c6:90:49:57:76:3d:
+         c8:63:d8:bd:e6:eb:a9:e2:15:d5:0b:00:3a:b4:76:d2:13:d2:
+         09:99:6c:04:65:0c:db:b8:0a:90:ea:84:97:5c:84:9e:76:a2:
+         33:5c:a2:24:7b:68:59:4c:9d:d2:37:3f:f1:3d:a8:8d:c3:f2:
+         9b:86:d2:4a:a2:5c:dd:d1:c0:70:40:aa:3d:c9:86:55:a1:ee:
+         9a:a8:6b:a0:65:f4:d7:d4:dc:14:04:a1:2b:fd:57:0a:aa:9c:
+         b1:24:58:35:45:3c:42:0c:ca:bd:f4:54:3c:9c:e2:d5:28:35:
+         9e:3a:4e:98:80:e4:a1:16:07:72:98:1c:ee:d0:17:dc:ed:51:
+         92:94:79:d9:84:7e:e2:33:01:ce:25:b0:2a:0b:c0:b4:de:ed:
+         61:53:16:0f:cb:6b:50:a8:4f:08:ec:af:d0:d7:bd:92:60:43:
+         9f:0f:6a:24:a6:ad:e4:f2:b3:bc:b7:4c:d4:8d:74:49:e2:a0:
+         3c:69:68:f0:e4:ff:97:51:06:2f:08:cd:89:50:ef:34:60:fb:
+         b8:32:97:ad:92:e2:7b:dd:02:95:18:1f:27:b8:b0:8b:98:2f:
+         b4:61:cf:34:b7:61:f8:74:bc:a5:8f:2f:7f:5c:5c:45:4c:ae:
+         ed:12:84:56
+----
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/Generating_CA_Signing_Certificate[Generating CA Signing Certificate]
+* link:https://www.dogtagpki.org/wiki/Issuing_CA_Signing_Certificate_with_OpenSSL[Issuing CA Signing Certificate with OpenSSL]
+* link:https://github.com/dogtagpki/pki/wiki/Creating-Self-Signed-CA-Signing-Certificate-with-OpenSSL[Creating Self-Signed CA Signing Certificate with OpenSSL]
