@@ -1,0 +1,98 @@
+= Generating CSR =
+
+----
+$ echo -e "y\n\ny\n" | \
+ certutil -R \
+ -d nssdb \
+ -f password.txt \
+ -z noise.bin \
+ -s "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE" \
+ -o ca_signing.csr.der \
+ -k rsa \
+ -g 2048 \
+ -Z SHA256 \
+ -2 \
+ --keyUsage critical,certSigning,crlSigning,digitalSignature,nonRepudiation
+$ openssl req -inform der -in ca_signing.csr.der -out ca_signing.csr
+----
+
+= Restoring CSR =
+
+If the CSR is missing, it can be restored from the existing certificate and key with the following commands:
+
+----
+$ echo -e "y\n\ny\n" | \
+ certutil -R \
+ -d nssdb \
+ -f password.txt \
+ -z noise.bin \
+ -s "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE" \
+ -o ca_signing.csr.der \
+ -k "ca_signing" \
+ -g 2048 \
+ -Z SHA256 \
+ -2 \
+ --keyUsage critical,certSigning,crlSigning,digitalSignature,nonRepudiation
+$ openssl req -inform der -in ca_signing.csr.der -out ca_signing.csr
+----
+
+= Verification =
+
+----
+$ openssl req -text -noout -in ca_signing.csr
+Certificate Request:
+    Data:
+        Version: 1 (0x0)
+        Subject: O = EXAMPLE, OU = pki-tomcat, CN = CA Signing Certificate
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:e5:3c:c4:1b:c6:ad:53:99:f0:f8:e3:ec:f6:6f:
+                    48:e6:b4:f8:81:d5:86:c6:3a:d4:2d:86:03:f4:4a:
+                    76:80:35:77:98:28:2f:29:18:d7:4d:0b:29:40:61:
+                    42:24:20:7b:97:41:2f:9d:1c:d6:74:ef:9c:3e:f1:
+                    7a:df:c3:9d:19:ee:57:42:69:bf:ce:5e:92:70:48:
+                    7e:5e:f2:41:8f:4d:87:91:41:39:0d:df:25:fa:82:
+                    09:98:94:dd:b0:34:ad:f9:ca:18:ab:1e:43:dc:34:
+                    9a:11:ae:ca:db:7e:46:87:ff:a1:84:31:de:55:9a:
+                    1b:24:95:8c:9a:19:01:d9:08:13:3e:f1:16:25:6a:
+                    37:e2:85:59:37:9b:98:e3:4f:b4:f3:d1:33:8f:56:
+                    e3:58:da:fa:24:90:67:ca:53:4b:72:f4:95:23:b0:
+                    23:d0:2a:f5:35:f1:67:d5:61:ae:a6:c1:e9:50:fd:
+                    ba:9f:32:99:a6:2d:a8:46:dd:94:c7:df:4f:94:45:
+                    b9:f2:c8:5e:76:51:50:c5:3c:b2:21:c0:fc:52:a6:
+                    22:a3:44:c9:ce:ea:d2:3b:81:df:33:3e:3f:07:fc:
+                    25:61:f9:bb:1b:75:ed:d3:26:2e:cb:05:16:fa:7b:
+                    30:8c:b2:00:9a:78:9e:cb:18:91:91:e3:08:ad:01:
+                    ae:35
+                Exponent: 65537 (0x10001)
+        Attributes:
+        Requested Extensions:
+            X509v3 Basic Constraints: critical
+                CA:TRUE
+            X509v3 Key Usage: critical
+                Digital Signature, Non Repudiation, Certificate Sign, CRL Sign
+    Signature Algorithm: sha256WithRSAEncryption
+         c7:b4:bc:59:36:18:b1:ef:17:50:cc:f2:0c:11:c5:75:b0:00:
+         53:00:8f:7b:e0:95:7d:04:2c:a7:61:23:06:ef:b3:42:c5:fd:
+         a7:88:c8:8b:b9:99:1f:46:28:de:7d:69:5e:56:bc:6b:d9:b7:
+         c7:50:d0:1f:84:66:81:e2:b0:1d:72:0d:df:5b:24:35:d6:14:
+         89:e3:02:51:cf:01:52:75:4a:d6:fa:8a:55:e3:64:c8:b7:43:
+         8f:11:5b:7a:ab:16:8b:b1:d4:a8:2a:cb:fa:8b:44:81:06:bb:
+         13:3f:00:15:be:7f:42:11:39:d1:7c:c5:0a:3a:8c:42:ee:c3:
+         74:1a:8b:d3:bc:6d:57:69:c6:dd:24:d8:53:cd:97:92:06:51:
+         56:bc:71:d5:8d:43:25:45:01:25:41:75:3c:bb:c9:9f:b7:c5:
+         34:f5:13:50:c2:84:35:e6:89:3e:bc:b3:51:ea:bc:fc:1a:a7:
+         69:cc:5b:fb:90:1f:2a:92:19:14:1f:75:4f:65:c3:45:ee:db:
+         78:70:de:c8:57:bd:aa:b1:88:03:34:bf:07:9a:ee:51:76:70:
+         b6:38:d9:41:02:d6:62:7f:a7:3d:1d:67:a8:9e:5e:db:0f:b7:
+         da:cf:7f:7b:2e:c7:85:2b:f1:06:e4:12:16:b6:37:04:cb:6a:
+         53:53:7c:78
+----
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/Generating_CA_Signing_Certificate[Generating CA Signing Certificate]
+* link:https://www.dogtagpki.org/wiki/Issuing_CA_Signing_Certificate_with_NSS[Issuing CA Signing Certificate with NSS]
+* link:Creating-Self-Signed-CA-Signing-Certificate-with-NSS[Creating Self-Signed CA Signing Certificate with NSS]
