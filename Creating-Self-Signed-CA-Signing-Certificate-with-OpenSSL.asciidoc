@@ -1,0 +1,178 @@
+= Overview =
+
+This page describes the several procedures to generate self-signed CA signing certificate using OpenSSL. 
+
+= Simplified Procedure =
+
+== Creating CA Signing Certificate with New Key ==
+
+To generate a self-signed CA signing certificate with a new key:
+
+----
+$ openssl req \
+    -newkey rsa:2048 \
+    -nodes \
+    -keyout ca_signing.key \
+    -x509 \
+    -days 365 \
+    -subj "/O=EXAMPLE/CN=CA Signing Certificate"
+    -out ca_signing.crt \
+----
+
+== Creating CA Signing Certificate with Existing Key ==
+
+To generate a self-signed CA certificate with an existing key:
+
+----
+$ openssl req \
+    -new \
+    -nodes \
+    -key ca_signing.key \
+    -x509 \
+    -days 365 \
+    -subj "/O=EXAMPLE/CN=CA Signing Certificate" \
+    -out ca_signing.crt \
+----
+
+= Advanced Procedure =
+
+Prepare an OpenSSL configuration file (e.g. openssl.cfg):
+
+----
+HOME            = tmp
+RANDFILE        = tmp/random.bin
+
+####################################################################
+[ ca ]
+default_ca = CA_default        # The default ca section
+
+[ CA_default ]
+default_days    = 1000          # how long to certify for
+default_crl_days = 30           # how long before next CRL
+default_md  = sha256            # use public key default MD
+preserve    = no                # keep passed DN ordering
+
+x509_extensions = ca_extensions # The extensions to add to the cert
+
+email_in_dn = no                # Don't concat the email in the DN
+copy_extensions = copy          # Required to copy SANs from CSR to cert
+
+####################################################################
+[ req ]
+default_bits        = 4096
+default_keyfile     = tmp/external.key
+distinguished_name  = ca_distinguished_name
+x509_extensions     = ca_extensions
+string_mask         = utf8only
+
+####################################################################
+[ ca_distinguished_name ]
+countryName                    = Country Name (2 letter code)
+countryName_default            = US
+
+stateOrProvinceName            = State or Province Name (full name)
+stateOrProvinceName_default    = Maryland
+
+localityName                   = Locality Name (eg, city)
+localityName_default           = Baltimore
+
+organizationName               = Organization Name (eg, company)
+organizationName_default       = Test CA, Limited
+
+organizationalUnitName         = Organizational Unit (eg, division)
+organizationalUnitName_default = Server Research Department
+
+commonName                     = Common Name (e.g. server FQDN or YOUR name)
+commonName_default             = Test CA
+
+emailAddress                   = Email Address
+emailAddress_default           = test@example.com
+
+####################################################################
+[ ca_extensions ]
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always, issuer
+basicConstraints = critical, CA:true
+keyUsage = critical, digitalSignature, nonRepudiation, keyCertSign, cRLSign
+----
+
+Then execute the following command:
+
+----
+$ openssl req \
+   -config openssl.cfg \
+   -nodes \
+   -keyout ca_signing.key \
+   -x509 \
+   -days 365 \
+   -subj "/O=EXAMPLE,CN=CA Signing Certificate" \
+   -out ca_signing.crt
+----
+
+= Verification =
+
+----
+$ openssl x509 -text -noout -in ca_signing.crt
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            c1:e2:0d:78:e7:67:52:7a
+    Signature Algorithm: sha256WithRSAEncryption
+        Issuer: O = EXAMPLE, CN = CA Signing Certificate
+        Validity
+            Not Before: Mar  5 17:43:21 2019 GMT
+            Not After : Mar  4 17:43:21 2020 GMT
+        Subject: O = EXAMPLE, CN = CA Signing Certificate
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:c0:ef:ee:8b:e4:0f:e2:55:11:d9:4b:9d:c6:03:
+                    9e:1c:db:2c:ec:f6:73:70:f7:ed:fa:1b:b9:f9:c7:
+                    1c:dc:0d:3b:07:cb:66:3f:16:74:10:b3:c0:62:6f:
+                    f9:71:85:f8:3d:89:21:c2:b2:63:06:0f:47:e1:ce:
+                    83:ec:42:96:1b:ae:56:57:84:80:c5:6f:83:13:3e:
+                    1d:ca:4c:e2:17:b2:04:3d:90:73:33:68:d5:d7:d7:
+                    41:10:72:d8:05:ef:46:7f:01:ca:1f:90:eb:36:cd:
+                    ed:5a:0d:bb:c6:5a:31:03:b1:67:1f:66:10:08:83:
+                    67:b5:b1:1d:5a:c4:a7:66:b8:42:b2:3a:23:d8:0a:
+                    63:a4:b2:10:74:73:55:3e:3c:24:49:4b:16:89:30:
+                    86:43:29:17:cb:e1:82:d8:f4:5f:1a:f9:10:42:18:
+                    c8:23:0e:ce:f6:4b:b6:97:b2:1f:c3:d4:ae:2d:c2:
+                    bf:f8:57:d5:16:4a:8d:6a:8a:2d:22:52:2a:2a:e7:
+                    64:b8:59:a0:41:33:5e:db:0e:9a:87:9e:64:17:91:
+                    89:a6:e2:74:f2:ec:c6:a3:df:58:5c:78:f8:10:bb:
+                    b7:95:70:e4:56:88:b7:69:8f:87:ea:ba:6e:36:62:
+                    a4:ee:2e:5b:3f:e9:e1:af:70:a6:a6:a4:bb:38:0d:
+                    b1:85
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Subject Key Identifier: 
+                2B:E5:7D:8F:4E:CC:05:6C:62:92:44:A2:AA:FB:41:F8:2E:3B:DB:F9
+            X509v3 Authority Key Identifier: 
+                keyid:2B:E5:7D:8F:4E:CC:05:6C:62:92:44:A2:AA:FB:41:F8:2E:3B:DB:F9
+
+            X509v3 Basic Constraints: critical
+                CA:TRUE
+    Signature Algorithm: sha256WithRSAEncryption
+         70:75:95:68:d3:e9:b3:f5:8c:09:24:e9:e4:d5:c0:15:36:a4:
+         6a:06:a1:83:06:57:77:d6:40:63:a6:59:03:f9:4f:bf:a7:1c:
+         a9:14:8c:d3:11:00:2a:02:da:11:65:ca:9c:17:f2:a4:3b:d1:
+         5e:4e:e1:4f:aa:ae:7c:43:3f:71:1a:4f:5c:cf:b0:e0:74:c7:
+         80:c8:22:ba:45:82:e7:4b:f4:4a:a7:49:b2:74:92:f4:b3:dd:
+         ac:30:3b:cc:7f:36:fc:7b:4d:ab:42:9d:c9:93:c3:d7:35:e1:
+         ea:9e:93:6a:6e:85:c4:16:bf:11:f3:5a:46:83:1d:df:56:c4:
+         fa:d9:24:57:ed:6d:2b:27:64:62:b6:03:fc:9b:0c:29:d4:03:
+         90:43:78:24:83:6f:98:2e:7d:37:7c:81:b4:b8:c1:2d:4d:c1:
+         87:1b:6e:b4:32:1e:72:c9:94:57:08:17:86:8b:91:b6:2e:5f:
+         56:e7:71:8a:7c:a5:0b:f7:a5:9d:c2:fe:87:c0:fb:20:49:bc:
+         f1:0b:4d:a1:e3:0c:2e:34:31:37:63:14:57:cc:41:33:d9:b3:
+         00:57:da:28:a6:a0:64:3f:3e:ba:01:1a:0e:fe:ac:b8:36:ba:
+         4e:40:1d:f7:f7:a2:8f:d5:d5:7d:12:4b:3a:37:22:9b:c7:87:
+         48:e1:83:d2
+----
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/Generating_CA_Signing_Certificate[Generating CA Signing Certificate]
