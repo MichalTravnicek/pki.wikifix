@@ -1,0 +1,18 @@
+= Generating CSR =
+
+----
+$ PKCS10Client \
+   -d /etc/pki/pki-tomcat/alias \
+   -h HSM \
+   -p Secret.123 \
+   -a ec \
+   -c nistp256 \
+   -n "cn=CA Signing Certificate,o=EXAMPLE" \
+   -y true \
+   -o ca_signing.csr
+----
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/Generating_CA_Signing_Certificate[Generating CA Signing Certificate]
+* link:https://www.dogtagpki.org/wiki/PKCS10Client[PKCS10Client]
