@@ -1,0 +1,96 @@
+= Overview =
+
+This page describes the process to issue CA signing certificate using NSS provided the CA signing CSR.
+
+This page assumes an NSS database has been created as follows: 
+
+----
+$ echo Secret.123 > password.txt
+$ openssl rand -out noise.bin 2048
+$ mkdir nssdb
+$ certutil -N -d nssdb -f password.txt
+----
+
+= Issuing Self-signed CA Signing Certificate =
+
+If the CSR was generated in the same NSS database, it can be self-signed with the following commands:
+
+----
+$ CA_SKID="0x`openssl rand -hex 20`"
+$ OCSP="http://$HOSTNAME:8080/ca/ocsp"
+$ echo -e "y\n\ny\ny\n${CA_SKID}\n\n\n\n${CA_SKID}\n\n2\n7\n${OCSP}\n\n\n\n" | \
+   certutil -C \
+   -x \
+   -d nssdb \
+   -f password.txt \
+   -m $RANDOM \
+   -a \
+   -i ca_signing.csr \
+   -o ca_signing.crt \
+   -2 \
+   -3 \
+   --extAIA \
+   --extSKID \
+   --keyUsage critical,certSigning,crlSigning,digitalSignature,nonRepudiation
+----
+
+It will generate the CA signing certificate in ca_signing.crt.
+
+= Issuing CA Signing Certificate with Another CA =
+
+Regardless where the CSR was generated, it can be signed by another CA signing certificate.
+
+For example, create a self-signed root CA signing certificate with the following commands:
+
+----
+$ ROOTCA_SKID="0x`openssl rand -hex 20`"
+$ OCSP="http://$HOSTNAME:8080/ca/ocsp"
+$ echo -e "y\n\ny\ny\n${ROOTCA_SKID}\n\n\n\n${ROOTCA_SKID}\n\n2\n7\n${OCSP}\n\n\n\n" | \
+   certutil -S \
+   -x \
+   -d nssdb \
+   -f password.txt \
+   -z noise.bin \
+   -n "Root CA Signing Certificate" \
+   -s "CN=Root CA Signing Certificate,O=ROOT" \
+   -t "CT,C,C" \
+   -m $RANDOM\
+   -k rsa \
+   -g 2048 \
+   -Z SHA256 \
+   -2 \
+   -3 \
+   --extAIA \
+   --extSKID \
+   --keyUsage critical,certSigning,crlSigning,digitalSignature,nonRepudiation
+$ certutil -L -d nssdb -n "Root CA Signing Certificate" -a > external.crt
+----
+
+Then sign the CSR with the root CA signing certificate with the following commands:
+
+----
+$ CA_SKID="0x`openssl rand -hex 20`"
+$ echo -e "y\n\ny\ny\n${ROOTCA_SKID}\n\n\n\n${CA_SKID}\n\n2\n7\n${OCSP}\n\n\n\n" | \
+   certutil -C \
+   -d nssdb \
+   -f password.txt \
+   -m $RANDOM \
+   -a \
+   -i ca_signing.csr \
+   -o ca_signing.crt \
+   -c "Root CA Signing Certificate" \
+   -2 \
+   -3 \
+   --extAIA \
+   --extSKID \
+   --keyUsage critical,certSigning,crlSigning,digitalSignature,nonRepudiation
+----
+
+It will generate the CA signing certificate in ca_signing.crt.
+
+= References =
+
+* link:https://www.dogtagpki.org/wiki/Generating_CA_Signing_Certificate[Generating CA Signing Certificate]
+* link:Generating-CA-Signing-CSR-with-NSS[Generating CA Signing CSR with NSS]
+* link:Creating-Self-Signed-CA-Signing-Certificate-with-NSS[Creating Self-Signed CA Signing Certificate with NSS]
+* link:https://www.dogtagpki.org/wiki/Installing_CA_with_External_CA_Signing_Certificate[Installing CA with External CA Signing Certificate]
