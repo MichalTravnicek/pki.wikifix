@@ -1,0 +1,273 @@
+= Overview =
+
+This document describes the procedure to enable certificate revocation checking.
+
+= Internal Certificate Revocation Checking =
+
+The CA subsystem has an internal certificate revocation checking functionality which is enabled by default.
+
+To configure the internal certificate revocation checking, edit /var/lib/pki/pki-tomcat/ca/conf/CS.cfg:
+
+----
+auths.revocationChecking.enabled=true
+auths.revocationChecking.ca=ca
+auths.revocationChecking.bufferSize=50
+auths.revocationChecking.unknownStateInterval=0
+auths.revocationChecking.validityInterval=120
+----
+
+If necessary (e.g. for testing), the cache can be disabled:
+
+----
+auths.revocationChecking.validityInterval=1
+----
+
+Then restart the server.
+
+= External Certificate Revocation Checking =
+
+Subsystems other than CA can utilize an external certificate revocation checking. This functionality is disabled by default.
+
+*Note:* This functionality is currently not working and will be fixed in link:https://github.com/dogtagpki/pki/issues/1764[Ticket #1764].
+
+To enable the external certificate revocation checking, edit the subsystem's CS.cfg:
+
+----
+auths.revocationChecking.enabled=true 
+auths.revocationChecking.kra=kra
+auths.revocationChecking.bufferSize=50
+auths.revocationChecking.unknownStateInterval=0
+auths.revocationChecking.validityInterval=120
+auths.revocationChecking.url=http://server.example.com:8080/ca/ocsp
+----
+
+If necessary (e.g. for testing), the cache can be disabled:
+
+----
+auths.revocationChecking.validityInterval=1
+----
+
+Then restart the server.
+
+= Global Certificate Revocation Checking =
+
+Each PKI instance can be configured to use a global certificate revocation checking. The configuration is located in /var/lib/pki/pki-tomcat/conf/server.xml. See link:https://www.dogtagpki.org/wiki/Tomcat_JSS[Tomcat JSS]. This functionality requires a separate OCSP responder.
+
+When the global certificate revocation checking is enabled all certificate validations in the server instance will be performed against the specified OCSP responder. This includes system certificate validations during server startup and client certificate validations on incoming SSL connections.
+
+*Note:*
+
+* The OCSP responder URL cannot point to the CA running on the same instance. The server will fail to start. The default OCSP responder URL does point to the same server, so it needs to be changed to work properly.
+* The OCSP responder URL must use a plain HTTP protocol.
+
+== Installing OCSP signing certificate ==
+
+If the OCSP signing certificate is already trusted by the instance (e.g. issued by the same CA), this step is optional.
+
+Otherwise, the OCSP signing certificate needs to be exported from the OCSP responder and imported into the NSS database.
+
+To export OCSP signing certificate from PKI 10.2.x or earlier:
+
+----
+$ certutil -L -d /var/lib/pki/pki-tomcat/alias -n "ocspSigningCert cert-pki-tomcat CA" -a > ocsp_signing.crt
+----
+
+To export OCSP signing certificate from PKI 10.3.x or later:
+
+----
+$ pki-server subsystem-cert-export ca ocsp_signing --cert-file ocsp_signing.crt
+----
+
+To import the OCSP signing certificate into the instance:
+
+----
+$ certutil -A -d /var/lib/pki/pki-tomcat/alias -n "ocspSigningCert cert-pki-tomcat CA" -t "C,," -i ocsp_signing.crt
+----
+
+Verify the import with the following command:
+
+----
+$ certutil -L -d /var/lib/pki/pki-tomcat/alias
+
+Certificate Nickname                                         Trust Attributes
+                                                             SSL,S/MIME,JAR/XPI
+
+ocspSigningCert cert-pki-tomcat CA                           C,,
+----
+
+== Enabling global certificate revocation checking ==
+
+To enable global certificate revocation checking, edit /var/lib/pki/pki-tomcat/conf/server.xml and configure the parameters in the "Secure" Connector:
+
+----
+<Connector name="Secure"
+   ...
+    enableOCSP="true"
+    ocspResponderURL="http://another-server.example.com:8080/ca/ocsp"
+    ocspResponderCertNickname="ocspSigningCert cert-pki-tomcat CA"
+    ...>
+
+</Connector>
+----
+
+The `ocspResponderURL` must point to the OCSP responder running on a separate server.
+
+The `ocspResponderCertNickname` must point to the CA signing certificate or the imported OCSP signing certificate.
+
+If necessary (e.g. for testing) the cache can be disabled:
+
+----
+    ocspMinCacheEntryDuration="0"
+    ocspMaxCacheEntryDuration="0"
+----
+
+Then restart the server.
+
+= Verification =
+
+== CA subsystem verification ==
+
+These verification steps assume that a CA is running with revocation checking enabled and a test user has been created with admin privileges and a certificate has been issued for the user. See link:https://www.dogtagpki.org/wiki/CA_Admin_Setup[CA Admin Setup].
+
+Execute a test command authenticated with the test user's certificate:
+
+----
+$ pki -c Secret.123 -n testuser ca-user-find
+-----------------
+4 entries matched
+-----------------
+  User ID: CA-server.example.com-8443
+  Full name: CA-server.example.com-8443
+
+  User ID: caadmin
+  Full name: caadmin
+
+  User ID: pkidbuser
+  Full name: pkidbuser
+
+  User ID: testuser
+  Full name: Test User
+----------------------------
+Number of entries returned 4
+----------------------------
+----
+
+As the default CA admin revoke the test user's certificate using its serial number:
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-cert-hold 0x1a --force
+---------------------------------
+Placed certificate "0x1a" on-hold
+---------------------------------
+  Serial Number: 0x1a
+  Issuer: CN=CA Signing Certificate,O=EXAMPLE
+  Subject: UID=testuser
+  Status: REVOKED
+  Not Before: Thu Jun 23 05:18:02 CEST 2016
+  Not After: Tue Dec 20 05:18:02 CET 2016
+  Revoked On: Thu Jun 23 05:41:19 CEST 2016
+  Revoked By: caadmin
+----
+
+Re-run the test command, it should no longer work:
+
+----
+$ pki -c Secret.123 -n testuser ca-user-find
+PKIException: Unauthorized
+----
+
+Unrevoke the test user's certificate:
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-cert-release-hold 0x1a --force
+----------------------------------
+Placed certificate "0x1a" off-hold
+----------------------------------
+  Serial Number: 0x1a
+  Issuer: CN=CA Signing Certificate,O=EXAMPLE
+  Subject: UID=testuser
+  Status: VALID
+  Not Before: Thu Jun 23 05:18:02 CEST 2016
+  Not After: Tue Dec 20 05:18:02 CET 2016
+----
+
+Re-run the test command, it should work again.
+
+Finally, restore the validity interval to the original value and restart the server.
+
+== Other subsystem verification ==
+
+These verification steps assume that a CA is running on one instance with revocation checking enabled and another subsystem, for example KRA, is running on a separate instance with external/global certificate revocation checking pointing to the CA.
+
+On the KRA execute a test command using client certificate authentication:
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/kra/alias -c Secret.123 -n kraadmin kra-user-find
+-----------------
+3 entries matched
+-----------------
+  User ID: kraadmin
+  Full name: kraadmin
+
+  User ID: pkidbuser
+  Full name: pkidbuser
+
+  User ID: CA-server.example.com-8443
+  Full name: CA-server.example.com-8443
+----------------------------
+Number of entries returned 3
+----------------------------
+----
+
+On the CA revoke the client certificate using its serial number:
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-cert-hold 0x18 --force
+---------------------------------
+Placed certificate "0x18" on-hold
+---------------------------------
+  Serial Number: 0x18
+  Issuer: CN=CA Signing Certificate,O=EXAMPLE
+  Subject: CN=PKI Administrator,E=kraadmin@example.com,O=EXAMPLE
+  Status: REVOKED
+  Not Before: Thu Jun 23 00:14:19 CEST 2016
+  Not After: Fri Jun 23 00:14:19 CEST 2017
+  Revoked On: Thu Jun 23 04:11:07 CEST 2016
+  Revoked By: caadmin
+----
+
+Re-run the test command on the KRA, it should no longer work:
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/kra/alias -c Secret.123 -n kraadmin kra-user-find
+IOException: SocketException cannot write on socket
+----
+
+Unrevoke the client certificate on the CA:
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-cert-release-hold 0x18 --force
+----------------------------------
+Placed certificate "0x18" off-hold
+----------------------------------
+  Serial Number: 0x18
+  Issuer: CN=CA Signing Certificate,O=EXAMPLE
+  Subject: CN=PKI Administrator,E=kraadmin@example.com,O=EXAMPLE
+  Status: VALID
+  Not Before: Thu Jun 23 00:14:19 CEST 2016
+  Not After: Fri Jun 23 00:14:19 CEST 2017
+----
+
+Re-run the test command on the KRA, it should work again.
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/OCSP[OCSP]
+* link:https://www.dogtagpki.org/wiki/CRL[CRL]
+* link:https://www.dogtagpki.org/wiki/Tomcat_JSS[Tomcat JSS]
+* link:https://access.redhat.com/documentation/en-US/Red_Hat_Certificate_System/8.1/html/Admin_Guide/revocation-checking.html[Enabling Revocation Checking]
+* link:https://github.com/dogtagpki/pki/issues/1697[Ticket #1697: Inconsistent cert revocation checking]
+* link:https://github.com/dogtagpki/pki/issues/1745[Ticket #1745: Steps for enabling ocsp checking for DRM does not give the expected results]
+* link:https://github.com/dogtagpki/pki/issues/1764[Ticket #1764: Revocation Checking issue with client certs and shared PKI instances]
+* link:https://github.com/dogtagpki/pki/issues/1812[Ticket #1812: Missing RA subsystem module]
+
