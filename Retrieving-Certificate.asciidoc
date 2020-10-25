@@ -1,0 +1,171 @@
+= Displaying Certificate Info =
+
+----
+$ pki ca-cert-show 0x7
+-----------------
+Certificate "0x7"
+-----------------
+  Serial Number: 0x7
+  Issuer: CN=CA Signing Certificate,O=EXAMPLE
+  Subject: UID=testuser
+  Status: VALID
+  Not Before: Mon Apr 04 17:01:12 CEST 2016
+  Not After: Sat Oct 01 17:01:12 CEST 2016
+----
+
+= Displaying Certificate Details =
+
+----
+$ pki ca-cert-show 0x7 --pretty
+-----------------
+Certificate "0x7"
+-----------------
+  Serial Number: 0x7
+  Issuer: CN=CA Signing Certificate,O=EXAMPLE
+  Subject: UID=testuser
+  Status: VALID
+  Not Before: Mon Apr 04 17:01:12 CEST 2016
+  Not After: Sat Oct 01 17:01:12 CEST 2016
+
+    Certificate:
+        Data:
+            Version:  v3
+            Serial Number: 0x7
+            Signature Algorithm: SHA256withRSA - 1.2.840.113549.1.1.11
+            Issuer: CN=CA Signing Certificate,O=EXAMPLE
+            Validity:
+                Not Before: Monday, April 4, 2016 5:01:12 PM CEST Europe/Prague
+                Not  After: Saturday, October 1, 2016 5:01:12 PM CEST Europe/Prague
+            Subject: UID=testuser
+            Subject Public Key Info:
+                Algorithm: RSA - 1.2.840.113549.1.1.1
+                Public Key:
+                    Exponent: 65537
+                    Public Key Modulus: (1024 bits) :
+                        B8:5F:68:0A:BD:45:5A:4B:A8:41:40:5D:B3:C8:98:DE:
+                        F2:33:EF:C8:8F:67:13:E9:0B:9A:57:FB:7C:61:A8:48:
+                        16:6C:99:29:4C:A4:DD:F2:FD:32:FD:68:61:E3:AD:97:
+                        C4:69:52:06:95:B5:66:2C:00:39:1F:D1:3E:43:FE:1F:
+                        91:BB:87:73:47:D7:4D:94:D6:CE:62:58:63:0A:65:26:
+                        F9:75:E5:99:72:32:6D:2E:D7:21:D5:B9:F4:9E:D8:E1:
+                        A6:66:6E:49:A0:11:FF:66:FF:C3:D9:47:66:08:D4:75:
+                        94:6C:E6:5D:B2:FF:AC:59:99:5C:8D:6A:C9:C1:3B:D7
+            Extensions:
+                Identifier: Authority Key Identifier - 2.5.29.35
+                    Critical: no
+                    Key Identifier:
+                        24:75:FC:22:D6:EC:A9:9A:BA:37:EE:D9:A4:EC:A8:1C:
+                        68:C4:E7:E6
+                Identifier: Authority Info Access: - 1.3.6.1.5.5.7.1.1
+                    Critical: no
+                    Access Description:
+                        Method #0: ocsp
+                        Location #0: URIName: http://server.example.com:8080/ca/ocsp
+                Identifier: Key Usage: - 2.5.29.15
+                    Critical: yes
+                    Key Usage:
+                        Digital Signature
+                        Non Repudiation
+                        Key Encipherment
+                Identifier: Extended Key Usage: - 2.5.29.37
+                    Critical: no
+                    Extended Key Usage:
+                        1.3.6.1.5.5.7.3.2
+                        1.3.6.1.5.5.7.3.4
+        Signature:
+            Algorithm: SHA256withRSA - 1.2.840.113549.1.1.11
+            Signature:
+                20:42:71:2E:5E:11:FE:4F:7D:94:E4:0B:DE:3C:57:1A:
+                31:BA:6B:67:DD:62:45:4C:55:94:60:98:9E:D8:BE:59:
+                22:8C:2C:15:47:9B:11:F8:35:A5:E3:44:34:4C:2C:CC:
+                CD:53:69:BF:2C:C4:D4:2A:B1:51:EC:3B:AA:86:9E:ED:
+                EB:4D:EB:47:B9:AD:80:81:80:1D:C8:49:3D:5C:4B:D8:
+                1F:83:06:33:BF:59:8C:F5:E4:04:15:22:E8:0A:33:46:
+                7D:63:95:4D:B2:E5:7C:34:3B:E1:8C:F7:3D:A2:97:2D:
+                1D:4C:41:42:58:66:77:62:51:93:49:AF:41:8B:F6:75:
+                91:FC:B0:67:41:B6:50:24:2D:16:B7:9D:E4:4F:F7:A6:
+                1E:D6:4F:0D:78:B9:DC:C4:62:C9:97:7F:EA:E5:40:22:
+                6E:86:A7:99:50:2F:35:92:F0:E2:32:6D:86:24:E5:26:
+                64:26:87:67:81:BB:16:93:FE:83:48:1A:97:85:B9:EB:
+                44:F9:CA:80:83:9B:AE:DD:74:5E:D7:1E:F2:C8:FF:A2:
+                65:1E:F9:B7:C6:00:55:1C:9C:4F:86:85:B8:38:C5:FD:
+                EC:76:AD:EC:20:70:54:FB:40:33:3E:AB:23:80:D5:11:
+                53:4D:EF:57:1D:1E:D6:9F:83:AF:77:45:54:6E:2E:08
+        FingerPrint
+            MD2:
+                44:37:24:D7:00:9C:A9:8B:9D:30:0A:FA:0F:3C:9D:E1
+            MD5:
+                F1:02:80:A1:8A:F5:40:03:8E:21:F4:DC:4C:B2:A4:47
+            SHA-1:
+                02:47:85:67:AF:43:17:68:D7:A8:BB:00:06:35:51:9D:
+                EC:FB:15:04
+            SHA-256:
+                A1:FD:BF:D0:A7:64:8A:3B:C2:52:AC:39:2B:48:66:2D:
+                02:41:24:0E:DC:B6:11:BD:6B:58:6A:DA:C0:5D:3C:1B
+            SHA-512:
+                67:C6:4B:E8:F4:7B:8B:A1:5C:52:CE:34:A7:CE:42:BE:
+                E3:87:85:BD:A7:E9:06:2D:55:94:4F:15:ED:67:66:AF:
+                6F:57:B0:34:2C:BC:44:3A:95:41:86:38:E4:D5:A5:E0:
+                83:DD:77:EA:1D:CD:6C:96:A0:E5:32:25:0E:C8:D9:10
+----
+
+= Displaying PEM Certificate =
+
+----
+$ pki ca-cert-show 0x7 --encoded
+-----------------
+Certificate "0x7"
+-----------------
+  Serial Number: 0x7
+  Issuer: CN=CA Signing Certificate,O=EXAMPLE
+  Subject: UID=testuser
+  Status: VALID
+  Not Before: Mon Apr 04 17:01:12 CEST 2016
+  Not After: Sat Oct 01 17:01:12 CEST 2016
+
+-----BEGIN CERTIFICATE-----
+MIIC8zCCAdugAwIBAgIBBzANBgkqhkiG9w0BAQsFADAzMRAwDgYDVQQKDAdFWEFN
+UExFMR8wHQYDVQQDDBZDQSBTaWduaW5nIENlcnRpZmljYXRlMB4XDTE2MDQwNDE1
+MDExMloXDTE2MTAwMTE1MDExMlowGjEYMBYGCgmSJomT8ixkAQEMCHRlc3R1c2Vy
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC4X2gKvUVaS6hBQF2zyJje8jPv
+yI9nE+kLmlf7fGGoSBZsmSlMpN3y/TL9aGHjrZfEaVIGlbVmLAA5H9E+Q/4fkbuH
+c0fXTZTWzmJYYwplJvl15ZlyMm0u1yHVufSe2OGmZm5JoBH/Zv/D2UdmCNR1lGzm
+XbL/rFmZXI1qycE71wIDAQABo4GuMIGrMB8GA1UdIwQYMBaAFCR1/CLW7Kmaujfu
+2aTsqBxoxOfmMFkGCCsGAQUFBwEBBE0wSzBJBggrBgEFBQcwAYY9aHR0cDovL3Zt
+LTA1OC0xMDAuYWJjLmlkbS5sYWIuZW5nLmJycS5yZWRoYXQuY29tOjgwODAvY2Ev
+b2NzcDAOBgNVHQ8BAf8EBAMCBeAwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUF
+BwMEMA0GCSqGSIb3DQEBCwUAA4IBAQAgQnEuXhH+T32U5AvePFcaMbprZ91iRUxV
+lGCYnti+WSKMLBVHmxH4NaXjRDRMLMzNU2m/LMTUKrFR7Duqhp7t603rR7mtgIGA
+HchJPVxL2B+DBjO/WYz15AQVIugKM0Z9Y5VNsuV8NDvhjPc9opctHUxBQlhmd2JR
+k0mvQYv2dZH8sGdBtlAkLRa3neRP96Ye1k8NeLncxGLJl3/q5UAiboanmVAvNZLw
+4jJthiTlJmQmh2eBuxaT/oNIGpeFuetE+cqAg5uu3XRe1x7yyP+iZR75t8YAVRyc
+T4aFuDjF/ex2rewgcFT7QDM+qyOA1RFTTe9XHR7Wn4Ovd0VUbi4I
+-----END CERTIFICATE-----
+----
+
+= Importing Certificate into Client NSS Database =
+
+----
+$ pki -c Secret.123 client-cert-import testuser --serial 0x7
+-------------------------------
+Imported certificate "testuser"
+-------------------------------
+----
+
+----
+$ pki -c Secret.123 client-cert-find
+----------------------
+1 certificate(s) found
+----------------------
+  Serial Number: 0x7
+  Nickname: testuser
+  Subject DN: UID=testuser
+  Issuer DN: CN=CA Signing Certificate,O=EXAMPLE
+----------------------------
+Number of entries returned 1
+----------------------------
+----
+
+= References =
+
+* link:https://www.dogtagpki.org/wiki/Certificate_Management[Certificate Management]
