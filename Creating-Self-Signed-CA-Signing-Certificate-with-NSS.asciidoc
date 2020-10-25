@@ -1,0 +1,102 @@
+= Overview =
+
+This page describes the several procedures to generate self-signed CA signing certificate using NSS.
+
+This page assumes an NSS database has been created as follows:
+
+----
+$ echo Secret.123 > password.txt
+$ openssl rand -out noise.bin 2048
+$ mkdir nssdb
+$ certutil -N -d nssdb -f password.txt
+----
+
+= Simplified Procedure =
+
+Issue the certificate with the following commands:
+
+----
+$ openssl rand -out noise.bin 2048
+$ CA_SKID="0x`openssl rand -hex 20`"
+$ OCSP="http://$HOSTNAME:8080/ca/ocsp"
+$ echo -e "y\n\ny\ny\n${CA_SKID}\n\n\n\n${CA_SKID}\n\n2\n7\n${OCSP}\n\n\n\n" | \
+ certutil -S \
+ -x \
+ -d nssdb \
+ -f password.txt \
+ -z noise.bin \
+ -n "CA Signing Certificate" \
+ -s "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE" \
+ -t "CT,C,C" \
+ -m $RANDOM \
+ -k rsa \
+ -g 2048 \
+ -Z SHA256 \
+ -2 \
+ -3 \
+ --keyUsage critical,certSigning,crlSigning,digitalSignature,nonRepudiation \
+ --extAIA \
+ --extSKID
+$ certutil -L -d nssdb -n "CA Signing Certificate" -a > ca_signing.crt
+----
+
+It will generate the certificate in ca_signing.crt.
+
+= Advanced Procedure =
+
+== Generating Certificate Request ==
+
+Generate a CSR with the following commands:
+
+----
+$ openssl rand -out noise.bin 2048
+$ echo -e "y\n\ny\n" | \
+ certutil -R \
+ -d nssdb \
+ -f password.txt \
+ -z noise.bin \
+ -s "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE" \
+ -o ca_signing.csr.der \
+ -k rsa \
+ -g 2048 \
+ -Z SHA256 \
+ -2 \
+ --keyUsage critical,certSigning,crlSigning,digitalSignature,nonRepudiation
+$ openssl req -inform der -in ca_signing.csr.der -out ca_signing.csr
+----
+
+It will generate the CSR in ca_signing.csr.
+
+See also link:https://www.dogtagpki.org/wiki/Generating_CA_Signing_CSR_with_NSS[Generating CA Signing CSR with NSS].
+
+== Issuing Certificate ==
+
+Sign the CSR with the following commands:
+
+----
+$ CA_SKID="0x`openssl rand -hex 20`"
+$ OCSP="http://$HOSTNAME:8080/ca/ocsp"
+$ echo -e "y\n\ny\ny\n${CA_SKID}\n\n\n\n${CA_SKID}\n\n2\n7\n${OCSP}\n\n\n\n" | \
+ certutil -C \
+ -x \
+ -d nssdb \
+ -f password.txt \
+ -m $RANDOM \
+ -a \
+ -i ca_signing.csr \
+ -o ca_signing.crt \
+ -2 \
+ -3 \
+ --keyUsage critical,certSigning,crlSigning,digitalSignature,nonRepudiation \
+ --extAIA \
+ --extSKID
+$ certutil -A -d nssdb -n "CA Signing Certificate" -i ca_signing.crt -t "CT,C,C"
+----
+
+It will generate the CA signing certificate in ca_signing.crt.
+
+= See Also =
+
+* link:NSS-Database[NSS Database]
+* link:https://www.dogtagpki.org/wiki/Generating_CA_Signing_Certificate[Generating CA Signing Certificate]
+* link:https://www.dogtagpki.org/wiki/Creating_Self-Signed_SSL_Server_Certificate_with_NSS[Creating Self-Signed SSL Server Certificate with NSS]
