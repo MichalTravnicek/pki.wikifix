@@ -1,0 +1,24 @@
+= Overview =
+
+This document describes how to handle certificate requests as a CA agent. See also link:https://www.dogtagpki.org/wiki/CA_Agent_Setup[CA Agent Setup].
+
+= Approving Certificate Request =
+
+As a CA agent, a certificate request can be approved with the following command:
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-cert-request-review 6 --action approve
+------------------------------
+Approved certificate request 6
+------------------------------
+  Request ID: 6
+  Type: enrollment
+  Request Status: complete
+  Operation Result: success
+  Certificate ID: 0x6
+----
+
+= References =
+
+* link:https://www.dogtagpki.org/wiki/Certificate_Management[Certificate Management]
+* link:PKI-CA-Certificate-Request-CLI[PKI CA Certificate Request CLI]
