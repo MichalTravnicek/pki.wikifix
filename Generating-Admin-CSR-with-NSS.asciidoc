@@ -1,0 +1,90 @@
+= Generating CSR =
+
+----
+$ certutil -R \
+   -d nssdb \
+   -f password.txt \
+   -z noise.bin \
+   -s "CN=PKI Administrator,E=admin@example.com,OU=pki-tomcat,O=EXAMPLE" \
+   -o admin.csr.der \
+   -k rsa \
+   -g 2048 \
+   -Z SHA256 \
+   --keyUsage critical,dataEncipherment,keyEncipherment,digitalSignature,nonRepudiation \
+   --extKeyUsage clientAuth,emailProtection
+$ openssl req -inform der -in admin.csr.der -out admin.csr
+----
+
+= Restoring CSR =
+
+If the CSR is missing, it can be restored from the existing certificate and key with the following commands:
+
+----
+$ certutil -R \
+   -d nssdb \
+   -f password.txt \
+   -z noise.bin \
+   -s "CN=PKI Administrator,E=admin@example.com,OU=pki-tomcat,O=EXAMPLE" \
+   -o admin.csr.der \
+   -k "admin" \
+   -g 2048 \
+   -Z SHA256 \
+   --keyUsage critical,dataEncipherment,keyEncipherment,digitalSignature,nonRepudiation \
+   --extKeyUsage clientAuth,emailProtection
+$ openssl req -inform der -in admin.csr.der -out admin.csr
+----
+
+= Verification =
+
+----
+$ openssl req -text -noout -in admin.csr
+Certificate Request:
+    Data:
+        Version: 1 (0x0)
+        Subject: O = EXAMPLE, OU = pki-tomcat, emailAddress = admin@example.com, CN = PKI Administrator
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:a5:e3:25:43:80:19:43:e6:91:e2:8a:96:6c:14:
+                    a9:40:ed:b3:ee:79:c9:cb:9c:f6:62:ab:01:76:82:
+                    46:ea:f2:be:d3:d9:38:59:06:35:ea:3b:4d:df:ac:
+                    c3:7f:24:56:99:68:8c:87:45:61:c5:0f:7e:6f:fc:
+                    b5:0b:66:59:23:d3:bc:db:6c:e7:ec:2e:1b:a7:82:
+                    3e:f9:1a:c2:5d:65:83:f9:d9:28:07:dd:8c:98:78:
+                    77:c4:9a:0d:e6:f8:13:60:c8:e7:40:54:03:df:98:
+                    c2:c0:89:f3:ff:1e:4c:44:9f:33:c1:8c:29:34:1b:
+                    5d:ab:08:47:1d:b3:68:d6:79:78:db:e4:6a:77:6b:
+                    9f:ca:1f:05:67:41:d1:38:31:39:b3:ac:6c:00:e1:
+                    e4:f8:27:71:ee:6f:1d:8a:36:b5:bd:94:52:88:f4:
+                    8c:7e:60:37:11:b2:f6:3d:88:24:71:a7:0e:69:e0:
+                    94:57:6a:aa:92:44:be:fa:bb:59:be:34:95:ac:fc:
+                    5c:6b:06:d8:b3:49:d5:c4:5f:05:d9:f7:8e:6b:ea:
+                    5c:85:6b:8a:aa:cd:36:74:6d:ca:6c:25:2a:38:65:
+                    b1:01:de:34:03:24:c8:8e:d5:12:6d:a7:e3:eb:24:
+                    a4:29:ca:51:a9:2f:80:71:07:30:84:cf:a8:a5:f2:
+                    95:ed
+                Exponent: 65537 (0x10001)
+        Attributes:
+            a0:00
+    Signature Algorithm: sha256WithRSAEncryption
+         5c:5a:3a:fe:86:6f:3c:9e:0d:b9:fc:1e:d8:62:6a:a4:3f:43:
+         33:6e:b1:61:4f:fc:a5:96:fd:1f:86:ed:70:89:95:d8:81:5f:
+         8b:f3:d0:44:46:f3:56:55:17:23:de:c9:5b:43:3a:6b:af:aa:
+         69:59:88:c1:50:77:6b:17:15:1f:e0:ac:a9:38:b7:98:b3:8d:
+         8a:11:80:84:46:1b:bb:a2:71:43:a5:c8:05:d5:28:a7:e6:fa:
+         21:3c:48:ec:89:0e:b5:f2:81:50:66:7d:c0:73:95:c8:a7:ba:
+         65:88:c9:1f:c0:cc:b3:ab:e7:fc:e7:13:7c:40:39:b0:87:37:
+         03:23:b7:c8:64:37:81:45:f2:97:5b:41:50:c5:45:99:d1:3c:
+         13:35:12:55:51:03:2f:78:e7:89:db:c0:3a:af:a5:1c:e9:aa:
+         fd:1e:d0:25:bc:3f:2d:4b:8e:69:cc:7b:97:47:af:f6:38:f8:
+         f3:04:bd:ac:8e:75:a3:7f:2f:28:11:9a:95:21:c0:6b:07:fa:
+         b2:81:f8:a5:3e:84:cf:59:14:4a:f1:ac:48:b1:a3:da:a5:c7:
+         b8:ba:7f:f1:d7:8d:07:ff:c2:63:f8:d0:32:af:3d:65:8d:ea:
+         81:73:50:ae:ce:bd:96:cd:c6:f6:25:b3:8f:83:2f:24:d3:56:
+         32:64:04:7d
+----
+
+= References =
+
+* link:https://www.dogtagpki.org/wiki/Generating_System_Certificates[Generating System Certificates]
