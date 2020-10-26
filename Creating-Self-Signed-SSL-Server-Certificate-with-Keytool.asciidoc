@@ -1,0 +1,31 @@
+= Creating Self-Signed SSL Server Certificate =
+
+To generate a certificate with RSA key:
+
+----
+$ keytool -genkeypair \
+    -keystore keystore.p12 \
+    -storetype pkcs12 \
+    -storepass Secret.123 \
+    -alias sslserver \
+    -keyalg RSA \
+    -dname "CN=$HOSTNAME" \
+    -keypass Secret.123
+----
+
+To generate a certificate with ECC key:
+
+----
+$ keytool -genkeypair \
+    -keystore keystore.p12 \
+    -storetype pkcs12 \
+    -storepass Secret.123 \
+    -alias sslserver \
+    -keyalg EC \
+    -dname "CN=$HOSTNAME" \
+    -keypass Secret.123
+----
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/Generating_SSL_Server_Certificate[Generating SSL Server Certificate]
