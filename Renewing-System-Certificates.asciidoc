@@ -1,0 +1,257 @@
+= Overview =
+
+This page describes the procedure to renew system certificates used by PKI server.
+
+Depending on the subsystems installed, PKI server uses several system certificates, for example:
+
+* CA signing certificate
+* OCSP signing certificate
+* SSL server certificate
+* Subsystem certificate
+* Audit signing certificate
+
+In order for the server to operate properly all of these certificates must be valid. The CA signing certificate usually has the longest validity range (default is 20 years). The other certificates usually have shorter validity range (e.g. 2 years). To avoid service interruption any expiring certificate should be renewed while it's still valid.
+
+Note that the default PKI user certificate also has a shorter validity range.
+
+Also note that the renewal procedure requires a running CA. If the expired system certificate was issued by a CA running on the same server, the server might fail to start and the certificate cannot be renewed since the CA is not available. If that happens, the system date needs to be moved back to a time where all system certificates were still valid before starting the renewal process.
+
+This document describes the renewal procedure using CLI in PKI 10.x. In PKI 9.x the renewal procedure needs to be done using legacy servlet interface, but it still follows the same general idea.
+
+= Identifying Certificates to Renew =
+
+First, identify the serial numbers of the certificates that are about to expire.
+
+In PKI 10.4 or later the serial numbers and the validity dates of the system certificates can be determined with the following command:
+
+----
+$ pki-server subsystem-cert-find ca
+-----------------
+5 entries matched
+-----------------
+  Cert ID: signing
+  Nickname: ca_signing
+  Token: Internal Key Storage Token
+  Serial number: 0x1
+  Issuer: CN=CA Signing Certificate, OU=pki-tomcat, O=EXAMPLE
+  Subject: CN=CA Signing Certificate, OU=pki-tomcat, O=EXAMPLE
+  Not valid before: 2016-12-06 12:49:43
+  Not valid after: 2036-12-06 12:49:43
+
+  Cert ID: ocsp_signing
+  Nickname: ca_ocsp_signing
+  Token: Internal Key Storage Token
+  Serial number: 0x2
+  Issuer: CN=CA Signing Certificate, OU=pki-tomcat, O=EXAMPLE
+  Subject: CN=CA OCSP Signing Certificate, OU=pki-tomcat, O=EXAMPLE
+  Not valid before: 2016-12-06 12:49:43
+  Not valid after: 2018-11-26 12:49:43
+
+  Cert ID: sslserver
+  Nickname: sslserver
+  Token: Internal Key Storage Token
+  Serial number: 0x3
+  Issuer: CN=CA Signing Certificate, OU=pki-tomcat, O=EXAMPLE
+  Subject: CN=vm-058-091.abc.idm.lab.eng.brq.redhat.com, OU=pki-tomcat, O=EXAMPLE
+  Not valid before: 2016-12-06 12:49:44
+  Not valid after: 2018-11-26 12:49:44
+
+  Cert ID: subsystem
+  Nickname: subsystem
+  Token: Internal Key Storage Token
+  Serial number: 0x4
+  Issuer: CN=CA Signing Certificate, OU=pki-tomcat, O=EXAMPLE
+  Subject: CN=Subsystem Certificate, OU=pki-tomcat, O=EXAMPLE
+  Not valid before: 2016-12-06 12:49:44
+  Not valid after: 2018-11-26 12:49:44
+
+  Cert ID: audit_signing
+  Nickname: ca_audit_signing
+  Token: Internal Key Storage Token
+  Serial number: 0x5
+  Issuer: CN=CA Signing Certificate, OU=pki-tomcat, O=EXAMPLE
+  Subject: CN=CA Audit Signing Certificate, OU=pki-tomcat, O=EXAMPLE
+  Not valid before: 2016-12-06 12:49:44
+  Not valid after: 2018-11-26 12:49:44
+----
+
+In PKI 10.3 or earlier the serial numbers and the validity dates of the system certificates can be determined with the following commands:
+
+----
+$ certutil -L -d /var/lib/pki/pki-tomcat/alias
+
+Certificate Nickname                                         Trust Attributes
+                                                             SSL,S/MIME,JAR/XPI
+
+sslserver                                                    u,u,u
+ca_audit_signing                                             u,u,Pu
+ca_signing                                                   CTu,Cu,Cu
+ca_ocsp_signing                                              u,u,u
+subsystem                                                    u,u,u
+
+$ certutil -L -d /var/lib/pki/pki-tomcat/alias -n "ca_signing" | egrep "Serial|Before|After"
+        Serial Number: 1 (0x1)
+            Not Before: Tue Dec 06 12:49:43 2016
+            Not After : Sat Dec 06 12:49:43 2036
+
+$ certutil -L -d /var/lib/pki/pki-tomcat/alias -n "ca_ocsp_signing" | egrep "Serial|Before|After"
+        Serial Number: 7 (0x7)
+            Not Before: Sun Nov 25 23:00:17 2018
+            Not After : Sat Nov 14 23:00:17 2020
+
+...
+----
+
+= Submitting Renewal Requests =
+
+For each expiring system certificate, submit a renewal request using the serial number. Each renewal request will generate a request ID.
+
+== PKI 10.4 or later ==
+
+In PKI 10.4 it can be done with the following commands:
+
+----
+$ pki ca-cert-request-submit --profile caManualRenewal --serial 0x2  --renewal  # OCSP signing
+$ pki ca-cert-request-submit --profile caManualRenewal --serial 0x3  --renewal  # SSL server
+$ pki ca-cert-request-submit --profile caManualRenewal --serial 0x4  --renewal  # subsystem
+$ pki ca-cert-request-submit --profile caManualRenewal --serial 0x5  --renewal  # audit signing
+----
+
+== PKI 10.3 or earlier ==
+
+In PKI 10.3 the profile needs to be downloaded first:
+
+----
+$ pki ca-cert-request-profile-show caManualRenewal --output caManualRenewal.xml
+----
+
+Then the `<serial number>` needs to be inserted into the request file:
+
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<CertEnrollmentRequest>
+    ...
+    <Input id="i1">
+        <ClassID>serialNumRenewInputImpl</ClassID>
+        <Name>Serial Number of Certificate to Renew</Name>
+        <Attribute name="serial_num">
+            <Value><serial number></Value>
+            <Descriptor>
+                <Syntax>string</Syntax>
+                <Description>Serial Number of Certificate to Renew</Description>
+            </Descriptor>
+        </Attribute>
+    </Input>
+</CertEnrollmentRequest>
+----
+
+Then the request file needs to be submitted with the following command:
+
+----
+$ pki ca-cert-request-submit caManualRenewal.xml
+----
+
+See also link:https://www.dogtagpki.org/wiki/Certificate_Renewal#Submitting_Renewal_Request[Submitting Renewal Request].
+
+= Approving Renewal Requests =
+
+As the CA agent, approve each renewal request using the request ID:
+
+----
+$ pki -n caadmin -c Secret.123 ca-cert-request-review 7 --action approve
+$ pki -n caadmin -c Secret.123 ca-cert-request-review 8 --action approve
+$ pki -n caadmin -c Secret.123 ca-cert-request-review 9 --action approve
+$ pki -n caadmin -c Secret.123 ca-cert-request-review 10 --action approve
+----
+
+Each approval will generate a new certificate with a new serial number.
+
+See also link:https://www.dogtagpki.org/wiki/Certificate_Renewal#Approving_Renewal_Request[Approving Renewal Request].
+
+= Retrieving Renewed Certificates =
+
+Download the renewed certificates into files using the new serial numbers:
+
+----
+$ pki ca-cert-show 0x7 --output ca_ocsp_signing.crt
+$ pki ca-cert-show 0x8 --output sslserver.crt
+$ pki ca-cert-show 0x9 --output subsystem.crt
+$ pki ca-cert-show 0xa --output ca_audit_signing.crt
+----
+
+See also link:https://www.dogtagpki.org/wiki/Certificate_Renewal#Retrieving_Renewed_Certificate[Retrieving Renewed Certificate].
+
+= Updating System Certificates =
+
+The new certificates need to be imported into the NSS database and the copy of the certificates in the CS.cfg need to be updated as well. While NSS should be able to handle multiple certificates (both old and new) in the NSS database it is recommended that the old one is removed. To prevent NSS database or CS.cfg corruption, shutdown the server before making the changes.
+
+== PKI 10.4 or later ==
+
+First, shutdown the server:
+
+----
+$ systemctl stop pki-tomcatd@pki-tomcat.service
+----
+
+Update the NSS database and CS.cfg with the following commands:
+
+----
+$ pki-server subsystem-cert-update ca ocsp_signing --cert ca_ocsp_signing.crt
+$ pki-server subsystem-cert-update ca sslserver --cert sslserver.crt
+$ pki-server subsystem-cert-update ca subsystem --cert subsystem.crt
+$ pki-server subsystem-cert-update ca audit_signing --cert ca_audit_signing.crt
+----
+
+Finally, restart the server:
+
+----
+$ systemctl start pki-tomcatd@pki-tomcat.service
+----
+
+== PKI 10.3 or earlier ==
+
+First, shutdown the server:
+
+----
+$ systemctl stop pki-tomcatd@pki-tomcat.service
+----
+
+Delete the old certificates with the following commands:
+
+----
+$ certutil -D -d /var/lib/pki/pki-tomcat/alias -n ca_ocsp_signing
+$ certutil -D -d /var/lib/pki/pki-tomcat/alias -n sslserver
+$ certutil -D -d /var/lib/pki/pki-tomcat/alias -n subsystem
+$ certutil -D -d /var/lib/pki/pki-tomcat/alias -n ca_audit_signing
+----
+
+Then import the renewed certificates:
+
+----
+$ certutil -A -d /var/lib/pki/pki-tomcat/alias -n ca_ocsp_signing -i ca_ocsp_signing.crt -t "u,u,u"
+$ certutil -A -d /var/lib/pki/pki-tomcat/alias -n sslserver -i sslserver.crt -t "u,u,u"
+$ certutil -A -d /var/lib/pki/pki-tomcat/alias -n subsystem -i subsystem.crt -t "u,u,u"
+$ certutil -A -d /var/lib/pki/pki-tomcat/alias -n ca_audit_signing -i ca_audit_signing.crt -t "u,u,Pu"
+----
+
+Also update the following lines in /var/lib/pki/pki-tomcat/conf/ca/CS.cfg with the Base64-encoded data of the new certificates (without header & footer):
+
+----
+ca.audit_signing.cert=...
+ca.ocsp_signing.cert=...
+ca.signing.cert=...
+ca.sslserver.cert=...
+ca.subsystem.cert=...
+----
+
+Finally, restart the server:
+
+----
+$ systemctl start pki-tomcatd@pki-tomcat.service
+----
+
+= References =
+
+* link:https://www.dogtagpki.org/wiki/Certificate_Management[Certificate Management]
+* link:https://www.dogtagpki.org/wiki/Certificate_Renewal[Certificate Renewal]
+* link:https://www.dogtagpki.org/wiki/User_Certificate_Renewal[User Certificate Renewal]
