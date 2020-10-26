@@ -1,0 +1,125 @@
+= Simplified Procedure =
+
+To generate a certificate with RSA key:
+
+----
+$ openssl rand -out noise.bin 2048
+$ echo -e "y\n\ny\n" | \
+   certutil -S \
+   -x \
+   -d nssdb \
+   -f password.txt \
+   -z noise.bin \
+   -n sslserver \
+   -s "CN=$HOSTNAME" \
+   -t "CT,C,C" \
+   -m $RANDOM \
+   -k rsa \
+   -g 2048 \
+   -2 \
+   --keyUsage dataEncipherment,digitalSignature,keyEncipherment \
+   --nsCertType sslServer \
+   --extKeyUsage serverAuth,clientAuth
+$ certutil -L -d nssdb -n "sslserver" -a > sslserver.crt
+----
+
+To generate a certificate with ECC key:
+
+----
+$ openssl rand -out noise.bin 2048
+$ echo -e "y\n\ny\n" | \
+   certutil -S \
+   -x \
+   -d nssdb \
+   -f password.txt \
+   -z noise.bin \
+   -n sslserver \
+   -s "CN=$HOSTNAME" \
+   -t "CT,C,C" \
+   -m $RANDOM \
+   -k ec \
+   -q nistp256 \
+   -2 \
+   --keyUsage dataEncipherment,digitalSignature,keyEncipherment \
+   --nsCertType sslServer \
+   --extKeyUsage serverAuth,clientAuth
+$ certutil -L -d nssdb -n "sslserver" -a > sslserver.crt
+----
+
+= Creating Self-Signed SSL Server Certificate for DS =
+
+----
+$ openssl rand -out noise.bin 2048
+$ certutil -S \
+   -x \
+   -d nssdb \
+   -f password.txt \
+   -z noise.bin \
+   -n "DS Certificate" \
+   -s "CN=$HOSTNAME" \
+   -t "CT,C,C" \
+   -m $RANDOM \
+   -k rsa \
+   -g 2048 \
+   -Z SHA256 \
+   --keyUsage certSigning,keyEncipherment
+----
+
+= Advanced Procedure =
+
+== Generating Certificate Request ==
+
+Generate a CSR with the following commands:
+
+----
+$ openssl rand -out noise.bin 2048
+$ echo -e "y\n\ny\n" | \
+   certutil -R \
+   -d nssdb \
+   -f password.txt \
+   -z noise.bin \
+   -s "CN=$HOSTNAME" \
+   -o sslserver.csr.der \
+   -k rsa \
+   -g 2048 \
+   -Z SHA256 \
+   -2 \
+   --keyUsage dataEncipherment,digitalSignature,keyEncipherment \
+   --nsCertType sslServer \
+   --extKeyUsage serverAuth,clientAuth
+$ openssl req -inform der -in sslserver.csr.der -out sslserver.csr
+----
+
+It will generate the CSR in sslserver.csr.
+
+== Issuing Certificate ==
+
+Sign the CSR with the following commands:
+
+----
+$ echo -e "y\n\ny\n" | \
+   certutil -C \
+   -x \
+   -d nssdb \
+   -f password.txt \
+   -m $RANDOM \
+   -a \
+   -i sslserver.csr \
+   -o sslserver.crt \
+   -2 \
+   --keyUsage dataEncipherment,digitalSignature,keyEncipherment \
+   --nsCertType sslServer \
+   --extKeyUsage serverAuth,clientAuth
+$ certutil -A -d nssdb -n "sslserver" -i sslserver.crt -t "CT,CT,CT"
+----
+
+It will generate the SSL server certificate in sslserver.crt. 
+
+= See Also =
+
+* link:NSS-Database[NSS Database]
+* link:https://www.dogtagpki.org/wiki/Generating_SSL_Server_CSR_with_NSS[Generating SSL Server CSR with NSS]
+* link:https://www.dogtagpki.org/wiki/Generating_SSL_Server_Certificate[Generating SSL Server Certificate]
+* link:Creating-Self-Signed-CA-Signing-Certificate-with-NSS[Creating Self-Signed CA Signing Certificate with NSS]
+* link:https://www.dogtagpki.org/wiki/Tomcat_JSS_Installation[Tomcat JSS Installation]
+* link:https://www.dogtagpki.org/wiki/Tomcat_SSL[Tomcat SSL]
