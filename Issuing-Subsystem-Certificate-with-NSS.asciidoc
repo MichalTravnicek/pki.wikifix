@@ -1,0 +1,44 @@
+= Overview =
+
+This page describes the process to sign the subsystem CSR and issue the certificate using NSS.
+
+This page assumes an NSS database has been created as follows: 
+
+----
+$ echo Secret.123 > password.txt
+$ openssl rand -out noise.bin 2048
+$ mkdir nssdb
+$ certutil -N -d nssdb -f password.txt
+----
+
+It also assumes a CA signing certificate is present in the NSS database.
+
+= Issuing Subsystem Certificate =
+
+Sign the CSR with the CA signing certificate with the following commands:
+
+----
+$ CA_SKID=...
+$ OCSP=...
+$ echo -e "y\n\ny\ny\n${CA_SKID}\n\n\n\n2\n7\n${OCSP}\n\n\n\n" | \
+   certutil -C \
+   -d nssdb \
+   -f password.txt \
+   -m $RANDOM \
+   -a \
+   -i subsystem.csr \
+   -o subsystem.crt \
+   -c "ca_signing" \
+   -3 \
+   --extAIA \
+   --keyUsage critical,dataEncipherment,keyEncipherment,digitalSignature,nonRepudiation \
+   --extKeyUsage clientAuth,serverAuth
+----
+
+It will generate the subsystem certificate in subsystem.crt.
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/Generating_System_Certificates[Generating System Certificates]
+* link:Generating-Subsystem-CSR-with-NSS[Generating Subsystem CSR with NSS]
+* link:Issuing-CA-Signing-Certificate-with-NSS[Issuing CA Signing Certificate with NSS]
