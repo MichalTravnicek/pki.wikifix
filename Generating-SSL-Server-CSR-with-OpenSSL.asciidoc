@@ -1,0 +1,76 @@
+= Generating Key =
+
+To generate RSA key:
+
+----
+$ openssl genrsa -out sslserver.key 2048
+$ openssl rsa -in sslserver.key -pubout -out sslserver.pub
+----
+
+To generate ECC key:
+
+----
+$ openssl ecparam -name secp256k1 -genkey -noout -out sslserver.key
+$ openssl ec -in sslserver.key -pubout -out sslserver.pub
+----
+
+= Generating Certificate Request =
+
+To generate a certificate request with a new key:
+
+----
+$ openssl req \
+    -newkey rsa:2048 \
+    -nodes \
+    -keyout sslserver.key \
+    -new \
+    -subj "/CN=$HOSTNAME" \
+    -days 365 \
+    -out sslserver.csr
+----
+
+To generate a certificate request with an existing key:
+
+----
+$ openssl req \
+    -key sslserver.key \
+    -nodes \
+    -new \
+    -subj "/CN=$HOSTNAME" \
+    -days 365 \
+    -out sslserver.csr
+----
+
+To generate a certificate request with SAN, prepare a configuration file (e.g. san.cnf):
+
+----
+[ req ]
+default_bits       = 2048
+distinguished_name = req_distinguished_name
+req_extensions     = req_ext
+
+[ req_distinguished_name ]
+commonName         = server.example.com
+
+[ req_ext ]
+subjectAltName     = @alt_names
+
+[alt_names]
+DNS.1              = www.example.com
+DNS.2              = www.example.org
+----
+
+Then execute the following command:
+
+----
+$ openssl req \
+   -config san.cnf \
+   -newkey rsa:2048 \
+   -nodes \
+   -keyout private.key \
+   -out sslcert.csr
+----
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/Generating_SSL_Server_Certificate[Generating SSL Server Certificate]
