@@ -1,0 +1,51 @@
+= Overview =
+
+This page describes the process to sign the SSL server CSR and issue the certificate using NSS.
+
+This page assumes an NSS database has been created as follows: 
+
+----
+$ echo Secret.123 > password.txt
+$ openssl rand -out noise.bin 2048
+$ mkdir nssdb
+$ certutil -N -d nssdb -f password.txt
+----
+
+It also assumes a CA signing certificate is present in the NSS database.
+
+= Issuing SSL Server Certificate =
+
+Sign the CSR with the CA signing certificate with the following commands:
+
+----
+$ CA_SKID=...
+$ OCSP=...
+$ echo -e "y\n\ny\ny\n${CA_SKID}\n\n\n\n2\n7\n${OCSP}\n\n\n\n" | \
+   certutil -C \
+   -d nssdb \
+   -f password.txt \
+   -m $RANDOM \
+   -a \
+   -i sslserver.csr \
+   -o sslserver.crt \
+   -c "ca_signing" \
+   -3 \
+   --extAIA \
+   --keyUsage critical,dataEncipherment,keyEncipherment,digitalSignature \
+   --extKeyUsage serverAuth
+----
+
+It will generate the SSL server certificate in sslserver.crt.
+
+= Verification =
+
+----
+$ openssl x509 -text -noout -in sslserver.crt
+----
+
+= References =
+
+* link:https://www.dogtagpki.org/wiki/Generating_System_Certificates[Generating System Certificates]
+* link:Generating-SSL-Server-CSR-with-NSS[Generating SSL Server CSR with NSS]
+* link:Issuing-CA-Signing-Certificate-with-NSS[Issuing CA Signing Certificate with NSS]
+* link:NSS-Database[NSS Database]
