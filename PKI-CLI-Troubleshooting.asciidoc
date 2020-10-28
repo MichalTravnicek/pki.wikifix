@@ -1,0 +1,36 @@
+= Running in Verbose Mode =
+
+In verbose mode the pki CLI will provide more information to troubleshoot issues.
+
+To run pki CLI in verbose, specify `-v` as CLI options (i.e. before the command), not as command options (i.e. after the command):
+
+----
+$ pki <CLI options> <command> <command options>
+----
+
+= Running in Debug Mode =
+
+In debug mode the pki CLI will provide the most detailed information to troubleshoot issues.
+
+To run pki CLI in verbose, specify `--debug` as CLI options (i.e. before the command), not as command options (i.e. after the command):
+
+----
+$ pki <CLI options> <command> <command options>
+----
+
+= Recording HTTP Messages =
+
+The PKI CLI communicates to PKI server via HTTP. The HTTP messages can be recorded for troubleshooting.
+
+To record the HTTP messages, specify the `--output` and `--message-format` options as follows:
+
+----
+$ mkdir <dir>
+$ pki --output <dir> --message-format <format> <command>
+----
+
+The format is either `xml` (default) or `json`. The requests and responses will be stored in `http-request-<n>` and `http-response-<n>` files in the output directory.
+
+= See Also =
+
+* link:PKI-CLI[PKI CLI]
