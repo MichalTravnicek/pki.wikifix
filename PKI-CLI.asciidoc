@@ -93,28 +93,7 @@ See link:PKI-CLI-Paging[PKI CLI Paging].
 
 See link:PKI-CLI-Troubleshooting[PKI CLI Troubleshooting].
 
-= Future Enhancements =
-
-== Session ==
-
-Currently each CLI command uses separate connection. So the user would have to provide authentication in each command. Ideally there should be a session that connects multiple CLI commands so the authentication only needs to be done once:
-
-----
-$ pki <authentication> login
-$ pki ca-user-add testuser --fullName "Test User"
-$ pki ca-group-member-add Administrators testuser
-$ pki logout
-----
-
-There are several ways to address this:
-
-* Store the credentials in a local file and keep the session ID in the cookies. User is responsible to remove it.
-* Implement a shell so the CLI can accept multiple commands.
-* Use Kerberos authentication.
-
-== Shell-mode ==
-
-= References =
+= See Also =
 
 * link:https://www.dogtagpki.org/wiki/CLI[CLI]
 * link:https://www.dogtagpki.org/wiki/PKI_CLI_Development[PKI CLI Development]
