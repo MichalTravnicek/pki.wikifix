@@ -2,7 +2,9 @@
 
 This page describes the process to upgrade a PKI 10.2 database into a PKI 10.3 database.
 
-= Upgrading Configuration =
+= Upgrading from PKI 10.2.x to PKI 10.3.0 =
+
+== Upgrading Configuration ==
 
 To check for changes in the source code:
 
@@ -13,7 +15,7 @@ $ git diff DOGTAG_10_2_BRANCH:base/server/share/conf/manager.ldif DOGTAG_10_3_BR
 
 There are no required changes.
 
-= Upgrading Schema =
+== Upgrading Schema ==
 
 To check for changes in the source code:
 
@@ -57,9 +59,9 @@ objectClasses: ( authority-oid NAME 'authority' DESC 'Certificate Authority' SUP
 EOF
 </pre>
 
-= Upgrading CA Database =
+== Upgrading CA Database ==
 
-== Updating container entries ==
+=== Updating container entries ===
 
 To check for changes in the source code:
 
@@ -69,15 +71,17 @@ $ git diff DOGTAG_10_2_BRANCH:base/ca/shared/conf/db.ldif DOGTAG_10_3_BRANCH:bas
 
 A new container entry needs to be added into existing instances:
 
- $ ldapmodify -x -D "cn=Directory Manager" -w <font color="red">Secret.123</font> << EOF
- dn: ou=authorities,ou=ca,<font color="red">dc=ca,dc=example,dc=com</font>
- changetype: add
- objectClass: top
- objectClass: organizationalUnit
- ou: authorities
- EOF
+<pre>
+$ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
+dn: ou=authorities,ou=ca,dc=ca,dc=example,dc=com
+changetype: add
+objectClass: top
+objectClass: organizationalUnit
+ou: authorities
+EOF
+</pre>
 
-== Updating ACL entries ==
+=== Updating ACL entries ===
 
 To check for changes in the source code:
 
@@ -87,16 +91,18 @@ $ git diff DOGTAG_10_2_BRANCH:base/ca/shared/conf/acl.ldif DOGTAG_10_3_BRANCH:ba
 
 The ACL resources need to be updated in existing instances:
 
- $ ldapmodify -x -D "cn=Directory Manager" -w <font color="red">Secret.123</font> << EOF
- dn: cn=aclResources,<font color="red">dc=ca,dc=example,dc=com</font>
- changetype: modify
- add: resourceACLS
- resourceACLS: certServer.ca.authorities:list,read:allow (list,read) user="anybody":Anybody may list and read lightweight authorities
- resourceACLS: certServer.ca.authorities:create,modify:allow (create,modify) group="Administrators":Administrators may create and modify lightweight authorities
- resourceACLS: certServer.ca.authorities:delete:allow (delete) group="Administrators":Administrators may delete lightweight authorities
- EOF
+<pre>
+$ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
+dn: cn=aclResources,dc=ca,dc=example,dc=com
+changetype: modify
+add: resourceACLS
+resourceACLS: certServer.ca.authorities:list,read:allow (list,read) user="anybody":Anybody may list and read lightweight authorities
+resourceACLS: certServer.ca.authorities:create,modify:allow (create,modify) group="Administrators":Administrators may create and modify lightweight authorities
+resourceACLS: certServer.ca.authorities:delete:allow (delete) group="Administrators":Administrators may delete lightweight authorities
+EOF
+</pre>
 
-== Updating indexes ==
+=== Updating indexes ===
 
 To check for changes in the source code:
 
@@ -106,25 +112,27 @@ $ git diff DOGTAG_10_2_BRANCH:base/ca/shared/conf/index.ldif DOGTAG_10_3_BRANCH:
 
 The index needs to be updated in existing instances:
 
- $ ldapmodify -x -D "cn=Directory Manager" -w <font color="red">Secret.123</font> << EOF
- dn: cn=issuername,cn=index,cn=<font color="red">ca</font>,cn=ldbm database, cn=plugins, cn=config
- changetype: add
- objectClass: top
- objectClass: nsIndex
- nsindexType: eq
- nsindexType: pres
- nsindexType: sub
- nsSystemindex: false
- cn: issuername
- EOF
+<pre>
+$ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
+dn: cn=issuername,cn=index,cn=ca,cn=ldbm database, cn=plugins, cn=config
+changetype: add
+objectClass: top
+objectClass: nsIndex
+nsindexType: eq
+nsindexType: pres
+nsindexType: sub
+nsSystemindex: false
+cn: issuername
+EOF
+</pre>
 
-== Removing certificate validity delay ==
+===Removing certificate validity delay ===
 
-Some certificate profiles were modified in [https://pagure.io/dogtagpki/issue/2304 Ticket #2304 - Certificate validity delay]. If the profiles are stored in LDAP (e.g. in IPA) the LDAP profile might need to be updated as well.
+Some certificate profiles were modified in [https://github.com/dogtagpki/pki/issues/2424 Ticket #2424 - Certificate validity delay]. If the profiles are stored in LDAP (e.g. in IPA) the LDAP profile might need to be updated as well.
 
-== Adding issuerName attribute ==
+=== Adding issuerName attribute ===
 
-The certificate records have been modified to store issuer DN in the issuerName attribute. See [https://pagure.io/dogtagpki/issue/1667 Ticket #1667 - Database upgrade script to add issuerName attribute to all cert entries].
+The certificate records have been modified to store issuer DN in the issuerName attribute. See [https://github.com/dogtagpki/pki/issues/2226 Ticket #2226 - Database upgrade script to add issuerName attribute to all cert entries].
 
 To perform the upgrade automatically:
 
@@ -132,29 +140,33 @@ To perform the upgrade automatically:
 $ pki-server db-upgrade
 </pre>
 
-See also [https://github.com/dogtagpki/pki/wiki/PKI-Server-Database-CLI PKI Server Database CLI].
+See also [[PKI Server Database CLI]].
 
 To perform the upgrade manually, find the certificate records that do not have an issuerName attribute:
 
- $ ldapsearch -x -D "cn=Directory Manager" -w <font color="red">Secret.123</font> \
-  -b "ou=certificateRepository,ou=ca,<font color="red">dc=ca,dc=example,dc=com</font>" \
-  -s one \
-  "(&(objectclass=certificateRecord)(!(issuerName=*)))" dn
+<pre>
+$ ldapsearch -x -D "cn=Directory Manager" -w Secret.123 \
+ -b "ou=certificateRepository,ou=ca,dc=ca,dc=example,dc=com" \
+ -s one \
+ "(&(objectclass=certificateRecord)(!(issuerName=*)))" dn
+</pre>
 
 For each certificate record returned, execute the following command:
 
- $ ldapmodify -x -D "cn=Directory Manager" -w <font color="red">Secret.123</font> << EOF
- dn: cn=<serial>,ou=certificateRepository,ou=ca,<font color="red">dc=ca,dc=example,dc=com</font>
- changetype: modify
- add: issuerName
- issuerName: <issuer>
- EOF
+<pre>
+$ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
+dn: cn=<serial>,ou=certificateRepository,ou=ca,dc=ca,dc=example,dc=com
+changetype: modify
+add: issuerName
+issuerName: <issuer>
+EOF
+</pre>
 
-where <serial> is the certificate's serial number in decimal, and <issuer> is the certificate's issuer DN.
+where <tt><serial></tt> is the certificate's serial number in decimal, and <tt><issuer></tt> is the certificate's issuer DN.
 
-= Upgrading KRA Database =
+== Upgrading KRA Database ==
 
-== Updating container entries ==
+=== Updating container entries ===
 
 To check for changes in the source code:
 
@@ -164,7 +176,7 @@ $ git diff DOGTAG_10_2_BRANCH:base/kra/shared/conf/db.ldif DOGTAG_10_3_BRANCH:ba
 
 There are no required changes.
 
-== Updating ACL entries ==
+=== Updating ACL entries ===
 
 To check for changes in the source code:
 
@@ -174,7 +186,7 @@ $ git diff DOGTAG_10_2_BRANCH:base/kra/shared/conf/acl.ldif DOGTAG_10_3_BRANCH:b
 
 There are no required changes.
 
-== Updating indexes ==
+=== Updating indexes ===
 
 To check for changes in the source code:
 
@@ -184,24 +196,26 @@ $ git diff DOGTAG_10_2_BRANCH:base/kra/shared/conf/index.ldif DOGTAG_10_3_BRANCH
 
 The index needs to be updated in existing instances:
 
- $ ldapmodify -x -D "cn=Directory Manager" -w <font color="red">Secret.123</font> << EOF
- dn: cn=realm,cn=index,cn=<font color="red">kra</font>,cn=ldbm database, cn=plugins, cn=config
- changetype: add
- objectClass: top
- objectClass: nsIndex
- nsindexType: eq
- nsindexType: pres
- nsSystemindex: false
- cn: realm
- EOF
+<pre>
+$ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
+dn: cn=realm,cn=index,cn=kra,cn=ldbm database, cn=plugins, cn=config
+changetype: add
+objectClass: top
+objectClass: nsIndex
+nsindexType: eq
+nsindexType: pres
+nsSystemindex: false
+cn: realm
+EOF
+</pre>
 
-== Adding realm attribute ==
+=== Adding realm attribute ===
 
-See [https://fedorahosted.org/pki/ticket/2041 Ticket #2041: fine grained authz per application].
+See [https://github.com/dogtagpki/pki/issues/2329 Ticket #2329: fine grained authz per application].
 
-= Upgrading OCSP Database =
+== Upgrading OCSP Database ==
 
-== Updating container entries ==
+=== Updating container entries ===
 
 To check for changes in the source code:
 
@@ -211,7 +225,7 @@ $ git diff DOGTAG_10_2_BRANCH:base/ocsp/shared/conf/db.ldif DOGTAG_10_3_BRANCH:b
 
 There are no required changes.
 
-== Updating ACL entries ==
+=== Updating ACL entries ===
 
 To check for changes in the source code:
 
@@ -221,7 +235,7 @@ $ git diff DOGTAG_10_2_BRANCH:base/ocsp/shared/conf/acl.ldif DOGTAG_10_3_BRANCH:
 
 There are no required changes.
 
-== Updating indexes ==
+=== Updating indexes ===
 
 To check for changes in the source code:
 
@@ -231,9 +245,9 @@ $ git diff DOGTAG_10_2_BRANCH:base/ocsp/shared/conf/index.ldif DOGTAG_10_3_BRANC
 
 There are no required changes.
 
-= Upgrading TKS Database =
+== Upgrading TKS Database ==
 
-== Updating container entries ==
+=== Updating container entries ===
 
 To check for changes in the source code:
 
@@ -243,7 +257,7 @@ $ git diff DOGTAG_10_2_BRANCH:base/tks/shared/conf/db.ldif DOGTAG_10_3_BRANCH:ba
 
 There are no required changes.
 
-== Updating ACL entries ==
+=== Updating ACL entries ===
 
 To check for changes in the source code:
 
@@ -253,7 +267,7 @@ $ git diff DOGTAG_10_2_BRANCH:base/tks/shared/conf/acl.ldif DOGTAG_10_3_BRANCH:b
 
 There are no required changes.
 
-== Updating indexes ==
+== Updating indexes ===
 
 To check for changes in the source code:
 
@@ -263,6 +277,6 @@ $ git diff DOGTAG_10_2_BRANCH:base/tks/shared/conf/index.ldif DOGTAG_10_3_BRANCH
 
 There are no required changes.
 
-= Upgrading TPS Database =
+== Upgrading TPS Database ==
 
 Upgrade not supported.
