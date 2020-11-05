@@ -9,7 +9,7 @@ This page describes the process to upgrade a PKI 10.3 database into a PKI 10.4 d
 === Fixing authorityKeyNickname syntax ===
 
 This procedure fixes the following issue:
-* [https://pagure.io/dogtagpki/issue/2343 Ticket #2343 - Underscore in instance name causes LDAP syntax error]
+* [https://github.com/dogtagpki/pki/issues/2463 Ticket #2463 - Underscore in instance name causes LDAP syntax error]
 
 Update the schema via LDAP:
 
@@ -55,8 +55,8 @@ and restart the server.
 ===  Fixing VLV indexes ===
 
 This procedure fixes the following issue:
-* [https://fedorahosted.org/pki/ticket/2041 Ticket #2041 - RFE: fine grained authz per application]
-* [https://fedorahosted.org/pki/ticket/2319 Ticket #2319 - Add / revise vlv indexes for KRA due to realm changes]
+* [https://github.com/dogtagpki/pki/issues/2329 Ticket #2329 - RFE: fine grained authz per application]
+* [https://github.com/dogtagpki/pki/issues/2439 Ticket #2439 - Add / revise vlv indexes for KRA due to realm changes]
 
 See also [[PKI Server KRA CLI]].
 
@@ -88,7 +88,7 @@ Re-index the DB:
 === Relocating VLV indexes ===
 
 This procedure fixes the following issue:
-* [https://fedorahosted.org/pki/ticket/2342 Ticket #2342 - Hardcoded database name in vlv.ldif for TPS]
+* [https://github.com/dogtagpki/pki/issues/2462 Ticket #2462 - Hardcoded database name in vlv.ldif for TPS]
 
 See also [https://www.dogtagpki.org/wiki/DS_Database_Indexes DS Database Indexes].
 
@@ -149,8 +149,8 @@ $ ldapsearch -x -D "cn=Directory Manager" -w Secret.123 -b "cn=index1160528734, 
 === Fixing VLV filters and sort orders ===
 
 This procedure fixes the following issues:
-* [https://fedorahosted.org/pki/ticket/2354 Ticket #2354 - Missing activity log entries]
-* [https://fedorahosted.org/pki/ticket/2263 Ticket #2263 - Displaying most recent TPS activities first]
+* [https://github.com/dogtagpki/pki/issues/2474 Ticket #2474 - Missing activity log entries]
+* [https://github.com/dogtagpki/pki/issues/2383 Ticket #2383 - Displaying most recent TPS activities first]
 
 See also [[PKI Server TPS CLI]].
 
