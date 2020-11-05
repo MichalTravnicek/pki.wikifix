@@ -2,9 +2,11 @@
 
 This page describes the process to upgrade a PKI 10.0 database into a PKI 10.1 database.
 
-= Upgrading CA Database =
+= Upgrading from PKI 10.0.x to PKI 10.1.0 =
 
-== Updating configuration ==
+== Upgrading CA Database ==
+
+=== Updating configuration ===
 
 To check for changes in the source code:
 
@@ -15,7 +17,7 @@ $ git diff DOGTAG_10_0_BRANCH:base/ca/shared/conf/manager.ldif DOGTAG_10_1_BRANC
 
 No changes required.
 
-== Updating schema ==
+=== Updating schema ===
 
 To check for changes in the source code:
 
@@ -25,7 +27,7 @@ $ git diff DOGTAG_10_0_BRANCH:base/ca/shared/conf/schema.ldif DOGTAG_10_1_BRANCH
 
 No changes required.
 
-== Updating container entries ==
+=== Updating container entries ===
 
 To check for changes in the source code:
 
@@ -35,7 +37,7 @@ $ git diff DOGTAG_10_0_BRANCH:base/ca/shared/conf/db.ldif DOGTAG_10_1_BRANCH:bas
 
 No changes required.
 
-== Updating ACL entries ==
+=== Updating ACL entries ===
 
 To check for changes in the source code:
 
@@ -45,7 +47,7 @@ $ git diff DOGTAG_10_0_BRANCH:base/ca/shared/conf/acl.ldif DOGTAG_10_1_BRANCH:ba
 
 No changes required.
 
-== Updating indexes ==
+=== Updating indexes ===
 
 To check for changes in the source code:
 
@@ -54,9 +56,9 @@ $ git diff DOGTAG_10_0_BRANCH:base/ca/shared/conf/index.ldif DOGTAG_10_1_BRANCH:
 $ git diff DOGTAG_10_0_BRANCH:base/ca/shared/conf/vlv.ldif DOGTAG_10_1_BRANCH:base/ca/shared/conf/vlv.ldif
 </pre>
 
-= Upgrading KRA Database =
+== Upgrading KRA Database ==
 
-== Updating configuration ==
+=== Updating configuration ===
 
 To check for changes in the source code:
 
@@ -67,7 +69,7 @@ $ git diff DOGTAG_10_0_BRANCH:base/kra/shared/conf/manager.ldif DOGTAG_10_1_BRAN
 
 No changes required. 
 
-== Updating schema ==
+=== Updating schema ===
 
 To check for changes in the source code:
 
@@ -77,7 +79,7 @@ $ git diff DOGTAG_10_0_BRANCH:base/kra/shared/conf/schema.ldif DOGTAG_10_1_BRANC
 
 No changes required.
 
-== Updating container entries ==
+=== Updating container entries ===
 
 To check for changes in the source code:
 
@@ -103,7 +105,7 @@ description: People who are the administrators for the security domain for KRA
 EOF
 </pre>
 
-== Updating ACL entries ==
+=== Updating ACL entries ===
 
 To check for changes in the source code:
 
@@ -120,7 +122,7 @@ resourceACLS: certServer.securitydomain.domainxml:read,modify:allow (read) user=
 EOF
 </pre>
 
-== Updating indexes ==
+=== Updating indexes ===
 
 To check for changes in the source code:
 
@@ -131,9 +133,9 @@ $ git diff DOGTAG_10_0_BRANCH:base/kra/shared/conf/vlv.ldif DOGTAG_10_1_BRANCH:b
 
 No changes required.
 
-= Upgrading OCSP Database =
+== Upgrading OCSP Database ==
 
-== Updating configuration ==
+=== Updating configuration ===
 
 To check for changes in the source code:
 
@@ -144,7 +146,7 @@ $ git diff DOGTAG_10_0_BRANCH:base/ocsp/shared/conf/manager.ldif DOGTAG_10_1_BRA
 
 No changes required. 
 
-== Updating schema ==
+=== Updating schema ===
 
 To check for changes in the source code:
 
@@ -152,7 +154,7 @@ To check for changes in the source code:
 $ git diff DOGTAG_10_0_BRANCH:base/ocsp/shared/conf/schema.ldif DOGTAG_10_1_BRANCH:base/ocsp/shared/conf/schema.ldif
 </pre>
 
-== Updating container entries ==
+=== Updating container entries ===
 
 To check for changes in the source code:
 
@@ -178,7 +180,7 @@ description: People who are the administrators for the security domain for OCSP
 EOF
 </pre>
 
-== Updating ACL entries ==
+=== Updating ACL entries ===
 
 To check for changes in the source code:
 
@@ -195,7 +197,7 @@ resourceACLS: certServer.securitydomain.domainxml:read,modify:allow (read) user=
 EOF
 </pre>
 
-== Updating indexes ==
+=== Updating indexes ===
 
 To check for changes in the source code:
 
@@ -205,9 +207,9 @@ $ git diff DOGTAG_10_0_BRANCH:base/ocsp/shared/conf/index.ldif DOGTAG_10_1_BRANC
 
 No changes required.
 
-= Upgrading TKS Database =
+== Upgrading TKS Database ==
 
-== Updating configuration ==
+=== Updating configuration ===
 
 To check for changes in the source code:
 
@@ -218,7 +220,7 @@ $ git diff DOGTAG_10_0_BRANCH:base/tks/shared/conf/manager.ldif DOGTAG_10_1_BRAN
 
 No changes required. 
 
-== Updating schema ==
+=== Updating schema ===
 
 To check for changes in the source code:
 
@@ -226,7 +228,7 @@ To check for changes in the source code:
 $ git diff DOGTAG_10_0_BRANCH:base/tks/shared/conf/schema.ldif DOGTAG_10_1_BRANCH:base/tks/shared/conf/schema.ldif
 </pre>
 
-== Updating container entries ==
+=== Updating container entries ===
 
 To check for changes in the source code:
 
@@ -236,7 +238,7 @@ $ git diff DOGTAG_10_0_BRANCH:base/tks/shared/conf/db.ldif DOGTAG_10_1_BRANCH:ba
 
 No changes required. 
 
-== Updating ACL entries ==
+=== Updating ACL entries ===
 
 To check for changes in the source code:
 
@@ -246,7 +248,7 @@ $ git diff DOGTAG_10_0_BRANCH:base/tks/shared/conf/acl.ldif DOGTAG_10_1_BRANCH:b
 
 No changes required.
 
-== Updating indexes ==
+=== Updating indexes ===
 
 To check for changes in the source code:
 
@@ -256,6 +258,6 @@ $ git diff DOGTAG_10_0_BRANCH:base/tks/shared/conf/index.ldif DOGTAG_10_1_BRANCH
 
 No changes required.
 
-= Upgrading TPS Database =
+== Upgrading TPS Database ==
 
 Upgrade not supported.
