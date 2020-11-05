@@ -2,9 +2,11 @@
 
 This page describes the process to upgrade a PKI 9 database into a PKI 10.0 database.
 
-= Upgrading CA Database =
+= Upgrading from PKI 9.x to PKI 10.0.0 =
 
-== Updating configuration ==
+== Upgrading CA Database ==
+
+=== Updating configuration ===
 
 To check for changes in the source code:
 
@@ -25,7 +27,7 @@ aci: (targetattr=*)(version 3.0; acl "cert manager access v2"; allow (all) userd
 EOF
 </pre>
 
-== Updating schema ==
+=== Updating schema ===
 
 To check for changes in the source code:
 
@@ -60,7 +62,7 @@ objectClasses: ( keyRecord-oid NAME 'keyRecord' DESC 'CMS defined class' SUP top
 EOF
 </pre>
 
-== Updating container entries ==
+=== Updating container entries ===
 
 To check for changes in the source code:
 
@@ -70,7 +72,7 @@ $ git diff DOGTAG_9_0_BRANCH:base/ca/shared/conf/db.ldif DOGTAG_10_0_BRANCH:base
 
 No changes required.
 
-== Updating ACL entries ==
+=== Updating ACL entries ===
 
 To check for changes in the source code:
 
@@ -109,7 +111,7 @@ resourceACLS: certServer.ca.users:execute:allow (execute) group="Administrators"
 EOF
 </pre>
 
-== Updating indexes ==
+=== Updating indexes ===
 
 To check for changes in the source code:
 
@@ -146,9 +148,9 @@ cn: status
 EOF
 </pre>
 
-= Upgrading KRA Database =
+== Upgrading KRA Database ==
 
-== Updating configuration ==
+=== Updating configuration ===
 
 To check for changes in the source code:
 
@@ -170,7 +172,7 @@ aci: (targetattr=*)(version 3.0; acl "cert manager access v2"; allow (all) userd
 EOF
 </pre>
 
-== Updating schema ==
+=== Updating schema ===
 
 To check for changes in the source code:
 
@@ -206,7 +208,7 @@ objectClasses: ( keyRecord-oid NAME 'keyRecord' DESC 'CMS defined class' SUP top
 EOF
 </pre>
 
-== Updating container entries ==
+=== Updating container entries ===
 
 To check for changes in the source code:
 
@@ -216,7 +218,7 @@ $ git diff DOGTAG_9_0_BRANCH:base/kra/shared/conf/db.ldif DOGTAG_10_0_BRANCH:bas
 
 No changes required.
 
-== Updating ACL entries ==
+=== Updating ACL entries ===
 
 To check for changes in the source code:
 
@@ -245,7 +247,7 @@ resourceACLS: certServer.kra.users:execute:allow (execute) group="Administrators
 EOF
 </pre>
 
-== Updating indexes ==
+=== Updating indexes ===
 
 To check for changes in the source code:
 
@@ -282,9 +284,9 @@ cn: status
 EOF
 </pre>
 
-= Upgrading OCSP Database =
+== Upgrading OCSP Database ==
 
-== Updating configuration ==
+=== Updating configuration ===
 
 To check for changes in the source code:
 
@@ -306,7 +308,7 @@ aci: (targetattr=*)(version 3.0; acl "cert manager access v2"; allow (all) userd
 EOF
 </pre>
 
-== Updating schema ==
+=== Updating schema ===
 
 To check for changes in the source code:
 
@@ -342,7 +344,7 @@ objectClasses: ( keyRecord-oid NAME 'keyRecord' DESC 'CMS defined class' SUP top
 EOF
 </pre>
 
-== Updating container entries ==
+=== Updating container entries ===
 
 To check for changes in the source code:
 
@@ -352,7 +354,7 @@ $ git diff DOGTAG_9_0_BRANCH:base/ocsp/shared/conf/db.ldif DOGTAG_10_0_BRANCH:ba
 
 No changes required.
 
-== Updating ACL entries ==
+=== Updating ACL entries ===
 
 To check for changes in the source code:
 
@@ -371,7 +373,7 @@ resourceACLS: certServer.ocsp.users:execute:allow (execute) group="Administrator
 EOF
 </pre>
 
-== Updating indexes ==
+=== Updating indexes ===
 
 To check for changes in the source code:
 
@@ -404,9 +406,9 @@ cn: status
 EOF
 </pre>
 
-= Upgrading TKS Database =
+== Upgrading TKS Database ==
 
-== Updating configuration ==
+=== Updating configuration ===
 
 To check for changes in the source code:
 
@@ -428,7 +430,7 @@ aci: (targetattr=*)(version 3.0; acl "cert manager access v2"; allow (all) userd
 EOF
 </pre>
 
-== Updating schema ==
+=== Updating schema ===
 
 To check for changes in the source code:
 
@@ -464,7 +466,7 @@ objectClasses: ( keyRecord-oid NAME 'keyRecord' DESC 'CMS defined class' SUP top
 EOF
 </pre>
 
-== Updating container entries ==
+=== Updating container entries ===
 
 To check for changes in the source code:
 
@@ -474,7 +476,7 @@ $ git diff DOGTAG_9_0_BRANCH:base/tks/shared/conf/db.ldif DOGTAG_10_0_BRANCH:bas
 
 No changes required.
 
-== Updating ACL entries ==
+=== Updating ACL entries ===
 
 To check for changes in the source code:
 
@@ -493,7 +495,7 @@ resourceACLS: certServer.tks.users:execute:allow (execute) group="Administrators
 EOF
 </pre>
 
-== Updating indexes ==
+=== Updating indexes ===
 
 To check for changes in the source code:
 
@@ -530,6 +532,6 @@ cn: status
 EOF
 </pre>
 
-= Upgrading TPS Database =
+== Upgrading TPS Database ==
 
 Upgrade not supported.
