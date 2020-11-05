@@ -2,7 +2,9 @@
 
 This page describes the process to upgrade a PKI 10.1 database into a PKI 10.2 database.
 
-= Upgrading Configuration =
+= Upgrading from PKI 10.1.x to PKI 10.2.0 =
+
+== Upgrading Configuration ==
 
 To check for changes in the source code:
 
@@ -21,7 +23,7 @@ $ git diff DOGTAG_10_1_BRANCH:base/tps-tomcat/shared/conf/manager.ldif DOGTAG_10
 
 No changes required.
 
-= Upgrading Schema =
+== Upgrading Schema ==
 
 To check for changes in the source code:
 
@@ -219,9 +221,9 @@ objectClasses: ( certProfile-oid NAME 'certProfile' DESC 'Certificate profile' S
 EOF
 </pre>
 
-= Upgrading CA Database =
+== Upgrading CA Database ==
 
-== Updating container entries ==
+=== Updating container entries ===
 
 To check for changes in the source code:
 
@@ -241,7 +243,7 @@ ou: certificateProfiles
 EOF
 </pre>
 
-== Updating ACL entries ==
+=== Updating ACL entries ===
 
 To check for changes in the source code:
 
@@ -260,7 +262,7 @@ resourceACLS: certServer.ca.selftests:read,execute:allow (read,execute) group="A
 EOF
 </pre>
 
-== Updating indexes ==
+=== Updating indexes ===
 
 To check for changes in the source code:
 
@@ -271,9 +273,9 @@ $ git diff DOGTAG_10_1_BRANCH:base/ca/shared/conf/vlv.ldif DOGTAG_10_2_BRANCH:ba
 
 The nsSystemIndex was renamed to nsSystemindex.
 
-= Upgrading KRA Database =
+== Upgrading KRA Database ==
 
-== Updating container entries ==
+=== Updating container entries ===
 
 To check for changes in the source code:
 
@@ -283,7 +285,7 @@ $ git diff DOGTAG_10_1_BRANCH:base/kra/shared/conf/db.ldif DOGTAG_10_2_BRANCH:ba
 
 No changes required.
 
-== Updating ACL entries ==
+=== Updating ACL entries ===
 
 To check for changes in the source code:
 
@@ -302,7 +304,7 @@ resourceACLS: certServer.kra.selftests:read,execute:allow (read,execute) group="
 EOF
 </pre>
 
-== Fixing database user permission ==
+=== Fixing database user permission ===
 
 If the database is shared with CA, replace the {dbuser} in the following ACL with CA's database user:
 
@@ -334,7 +336,7 @@ aci: (targetattr=*)(version 3.0; acl "cert manager: Run tasks after replica re-i
 
 Then remove KRA's database user.
 
-== Updating indexes ==
+=== Updating indexes ===
 
 To check for changes in the source code:
 
@@ -344,9 +346,9 @@ $ git diff DOGTAG_10_1_BRANCH:base/kra/shared/conf/index.ldif DOGTAG_10_2_BRANCH
 
 The nsIndexType was renamed to nsindexType, the nsSystemIndex was renamed to nsSystemindex.
 
-= Upgrading OCSP Database =
+== Upgrading OCSP Database ==
 
-== Updating container entries ==
+=== Updating container entries ===
 
 To check for changes in the source code:
 
@@ -356,7 +358,7 @@ $ git diff DOGTAG_10_1_BRANCH:base/ocsp/shared/conf/db.ldif DOGTAG_10_2_BRANCH:b
 
 No changes required.
 
-== Updating ACL entries ==
+=== Updating ACL entries ===
 
 To check for changes in the source code:
 
@@ -375,7 +377,7 @@ resourceACLS: certServer.ocsp.selftests:read,execute:allow (read,execute) group=
 EOF
 </pre>
 
-== Fixing database user permission ==
+=== Fixing database user permission ===
 
 If the database is shared with CA, replace the {dbuser} in the following ACL with CA's database user.
 
@@ -407,7 +409,7 @@ aci: (targetattr=*)(version 3.0; acl "cert manager: Run tasks after replica re-i
 
 Then remove OCSP's database user.
 
-== Updating indexes ==
+=== Updating indexes ===
 
 To check for changes in the source code:
 
@@ -417,9 +419,9 @@ $ git diff DOGTAG_10_1_BRANCH:base/ocsp/shared/conf/index.ldif DOGTAG_10_2_BRANC
 
 The nsIndexType and nsSystemIndex were renamed to nsindexType and nsSystemindex, respectively.
 
-= Upgrading TKS database =
+== Upgrading TKS database ==
 
-== Updating container entries ==
+=== Updating container entries ===
 
 To check for changes in the source code:
 
@@ -429,7 +431,7 @@ $ git diff DOGTAG_10_1_BRANCH:base/tks/shared/conf/db.ldif DOGTAG_10_2_BRANCH:ba
 
 No changes required.
 
-== Updating ACL entries ==
+=== Updating ACL entries ===
 
 To check for changes in the source code:
 
@@ -448,7 +450,7 @@ resourceACLS: certServer.tks.selftests:read,execute:allow (read,execute) group="
 EOF
 </pre>
 
-== Fixing database user permission ==
+=== Fixing database user permission ===
 
 If the database is shared with CA, replace the {dbuser} in the following ACL with CA's database user:
 
@@ -480,7 +482,7 @@ aci: (targetattr=*)(version 3.0; acl "cert manager: Run tasks after replica re-i
 
 Then remove TKS's database user.
 
-== Updating indexes ==
+=== Updating indexes ===
 
 To check for changes in the source code:
 
@@ -490,6 +492,6 @@ $ git diff DOGTAG_10_1_BRANCH:base/tks/shared/conf/index.ldif DOGTAG_10_2_BRANCH
 
 The nsIndexType and nsSystemIndex were replaced with nsindexType and nsSystemindex, respectively.
 
-= Upgrading TPS Database =
+== Upgrading TPS Database ==
 
 Upgrade not supported.
