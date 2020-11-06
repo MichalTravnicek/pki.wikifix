@@ -8,10 +8,10 @@ This page describes the process to upgrade a PKI 10.2 database into a PKI 10.3 d
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_10_2_BRANCH:base/server/share/conf/database.ldif DOGTAG_10_3_BRANCH:base/server/share/conf/database.ldif
 $ git diff DOGTAG_10_2_BRANCH:base/server/share/conf/manager.ldif DOGTAG_10_3_BRANCH:base/server/share/conf/manager.ldif
-</pre>
+----
 
 There are no required changes.
 
@@ -19,13 +19,13 @@ There are no required changes.
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_10_2_BRANCH:base/server/share/conf/schema.ldif master:base/server/share/conf/schema.ldif
-</pre>
+----
 
 The schema needs to be updated existing instances.
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: cn=schema
 changetype: modify
@@ -57,7 +57,7 @@ changetype: modify
 add: objectClasses
 objectClasses: ( authority-oid NAME 'authority' DESC 'Certificate Authority' SUP top STRUCTURAL MUST ( cn $ authorityID $ authorityKeyNickname $ authorityEnabled $ authorityDN ) MAY ( authoritySerial $ authorityParentID $ authorityParentDN $ authorityKeyHost $ description ) X-ORIGIN 'user defined' )
 EOF
-</pre>
+----
 
 == Upgrading CA Database ==
 
@@ -65,13 +65,13 @@ EOF
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_10_2_BRANCH:base/ca/shared/conf/db.ldif DOGTAG_10_3_BRANCH:base/ca/shared/conf/db.ldif
-</pre>
+----
 
 A new container entry needs to be added into existing instances:
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: ou=authorities,ou=ca,dc=ca,dc=example,dc=com
 changetype: add
@@ -79,19 +79,19 @@ objectClass: top
 objectClass: organizationalUnit
 ou: authorities
 EOF
-</pre>
+----
 
 === Updating ACL entries ===
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_10_2_BRANCH:base/ca/shared/conf/acl.ldif DOGTAG_10_3_BRANCH:base/ca/shared/conf/acl.ldif
-</pre>
+----
 
 The ACL resources need to be updated in existing instances:
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: cn=aclResources,dc=ca,dc=example,dc=com
 changetype: modify
@@ -100,19 +100,19 @@ resourceACLS: certServer.ca.authorities:list,read:allow (list,read) user="anybod
 resourceACLS: certServer.ca.authorities:create,modify:allow (create,modify) group="Administrators":Administrators may create and modify lightweight authorities
 resourceACLS: certServer.ca.authorities:delete:allow (delete) group="Administrators":Administrators may delete lightweight authorities
 EOF
-</pre>
+----
 
 === Updating indexes ===
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_10_2_BRANCH:base/ca/shared/conf/index.ldif DOGTAG_10_3_BRANCH:base/ca/shared/conf/index.ldif
-</pre>
+----
 
 The index needs to be updated in existing instances:
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: cn=issuername,cn=index,cn=ca,cn=ldbm database, cn=plugins, cn=config
 changetype: add
@@ -124,45 +124,45 @@ nsindexType: sub
 nsSystemindex: false
 cn: issuername
 EOF
-</pre>
+----
 
-===Removing certificate validity delay ===
+=== Removing certificate validity delay ===
 
-Some certificate profiles were modified in [https://github.com/dogtagpki/pki/issues/2424 Ticket #2424 - Certificate validity delay]. If the profiles are stored in LDAP (e.g. in IPA) the LDAP profile might need to be updated as well.
+Some certificate profiles were modified in link:https://github.com/dogtagpki/pki/issues/2424[Ticket #2424: Certificate validity delay]. If the profiles are stored in LDAP (e.g. in IPA) the LDAP profile might need to be updated as well.
 
 === Adding issuerName attribute ===
 
-The certificate records have been modified to store issuer DN in the issuerName attribute. See [https://github.com/dogtagpki/pki/issues/2226 Ticket #2226 - Database upgrade script to add issuerName attribute to all cert entries].
+The certificate records have been modified to store issuer DN in the issuerName attribute. See link:https://github.com/dogtagpki/pki/issues/2226[Ticket #2226: Database upgrade script to add issuerName attribute to all cert entries].
 
 To perform the upgrade automatically:
 
-<pre>
+----
 $ pki-server db-upgrade
-</pre>
+----
 
-See also [[PKI Server Database CLI]].
+See also link:PKI-Server-Database-CLI[PKI Server Database CLI].
 
 To perform the upgrade manually, find the certificate records that do not have an issuerName attribute:
 
-<pre>
+----
 $ ldapsearch -x -D "cn=Directory Manager" -w Secret.123 \
  -b "ou=certificateRepository,ou=ca,dc=ca,dc=example,dc=com" \
  -s one \
  "(&(objectclass=certificateRecord)(!(issuerName=*)))" dn
-</pre>
+----
 
 For each certificate record returned, execute the following command:
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: cn=<serial>,ou=certificateRepository,ou=ca,dc=ca,dc=example,dc=com
 changetype: modify
 add: issuerName
 issuerName: <issuer>
 EOF
-</pre>
+----
 
-where <tt><serial></tt> is the certificate's serial number in decimal, and <tt><issuer></tt> is the certificate's issuer DN.
+where `<serial>` is the certificate's serial number in decimal, and `<issuer>` is the certificate's issuer DN.
 
 == Upgrading KRA Database ==
 
@@ -170,9 +170,9 @@ where <tt><serial></tt> is the certificate's serial number in decimal, and <tt><
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_10_2_BRANCH:base/kra/shared/conf/db.ldif DOGTAG_10_3_BRANCH:base/kra/shared/conf/db.ldif
-</pre>
+----
 
 There are no required changes.
 
@@ -180,9 +180,9 @@ There are no required changes.
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_10_2_BRANCH:base/kra/shared/conf/acl.ldif DOGTAG_10_3_BRANCH:base/kra/shared/conf/acl.ldif
-</pre>
+----
 
 There are no required changes.
 
@@ -190,13 +190,13 @@ There are no required changes.
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_10_2_BRANCH:base/kra/shared/conf/index.ldif DOGTAG_10_3_BRANCH:base/kra/shared/conf/index.ldif
-</pre>
+----
 
 The index needs to be updated in existing instances:
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: cn=realm,cn=index,cn=kra,cn=ldbm database, cn=plugins, cn=config
 changetype: add
@@ -207,11 +207,11 @@ nsindexType: pres
 nsSystemindex: false
 cn: realm
 EOF
-</pre>
+----
 
 === Adding realm attribute ===
 
-See [https://github.com/dogtagpki/pki/issues/2329 Ticket #2329: fine grained authz per application].
+See link:https://github.com/dogtagpki/pki/issues/2329[Ticket #2329: fine grained authz per application].
 
 == Upgrading OCSP Database ==
 
@@ -219,9 +219,9 @@ See [https://github.com/dogtagpki/pki/issues/2329 Ticket #2329: fine grained aut
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_10_2_BRANCH:base/ocsp/shared/conf/db.ldif DOGTAG_10_3_BRANCH:base/ocsp/shared/conf/db.ldif
-</pre>
+----
 
 There are no required changes.
 
@@ -229,9 +229,9 @@ There are no required changes.
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_10_2_BRANCH:base/ocsp/shared/conf/acl.ldif DOGTAG_10_3_BRANCH:base/ocsp/shared/conf/acl.ldif
-</pre>
+----
 
 There are no required changes.
 
@@ -239,9 +239,9 @@ There are no required changes.
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_10_2_BRANCH:base/ocsp/shared/conf/index.ldif DOGTAG_10_3_BRANCH:base/ocsp/shared/conf/index.ldif
-</pre>
+----
 
 There are no required changes.
 
@@ -251,9 +251,9 @@ There are no required changes.
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_10_2_BRANCH:base/tks/shared/conf/db.ldif DOGTAG_10_3_BRANCH:base/tks/shared/conf/db.ldif
-</pre>
+----
 
 There are no required changes.
 
@@ -261,9 +261,9 @@ There are no required changes.
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_10_2_BRANCH:base/tks/shared/conf/acl.ldif DOGTAG_10_3_BRANCH:base/tks/shared/conf/acl.ldif
-</pre>
+----
 
 There are no required changes.
 
@@ -271,9 +271,9 @@ There are no required changes.
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_10_2_BRANCH:base/tks/shared/conf/index.ldif DOGTAG_10_3_BRANCH:base/tks/shared/conf/index.ldif
-</pre>
+----
 
 There are no required changes.
 
