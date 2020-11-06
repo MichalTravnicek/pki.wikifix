@@ -15,23 +15,19 @@ $ pki -P <protocol> -h <hostname> -p <port> <command>
 Alternatively, the connection parameters can be specified as a URL:
 
 ----
-$ pki -U <URL> <command>
+$ pki -U <protocol>://<hostname>:<port> <command>
 ----
-
-In Dogtag 10.0.x the URL is in this format: `https://{hostname}:{port}/{subsystem}`.
-
-Since Dogtag 10.1.x the URL is in this format: `https://{hostname}:{port}`. The subsystem will be determined by the command being executed.
 
 For example, to access a local PKI server, no need to specify the connection parameters:
 
 ----
-$ pki ca-cert-find
+$ pki info
 ----
 
 To access a remote PKI server:
 
 ----
-$ pki -U https://pki.demo.dogtagpki.org ca-cert-find
+$ pki -U https://pki.demo.dogtagpki.org info
 ----
 
 = See Also =
