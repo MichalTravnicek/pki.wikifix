@@ -148,7 +148,8 @@ To change the nickname of a certificate by its ID:
 
 ----
 $ pki pkcs12-cert-mod 75e2ac1d08ca99ed4c9bd31ad847fd18bc4db9ca \
-    --pkcs12-file test.p12 --pkcs12-password Secret.123 --friendly-name "CA admin"
+    --pkcs12-file test.p12 --pkcs12-password Secret.123 \
+    --friendly-name "CA admin"
 ---------------------------------------------------------------
 Modified certificate "75e2ac1d08ca99ed4c9bd31ad847fd18bc4db9ca"
 ---------------------------------------------------------------
@@ -158,7 +159,8 @@ To change the nickname of a certificate by its current nickname:
 
 ----
 $ pki pkcs12-cert-mod caadmin \
-    --pkcs12-file test.p12 --pkcs12-password Secret.123 --friendly-name "CA admin"
+    --pkcs12-file test.p12 --pkcs12-password Secret.123 \
+    --friendly-name "CA admin"
 ------------------------------
 Modified certificate "caadmin"
 ------------------------------
@@ -168,7 +170,8 @@ To change the trust flags of a certificate by its ID:
 
 ----
 $ pki pkcs12-cert-mod 75e2ac1d08ca99ed4c9bd31ad847fd18bc4db9ca \
-    --pkcs12-file test.p12 --pkcs12-password Secret.123 --trust-flags "u,u,u"
+    --pkcs12-file test.p12 --pkcs12-password Secret.123 \
+    --trust-flags "u,u,u"
 ---------------------------------------------------------------
 Modified certificate "75e2ac1d08ca99ed4c9bd31ad847fd18bc4db9ca"
 ---------------------------------------------------------------
@@ -178,7 +181,8 @@ To change the trust flags of a certificate by its nickname:
 
 ----
 $ pki pkcs12-cert-mod caadmin \
-    --pkcs12-file test.p12 --pkcs12-password Secret.123 --trust-flags "u,u,u"
+    --pkcs12-file test.p12 --pkcs12-password Secret.123 \
+    --trust-flags "u,u,u"
 ------------------------------
 Modified certificate "caadmin"
 ------------------------------
@@ -191,7 +195,8 @@ Modified certificate "caadmin"
 To delete a certificate from PKCS #12 file:
 
 ----
-$ pki pkcs12-cert-del caadmin --pkcs12-file test.p12 --pkcs12-password Secret.123
+$ pki pkcs12-cert-del caadmin \
+    --pkcs12-file test.p12 --pkcs12-password Secret.123
 -----------------------------
 Deleted certificate "caadmin"
 -----------------------------
@@ -202,7 +207,8 @@ Deleted certificate "caadmin"
 To delete a key from PKCS #12 file:
 
 ----
-$ pki pkcs12-key-del 16228b70f066d50a68d59e64c9367b53c234473d --pkcs12-file test.p12 --pkcs12-password Secret.123
+$ pki pkcs12-key-del 16228b70f066d50a68d59e64c9367b53c234473d \
+    --pkcs12-file test.p12 --pkcs12-password Secret.123
 ------------------------------------------------------
 Deleted key "16228b70f066d50a68d59e64c9367b53c234473d"
 ------------------------------------------------------
@@ -223,8 +229,8 @@ Optionally, the nicknames of the certificates to be imported can be specified as
 
 ----
 $ pki -c Secret.123 pkcs12-import --pkcs12-file test.p12 --pkcs12-password Secret.123 \
- "caSigningCert cert-pki-tomcat CA" \
- "subsystemCert cert-pki-tomcat"
+    "caSigningCert cert-pki-tomcat CA" \
+    "subsystemCert cert-pki-tomcat"
 ---------------
 Import complete
 ---------------
@@ -233,7 +239,8 @@ Import complete
 To import without the trust flags:
 
 ----
-$ pki -c Secret.123 pkcs12-import --pkcs12-file test.p12 --pkcs12-password Secret.123 --no-trust-flags
+$ pki -c Secret.123 pkcs12-import \
+    --pkcs12-file test.p12 --pkcs12-password Secret.123 --no-trust-flags
 ---------------
 Import complete
 ---------------
@@ -262,8 +269,8 @@ To export certain certificates only, specify the nicknames as command arguments:
 
 ----
 $ pki -c Secret.123 pkcs12-export --pkcs12-file test.p12 --pkcs12-password Secret.123 \
- "auditSigningCert cert-pki-tomcat CA" \
- "ocspSigningCert cert-pki-tomcat CA"
+    "auditSigningCert cert-pki-tomcat CA" \
+    "ocspSigningCert cert-pki-tomcat CA"
 ---------------
 Export complete
 ---------------
@@ -274,7 +281,8 @@ It will include the specified certificates with their keys, and the certificate 
 To export without the trust flags:
 
 ----
-$ pki -c Secret.123 pkcs12-export --pkcs12-file test.p12 --pkcs12-password Secret.123 --no-trust-flags
+$ pki -c Secret.123 pkcs12-export \
+    --pkcs12-file test.p12 --pkcs12-password Secret.123 --no-trust-flags
 ---------------
 Export complete
 ---------------
