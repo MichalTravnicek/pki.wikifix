@@ -13,35 +13,35 @@ If required, use an existing NSS database or create a new one.
 
 A new NSS database can be created as follows:
 
-<pre>
+----
 $ pki -d <NSS database location> -c <NSS password> client-init
-</pre>
+----
 
 The password can also be specified in a file:
 
-<pre>
+----
 $ pki -d <NSS database location> -C <NSS password file> client-init
-</pre>
+----
 
 To execute the PKCS #12 commands with the NSS database:
 
-<pre>
+----
 $ pki -d <NSS database location> -c <NSS password> pkcs12-...
-</pre>
+----
 
 or:
 
-<pre>
+----
 $ pki -d <NSS database location> -C <NSS password file> pkcs12-...
-</pre>
+----
 
-Note that if option -d is omitted the default location will be ~/.dogtag/nssdb.
+Note that if option -d is omitted the default location will be `~/.dogtag/nssdb`.
 
 = Listing Certificates =
 
 To list the certificates in a PKCS #12 file:
 
-<pre>
+----
 $ pki pkcs12-cert-find --pkcs12-file test.p12 --pkcs12-password Secret.123
 ---------------
 1 entries found
@@ -54,219 +54,240 @@ $ pki pkcs12-cert-find --pkcs12-file test.p12 --pkcs12-password Secret.123
   Trust flags: u,u,u
   Has Key: true
   Key ID: 16228b70f066d50a68d59e64c9367b53c234473d
-</pre>
+----
 
 = Listing Keys =
 
 To list the keys in PKCS #12 file:
 
-<pre>
+----
 $ pki pkcs12-key-find --pkcs12-file test.p12 --pkcs12-password Secret.123
 ---------------
 1 entries found
 ---------------
   Key ID: 16228b70f066d50a68d59e64c9367b53c234473d
   Friendly Name: caadmin
-</pre>
+----
 
 The PKCS #12 password can also be specified in a file:
 
-<pre>
+----
 $ pki pkcs12-key-find --pkcs12-file test.p12 --pkcs12-password-file pkcs12pwd.txt
-</pre>
+----
 
 = Adding Certificate into PKCS #12 File =
 
 To add a certificate including the key and trust flags from client NSS database:
 
-<pre>
-$ pki -c Secret.123 pkcs12-cert-add caadmin --pkcs12-file test.p12 --pkcs12-password Secret.123
+----
+$ pki -c Secret.123 pkcs12-cert-add caadmin \
+    --pkcs12-file test.p12 --pkcs12-password Secret.123
 ---------------------------
 Added certificate "caadmin"
 ---------------------------
-</pre>
+----
 
 If the PKCS #12 file does not exist, it will be created automatically. If the PKCS #12 file already exists, the certificate will be added into the file.
 
-The trust flags can be overwritten with the --trust-flags parameter:
+The trust flags can be overwritten with the `--trust-flags` parameter:
 
-<pre>
-$ pki -c Secret.123 pkcs12-cert-add caadmin --pkcs12-file test.p12 --pkcs12-password Secret.123 --trust-flags <trust flags>
+----
+$ pki -c Secret.123 pkcs12-cert-add caadmin \
+    --pkcs12-file test.p12 --pkcs12-password Secret.123 --trust-flags <trust flags>
 ---------------------------
 Added certificate "caadmin"
 ---------------------------
-</pre>
+----
 
 To add a certificate from client NSS database without the key:
 
-<pre>
-$ pki -c Secret.123 pkcs12-cert-add caadmin --pkcs12-file test.p12 --pkcs12-password Secret.123 --no-key
+----
+$ pki -c Secret.123 pkcs12-cert-add caadmin \
+    --pkcs12-file test.p12 --pkcs12-password Secret.123 --no-key
 ---------------------------
 Added certificate "caadmin"
 ---------------------------
-</pre>
+----
 
 To add a certificate from a file (not implemented yet):
 
-<pre>
-$ pki pkcs12-cert-add caadmin --pkcs12-file test.p12 --pkcs12-password Secret.123 --cert-file caadmin.pem
+----
+$ pki pkcs12-cert-add caadmin \
+    --pkcs12-file test.p12 --pkcs12-password Secret.123 --cert-file caadmin.pem
 ---------------------------
 Added certificate "caadmin"
 ---------------------------
-</pre>
+----
 
 To add a certificate from a file with trust flags (not implemented yet):
 
-<pre>
-$ pki pkcs12-cert-add caadmin --pkcs12-file test.p12 --pkcs12-password Secret.123 --cert-file caadmin.pem \
+----
+$ pki pkcs12-cert-add caadmin \
+    --pkcs12-file test.p12 --pkcs12-password Secret.123 --cert-file caadmin.pem \
  --trust-flags "u,u,u"
 ---------------------------
 Added certificate "caadmin"
 ---------------------------
-</pre>
+----
 
 = Exporting Certificate from PKCS #12 File =
 
 To export a certificate from PKCS #12 file into a PEM file:
 
-<pre>
-$ pki pkcs12-cert-export caadmin --pkcs12-file test.p12 --pkcs12-password Secret.123 --cert-file caadmin.pem
-</pre>
+----
+$ pki pkcs12-cert-export caadmin \
+    --pkcs12-file test.p12 --pkcs12-password Secret.123 --cert-file caadmin.pem
+----
 
 = Modifying Certificate in PKCS #12 File =
 
-To rename a certificate (not implemented yet):
+To change the nickname of a certificate by its ID:
 
-<pre>
-$ pki pkcs12-cert-mod caadmin --pkcs12-file test.p12 --pkcs12-password Secret.123 --friendly-name "new nickname"
+----
+$ pki pkcs12-cert-mod 75e2ac1d08ca99ed4c9bd31ad847fd18bc4db9ca \
+    --pkcs12-file test.p12 --pkcs12-password Secret.123 --friendly-name "CA admin"
+---------------------------------------------------------------
+Modified certificate "75e2ac1d08ca99ed4c9bd31ad847fd18bc4db9ca"
+---------------------------------------------------------------
+----
+
+To change the nickname of a certificate by its current nickname:
+
+----
+$ pki pkcs12-cert-mod caadmin \
+    --pkcs12-file test.p12 --pkcs12-password Secret.123 --friendly-name "CA admin"
 ------------------------------
 Modified certificate "caadmin"
 ------------------------------
-</pre>
+----
 
-To add/change certificate trust flags:
+To change the trust flags of a certificate by its ID:
 
-<pre>
-$ pki pkcs12-cert-mod caadmin --pkcs12-file test.p12 --pkcs12-password Secret.123 --trust-flags "u,u,u"
+----
+$ pki pkcs12-cert-mod 75e2ac1d08ca99ed4c9bd31ad847fd18bc4db9ca \
+    --pkcs12-file test.p12 --pkcs12-password Secret.123 --trust-flags "u,u,u"
+---------------------------------------------------------------
+Modified certificate "75e2ac1d08ca99ed4c9bd31ad847fd18bc4db9ca"
+---------------------------------------------------------------
+----
+
+To change the trust flags of a certificate by its nickname:
+
+----
+$ pki pkcs12-cert-mod caadmin \
+    --pkcs12-file test.p12 --pkcs12-password Secret.123 --trust-flags "u,u,u"
 ------------------------------
 Modified certificate "caadmin"
 ------------------------------
-</pre>
+----
 
-To remove certificate trust flags:
-
-<pre>
-$ pki pkcs12-cert-mod caadmin --pkcs12-file test.p12 --pkcs12-password Secret.123 --trust-flags ""
-------------------------------
-Modified certificate "caadmin"
-------------------------------
-</pre>
+*Note:* If the trust flags value is blank, the trust flags will be removed from the certificate.
 
 = Removing Certificate from PKCS #12 File =
 
 To delete a certificate from PKCS #12 file:
 
-<pre>
+----
 $ pki pkcs12-cert-del caadmin --pkcs12-file test.p12 --pkcs12-password Secret.123
 -----------------------------
 Deleted certificate "caadmin"
 -----------------------------
-</pre>
+----
 
 = Removing Key from PKCS #12 File =
 
 To delete a key from PKCS #12 file:
 
-<pre>
+----
 $ pki pkcs12-key-del 16228b70f066d50a68d59e64c9367b53c234473d --pkcs12-file test.p12 --pkcs12-password Secret.123
 ------------------------------------------------------
 Deleted key "16228b70f066d50a68d59e64c9367b53c234473d"
 ------------------------------------------------------
-</pre>
+----
 
 = Importing PKCS #12 File into NSS Database =
 
-To import PKCS #12 file into the client security database (default: ~/.dogtag/nssdb):
+To import PKCS #12 file into the client security database (default: `~/.dogtag/nssdb`):
 
-<pre>
+----
 $ pki -c Secret.123 pkcs12-import --pkcs12-file test.p12 --pkcs12-password Secret.123
 ---------------
 Import complete
 ---------------
-</pre>
+----
 
 Optionally, the nicknames of the certificates to be imported can be specified as arguments:
 
-<pre>
+----
 $ pki -c Secret.123 pkcs12-import --pkcs12-file test.p12 --pkcs12-password Secret.123 \
  "caSigningCert cert-pki-tomcat CA" \
  "subsystemCert cert-pki-tomcat"
 ---------------
 Import complete
 ---------------
-</pre>
+----
 
 To import without the trust flags:
 
-<pre>
+----
 $ pki -c Secret.123 pkcs12-import --pkcs12-file test.p12 --pkcs12-password Secret.123 --no-trust-flags
 ---------------
 Import complete
 ---------------
-</pre>
+----
 
 The passwords can be specified in a file:
 
-<pre>
+----
 $ pki -C nsspwd.txt pkcs12-import --pkcs12-file test.p12 --pkcs12-password-file pkcs12pwd.txt
-</pre>
+----
 
 = Exporting NSS Database into PKCS #12 File =
 
-To export NSS database (default: ~/.dogtag/nssdb) into PKCS #12 file:
+To export NSS database (default: `~/.dogtag/nssdb`) into PKCS #12 file:
 
-<pre>
+----
 $ pki -c Secret.123 pkcs12-export --pkcs12-file test.p12 --pkcs12-password Secret.123
 ---------------
 Export complete
 ---------------
-</pre>
+----
 
 It will overwrite existing PKCS #12 file.
 
 To export certain certificates only, specify the nicknames as command arguments:
 
-<pre>
+----
 $ pki -c Secret.123 pkcs12-export --pkcs12-file test.p12 --pkcs12-password Secret.123 \
  "auditSigningCert cert-pki-tomcat CA" \
  "ocspSigningCert cert-pki-tomcat CA"
 ---------------
 Export complete
 ---------------
-</pre>
+----
 
 It will include the specified certificates with their keys, and the certificate chain without their keys.
 
 To export without the trust flags:
 
-<pre>
+----
 $ pki -c Secret.123 pkcs12-export --pkcs12-file test.p12 --pkcs12-password Secret.123 --no-trust-flags
 ---------------
 Export complete
 ---------------
-</pre>
+----
 
 The passwords can be specified in files:
 
-<pre>
+----
 $ pki -C nsspwd.txt pkcs12-export --pkcs12-file test.p12 --pkcs12-password-file pkcs12pwd.txt
-</pre>
+----
 
-= References =
+= See Also =
 
-* [https://github.com/dogtagpki/pki/wiki/PKI-CLI PKI CLI]
-* [https://www.dogtagpki.org/wiki/PKCS12 PKCS12]
-* [https://www.dogtagpki.org/wiki/PKCS12Export PKCS12Export]
-* [https://www.dogtagpki.org/wiki/Exporting_System_Certificates Exporting System Certificates]
-* [https://www.dogtagpki.org/wiki/OpenSSL OpenSSL]
-* [https://www.dogtagpki.org/wiki/Keytool keytool]
+* link:PKI-CLI[PKI CLI]
+* link:https://www.dogtagpki.org/wiki/PKCS12[PKCS12]
+* link:https://www.dogtagpki.org/wiki/PKCS12Export[PKCS12Export]
+* link:https://www.dogtagpki.org/wiki/Exporting_System_Certificates[Exporting System Certificates]
+* link:https://www.dogtagpki.org/wiki/OpenSSL[OpenSSL]
+* link:https://www.dogtagpki.org/wiki/Keytool[keytool]
