@@ -8,7 +8,7 @@ This page describes the process to upgrade a PKI 10.1 database into a PKI 10.2 d
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_10_1_BRANCH:base/ca/shared/conf/database.ldif DOGTAG_10_2_BRANCH:base/server/share/conf/database.ldif
 $ git diff DOGTAG_10_1_BRANCH:base/kra/shared/conf/database.ldif DOGTAG_10_2_BRANCH:base/server/share/conf/database.ldif
 $ git diff DOGTAG_10_1_BRANCH:base/ocsp/shared/conf/database.ldif DOGTAG_10_2_BRANCH:base/server/share/conf/database.ldif
@@ -19,7 +19,7 @@ $ git diff DOGTAG_10_1_BRANCH:base/kra/shared/conf/manager.ldif DOGTAG_10_2_BRAN
 $ git diff DOGTAG_10_1_BRANCH:base/ocsp/shared/conf/manager.ldif DOGTAG_10_2_BRANCH:base/server/share/conf/manager.ldif
 $ git diff DOGTAG_10_1_BRANCH:base/tks/shared/conf/manager.ldif DOGTAG_10_2_BRANCH:base/server/share/conf/manager.ldif
 $ git diff DOGTAG_10_1_BRANCH:base/tps-tomcat/shared/conf/manager.ldif DOGTAG_10_2_BRANCH:base/server/share/conf/manager.ldif
-</pre>
+----
 
 No changes required.
 
@@ -27,17 +27,17 @@ No changes required.
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_10_1_BRANCH:base/ca/shared/conf/schema.ldif DOGTAG_10_2_BRANCH:base/server/share/conf/schema.ldif
 $ git diff DOGTAG_10_1_BRANCH:base/kra/shared/conf/schema.ldif DOGTAG_10_2_BRANCH:base/server/share/conf/schema.ldif
 $ git diff DOGTAG_10_1_BRANCH:base/ocsp/shared/conf/schema.ldif DOGTAG_10_2_BRANCH:base/server/share/conf/schema.ldif
 $ git diff DOGTAG_10_1_BRANCH:base/tks/shared/conf/schema.ldif DOGTAG_10_2_BRANCH:base/server/share/conf/schema.ldif
 $ git diff DOGTAG_10_1_BRANCH:base/tps-tomcat/shared/conf/schema.ldif DOGTAG_10_2_BRANCH:base/server/share/conf/schema.ldif
-</pre>
+----
 
 The schema files were merged into a common schema.
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: cn=schema
 changetype: modify
@@ -219,7 +219,7 @@ changetype: modify
 add: objectClasses
 objectClasses: ( certProfile-oid NAME 'certProfile' DESC 'Certificate profile' SUP top STRUCTURAL MUST cn MAY ( classId $ certProfileConfig ) X-ORIGIN 'user defined' )
 EOF
-</pre>
+----
 
 == Upgrading CA Database ==
 
@@ -227,13 +227,13 @@ EOF
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_10_1_BRANCH:base/ca/shared/conf/db.ldif DOGTAG_10_2_BRANCH:base/ca/shared/conf/db.ldif
-</pre>
+----
 
 A new container entry needs to be added to existing instances:
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: ou=certificateProfiles,ou=ca,dc=ca,dc=example,dc=com
 changetype: add
@@ -241,35 +241,35 @@ objectClass: top
 objectClass: organizationalUnit
 ou: certificateProfiles
 EOF
-</pre>
+----
 
 === Updating ACL entries ===
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_10_1_BRANCH:base/ca/shared/conf/acl.ldif DOGTAG_10_2_BRANCH:base/ca/shared/conf/acl.ldif
-</pre>
+----
 
 The ACL resources need to be updated in existing instances:
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: cn=aclResources,dc=ca,dc=example,dc=com
 changetype: modify
 add: resourceACLS
 resourceACLS: certServer.ca.selftests:read,execute:allow (read,execute) group="Administrators":Only admins can access selftests.
 EOF
-</pre>
+----
 
 === Updating indexes ===
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_10_1_BRANCH:base/ca/shared/conf/index.ldif DOGTAG_10_2_BRANCH:base/ca/shared/conf/index.ldif
 $ git diff DOGTAG_10_1_BRANCH:base/ca/shared/conf/vlv.ldif DOGTAG_10_2_BRANCH:base/ca/shared/conf/vlv.ldif
-</pre>
+----
 
 The nsSystemIndex was renamed to nsSystemindex.
 
@@ -279,9 +279,9 @@ The nsSystemIndex was renamed to nsSystemindex.
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_10_1_BRANCH:base/kra/shared/conf/db.ldif DOGTAG_10_2_BRANCH:base/kra/shared/conf/db.ldif
-</pre>
+----
 
 No changes required.
 
@@ -289,26 +289,26 @@ No changes required.
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_10_1_BRANCH:base/kra/shared/conf/acl.ldif DOGTAG_10_2_BRANCH:base/kra/shared/conf/acl.ldif
-</pre>
+----
 
 The ACL resources need to be updated in existing instances:
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: cn=aclResources,dc=kra,dc=example,dc=com
 changetype: modify
 add: resourceACLS
 resourceACLS: certServer.kra.selftests:read,execute:allow (read,execute) group="Administrators":Only admins can access selftests.
 EOF
-</pre>
+----
 
 === Fixing database user permission ===
 
 If the database is shared with CA, replace the {dbuser} in the following ACL with CA's database user:
 
-<pre>
+----
 dn: {rootSuffix}
 aci: (targetattr=*)(version 3.0; acl "cert manager access v2"; allow (all) userdn = "ldap:///{dbuser}";)
 
@@ -332,7 +332,7 @@ aci: (targetattr=*)(targetfilter="(|(objectclass=nsds5replicationagreement)(obje
 
 dn: cn=tasks,cn=config
 aci: (targetattr=*)(version 3.0; acl "cert manager: Run tasks after replica re-initialization"; allow (add) userdn = "ldap:///{dbuser}";)
-</pre>
+----
 
 Then remove KRA's database user.
 
@@ -340,9 +340,9 @@ Then remove KRA's database user.
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_10_1_BRANCH:base/kra/shared/conf/index.ldif DOGTAG_10_2_BRANCH:base/kra/shared/conf/index.ldif
-</pre>
+----
 
 The nsIndexType was renamed to nsindexType, the nsSystemIndex was renamed to nsSystemindex.
 
@@ -352,9 +352,9 @@ The nsIndexType was renamed to nsindexType, the nsSystemIndex was renamed to nsS
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_10_1_BRANCH:base/ocsp/shared/conf/db.ldif DOGTAG_10_2_BRANCH:base/ocsp/shared/conf/db.ldif
-</pre>
+----
 
 No changes required.
 
@@ -362,26 +362,26 @@ No changes required.
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_10_1_BRANCH:base/ocsp/shared/conf/acl.ldif DOGTAG_10_2_BRANCH:base/ocsp/shared/conf/acl.ldif
-</pre>
+----
 
 The ACL resources need to be updated in existing instances:
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: cn=aclResources,dc=ocsp,dc=example,dc=com
 changetype: modify
 add: resourceACLS
 resourceACLS: certServer.ocsp.selftests:read,execute:allow (read,execute) group="Administrators":Only admins can access selftests.
 EOF
-</pre>
+----
 
 === Fixing database user permission ===
 
 If the database is shared with CA, replace the {dbuser} in the following ACL with CA's database user.
 
-<pre>
+----
 dn: {rootSuffix}
 aci: (targetattr=*)(version 3.0; acl "cert manager access v2"; allow (all) userdn = "ldap:///{dbuser}";)
 
@@ -405,7 +405,7 @@ aci: (targetattr=*)(targetfilter="(|(objectclass=nsds5replicationagreement)(obje
 
 dn: cn=tasks,cn=config
 aci: (targetattr=*)(version 3.0; acl "cert manager: Run tasks after replica re-initialization"; allow (add) userdn = "ldap:///{dbuser}";)
-</pre>
+----
 
 Then remove OCSP's database user.
 
@@ -413,9 +413,9 @@ Then remove OCSP's database user.
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_10_1_BRANCH:base/ocsp/shared/conf/index.ldif DOGTAG_10_2_BRANCH:base/ocsp/shared/conf/index.ldif
-</pre>
+----
 
 The nsIndexType and nsSystemIndex were renamed to nsindexType and nsSystemindex, respectively.
 
@@ -425,9 +425,9 @@ The nsIndexType and nsSystemIndex were renamed to nsindexType and nsSystemindex,
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_10_1_BRANCH:base/tks/shared/conf/db.ldif DOGTAG_10_2_BRANCH:base/tks/shared/conf/db.ldif
-</pre>
+----
 
 No changes required.
 
@@ -435,26 +435,26 @@ No changes required.
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_10_1_BRANCH:base/tks/shared/conf/acl.ldif DOGTAG_10_2_BRANCH:base/tks/shared/conf/acl.ldif
-</pre>
+----
 
 The ACL resources need to be updated in existing instances:
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: cn=aclResources,dc=tks,dc=example,dc=com
 modify
 add: resourceACLS
 resourceACLS: certServer.tks.selftests:read,execute:allow (read,execute) group="Administrators":Only admins can access selftests.
 EOF
-</pre>
+----
 
 === Fixing database user permission ===
 
 If the database is shared with CA, replace the {dbuser} in the following ACL with CA's database user:
 
-<pre>
+----
 dn: {rootSuffix}
 aci: (targetattr=*)(version 3.0; acl "cert manager access v2"; allow (all) userdn = "ldap:///{dbuser}";)
 
@@ -478,7 +478,7 @@ aci: (targetattr=*)(targetfilter="(|(objectclass=nsds5replicationagreement)(obje
 
 dn: cn=tasks,cn=config
 aci: (targetattr=*)(version 3.0; acl "cert manager: Run tasks after replica re-initialization"; allow (add) userdn = "ldap:///{dbuser}";)
-</pre>
+----
 
 Then remove TKS's database user.
 
@@ -486,9 +486,9 @@ Then remove TKS's database user.
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_10_1_BRANCH:base/tks/shared/conf/index.ldif DOGTAG_10_2_BRANCH:base/tks/shared/conf/index.ldif
-</pre>
+----
 
 The nsIndexType and nsSystemIndex were replaced with nsindexType and nsSystemindex, respectively.
 
