@@ -93,7 +93,8 @@ The trust flags can be overwritten with the `--trust-flags` parameter:
 
 ----
 $ pki -c Secret.123 pkcs12-cert-add caadmin \
-    --pkcs12-file test.p12 --pkcs12-password Secret.123 --trust-flags <trust flags>
+    --pkcs12-file test.p12 --pkcs12-password Secret.123 \
+    --trust-flags <trust flags>
 ---------------------------
 Added certificate "caadmin"
 ---------------------------
@@ -103,7 +104,8 @@ To add a certificate from client NSS database without the key:
 
 ----
 $ pki -c Secret.123 pkcs12-cert-add caadmin \
-    --pkcs12-file test.p12 --pkcs12-password Secret.123 --no-key
+    --pkcs12-file test.p12 --pkcs12-password Secret.123 \
+    --no-key
 ---------------------------
 Added certificate "caadmin"
 ---------------------------
@@ -113,7 +115,8 @@ To add a certificate from a file (not implemented yet):
 
 ----
 $ pki pkcs12-cert-add caadmin \
-    --pkcs12-file test.p12 --pkcs12-password Secret.123 --cert-file caadmin.pem
+    --pkcs12-file test.p12 --pkcs12-password Secret.123 \
+    --cert-file caadmin.pem
 ---------------------------
 Added certificate "caadmin"
 ---------------------------
@@ -123,8 +126,8 @@ To add a certificate from a file with trust flags (not implemented yet):
 
 ----
 $ pki pkcs12-cert-add caadmin \
-    --pkcs12-file test.p12 --pkcs12-password Secret.123 --cert-file caadmin.pem \
- --trust-flags "u,u,u"
+    --pkcs12-file test.p12 --pkcs12-password Secret.123 \
+    --cert-file caadmin.pem --trust-flags "u,u,u"
 ---------------------------
 Added certificate "caadmin"
 ---------------------------
