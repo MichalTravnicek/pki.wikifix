@@ -10,11 +10,11 @@ This page describes the process to upgrade a PKI 10.5 database into a PKI 10.6 d
 
 This procedure fixes the following issue:
 
-* [https://bugzilla.redhat.com/show_bug.cgi?id=1809273 Bug #1809273 - CRL generation performs an unindexed search]
+* link:https://bugzilla.redhat.com/show_bug.cgi?id=1809273[Bug #1809273: CRL generation performs an unindexed search]
 
 Create an upgrade script as follows (customize the parameters as needed):
 
-<pre>
+----
 #!/bin/sh
 
 # reset variables 
@@ -63,7 +63,7 @@ ttl: 10
 nsinstance: $database
 nsindexVLVAttribute: allRevokedCertsByIssuer-$instanceId
 EOF
-</pre>
+----
 
 Execute the upgrade script. After being prompted for the userdn's password, the script will attempt to create the new VLV index and
 to create a "task" on the server to install the index.
@@ -74,11 +74,11 @@ Note, if the index already exists, the call to ldapmodify will simply report tha
 
 This procedure fixes the following issue:
 
-* [https://bugzilla.redhat.com/show_bug.cgi?id=1549307 Bug #1549307 - No default TPS Auditor group]
+* link:https://bugzilla.redhat.com/show_bug.cgi?id=1549307[Bug #1549307 - No default TPS Auditor group]
 
 To add the missing Auditors group to TPS:
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: cn=Auditors,ou=Groups,{rootSuffix}
 changeType: add
@@ -87,9 +87,9 @@ objectClass: groupOfUniqueNames
 cn: Auditors
 description: People who can read the signed audit logs for TPS
 EOF
-</pre>
+----
 
-Replace <code>{rootSuffix}</code> with the base DN of from the TPS configuration file (<code>pki_ds_base_dn</code>). Usually this is something like <code>dc=tks,dc=pki,dc={DOMAIN...},dc={TLD}</code>.
+Replace `{rootSuffix}` with the base DN of from the TPS configuration file (`pki_ds_base_dn`). Usually this is something like `dc=tks,dc=pki,dc={DOMAIN...},dc={TLD}`.
 
 = Upgrading from PKI 10.5.19 to PKI 10.6.0 =
 
