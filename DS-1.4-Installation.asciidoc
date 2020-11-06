@@ -1,35 +1,35 @@
-= Installation =
+= Installing DS Packages =
 
-<pre>
+----
 $ dnf install -y 389-ds-base
-</pre>
+----
 
 = Installing DS Instance =
 
 Generate a configuration template:
 
-<pre>
+----
 $ dscreate create-template ds.tmp
-</pre>
+----
 
 Customize the configuration as follows:
 
-<pre>
+----
 $ sed \
     -e 's/;root_password = .*/root_password = Secret.123/g' \
     -e 's/;suffix = .*/suffix = dc=example,dc=com/g' \
     ds.tmp > ds.inf
-</pre>
+----
 
 To create the instance:
 
-<pre>
+----
 $ dscreate from-file ds.inf
-</pre>
+----
 
-To add base entries:
+To add PKI base entries:
 
-<pre>
+----
 $ ldapadd -h $HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: dc=example,dc=com
 objectClass: domain
@@ -39,22 +39,25 @@ dn: dc=pki,dc=example,dc=com
 objectClass: domain
 dc: pki
 EOF
-</pre>
+----
 
-To remove the instance:
+= Removing DS Instance =
 
-<pre>
+To remove DS instance:
+
+----
 $ dsctl localhost remove --do-it
-</pre>
+----
 
 = Log Files =
 
 DS log files are available in /var/log/dirsrv/slapd-localhost:
+
 * access
 * audit
 * errors
 
 = See Also =
 
-* [[DS Installation]]
-* [https://www.dogtagpki.org/wiki/DS_SSL DS SSL]
+* link:DS-Installation[DS Installation]
+* link:https://www.dogtagpki.org/wiki/DS_SSL[DS SSL]
