@@ -10,12 +10,12 @@ This page describes the process to upgrade a PKI 9 database into a PKI 10.0 data
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_9_0_BRANCH:base/ca/shared/conf/database.ldif DOGTAG_10_0_BRANCH:base/ca/shared/conf/database.ldif
 $ git diff DOGTAG_9_0_BRANCH:base/ca/shared/conf/manager.ldif DOGTAG_10_0_BRANCH:base/ca/shared/conf/manager.ldif
-</pre>
+----
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: dc=ca,dc=example,dc=com
 changetype: modify
@@ -25,17 +25,17 @@ aci: (targetattr=*)(version 3.0; acl "cert manager access"; allow (all) userdn =
 add: aci
 aci: (targetattr=*)(version 3.0; acl "cert manager access v2"; allow (all) userdn = "ldap:///{dbuser}";)
 EOF
-</pre>
+----
 
 === Updating schema ===
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_9_0_BRANCH:base/ca/shared/conf/schema.ldif DOGTAG_10_0_BRANCH:base/ca/shared/conf/schema.ldif
-</pre>
+----
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: cn=schema
 changetype: modify
@@ -60,15 +60,15 @@ objectClasses: ( keyRecord-oid NAME 'keyRecord' DESC 'CMS defined class' SUP top
 add: objectClasses
 objectClasses: ( keyRecord-oid NAME 'keyRecord' DESC 'CMS defined class' SUP top STRUCTURAL MUST cn MAY ( serialno $ dateOfCreate $ dateOfModify $ keyState $ privateKeyData $ ownerName $ keySize $ metaInfo $ dateOfArchival $ dateOfRecovery $ algorithm $ publicKeyFormat $ publicKeyData $ archivedBy $ clientId $ dataType $ status ) X-ORIGIN 'user defined' )
 EOF
-</pre>
+----
 
 === Updating container entries ===
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_9_0_BRANCH:base/ca/shared/conf/db.ldif DOGTAG_10_0_BRANCH:base/ca/shared/conf/db.ldif
-</pre>
+----
 
 No changes required.
 
@@ -76,11 +76,11 @@ No changes required.
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_9_0_BRANCH:base/ca/shared/conf/acl.ldif DOGTAG_10_0_BRANCH:base/ca/shared/conf/acl.ldif
-</pre>
+----
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: cn=aclResources,dc=ca,dc=example,dc=com
 changetype: modify
@@ -109,18 +109,18 @@ resourceACLS: certServer.ca.certs:execute:allow (execute) group="Certificate Man
 resourceACLS: certServer.ca.groups:execute:allow (execute) group="Administrators":Admins may execute group operations
 resourceACLS: certServer.ca.users:execute:allow (execute) group="Administrators":Admins may execute user operations
 EOF
-</pre>
+----
 
 === Updating indexes ===
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_9_0_BRANCH:base/ca/shared/conf/index.ldif DOGTAG_10_0_BRANCH:base/ca/shared/conf/index.ldif
 $ git diff DOGTAG_9_0_BRANCH:base/ca/shared/conf/vlv.ldif DOGTAG_10_0_BRANCH:base/ca/shared/conf/vlv.ldif
-</pre>
+----
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: cn=clientId,cn=index,cn=ca,cn=ldbm database, cn=plugins, cn=config
 changetype: add
@@ -146,7 +146,7 @@ nsindexType: eq
 nsSystemindex: false
 cn: status
 EOF
-</pre>
+----
 
 == Upgrading KRA Database ==
 
@@ -154,12 +154,12 @@ EOF
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_9_0_BRANCH:base/kra/shared/conf/database.ldif DOGTAG_10_0_BRANCH:base/kra/shared/conf/database.ldif
 $ git diff DOGTAG_9_0_BRANCH:base/kra/shared/conf/manager.ldif DOGTAG_10_0_BRANCH:base/kra/shared/conf/manager.ldif
-</pre>
+----
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: dc=kra,dc=example,dc=com
 changetype: modify
@@ -170,17 +170,17 @@ add: aci
 aci: (targetattr=*)(version 3.0; acl "cert manager access v2"; allow (all) userdn = "ldap:///{dbuser}";)
 -
 EOF
-</pre>
+----
 
 === Updating schema ===
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_9_0_BRANCH:base/kra/shared/conf/schema.ldif DOGTAG_10_0_BRANCH:base/kra/shared/conf/schema.ldif
-</pre>
+----
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: cn=schema
 changetype: modify
@@ -206,15 +206,15 @@ add: objectClasses
 objectClasses: ( keyRecord-oid NAME 'keyRecord' DESC 'CMS defined class' SUP top STRUCTURAL MUST cn MAY ( serialno $ dateOfCreate $ dateOfModify $ keyState $ privateKeyData $ ownerName $ keySize $ metaInfo $ dateOfArchival $ dateOfRecovery $ algorithm $ publicKeyFormat $ publicKeyData $ archivedBy $ clientId $ dataType $ status ) X-ORIGIN 'user defined' )
 -
 EOF
-</pre>
+----
 
 === Updating container entries ===
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_9_0_BRANCH:base/kra/shared/conf/db.ldif DOGTAG_10_0_BRANCH:base/kra/shared/conf/db.ldif
-</pre>
+----
 
 No changes required.
 
@@ -222,11 +222,11 @@ No changes required.
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_9_0_BRANCH:base/kra/shared/conf/acl.ldif DOGTAG_10_0_BRANCH:base/kra/shared/conf/acl.ldif
-</pre>
+----
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: cn=aclResources,dc=kra,dc=example,dc=com
 changetype: modify
@@ -245,18 +245,18 @@ resourceACLS: certServer.kra.groups:execute:allow (execute) group="Administrator
 resourceACLS: certServer.kra.keyrequests:execute:allow (execute) group="Data Recovery Manager Agents":Agents may execute key request operations
 resourceACLS: certServer.kra.users:execute:allow (execute) group="Administrators":Admins may execute user operations
 EOF
-</pre>
+----
 
 === Updating indexes ===
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_9_0_BRANCH:base/kra/shared/conf/vlv.ldif DOGTAG_10_0_BRANCH:base/kra/shared/conf/vlv.ldif
 $ git diff DOGTAG_9_0_BRANCH:base/kra/shared/conf/index.ldif DOGTAG_10_0_BRANCH:base/kra/shared/conf/index.ldif
-</pre>
+----
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: cn=clientId,cn=index,cn=kra,cn=ldbm database, cn=plugins, cn=config
 changetype: add
@@ -282,7 +282,7 @@ nsIndexType: eq
 nsSystemIndex: false
 cn: status
 EOF
-</pre>
+----
 
 == Upgrading OCSP Database ==
 
@@ -290,12 +290,12 @@ EOF
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_9_0_BRANCH:base/ocsp/shared/conf/database.ldif DOGTAG_10_0_BRANCH:base/ocsp/shared/conf/database.ldif
 $ git diff DOGTAG_9_0_BRANCH:base/ocsp/shared/conf/manager.ldif DOGTAG_10_0_BRANCH:base/ocsp/shared/conf/manager.ldif
-</pre>
+----
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: dc=ocsp,dc=example,dc=com
 changetype: modify
@@ -306,17 +306,17 @@ add: aci
 aci: (targetattr=*)(version 3.0; acl "cert manager access v2"; allow (all) userdn = "ldap:///{dbuser}";)
 -
 EOF
-</pre>
+----
 
 === Updating schema ===
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_9_0_BRANCH:base/ocsp/shared/conf/schema.ldif DOGTAG_10_0_BRANCH:base/ocsp/shared/conf/schema.ldif
-</pre>
+----
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: cn=schema
 changetype: modify
@@ -342,15 +342,15 @@ add: objectClasses
 objectClasses: ( keyRecord-oid NAME 'keyRecord' DESC 'CMS defined class' SUP top STRUCTURAL MUST cn MAY ( serialno $ dateOfCreate $ dateOfModify $ keyState $ privateKeyData $ ownerName $ keySize $ metaInfo $ dateOfArchival $ dateOfRecovery $ algorithm $ publicKeyFormat $ publicKeyData $ archivedBy $ clientId $ dataType $ status ) X-ORIGIN 'user defined' )
 -
 EOF
-</pre>
+----
 
 === Updating container entries ===
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_9_0_BRANCH:base/ocsp/shared/conf/db.ldif DOGTAG_10_0_BRANCH:base/ocsp/shared/conf/db.ldif
-</pre>
+----
 
 No changes required.
 
@@ -358,11 +358,11 @@ No changes required.
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_9_0_BRANCH:base/ocsp/shared/conf/acl.ldif DOGTAG_10_0_BRANCH:base/ocsp/shared/conf/acl.ldif
-</pre>
+----
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: cn=aclResources,dc=ocsp,dc=example,dc=com
 changetype: modify
@@ -371,17 +371,17 @@ resourceACLS: certServer.ocsp.account:login,logout:allow (login,logout) user="an
 resourceACLS: certServer.ocsp.groups:execute:allow (execute) group="Administrators":Admins may execute group operations
 resourceACLS: certServer.ocsp.users:execute:allow (execute) group="Administrators":Admins may execute user operations
 EOF
-</pre>
+----
 
 === Updating indexes ===
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_9_0_BRANCH:base/ocsp/shared/conf/index.ldif DOGTAG_10_0_BRANCH:base/ocsp/shared/conf/index.ldif
-</pre>
+----
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: cn=clientId,cn=index,cn=ocsp,cn=ldbm database, cn=plugins, cn=config
 objectClass: top
@@ -404,7 +404,7 @@ nsIndexType: eq
 nsSystemIndex: false
 cn: status
 EOF
-</pre>
+----
 
 == Upgrading TKS Database ==
 
@@ -412,12 +412,12 @@ EOF
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_9_0_BRANCH:base/tks/shared/conf/database.ldif DOGTAG_10_0_BRANCH:base/tks/shared/conf/database.ldif
 $ git diff DOGTAG_9_0_BRANCH:base/tks/shared/conf/manager.ldif DOGTAG_10_0_BRANCH:base/tks/shared/conf/manager.ldif
-</pre>
+----
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: dc=tks,dc=example,dc=com
 changetype: modify
@@ -428,17 +428,17 @@ add: aci
 aci: (targetattr=*)(version 3.0; acl "cert manager access v2"; allow (all) userdn = "ldap:///{dbuser}";)
 -
 EOF
-</pre>
+----
 
 === Updating schema ===
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_9_0_BRANCH:base/tks/shared/conf/schema.ldif DOGTAG_10_0_BRANCH:base/tks/shared/conf/schema.ldif
-</pre>
+----
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: cn=schema
 changetype: modify
@@ -464,15 +464,15 @@ add: objectClasses
 objectClasses: ( keyRecord-oid NAME 'keyRecord' DESC 'CMS defined class' SUP top STRUCTURAL MUST cn MAY ( serialno $ dateOfCreate $ dateOfModify $ keyState $ privateKeyData $ ownerName $ keySize $ metaInfo $ dateOfArchival $ dateOfRecovery $ algorithm $ publicKeyFormat $ publicKeyData $ archivedBy $ clientId $ dataType $ status ) X-ORIGIN 'user defined' )
 -
 EOF
-</pre>
+----
 
 === Updating container entries ===
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_9_0_BRANCH:base/tks/shared/conf/db.ldif DOGTAG_10_0_BRANCH:base/tks/shared/conf/db.ldif
-</pre>
+----
 
 No changes required.
 
@@ -480,11 +480,11 @@ No changes required.
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_9_0_BRANCH:base/tks/shared/conf/acl.ldif DOGTAG_10_0_BRANCH:base/tks/shared/conf/acl.ldif
-</pre>
+----
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: cn=aclResources,dc=tks,dc=example,dc=com
 changetype: modify
@@ -493,18 +493,18 @@ resourceACLS: certServer.tks.account:login,logout:allow (login,logout) user="any
 resourceACLS: certServer.tks.groups:execute:allow (execute) group="Administrators":Admins may execute group operations
 resourceACLS: certServer.tks.users:execute:allow (execute) group="Administrators":Admins may execute user operations
 EOF
-</pre>
+----
 
 === Updating indexes ===
 
 To check for changes in the source code:
 
-<pre>
+----
 $ git diff DOGTAG_9_0_BRANCH:base/tks/shared/conf/index.ldif DOGTAG_10_0_BRANCH:base/tks/shared/conf/index.ldif
 $ git diff DOGTAG_9_0_BRANCH:base/tks/shared/conf/vlv.ldif DOGTAG_10_0_BRANCH:base/tks/shared/conf/vlv.ldif
-</pre>
+----
 
-<pre>
+----
 $ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: cn=clientId,cn=index,cn=tks,cn=ldbm database, cn=plugins, cn=config
 changetype: add
@@ -530,7 +530,7 @@ nsIndexType: eq
 nsSystemIndex: false
 cn: status
 EOF
-</pre>
+----
 
 == Upgrading TPS Database ==
 
