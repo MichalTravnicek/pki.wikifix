@@ -1,0 +1,115 @@
+= Access Banner =
+
+Since version 10.4 PKI Server can be configured with access banner (e.g. warning, terms of service) that will appear in PKI CLI, PKI Console, and PKI UI.
+
+= Configuration =
+
+== Banner Message ==
+
+By default access banner is not installed, so no banner will be displayed when a client tries to access the server.
+
+To install banner, create `/etc/pki/pki-tomcat/banner.txt` containing a banner message, for example:
+
+----
+WARNING!
+Access to this service is restricted to those individuals with
+specific permissions. If you are not an authorized user, disconnect
+now. Any attempts to gain unauthorized access will be prosecuted to
+the fullest extent of the law.
+----
+
+Make sure the file is UTF-8 encoded and readable by pkiuser. If the file contains invalid character(s) or not readable, the server will fail on restart and an error message will be logged in systemd journal.
+
+To uninstall banner, simply remove the `banner.txt`.
+
+No server restart is necessary when configuring banner message.
+
+See also link:PKI-Server-Banner-CLI[PKI Server Banner CLI].
+
+== Session Timeout ==
+
+Banner is displayed once at the beginning of each client's SSL session. If there the client is idle, the session will expire after sometime (i.e. timeout). If the client creates a new session to continue the interaction with the server, the banner will be displayed again.
+
+See link:https://github.com/dogtagpki/pki/blob/master/docs/admin/Session_Timeout.md[Session Timeout].
+
+Note that In earlier PKI the session timeout was defined in the following files:
+
+* PKI main webapp config (i.e. `/pki`): `/usr/share/pki/server/webapps/pki/WEB-INF/web.xml`
+* PKI subsystem webapp config (e.g. `/ca`, `/kra`): `/usr/share/pki/<subsystem>/webapps/<subsystem>/WEB-INF/web.xml`
+
+Since these files are shared, to change the session timeout first link:https://www.dogtagpki.org/wiki/Customization[customize] the webapps, then change the session timeout in the customized web.xml files, then restart the server.
+
+In newer PKI 10.5 and PKI 10.6.9+ the session timeout is only defined in the Tomcat default webapp config:
+
+* Tomcat default webapp config: `/etc/pki/pki-tomcat/web.xml`
+
+To change the session timeout simply edit the above file and restart the server.
+
+= Usages =
+
+== PKI UI ==
+
+In PKI UI the banner will appear in a dialog box when the user starts a session over an SSL connection. The banner may reappear if the user continues to use the UI after the session has expired (i.e. starting a new session).
+
+== PKI Console ==
+
+In PKI Console the banner will appear before the console is displayed, for example:
+
+----
+$ pkiconsole https://server.example.com:8443/ca
+WARNING!
+Access to this service is restricted to those individuals with
+specific permissions. If you are not an authorized user, disconnect
+now. Any attempts to gain unauthorized access will be prosecuted to
+the fullest extent of the law.
+
+Do you want to proceed (y/N)? y
+----
+
+== PKI CLI ==
+
+In PKI CLI the banner will appear before the actual operation is executed, for example:
+
+----
+$ pki ca-cert-show 0x1
+WARNING!
+Access to this service is restricted to those individuals with
+specific permissions. If you are not an authorized user, disconnect
+now. Any attempts to gain unauthorized access will be prosecuted to
+the fullest extent of the law.
+
+Do you want to proceed (y/N)? y
+-----------------
+Certificate "0x1"
+-----------------
+  Serial Number: 0x1
+  Issuer: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Subject: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Status: VALID
+  Not Before: Mon Feb 20 18:21:03 CET 2017
+  Not After: Fri Feb 20 18:21:03 CET 2037
+----
+
+To bypass banner (e.g. for automation) specify the `--ignore-banner` option, for example:
+
+----
+$ pki --ignore-banner ca-cert-show 0x1
+-----------------
+Certificate "0x1"
+-----------------
+  Serial Number: 0x1
+  Issuer: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Subject: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Status: VALID
+  Not Before: Mon Feb 20 18:21:03 CET 2017
+  Not After: Fri Feb 20 18:21:03 CET 2037
+----
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/PKI_Server_Configuration[PKI Server Configuration]
+* link:PKI-Server-Banner-CLI[PKI Server Banner CLI]
+* link:https://www.dogtagpki.org/wiki/PKI_UI[PKI UI]
+* link:https://www.dogtagpki.org/wiki/PKI_Console[PKI Console]
+* link:https://github.com/dogtagpki/pki/wiki/PKI-CLI[PKI CLI]
+* link:https://www.dogtagpki.org/wiki/PKI_10.4_Access_Banner_Design[PKI 10.4 Access Banner Design]
