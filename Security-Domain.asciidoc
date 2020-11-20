@@ -1,0 +1,115 @@
+= Overview =
+
+A security domain is a service within a Certificate Authority to manage PKI service registration. You can elect to create a new security domain along with your self-signed Root CA. And each subsystem including Subordinate CA, TKS, OCSP, DRM, TPS must join a security domain within your enterprise. By jointing a security domain, the subsystem information such as services, host, and port will be made public to other subsystem. Each subsystem will also be issued a subsystem certificate which is signed by the security domain. Communications between the subsystem and the security domain will be done in client certificate authentication.
+
+The security domain will be responsible for handling centralized security policies such as trusted CAs list (Which CAs to trust for client authentication for example).
+
+= Roles =
+
+There will be 6 new groups created in the CA that hosts the security domain. They are as follows:
+
+* Security Domain Administrators
+** is responsible for managing user in the security domain 
+* Enterprise CA Administrators
+** have permission to get CA Signing Certificate, OCSP Signing Certificate, Server Certificate issued by a CA within the Security Domain
+** have permission to get a subsystem Certificate via the security domain
+** have permission to register its information to the security domain 
+* Enterprise DRM Administrators
+** have permission to get Transport Certificate, Storage Certificate issued by a CA within the Security Domain
+** have permission to get a Subsystem Certificate via the security domain
+** have permission to push the Transport Certificate, connector information to the selected CA
+** have permission to register its information to the security domain 
+* Enterprise OCSP Administrators
+** have permission to get OCSP Signing Certificate, Server Certificate issued by a CA within the Security Domain
+** have permission to get a Subsystem Certificate via the security domain
+** have permission to push connection information to the selected CA so that CRL can be published into the OCSP server directly
+** have permission to register its information to the security domain 
+* Enterprise TKS Administrators
+** have permission to get Server Certificate issued by a CA within the Security Domain
+** have permission to get a Subsystem Certificate via the security domain
+** have permission to register its information to the security domain 
+* Enterprise TPS Administrators
+** have permission to get Server Certificate issued by a CA within the Security Domain
+** have permission to get a Subsystem Certificate via the security domain
+** have permission to register its information to the security domain
+** have permission to push the DRM transport certificate to TKS for server side key generation 
+
+The administrator of the CA that own the security domain will be added its user id into all the above groups by the configuration.
+
+Note that we will still have local groups in the CA such as:
+
+* Administrators
+* Trusted Managers
+* CA Agents
+
+= Authentication Token =
+
+The configuration wizard is responsible for redirecting the user to the security domain to get an authentication token. Requests to subsystems will be authenticated, and the authentication token will play a key role in this.
+
+To obtain an authentication token, the credential information such as uid, and password entered in the configuration wizard will be redirected to an authentication servlet in the security domain. The security domain authenticates the information against the security domain user database. If successful, an authentication token will be issued and returned as a cookie. User will then be redirected back to continue the configuration. The cookie will be presented to the configuration wizard every time the user submits the configuration data.
+
+When the configuration wizard needs to get a certificate from a Certificate, it will submit the certificate request along with the cookie and supporting information such as IP address to the CA's profile. The profile's authentication manager instance will then send a request to the validation servlet in the security domain to check if the cookie can perform the requested operation.
+
+So imagine, CA has a Enterprise KRA profile which only issues certificate to user who is a member of the Enterprise KRA Administrators group. The authentication manager in this profile needs to send
+
+* authentication token + IP address of the client
+* a question such as 'Is the given token currently owned by a Domain user who is in the Enterprise KRA Administrators group?'
+
+The security domain may answer 'yes'. If that case, the CA can safely issue the certificate to the requester.
+
+The authentication and validation servlets should be protected with SSL to avoid man-in-the-middle attack.
+
+The authentication token by default will expire in 24 hours.
+
+The authentication token is just a session id that maps to an entry in the session table in the security domain. The session entry may contain:
+
+* ID: Token ID
+* IP: IP of the client
+* Type of Authentication: UIDPWD, or Certificate
+* User ID: Authenticated User ID
+* Date: Entry creation date 
+
+It will be nice if we create a audit log for every login access. For the first release, the session table can be just all memory-based.
+
+= Scenario - Setting up a Sub CA =
+
+If you are the administrator who is assigned to setup a Sub CA within your enterprise, you must ask the Security Domain Administrator to add your user id into the Enterprise CA Administrators group. Once this is done, you can then start the configuration.
+
+During configuration, you will be asked to join a security domain, user id, and password. You need to your Enterprise user id, and password that exist in the Security Domain.
+
+Throughout the configuration, the Sub CA will need to interface with the Root CA and the Security Domain for the following operations:
+
+* Getting Sub CA certificates (CA Signing, Server ...etc) from the Root CA
+* Getting Subsystem certificate from the Security Domain/Root CA
+* Registering its subsystem information to the Security Domain's database (i.e. domain.xml) 
+
+Each of the operation may require different authentication. Take the first operation as example. Sub CA will submit its certificate requests to the CA's profile which should return the certificate immediately if the provided credential is authenticated and authorized. To achieve this, the CA need to have special profile setup for Sub CA, and the profile's authentication should authenticate the credential (userid and password) against the "Enterprise CA Administrators" group.
+
+At the end of the configuration, the configuration wizard will create a new local admin user who will belong to the Sub CA's Administrators group.
+
+= Scenario - Setting up a KRA =
+
+To setup a KRA, you, as the KRA administrator, need to interact with the security domain and a CA that will issue KRA's certificate. Please note that the security domain's CA could be different from the CA that issue KRA's certificate.
+
+Similar to the previous scenario, the KRA Administrator needs to ask the Security Domain Administrator to add himself/herself to the "Enterprise KRA Administrators" group in the security domain.
+
+KRA configuration will use this Enterprise credential, which is provided by the KRA Administrator, to perform:
+
+* Getting KRA certificates from the selected CA
+* Getting Subsystem certificate from the Security Domain/Root CA
+* Adding KRA connector configuration to CA
+* Registering its subsystem information to the Security Domain 
+
+At the end of the configuration, the configuration wizard will create a new local admin user who will belong to the KRA's Administrators group, this user will be a default user in the KRA Agent local group as well.
+
+= Implementation Details =
+
+XML/HTTP over SSL Protocol between subsystem and the Security Domain:
+
+* Register a subsystem
+* Update subsystem information
+* De-register a subsystem
+* Get a list of subsystem that satisfies a criteria - for example, a list of CA for KRA to connect to
+* Add trusted CA
+* Remove trusted CA
+* Get a list of currently trusted CAs
