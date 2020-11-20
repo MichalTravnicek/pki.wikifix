@@ -1,0 +1,188 @@
+= PKI Console =
+
+The Certificate System provides a Java GUI-based administration tool called the Console that is used for administrative tasks such as managing users and maintaining PKI subsystems (except TPS), performs daily operational and managerial duties for the subsystem, and configures the server.
+
+= Installation =
+
+To install PKI console:
+
+----
+$ dnf install pki-console
+----
+
+= NSS Database =
+
+The PKI console uses link:NSS-Database[NSS Database] located at the following directory:
+
+* Fedora: `~/.dogtag-idm-console`
+* RHEL: `~/.redhat-idm-console`
+
+If the database does not exist it will be created automatically.
+
+To create a new NSS database manually:
+
+----
+$ pki -d ~/.dogtag-idm-console -c Secret.123 client-init
+----
+
+= Authentication =
+
+== Username and Password ==
+
+To authenticate using username and password, make sure the CS.cfg of the subsystem is configured as follows:
+
+----
+authType=pwd
+----
+
+By default the server is configured to use username and password authentication.
+
+== Client Certificate ==
+
+To authenticate using client certificate, make sure the CS.cfg of the subsystem is configured as follows:
+
+----
+authType=sslclientauth
+----
+
+Import the subsystem admin certificate into the NSS database, for example:
+
+----
+$ pki -d ~/.dogtag-idm-console -c Secret.123 client-cert-import \
+  --pkcs12 ~/.dogtag/pki-tomcat/ca_admin_cert.p12 \
+  --pkcs12-password-file ~/.dogtag/pki-tomcat/ca/pkcs12_password.conf
+----
+
+= Starting PKI Console =
+
+To start PKI console:
+
+----
+$ pkiconsole https://server.example.com:8443/<subsystem>
+----
+
+Supported subsystems are: ca, kra, ocsp, tks.
+
+If access banner is enabled on the server, it will appear before the console is started, for example:
+
+----
+$ pkiconsole https://server.example.com:8443/ca
+WARNING!
+Access to this service is restricted to those individuals with
+specific permissions. If you are not an authorized user, disconnect
+now. Any attempts to gain unauthorized access will be prosecuted to
+the fullest extent of the law.
+
+Do you want to proceed (y/N)? y
+----
+
+See also link:Access-Banner[Access Banner].
+
+= PKI Console Features =
+
+See link:https://www.dogtagpki.org/wiki/PKI_Console_Features[PKI Console Features].
+
+= Session Timeout =
+
+Prior to PKI 10.4 the PKI Console did not have session timeout.
+
+Since PKI 10.4 the session timeout can be configured with following parameter in `/etc/pki/pki-tomcat/server.xml`:
+
+----
+<Server>
+    <Service>
+
+        <Connector name="Secure"
+            ...
+            keepAliveTimeout="300000"
+            ...
+            />
+
+    </Service>
+</Server>
+----
+
+The default value is 300000 ms (5 minutes).
+
+See also link:https://www.dogtagpki.org/wiki/Tomcat_Configuration[Tomcat Configuration].
+
+= Gnome Launcher =
+
+Create `/usr/share/applications/pkiconsole.desktop`:
+
+----
+[Desktop Entry]
+Name=PKI Console 
+Comment=Manage PKI Server
+Exec=/usr/bin/pkiconsole https://server.example.com:8443/ca
+Icon=pki
+Terminal=true
+Type=Application
+Categories=RemoteAccess
+----
+
+= Troubleshooting =
+
+== Main options ==
+
+----
+$ pkiconsole -h
+Usage: pkiconsole <URL> [OPTIONS..]
+
+ -f <file>      Capture stderr and stdout to file.
+ -D <options>   Debug options.
+ -x <options>   Extra options (javalaf, nowinpos, nologo).
+ -h,--help      Show help message.
+
+Example: pkiconsole https://hostname:8443/ca
+----
+
+== Debug options ==
+
+----
+$ pkiconsole -D "?"
+
+-D option format: -D [<type1,type2,...>][:<flag1,flag2,...]
+Predefined Debug Types:
+n		Debug level  0<=n<=9, 0 = min info, 9 = max info
+ldap		LDAP Calls
+jss		JSS Calls
+http		HTTP Calls
+memgc		Garbage Collection
+rsptime		Response Time
+nojars		no jar files - for debuggers
+Debug Flags:
+idx		Enumerate debug entries
+lvl		Show debug level for debug entries
+ts		Time stamp debug entries, format Hour:Minute:Second.Milliseconds
+cls		Show caller short mode: (file:line)
+clf		ShowCaller full mode: package.metod(file:line)
+all		Shortcut for enabling idx,lvl,ts,cls
+cs		Print call stack for each debug entry
+on<list>	Show only entries that contain strings in the filter <list>
+off<list>	Do not show entries that contain strings in the filter <list>
+		on/off filter <list> list has the format
+		  X<string1>[X<string2>X<string3>...] 
+		where X is the list entry separator character.
+Examples:
+		-D 9:all
+		-D ldap,http:idx
+		-D ":cls,on@HttpChannel,off@send>"
+----
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/PKI_Client[PKI Client]
+* link:https://www.dogtagpki.org/wiki/PKI_Console_Development[PKI Console Development]
+* link:https://developer.gnome.org/gtk3/stable/gtk-update-icon-cache.html[gtk-update-icon-cache]
+* link:https://access.redhat.com/documentation/en-US/Red_Hat_Certificate_System/8.1/html/Admin_Guide/Setting_up_Certificate_Profiles.html#Modifying_Certificate_Profiles_through_the_CA_Console[RHCS 8.1 - Creating Certificate Profiles through the CA Console]
+* link:https://access.redhat.com/documentation/en-US/Red_Hat_Certificate_System/8.1/html/Admin_Guide/Setting_up_Certificate_Profiles.html#editing-profiles[RHCS 8.1 - Editing Certificate Profiles in the Console]
+* link:https://access.redhat.com/documentation/en-US/Red_Hat_Certificate_System/8.1/html/Admin_Guide/Setting_up_Key_Recovery.html#agent-recovery-console[RHCS 8.1 - Configuring Agent-Approved Key Recovery in the Console]
+* link:https://access.redhat.com/documentation/en-US/Red_Hat_Certificate_System/8.1/html/Admin_Guide/Additional_CRL_Scheduling_Information.html#configuring-crl-update-intervals-console[RHCS 8.1 - Configuring CRL Update Intervals in the Console]
+* link:https://access.redhat.com/documentation/en-US/Red_Hat_Certificate_System/8.1/html/Admin_Guide/Setting_Up_Automated_Notifications.html#Setting_Up_Automated_Notifications-in-the-console[RHCS 8.1 - Setting up Automated Notifications in the Console]
+* link:https://access.redhat.com/documentation/en-US/Red_Hat_Certificate_System/8.1/html/Admin_Guide/Setting_up_Specific_Jobs.html#Configuring_Specific_Jobs_Using_the_Certificate_Manager_Console[RHCS 8.1 - Configuring Specific Jobs Using the Certificate Manager Console]
+* link:https://access.redhat.com/documentation/en-US/Red_Hat_Certificate_System/8.1/html/Admin_Guide/opening-services.html[RHCS 8.1 - Opening Subsystem Consoles and Services]
+* link:https://access.redhat.com/documentation/en-US/Red_Hat_Certificate_System/8.1/html/Admin_Guide/opening-services.html#starting-console[RHCS 8.1 - Starting the Certificate System Administrative Console]
+* link:https://access.redhat.com/documentation/en-US/Red_Hat_Certificate_System/8.1/html/Admin_Guide/opening-services.html#Enabling_SSL_Client_Authentication_for_the_Certificate_System_Console[RHCS 8.1 - Enabling SSL for the Java Administrative Console]
+* link:https://access.redhat.com/documentation/en-US/Red_Hat_Certificate_System/8.1/html/Deploy_and_Install_Guide/Admin_Console.html#admin-consoles[RHCS 8.1 - Administrative Consoles]
+* link:https://access.redhat.com/documentation/en-US/Red_Hat_Certificate_System/8.1/html/Deploy_and_Install_Guide/UsingCS.html#starting-console[RHCS 8.1 - Starting the Certificate System Console]
