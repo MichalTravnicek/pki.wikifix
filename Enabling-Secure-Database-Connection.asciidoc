@@ -28,7 +28,7 @@ Server-Cert                                                  u,u,u
 To export the DS CA certificate:
 
 ----
-$ certutil -L -d /etc/dirsrv/slapd-localhost -n Self-Signed-CA -a > ds-ca.pem
+$ certutil -L -d /etc/dirsrv/slapd-localhost -n Self-Signed-CA -a > ds-ca_signing.crt
 ----
 
 == Importing DS CA certificate into PKI ==
@@ -36,7 +36,7 @@ $ certutil -L -d /etc/dirsrv/slapd-localhost -n Self-Signed-CA -a > ds-ca.pem
 To import the DS CA certificate:
 
 ----
-$ certutil -A -d /etc/pki/pki-tomcat/alias -n "DS CA" -i ds-ca.pem -t "CT,C,C"
+$ certutil -A -d /etc/pki/pki-tomcat/alias -n "ds-ca_signing" -i ds-ca_signing.crt -t "CT,C,C"
 ----
 
 To verify the import:
@@ -52,7 +52,7 @@ ca_ocsp_signing                                              u,u,u
 subsystem                                                    u,u,u
 ca_audit_signing                                             u,u,Pu
 sslserver                                                    u,u,u
-DS CA                                                        CT,C,C
+ds-ca_signing                                                CT,C,C
 ----
 
 Restart PKI server:
@@ -64,6 +64,17 @@ $ systemctl restart pki-tomcatd@$pki-tomcat.service
 = Installing PKI-Issued Server Certificate in DS =
 
 == Generating server certificate request ==
+
+To generate a server certificate request in DS:
+
+----
+$ pki -d /etc/dirsrv/slapd-localhost -C /etc/dirsrv/slapd-localhost/pwdfile.txt \
+    nss-cert-request \
+    --subject "CN=localhost" \
+    --ext /usr/share/pki/server/certs/sslserver.conf \
+    --csr ds-sslserver.csr
+----
+
 == Issuing server certificate ==
 == Importing server certificate ==
 
@@ -112,18 +123,24 @@ Verify SSL connection with mozldap-tools and NSS database:
 ----
 $ /usr/lib64/mozldap/ldapsearch \
    -Z -h $HOSTNAME -p 636 \
-   -D "cn=Directory Manager" -w Secret.123 \
+   -D "cn=Directory Manager" \
+   -w Secret.123 \
    -P /etc/dirsrv/slapd-localhost \
-   -b "dc=example,dc=com" -s base "(objectClass=*)"
+   -b "dc=example,dc=com" \
+   -s base \
+   "(objectClass=*)"
 ----
 
 or with openldap-clients and DS certificate:
 
 ----
-$ LDAPTLS_CACERT=ca.crt \
+$ LDAPTLS_CACERT=ds-ca_signing.crt \
     ldapsearch -H ldaps://$HOSTNAME:636 \
-    -x -D "cn=Directory Manager" -w Secret.123 \
-    -b "dc=example,dc=com" -s base "(objectClass=*)"
+    -x -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -b "dc=example,dc=com" \
+    -s base \
+    "(objectClass=*)"
 ----
 
 or with openldap-clients and NSS databsae:
@@ -131,8 +148,11 @@ or with openldap-clients and NSS databsae:
 ----
 $ LDAPTLS_CACERTDIR=/etc/dirsrv/slapd-localhost \
     ldapsearch -H ldaps://$HOSTNAME:636 \
-    -x -D "cn=Directory Manager" -w Secret.123 \
-    -b "dc=example,dc=com" -s base "(objectClass=*)"
+    -x -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -b "dc=example,dc=com" \
+    -s base \
+    "(objectClass=*)"
 ----
 
 = Enabling Secure DS Connection in PKI =
