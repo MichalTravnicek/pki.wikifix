@@ -1,12 +1,19 @@
 = Overview =
 
-This document describes the process to configure an existing PKI instance to use SSL connection to DS 1.4 or later.
+This document describes the process to configure an existing PKI instance to use SSL connection to DS.
 
-*Note:* SSL is enabled up by default in DS 1.4 or later using a self-signed certificate.
+*Note:* Since DS 1.4 the SSL is enabled up by default with a server certificate issued by a self-signed CA certificate.
 
-= Exporting DS CA Certificate =
+There are two ways to enable a secure connection from PKI to DS:
 
-To find the DS CA certificate nickname:
+1. Install the DS CA certificate in PKI
+2. Install a PKI-issued server certificate in DS
+
+= Installing DS CA Certificate in PKI =
+
+== Exporting DS CA certificate ==
+
+To find the nickname of the CA certificate in DS:
 
 ----
 $ certutil -L -d /etc/dirsrv/slapd-localhost
@@ -24,7 +31,7 @@ To export the DS CA certificate:
 $ certutil -L -d /etc/dirsrv/slapd-localhost -n Self-Signed-CA -a > ds-ca.pem
 ----
 
-= Importing DS CA into PKI =
+== Importing DS CA certificate into PKI ==
 
 To import the DS CA certificate:
 
@@ -53,6 +60,12 @@ Restart PKI server:
 ----
 $ systemctl restart pki-tomcatd@$pki-tomcat.service
 ----
+
+= Installing PKI-Issued Server Certificate in DS =
+
+== Generating server certificate request ==
+== Issuing server certificate ==
+== Importing server certificate ==
 
 = Verification =
 
