@@ -6,8 +6,8 @@ This document describes the process to configure an existing PKI instance to use
 
 There are two ways to enable a secure connection from PKI to DS:
 
-1. Install the DS CA certificate in PKI
-2. Install a PKI-issued server certificate in DS (WIP)
+1. Install the DS CA certificate in PKI. This procedure is simpler but it relies on the self-signed CA certificate in DS.
+2. Install a PKI-issued server certificate in DS. This procedure is more complex but it uses the actual CA certificate in PKI.
 
 = Installing DS CA Certificate in PKI =
 
@@ -61,7 +61,7 @@ Restart PKI server:
 $ systemctl restart pki-tomcatd@$pki-tomcat.service
 ----
 
-= Installing PKI-Issued Server Certificate in DS (WIP) =
+= Installing PKI-Issued Server Certificate in DS =
 
 == Exporting PKI CA certificate ==
 
