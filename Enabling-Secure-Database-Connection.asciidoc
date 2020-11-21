@@ -252,8 +252,8 @@ $ systemctl restart pki-tomcatd@pki-tomcat.service
 Verify in DS access log at `/var/log/dirsrv/slapd-localhost/access` that PKI server is connecting using SSL:
 
 ----
-[29/Jun/2016:23:20:40 +0200] conn=36 fd=64 slot=64 SSL connection from server.example.com to server.example.com
-[29/Jun/2016:23:20:40 +0200] conn=36 TLS1.2 128-bit AES
+conn=36 fd=64 slot=64 SSL connection from server.example.com to server.example.com
+conn=36 TLS1.2 128-bit AES
 ----
 
 Verify PKI server can communicate with the DS with the following command:
