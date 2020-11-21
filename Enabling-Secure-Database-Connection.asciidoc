@@ -28,7 +28,7 @@ Server-Cert                                                  u,u,u
 To export the DS CA certificate:
 
 ----
-$ certutil -L -d /etc/dirsrv/slapd-localhost -n Self-Signed-CA -a > ds-ca_signing.crt
+$ certutil -L -d /etc/dirsrv/slapd-localhost -n Self-Signed-CA -a > ca_signing.crt
 ----
 
 == Importing DS CA certificate into PKI ==
@@ -36,7 +36,7 @@ $ certutil -L -d /etc/dirsrv/slapd-localhost -n Self-Signed-CA -a > ds-ca_signin
 To import the DS CA certificate:
 
 ----
-$ certutil -A -d /etc/pki/pki-tomcat/alias -n "ds-ca_signing" -i ds-ca_signing.crt -t "CT,C,C"
+$ certutil -A -d /etc/pki/pki-tomcat/alias -n "ds-ca_signing" -i ca_signing.crt -t "CT,C,C"
 ----
 
 To verify the import:
@@ -209,10 +209,10 @@ $ /usr/lib64/mozldap/ldapsearch \
    "(objectClass=*)"
 ----
 
-or with openldap-clients and DS certificate:
+or with openldap-clients and DS/PKI CA certificate:
 
 ----
-$ LDAPTLS_CACERT=ds-ca_signing.crt \
+$ LDAPTLS_CACERT=ca_signing.crt \
     ldapsearch -H ldaps://$HOSTNAME:636 \
     -x -D "cn=Directory Manager" \
     -w Secret.123 \
