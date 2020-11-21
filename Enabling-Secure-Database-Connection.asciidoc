@@ -76,7 +76,27 @@ $ pki -d /etc/dirsrv/slapd-localhost -C /etc/dirsrv/slapd-localhost/pwdfile.txt 
 ----
 
 == Issuing server certificate ==
+
+To issue a server certificate for DS:
+
+----
+$ pki -d /etc/pki/pki-tomcat/alias/ -f /etc/pki/pki-tomcat/password.conf \
+    nss-cert-issue \
+    --issuer ca_signing \
+    --csr ds-sslserver.csr \
+    --ext /usr/share/pki/server/certs/sslserver.conf \
+    --cert ds-sslserver.crt
+----
+
 == Importing server certificate ==
+
+To import the server certificate into DS:
+
+----
+$ pki -d /etc/dirsrv/slapd-localhost -C /etc/dirsrv/slapd-localhost/pwdfile.txt \
+    nss-cert-import \
+    --cert ds-sslserver.crt
+----
 
 = Verification =
 
