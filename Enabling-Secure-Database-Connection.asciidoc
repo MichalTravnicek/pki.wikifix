@@ -7,7 +7,7 @@ This document describes the process to configure an existing PKI instance to use
 There are two ways to enable a secure connection from PKI to DS:
 
 1. Install the DS CA certificate in PKI
-2. Install a PKI-issued server certificate in DS
+2. Install a PKI-issued server certificate in DS (WIP)
 
 = Installing DS CA Certificate in PKI =
 
@@ -21,7 +21,7 @@ $ certutil -L -d /etc/dirsrv/slapd-localhost
 Certificate Nickname                                         Trust Attributes
                                                              SSL,S/MIME,JAR/XPI
 
-Self-Signed-CA                                               CT,, 
+Self-Signed-CA                                               CT,,
 Server-Cert                                                  u,u,u
 ----
 
@@ -61,7 +61,32 @@ Restart PKI server:
 $ systemctl restart pki-tomcatd@$pki-tomcat.service
 ----
 
-= Installing PKI-Issued Server Certificate in DS =
+= Installing PKI-Issued Server Certificate in DS (WIP) =
+
+== Exporting PKI CA certificate ==
+
+To export PKI CA certificate:
+
+----
+$ pki-server cert-export ca_signing --cert-file ca_signing.crt
+----
+
+== Importing PKI CA certificate into DS ==
+
+To remove the old CA certificate from DS:
+
+----
+$ certutil -D -d /etc/dirsrv/slapd-localhost -f /etc/dirsrv/slapd-localhost/pwdfile.txt -n Self-Signed-CA
+----
+
+To import PKI CA certificate into DS:
+
+----
+$ pki -d /etc/dirsrv/slapd-localhost -C /etc/dirsrv/slapd-localhost/pwdfile.txt \
+    nss-cert-import ca_signing \
+    --cert ca_signing.crt \
+    --trust CT,C,C
+----
 
 == Generating server certificate request ==
 
@@ -90,12 +115,36 @@ $ pki -d /etc/pki/pki-tomcat/alias/ -f /etc/pki/pki-tomcat/password.conf \
 
 == Importing server certificate ==
 
+To remove the old server certificate from DS:
+
+----
+$ certutil -F -d /etc/dirsrv/slapd-localhost -f /etc/dirsrv/slapd-localhost/pwdfile.txt -n Server-Cert
+----
+
 To import the server certificate into DS:
 
 ----
 $ pki -d /etc/dirsrv/slapd-localhost -C /etc/dirsrv/slapd-localhost/pwdfile.txt \
-    nss-cert-import \
+    nss-cert-import Server-Cert \
     --cert ds-sslserver.crt
+----
+
+To verify the import:
+
+----
+$ certutil -L -d /etc/dirsrv/slapd-localhost
+
+Certificate Nickname                                         Trust Attributes
+                                                             SSL,S/MIME,JAR/XPI
+
+ca_signing                                                   CT,C,C
+Server-Cert                                                  u,u,u
+----
+
+Restart DS:
+
+----
+$ systemctl restart dirsrv@localhost.service
 ----
 
 = Verification =
