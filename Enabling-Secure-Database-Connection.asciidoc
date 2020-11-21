@@ -90,14 +90,23 @@ $ pki -d /etc/dirsrv/slapd-localhost -C /etc/dirsrv/slapd-localhost/pwdfile.txt 
 
 == Generating server certificate request ==
 
-To generate a server certificate request in DS:
+To show the existing server key in DS:
+
+----
+$ certutil -K -d /etc/dirsrv/slapd-localhost -f /etc/dirsrv/slapd-localhost/pwdfile.txt
+certutil: Checking token "NSS Certificate DB" in slot "NSS User Private Key and Certificate Services"
+< 0> rsa      d33aaa95388e61eaa164c381a7fbb59c0c5007c8   NSS Certificate DB:Server-Cert
+----
+
+To generate a server certificate request with the same key:
 
 ----
 $ pki -d /etc/dirsrv/slapd-localhost -C /etc/dirsrv/slapd-localhost/pwdfile.txt \
     nss-cert-request \
     --subject "CN=localhost" \
     --ext /usr/share/pki/server/certs/sslserver.conf \
-    --csr ds-sslserver.csr
+    --csr ds-sslserver.csr \
+    --key-id d33aaa95388e61eaa164c381a7fbb59c0c5007c8
 ----
 
 == Issuing server certificate ==
@@ -118,7 +127,7 @@ $ pki -d /etc/pki/pki-tomcat/alias/ -f /etc/pki/pki-tomcat/password.conf \
 To remove the old server certificate from DS:
 
 ----
-$ certutil -F -d /etc/dirsrv/slapd-localhost -f /etc/dirsrv/slapd-localhost/pwdfile.txt -n Server-Cert
+$ certutil -D -d /etc/dirsrv/slapd-localhost -f /etc/dirsrv/slapd-localhost/pwdfile.txt -n Server-Cert
 ----
 
 To import the server certificate into DS:
