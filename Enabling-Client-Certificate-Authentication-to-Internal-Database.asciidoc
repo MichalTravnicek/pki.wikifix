@@ -51,7 +51,8 @@ $ certutil -L -d /etc/pki/pki-tomcat/alias -n "subsystemCert cert-pki-tomcat"
 Verify with openldap-clients and PEM files:
 
 ----
-$ certutil -L -d /var/lib/pki/pki-tomcat/alias -n "Directory Server CA certificate" -a > dsca.pem
+$ certutil -L -d /var/lib/pki/pki-tomcat/alias -n "Directory Server CA certificate" -a \
+    > dsca.pem
 $ pki -d /var/lib/pki/pki-tomcat/alias -C /var/lib/pki/pki-tomcat/conf/password.conf \
     client-cert-show "subsystemCert cert-pki-tomcat" --cert subsystem.pem --private-key subsystem.key
 $ LDAPTLS_CACERT=dsca.pem \
@@ -64,7 +65,8 @@ $ LDAPTLS_CACERT=dsca.pem \
 or with openldap-clients and NSS database:
 
 ----
-$ grep internal= /var/lib/pki/pki-tomcat/conf/password.conf | awk -F= '{print $2}' > /var/lib/pki/pki-tomcat/alias/password.txt
+$ grep internal= /var/lib/pki/pki-tomcat/conf/password.conf | awk -F= '{print $2}' \
+    > /var/lib/pki/pki-tomcat/alias/password.txt
 $ chown pkiuser.pkiuser /var/lib/pki/pki-tomcat/alias/password.txt
 $ chmod 400 /var/lib/pki/pki-tomcat/alias/password.txt
 $ LDAPTLS_CACERTDIR=/var/lib/pki/pki-tomcat/alias \
@@ -83,7 +85,7 @@ internaldb.ldapauth.authtype=SslClientAuth
 internaldb.ldapauth.clientCertNickname=subsystemCert cert-pki-tomcat
 ----
 
-Remove the unused parameters internaldb.ldapauth.bindDN and internaldb.ldapauth.bindPWPrompt.
+Remove the unused `internaldb.ldapauth.bindDN` and `internaldb.ldapauth.bindPWPrompt` parameters.
 
 Restart PKI server:
 
