@@ -16,9 +16,9 @@ $ pki-server db-status
 
 The pki-server db-upgrade is a tool to upgrade PKI server LDAP database. Currently the upgrade includes:
 
-* link:https://fedorahosted.org/pki/ticket/1667[Ticket #1667: adding issuerName attribute]
+* link:https://github.com/dogtagpki/pki/issues/2226[Ticket #2226: adding issuerName attribute]
 
-See the link:https://git.fedorahosted.org/cgit/pki.git/tree/base/server/python/pki/server/cli/db.py[source code] for details.
+See link:https://github.com/dogtagpki/pki/blob/master/base/server/python/pki/server/cli/db.py[db.py] for details.
 
 This tool is used as part of link:https://github.com/dogtagpki/pki/blob/master/docs/upgrade/v10.2/Upgrading_PKI_Database.adoc[Database Upgrade for PKI 10.2.x]. To run the database upgrade:
 
@@ -33,9 +33,9 @@ Upgrade complete
 
 The pki-server db-schema-upgrade is a tool to upgrade PKI server LDAP schema. Currently the upgrade includes:
 
-* re-applying link:https://git.fedorahosted.org/cgit/pki.git/tree/base/server/share/conf/schema.ldif[/usr/share/pki/server/conf/schema.ldif]
+* re-applying link:https://github.com/dogtagpki/pki/blob/master/base/server/share/conf/schema.ldif[/usr/share/pki/server/conf/schema.ldif]
 
-See the link:https://git.fedorahosted.org/cgit/pki.git/tree/base/server/python/pki/server/cli/db.py[source code] for details.
+See link:https://github.com/dogtagpki/pki/blob/master/base/server/python/pki/server/cli/db.py[db.py] for details.
 
 ----
 $ pki-server db-schema-upgrade -D "cn=Directory Manager" -w Secret.123
@@ -46,8 +46,8 @@ Upgrade complete
 
 See also the following tickets:
 
-* link:https://fedorahosted.org/pki/ticket/2319[Ticket #2319: Add / revise vlv indexes for KRA due to realm changes]
-* link:https://fedorahosted.org/pki/ticket/2320[Ticket #2320: Add db migration scripts for schema, vlv and index changes]
+* link:https://github.com/dogtagpki/pki/issues/2439[Ticket #2439: Add / revise vlv indexes for KRA due to realm changes]
+* link:https://github.com/dogtagpki/pki/issues/2440[Ticket #2440: Add db migration scripts for schema, vlv and index changes]
 
 = Reference =
 
