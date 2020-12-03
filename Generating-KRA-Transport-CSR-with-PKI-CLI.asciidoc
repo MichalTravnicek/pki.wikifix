@@ -1,0 +1,26 @@
+= Generating CSR =
+
+To create a certificate request, prepare a certificate extension configuration (e.g. kra_transport.conf):
+
+----
+authorityKeyIdentifier = keyid:always
+keyUsage               = critical, digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+extendedKeyUsage       = clientAuth
+----
+
+Then execute the following command:
+
+----
+$ pki nss-cert-request \
+    --subject "CN=DRM Transport Certificate" \
+    --ext kra_transport.conf \
+    --csr kra_transport.csr
+----
+
+Availability: PKI 10.9
+
+= See Also =
+
+* link:Generating-System-Certificates[Generating System Certificates]
+* link:Generating-KRA-Transport-Certificate[Generating KRA Transport Certificate]
+* link:PKI-NSS-CLI[PKI NSS CLI]
