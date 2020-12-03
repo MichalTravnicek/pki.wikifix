@@ -1,0 +1,27 @@
+= Issuing a Certificate =
+
+To issue a certificate, prepare a certificate extension configuration in a file (e.g. admin.conf):
+
+----
+authorityKeyIdentifier = keyid:always
+keyUsage               = critical, digitalSignature, nonRepudiation, keyEncipherment
+extendedKeyUsage       = clientAuth, emailProtection
+----
+
+To issue a certificate signed by a CA certificate, specify the CA certificate nickname:
+
+----
+$ pki nss-cert-issue \
+    --issuer ca_signing \
+    --csr admin.csr \
+    --ext admin.conf \
+    --cert admin.crt
+----
+
+Availability: PKI 10.9
+
+= See Also =
+
+* link:Generating-System-Certificates[Generating System Certificates]
+* link:Generating-Admin-Certificate[Generating Admin Certificate]
+* link:PKI-NSS-CLI[PKI NSS CLI]
