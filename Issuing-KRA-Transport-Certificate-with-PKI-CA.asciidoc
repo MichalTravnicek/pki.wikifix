@@ -1,0 +1,24 @@
+= Issuing KRA Transport Certificate =
+
+Submit the certificate request with the following command:
+
+----
+$ pki ca-cert-request-submit --profile caTransportCert --csr-file kra_transport.csr
+----
+
+Approve the request with the following command:
+
+----
+$ pki -n caadmin ca-cert-request-review <request ID> --action approve
+----
+
+Retrieve the certificate with the following commands:
+
+----
+$ pki ca-cert-show <certificate ID> --output kra_transport.crt
+----
+
+= See Also =
+
+* link:Generating-System-Certificates[Generating System Certificates]
+* link:Generating-KRA-Transport-Certificate[Generating KRA Transport Certificate]
