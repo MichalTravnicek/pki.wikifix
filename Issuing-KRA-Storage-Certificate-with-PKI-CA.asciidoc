@@ -1,0 +1,24 @@
+= Issuing KRA Storage Certificate =
+
+Submit the certificate request with the following command:
+
+----
+$ pki ca-cert-request-submit --profile caStorageCert --csr-file kra_storage.csr
+----
+
+Approve the request with the following command:
+
+----
+$ pki -n caadmin ca-cert-request-review 28 --action approve
+----
+
+Retrieve the certificate with the following commands:
+
+----
+$ pki ca-cert-show 0x1c --output kra_storage.crt
+----
+
+= See Also =
+
+* link:Generating-System-Certificates[Generating System Certificates]
+* link:Generating-KRA-Storage-Certificate[Generating KRA Storage Certificate]
