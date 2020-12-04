@@ -9,13 +9,13 @@ $ pki ca-cert-request-submit --profile caStorageCert --csr-file kra_storage.csr
 Approve the request with the following command:
 
 ----
-$ pki -n caadmin ca-cert-request-review 28 --action approve
+$ pki -n caadmin ca-cert-request-review <request ID> --action approve
 ----
 
 Retrieve the certificate with the following commands:
 
 ----
-$ pki ca-cert-show 0x1c --output kra_storage.crt
+$ pki ca-cert-show <certificate ID> --output kra_storage.crt
 ----
 
 = See Also =
