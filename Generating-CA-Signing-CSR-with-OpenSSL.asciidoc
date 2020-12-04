@@ -1,4 +1,4 @@
-= Generating CA Signing CSR with New Key =
+= Generating CSR with New Key =
 
 ----
 $ openssl req \
@@ -11,13 +11,13 @@ $ openssl req \
     -out ca_signing.csr
 ----
 
-= Generating CA Signing Key =
+= Generating New Key =
 
 ----
 $ openssl genrsa -out ca_signing.key 2048
 ----
 
-= Generating CA Signing CSR with Existing Key =
+= Generating CSR with Existing Key =
 
 ----
 $ openssl req \
@@ -82,6 +82,5 @@ Certificate Request:
 
 = See Also =
 
+* link:Generating-System-Certificates[Generating System Certificates]
 * link:Generating-CA-Signing-Certificate[Generating CA Signing Certificate]
-* link:Issuing-CA-Signing-Certificate-with-OpenSSL[Issuing CA Signing Certificate with OpenSSL]
-* link:Creating-Self-Signed-CA-Signing-Certificate-with-OpenSSL[Creating Self-Signed CA Signing Certificate with OpenSSL]
