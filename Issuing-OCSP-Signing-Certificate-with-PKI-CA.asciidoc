@@ -1,0 +1,24 @@
+= Issuing Certificate =
+
+Submit the certificate request with the following command:
+
+----
+$ pki ca-cert-request-submit --profile caOCSPCert --csr-file ocsp_signing.csr
+----
+
+Approve the request with the following command:
+
+----
+$ pki -n caadmin ca-cert-request-review <request ID> --action approve
+----
+
+Retrieve the certificate with the following commands:
+
+----
+$ pki ca-cert-show <certificate ID> --output ocsp_signing.crt
+----
+
+= See Also =
+
+* link:Generating-System-Certificates[Generating System Certificates]
+* link:Generating-OCSP-Signing-Certificate[Generating OCSP Signing Certificate]
