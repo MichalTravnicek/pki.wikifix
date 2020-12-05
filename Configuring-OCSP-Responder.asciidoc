@@ -1,0 +1,32 @@
+= Overview =
+
+This page describes the process to configure the OCSP subsystem (instead of the internal OCSP responder in CA).
+
+= OCSP Certificate =
+
+----
+ocsp.certNickname=
+ocsp.signing.certnickname=
+ocsp.signing.defaultSigningAlgorithm=SHA256withRSA
+ocsp.signing.tokenname=internal
+----
+
+= OCSP Storage =
+
+----
+ocsp.storeId=defStore
+----
+
+== Default Storage ==
+
+----
+ocsp.store.defStore.class=com.netscape.cms.ocsp.DefStore
+ocsp.store.defStore.includeNextUpdate=false
+ocsp.store.defStore.notFoundAsGood=true
+----
+
+== LDAP Storage ==
+
+----
+ocsp.store.ldapStore.class=com.netscape.cms.ocsp.LDAPStore
+----
