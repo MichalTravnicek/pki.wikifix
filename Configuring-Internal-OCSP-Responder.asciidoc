@@ -1,0 +1,13 @@
+= Overview =
+
+This page describes the process to configure the internal OCSP responder in CA.
+
+= Configuration =
+
+The internal OCSP responder is enabled by default when the CA is installed. To disable the responder, change the following property in /etc/pki/pki-tomcat/ca/CS.cfg:
+
+----
+ca.ocsp=false
+----
+
+Then restart the server.
