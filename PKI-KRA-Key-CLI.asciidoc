@@ -182,73 +182,7 @@ Archival request details
 
 === Archiving a pre-encrypted secret ===
 
-To archive a secret already encrypted in a template, prepare the input parameters (see link:https://github.com/dogtagpki/pki/blob/master/base/common/src/main/java/com/netscape/certsrv/key/KeyClient.java[KeyClient.java]). For example, to archive a passphrase:
-
-----
-// get algorithm OID
-String algorithmOID = EncryptionAlgorithm.DES3_CBC.toOID().toString();
-
-// generate nonce
-byte[] nonceData = CryptoUtil.getNonceData(8);
-
-// generate session key
-SymmetricKey sessionKey = crypto.generateSessionKey();
-
-// wrap session key with transport key
-byte[] transWrappedSessionKey = crypto.wrapSessionKeyWithTransportCert(sessionKey, this.transportCert);
-
-// encrypt passphrase with session key
-byte[] encryptedData = crypto.wrapWithSessionKey(passphrase, nonceData, sessionKey, KeyRequestResource.DES3_ALGORITHM);
-----
-
-To archive a symmetric key:
-
-----
-// get algorithm OID
-String algorithmOID = EncryptionAlgorithm.DES3_CBC.toOID().toString();
-
-// generate nonce
-byte[] nonceData = CryptoUtil.getNonceData(8);
-
-// generate session key
-SymmetricKey sessionKey = crypto.generateSessionKey();
-
-// wrap session key with transport key
-byte[] transWrappedSessionKey = crypto.wrapSessionKeyWithTransportCert(sessionKey, this.transportCert);
-
-// encrypt symmetric key with session key
-byte[] encryptedData = crypto.wrapWithSessionKey(secret, sessionKey, nonceData);
-----
-
-Then store the input parameters in a file using the archival template, for example:
-
-----
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<KeyArchivalRequest>
-    <Attributes>
-        <Attribute name="clientKeyID">test</Attribute>
-        <Attribute name="dataType">passPhrase</Attribute>
-        <Attribute name="keyAlgorithm"/>
-        <Attribute name="keySize">0</Attribute>
-        <Attribute name="algorithmOID">{1 2 840 113549 3 7}</Attribute>
-        <Attribute name="symmetricAlgorithmParams">RPSh1ifBg6E=&#xD;</Attribute>
-        <Attribute name="wrappedPrivateData">ogUkFUS04tM=&#xD;</Attribute>
-        <Attribute name="transWrappedSessionKey">W0Xf8OoIeaOgE56Rfz8tTn2yDAmWBkuH4ryTYDIjlEaSEv32/Bg73Mj75RUGSl/B&#xD;
-BOGAFOwcXXIw1KEUZWF/UBy6TcgLPthnAaKCkEoVYmI07QzkRSw9SXBsQIaglvAi&#xD;
-ZBAJuEi275YmrwAx7RIm4PAOBTqx40p/JEjtE8sA7BvKQ0P3a9Koll5dTOIMc4bf&#xD;
-9AbFy+hKu8vTgNLrsHCYtdHHfrLTZK5WCvR6UiaYNbnzY1hmNo1nDvnSrKTiWBmA&#xD;
-bJtzOdQwdbtew3G3VTyOWW1bYtMxwXOG9mijQIS/FhkPWUayIHarJ5pdOa4V78M0&#xD;
-XX7iRePHIlnh7vWjdlcqPA==&#xD;</Attribute>
-    </Attributes>
-    <ClassName>com.netscape.certsrv.key.KeyArchivalRequest</ClassName>
-</KeyArchivalRequest>
-----
-
-Then execute the following command:
-
-----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin kra-key-archive --input archiveKey.xml
-----
+See link:Key-Archival-using-Java-API[Key Archival using Java API].
 
 == Recover a key ==
 
