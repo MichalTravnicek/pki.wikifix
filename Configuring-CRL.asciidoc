@@ -1,0 +1,160 @@
+= Enabling/Disabling CRL =
+
+CRL can be enabled/disabled using the following parameter in CS.cfg:
+
+----
+ca.crl.MasterCRL.enable=true
+----
+
+To enable delta CRL:
+
+----
+ca.crl.MasterCRL.extension.DeltaCRLIndicator.enable=true
+----
+
+The server must be restarted.
+
+= Configuring CRL Number =
+
+To change the CRL number, execute the following command:
+
+----
+$ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
+dn: cn=MasterCRL,ou=crlIssuingPoints,ou=ca,dc=ca,dc=pki,dc=dc=example,dc=com
+changetype: modify
+replace: crlNumber
+crlNumber: <CRL number>
+EOF
+----
+
+Then restart the server.
+
+= Miscellaneous Configuration =
+
+----
+ca.crl.pageSize=100
+ca.crl.MasterCRL.allowExtensions=true
+ca.crl.MasterCRL.alwaysUpdate=false
+ca.crl.MasterCRL.caCertsOnly=false
+ca.crl.MasterCRL.cacheUpdateInterval=15
+ca.crl.MasterCRL.unexpectedExceptionWaitTime=30
+ca.crl.MasterCRL.unexpectedExceptionLoopMax=10
+ca.crl.MasterCRL.class=com.netscape.ca.CRLIssuingPoint
+ca.crl.MasterCRL.description=CA's complete Certificate Revocation List
+ca.crl.MasterCRL.enableCRLCache=true
+ca.crl.MasterCRL.enableCRLUpdates=true
+ca.crl.MasterCRL.enableCacheTesting=false
+ca.crl.MasterCRL.enableCacheRecovery=true
+ca.crl.MasterCRL.extendedNextUpdate=true
+ca.crl.MasterCRL.includeExpiredCerts=false
+ca.crl.MasterCRL.minUpdateInterval=0
+ca.crl.MasterCRL.nextUpdateGracePeriod=0
+ca.crl.MasterCRL.publishOnStart=false
+ca.crl.MasterCRL.saveMemory=false
+ca.crl.MasterCRL.signingAlgorithm=SHA256withRSA
+ca.crl.MasterCRL.updateSchema=1
+----
+
+By default CRL will be generated even if there's no revoked certificate:
+
+----
+ca.crl.MasterCRL.noCRLIfNoRevokedCert=false
+----
+
+= Configuring Update Frequency =
+
+Always update:
+
+----
+ca.crl.MasterCRL.alwaysUpdate=true
+----
+
+Daily updates:
+
+----
+ca.crl.MasterCRL.enableDailyUpdates=true
+ca.crl.MasterCRL.enableUpdateInterval=false
+ca.crl.MasterCRL.dailyUpdates=0:50,04:55,06:55
+----
+
+Update interval (in minutes):
+
+----
+ca.crl.MasterCRL.enableDailyUpdates=false
+ca.crl.MasterCRL.enableUpdateInterval=true
+ca.crl.MasterCRL.autoUpdateInterval=240
+----
+
+Daily synchronized update interval:
+
+----
+ca.crl.MasterCRL.enableDailyUpdates=true
+ca.crl.MasterCRL.enableUpdateInterval=true
+ca.crl.MasterCRL.autoUpdateInterval=240
+ca.crl.MasterCRL.dailyUpdates=1:00
+----
+
+= Configuring Extensions =
+
+----
+ca.crl.MasterCRL.extension.AuthorityInformationAccess.accessLocation0=
+ca.crl.MasterCRL.extension.AuthorityInformationAccess.accessLocationType0=URI
+ca.crl.MasterCRL.extension.AuthorityInformationAccess.accessMethod0=caIssuers
+ca.crl.MasterCRL.extension.AuthorityInformationAccess.class=com.netscape.cms.crl.CMSAuthInfoAccessExtension
+ca.crl.MasterCRL.extension.AuthorityInformationAccess.critical=false
+ca.crl.MasterCRL.extension.AuthorityInformationAccess.enable=false
+ca.crl.MasterCRL.extension.AuthorityInformationAccess.numberOfAccessDescriptions=1
+ca.crl.MasterCRL.extension.AuthorityInformationAccess.type=CRLExtension
+
+ca.crl.MasterCRL.extension.AuthorityKeyIdentifier.class=com.netscape.cms.crl.CMSAuthorityKeyIdentifierExtension
+ca.crl.MasterCRL.extension.AuthorityKeyIdentifier.critical=false
+ca.crl.MasterCRL.extension.AuthorityKeyIdentifier.enable=true
+ca.crl.MasterCRL.extension.AuthorityKeyIdentifier.type=CRLExtension
+
+ca.crl.MasterCRL.extension.CRLNumber.class=com.netscape.cms.crl.CMSCRLNumberExtension
+ca.crl.MasterCRL.extension.CRLNumber.critical=false
+ca.crl.MasterCRL.extension.CRLNumber.enable=true
+ca.crl.MasterCRL.extension.CRLNumber.type=CRLExtension
+
+ca.crl.MasterCRL.extension.CRLReason.class=com.netscape.cms.crl.CMSCRLReasonExtension
+ca.crl.MasterCRL.extension.CRLReason.critical=false
+ca.crl.MasterCRL.extension.CRLReason.enable=true
+ca.crl.MasterCRL.extension.CRLReason.type=CRLEntryExtension
+
+ca.crl.MasterCRL.extension.DeltaCRLIndicator.class=com.netscape.cms.crl.CMSDeltaCRLIndicatorExtension
+ca.crl.MasterCRL.extension.DeltaCRLIndicator.critical=true
+ca.crl.MasterCRL.extension.DeltaCRLIndicator.enable=false
+ca.crl.MasterCRL.extension.DeltaCRLIndicator.type=CRLExtension
+
+ca.crl.MasterCRL.extension.FreshestCRL.class=com.netscape.cms.crl.CMSFreshestCRLExtension
+ca.crl.MasterCRL.extension.FreshestCRL.critical=false
+ca.crl.MasterCRL.extension.FreshestCRL.enable=false
+ca.crl.MasterCRL.extension.FreshestCRL.numPoints=0
+ca.crl.MasterCRL.extension.FreshestCRL.pointName0=
+ca.crl.MasterCRL.extension.FreshestCRL.pointType0=
+ca.crl.MasterCRL.extension.FreshestCRL.type=CRLExtension
+
+ca.crl.MasterCRL.extension.InvalidityDate.class=com.netscape.cms.crl.CMSInvalidityDateExtension
+ca.crl.MasterCRL.extension.InvalidityDate.critical=false
+ca.crl.MasterCRL.extension.InvalidityDate.enable=true
+ca.crl.MasterCRL.extension.InvalidityDate.type=CRLEntryExtension
+
+ca.crl.MasterCRL.extension.IssuerAlternativeName.class=com.netscape.cms.crl.CMSIssuerAlternativeNameExtension
+ca.crl.MasterCRL.extension.IssuerAlternativeName.critical=false
+ca.crl.MasterCRL.extension.IssuerAlternativeName.enable=false
+ca.crl.MasterCRL.extension.IssuerAlternativeName.name0=
+ca.crl.MasterCRL.extension.IssuerAlternativeName.nameType0=
+ca.crl.MasterCRL.extension.IssuerAlternativeName.numNames=0
+ca.crl.MasterCRL.extension.IssuerAlternativeName.type=CRLExtension
+
+ca.crl.MasterCRL.extension.IssuingDistributionPoint.class=com.netscape.cms.crl.CMSIssuingDistributionPointExtension
+ca.crl.MasterCRL.extension.IssuingDistributionPoint.critical=true
+ca.crl.MasterCRL.extension.IssuingDistributionPoint.enable=false
+ca.crl.MasterCRL.extension.IssuingDistributionPoint.indirectCRL=false
+ca.crl.MasterCRL.extension.IssuingDistributionPoint.onlyContainsCACerts=false
+ca.crl.MasterCRL.extension.IssuingDistributionPoint.onlyContainsUserCerts=false
+ca.crl.MasterCRL.extension.IssuingDistributionPoint.onlySomeReasons=
+ca.crl.MasterCRL.extension.IssuingDistributionPoint.pointName=
+ca.crl.MasterCRL.extension.IssuingDistributionPoint.pointType=
+ca.crl.MasterCRL.extension.IssuingDistributionPoint.type=CRLExtension
+----
