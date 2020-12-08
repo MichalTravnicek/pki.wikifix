@@ -251,73 +251,7 @@ xc8DHiXQl0lyXD0=
 
 === Retrieving key with custom security parameters ===
 
-To retrieve a key with custom security parameters, prepare the input parameters:
-
-----
-// generate session key
-SymmetricKey sessionKey = crypto.generateSessionKey();
-
-// wrap session key with transport key
-byte[] transWrappedSessionKey = crypto.wrapSessionKeyWithTransportCert(sessionKey, transportCert);
-----
-
-Then prepare a request using the retrieval template, for example:
-
-----
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<KeyRecoveryRequest>
-    <Attributes>
-        <Attribute name="keyId">1</Attribute>
-        <Attribute name="requestId">5</Attribute>
-        <Attribute name="transWrappedSessionKey">TsfE72b0JkJRYUUyr7JgQeNzsl8KobsMAROvOg51LBIyAvZxBSx122qmbsygW3Y6&#xD;
-fk2IJRnWijtY+YyiiK/1pMocFLQzONE7O+EWyYqq2oK/zPQrja3ACB9MnG0SojKd&#xD;
-JN3QBs1IJhRa5ZbeZnvzvegwOCABWBWt1qgx7BnSjG+lSYehEcOMYkEWw4lMJtOb&#xD;
-xa7i767J4a/6sRD+rWRKSWfwteu74m9dIWH947SHnbOnbZs7uvrhi05+5WJGaw4n&#xD;
-Vwuzn/YYfl7iG4VOaZnlIM83EHq38J6pzcM+JBMFPaXHl2V5yTXQnOO+QZ1lzBnj&#xD;
-Sv3ZrNGRYd3AbdyiHyinHQ==&#xD;</Attribute>
-    </Attributes>
-    <ClassName>com.netscape.certsrv.key.KeyRecoveryRequest</ClassName>
-</KeyRecoveryRequest>
-----
-
-Then submit the request using the following command:
-
-----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin kra-key-retrieve --input retrieveKey.xml
-----
-
-The result will be returned in the following format:
-
-----
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<KeyData>
-    <wrappedPrivateData>akXd9bqRYzYV6b9yAMNDKx7s2HsM2xA88Pxrk9FTp3qBXk56fkoCMjdbfHqCKwOS&#xD;
-By/UW5sG7e9HARGVhTArwFQQNNncxlf56jS8rdYJTq9/iltm1Yr+f3ZzoABXylvx&#xD;
-a8ErmOQU7j3hsAqH5FZOjG2I8x3ainI2dXTzZdJLaTxmM+cOyXPc/KdQxJNALt6B&#xD;
-5++ChmR6Lu33wgADh8UB834/5xlqMGsUczeEN1/eUqZ5/bxisa3XxP41pqsX1od3&#xD;
-ZXIzDsPJ2vvusB98qRtEQl5ul3lgX6xXaaeOLHZFkKBpRchjX9PtYMyIBbpnRP6U&#xD;
-GdawPc/+8yLywniUHUMwChlbt351d1cTbX/LQE0Z+nzR1JyQVHIRlsV5RBv8CDCl&#xD;
-ygGG5lNKKXnZQJbO+I0Ft9t2MPu5BG28XEUxozuaS3xKPVEHIeWZ6M/JT4y6Q/5I&#xD;
-OP1dYxm7DqWQQnenoSi/CQLS+JFWVM7EQt5EG3xtQLJmmAgcyitbCWlvmHhvfmkG&#xD;
-oNa9lvz68mYAuRBs3xplnMr7nw9pE6hZaqq88b070/1rN0/Vcm69cZAIsZ738dUz&#xD;
-4gR8Mc/JrdLcXVk8Ro3pqqKQrqu4Bn5Vm3xZEA+QQkJrv4XRgGfBk0K8R0csTSCf&#xD;
-IeVUxiy4ltpJJibjf78IiYV/2f4B+gof1xvfNrHjNHq4GVUmuEWsmDFAujhFDTqM&#xD;
-OsN4h1N1L8WspzXh9+2Zu4rkTBtOSO/WtRjsqg06FaHLSg8EdXYyvNNqO5jMb3Ed&#xD;
-6LhdP5igErbR78kkD1TYjSYFlO2JXEjgcMfh8mkTS548sMn4eJL6oHnTQTGAe1fY&#xD;
-uxXGIRjgvBBdQ+TSqFC0bA==&#xD;</wrappedPrivateData>
-    <nonceData>BXrXnCzYYvc=&#xD;</nonceData>
-    <algorithm>RSA</algorithm>
-    <size>1024</size>
-</KeyData>
-----
-
-The key can be decrypted as follows:
-
-----
-// unwrap key with session key
-byte[] key = crypto.unwrapWithSessionKey(wrappedPrivateData, sessionKey,
-    KeyRequestResource.DES3_ALGORITHM, nonce);
-----
+See link:Key-Retrieval-using-Java-API[Key Retrieval using Java API].
 
 == Displaying a Key ==
 
