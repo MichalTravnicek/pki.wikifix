@@ -1,0 +1,110 @@
+= Overview =
+
+This document describes the procedure to enable client certificate authentication from PKI server to the internal database. 
+It assumes that the secure connection to the internal database has been link:Enabling-Secure-Connection-to-Internal-Database[enabled].
+
+= Configuring Certificate Mapping in DS =
+
+Export PKI CA's signing certificate into a PEM file:
+
+----
+$ certutil -L -d /etc/pki/pki-tomcat/alias -n "caSigningCert cert-pki-tomcat CA" -a > pkica.pem
+----
+
+Import the PEM file into DS server's NSS database:
+
+----
+$ certutil -A -d /etc/dirsrv/slapd-pki-tomcat -n "PKI CA certificate" -t "CT,C,C" -i pkica.pem
+----
+
+Verify with the following command:
+
+----
+$ certutil -L -d /etc/dirsrv/slapd-pki-tomcat
+----
+
+Configure DS certificate mapping in /etc/dirsrv/slapd-pki-tomcat/certmap.conf:
+
+----
+certmap example         CN=CA Signing Certificate,O=EXAMPLE
+example:CmapLdapAttr    seeAlso
+example:verifycert      on
+----
+
+This will map the subsystem certificate to pkidbuser since pkidbuser has a seeAlso attribute containing the subsystem certificate's subject DN.
+
+Restart the DS server:
+
+----
+$ systemctl restart dirsrv@pki-tomcat.service
+----
+
+Verify that the client certificate exists in PKI server's NSS database:
+
+----
+$ certutil -L -d /etc/pki/pki-tomcat/alias -n "subsystemCert cert-pki-tomcat"
+----
+
+Verify with openldap-clients and PEM files:
+
+----
+$ certutil -L -d /var/lib/pki/pki-tomcat/alias -n "Directory Server CA certificate" -a \
+    > dsca.pem
+$ pki -d /var/lib/pki/pki-tomcat/alias -C /var/lib/pki/pki-tomcat/conf/password.conf \
+    client-cert-show "subsystemCert cert-pki-tomcat" --cert subsystem.pem --private-key subsystem.key
+$ LDAPTLS_CACERT=dsca.pem \
+    LDAPTLS_CERT=subsystem.pem \
+    LDAPTLS_KEY=subsystem.key \
+    ldapsearch -H ldaps://$HOSTNAME:636 -x -D "cn=Directory Manager" -w Secret.123 \
+    -b "dc=example,dc=com" "(objectClass=*)"
+----
+
+or with openldap-clients and NSS database:
+
+----
+$ grep internal= /var/lib/pki/pki-tomcat/conf/password.conf | awk -F= '{print $2}' \
+    > /var/lib/pki/pki-tomcat/alias/password.txt
+$ chown pkiuser.pkiuser /var/lib/pki/pki-tomcat/alias/password.txt
+$ chmod 400 /var/lib/pki/pki-tomcat/alias/password.txt
+$ LDAPTLS_CACERTDIR=/var/lib/pki/pki-tomcat/alias \
+    LDAPTLS_CERT="subsystemCert cert-pki-tomcat" \
+    LDAPTLS_KEY=/var/lib/pki/pki-tomcat/alias/password.txt \
+    ldapsearch -H ldaps://$HOSTNAME:636 -x -D "cn=Directory Manager" -w Secret.123 \
+    -b "dc=example,dc=com" "(objectClass=*)"
+----
+
+= Configuring Client Certificate Authentication in PKI Server =
+
+Configure PKI server to use the client certificate by editing `/var/lib/pki/pki-tomcat/<subsystem>/conf/CS.cfg`:
+
+----
+internaldb.ldapauth.authtype=SslClientAuth
+internaldb.ldapauth.clientCertNickname=subsystemCert cert-pki-tomcat
+----
+
+Remove the unused `internaldb.ldapauth.bindDN` and `internaldb.ldapauth.bindPWPrompt` parameters.
+
+Restart PKI server:
+
+----
+$ systemctl restart pki-tomcatd@pki-tomcat.service
+----
+
+Verify that PKI server authenticates against the DS using client certificate with the following command:
+
+----
+$ pki ca-cert-find
+----
+
+= References =
+
+* link:https://www.dogtagpki.org/wiki/PKI_Server_Configuration[PKI Server Configuration]
+* link:https://www.dogtagpki.org/wiki/PKI_LDAP_Connection[PKI LDAP Connection]
+* link:https://www.dogtagpki.org/wiki/DS_Client_Certificate_Authentication[DS Client Certificate Authentication]
+* link:https://www.dogtagpki.org/wiki/PKI_DS_CLI[PKI DS CLI]
+* link:https://www.dogtagpki.org/wiki/IPA_DS_Installation[IPA DS Installation]
+* link:https://access.redhat.com/documentation/en-US/Red_Hat_Directory_Server/10/html-single/Administration_Guide/index.html#Managing_SSL-Using_Certificate_Based_Authentication[RHDS Administration Guide: Using Client (Certificate-Based) Authentication]
+* link:http://www.openldap.org/doc/admin24/tls.html[OpenLDAP: Using TLS]
+* link:https://www.dogtagpki.org/wiki/Admin_Tasks[Admin Tasks]
+* link:https://www.dogtagpki.org/wiki/Enabling_SSL_Connection_with_Internal_Database[Enabling SSL Connection with Internal Database]
+* link:https://github.com/dogtagpki/pki/issues/2170[Ticket #2170: CLI to manage DS instances]
