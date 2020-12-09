@@ -1,0 +1,40 @@
+= Overview =
+
+This page describes the process to configure a connection to the DS using basic authentication.
+
+It assumes that a user is already created and has the proper rights.
+
+= Setting User Password =
+
+Make sure the user has a password:
+
+----
+$ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 << EOF
+dn: uid=pkidbuser,ou=people,dc=ca,dc=pki,dc=example,dc=com
+changetype: modify
+replace: userPassword
+userPassword: Secret.123
+EOF
+----
+
+= Configuring Basic Authentication in PKI Server =
+
+Store the user password in `/var/lib/pki/pki-tomcat/conf/password.conf`:
+
+----
+internaldb=Secret.123
+----
+
+Configure the internal database connection in `/var/lib/pki/pki-tomcat/<subsystem>/conf/CS.cfg`:
+
+----
+internaldb.ldapauth.authtype=BasicAuth
+internaldb.ldapauth.bindDN=uid=pkidbuser,ou=people,dc=ca,dc=pki,dc=example,dc=com
+internaldb.ldapauth.bindPWPrompt=internaldb
+----
+
+Restart PKI server:
+
+----
+$ systemctl restart pki-tomcatd@pki-tomcat.service
+----
