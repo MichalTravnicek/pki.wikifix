@@ -1,6 +1,6 @@
 = Subsystem Database Info =
 
-<pre>
+----
 $ pki-server <subsystem>-db-info
   objectClass: top
   creatorsName: cn=server,cn=plugins,cn=config
@@ -77,13 +77,13 @@ $ pki-server <subsystem>-db-info
   dataversion: 020190522091922
   netscapemdsuffix: cn=ldap://dc=localhost,dc=localdomain:389
   aci: (targetattr != "aci")(version 3.0; aci "rootdse anon read access"; allow(read,search,compare) userdn="ldap:///anyone";)
-</pre>
+----
 
 = Subsystem Database Connection Management =
 
 == Displaying Database Connection Info ==
 
-<pre>
+----
 $ pki-server <subsystem>-db-config-show
   Hostname: localhost.localdomain
   Port: 389
@@ -96,23 +96,23 @@ $ pki-server <subsystem>-db-config-show
   Multiple suffix: false
   Maximum connections: 15
   Minimum connections: 3
-</pre>
+----
 
 == Switching to Plain LDAP Connection ==
 
-<pre>
+----
 $ pki-server <subsystem>-db-config-mod --port 389 --secure false
-</pre>
+----
 
 == Switching to LDAPS Connection ==
 
-<pre>
+----
 $ pki-server <subsystem>-db-config-mod --port 636 --secure true
-</pre>
+----
 
 == Switching to LDAPI Connection (NOT IMPLEMENTED) ==
 
-<pre>
+----
 $ pki-server subsystem-database-connection-mod ca --protocol ldapi --socket /var/run/slapd-pki-tomcat.socket
 -----------------------------------------------
 Modified database connection for "ca" subsystem
@@ -122,11 +122,11 @@ Modified database connection for "ca" subsystem
   Base DN: dc=ca,dc=example,dc=com
   Backend Database: ca
   Authentication: none
-</pre>
+----
 
 == Switching to Basic Authentication (NOT IMPLEMENTED) ==
 
-<pre>
+----
 $ pki-server subsystem-database-connection-mod ca --auth basic --bind-dn "cn=Directory Manager" --bind-password Secret.123
 -----------------------------------------------
 Modified database connection for "ca" subsystem
@@ -138,11 +138,11 @@ Modified database connection for "ca" subsystem
   Backend Database: ca
   Authentication: basic
   Bind DN: cn=Directory Manager
-</pre>
+----
 
 == Switching to Client Certificate Authentication (NOT IMPLEMENTED) ==
 
-<pre>
+----
 $ pki-server subsystem-database-connection-mod ca --auth client-cert --nickname "subsystemCert cert-pki-ca"
 -----------------------------------------------
 Modified database connection for "ca" subsystem
@@ -154,11 +154,11 @@ Modified database connection for "ca" subsystem
   Backend Database: ca
   Authentication: client-cert
   Nickname: subsystemCert cert-pki-ca
-</pre>
+----
 
 == Switching to No Authentication / Auto Bind (NOT IMPLEMENTED) ==
 
-<pre>
+----
 $ pki-server subsystem-database-connection-mod ca --auth none
 -----------------------------------------------
 Modified database connection for "ca" subsystem
@@ -168,48 +168,24 @@ Modified database connection for "ca" subsystem
   Base DN: dc=ca,dc=example,dc=com
   Backend Database: ca
   Authentication: none
-</pre>
-
-= Subsystem Database User Management (NOT IMPLEMENTED) =
-
-== Adding Subsystem Database User ==
-
-<pre>
-$ pki-server subsystem-database-user-add ca uid=pkidbuser,dc=ca,dc=example,dc=com
---------------------------------------------------
-Added "uid=pkidbuser,dc=ca,dc=example,dc=com" user
---------------------------------------------------
-</pre>
-
-== Deleting Subsystem Database User ==
-
-<pre>
-$ pki-server subsystem-database-user-del ca uid=pkidbuser,dc=ca,dc=example,dc=com
-----------------------------------------------------
-Deleted "uid=pkidbuser,dc=ca,dc=example,dc=com" user
-----------------------------------------------------
-</pre>
+----
 
 = Subsystem Database Access Management (NOT IMPLEMENTED) =
 
 == Authorize Subsystem Database User ==
 
-<pre>
+----
 $ pki-server subsystem-database-access-grant ca uid=pkidbuser,dc=ca,dc=example,dc=com -D "cn=Directory Manager" -w Secret.123
 ---------------------------------------------------------------
 Granted access for "uid=pkidbuser,dc=ca,dc=example,dc=com" user
 ---------------------------------------------------------------
-</pre>
+----
 
 == Deny Subsystem Database User ==
 
-<pre>
+----
 $ pki-server subsystem-database-access-deny ca uid=pkidbuser,dc=ca,dc=example,dc=com -D "cn=Directory Manager" -w Secret.123
 --------------------------------------------------------------
 Denied access for "uid=pkidbuser,dc=ca,dc=example,dc=com" user
 --------------------------------------------------------------
-</pre>
-
-= References =
-
-* [[PKI Server Subsystem CLI]]
+----
