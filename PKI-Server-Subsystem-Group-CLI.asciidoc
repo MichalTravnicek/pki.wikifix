@@ -1,0 +1,30 @@
+= Listing Subsystem Groups =
+
+----
+$ pki-server <subsystem>-group-find
+  Group ID: Certificate Manager Agents
+  Description: Agents for Certificate Manager
+
+  Group ID: Registration Manager Agents
+  Description: Agents for Registration Manager
+
+  Group ID: Subsystem Group
+  Description: Subsystem Group
+
+  ...
+----
+
+= Listing Subsystem Group Members =
+
+----
+$ pki-server ca-group-member-find "Certificate Manager Agents"
+  User ID: caadmin
+
+  User ID: pkidbuser
+----
+
+= Adding Subsystem Group Member =
+
+----
+$ pki-server ca-group-member-add "Certificate Manager Agents" testuser
+----
