@@ -1,11 +1,3 @@
-= TKS Cloning Utility =
-
-To export system certificates to clone TKS:
-
-----
-$ pki-server tks-clone-prepare --pkcs12-file tks-clone.p12 --pkcs12-password-file password.txt
-----
-
 = TKS Audit Management =
 
 * link:PKI-Server-Audit-CLI[PKI Server Audit CLI]
@@ -15,3 +7,11 @@ $ pki-server tks-clone-prepare --pkcs12-file tks-clone.p12 --pkcs12-password-fil
 * link:PKI-Server-Subsystem-Database-CLI[PKI Server Subsystem Database CLI]
 * link:PKI-Server-Subsystem-User-CLI[PKI Server Subsystem User CLI]
 * link:PKI-Server-Subsystem-Group-CLI[PKI Server Subsystem Group CLI]
+
+= Preparing TKS Clone =
+
+To export the TKS system certificates for cloning, execute the following command:
+
+----
+$ pki-server tks-clone-prepare --pkcs12-file tks-certs.p12 --pkcs12-password-file password.txt
+----
