@@ -1,0 +1,48 @@
+= Listing Subsystem Users =
+
+----
+$ pki-server <subsystem>-user-find
+  User ID: CA-localhost.localdomain-8443
+  Full Name: CA-localhost.localdomain-8443
+  Type: agentType 
+  State: 1 
+
+  User ID: caadmin
+  Full Name: caadmin
+  Email: caadmin@example.com 
+  Type: adminType 
+  State: 1 
+
+  User ID: pkidbuser
+  Full Name: pkidbuser
+  Type: agentType 
+  State: 1 
+----
+
+= Displaying Subsystem User =
+
+----
+$ pki-server <subsystem>-user-show pkidbuser
+  User ID: pkidbuser
+  Full Name: pkidbuser
+  Type: agentType 
+  State: 1 
+----
+
+= Adding Subsystem User =
+
+----
+$ pki-server <subsystem>-user-add testuser --full-name "Test User" --type adminType
+----
+
+= Modifying Subsystem User =
+
+----
+$ pki-server <subsystem>-user-mod testuser --add-see-also uid=testuser
+----
+
+= Adding Subsystem User Certificate =
+
+----
+$ pki-server <subsystem>-user-cert-add testuser --cert testuser.crt
+----
