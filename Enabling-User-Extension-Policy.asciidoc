@@ -1,0 +1,36 @@
+= Overview =
+
+The User Extension policy allows user-provided extensions (e.g. Subject Alternative Name) to be added into the certificate.
+
+= Enabling SAN Extension in caServerCert Profile =
+
+By default the `caServerCert` profile does not support SAN extension.
+
+To enable SAN extension, disable the profile with the following command:
+
+----
+$ pki -n caadmin ca-profile-disable caServerCert
+----
+
+Then modify the profile with the following command:
+
+----
+$ pki -n caadmin ca-profile-edit caServerCert
+----
+
+Add the following properties into the profile:
+
+----
+policyset.serverCertSet.list=1,2,3,4,5,6,7,8,12,13
+policyset.serverCertSet.13.constraint.class_id=noConstraintImpl
+policyset.serverCertSet.13.constraint.name=No Constraint
+policyset.serverCertSet.13.default.class_id=userExtensionDefaultImpl
+policyset.serverCertSet.13.default.name=User supplied extension in CSR
+policyset.serverCertSet.13.default.params.userExtOID=2.5.29.17
+----
+
+Finally, reenable the profile with the following command:
+
+----
+$ pki -n caadmin ca-profile-enable caServerCert
+----
