@@ -1,0 +1,105 @@
+= Archiving Key with DES =
+
+== Request ==
+
+----
+{
+    "Attributes": {
+        "Attribute": [
+            {
+                "name": "algorithmOID",
+                "value": "{1 2 840 113549 3 7}"
+            },
+            {
+                "name": "clientKeyID",
+                "value": <client key ID>
+            },
+            {
+                "name": "dataType",
+                "value": "passPhrase"
+            },
+            {
+                "name": "symmetricAlgorithmParams",
+                "value": <base64-encoded data>
+            },
+            {
+                "name": "transWrappedSessionKey",
+                "value": <base64-encoded data>
+            },
+            {
+                "name": "wrappedPrivateData",
+                "value": <base64-encoded data>
+            }
+        ]
+    },
+    "ClassName": "com.netscape.certsrv.key.KeyArchivalRequest"
+}
+----
+
+== Response ==
+
+----
+{
+    "RequestInfo": {
+        "keyURL": "https://localhost:8443/kra/rest/agent/keys/<key ID>",
+        "requestStatus": "begin",
+        "requestType": "securityDataEnrollment",
+        "requestURL": "https://localhost:8443/kra/rest/agent/keyrequests/<request ID>"
+    }
+}
+----
+
+= Archiving Key with AES =
+
+== Request ==
+
+----
+{
+    "Attributes": {
+        "Attribute": [
+            {
+                "name": "algorithmOID",
+                "value": "{2 16 840 1 101 3 4 1 2}"
+            },
+            {
+                "name": "clientKeyID",
+                "value": <client key ID>
+            },
+            {
+                "name": "dataType",
+                "value": "passPhrase"
+            },
+            {
+                "name": "keyAlgorithm",
+                "value": ""
+            },
+            {
+                "name": "symmetricAlgorithmParams",
+                "value": <base64-encoded data>
+            },
+            {
+                "name": "transWrappedSessionKey",
+                "value": <base64-encoded data>
+            },
+            {
+                "name": "wrappedPrivateData",
+                "value": <base64-encoded data>
+            }
+        ]
+    },
+    "ClassName": "com.netscape.certsrv.key.KeyArchivalRequest"
+}
+----
+
+== Response ==
+
+----
+{
+    "RequestInfo": {
+        "keyURL": "https://localhost:8443/kra/rest/agent/keys/<key ID>",
+        "requestStatus": "complete",
+        "requestType": "securityDataEnrollment",
+        "requestURL": "https://localhost:8443/kra/rest/agent/keyrequests/<request ID>"
+    }
+}
+----
