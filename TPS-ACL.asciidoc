@@ -13,7 +13,7 @@ resourceACLS: ...
 
 == certServer.general.configuration ==
 
-Administrators, auditors, and agents are allowed to read CMS general configuration but only administrators are allowed to modify and delete
+By default administrators, auditors, and agents are allowed to read CMS general configuration but only administrators are allowed to modify and delete.
 
 * Operations: read, modify, delete
 * allow (read) group="Administrators" || group="Auditors" || group="Token Processing Service Manager Agents"
@@ -21,7 +21,7 @@ Administrators, auditors, and agents are allowed to read CMS general configurati
 
 == certServer.acl.configuration ==
 
-Administrators, agents and auditors are allowed to read ACL configuration but only administrators allowed to modify
+By default administrators, agents and auditors are allowed to read ACL configuration but only administrators allowed to modify.
 
 * Operations: read, modify
 * allow (read) group="Administrators" || group="Auditors" || group="Token Processing Service Manager Agents"
@@ -29,7 +29,7 @@ Administrators, agents and auditors are allowed to read ACL configuration but on
 
 == certServer.log.configuration ==
 
-Administrators, Agents, and auditors are allowed to read the log configuration but only administrators are allowed to modify
+By default administrators, agents, and auditors are allowed to read the log configuration but only administrators are allowed to modify.
 
 * Operations: read, modify
 * allow (read) group="Administrators" || group="Auditors" || group="Token Processing Service Manager Agents"
@@ -37,7 +37,7 @@ Administrators, Agents, and auditors are allowed to read the log configuration b
 
 == certServer.log.configuration.fileName ==
 
-Nobody is allowed to modify a fileName parameter
+By default nobody is allowed to modify a fileName parameter.
 
 * Operations: read, modify
 * allow (read) group="Administrators" || group="Auditors" || group="Token Processing Service Manager Agents"
@@ -53,138 +53,138 @@ Nobody is allowed to modify an expirationTime parameter
 
 == certServer.log.content.signedAudit ==
 
-Only auditor is allowed to read the signed audit log
+By default only auditor is allowed to read the signed audit log.
 
 * Operations: read
 * allow (read) group="Auditors"
 
 == certServer.log.content.system ==
 
-Administrators, auditors, and agents are allowed to read the log content
+By default administrators, auditors, and agents are allowed to read the log content.
 
 * Operations: read
 * allow (read) group="Administrators" || group="Auditors" || group="Token Processing Service Manager Agents"
 
 == certServer.log.content.transactions ==
 
-Administrators, auditors, and agents are allowed to read the log content
+By default administrators, auditors, and agents are allowed to read the log content.
 
 * Operations: read
 * allow (read) group="Administrators" || group="Auditors" || group="Token Processing Service Manager Agents"
 
 == certServer.auth.configuration ==
 
-Administrators, agents, and auditors are allowed to read authentication configuration but only administrators allowed to modify
+By default administrators, agents, and auditors are allowed to read authentication configuration but only administrators allowed to modify.
 
-* Operations: read,modify
+* Operations: read, modify
 * allow (read) group="Administrators" || group="Auditors" || group="Token Processing Service Manager Agents"
 * allow (modify) group="Administrators"
 
 == certServer.registry.configuration ==
 
-This ACL is shared by all admin servlets.
+By default this ACL is shared by all admin servlets.
 
-* Operations: read,modify
+* Operations: read, modify
 * allow (read) group="Administrators" || group="Auditors" || group="Token Processing Service Manager Agents"
 * allow (modify) group="Administrators"
 
 == certServer.admin.certificate ==
 
-Any user may import a certificate
+By default any user may import a certificate.
 
 * Operations: import
 * allow (import) user="anybody"
 
 == certServer.admin.request.enrollment ==
 
-Anybody may submit an enrollment request
+By default anybody may submit an enrollment request.
 
-* Operations: submit,read,execute
+* Operations: submit, read, execute
 * allow (submit) user="anybody"
 
 == certServer.clone.configuration ==
 
-Only Enterprise Administrators are allowed to clone the configuration.
+By default only Enterprise Administrators are allowed to clone the configuration.
 
 * Operations: read, modify
 * allow (modify,read) group="Enterprise CA Administrators" || group="Enterprise KRA Administrators" || group="Enterprise OCSP Administrators" || group="Enterprise TPS Administrators"
 
 == certServer.tps.account ==
 
-Anybody can login and logout
+By default anybody can login and logout.
 
 * Operations: login, logout
 * allow (login,logout) user="anybody"
 
 == certServer.tps.authenticators ==
 
-Only admins can access authenticators.
+By default only admins can access authenticators.
 
-* Operatoins: read,change-status,add,modify,remove
+* Operatoins: read, change-status, add, modify, remove
 * allow (read,change-status,add,modify,remove) group="Administrators"
 
 == certServer.tps.audit ==
 
-Only admins can access configuration.
+By default only admins can access configuration.
 
-* Operations: read,modify
+* Operations: read, modify
 * allow (read,modify) group="Administrators"
 
 == certServer.tps.config ==
 
-Only admins can access configuration.
+By default only admins can access configuration.
 
-* Operations: read,modify
+* Operations: read, modify
 * allow (read,modify) group="Administrators"
 
 == certServer.tps.connectors ==
 
-Only admins can access connectors.
+By default only admins can access connectors.
 
-* Operations: read,change-status,add,modify,remove
+* Operations: read, change-status, add, modify, remove
 * allow (read,change-status,add,modify,remove) group="Administrators"
 
 == certServer.tps.groups ==
 
-Admins may execute group operations
+By default admins may execute group operations.
 
 * Operations: execute
 * allow (execute) group="Administrators"
 
 == certServer.tps.users ==
 
-Admins may execute user operations
+By default admins may execute user operations.
 
 * Operations: execute
 * allow (execute) group="Administrators"
 
 == certServer.tps.profiles ==
 
-Admins and agents can read and change status, but only admins can add, modify, and remove.
+By default admins and agents can read and change status, but only admins can add, modify, and remove.
 
-* Operations: read,change-status,add,modify,remove
+* Operations: read, change-status, add, modify, remove
 * allow (read,change-status) group="Administrators" || group="TPS Agents"
 * allow (add,modify,remove) group="Administrators"
 
 == certServer.tps.profile-mappings ==
 
-Only admins can access profile mappings.
+By default only admins can access profile mappings.
 
-* Operations: read,change-status,add,modify,remove
+* Operations: read, change-status, add, modify, remove
 * allow (read,change-status,add,modify,remove) group="Administrators"
 
 == certServer.tps.selftests ==
 
-Only admins can access selftests.
+By default only admins can access selftests.
 
-* Operations: read,execute
+* Operations: read, execute
 * allow (read,execute) group="Administrators"
 
 == certServer.tps.tokens ==
 
-Admins, agents, operators can read tokens, but only admins can add and remove tokens, and only agents can modify tokens.
+By default admins, agents, operators can read tokens, but only admins can add and remove tokens, and only agents can modify tokens.
 
-* Operations: read,add,modify,remove
+* Operations: read, add, modify, remove
 * allow (read) group="Administrators" || group="TPS Agents" || group="TPS Operators"
 * allow (add,remove) group="Administrators"
 * allow (modify) group="TPS Agents"
