@@ -1,0 +1,130 @@
+= Overview =
+
+The `tpsclient` is a command line tool that allows one to perform simple token operations against an instance of the TPS subsystem.
+
+Usually, real tokens are used to interact with TPS in order to provision said tokens with PKI certificates.
+Often it is the case, that the user may want to simulate the use of a real token and observe how the back end servers react to certain token operations.
+
+This is where `tpsclient` is often useful. Here are some of the reasons to use this tool:
+
+* We want to provision the configuration of a TMS system and test it out without putting real tokens at risk.
+** Using a real token can be hazardous to the token's health if everything is not set up perfectly. The problems usually arise when trying to establish the first secure channel with the token with TPS. If this fails too many times, the token will be bricked.
+
+* We want to populate the back end database with a large collection of tokens and certificates to observe the behavior of the TPS UI. This tool allows this to happen quickly, without having to enroll hundreds of tokens by hand.
+
+* We want to test the functionality of TPS and how it behaves without actual tokens in play.
+
+= Prerequisites =
+
+* Make sure that one has a correctly installed TMS system including TPS, CA, TKS, and optionally KRA to exercise server side keygen functionality.
+* Make sure that the authentication database exists.
+* Make sure there exists a typical user in the database.
+
+Add a user to the database:
+
+----
+$ ldapadd -h localhost -p 389 -D "cn=Directory Manager" -w Secret.123 << EOF
+dn: uid=testuser,ou=people,dc=example,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: testuser
+cn: Test User
+sn: User
+givenName: Test
+userPassword: Secret.123
+EOF
+----
+
+Verify the authentication works:
+
+----
+$ ldapsearch -x -D "uid=testuser,ou=people,dc=example,dc=com" -w Secret.123 -b "" -s base
+----
+
+Configure TPS's CS.cfg to point to the authentication database:
+
+----
+auths.instance.ldap1.ldap.basedn=dc=example,dc=com
+----
+
+Restart the TPS subsystem.
+
+= TPS Client Operations =
+
+== Setting Connection Parameters ==
+
+----
+# Specify the TPS server hostname
+op=var_set name=ra_host value=tps.example.com
+
+# Specify the TPS server non-ssl port.
+op=var_set name=ra_port value=8080
+
+# Specify the TPS service path.
+op=var_set name=ra_uri value=/tps/tps
+----
+
+== Setting Token Parameters ==
+
+----
+# This is info that represents a virtual token, the cuid can be changed to simulate different tokens in other scripts.
+op=token_set cuid=40906145C76224192D2B msn=0120304 app_ver=6FBBC105 key_info=0101 major_ver=0 minor_ver=0
+
+# Secure channel info, don't change if TPS intance is using developer key set, otherwise this tool won't work.
+op=token_set auth_key=404142434445464748494a4b4c4d4e4f
+op=token_set mac_key=404142434445464748494a4b4c4d4e4f
+op=token_set kek_key=404142434445464748494a4b4c4d4e4f
+----
+
+== Format Operation ==
+
+* The `uid` must match the user's uid attribute.
+* The `pwd` must match the user's userPassword attribute.
+* The `num_threads` can make the client spawn off many requests to the server at once.
+* The `extensions=tokenType=userKey` is used to force the server to use the `userKey` token profile type.
+
+----
+op=ra_format uid=testuser pwd=Secret.123 new_pin=Secret.123 num_threads=1 extensions=tokenType=userKey
+----
+
+== Enrollment Operation ==
+
+----
+# Operation, note the num_threads, this can make the client spawn off many requests to the server at once.
+# "extensions=tokenType=userKey, is used to force the server to use the "userKey" token profile type.
+op=ra_enroll uid=testuser pwd=Secret.123 new_pin=Secret.123 num_threads=1 extensions=tokenType=userKey
+----
+
+== PIN Reset ==
+
+To reset token's PIN, the token must be in ACTIVE state.
+
+----
+op=ra_reset_pin uid=testuser pwd=Secret.123 new_pin=Secret.123 num_threads=1
+----
+
+== Exit ==
+
+----
+op=exit
+----
+
+= Running TPS Client =
+
+Create a script containing the TPS operations. Use the tpsclient to execute the operation:
+
+----
+$ tpsclient < script.txt
+----
+
+Observe the results of the operation in the TPS's debug log: `/var/lib/pki/<instance>/tps/logs/debug`
+
+Note the output of the tool will often state that the operation has succeeded but for best results check the TPS log and see how the operation completed.
+
+If there are errors, adjust either the script file or the TPS's configuration until everything operates correctly.
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/Procedure_%27tpsclient%27[Procedure 'tpsclient']
