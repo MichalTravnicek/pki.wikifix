@@ -1,0 +1,234 @@
+= TPS ACL Definition =
+
+The default TPS ACL is defined in link:https://github.com/dogtagpki/pki/blob/master/base/tps/shared/conf/acl.ldif[/usr/share/pki/tps/conf/acl.ldif]. When TPS is installed, the ACL will be stored in the following entry which can be customized as needed:
+
+----
+dn: cn=aclResources,dc=tps,dc=pki,dc=example,dc=com
+objectClass: top
+objectClass: CertACLS
+cn: aclResources
+resourceACLS: ...
+...
+----
+
+== certServer.general.configuration ==
+
+Administrators, auditors, and agents are allowed to read CMS general configuration but only administrators are allowed to modify and delete
+
+* Operations: read, modify, delete
+* allow (read) group="Administrators" || group="Auditors" || group="Token Processing Service Manager Agents"
+* allow (modify,delete) group="Administrators"
+
+== certServer.acl.configuration ==
+
+Administrators, agents and auditors are allowed to read ACL configuration but only administrators allowed to modify
+
+* Operations: read, modify
+* allow (read) group="Administrators" || group="Auditors" || group="Token Processing Service Manager Agents"
+* allow (modify) group="Administrators"
+
+== certServer.log.configuration ==
+
+Administrators, Agents, and auditors are allowed to read the log configuration but only administrators are allowed to modify
+
+* Operations: read, modify
+* allow (read) group="Administrators" || group="Auditors" || group="Token Processing Service Manager Agents"
+* allow (modify) group="Administrators"
+
+== certServer.log.configuration.fileName ==
+
+Nobody is allowed to modify a fileName parameter
+
+* Operations: read, modify
+* allow (read) group="Administrators" || group="Auditors" || group="Token Processing Service Manager Agents"
+* deny (modify) user=anybody
+
+== certServer.log.configuration.signedAudit.expirationTime (unused) ==
+
+Nobody is allowed to modify an expirationTime parameter
+
+* Operations: read, modify
+* allow (read) group="Administrators" || group="Auditors" || group="Token Processing Service Manager Agents"
+* deny (modify) user=anybody
+
+== certServer.log.content.signedAudit ==
+
+Only auditor is allowed to read the signed audit log
+
+* Operations: read
+* allow (read) group="Auditors"
+
+== certServer.log.content.system ==
+
+Administrators, auditors, and agents are allowed to read the log content
+
+* Operations: read
+* allow (read) group="Administrators" || group="Auditors" || group="Token Processing Service Manager Agents"
+
+== certServer.log.content.transactions ==
+
+Administrators, auditors, and agents are allowed to read the log content
+
+* Operations: read
+* allow (read) group="Administrators" || group="Auditors" || group="Token Processing Service Manager Agents"
+
+== certServer.auth.configuration ==
+
+Administrators, agents, and auditors are allowed to read authentication configuration but only administrators allowed to modify
+
+* Operations: read,modify
+* allow (read) group="Administrators" || group="Auditors" || group="Token Processing Service Manager Agents"
+* allow (modify) group="Administrators"
+
+== certServer.registry.configuration ==
+
+This ACL is shared by all admin servlets.
+
+* Operations: read,modify
+* allow (read) group="Administrators" || group="Auditors" || group="Token Processing Service Manager Agents"
+* allow (modify) group="Administrators"
+
+== certServer.admin.certificate ==
+
+Any user may import a certificate
+
+* Operations: import
+* allow (import) user="anybody"
+
+== certServer.admin.request.enrollment ==
+
+Anybody may submit an enrollment request
+
+* Operations: submit,read,execute
+* allow (submit) user="anybody"
+
+== certServer.clone.configuration ==
+
+Only Enterprise Administrators are allowed to clone the configuration.
+
+* Operations: read, modify
+* allow (modify,read) group="Enterprise CA Administrators" || group="Enterprise KRA Administrators" || group="Enterprise OCSP Administrators" || group="Enterprise TPS Administrators"
+
+== certServer.tps.account ==
+
+Anybody can login and logout
+
+* Operations: login, logout
+* allow (login,logout) user="anybody"
+
+== certServer.tps.authenticators ==
+
+Only admins can access authenticators.
+
+* Operatoins: read,change-status,add,modify,remove
+* allow (read,change-status,add,modify,remove) group="Administrators"
+
+== certServer.tps.audit ==
+
+Only admins can access configuration.
+
+* Operations: read,modify
+* allow (read,modify) group="Administrators"
+
+== certServer.tps.config ==
+
+Only admins can access configuration.
+
+* Operations: read,modify
+* allow (read,modify) group="Administrators"
+
+== certServer.tps.connectors ==
+
+Only admins can access connectors.
+
+* Operations: read,change-status,add,modify,remove
+* allow (read,change-status,add,modify,remove) group="Administrators"
+
+== certServer.tps.groups ==
+
+Admins may execute group operations
+
+* Operations: execute
+* allow (execute) group="Administrators"
+
+== certServer.tps.users ==
+
+Admins may execute user operations
+
+* Operations: execute
+* allow (execute) group="Administrators"
+
+== certServer.tps.profiles ==
+
+Admins and agents can read and change status, but only admins can add, modify, and remove.
+
+* Operations: read,change-status,add,modify,remove
+* allow (read,change-status) group="Administrators" || group="TPS Agents"
+* allow (add,modify,remove) group="Administrators"
+
+== certServer.tps.profile-mappings ==
+
+Only admins can access profile mappings.
+
+* Operations: read,change-status,add,modify,remove
+* allow (read,change-status,add,modify,remove) group="Administrators"
+
+== certServer.tps.selftests ==
+
+Only admins can access selftests.
+
+* Operations: read,execute
+* allow (read,execute) group="Administrators"
+
+== certServer.tps.tokens ==
+
+Admins, agents, operators can read tokens, but only admins can add and remove tokens, and only agents can modify tokens.
+
+* Operations: read,add,modify,remove
+* allow (read) group="Administrators" || group="TPS Agents" || group="TPS Operators"
+* allow (add,remove) group="Administrators"
+* allow (modify) group="TPS Agents"
+
+= TPS ACL Mapping =
+
+TPS ACL mapping is stored in link:https://github.com/dogtagpki/pki/blob/master/base/tps/shared/conf/acl.properties[/usr/share/pki/tps/conf/acl.properties]:
+
+It maps REST operations to the above ACL:
+
+----
+account.login = certServer.tps.account,login
+account.logout = certServer.tps.account,logout
+audit.read = certServer.log.configuration,read
+audit.modify = certServer.log.configuration,modify
+audit-log.read = certServer.log.content.signedAudit,read
+authenticators.read = certServer.tps.authenticators,read
+authenticators.add = certServer.tps.authenticators,add
+authenticators.modify = certServer.tps.authenticators,modify
+authenticators.approve = certServer.tps.authenticators,approve
+authenticators.remove = certServer.tps.authenticators,remove
+config.read = certServer.tps.config,read
+config.modify = certServer.tps.config,modify
+connectors.read = certServer.tps.connectors,read
+connectors.add = certServer.tps.connectors,add
+connectors.modify = certServer.tps.connectors,modify
+connectors.change-status = certServer.tps.connectors,change-status
+connectors.remove = certServer.tps.connectors,remove
+groups = certServer.tps.groups,execute
+profiles.read = certServer.tps.profiles,read
+profiles.add = certServer.tps.profiles,add
+profiles.modify = certServer.tps.profiles,modify
+profiles.approve = certServer.tps.profiles,approve
+profiles.remove = certServer.tps.profiles,remove
+profile-mappings.read = certServer.tps.profile-mappings,read
+profile-mappings.add = certServer.tps.profile-mappings,add
+profile-mappings.modify = certServer.tps.profile-mappings,modify
+profile-mappings.approve = certServer.tps.profiles-mappings,approve
+profile-mappings.remove = certServer.tps.profile-mappings,remove
+selftests.read = certServer.tps.selftests,read
+selftests.execute = certServer.tps.selftests,execute
+tokens.read = certServer.tps.tokens,read
+tokens.add = certServer.tps.tokens,add
+tokens.modify = certServer.tps.tokens,modify
+tokens.remove = certServer.tps.tokens,remove
+users = certServer.tps.users,execute
+----
