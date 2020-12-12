@@ -1,0 +1,81 @@
+= Retrieving Key with DES =
+
+== Request ==
+
+----
+{
+    "Attributes": {
+        "Attribute": [
+            {
+                "name": "keyId",
+                "value": <key ID>
+            },
+            {
+                "name": "transWrappedSessionKey",
+                "value": <base64-encoded data>
+            },
+            {
+                "name": "payloadEncryptionOID",
+                "value": "{1 2 840 113549 3 7}"
+            },
+            {
+                "name": "payloadWrappingName",
+                "value": "DES3/CBC/Pad"
+            }
+        ]
+    },
+    "ClassName": "com.netscape.certsrv.key.KeyRecoveryRequest"
+}
+----
+
+== Response ==
+
+----
+{
+    "wrappedPrivateData": <base64-encoded data>,
+    "nonceData": <base64-encoded data>,
+    "encryptAlgorithmOID": "DESede/CBC/PKCS5Padding/168",
+    "type": "passPhrase"
+}
+----
+
+= Retrieving Key with AES =
+
+== Request ==
+
+----
+{
+    "Attributes": {
+        "Attribute": [
+            {
+                "name": "keyId",
+                "value": <key ID>
+            },
+            {
+                "name": "transWrappedSessionKey",
+                "value": <base64-encoded data>
+            },
+            {
+                "name": "payloadEncryptionOID",
+                "value": "{2 16 840 1 101 3 4 1 2}"
+            },
+            {
+                "name": "payloadWrappingName",
+                "value": "AES KeyWrap/Padding"
+            }
+        ]
+    },
+    "ClassName": "com.netscape.certsrv.key.KeyRecoveryRequest"
+}
+----
+
+== Response ==
+
+----
+{
+    "wrappedPrivateData": <base64-encoded data>,
+    "nonceData": <base64-encoded data>,
+    "encryptAlgorithmOID": "AES/CBC/PKCS5Padding/128",
+    "type": "passPhrase"
+}
+----
