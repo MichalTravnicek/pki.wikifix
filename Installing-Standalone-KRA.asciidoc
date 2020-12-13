@@ -1,0 +1,168 @@
+= Overview =
+
+This page describes the process to install a standalone KRA. In link:https://www.dogtagpki.org/wiki/Installing_KRA[normal KRA installation] the CSRs are submitted automatically to the issuing CA and the certificates are issued and imported automatically as well. In this scenario, however, the KRA uses a manual 2-step process to generate the CSRs and to import the certificates. This mechanism provides the flexibility to use non-PKI CA to issue the certificates.
+
+Unlike the normal KRA installation, it will not join the CA's security domain and no KRA connector will be configured in the CA for key archival.
+
+The installation process consists multiple steps:
+
+* Generating certificate requests
+* Issuing the certificates
+* Completing installation with the certificates
+
+See also link:https://www.dogtagpki.org/wiki/Installing_KRA_with_External_Certificates[Installing KRA with External Certificates].
+
+= Generating Certificate Requests =
+
+Prepare a deployment configuration file for step 1 (e.g. kra-standalone-step1.cfg):
+
+----
+[KRA]
+pki_admin_email=kraadmin@example.com
+pki_admin_name=kraadmin
+pki_admin_nickname=kraadmin
+pki_admin_password=Secret.123
+pki_admin_uid=kraadmin
+
+pki_client_database_password=Secret.123
+pki_client_database_purge=False
+pki_client_pkcs12_password=Secret.123
+
+pki_ds_base_dn=dc=kra,dc=example,dc=com
+pki_ds_database=kra
+pki_ds_password=Secret.123
+
+pki_security_domain_name=EXAMPLE
+pki_token_password=Secret.123
+
+pki_standalone=True
+pki_external_step_two=False
+
+pki_storage_nickname=kra_storage
+pki_transport_nickname=kra_transport
+pki_subsystem_nickname=subsystem
+pki_sslserver_nickname=sslserver
+pki_audit_signing_nickname=kra_audit_signing
+
+# PKI 10.5
+pki_storage_csr_path=kra_storage.csr
+pki_transport_csr_path=kra_transport.csr
+pki_subsystem_csr_path=subsystem.csr
+pki_sslserver_csr_path=sslserver.csr
+pki_audit_signing_csr_path=kra_audit_signing.csr
+pki_admin_csr_path=kra_admin.csr
+
+# PKI 10.4
+pki_external_storage_csr_path=kra_storage.csr
+pki_external_transport_csr_path=kra_transport.csr
+pki_external_subsystem_csr_path=subsystem.csr
+pki_external_sslserver_csr_path=sslserver.csr
+pki_external_audit_signing_csr_path=kra_audit_signing.csr
+pki_external_admin_csr_path=kra_admin.csr
+----
+
+Optionally, specify the HSM parameters:
+
+----
+pki_hsm_enable=True
+pki_hsm_libfile=/opt/nfast/toolkits/pkcs11/libcknfast.so
+pki_hsm_modulename=nfast
+----
+
+Then execute the following command:
+
+----
+$ pkispawn -f kra-standalone-step1.cfg -s KRA
+----
+
+It will create an NSS database in /var/lib/pki/pki-tomcat/alias and generate CSRs in the specified paths.
+
+= Issuing Certificates =
+
+Submit the CSRs to the external CA:
+
+* link:https://www.dogtagpki.org/wiki/Issuing_KRA_Certificates_with_NSS[Issuing KRA Certificates with NSS]
+* link:https://www.dogtagpki.org/wiki/Issuing_KRA_Certificates_with_PKI_CA[Issuing KRA Certificates with PKI CA]
+* link:https://www.dogtagpki.org/wiki/Issuing_KRA_Certificates_with_CMC[Issuing KRA Certificates with CMC]
+
+Place the issued certificates in the location indicated in the next section.
+
+= Completing Installation =
+
+Prepare a deployment configuration for step 2 (e.g. kra-standalone-step2.cfg) by copying it from step 1 (i.e. kra-standalone-step1.cfg) and make the following changes.
+
+Specify step 2 with the following parameter:
+
+----
+pki_external_step_two=True
+----
+
+Specify the certificate files with the following parameters:
+
+----
+# PKI 10.5
+pki_storage_cert_path=kra_storage.crt
+pki_transport_cert_path=kra_transport.crt
+pki_subsystem_cert_path=subsystem.crt
+pki_sslserver_cert_path=sslserver.crt
+pki_audit_signing_cert_path=kra_audit_signing.crt
+pki_admin_cert_path=kra_admin.crt
+
+# PKI 10.4
+pki_external_storage_cert_path=kra_storage.crt
+pki_external_transport_cert_path=kra_transport.crt
+pki_external_subsystem_cert_path=subsystem.crt
+pki_external_sslserver_cert_path=sslserver.crt
+pki_external_audit_signing_cert_path=kra_audit_signing.crt
+pki_external_admin_cert_path=kra_admin.crt
+----
+
+Each certificate file can contain either a single PEM certificate or a PKCS #7 certificate chain.
+
+If all of the above certificate files contain single certificates, the CA signing certificate and/or the certificate chain can be specified with the following parameters:
+
+----
+# PKI 10.5
+pki_ca_signing_nickname=ca_signing
+pki_ca_signing_cert_path=ca_signing.crt
+pki_cert_chain_nickname=cert_chain
+pki_cert_chain_path=cert_chain.p7b
+
+# PKI 10.4
+pki_external_ca_cert_chain_nickname=cert_chain
+pki_external_ca_cert_path=ca_signing.crt
+pki_external_ca_cert_chain_path=cert_chain.p7b
+----
+
+The CA signing certificate and the certificate chain file can contain either a single certificate or a PKCS #7 certificate chain as well.
+
+Finally, execute the following command:
+
+----
+$ pkispawn -f kra-standalone-step2.cfg -s KRA
+----
+
+= Verification =
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/kra/alias -c Secret.123 -n kraadmin kra-user-find
+-----------------
+2 entries matched
+-----------------
+  User ID: kraadmin
+  Full name: kraadmin
+
+  User ID: pkidbuser
+  Full name: pkidbuser
+----------------------------
+Number of entries returned 2
+----------------------------
+----
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/Stand-alone_PKI_Subsystems[Stand-alone PKI Subsystems]
+* link:https://www.dogtagpki.org/wiki/Certificate_Profiles[Certificate Profiles]
+* link:https://github.com/dogtagpki/pki/issues/2424[Ticket #2424 - Certificate validity delay]
+* link:https://www.dogtagpki.org/wiki/Installing_Standalone_OCSP[Installing Standalone OCSP]
+* link:https://www.dogtagpki.org/wiki/Installing_KRA_with_External_Certificates[Installing KRA with External Certificates]
