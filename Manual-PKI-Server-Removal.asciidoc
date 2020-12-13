@@ -1,0 +1,67 @@
+= Killing Server Process =
+
+----
+$ kill -9 `ps -ef | grep catalina.base=/var/lib/pki/pki-tomcat | grep -v grep | awk '{print $2}'`
+----
+
+= Removing Instance Files =
+
+----
+$ rm -rf /etc/pki/pki-tomcat
+$ rm -rf /var/lib/pki/pki-tomcat
+----
+
+= Removing Systemd Files =
+
+----
+$ rm -rf /etc/sysconfig/pki-tomcat
+$ rm -rf /etc/sysconfig/pki/tomcat/pki-tomcat
+----
+
+= Removing Installation Logs =
+
+----
+$ rm -rf /var/log/pki/pki-tomcat
+$ rm -rf /var/log/pki/pki-*.log
+----
+
+= Removing Admin NSS Database =
+
+----
+$ rm -rf $HOME/.dogtag/pki-tomcat
+----
+
+= Removing SELinux Contexts =
+
+----
+$ semanage fcontext -d "/etc/pki/pki-tomcat(/.*)?"
+$ semanage fcontext -d "/etc/pki/pki-tomcat/alias(/.*)?"
+$ semanage fcontext -d "/var/lib/pki/pki-tomcat(/.*)?"
+$ semanage fcontext -d "/var/log/pki/pki-tomcat(/.*)?"
+----
+
+= Removing DS Database =
+
+To remove the mapping entry, execute the following command:
+
+----
+$ ldapdelete -x -D "cn=Directory Manager" -w Secret.123 << EOF
+cn=dc\3Dca\2Cdc\3Dpki\2Cdc\3Dexample\2Cdc\3Dcom,cn=mapping tree,cn=config
+EOF
+----
+
+To remove the backend entry, execute the following command:
+
+----
+$ ldapdelete -x -D "cn=Directory Manager" -w Secret.123 -r << EOF
+cn=ca,cn=ldbm database,cn=plugins,cn=config
+EOF
+----
+
+= Removing Certificates and Keys in HSM =
+
+Please refer to the HSM manual to remove the certificates and keys created by the subsystem.
+
+= See Also =
+
+* link:https://github.com/dogtagpki/pki/issues/1735[Ticket #1735: Add forced instance removal]
