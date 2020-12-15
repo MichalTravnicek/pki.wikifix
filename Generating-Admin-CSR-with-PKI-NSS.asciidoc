@@ -1,0 +1,26 @@
+= Generating CSR =
+
+To create a certificate request, prepare a certificate extension configuration (e.g. admin.conf):
+
+----
+authorityKeyIdentifier = keyid:always
+keyUsage               = critical, digitalSignature, nonRepudiation, keyEncipherment
+extendedKeyUsage       = clientAuth, emailProtection
+----
+
+Then execute the following command:
+
+----
+$ pki nss-cert-request \
+    --subject "CN=Administrator" \
+    --ext admin.conf \
+    --csr admin.csr
+----
+
+Availability: PKI 10.10
+
+= See Also =
+
+* link:Generating-System-Certificates[Generating System Certificates]
+* link:Generating-Admin-Certificate[Generating Admin Certificate]
+* link:PKI-NSS-CLI[PKI NSS CLI]
