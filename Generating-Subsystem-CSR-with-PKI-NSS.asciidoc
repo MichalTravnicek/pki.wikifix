@@ -1,0 +1,26 @@
+= Generating CSR =
+
+To create a certificate request, prepare a certificate extension configuration (e.g. subsystem.conf):
+
+----
+authorityKeyIdentifier = keyid:always
+keyUsage               = critical, digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+extendedKeyUsage       = clientAuth
+----
+
+Then execute the following command:
+
+----
+$ pki nss-cert-request \
+    --subject "CN=Subsystem Certificate" \
+    --ext subsystem.conf \
+    --csr subsystem.csr
+----
+
+Availability: PKI 10.9
+
+= See Also =
+
+* link:Generating-System-Certificates[Generating System Certificates]
+* link:Generating-Subsystem-Certificate[Generating Subsystem Certificate]
+* link:PKI-NSS-CLI[PKI NSS CLI]
