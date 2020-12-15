@@ -1,0 +1,36 @@
+= Issuing Certificate =
+
+To issue a certificate, prepare a certificate extension configuration in a file (e.g. ca_signing.conf):
+
+----
+basicConstraints       = critical, CA:TRUE
+subjectKeyIdentifier   = hash
+keyUsage               = critical, digitalSignature, keyCertSign, cRLSign
+----
+
+To issue a self-signed certificate:
+
+----
+$ pki nss-cert-issue \
+    --csr ca_signing.csr \
+    --ext ca_signing.conf \
+    --cert ca_signing.crt
+----
+
+To issue a certificate signed by a root CA certificate, specify the root CA certificate nickname:
+
+----
+$ pki nss-cert-issue \
+    --issuer root-ca_signing \
+    --csr ca_signing.csr \
+    --ext ca_signing.conf \
+    --cert ca_signing.crt
+----
+
+Availability: PKI 10.9
+
+= See Also =
+
+* link:Generating-System-Certificates[Generating System Certificates]
+* link:Generating-CA-Signing-Certificate[Generating CA Signing Certificate]
+* link:PKI-NSS-CLI[PKI NSS CLI]
