@@ -21,47 +21,54 @@ When the PKI server is started, the server will generate signing info logs for e
 
 == CERT_SIGNING_INFO ==
 
-The CERT_SIGNING_INFO indicates which key is used to sign certificates.
+The `CERT_SIGNING_INFO` indicates which key is used to sign certificates.
 
 For the host CA, the log will not include an authority ID:
 
 ----
-[AuditEvent=CERT_SIGNING_INFO][SubjectID=$System$][Outcome=Success][SKI=5C:A8:93:F7:73:08:0D:41:A6:99:89:34:F9:BE:F1:6E:0D:7C:D4:21] certificate signing info
+[AuditEvent=CERT_SIGNING_INFO][SubjectID=$System$][Outcome=Success][SKI=5C:A8:93
+:F7:73:08:0D:41:A6:99:89:34:F9:BE:F1:6E:0D:7C:D4:21] certificate signing info
 ----
 
 For lightweight sub-CA, the log will include the authority ID:
 
 ----
-[AuditEvent=CERT_SIGNING_INFO][SubjectID=$System$][Outcome=Success][SKI=5C:A8:93:F7:73:08:0D:41:A6:99:89:34:F9:BE:F1:6E:0D:7C:D4:21][AuthorityID=f6276562-a11c-4a68-b752-2679b2a40962] certificate signing info
+[AuditEvent=CERT_SIGNING_INFO][SubjectID=$System$][Outcome=Success][SKI=5C:A8:93
+:F7:73:08:0D:41:A6:99:89:34:F9:BE:F1:6E:0D:7C:D4:21][AuthorityID=f6276562-a11c-4
+a68-b752-2679b2a40962] certificate signing info
 ----
 
 == OCSP_SIGNING_INFO ==
 
-The OCSP_SIGNING_INFO indicates which key is used to sign OCSP responses.
+The `OCSP_SIGNING_INFO` indicates which key is used to sign OCSP responses.
 
 For the host CA, the log will not include an authority ID:
 
 ----
-[AuditEvent=OCSP_SIGNING_INFO][SubjectID=$System$][Outcome=Success][SKI=B4:D3:3D:4A:94:D7:A8:AD:65:E2:2B:F1:C5:49:EF:7B:2B:D5:62:93] OCSP signing info
+[AuditEvent=OCSP_SIGNING_INFO][SubjectID=$System$][Outcome=Success][SKI=B4:D3:3D
+:4A:94:D7:A8:AD:65:E2:2B:F1:C5:49:EF:7B:2B:D5:62:93] OCSP signing info
 ----
 
 For lightweight sub-CA, the log will include the authority ID:
 
 ----
-[AuditEvent=OCSP_SIGNING_INFO][SubjectID=$System$][Outcome=Success][SKI=5C:A8:93:F7:73:08:0D:41:A6:99:89:34:F9:BE:F1:6E:0D:7C:D4:21][AuthorityID=f6276562-a11c-4a68-b752-2679b2a40962] OCSP signing info
+[AuditEvent=OCSP_SIGNING_INFO][SubjectID=$System$][Outcome=Success][SKI=5C:A8:93
+:F7:73:08:0D:41:A6:99:89:34:F9:BE:F1:6E:0D:7C:D4:21][AuthorityID=f6276562-a11c-4
+a68-b752-2679b2a40962] OCSP signing info
 ----
 
 == CRL_SIGNING_INFO ==
 
-The CRL_SIGNING_INFO indicates which key is used to sign CRLs.
+The `CRL_SIGNING_INFO` indicates which key is used to sign CRLs.
 
 For the host CA, the log will not include an authority ID:
 
 ----
-[AuditEvent=CRL_SIGNING_INFO][SubjectID=$System$][Outcome=Success][SKI=5C:A8:93:F7:73:08:0D:41:A6:99:89:34:F9:BE:F1:6E:0D:7C:D4:21] CRL signing info
+[AuditEvent=CRL_SIGNING_INFO][SubjectID=$System$][Outcome=Success][SKI=5C:A8:93:
+F7:73:08:0D:41:A6:99:89:34:F9:BE:F1:6E:0D:7C:D4:21] CRL signing info
 ----
 
-Lightweight sub-CA does not support CRL, so no CRL_SIGNING_INFO log will be generated for the CA.
+Lightweight sub-CA does not support CRL, so no `CRL_SIGNING_INFO` log will be generated for the CA.
 
 = Certificate Events =
 
@@ -85,7 +92,9 @@ $ pki -c Secret.123 client-cert-request UID=testuser
 The server will generate the following audit logs:
 
 ----
-[AuditEvent=PROFILE_CERT_REQUEST][SubjectID=$NonRoleUser$][Outcome=Success][ReqID=7][ProfileID=caUserCert][CertSubject=UID=testuser] certificate request made with certificate profiles
+[AuditEvent=PROFILE_CERT_REQUEST][SubjectID=$NonRoleUser$][Outcome=Success][ReqI
+D=7][ProfileID=caUserCert][CertSubject=UID=testuser] certificate request made wi
+th certificate profiles
 ----
 
 == CERT_REQUEST_PROCESSED ==
@@ -110,13 +119,15 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-cert-request-
 In PKI 10.4.5 or later the server will generate a log with the certificate serial number:
 
 ----
-[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Success][ReqID=7][CertSerialNum=7] certificate request succeeded
+[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Success][ReqID=7]
+[CertSerialNum=7] certificate request succeeded
 ----
 
 Prior to 10.4.5 the server will generate a log with the base64-encoded certificate data:
 
 ----
-[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Success][ReqID=7][InfoName=certificate][InfoValue=MIIDBD...] certificate request processed
+[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Success][ReqID=7]
+[InfoName=certificate][InfoValue=MIIDBD...] certificate request processed
 ----
 
 See also:
@@ -134,13 +145,15 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-cert-request-
 In PKI 10.4.5 or later the server will generate a log with [Outcome=Failure]:
 
 ----
-[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Failure][ReqID=7][InfoName=rejectReason][InfoValue=<null>] certificate request processed
+[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Failure][ReqID=7]
+[InfoName=rejectReason][InfoValue=<null>] certificate request processed
 ----
 
 Prior to PKI 10.4.5 the server will generate a log with [Outcome=Success]:
 
 ----
-[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Success][ReqID=7][InfoName=rejectReason][InfoValue=<null>] certificate request processed
+[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Success][ReqID=7]
+[InfoName=rejectReason][InfoValue=<null>] certificate request processed
 ----
 
 === Case 3: Canceled request ===
@@ -154,13 +167,15 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-cert-request-
 In PKI 10.4.5 or later the server will generate a log with [Outcome=Failure]:
 
 ----
-[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Failure][ReqID=7][InfoName=cancelReason][InfoValue=<null>] certificate request processed
+[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Failure][ReqID=7]
+[InfoName=cancelReason][InfoValue=<null>] certificate request processed
 ----
 
 Prior to 10.4.5 the server will generate the a log with [Outcome=Success]:
 
 ----
-[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Success][ReqID=7][InfoName=cancelReason][InfoValue=<null>] certificate request processed
+[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Success][ReqID=7]
+[InfoName=cancelReason][InfoValue=<null>] certificate request processed
 ----
 
 === Case 4: Invalid request ===
@@ -174,14 +189,16 @@ $ pki -c Secret.123 client-cert-request UID=testuser --profile caServerCert
 The server will generate the following logs:
 
 ----
-[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=$NonRoleUser$][Outcome=Failure][ReqID=7][InfoName=rejectReason][InfoValue=Request 7 Rejected - Subject Name Not Matched UID=testuser] certificate request processed
+[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=$NonRoleUser$][Outcome=Failure][Re
+qID=7][InfoName=rejectReason][InfoValue=Request 7 Rejected - Subject Name Not Ma
+tched UID=testuser] certificate request processed
 ----
 
 == CERT_STATUS_CHANGE_REQUEST ==
 
-CERT_STATUS_CHANGE_REQUEST event is generated when a certificate status change request (e.g. revocation) is made (before approval process).
+`CERT_STATUS_CHANGE_REQUEST` event is generated when a certificate status change request (e.g. revocation) is made (before approval process).
 
-CERT_STATUS_CHANGE_REQUEST_PROCESSED event is generated when certificate status is changed (revoked, expired, on-hold, off-hold).
+`CERT_STATUS_CHANGE_REQUEST_PROCESSED` event is generated when certificate status is changed (revoked, expired, on-hold, off-hold).
 
 For example, execute the following command to put a certificate on-hold:
 
@@ -192,8 +209,12 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-cert-hold 0x4
 The server will generate the following logs:
 
 ----
-[AuditEvent=CERT_STATUS_CHANGE_REQUEST][SubjectID=caadmin][Outcome=Success][ReqID=9][CertSerialNum=0x4][RequestType=on-hold] certificate revocation/unrevocation request made
-[AuditEvent=CERT_STATUS_CHANGE_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Success][ReqID=9][CertSerialNum=0x4][RequestType=on-hold][RevokeReasonNum=6][Approval=complete] certificate status change request processed
+[AuditEvent=CERT_STATUS_CHANGE_REQUEST][SubjectID=caadmin][Outcome=Success][ReqI
+D=9][CertSerialNum=0x4][RequestType=on-hold] certificate revocation/unrevocation
+ request made
+[AuditEvent=CERT_STATUS_CHANGE_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Suc
+cess][ReqID=9][CertSerialNum=0x4][RequestType=on-hold][RevokeReasonNum=6][Approv
+al=complete] certificate status change request processed
 ----
 
 == CMC_SIGNED_REQUEST_SIG_VERIFY ==
@@ -207,104 +228,119 @@ Properties:
 * CertSubject must be the certificate subject name of the certificate request
 * SignerInfo reflects the person who actually signs the CMC request
 
-For example, prepare a root CA and link:https://www.dogtagpki.org/wiki/Installing_CA_with_External_CA_Signing_Certificate[install a subordinate CA with external CA signing certificate]. Use CMC on the root CA to issue the subordinate CA signing certificate. The root CA will generate the following log:
+For example, prepare a root CA and link:https://github.com/dogtagpki/pki/blob/master/docs/installation/ca/Installing_CA_with_External_CA_Signing_Certificate.md[install a subordinate CA with external CA signing certificate]. Use CMC on the root CA to issue the subordinate CA signing certificate. The root CA will generate the following log:
 
 ----
-[AuditEvent=CMC_SIGNED_REQUEST_SIG_VERIFY][SubjectID=$NonRoleUser$][Outcome=Success][ReqType=enrollment][CertSubject=CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE][SignerInfo=PKI Administrator] agent pre-approved CMC request signature verification
+[AuditEvent=CMC_SIGNED_REQUEST_SIG_VERIFY][SubjectID=$NonRoleUser$][Outcome=Succ
+ess][ReqType=enrollment][CertSubject=CN=CA Signing Certificate,OU=pki-tomcat,O=E
+XAMPLE][SignerInfo=PKI Administrator] agent pre-approved CMC request signature v
+erification
 ----
 
 = CRL Events =
 
 == SCHEDULE_CRL_GENERATION ==
 
-Since version 10.4.x the PKI Server will generate a SCHEDULE_CRL_GENERATION event when the CRL generation is scheduled manually.
+Since version 10.4.x the PKI Server will generate a `SCHEDULE_CRL_GENERATION` event when the CRL generation is scheduled manually.
 
 For example, use the Web UI to update the CRL. The server will generate the following log immediately:
 
 ----
-[AuditEvent=SCHEDULE_CRL_GENERATION][SubjectID=<username>][Outcome=Success] schedule for CRL generation
+[AuditEvent=SCHEDULE_CRL_GENERATION][SubjectID=<username>][Outcome=Success] sche
+dule for CRL generation
 ----
 
 If the scheduling fails, the server will log the failure reason:
 
 ----
-[AuditEvent=SCHEDULE_CRL_GENERATION][SubjectID=<username>][Outcome=Failure][FailureReason=<reason>] schedule for CRL generation
+[AuditEvent=SCHEDULE_CRL_GENERATION][SubjectID=<username>][Outcome=Failure][Fail
+ureReason=<reason>] schedule for CRL generation
 ----
 
 == DELTA_CRL_GENERATION ==
 
-Since version 10.4.x the PKI Server will generate a DELTA_CRL_GENERATION event when the delta CRL generation is complete.
+Since version 10.4.x the PKI Server will generate a `DELTA_CRL_GENERATION` event when the delta CRL generation is complete.
 
 For example, enable delta CRL, use the Web UI to update the CRL. The server will generate the following log when the delta CRL generation is complete:
 
 ----
-[AuditEvent=DELTA_CRL_GENERATION][SubjectID=$System$][Outcome=Success][CRLnum=<CRL number>] Delta CRL generation
+[AuditEvent=DELTA_CRL_GENERATION][SubjectID=$System$][Outcome=Success][CRLnum=<C
+RL number>] Delta CRL generation
 ----
 
 If noCRLIfNoRevokedCert is true and there is no revoked certificates, the server will generate the following log:
 
 ----
-[AuditEvent=DELTA_CRL_GENERATION][SubjectID=$System$][Outcome=Success][Info=No Revoked Certificates] Delta CRL generation
+[AuditEvent=DELTA_CRL_GENERATION][SubjectID=$System$][Outcome=Success][Info=No R
+evoked Certificates] Delta CRL generation
 ----
 
 If the delta CRL generation fails, the server will log the failure reason:
 
 ----
-[AuditEvent=DELTA_CRL_GENERATION][SubjectID=$System$][Outcome=Failure][FailureReason=<reason>] Delta CRL generation
+[AuditEvent=DELTA_CRL_GENERATION][SubjectID=$System$][Outcome=Failure][FailureRe
+ason=<reason>] Delta CRL generation
 ----
 
 == DELTA_CRL_PUBLISHING ==
 
-Since version 10.4.x the PKI Server will generate a DELTA_CRL_PUBLISHING event when the delta CRL publishing is complete.
+Since version 10.4.x the PKI Server will generate a `DELTA_CRL_PUBLISHING` event when the delta CRL publishing is complete.
 
 For example, enable delta CRL, use the Web UI to update the CRL. The server will generate the following log when the delta CRL publishing is complete:
 
 ----
-[AuditEvent=DELTA_CRL_PUBLISHING][SubjectID=$System$][Outcome=Success][CRLnum=<CRL number>] Delta CRL publishing
+[AuditEvent=DELTA_CRL_PUBLISHING][SubjectID=$System$][Outcome=Success][CRLnum=<C
+RL number>] Delta CRL publishing
 ----
 
 If the delta CRL publishing fails, the server will log the failure reason:
 
 ----
-[AuditEvent=DELTA_CRL_PUBLISHING][SubjectID=$System$][Outcome=Failure][CRLnum=<CRL number>][FailureReason=<reason>] Delta CRL publishing
+[AuditEvent=DELTA_CRL_PUBLISHING][SubjectID=$System$][Outcome=Failure][CRLnum=<C
+RL number>][FailureReason=<reason>] Delta CRL publishing
 ----
 
 == FULL_CRL_GENERATION ==
 
-Since version 10.4.x the PKI Server will generate a FULL_CRL_GENERATION event when the full CRL generation is complete.
+Since version 10.4.x the PKI Server will generate a `FULL_CRL_GENERATION` event when the full CRL generation is complete.
 
 For example, use the Web UI to update the CRL. The server will generate the following log when the full CRL generation is complete:
 
 ----
-[AuditEvent=FULL_CRL_GENERATION][SubjectID=$System$][Outcome=Success][CRLnum=<CRL number>] Full CRL generation
+[AuditEvent=FULL_CRL_GENERATION][SubjectID=$System$][Outcome=Success][CRLnum=<CR
+L number>] Full CRL generation
 ----
 
 If noCRLIfNoRevokedCert is true and there is no revoked certificates, the server will generate the following log:
 
 ----
-[AuditEvent=FULL_CRL_GENERATION][SubjectID=$System$][Outcome=Success][Info=No Revoked Certificates] Full CRL generation
+[AuditEvent=FULL_CRL_GENERATION][SubjectID=$System$][Outcome=Success][Info=No Re
+voked Certificates] Full CRL generation
 ----
 
 If the full CRL generation fails, the server will log the failure reason:
 
 ----
-[AuditEvent=FULL_CRL_GENERATION][SubjectID=$System$][Outcome=Failure][FailureReason=<reason>] Full CRL generation
+[AuditEvent=FULL_CRL_GENERATION][SubjectID=$System$][Outcome=Failure][FailureRea
+son=<reason>] Full CRL generation
 ----
 
 == FULL_CRL_PUBLISHING ==
 
-Since version 10.4.x the PKI Server will generate a FULL_CRL_PUBLISHING event when the full CRL publishing is complete.
+Since version 10.4.x the PKI Server will generate a `FULL_CRL_PUBLISHING` event when the full CRL publishing is complete.
 
 For example, use the Web UI to update the CRL. The server will generate the following log when the full CRL publishing is complete:
 
 ----
-[AuditEvent=FULL_CRL_PUBLISHING][SubjectID=$System$][Outcome=Success][CRLnum=<CRL number>] Full CRL publishing
+[AuditEvent=FULL_CRL_PUBLISHING][SubjectID=$System$][Outcome=Success][CRLnum=<CR
+L number>] Full CRL publishing
 ----
 
 If the full CRL publishing fails, the server will log the failure reason:
 
 ----
-[AuditEvent=FULL_CRL_PUBLISHING][SubjectID=$System$][Outcome=Failure][CRLnum=<CRL number>][FailureReason=<reason>] Full CRL publishing
+[AuditEvent=FULL_CRL_PUBLISHING][SubjectID=$System$][Outcome=Failure][CRLnum=<CR
+L number>][FailureReason=<reason>] Full CRL publishing
 ----
 
 == CRL_RETRIEVAL ==
@@ -315,18 +351,18 @@ If the full CRL publishing fails, the server will log the failure reason:
 
 == OCSP_GENERATION ==
 
-Since version 10.5 an OCSP_GENERATION event will be generated for each OCSP response generated by link:https://www.dogtagpki.org/wiki/PKI_CA_Internal_OCSP_Responder[PKI CA Internal OCSP Responder].
+Since version 10.5 an `OCSP_GENERATION` event will be generated for each OCSP response generated by link:https://www.dogtagpki.org/wiki/PKI_CA_Internal_OCSP_Responder[PKI CA Internal OCSP Responder].
 
 For example, use the link:https://www.dogtagpki.org/wiki/OCSPClient[OCSPClient] to submit an OCSP request:
 
 ----
 $ OCSPClient \
-   -d ~/.dogtag/pki-tomcat/ca/alias \
-   -h $HOSTNAME \
-   -p 8080 \
-   -t /ca/ocsp \
-   -c ca_signing \
-   --serial 1
+    -d ~/.dogtag/pki-tomcat/ca/alias \
+    -h $HOSTNAME \
+    -p 8080 \
+    -t /ca/ocsp \
+    -c ca_signing \
+    --serial 1
 CertID.serialNumber=1
 CertStatus=Good
 ----
@@ -334,19 +370,22 @@ CertStatus=Good
 The server will generate the following log when the OCSP response generation is complete:
 
 ----
-[AuditEvent=OCSP_GENERATION][SubjectID=$NonRoleUser$][Outcome=Success] OCSP response generation
+[AuditEvent=OCSP_GENERATION][SubjectID=$NonRoleUser$][Outcome=Success] OCSP resp
+onse generation
 ----
 
 If the OCSP response generation fails, the server will log the failure reason:
 
 ----
-[AuditEvent=OCSP_GENERATION][SubjectID=$NonRoleUser$][Outcome=Failure][FailureReason=<reason>] OCSP response generation
+[AuditEvent=OCSP_GENERATION][SubjectID=$NonRoleUser$][Outcome=Failure][FailureRe
+ason=<reason>] OCSP response generation
 ----
 
 For example, if the CA internal OCSP responder is disabled, the following log will be generated:
 
 ----
-[AuditEvent=OCSP_GENERATION][SubjectID=$NonRoleUser$][Outcome=Failure][FailureReason=OCSP service disabled] OCSP response generation
+[AuditEvent=OCSP_GENERATION][SubjectID=$NonRoleUser$][Outcome=Failure][FailureRe
+ason=OCSP service disabled] OCSP response generation
 ----
 
 See also:
