@@ -1,0 +1,27 @@
+= Issuing Certificate =
+
+To issue a certificate, prepare a certificate extension configuration in a file (e.g. kra_storage.conf):
+
+----
+authorityKeyIdentifier = keyid:always
+keyUsage               = critical, digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+extendedKeyUsage       = clientAuth
+----
+
+To issue a certificate signed by a CA certificate, specify the CA certificate nickname:
+
+----
+$ pki nss-cert-issue \
+    --issuer ca_signing \
+    --csr kra_storage.csr \
+    --ext kra_storage.conf \
+    --cert kra_storage.crt
+----
+
+Availability: PKI 10.9
+
+= See Also =
+
+* link:Generating-System-Certificates[Generating System Certificates]
+* link:Generating-KRA-Storage-Certificate[Generating KRA Storage Certificate]
+* link:PKI-NSS-CLI[PKI NSS CLI]
