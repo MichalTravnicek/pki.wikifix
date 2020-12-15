@@ -1,0 +1,356 @@
+= Overview =
+
+This document describes the process to add a system user and issue a client certificate for authentication. The document assumes that the CA has been installed and the administrator and the user are using separate Linux accounts.
+
+= Preparing the User =
+
+As the admin of the subsystem, create a new user:
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
+    ca-user-add testuser --fullName "Test User"
+---------------------
+Added user "testuser"
+---------------------
+  User ID: testuser
+  Full name: Test User
+----
+
+If necessary, add the user to the appropriate groups:
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
+    ca-group-member-add "Certificate Manager Agents" testuser
+-----------------------------
+Added group member "testuser"
+-----------------------------
+  User: testuser
+----
+
+As the user, prepare a private NSS database:
+
+----
+$ pki -c Secret.123 client-init
+------------------
+Client initialized
+------------------
+----
+
+= Requesting a Certificate =
+
+As the user, generate and submit a certificate request.
+
+== PKCS #10 Request ==
+
+If key archival is not needed, generate and submit a PKCS #10 request with the following command:
+
+----
+$ pki -c Secret.123 client-cert-request uid=testuser
+-----------------------------
+Submitted certificate request
+-----------------------------
+  Request ID: 28
+  Type: enrollment
+  Request Status: pending
+  Operation Result: success
+----
+
+See link:Generating-Certificate-Request[Generating Certificate Request].
+
+== CRMF Request ==
+
+CRMF enrollment via CLI is supported since 10.2.2.
+
+If key archival is needed, first obtain KRA transport certificate (see link:Retrieving-KRA-Transport-Certificate[Retrieving KRA Transport Certificate]).
+
+Then generate and submit a CRMF request with the following command:
+
+----
+$ pki -c Secret.123 client-cert-request uid=testuser --profile caDualCert --type crmf --transport transport.pem
+-----------------------------
+Submitted certificate request
+-----------------------------
+  Request ID: 28
+  Type: enrollment
+  Request Status: pending
+  Operation Result: success
+----
+
+== Manual Steps ==
+
+link:Generating-Certificate-Request[Generate] a CSR:
+
+----
+$ PKCS10Client -d ~/.dogtag/nssdb -p Secret.123 -a rsa -l 1024 -o testuser.csr -n "uid=testuser"
+PKCS10Client: Debug: got token.
+PKCS10Client: Debug: thread token set.
+PKCS10Client: token Internal Key Storage Token logged in...
+PKCS10Client: key pair generated.
+PKCS10Client: pair.getPublic() called.
+PKCS10Client: CertificationRequestInfo() created.
+PKCS10Client: CertificationRequest created.
+PKCS10Client: calling Utils.b64encode.
+PKCS10Client: b64encode completes.
+-----BEGIN NEW CERTIFICATE REQUEST-----
+MIIBfTCB5wIBADAaMRgwFgYKCZImiZPyLGQBARMIdGVzdHVzZXIwgZ8wDQYJKoZI
+hvcNAQEBBQADgY0AMIGJAoGBAPEcxFJBu2lNmIS+MNaZKO43h0dIhKZWZ8wEomQc
+tc9guIUGM5eFU+psj6n0XQCPMIVRe7mrzYHF8mlwAp416P5/97g9U6JOKkTXc5ia
+HVE1JRhykHiQ17Lp7Y6xXxfe6xKAXDoLOPJ4fNdadtbVeIGjudWktjgwh5CQBXsA
+GFP5AgMBAAGgJDAiBggrBgEFBQcHFzEWBBTmaclfLv+kkK5z5kTMP54dlnecUDAN
+BgkqhkiG9w0BAQQFAAOBgQAXrm979HwcG63Z64u+aybYrfOgyWxQ4kTtCA+NKYge
+HC6Z/mlb10J/wggOzrHUbE4IFyjbBo2k1FKe8zYcXIB6Ok5Z0TXueR1zKcb8hE35
+o9dkH2sGJsSqMLN8NRyY5QeqOKmtaX8pm1aPhJ0wkvOYou52YqJdq6LF9KXmBGOH
+hA==
+
+-----END NEW CERTIFICATE REQUEST-----
+PKCS10Client: done. Request written to file: testuser.csr
+----
+
+Download the request template into a file:
+
+----
+$ pki ca-cert-request-profile-show caUserCert --output testuser.xml
+----
+
+Copy the CSR and subject DN into the file:
+
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<CertEnrollmentRequest>
+    ...
+    <Input id="i1">
+        <Attribute name="cert_request_type">
+            <Value>pkcs10</Value>
+            ...
+        </Attribute>
+        <Attribute name="cert_request">
+            <Value>
+-----BEGIN NEW CERTIFICATE REQUEST-----
+MIIBfTCB5wIBADAaMRgwFgYKCZImiZPyLGQBARMIdGVzdHVzZXIwgZ8wDQYJKoZI
+hvcNAQEBBQADgY0AMIGJAoGBAPEcxFJBu2lNmIS+MNaZKO43h0dIhKZWZ8wEomQc
+tc9guIUGM5eFU+psj6n0XQCPMIVRe7mrzYHF8mlwAp416P5/97g9U6JOKkTXc5ia
+HVE1JRhykHiQ17Lp7Y6xXxfe6xKAXDoLOPJ4fNdadtbVeIGjudWktjgwh5CQBXsA
+GFP5AgMBAAGgJDAiBggrBgEFBQcHFzEWBBTmaclfLv+kkK5z5kTMP54dlnecUDAN
+BgkqhkiG9w0BAQQFAAOBgQAXrm979HwcG63Z64u+aybYrfOgyWxQ4kTtCA+NKYge
+HC6Z/mlb10J/wggOzrHUbE4IFyjbBo2k1FKe8zYcXIB6Ok5Z0TXueR1zKcb8hE35
+o9dkH2sGJsSqMLN8NRyY5QeqOKmtaX8pm1aPhJ0wkvOYou52YqJdq6LF9KXmBGOH
+hA==
+
+-----END NEW CERTIFICATE REQUEST-----
+            </Value>
+            ...
+        </Attribute>
+    </Input>
+    <Input id="i2">
+        ...
+        <Attribute name="sn_uid">
+            <Value>testuser</Value>
+            ...
+        </Attribute>
+    </Input>
+    ...
+</CertEnrollmentRequest>
+----
+
+Submit the request with the following command:
+
+----
+$ pki ca-cert-request-submit testuser.xml
+-----------------------------
+Submitted certificate request
+-----------------------------
+  Request ID: 28
+  Type: enrollment
+  Request Status: pending
+  Operation Result: success
+----
+
+= Approving the Request =
+
+As a CA agent, approve the request. Then as an admin of the subsystem assign the certificate to the user.
+
+== Simplified Steps ==
+
+To approve the request:
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
+    ca-cert-request-review 28 --action approve
+-------------------------------
+Approved certificate request 28
+-------------------------------
+  Request ID: 28
+  Type: enrollment
+  Request Status: complete
+  Operation Result: success
+  Certificate ID: 0x1c
+----
+
+To assign the certificate to the user:
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
+    ca-user-cert-add testuser --serial 0x1c
+----
+
+== Manual Steps ==
+
+To approve the request:
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
+    ca-cert-request-review 28 --action approve
+-------------------------------
+Approved certificate request 28
+-------------------------------
+  Request ID: 28
+  Type: enrollment
+  Request Status: complete
+  Operation Result: success
+  Certificate ID: 0x1c
+----
+
+To download the certificate:
+
+----
+$ pki ca-cert-show 0x1c --output testuser.crt
+------------------
+Certificate "0x1c"
+------------------
+  Serial Number: 0x1c
+  Issuer: CN=CA Signing Certificate,O=EXAMPLE
+  Subject: UID=testuser
+  Status: VALID
+  Not Before: Wed Nov 13 19:47:31 EST 2013
+  Not After: Mon May 12 20:47:31 EDT 2014
+----
+
+To assign the certificate to the user:
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
+    ca-user-cert-add testuser --input testuser.crt
+-------------------------------------------------------------------------
+Added certificate "2;28;CN=CA Signing Certificate,O=EXAMPLE;UID=testuser"
+-------------------------------------------------------------------------
+  Cert ID: 2;28;CN=CA Signing Certificate,O=EXAMPLE;UID=testuser
+  Version: 2
+  Serial Number: 0x1c
+  Issuer: CN=CA Signing Certificate,O=EXAMPLE
+  Subject: UID=testuser
+----
+
+= Retrieving the Certificate =
+
+As the user, download the certificate and import it into the security database.
+
+== Simplified Steps ==
+
+To download and import the certificate into security database:
+
+----
+$ pki -c Secret.123 client-cert-import testuser --serial 0x1c
+----
+
+== Manual Steps ==
+
+To download the certificate:
+
+----
+$ pki ca-cert-show 0x1c --output testuser.crt
+------------------
+Certificate "0x1c"
+------------------
+  Serial Number: 0x1c
+  Issuer: CN=CA Signing Certificate,O=EXAMPLE
+  Subject: UID=testuser
+  Status: VALID
+  Not Before: Wed Nov 13 19:47:31 EST 2013
+  Not After: Mon May 12 20:47:31 EDT 2014
+----
+
+To import into security database:
+
+----
+$ pki -c Secret.123 -n testuser client-cert-import --cert testuser.crt
+----
+
+= Using the Certificate =
+
+The certificate can be used by the user as follows:
+
+----
+$ pki -c Secret.123 -n testuser <command>
+----
+
+To export the user certificate into a PKCS #12 file:
+
+----
+$ pki -c Secret.123 client-cert-show testuser --pkcs12 testuser.p12 --pkcs12-password Secret.123
+----
+
+To export the CA certificate into a PEM file:
+
+----
+$ pki -c Secret.123 client-cert-show "CA Signing Certificate" --cert ca.pem
+----
+
+= Example =
+
+User's perspective:
+
+----
+$ # initializing security database
+$ pki -c Secret.123 client-init
+------------------
+Client initialized
+------------------
+$ # requesting a certificate
+$ pki -c Secret.123 client-cert-request uid=testuser
+-----------------------------
+Submitted certificate request
+-----------------------------
+  Request ID: 28
+  Type: enrollment
+  Request Status: pending
+  Operation Result: success
+$ # waiting for approval
+$ # retrieving certificate
+$ pki -c Secret.123 client-cert-import testuser --serial 0x1c
+----
+
+Admin's perspective:
+
+----
+$ # creating user account
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-user-add testuser --fullName "Test User"
+---------------------
+Added user "testuser"
+---------------------
+  User ID: testuser
+  Full name: Test User
+$ # approving request
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-cert-request-review 28 --action approve
+-------------------------------
+Approved certificate request 28
+-------------------------------
+  Request ID: 28
+  Type: enrollment
+  Request Status: complete
+  Operation Result: success
+  Certificate ID: 0x1c
+$ # assigning certificate to user
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-user-cert-add testuser --serial 0x1c
+----
+
+= See Also =
+
+* link:PKI-CA-Certificate-CLI[PKI CA Certificate CLI]
+* link:PKI-User-Certificate-CLI[PKI User Certificate CLI]
+* link:https://www.dogtagpki.org/wiki/Certificate_Management[Certificate Management]
+* link:https://www.dogtagpki.org/wiki/User_Certificate_Renewal[User Certificate Renewal]
+* link:https://www.dogtagpki.org/wiki/Default_CA_Admin[Default CA Admin]
+* link:https://www.dogtagpki.org/wiki/CA_Admin_Setup[CA Admin Setup]
+* link:https://www.dogtagpki.org/wiki/CA_Agent_Setup[CA Agent Setup]
+* link:https://www.dogtagpki.org/wiki/KRA_Agent_Setup[KRA Agent Setup]
+* link:https://www.dogtagpki.org/wiki/TPS_Operator_Setup[TPS Operator Setup]
