@@ -1,0 +1,144 @@
+= Overview =
+
+Dogtag supports operation as a sub-CA, but only as a separate instance. This document proposes ''lightweight sub-CAs'', where one or more sub-CAs can reside alongside the primary CA in a single instance. other subsystems including the parent CA.
+
+This feature is aimed for inclusion in Dogtag 10.3, to be included in Fedora 21.
+
+== Terminology ==
+
+* *host CA*: The existing signing capability of the CA subsystem and associated key(s), certificates and data. Put another way, this is the &quot;highest-level&quot; CA in a Dogtag instance, which may or may not be a root CA.
+* *lightweight CA*: A signing capability and associated key(s), certificates and data, which is hosted in the CA subsystem alongside the host CA.
+* *sub-CA*: A lightweight CA that is certified by the host CA or by another sub-CA.
+* *authority ID*: A UUID identifying a CA. All lightweight CAs and the host CA have an authority ID. In records that may include an authority ID, the absense of an authority ID typically implies the host CA.
+* *subsystem*: A Dogtag instance subsystem, i.e. that which is created by `pkispawn(8)`. When referring to subsystems within a CMS instance, the term ''CMS subsystem'' is used.
+
+= Associated Bugs and Tickets =
+
+== Multiple subsystems in a single instance ==
+
+Dogtag 10.0 introduced ability to host multiple subsystems within a single instance by hosting the subsystems' HTTP interfaces at different paths. How this change was carried out might inform and influence the sub-CA change.
+
+* https://fedorahosted.org/pki/ticket/89
+* https://www.dogtagpki.org/wiki/PKI_Instance_Deployment
+
+== Top-level Tree ==
+
+See link:https://www.dogtagpki.org/wiki/Top-Level_Tree[Top-level Tree].
+
+A design proposal to avoid proliferation of replication agreements, justified by FreeIPA use cases (including lightweight sub-CAs). The proposed change is to enhance `pkispawn` to create subsystem databases as subtrees under a top-level tree, such that a single replication agreement can replicate all subsystems.
+
+== Support for multiple OCSP signing certificates ==
+
+Link: https://fedorahosted.org/pki/ticket/1179
+
+Ticket for adding support for multiple OCSP signing certificates. Each sub-CA will need its own OCSP signing certificate.
+
+= Use cases =
+
+== FreeIPA use cases ==
+
+FreeIPA usefulness and appeal as a PKI is currently limited by the fact that there is a single X.509 issuer (Certificate Authority). Any certificate issued by FreeIPA is signed by the single authority, regardless of purpose.
+
+FreeIPA requires a mechanism to issues certificates with different certification chains, so that certificates issues for some particular use (e.g. Puppet, VPN authentication, DNP3) can be regarded as invalid for other uses.
+
+The existing Dogtag sub-CA capabilities, i.e. spawning a new instance configured as a sub-CA, has been deemed too heavyweight and complex for this use case. Reasons include:
+
+* Spawning a Dogtag instance is an expensive operation.
+* The spawning would need to take place and all replicas, and replication agreements set up.
+* FreeIPA would need to track the ports of all sub-CAs instances and communicate on those ports.
+
+Accordingly, a more lightweight solution to the sub-CA problem is sought. Ideally, the capability to create new sub-CAs would be exposed via the REST API, and no manual intervention would be necessary in order to begin using a new sub-CA.
+
+Some activities require special attention to ensure that sub-CAs continue to work:
+
+* Root / host CA chain of trust changes
+* Key rotation of the host CA or an intermediate CA.
+
+== Hosting unrelated CAs / sub-CAs ==
+
+For FreeIPA 4.2 the requirement is only for sub-CAs directly subordinate to the host CA. In future releases we want Dogtag to support multiple ''independent'' CAs hosted in a single instance.
+
+Of this use case, Dmitri wrote:
+
+* I see the architecture to be such that Dogtag would provide multiple CAs from one dogtag instance. In this single Dogtag instance there will be a "main" CA of IPA. It can be root or chained. There will be additional CAs. These additional CAs will be either independent root CAs, chained to some other CAs or chained to IPA main CA. In future may be even chained to each other. IPA would wrap this functionality and allow creation and establishing relations between these CAs.
+
+Nathan Kinder provided a concrete use case:
+
+* Consider Barbican in OpenStack. Barbican is getting into certificate issuance now, but it's quite likely that separate tenants within a cloud do not want to trust each other. Barbican backed by IPA/Dogtag could offer PKI-as-a-service, where each tenant could create their own root and then issue certificates for their services/applications within their instances.
+
+These use cases should be considered in the design of the sub-CAs feature.
+
+= Operating System Platforms and Architectures =
+
+Linux (Fedora, RHEL, Debian).
+
+= Design =
+
+See link:Lightweight-CA-Design[Lightweight CA Design].
+
+= Implementation =
+
+== EnrollProfile and CAEnrollProfile ==
+
+The `EnrollProfile` class is responsible for populating certificate information. Modifications needed are:
+
+* When creating request objects, store the sub-CA indicator from the profile context in the request data.
+* When executing requests, switch the `ICertificateAuthority` context for enrollment to the sub-CA indicated in the request data (if any).
+
+== SigningUnit ==
+
+Update `SigningUnit` and have its owners supply the nickname configuration, so that there can be multiple `SigningUnit` instances using different keys.
+
+== CertificateAuthority and ICertificateAuthority ==
+
+Add methods to retrieve a sub-CAs given a `String` sub-CA reference or an ordered `List<String>` of individual sub-CA handles.
+
+Update construction and initialisation to give the instance awareness of its position in the CA heirarchy, and to initialise the `CertificateRepository`, `SigningUnit` instances to the correct DNs, nicknames, etc.
+
+== AuthorityKeyIdentifierExtDefault ==
+
+The ''Authority Key Identifier'' extension must identify the immediate signing authority, which could be a sub-CA. Accordingly, the authority ID is read from the request data and used to query the host CA for the corresponding lightweight CA, whose identifier shall be included in the extension.
+
+== Servlets and web interface ==
+
+Servlets and web templates (HTML, javascript) will be update to recognise and propagate the `authorityId` request parameter, which indicates a lightweight CA. If the parameter is absent or empty, the host CA is implied.
+
+Care must be taken in JavaScript code to ensure that `null` values for the `authorityId` parameter do not result in a literal string value of `"null"`. This case should be handle by either using the empty string or omitting the parameter from the subsequent request.
+
+Where appropriate, web forms shall include a field (e.g. drop-down menu) to select an authority.
+
+= Major configuration options and enablement =
+
+The ''features'' facility shall be used to enable or disable the ''creation'' of lightweight CAs. The relevant configuration in `CS.cfg` shall be:
+
+----
+features.authority.description=Lightweight CAs
+features.authority.enabled=true
+features.authority.version=1.0
+----
+
+Instances shall default to enabling the creation of lightweight CAs.
+
+The `pkispawn(8)` configuration format should be updated to provide a way to control this configuration when deploying an instance.
+
+= Cloning =
+
+There are no special provisions for cloning. Lightweight CA signing keys shall be replicated via the `KeyReplicator` mechanism described previously.
+
+= Upgrading =
+
+Several web templates have been updated and these updates will need to be deployed on existing instances by `pki-server-upgrade(8)`.
+
+= Tests =
+
+= Dependencies =
+
+* Secure key/secret replication service.
+
+= Packages =
+
+= External Impact =
+
+= History =
+
+See link:Lightweight-CA-History[Lightweight CA History].
