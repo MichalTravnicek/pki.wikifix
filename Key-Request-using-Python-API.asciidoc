@@ -115,17 +115,37 @@ The json representation of a key archival request for storing a passphrase looks
 
 ----
 {
-  "Attributes":{
-                "Attribute":[{"name":"wrappedPrivateData",
-                              "value":"oIIBMjCCAS6hFAYIKoZIhvcNAwcECG3eAXHagc30goIBAQBHxhOXxT64iSa/5jYn\r\ni9W7+X3wT+BeNIYmpfb1U1S8EB7oFa5jFJg5hJ0jWWjJ31KJTThFBytQcbGlaGZe\r\nFTizf+eNMhRdJyjbaJgT2N+VMlTAQErtiwhH2DygNodIE9qMI6sso
-                                       /tyd8m2PgsF\r\nJPRSzy9PUYDZejWFzKIV8lK0phFRfYpTw+aKkhWTF6yJu2Ip4fIO6Ole/6kkJqbl\r\njojCNLqOHOB2SJtWmMPow+CKPGa1QAKp5oJ5+YDkp9fXyO76J0p3CoeKADd09y8g\r\nzKHR8H3XcBVgHAbJ
-                                       /Oy3Ew4xQNqdjephPk4OO0uZ0UGMmrc3oPnHmjh0UqWFNwoh\r\n314lAxEAZUdfG/M9ESo850RJ8qEgdw==\r\n"},
-                             {"name":"clientID","value":"UUID: 123-45-6789 RKEK Fri Feb 14 11:45:13 EST 2014"},
-                             {"name":"dataType","value":"passPhrase"},
-                             {"name":"keyAlgorithm","value":null},
-                             {"name":"keySize","value":"0"}]
-               },
-  "ClassName":"com.netscape.certsrv.key.KeyArchivalRequest"
+    "Attributes": {
+        "Attribute": [
+            {
+                "name": "wrappedPrivateData",
+                "value": "oIIBMjCCAS6hFAYIKoZIhvcNAwcECG3eAXHagc30goIBAQBHxhOXxT64iSa/5jYn\r\n
+i9W7+X3wT+BeNIYmpfb1U1S8EB7oFa5jFJg5hJ0jWWjJ31KJTThFBytQcbGlaGZe\r\n
+FTizf+eNMhRdJyjbaJgT2N+VMlTAQErtiwhH2DygNodIE9qMI6sso/tyd8m2PgsF\r\n
+JPRSzy9PUYDZejWFzKIV8lK0phFRfYpTw+aKkhWTF6yJu2Ip4fIO6Ole/6kkJqbl\r\n
+jojCNLqOHOB2SJtWmMPow+CKPGa1QAKp5oJ5+YDkp9fXyO76J0p3CoeKADd09y8g\r\n
+zKHR8H3XcBVgHAbJ/Oy3Ew4xQNqdjephPk4OO0uZ0UGMmrc3oPnHmjh0UqWFNwoh\r\n
+314lAxEAZUdfG/M9ESo850RJ8qEgdw==\r\n"
+            },
+            {
+                "name": "clientID",
+                "value": "UUID: 123-45-6789 RKEK Fri Feb 14 11:45:13 EST 2014"
+            },
+            {
+                "name": "dataType",
+                "value": "passPhrase"
+            },
+            {
+                "name": "keyAlgorithm",
+                "value": null
+            },
+            {
+                "name": "keySize",
+                "value": "0"
+            }
+        ]
+    },
+    "ClassName":"com.netscape.certsrv.key.KeyArchivalRequest"
 }
 ----
 
@@ -133,12 +153,12 @@ For which the response consisting the `KeyRequestResource` object looks like:
 
 ----
 {
-  "RequestInfo":{
-                 "requestType":"securityDataEnrollment",
-                 "requestStatus":"complete",
-                 "requestURL":"https://localhost:8443/kra/rest/agent/keyrequests/25",
-                 "keyURL":"https://localhost:8443/kra/rest/agent/keys/8"
-                }
+    "RequestInfo": {
+        "requestType": "securityDataEnrollment",
+        "requestStatus": "complete",
+        "requestURL": "https://localhost:8443/kra/rest/agent/keyrequests/25",
+        "keyURL": "https://localhost:8443/kra/rest/agent/keys/8"
+    }
 }
 ----
 
