@@ -1,0 +1,44 @@
+= Retrieving Archived Certificate Key =
+
+To find the archived certificate keys:
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin kra-key-find
+----------------
+1 key(s) matched
+----------------
+  Key ID: 0x1
+  Algorithm: 1.2.840.113549.1.1.1
+  Size: 1024
+  Owner: UID=testuser
+----------------------------
+Number of entries returned 1
+----------------------------
+----
+
+To retrieve the archived certificate key:
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin kra-key-retrieve --keyID 0x1
+------------------------
+Retrieve Key Information
+------------------------
+  Key Algorithm: 1.2.840.113549.1.1.1
+  Key Size: 1024
+  Nonce data: E+qokj0gBLg=
+
+  Actual archived data: MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBAM+Esi959EOvBqIg
+SwQL6zPFzbS8OZSGO8B/JTbMP+RIFaoS+Anq3cyi96aLjNQBLhdnMsDQOoC9LV8w
+Gabm8mWA9oBrM8/+iqexoZ/RllwuqmAbrqJ8gL6htbf9UPbDHMJ2MCEffBA5JEqW
+nbOhn2D1dHybH7xIK1VaNhIIdHPLAgMBAAECgYASX4rRNkiAt53sO9S4en+sGU7R
+ujqU4l+m9vrqA6KCiTlV0hEg+6kApcssdT2WRbZ5fvsY5DbR0C4Ut/MFenwqhLSG
+G38K8TQOTjqmffCiRwhPMfBuNzwWrLRrC6D4e1S5wsR5XqTQKv3UVHSkKm52D+AC
+t95cQYNpW3PwmiQiWQJBAOcrzLIcXxbWanojhHb/Bak4NLIaakwTeFkhp0NCq0cU
+FheK1mBFmqImnc2pIZ834snMe1LSn/Qc4a7ypZi4LnkCQQDlzox0z5iZ7CjSPdwm
+SFsDmaVeQcbGMnfQ7H2cNWxn7bZt2zinKOxSimDHDzwg83XcgPSlzsrvPMKl2H+8
+I5NjAkEAj2LhgpCKgpXYUY36Of0Qu9d7CAXObQWenlp7bwLJTjstQMkDE4/YzD77
+nncLvcBiUR0eWU7/m+DWMzeac1G6sQJAbLoHrDCYE6MvQSFxak9reE2Wdv0J7bXt
+CFULrP99tcI7QMiqijQLc5Xy6dtkaHanudbtaRFo5D3MHilLbhkq3wJARpzpUfaD
+XgcfFKwIcuRJeKW3CWblzouVnzc4RKCTj4Zpt5yvB+b8s0pvboCwkZFIFyxoYtUS
+ozyy/gEgzAOdEA==
+----
