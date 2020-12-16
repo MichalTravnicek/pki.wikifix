@@ -1,0 +1,78 @@
+= PKI 10.4 or Later =
+
+To renew CA certificate:
+
+----
+$ pki ca-cert-request-submit --profile caCACert --csr-file ca_signing.csr --renewal --serial 0x1
+-----------------------------
+Submitted certificate request
+-----------------------------
+  Request ID: 7
+  Type: enrollment
+  Request Status: pending
+  Operation Result: success
+----
+
+To renew other certificates:
+
+----
+$ pki ca-cert-request-submit --profile caManualRenewal --serial 0x6 --renewal
+-----------------------------
+Submitted certificate request
+-----------------------------
+  Request ID: 28
+  Type: renewal
+  Request Status: pending
+  Operation Result: success
+----
+
+= PKI 10.3 or Earlier =
+
+In PKI 10.3 or earlier, first download the certificate renewal profile:
+
+----
+$ pki ca-cert-request-profile-show caManualRenewal --output caManualRenewal.xml
+----
+
+Specify the serial number of the certificate to be renewed either:
+
+* in the `<Value>` element within the `<Attribute name="serial_num">` element (preferred), or
+* in the `<SerialNumber>` element (to be deprecated).
+
+The serial can be specified in decimal number or hexadecimal number with 0x prefix.
+
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<CertEnrollmentRequest>
+    <Attributes/>
+    <ProfileID>caManualRenewal</ProfileID>
+    <Renewal>true</Renewal>
+    <SerialNumber><font color="red">serial</font></SerialNumber>
+    <RemoteHost></RemoteHost>
+    <RemoteAddress></RemoteAddress>
+    <Input id="i1">
+        <ClassID>serialNumRenewInputImpl</ClassID>
+        <Name>Serial Number of Certificate to Renew</Name>
+        <Attribute name="serial_num">
+            <Value><font color="red">serial</font></Value>
+            <Descriptor>
+                <Syntax>string</Syntax>
+                <Description>Serial Number of Certificate to Renew</Description>
+            </Descriptor>
+        </Attribute>
+    </Input>
+</CertEnrollmentRequest>
+----
+
+Then submit the request:
+
+----
+$ pki ca-cert-request-submit caManualRenewal.xml
+-----------------------------
+Submitted certificate request
+-----------------------------
+  Request ID: 28
+  Type: renewal
+  Request Status: pending
+  Operation Result: success
+----
