@@ -1,0 +1,47 @@
+= Certificate Profiles with Key Archival =
+
+The following certificate profiles support key archival:
+
+* caSigningUserCert
+* caDualCert
+
+= Submitting Certificate Request with CRMFPopClient =
+
+First, obtain KRA transport certificate (see link:Retrieving-KRA-Transport-Certificate[Retrieving KRA Transport Certificate]).
+
+Then submit the certificate request with the following command: 
+
+----
+$ CRMFPopClient \
+    -d ~/.dogtag/nssdb \
+    -p Secret.123 \
+    -n CN=testuser \
+    -f caSigningUserCert \
+    -b transport.pem \
+    -m $HOSTNAME:8080 \
+    -u testuser \
+    -r testuser
+Submitting CRMF request to server.example.com:8080
+Request ID: 10
+Request Status: pending
+Reason:
+----
+
+= Submitting Certificate Request with pki client-cert-request =
+
+Submit a certificate request with the following command: 
+
+----
+$ pki -c Secret.123 client-cert-request CN=testuser --profile caSigningUserCert --type crmf
+-----------------------------
+Submitted certificate request
+-----------------------------
+  Request ID: 10
+  Type: enrollment
+  Request Status: pending
+  Operation Result: success
+----
+
+By default it will download the transport certificate from the CA. To use a different transport certificate stored in a file, specify `--transport <filename>`. Since PKI 10.5 the `--transport` parameter can also be used to used to specify a transport certificate already in client NSS database.
+
+See also link:PKI-Client-CLI#CRMF_Request[requesting client certificate with CRMF request].
