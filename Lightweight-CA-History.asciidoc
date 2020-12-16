@@ -1,0 +1,163 @@
+= History =
+
+*ORIGINAL DESIGN DATE*: June 20, 2014
+
+== Rejected design: sub-CA subsystem (Solution 1) ==
+
+Enable deployment of multiple CA webapps within a single Tomcat instance. In this case, the sub-CA is treated exactly the same as other subsystems like the KRA, which can exist within the same Tomcat instance as the CA (and so have the same ports). These systems share a certificate database, and some system certifcates (subsystem certificate and SSL server certificate), but have separate logging, audit logging (and audit signing certificate), and UI pages. They also have separate directory subtrees (which contain different users, groups and ACLs).
+
+This approach has several distinct advantages:
+
+* It would be easy to implement. Just extend `pkispawn` to create multiple CAs with user-defined paths. `pkispawn` already knows how to create sub-CA's.
+* CAs would be referenced by different paths `/ca1`, `/ca2` etc.
+* No changes would be needed to any interfaces, and no special profiles would be needed. Whatever interfaces are available for the CA would be available for the sub-CAs. The sub-CAs are just full fledged CAs, configured as sub-CAs and hosted on the same instance.
+* It is very easy to separate out the sub-CA subsystems to separate instances, if need be (though this is not a requirement).
+
+Disadvantages of this approach include:
+
+* FreeIPA would need to retain a separate X.509 agent certificate for each sub-CA, and appropriate mappings to ensure that the correct certificate is used when contacting a particular sub-CA.
+* The challenge of automatically (i.e., in response to an API call) spawning sub-CA subsystems on multiple clones is likely to introduce a lot of complexity and may be brittle.
+
+=== Creating sub-CAs ===
+
+Modify `pkispawn` to be able to spawn sub-CAs. Users and software wishing to create a new sub-CA would invoke `pkispawn` with the appropriate arguments and configuration file and then, if necessary, restart the Tomcat instance. `pkispawn` will create all the relevant config files, system certificates, log files and directories, database entries, etc.
+
+This would actually not be that difficult to code. All we need to do is extend `pkispawn` to provide the option for a sub-CA to be deployed at a user defined path name. It will automatically get all the profiles and config files it needs. And `pkispawn` already knows how to contact the root CA to get a sub-CA signing CA issued.
+
+=== HTTP interface ===
+
+The sub-CA is another webapp in the Tomcat instance in the same way as the KRA, CA, etc. The sub-CAs would be reached via `/subCA1`, `/subCA2`. The mapping is user-defined (through `pkispawn` options or configuration). `pkispawn` would need to check for and reject duplicate sub-CA names and other reserved names (`ca`, `kra`, etc.) Nesting is possible, though it would not necessarily be reflected in the directory hierarcy or HTTP paths.
+
+This would eliminate the need to create mappings from sub-CA to CA classes, or the need to create new interfaces that have to also be maintained as the CA is maintained.
+
+From the point of view of the client, there is no need to use special profiles that somehow select a particular sub-CA. All they need to do is select the right path - which they can do because they know which sub-CA they want to talk to.
+
+=== Cloning ===
+
+Cloning would require invoking `pkispawn` in the appropriate manner on all replica.
+
+=== Reasons for rejection ===
+
+The challenge of spawning sub-CA subsystems on multiple clones is likely to introduce a lot of complexity and may be brittle. The alternative solution of storing sub-CA configuration in the database, thus allowing easy replication, was preferred.
+
+== Rejected design: sub-CA key transport via LDAP ==
+
+Initial design efforts focused on mechanisms to transport sub-CA private keys to replicas by wrapping them and replicating them through the LDAP database.
+
+=== Design details ===
+
+==== DNSSEC implementation example ====
+
+Comments from *Petr^2 Spacek* about how key distribution is performed for the DNSSEC feature:
+
+Maybe it is worth mentioning some implementation details from DNSSEC support:
+
+* *Every replica has own HSM* with standard PKCS#11 interface.
+** By default we install SoftHSM.
+** In theory it can be replaced with real HSM because the interface should be the same. This allows users to &quot;easily&quot; get FIPS 140 level 4 certified crypto instead of SoftHSM if they are willing to pay for it.
+* Every replica has own private-public key pair stored in this HSM.
+** Key pair is generated inside HSM.
+** Private part will never leave local HSM.
+** Public part is stored in LDAP so all replicas can see it.
+* *All* crypto operations are done inside HSM, no keys ever leave HSM in plain text.
+* LDAP stores wrapped keys in this was:
+** DNS zone keys are wrapped with DNS master key.
+** DNS master key is wrapped with replica key.
+
+Scenario: If replica 1 wants to use *key2* stored in LDAP by replica 2:
+
+* Replica 1 downloads wrapped master key from LDAP.
+* Replica 1 uses local HSM to unwrap the master key using own private key -&gt; resulting master key is stored in local HSM and never leaves it.
+* Replica 1 downloads *key2* and uses master key in local HSM to unwrap *key2* -&gt; resulting *key2* is stored in local HSM and never leaves it.
+
+Naturally this forces applications to use PKCS#11 for all crypto so the raw key never leaves HSM. Luckily DNSSEC software is built around PKCS#11 so it was a natural choice for us.
+
+==== CryptoManager based implementation ====
+
+Notes about this implementation:
+
+* Key generation is done within a JSS `CryptoToken`.
+* All decryption is done within a JSS `KeyWrapper` facility, on a JSS `CryptoToken`.
+* I do not see a way to retrieve a `SymmetricKey` from a `CryptoToken`, so the key transport key must be unwrapped each time a clone uses a sub-CA for the first time.
+
+Each clone has a *unique* keypair and accompanying X.509 certificate for wrapping and unwrapping symmetric *key transport key* (KTK). The private key is stored in the NSSDB and used via `CryptoManager` and `CryptoToken`.
+
+Creating a clone will cause the private keypair to be created and a wrapped version of the KTK for that clone is stored in LDAP.
+
+----
+KeyWrapper kw = cryptoToken.getKeyWrapper();
+
+SymmetricKey ktk;
+kw.initWrap(clonePublicKey, algorithmParameterSpec);
+byte[] wrappedKTK = kw.wrap(ktk);
+// store wrapped KTK in LDAP
+----
+
+When a sub-CA is created, its private key is wrapped with the KTK and stored in LDAP:
+
+----
+PrivateKey subCAPrivateKey;
+kw.initWrap(ktk, algorithmParameterSpec);
+byte[] wrappedCAKey = kw.wrap(subCAPrivateKey);
+// store wrapped sub-CA key in LDAP
+----
+
+When a clone needs to use a sub-CA signing key, if the private key is not present in the local crypto token, it must unwrap the KTK, then use the KTK to unwrap the sub-CA private key and store the private key in its crypto token.
+
+----
+/* values retrieved from LDAP */
+byte[] wrappedKTK;
+byte[] wrappedCAKey;
+PublicKey subCAPublicKey;
+
+kw.initUnwrap(clonePrivateKey, paramSpec);
+SymmetricKey ktk = kw.unwrapSymmetric(wrappedKTK, ktkType, -1);
+
+kw.initUnwrap(ktk, paramSpec2);
+PrivateKey subCAPrivateKey =
+    kw.unwrapPrivate(wrappedCAKey, caKeyType, subCAPublicKey);
+----
+
+At this point, the sub-CA private key is stored in the clone's crypto token for future use. The unwrap operation is performed at most once per sub-CA, per clone.
+
+==== SoftHSM implementation ====
+
+Should the security of the `CryptoManager` implementation (above) prove insufficient, a link:https://www.opendnssec.org/softhsm[SoftHSM] implementation will be investigated in depth.
+
+The current OpenDNSSEC design is based around SoftHSM v2.0 (in development) and may be a useful study in SoftHSM use for secure key distribution.
+
+=== Reasons for rejection ===
+
+Storage of private signing keys in LDAP was deemed to be too great a security risk, regardless of the wrapping used. Should access to the database be gained, offline attacks can be mounted to recover private keys or intermediate wrapping keys.
+
+It was further argued that in light of these risks, Dogtag's reputation as a secure system would be undermined by the presence of a signing key transport feature that worked in this way, even if was optional and disabled by default.
+
+== Archived designs: key replication suggestions ==
+
+==== Ade's suggestion ====
+
+1. We create a new service on the CA for the distribution of subCA signing keys. This service may be disabled by a configuration setting on the CA. Whether it should be disabled by default is open to debate.
+
+2. SubCA detects (through ldap) that a subCA has been added. It sends a request for the CA signing key, including the identifier for the subCA and half of a session key (wrapped with the subsystem public key). Recall that the subsystem key is shared between clones and is the key used to inter-communicate between dogtag subsystems.
+
+3. The service on the master CA generates the other half of a session key and wraps that with the subsystem public key. It also sends back the subCA signing key wrapped with the complete session key.
+
+There are lots of variations of the above, but they all rely on the fact that the master and clones share the same subsystem cert - which was originally transported to the clone manually via p12 file.
+
+The subsystem certificate is stored in the same cert DB as the signing cert, so if it is compromised, most likely the CA signing cert is compromised too.
+
+==== Christina's suggestion ====
+
+(A refinement of the above proposal.)
+
+* A subCA is created on CA0
+* CA1 and CA2 realized it, each sends CA0 a &quot;get new subCA signing cert/keys&quot; request, maybe along with each of their transport cert.
+* CA0 (after ssl auth) do the &quot;agent&quot; authz check
+* once auth/authz passed, CA0 generates a session key, use it to wrap its priv key, and wrap the session key with the corresponding transport cert in the request , Send them along with CA0's signing cert back to the caller in response. (see additional layers of security measurement below)
+* CA1 and CA2 each receives its respective wrapped session key and the wrapped CA signing key and the CA cert, do the unwrapping onto the token, etc.
+
+We also want to make sure the transport certs passed in by the caller are valid ones.
+
+One way to do it is to have Security Domain come into play. The SD is supposed to have knowledge of all the subsystems within its domain. Could we add something in there to track which ones are clones of one another? Could we maybe also &quot;register&quot; each clone's transport certs there as well. If we have such info at hand from the SD, then the &quot;master of the moment&quot; could look up and verify the cert.
+
+Also, one extra step that can be taken is to generate a nonce encrypted with the transport cert and receive it back encrypted with the *master of the moment*s own transport cert to ensure that the caller indeed has the transport cert/keys.
