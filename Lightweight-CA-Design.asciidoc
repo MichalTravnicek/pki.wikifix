@@ -1,0 +1,360 @@
+= Design =
+
+Sub-CA functionality resides in the root CA webapp. In essence, a sub-CA would consist of a name mapped to a new signing certificate. Almost all resources could be shared, including:
+
+* Certificate database
+* Tomcat instance (ports, etc.)
+* SSL server certificate, subsystem certificate, audit signing certificate
+* Logging
+* Audit logging
+* UI pages
+* Users, groups, ACLs
+* Serial numbers for certficates and requests. The same serial number generator would be used, so we might have serial number 5 issued by CA, serial number 6 issued by sub-CA 1, serial number 7 issued by sub-CA2, etc.
+* Backend DB tree.
+* Admin interface
+* Self test framework
+* Profiles
+
+With this solution, it would be very difficult to separate a sub-CA out into a separate instance. We could develop scripts to separate the cert records if needed, and in fact, I (*alee*) suspect we may need to somehow mark the cert records with the CA identifier to help searches (say, for all the certs issued by a sub-CA). (*ftweedal*: this is mitigated by using a hierarchichal certificate repository.)
+
+== Creating sub-CAs ==
+
+Creation of sub-CAs at any time after the initial spawning of an CA instance is a requirement. Preferably, restart would not be needed, however, if needed, it must be able to be performed without manual intervention.
+
+We will provide an API for creating a sub-CA, which will be part of the CA subsystem's web API. See the *HTTP interface* section below.
+
+=== Key generation ===
+
+Keys will be generated when a sub-CA is created, according to the user-supplied parameters. If replica exist, they will become aware of the new sub-CA when LDAP replication occurs, but they will not have the signing key. A mechanism for replicating the keys is described in a later section.
+
+In the initial implementation, the sub-CA signing key (which is used to sign certificates) will also be used for signing CRLs and OCSP responses. This simplifies the implementation and configuration, and means that only one private key needs to be replicated. Support for delegated OCSP and CRL signing could be implemented at a later time, if the use case emerges.
+
+Signing certificates and keys are currently stored in the NSS database at `/var/lib/pki/pki-tomcat/alias`. Sub-CA signing keys will also be stored in the NSS DB, with the key nickname recorded in LDAP for locating the correct key.
+
+== Lightweight CA objects and initialisation ==
+
+In Java, a lightweight CA shall be an instance of `CertificateAuthority` (and, by extension, an implementation of the `ICertificateAuthority` interface).
+
+The (single) `CertificateAuthority` in the current system is a CMS subsystem; the *entry point* to signing behaviour and the certificate repository is via `CMS.getSubsystem(SUBSYSTEM_CA)`. Therefore, new behaviour will be added to `CertificateAuthority` for it to locate and initialise lightweight CAs, and methods added to `ICertificateAuthority` to provide access to the lightweight CAs.
+
+The following methods shall be added to the `ICertificateAuthority` interface:
+
+----
+/**
+ * Enumerate all authorities, including host authority.
+ */
+public List&lt;ICertificateAuthority&gt; getCAs();
+
+/**
+ * Return whether this CA is the host authority (not a
+ * lightweight authority).
+ */
+public boolean isHostAuthority();
+
+/**
+ * Get the AuthorityID of this CA.
+ */
+public AuthorityID getAuthorityID();
+
+/**
+ * Get the AuthorityID of this CA's parent CA, if available.
+ */
+public AuthorityID getAuthorityParentID();
+
+/**
+ * Return whether CA is enabled.
+ */
+public boolean getAuthorityEnabled();
+
+/**
+ * Return whether CA is ready to perform signing operations.
+ */
+public boolean isReady();
+
+/**
+ * Return CA description.  May be null.
+ */
+public String getAuthorityDescription();
+
+/**
+ * Get the CA by ID.  Returns null if CA not found.
+ */
+public ICertificateAuthority getCA(AuthorityID aid);
+
+/**
+ * Get the CA by DN.  Returns null if CA not found.
+ */
+public ICertificateAuthority getCA(X500Name dn);
+
+/**
+ * Create a new sub-CA under the specified parent CA.
+ */
+public ICertificateAuthority createCA(
+        IAuthToken authToken,
+        String dn, AuthorityID parentAID, String desc)
+    throws EBaseException;
+
+/**
+ * Create a new sub-CA IMMEDIATELY beneath this one.
+ *
+ * This method DOES NOT add the new CA to caMap; it is the
+ * caller's responsibility.
+ */
+public ICertificateAuthority createSubCA(
+        IAuthToken authToken,
+        String dn, String desc)
+    throws EBaseException;
+
+/**
+ * Update authority configurables.
+ *
+ * @param enabled Whether CA is enabled or disabled
+ * @param desc Description; null or empty removes it
+ */
+public void modifyAuthority(Boolean enabled, String desc)
+    throws EBaseException;
+
+/**
+ * Delete this lightweight CA.
+ */
+public void deleteAuthority()
+    throws EBaseException;
+----
+
+=== Initialisation ===
+
+Sub-CA `CertificateAuthority` instances will need to be initialised such that:
+
+* its `CertificateChain` is correct;
+* its `ISigningUnit` can access the sub-CA signing key;
+* its `CertificateRepository` references the subsystem certificateRepository DN
+
+== Key replication ==
+
+Initial requirements:
+
+* Sub-CA signing keys must be propagated from the security database of the clone on which the key was generated, to the security databases of other clones.
+* Keys must be installed with the same nickname.
+* Only keys matching certain criteria (they are sub-CA signing keys) shall be replicated. For example, new subsystem keys must not be replicated.
+
+Future requirements:
+
+* Once OCSP signing delegation is supported for sub-CAs, sub-CAs' OCSP signing keys must also be transferred.
+* Provide a convenient way for administrators to perform key distribution themselves if they are unwilling or unable to use Custodia.
+
+As the ''initial'' implementation of lightweight CAs will be exclusively to support the FreeIPA sub-CAs use case and not supported otherwise, it is acceptable in the initial implementation to rely on aspects of FreeIPA's Custodia configuration.
+
+The link:https://github.com/latchset/custodia[Custodia] program will be used to perform key replication. Futher details of Custodia's design and use are found in the link:https://www.freeipa.org/page/V4/Replica_Promotion#Sharing_Secrets_Securely[Replica Promotion design proposal].
+
+=== Design ===
+
+Custodia supports GSS-API for authentication. It is possible to implement additional authentication methods but since the initial requirement is for FreeIPA integration, we can assume Dogtag has a Kerberos principal and keytab that will be used to authenticate to Custodia. The principal must be authorized to access `ca` keys.
+
+Upon initialisation of the `SigningUnit` of a lightweight CA, Dogtag shall observe that signing keys are absent and spawn a thread that invokes an implementation of the `KeyRetriever` interface. Note that this can happen during server startup (e.g. initial run of a fresh clone of an existing CA instance with lightweight CAs) or at any other time (e.g. a lightweight CA is created on another clone, and the corresponding LDAP entry is seen by the persistent search).
+
+----
+interface KeyRetriever {
+  /**
+   * Retrieve the specified signing key from specified host and
+   * store in local NSSDB.
+   *
+   * @return true if the retrieval was successful, otherwise false
+   */
+  boolean retrieveKey(String nickname, Collection&lt;String&gt; hostname);
+}
+----
+
+Each lightweight authority LDAP entry shall contain an multi-valued attribute that lists clones that possess the signing key. Dogtag shall retrieve these hostnames and subsequently pass them to the `KeyRetriever` along with the nickname of the key being sought.
+
+The `KeyRetriever` class to be used is configured in `CS.cfg`. The configuration key shall be `feature.authority.keyRetrieverClass`
+
+Dogtag then spawns a thread that invokes the `retrieveKey` method of the configured `KeyRetriever` class. (It is fine for the `retrieveKey` method to block the thread). Any exception thrown during the execution of the `retrieveKey` method shall be caught and logged.
+
+If the `retrieveKey` method returns `true`, then `SigningUnit` initialisation is restarted. If the `SigningUnit` initialisation now completes successfully, the clone adds itself to the list of clones that possess the signing key in the authority's LDAP entry.
+
+==== IPACustodiaKeyRetriever ====
+
+The `IPACustodiaKeyRetriever` class will be the default `KeyRetriever` implementation used in deployments of Dogtag as part of FreeIPA. It will invoke a helper program written in Python that use FreeIPA's `CustodiaClient` class to retrieve keys. Dogtag's Kerberos keytab will be used for authentication.
+
+The Kerberos principal used for authenticating shall be `dogtag/HOSTNAME@REALM`. The principal must be authorised to retrieve `ca` keys from Custodia.
+
+The principal's keytab shall be stored at `/var/lib/pki/pki-tomcat/ca/conf/dogtag.keytab` with ownership `pkiuser:pkiuser` and mode `0600`.
+
+=== Behaviour when signing keys are not present ===
+
+In a replicated environment, users and applications will need to be tolerant of not-yet-replicated signing keys. For users, a small delay while replication occurs before the new CA can be used on different replica is tolerable. For testing, tests that involve the creation of lightweight CAs should be tolerant of the (temporary) absense of signing keys on another instance. Similarly, applications should be aware of and tolerant of this possibility.
+
+When information about a lightweight CA is requested (e.g. `ca-authority-find` or `ca-authority-show` commands), the information shall indicate whether the CA's signing keys are present on the instance at which the request was directed.
+
+When a signing operation is requested but the signing key is not yet present, Dogtag shall respond with HTTP status `503 Service Unavailable`.
+
+(Note that if the lightweight CA's LDAP entry has not been replicated to an instance, requests to that authority on that instance will typically result in `404 Not Found` or a similar response.)
+
+Appropriate mechanisms for propagating sub-CA private key material to clones needs to be devised. A secure, automatic key transport procedure is needed. (Note: it must be ensured that wrapping keys are at least as cryptographically strong as the key being wrapped.) Consideration should also be given to allowing users to opt out of this behaviour and (manually) transport keys themselves, should they wish.
+
+== Database schema ==
+
+=== Authorities ===
+
+LDAP entries representing authorities (both lightweight CAs and the host CA) shall belong to the `authority` object class, which is defined by the following schema:
+
+----
+attributeTypes: (
+  authorityID-oid NAME 'authorityID' DESC 'Authority ID'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 SINGLE-VALUE X-ORIGIN 'user defined' )
+
+attributeTypes: (
+  authorityKeyNickname-oid NAME 'authorityKeyNickname' DESC 'Authority key nickname'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.44 SINGLE-VALUE X-ORIGIN 'user-defined' )
+
+attributeTypes: (
+  authorityParentID-oid NAME 'authorityParentID' DESC 'Authority Parent ID'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 SINGLE-VALUE X-ORIGIN 'user defined' )
+
+attributeTypes: (
+  authorityEnabled-oid NAME 'authorityEnabled' DESC 'Authority Enabled'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE X-ORIGIN 'user defined' )
+
+attributeTypes: (
+  authorityDN-oid NAME 'authorityDN' DESC 'Authority DN'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 SINGLE-VALUE X-ORIGIN 'user defined' )
+
+attributeTypes: (
+  authorityParentDN-oid NAME 'authorityParentDN' DESC 'Authority Parent DN'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 SINGLE-VALUE X-ORIGIN 'user defined' )
+
+attributeTypes: (
+  authorityKeyHost-oid NAME 'authorityKeyHost' DESC 'Authority Key Hosts'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'user defined' )
+
+objectClasses: (
+  authority-oid NAME 'authority' DESC 'Certificate Authority' SUP top STRUCTURAL
+  MUST ( cn $ authorityID $ authorityKeyNickname $ authorityEnabled $ authorityDN )
+  MAY ( authorityParentID $ authorityParentDN $ authorityKeyHost $ description )
+  X-ORIGIN 'user defined' )
+----
+
+Authority entries shall be stored under an `organizationalUnit` named `ou=authorities,ou=ca,$BASEDN`.
+
+The DN of an authority entry shall be `cn=$AUTHORITY_ID,ou=authorities,ou=ca,$BASEDN`.
+
+==== Certificate and revocation requests ====
+
+Certificate issuance and revocation requests are currently stored in a single queue at `cn=<N>,ou=ca,ou=requests,{rootSuffix}`. The single queue will continue to be used (shared by the host CA and all lightweight CAs) but the data stored for a queue will now optionally include the authorityId to which the request is directed.
+
+Request objects have the `extensibleObject` object class, so the existing `setExtData` and `getExtDataInString` facility will be used to store the authority ID, using the key `req_authority_ref`.
+
+=== Certificate repository ===
+
+The single, existing *certificate repository* shall be used for all CAs. The issuer DN shall be stored in certificate records and indexed to facilitate efficient filtering of certificates by issuer in LDAP searches.
+
+== CRL considerations ==
+
+The `MasterCRL` CRL is (by default) signed by the host CA. CRLs can be signed either by the issuing CA, or by a certificate issued by the issuing CA that contains the `crlSign` key usage.
+
+A CRL may include certificates issued by an entity other than the CRL issuer, in which case it is an *indirect CRL*. Conforming applications are not required to support indirect CRLs, and Dogtag does not yet support the CRL and CRL entry extensions needed for indirect CRLs (see https://fedorahosted.org/pki/ticket/636), so each sub-CA will have its own *CRL Distribution Point* (referred to in the codebase and database schema as a *CRL Issuing Point* or *CRLIP*).
+
+CRL support for lightweight CAs is not an initial requirement. A ticket has been filed to track this feature: https://fedorahosted.org/pki/ticket/1627
+
+=== Schema ===
+
+CRLs for the host CA are located at `cn=<CRL_id>,ou=crlIssuingPoints,ou=ca,{rootSuffix}`.
+
+Sub-CA CRLIPs will be located beneath the host CA's CRLIP OU, in an OU named for the sub-CA ID. Therefore, a sub-CA's CRLIP OU will be have the DN `ou={subCAId},ou=crlIssuingPoints,ou=ca,{rootSuffix}`, with CRLs located beneath that.
+
+Initially, only the one CRLIP per sub-CA will be maintained. Support for multiple sub-CA CRLIPs is YAGNI'd unless a clear use case emerges.
+
+=== Publishing ===
+
+The `CertificateAuthority.initCRL()` method is responsible for initialising a CA's CRLIPs. This method needs to be updated to read lightweight CAs' CRLIP configuration from the database (or infer it from other data). For the host CA, the existing behaviour shall be retained.
+
+=== REST API ===
+
+*TODO:* document the REST API (already designed/implemented)
+
+=== OCSP considerations ===
+
+The existing OCSP responder (part of the CA subsystem) will be used to obtain status information for certificates issued by lightweight CAs.
+
+OCSP requests contain a sequence of `CertID` values, each of which identifies an issuing authority and the serial number of the certificate being checked:
+
+----
+CertID          ::=     SEQUENCE {
+    hashAlgorithm       AlgorithmIdentifier,
+    issuerNameHash      OCTET STRING, -- Hash of issuer's DN
+    issuerKeyHash       OCTET STRING, -- Hash of issuer's public key
+    serialNumber        CertificateSerialNumber }
+----
+
+The `issuerKeyHash` of the first `CertID` in an OCSP request is used to locate the appropriate `CertificateAuthority` to which to direct the OCSP request. If no authority can be found, the result is `404 Not Found`. If an authority is found, the `CertStatus` response for any `CertID` identifying a different authority will be `unknown`.
+
+=== Revocation check ===
+
+*TODO:* how does the below process fit in? The `OCSPServlet` does not use CRL data at all. Is this section relevant for separate OCSP instances?
+
+OCSP revocation checks take place in the `processRequest` method of the `DefStore` class. This method is passed a `CertID`, which contains the *authority key identifier* and the *serial number* of the certificate being checked, and returns a `SingleResponse` object. The current behaviour of this method is summarised as follows:
+
+* The cache of *CRL Issuing Points* (CRLIPs), keyed by authority key identifier, is searched.
+* If no result is found, CRLIP database objects are iterated until the CRLIP for the authority is found, by equality check on key digest. The CRLIP is added to the cache.
+* The `X509CRLImpl` is retrieved from the CRLIP and searched for the *serial number* of the certificate being checked. If the serial number is found in the CRL, a `RevokedInfo` status will be returned, otherwise `GoodInfo` or `UnknownInfo` is returned, according to the result of the `isNotFoundGood()` method.
+
+Given the existing implementation, minimal changes are required to the OCSP implementation in order to support multiple sub-CAs. The main area of concern is the linear traversal of CRLIP records to find the CRL for the issuing authority of the certificate being checked. Since this cost is only incurred on a CRLIP cache miss, performance for a large number of sub-CAs/CRLs should be profiled, and optimisation attempted only if the performance is unacceptable.
+
+== HTTP interface ==
+
+=== Sub-CA creation and administration ===
+
+A new REST resource will be implemented providing sub-CA creation and administration capabilities.
+
+==== New sub-CA ====
+
+Create a sub-CA, including keys and signing certificate, based on relevant inputs. Aspects of the sub-CA that are not stored in the LDAP database must be automatically propagated to clones. If the operation is successful the sub-CA will be available for immediate use, without having required a restart.
+
+Several parameters are needed to create they sub-CA and generate its keys and signing certificate. Some or all of these would be API parameters (i.e., user-supplied), and those that are not would be fixed, or fixed with respect to user-supplied values.
+
+* Immediate parent. For the initial implementation, with nested sub-CAs (i.e., sub-CAs ''within'' sub-CAs) not being a requirement, this may be an implied parameter, with the ''primary CA'' as the fixed value.
+* Validity (start and end, or start and duration). Aspects of this parameter may be inferred or defaulted.
+* Subject Name
+** User-supplied. May be derived from a separate &quot;friendly name&quot; argument).
+* Key algorithm
+** User-supplied
+* Key size
+** User-supplied
+** Acceptable values depend on the chosen key algorithm
+* Basic Constraints
+** Critical
+** CA: true
+** pathLenConstraint: optional; should be validated with respect to the intermediary CA certificate that will sign the sub-CA certificate.
+* Key Usage
+** Critical
+** Digital Signature, Non Repudiation, Certificate Sign, CRL Sign
+* Signing algorithm (i.e., what algorithm should the intermediary use to sign the sub-CA certificate)
+** Acceptable values depend on the ''intermediary's'' key algorithm
+
+=== Certificate requests ===
+
+Communication with the CA webapp would involve optionally providing a new parameter to select the sub-CA to be used. This would be simplest to implement and require fewer mappings. The fact is that most resources are going to be shared and serviced by the main CA app in any case.
+
+We care about which sub-CA we need when issuing/revoking a cert. We can modify the REST servlet for enrollment to look for this parameter and direct the request accordingly.
+
+We may need to consider how to do things like list the certs issued by a particular sub-CA, or list requests for a particular sub-CA, etc.
+
+=== Profiles ===
+
+In the initial implementation of this feature, all profiles available to the ''primary CA'' will be available for use with sub-CAs. That is: the profile store is common to the ''CA subsystem'' and shared by the primary CA and all sub-CAs.
+
+It may be desirable to have the ability to restrict sub-CAs to only issue certificates in a particular profile or limited set of profiles. This will not be in the initial work but design detail and implementation can come later, as use cases are clarified.
+
+=== ACLs ===
+
+The existing ACLs shall apply for reviewing/assigning/approving certificate requests to a sub-CA. Future work could implement &quot;sub-CA-scoped agents&quot; if such a use case emerges.
+
+Sub-CA creation and administration will require administrator credentials.
+
+== User interface ==
+
+New controls or widgets will need to be written for the web interface for:
+
+* Choosing the CA to which to direct a certificate request performed via the web UI.
+* Indicating which CA a certificate request is for, when viewing a certificate request.
+* Searching for certificates or certificate requests of a particular CA.
