@@ -1,0 +1,537 @@
+= Overview =
+
+This document describes the profile client that will be written for agents and admin to interact with the Profile resource for managing
+the profiles in a CA.
+The goal here is to define methods that help make the API very intuitive and easy to use.
+On installing PKI packages, this client and all of its supporting classes can be found in the profile module in `$PYTHON_LIB/pki`.
+This module can be imported in code using `import pki.profile`.
+
+See also:
+
+* link:https://github.com/dogtagpki/pki/blob/master/base/common/python/pki/profile.py[pki.profile]
+
+= Data Model =
+
+The following are the classes, in this module, that represent some type of information about the profiles.
+
+== ProfileData class ==
+
+* An object of this class represents a profile.
+* It consists of all the attributes of a specific profile.
+* It also has a list of ProfileInput, ProfileOutput and collection of all ProfilePolicy objects for the profile.
+
+Attributes:
+
+* profile_id
+* class_id
+* name
+* description
+* enabled
+* visible
+* enabled_by
+* authenticator_id
+* authz_acl
+* renewal
+* xml_output
+* inputs - A list of ProfileInput objects that define the information required for sending a cert-request using a profile.
+* outputs - A list of ProfileOutput objects that define the output on submitting a cert-request using a profile.
+* policy_sets - A dictionary of policy names and their respective ProfilePolicy objects for a profile.
+
+Methods:
+
+* add_input(profile_input)
+** Adds the ProfileInput object to the inputs list.
+** Adds the ProfileAttribute object to the attrs list of the specified ProfileInput.
+* remove_input(profile_input_id)
+** Removes a profile input with the given profile_input_id from the inputs list.
+* add_output(profile_output)
+** Adds the ProfileOuput object to the outputs list.
+* remove_output(profile_output_id)
+** Removes a profile output with the given profile_output_id from the outputs list.
+* add_policy(policy_name, profile_policy)
+** Adds the {policy_name, ProfilePolicy} entry to the policy_sets dictionary.
+* remove_policy(policy_name)
+** Removes a profile policy with the given policy_name from the policy_sets dictionary.
+
+== ProfileDataInfo class ==
+
+* This class is used to describe/identify a profile. 
+
+Attributes:
+
+* profile_id
+* profile_name
+* profile_description
+* profile_url
+
+== ProfileDataInfoCollection class ==
+
+* This class represents a collection of ProfileDataInfo objects. The list is stored as the attribute entries.
+* It also consists of the list of links that are needed for pagination of the search results.
+* The base class of the *Collection Java classes contains the total number of search results, the entries in the requested page, and the REST URLs of those entries.
+
+== ProfileInput class ==
+
+* This class defines an group of attributes in a profile template that are useful for 
+constructing a property of a certificate like the subjectDN.
+
+Attributes:
+
+* id
+* classId - Implemeting class's identifier.
+* name
+* text - information about the type of the input.
+* Two lists of ProfileAttribute objects
+*** attrs - attributes of the input 
+*** configAttrs - configuration attributes of the input.
+
+Methods:
+
+* add_attribute(profile_attribute)
+** Adds a ProfileAttribute object to the list
+* remove_attribute(profile_attribute_id)
+** Removes a ProfileAttribute object form the list
+* add_attributes(profile_attribute_list)
+** Adds a list of ProfileAttribtue objects to the 'attrs' list
+* remove_attributes(profile_attribute_id_list)
+** Removes a list of ProfileAttributes from the 'attrs' list
+* add_config_attribute(profile_attribute)
+** Adds a ProfileAttribute object to the list
+* remove_config_attribute(profile_attribute_id)
+** Removes a ProfileAttribute object form the list
+* add_config_attributes(profile_attribute_list)
+** Adds a list of ProfileAttribtue objects to the 'attrs' list
+* remov_confige_attributes(profile_attribute_id_list)
+** Removes a list of ProfileAttributes from the 'attrs' list
+
+== ProfileAttribute class ==
+
+* This class defines an attribute of a ProfileInput. 
+
+Attributes: 
+
+* name
+* value
+* descriptor
+
+== ProfilePolicy class ==
+
+* This class represents a policy for a profile.
+* These are the rules that check the validity of the profile.
+
+Attributes:
+
+* profile_policy_id
+* policy_default - A PolicyDefault object, that defines a default value for a specific ProfileInput
+* policy_constraint - A PolicyConstraint object, that defines a constraints on a ProfileInput.
+
+== ProfilePolicySet class ==
+
+* This class represents a list of ProfilePolicy objects.
+* A list of ProfilePolicySet objects is present in the CertReviewResponse object returned on reviewing a certificate request.
+
+== ProfileOutput class ==
+
+* This class represents an output entry of a profile.
+* It consists of a list of ProfileAttribute objects that store the output of a certificate enrollment.
+
+Attributes:
+
+* output_id - ProfileOutput identifier.
+* name
+* text
+* class_id - class implementing the ProfileOutput with the given ID.
+* attrs - a list of ProfileAttribute objects.
+
+Methods:
+
+* add_attribute(profile_attribute)
+** Adds a ProfileAttribute object to the list
+* remove_attribute(profile_attribute_id)
+** Removes a ProfileAttribute object form the list
+* add_attributes(profile_attribute_list)
+** Adds a list of ProfileAttribtue objects to the 'attrs' list
+* remove_attributes(profile_attribute_id_list)
+** Removes a list of ProfileAttributes from the 'attrs' list
+
+= ProfileClient class =
+
+== retrieve_profile(profile_id) ==
+
+Retrieves information about a profile using `GET profiles/{profile_id}`.
+
+Parameters:
+
+* profile_id - A profile identifier(string)
+* Returns a ProfileData object that contains the skeleton of the profile.
+
+== list_profiles(start=None, size=None) ==
+
+* Fetches the list of all profiles available in CA using a `GET profiles`.
+* Returns a ProfileDataInfoCollection object.
+
+Parameters:
+
+* start, size - to be used for pagination purposes.
+
+== enable_profile(profile_id) ==
+
+* Performs a `POST profiles/{profile_id}` request with a query parameter `action=enable`.
+* This method can be used only by an agent.
+
+Parameters:
+
+* profile_id
+
+== disable_profile(profile_id) ==
+
+* Performs a `POST profiles/{profile_id}` request with a query parameter `action=disable`.
+* This method can be used only by an agent.
+
+Parameters:
+
+* profile_id
+
+== create_profile(profile_data) ==
+
+* Creates a new profile - which is stored in the CA, using the information provided in the profile_data object.
+* Returns a ProfileData object with information about the URL to access the profile.
+* This request will go through only if the user has admin privileges.
+* The newly created profile is disabled by default. It has to be enabled using the enable_profile method before use.
+
+Parameters:
+
+* profile_data - a ProfileData object
+
+== modify_profile(profile_id, profile_data) ==
+
+* Uses a `PUT profiles/{profile_id}` to update a profile using the new ProfileData object.
+* This request will go through only if the user has admin privileges.
+* The profile must be disabled before calling this method.
+
+Parameters:
+
+* profile_id - the profile identifier.
+* profile_data - the ProfileData object for a given profile_id with modifications.
+
+== delete_profile(profile_id) ==
+
+* Deletes a profile with the given profile ID, in the CA - using `DELETE profiles/{profile_id}` request.
+* This request will go through only if the user has admin privileges.
+
+Parameters:
+
+* profile_id - the profile identifier(string)
+
+= Examples =
+
+All PKI Python modules are installed at `$PYTHON_LIB/pki`. The pem file is used for client auth. The pem file is created from the PKCS #12 cert file.
+
+== Initial Setup ==
+
+----
+from pki.client import PKIConnection
+from pki.profile import ProfileClient
+
+connection = PKIConnection('https', 'localhost', '8443', 'ca')
+connection.set_authentication_cert('/home/pkiuser/auth_cert.pem')
+
+client = ProfileClient(connection)
+----
+
+== Generating a list of profiles ==
+
+----  
+profile_data_infos = client.list_profiles(size='10');
+for profile_data_info in profile_data_infos.entries:
+    print('Profile ID: ' + profile_data_info.profile_id)
+    print('Name: ' + profile_data_info.name)
+    print('Description: ' + profile_data_info.description)
+    print()
+----
+
+The output for the above code snippet looks like:
+
+----
+Profile ID: caUserCert
+Name: Manual User Dual-Use Certificate Enrollment
+Description: This certificate profile is for enrolling user certificates.
+
+Profile ID: caECUserCert
+Name: Manual User Dual-Use ECC Certificate Enrollment
+Description: This certificate profile is for enrolling user ECC certificates.
+
+Profile ID: caUserSMIMEcapCert
+Name: Manual User Dual-Use S/MIME capabilities Certificate Enrollment
+Description: This certificate profile is for enrolling user certificates with S/MIME capabilities extension - OID: 1.2.840.113549.1.9.15
+
+Profile ID: caDualCert
+Name: Manual User Signing & Encryption Certificates Enrollment
+Description: This certificate profile is for enrolling dual user certificates. It works only with Netscape 7.0 or later.
+
+Profile ID: caECDualCert
+Name: Manual User Signing & Encryption ECC Certificates Enrollment
+Description: This certificate profile is for enrolling dual user ECC certificates. It works only with Netscape 7.0 or later.
+
+Profile ID: AdminCert
+Name: Manual Administrator Certificate Enrollment
+Description: This certificate profile is for enrolling Administrator's certificates suitable for use by clients such as browsers.
+
+Profile ID: caSignedLogCert
+Name: Manual Log Signing Certificate Enrollment
+Description: This profile is for enrolling audit log signing certificates
+
+Profile ID: caTPSCert
+Name: Manual TPS Server Certificate Enrollment
+Description: This certificate profile is for enrolling TPS server certificates.
+
+Profile ID: caRARouterCert
+Name: RA Agent-Authenticated Router Certificate Enrollment
+Description: This certificate profile is for enrolling router certificates.
+
+Profile ID: caRouterCert
+Name: One Time Pin Router Certificate Enrollment
+Description: This certificate profile is for enrolling router certificates.
+----
+
+== Get a specific profile ==
+
+----
+profile_data = client.retrieve_profile('caUserCert')
+print('Profile ID: ' + profile_data.profile_id)
+print('Name: ' + profile_data.name)
+print('Description: ' + profile_data.description)
+
+if profile_data.enabled:
+    print('State: enabled')
+else:
+    print('State: disabled')
+
+for input in profile_data.inputs:
+    print('Input ID: ' + input.id)
+    print('Name: ' + input.name)
+    print('Class: ' + input.class_id)
+
+    for attr in input.attrs:
+        print('  Attribute Name: ' + attr.name)
+        print('  Attribute Description: ' + attr.descriptor.description)
+        print('  Attribute Syntax: ' + attr.descriptor.syntax)
+
+for output in outputs:
+    print('Output ID: ' + output.id)
+    print('Name: ' + output.name)
+    print('Class: ' + output.class_id)
+
+    for attr in output.attrs:
+        print('  Attribute Name: ' + attr.name)
+        print('  Attribute Description: ' + attr.descriptor.description)
+        print('  Attribute Syntax: ' + attr.descriptor.syntax)
+----
+
+The output for the above code snippet would be:
+
+----
+Profile ID: caUserCert
+Name: Manual User Dual-Use Certificate Enrollment
+Description: This certificate profile is for enrolling user certificates.
+
+Input ID: i1
+Name: Key Generation
+Class: keyGenInputImpl
+State: enabled
+
+  Attribute Name: cert_request_type
+  Attribute Description: Key Generation Request Type
+  Attribute Syntax: keygen_request_type
+
+  Attribute Name: cert_request
+  Attribute Description: Key Generation Request
+  Attribute Syntax: keygen_request
+
+Input ID: i2
+Name: Subject Name
+Class: subjectNameInputImpl
+ 
+  Attribute Name: sn_uid
+  Attribute Description: UID
+  Attribute Syntax: string
+
+  Attribute Name: sn_e
+  Attribute Description: Email
+  Attribute Syntax: string
+
+  Attribute Name: sn_cn
+  Attribute Description: Common Name
+  Attribute Syntax: string
+
+  Attribute Name: sn_ou3
+  Attribute Description: Organizational Unit 3
+  Attribute Syntax: string
+
+  Attribute Name: sn_ou2
+  Attribute Description: Organizational Unit 2
+  Attribute Syntax: string
+
+  Attribute Name: sn_ou1
+  Attribute Description: Organizational Unit 1
+  Attribute Syntax: string
+
+  Attribute Name: sn_ou
+  Attribute Description: Organizational Unit
+  Attribute Syntax: string
+
+  Attribute Name: sn_o
+  Attribute Description: Organization
+  Attribute Syntax: string
+
+  Attribute Name: sn_c
+  Attribute Description: Country
+  Attribute Syntax: string
+
+Input ID: i3
+Name: Requestor Information
+Class: submitterInfoInputImpl
+
+  Attribute Name: requestor_name
+  Attribute Description: Requestor Name
+  Attribute Syntax: string
+
+  Attribute Name: requestor_email
+  Attribute Description: Requestor Email
+  Attribute Syntax: string
+
+  Attribute Name: requestor_phone
+  Attribute Description: Requestor Phone
+  Attribute Syntax: string
+
+Output ID: o1
+Name: Certificate Output
+Class: certOutputImpl
+
+  Attribute Name: pretty_cert
+  Attribute Description: Certificate Pretty Print
+  Attribute Syntax: pretty_print
+
+  Attribute Name: b64_cert
+  Attribute Description: Certificate Base-64 Encoded
+  Attribute Syntax: pretty_print
+----
+ 
+== Disabling and enabling the above retrieved profile ==
+
+----
+client.disable_profile('caUserCert')
+
+profile_data = client.retrieve_profile('caUserCert')
+if not profile_data.enabled:
+    print('The caUserCert profile is disabled.')
+
+# Enabling the profile.
+client.enable_profile('caUserCert')
+
+profile_data = client.retrieve_profile('caUserCert')
+if profile_data.enabled:
+    print('The caUserCert profile is enabled.')
+----
+
+The output for the above code snippet is :
+
+----
+The caUserCert profile is disabled.
+The caUserCert profile is enabled.
+----
+
+== Create a new profile ==
+
+----
+profile_data = ProfileData(
+    name='My Sample User Cert Enrollment',
+    profile_id='MySampleCert',
+    class_id='caUserCertEnrollImpl',
+    desciption='Example User Cert Enroll Impl',
+    enabled_by='admin')
+
+profile_input = ProfileInput('i1', 'SubjectNameInput')
+profile_input.add_attribute(ProfileAttribute('sn_uid'))
+profile_input.add_attribute(ProfileAttribute('sn_e'))
+profile_input.add_attribute(ProfileAttribute('sn_c'))
+profile_input.add_attribute(ProfileAttribute('sn_ou'))
+profile_input.add_attribute(ProfileAttribute('sn_ou1'))
+profile_input.add_attribute(ProfileAttribute('sn_ou2'))
+profile_input.add_attribute(ProfileAttribute('sn_ou3'))
+profile_input.add_attribute(ProfileAttribute('sn_cn'))
+profile_input.add_attribute(ProfileAttribute('sn_o'))
+
+profile_input2 = ProfileInput('i2', 'KeyGenInput'))
+profile_input2.add_attribute(ProfileAttribute('cert_request_type'))
+profile_input2.add_attribute(ProfileAttribute('cert_request'))
+
+profile_data.add_input(profile_input)
+profile_data.add_input(profile_input2)
+
+client.create_profile(profile_data)
+----
+
+The above code snippet creates a new profile with two types of ProfileInputs - SubjectNameInput, KeyGenInput.
+
+== Create a new profile - using file input ==
+
+There are two types of file input mechanisms that can be supported for creating ProfileData object.
+
+* ProfileData serialized as XML.
+** The text in the file can be un-marshalled into a ProfileData object.
+** A sample data for such an input can be obtained by running the CLI command
+*** `pki -d <cert_db> -c <password> -n <cert_nickname> ca-profile-show caUserCert --output caUserCert.xml`
+
+* A simple input format like the `*.cfg` files in `base/ca/shared/profiles/ca`, used to create default profiles.
+** link:https://git.fedorahosted.org/cgit/pki.git/tree/base/ca/shared/profiles/ca/AdminCert.cfg?h=DOGTAG_10_1_BRANCH[Example]
+** The file can be parsed and the ProfileData object can be generated and used to create a new profile.
+
+This would be the sample code for creating a new profile using a file input
+
+----
+profile_data = ProfileData(file_path)
+client.create_profile(profile_data)
+----
+
+== Modify an existing profile ==
+
+*Note:* A profile that has been enabled has to be disabled before modifying it.
+
+----
+client.disable_profile('MySampleCert')
+profile_data = client.retrieve_profile('MySampleCert')
+
+# Add a new profile input to the profile.
+profile_data.add_input(ProfileInput(id='i3', name='Requestor Information', class_id='submitterInfoInputImpl'))
+profile_data.add_attribute('i3', ProfileAttribute(name='requestor_name'))
+profile_data.add_attribute('i3', ProfileAttribute(name='requestor_phone'))
+profile_data.add_attribute('i3', ProfileAttribute(name='requestor_email'))
+
+client.modify_profile(profile_data)
+client.enable_profile('MySampleCert')
+----
+
+The above code snippet gets the profile, adds a new input and submits a request to modify the profile.
+
+Modification of profile can also support file inputs which were specified in the previous section.
+
+The sample code for modifying a profile by using a file input can be done using the API as follows:
+
+----
+profile_data = ProfileData(file_path)
+client.disable_profile(profile_data.profile_id)
+client.modify_profile(profile_data)
+client.enable_profile(profile_data.profile_id)
+----
+
+== Delete a profile ==
+
+A profile can be deleted using the delete_profile method in ProfileClient.
+
+*Note:* A profile has to be disabled before deletion.
+
+----
+client.disable_profile('MySampleCert')
+client.delete_profile('MySampleCert')
+----
