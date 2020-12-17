@@ -1,0 +1,184 @@
+= PKI CA Java API =
+
+To create a CA session:
+
+----
+CAClient caClient = new CAClient(client);
+AccountInfo accountInfo = caClient.login();
+----
+
+The AccountInfo contains information about the subsystem user (e.g. user ID, full name, email, roles).
+
+To remove the session:
+
+----
+caClient.logout();
+----
+
+See also link:https://git.fedorahosted.org/cgit/pki.git/tree/base/common/src/com/netscape/certsrv/ca/CAClient.java[CAClient.java].
+
+= Certificates =
+
+----
+CertClient certClient = new CertClient(caClient);
+----
+
+== Listing certificates ==
+
+----
+CertDataInfos certInfos = certClient.findCerts(status, maxResults, maxTime, start, size);
+
+for (CertDataInfo certInfo : certInfos.getEntries()) {
+    System.out.println("Cert ID: " + certInfo.getID());
+    System.out.println("Subject DN: " + certInfo.getSubjectDN());
+    System.out.println();
+}
+----
+
+== Finding certificates ==
+
+----
+CertSearchRequest request = new CertSearchRequest();
+request.setCommonName("CA Signing Certificate");
+
+CertDataInfos certInfos = certClient.findCerts(request, start, size);
+
+for (CertDataInfo certInfo : certInfos.getEntries()) {
+    System.out.println("Cert ID: " + certInfo.getID());
+    System.out.println("Subject DN: " + certInfo.getSubjectDN());
+    System.out.println();
+}
+----
+
+== Retrieving a certificate ==
+
+----
+CertData certData = certClient.getCert(id);
+System.out.println(certData.getEncoded());
+----
+
+== Revoking a certificate ==
+
+----
+CertData certData = certClient.reviewCert(id);
+
+CertRevokeRequest request = new CertRevokeRequest();
+request.setReason(RevocationReason.CERTIFICATE_HOLD);
+request.setNonce(certData.getNonce());
+
+CertRequestInfo requestInfo = certClient.revokeCert(id, request);
+
+System.out.println("Request status: " + requestInfo.getRequestStatus());
+System.out.println("Operation result: " + requestInfo.getOperationResult());
+System.out.println("Error message: " + requestInfo.getErrorMessage());
+----
+
+== Unrevoking a certificate ==
+
+----
+CertRequestInfo requestInfo = certClient.unrevokeCert(id);
+
+System.out.println("Request status: " + requestInfo.getRequestStatus());
+System.out.println("Operation result: " + requestInfo.getOperationResult());
+System.out.println("Error message: " + requestInfo.getErrorMessage());
+----
+
+= Certificate Request Templates =
+
+== Listing certificate request templates ==
+
+----
+ProfileDataInfos infos = certClient.listEnrollmentTemplates(start, size);
+
+for (ProfileDataInfo info : infos.getEntries()) {
+    System.out.println("Profile ID: " + info.getProfileId());
+}
+----
+
+== Retrieving a certificate request template ==
+
+----
+CertEnrollmentRequest certRequest = certClient.getEnrollmentTemplate(profileID);
+----
+
+= Certificate Requests =
+
+== Listing certificate requests ==
+
+----
+CertRequestInfos requestInfos = certClient.listRequests(status, type, startID, pageSize, maxResult, maxTime);
+
+for (CertRequestInfo requestInfo : requestInfos.getEntries()) {
+    System.out.println("Request ID: " + requestInfo.getRequestId());
+    System.out.println();
+}
+----
+
+== Retrieving a certificate request ==
+
+----
+CertRequestInfo requestInfo = certClient.getRequest(requestID);
+System.out.println("Request status: " + requestInfo.getRequestStatus());
+----
+
+== Submitting a certificate request ==
+
+----
+CertEnrollmentRequest certRequest = certClient.getEnrollmentTemplate(profileID);
+... <store profile inputs> ...
+
+CertRequestInfos requestInfos = certClient.enrollRequest(certRequest, authorityID, authorityDN);
+
+for (CertRequestInfo requestInfo : requestInfos.getEntries()) {
+    System.out.println("Request ID: " + requestInfo.getRequestId());
+}
+----
+
+== Approving a certificate request ==
+
+----
+CertReviewResponse reviewResponse = certClient.reviewRequest(requestID);
+certClient.approveRequest(requestID, reviewResponse);
+----
+
+== Rejecting a certificate request ==
+
+----
+CertReviewResponse reviewResponse = certClient.reviewRequest(requestID);
+certClient.rejectRequest(requestID, reviewResponse);
+----
+
+== Canceling a certificate request ==
+
+----
+CertReviewResponse reviewResponse = certClient.reviewRequest(requestID);
+certClient.cancelRequest(requestID, reviewResponse);
+----
+
+== Updating a certificate request ==
+
+----
+CertReviewResponse reviewResponse = certClient.reviewRequest(requestID);
+certClient.updateRequest(requestID, reviewResponse);
+----
+
+== Validating a certificate request ==
+
+----
+CertReviewResponse reviewResponse = certClient.reviewRequest(requestID);
+certClient.validateRequest(requestID, reviewResponse);
+----
+
+== Assign a certificate request ==
+
+----
+CertReviewResponse reviewResponse = certClient.reviewRequest(requestID);
+certClient.assignRequest(requestID, reviewResponse);
+----
+
+== Unassign a certificate request ==
+
+----
+CertReviewResponse reviewResponse = certClient.reviewRequest(requestID);
+certClient.unassignRequest(requestID, reviewResponse);
+----
