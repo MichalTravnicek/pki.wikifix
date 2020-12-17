@@ -1,0 +1,146 @@
+= Overview =
+
+TKS services are defined in TKS's link:https://github.com/dogtagpki/pki/blob/master/base/tks/shared/webapps/tks/WEB-INF/web.xml[web.xml].
+
+= Key Services =
+
+|===
+| Path | Service | Authentication | SSL
+
+| /agent/tks/encryptData
+| tksEncryptData
+| certUserDBAuthMgr
+|
+
+| /agent/tks/createKeySetData
+| tksCreateKeySetData
+| certUserDBAuthMgr
+|
+
+| /agent/tks/computeSessionKey
+| tksSessionKey
+| certUserDBAuthMgr
+|
+
+| /agent/tks/computeRandomData
+| tksRandomData
+| certuserDBAuthMgr
+|
+|===
+
+= Installation Services =
+
+|===
+| Path | Service | Authentication | SSL
+
+| /admin/tks/registerUser
+| tksRegisterUser
+| TokenAuth
+|
+
+| /admin/tks/getConfigEntries
+| tksGetConfigEntries
+| TokenAuth
+|
+
+| /admin/tks/importTransportCert
+| tksImportTransportCert
+| TokenAuth
+|
+
+| /admin/console/config/savepkcs12
+| tksDownloadPKCS12
+| TokenAuth
+|
+|===
+
+= Other Services =
+
+|===
+| Path | Service | Authentication | SSL
+
+| /rest/account/*
+| AccountService
+| certUserDBAuthMgr, passwdUserDBAuthMgr
+| Required
+
+| /rest/installer/*
+| TKSInstallerService
+|
+|
+
+| /rest/selftests/*
+| SelfTestService
+| certUserDBAuthMgr
+| Required
+
+| /rest/admin/groups/*
+| GroupService
+| certUserDBAuthMgr
+| Required
+
+| /rest/admin/users/*
+| GroupService
+| certUserDBAuthMgr
+| Required
+
+| /rest/config/cert/*
+| SystemCertResource
+|
+|
+
+| /rest/admin/tps-connectors/*
+| TPSConnectorService
+| certUserDBAuthMgr
+| Required
+
+| /ug
+| tksug
+|
+|
+
+| /start
+| tksstart
+|
+|
+
+| /log
+| tkslog
+|
+|
+
+| /auths
+| tksauths
+|
+|
+
+| /jobsScheduler
+| tksjobsScheduler
+|
+|
+
+| /acl
+| tksacl
+|
+|
+
+| /server
+| tksserver
+|
+|
+
+| /ee/tks/ports
+| tksports
+|
+|
+
+| /services
+| services
+|
+|
+
+| /admin/tks/getStatus
+| link:PKI-GetStatus-Service[PKI GetStatus Service]
+|
+|
+|===
