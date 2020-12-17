@@ -1,0 +1,311 @@
+= Overview =
+
+KRA services are defined in KRA's link:https://github.com/dogtagpki/pki/blob/master/base/kra/shared/webapps/kra/WEB-INF/web.xml[web.xml].
+
+= Key Services =
+
+|===
+| Path | Service | Authentication | SSL
+
+| /agent/kra/displayBySerialForRecovery
+| kraKRADisplayBySerialForRecovery
+| certUserDBAuthMgr
+|
+
+| /agent/kra/grantRecovery
+| kraKRAGrantRecovery
+| certUserDBAuthMgr
+|
+
+| /agent/kra/grantAsyncRecovery
+| kraKRAGrantAsyncRecovery
+| certUserDBAuthMgr
+|
+
+| /agent/kra/recoverBySerial
+| kraKRARecoverBySerial
+| certUserDBAuthMgr
+|
+
+| /agent/kra/srchKey.html
+| kraSrchKey
+| certUserDBAuthMgr
+|
+
+| /agent/kra/listRequests.html
+| kraListRequests
+| certUserDBAuthMgr
+|
+
+| /agent/kra/GenerateKeyPair
+| kraGenerateKeyPair
+| certUserDBAuthMgr
+|
+
+| /agent/kra/TokenKeyRecovery
+| kraTokenKeyRecovery
+| certUserDBAuthMgr
+|
+
+| /agent/kra/srchRecoverKey.html
+| kraSrchRecoverKey
+| certUserDBAuthMgr
+|
+
+| /agent/kra/getApprovalStatus
+| kraKRAGetApprovalStatus
+| certUserDBAuthMgr
+|
+
+| /agent/kra/processReq
+| kraKRAProcessReq
+| certUserDBAuthMgr
+|
+
+| /agent/kra/examineRecovery
+| kraKRAExamineRecovery
+| certUserDBAuthMgr
+|
+
+| /agent/kra/srchKey
+| kraKRASrchKey
+| certUserDBAuthMgr
+|
+
+| /agent/kra/getPk12
+| kraKRAGetPk12
+| certUserDBAuthMgr
+|
+
+| /agent/kra/getAsyncPk12
+| kraKRAGetAsyncPk12
+| certUserDBAuthMgr
+|
+
+| /agent/kra/grantRecovery.html
+| kraGrantRecovery
+| certUserDBAuthMgr
+|
+
+| /agent/kra/srchKeyForRecovery
+| kraKRASrchKeyForRecovery
+| certUserDBAuthMgr
+|
+
+| /agent/kra/queryReq
+| krakraqueryReq
+| certUserDBAuthMgr
+|
+
+| /agent/kra/displayBySerial
+| kraKRADisplayBySerial
+| certUserDBAuthMgr
+|
+|===
+
+= Installation Services =
+
+|===
+| Path | Service | Authentication | SSL
+
+| /admin/kra/registerUser
+| kraRegisterUser
+| TokenAuth
+|
+
+| /admin/kra/updateDomainXML
+| kraUpdateDomainXML-admin
+| TokenAuth
+|
+
+| /admin/kra/getTransportCert
+| kraGetTransportCert
+| TokenAuth
+|
+
+| /admin/kra/getConfigEntries
+| kraGetConfigEntries
+| TokenAuth
+|
+
+| /admin/kra/updateNumberRange
+| kraUpdateNumberRange
+| TokenAuth
+|
+
+| /admin/console/config/savepkcs12
+| kraDownloadPKCS12
+| TokenAuth
+|
+
+| /admin/kra/getDomainXML
+| kraGetDomainXML
+|
+|
+
+| /agent/kra/updateDomainXML
+| kraUpdateDomainXML
+| certUserDBAuthMgr
+|
+
+| /admin/kra/securityDomainLogin
+| kraSecurityDomainLogin
+|
+|
+
+| /admin/kra/getCookie
+| kraGetCookie
+| passwdUserDBAuthMgr
+|
+
+| /ee/kra/tokenAuthenticate
+| kraTokenAuthenticate
+|
+|
+
+| /admin/kra/tokenAuthenticate
+| kraTokenAuthenticate-admin
+|
+|
+|===
+
+= Other Services =
+
+|===
+| Path | Service | Authentication | SSL
+
+| /rest/account/*
+| AccountService
+| certUserDBAuthMgr, passwdUserDBAuthMgr
+| Required
+
+| /rest/installer/*
+| KRAInstallerService
+|
+|
+
+| /rest/securityDomain/installToken
+| SecurityDomainService
+|
+| Required
+
+| /rest/securityDomain/domainInfo
+| SecurityDomainService
+|
+|
+
+| /rest/agent/keys/*
+| KeyService
+| certUserDBAuthMgr
+| Required
+
+| /rest/agent/keyrequests/*
+| KeyRequestService
+| certUserDBAuthMgr
+| Required
+
+| /rest/selftests/*
+| SelfTestService
+| certUserDBAuthMgr
+| Required
+
+| /rest/admin/groups/*
+| GroupService
+| certUserDBAuthMgr
+| Required
+
+| /rest/admin/users/*
+| UserService
+| certUserDBAuthMgr
+| Required
+
+| /rest/config/cert/*
+| SystemCertService
+|
+|
+
+| /ug
+| kraug
+|
+|
+
+| /server
+| kraserver
+|
+|
+
+| /kra
+| krakra
+|
+|
+
+| /log
+| kralog
+|
+|
+
+| /start
+| krastart
+|
+|
+
+| /acl
+| kraacl
+|
+|
+
+| /auths
+| kraauths
+|
+|
+
+| /jobsScheduler
+| krajobsScheduler
+|
+|
+
+| /krapolicy
+| krapolicy
+|
+|
+
+| /ee/kra/ports
+| kraports
+|
+|
+
+| /dynamicVars.js
+| kraDynamicVariables
+|
+|
+
+| /agent/header
+| kraheader
+| certUserDBAuthMgr
+|
+
+| /agent/kra/connector
+| kraConnector
+| certUserDBAuthMgr
+|
+
+| /agent/kra/displayTransportCert
+| kraKRADisplayTransport
+| certUserDBAuthMgr
+|
+
+| /index
+| kraindex
+| certUserDBAuthMgr
+|
+
+| /services
+| services
+|
+|
+
+| /admin/kra/getStatus
+| link:https://github.com/dogtagpki/pki/wiki/PKI-GetStatus-Service[PKI GetStatus Service]
+|
+|
+|===
