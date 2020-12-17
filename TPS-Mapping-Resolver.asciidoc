@@ -1,0 +1,198 @@
+= Introduction =
+
+This page describes the Mapping Resolver feature in TPS.
+
+The precursor of the Mapping Resolver was simply a mapping filter used for determining the tokenType (tps profile) based on a set of rules.
+
+The Mapping Resolver allows multiple sets of rules to be configured so that they can be used for:
+
+* resolving tokenType (tps profile)
+* resolving keySet for different smart cards
+
+The initial design proposal (C-oriented) can be found at:
+http://pki.fedoraproject.org/wiki/TPS_-_New_Recovery_Option:_External_Registration_DS#Supporting_multiple_keySets_for_different_cards_for_ExternalReg
+
+= Mapping Resolver Framework =
+
+The Mapping Resolver framework provides the platform for writing customized "MappingResolver" plugins.
+Each mapping resolver instance can be uniquely defined in the configuration, and each operation can point to various defined mapping resolver instance.
+
+*Note:* Instruction on how to write a Mapping Resolver JAVA plugin is outside the scope of this document.
+
+The plugins are defined in registry.cfg; while the mapping resolver instances are defined in CS.cfg. See the examples below.
+
+== registry.cfg ==
+
+This is the current default content of registry.cfg.
+It defines the java class implementation for filterMappingResolverImpl.
+
+----
+types=tpsMappingResolver
+tpsMappingResolver.ids=filterMappingResolverImpl
+tpsMappingResolver.filterMappingResolverImpl.class=org.dogtagpki.server.tps.mapping.FilterMappingResolver
+tpsMappingResolver.filterMappingResolverImpl.desc=filter-based Token mapping resolver
+tpsMappingResolver.filterMappingResolverImpl.name=filter-based Token mapping resolver
+----
+
+== CS.cfg ==
+
+The following example shows that both the keySetMappingResolver and enrollProfileMappingResolver mapping resolver instances point to the same mapping resolver implementation, filterMappingResolverImpl.
+
+----
+mappingResolver.keySetMappingResolver.class_id=filterMappingResolverImpl
+mappingResolver.keySetMappingResolver,<mapping filters>
+...
+mappingResolver.enrollProfileMappingResolver.class_id=filterMappingResolverImpl
+mappingResolver.enrollProfileMappingResolver.<mapping filters>
+...
+----
+
+*Note:* at this point, by default, TPS only provides "filterMappingResolverImpl" out of box.
+
+The following example shows that the operation "externalReg" uses keySetMappingResolver to resolve the key set; while "op.enroll" uses enrollProfileMappingResolver to resolve the tokenType (tps profile).
+
+----
+externalReg.mappingResolver=keySetMappingResolver
+...
+op.enroll.mappingResolver=enrollProfileMappingResolver
+...
+----
+
+= FilterMappingResolver =
+
+The FilterMappingResolver is the default mapping resolver that comes with TPS.
+It allows one to define a set of "mappings" and a target result for each mapping.
+Each mapping contains a set of "filters" where:
+
+* If the input filter parameters pass ALL filters within a mapping then the "target" value is assigned as the result.
+* When the input parameters fail a filter, the mapping is skipped to the next mapping in order.
+* If a value is not specified for a filter, then it is considered a pass.
+* If a value is specified for a filter, then the input filter parameters must match; and because of #2 above, it will skip to the next mapping.
+* The "mappings" are ordered in a way that as soon as the first mapping is successfully mapped to a target, then the mapping is considered resolved and returned to the caller
+
+The input filter parameters are information received from the smart card token with or without extensions.
+They are run against the FilterMappingResolver according to the above rules.
+
+The input filter parameters supported by the FilterMappingResolver are the following:
+
+* appletMajorVersion - can be either empty or applet major version on the token
+* appletMinorVersion - can be either empty or applet minor version on the token
+* keySet | tokenType - either or, depends on if it is to resolve the keySet or tokenType
+** keySet - keySet can be set as an extension in the client request. It can be empty. It must match the value in the filter if the extension is specified
+** tokenType - tokenType can be set as an extension in the client request. It can be empty. It must match the value in the filter if the extension is specified
+* tokenATR - can be either empty or token ATR
+* tokenCUID - "start" and "end" defines the range of the CUID that must fall within to pass this filter
+
+The following are two example FilterMappingResolver instances in the CS.cfg to illustrate this concept.
+
+== keySetMappingResolver ==
+
+----
+mappingResolver.keySetMappingResolver.class_id=filterMappingResolverImpl
+mappingResolver.keySetMappingResolver.mapping.0.filter.appletMajorVersion=0
+mappingResolver.keySetMappingResolver.mapping.0.filter.appletMinorVersion=0
+mappingResolver.keySetMappingResolver.mapping.0.filter.keySet=
+mappingResolver.keySetMappingResolver.mapping.0.filter.tokenATR=
+mappingResolver.keySetMappingResolver.mapping.0.filter.tokenCUID.end=a1000000000000000000
+mappingResolver.keySetMappingResolver.mapping.0.filter.tokenCUID.start=a0000000000000000000
+mappingResolver.keySetMappingResolver.mapping.0.target.keySet=defKeySet
+mappingResolver.keySetMappingResolver.mapping.1.filter.appletMajorVersion=1
+mappingResolver.keySetMappingResolver.mapping.1.filter.appletMinorVersion=1
+mappingResolver.keySetMappingResolver.mapping.1.filter.keySet=
+mappingResolver.keySetMappingResolver.mapping.1.filter.tokenATR=1234
+mappingResolver.keySetMappingResolver.mapping.1.filter.tokenCUID.end=
+mappingResolver.keySetMappingResolver.mapping.1.filter.tokenCUID.start=
+mappingResolver.keySetMappingResolver.mapping.1.target.keySet=defKeySet
+mappingResolver.keySetMappingResolver.mapping.2.filter.appletMajorVersion=
+mappingResolver.keySetMappingResolver.mapping.2.filter.appletMinorVersion=
+mappingResolver.keySetMappingResolver.mapping.2.filter.keySet=
+mappingResolver.keySetMappingResolver.mapping.2.filter.tokenATR=
+mappingResolver.keySetMappingResolver.mapping.2.filter.tokenCUID.end=
+mappingResolver.keySetMappingResolver.mapping.2.filter.tokenCUID.start=
+mappingResolver.keySetMappingResolver.mapping.2.target.keySet=jForte
+mappingResolver.keySetMappingResolver.mapping.order=0,1,2
+----
+
+In this example, three mappings are defined for the keySetMappingResolver, numbered 0, 1, and 2.
+
+The mappings are ordered in the following mapping order:
+
+----
+mappingResolver.<MappingResolver instance name>.mapping.order=0,1,2
+----
+
+Which means, the input filter parameters will be run against mapping 0's filters first.
+
+If a token with the following characteristics is evaluated:
+
+* CUID=a0000000000000000011
+* appletMajorVersion=0
+* appletMinorVersion=0
+
+then it would pass mapping 0 and being assigned mapping 0's target, which is defKeySet, because the applet version match and the CUID falls within the cuid start and end range.
+
+Whereas if a token with the following characteristics is evaluated
+
+* CUID=b0000000000000000000
+* ATR=2222
+* appletMajorVersion=1
+* appletMinorVersion=1
+
+then it would fail mapping 0, because it is outside the range for the CUID filter;  It would also fail mapping 1, becuase even though the applet versions match, the ATR does not; it would then be assigned mapping 2's target, which is jForte.
+
+Note how mapping 2 has no assignments for any of it's filters.  It is done so as a "catch all" filter so that there is a default value for the mapping.
+
+== enrollProfileMappingResolver ==
+
+----
+mappingResolver.enrollProfileMappingResolver.class_id=filterMappingResolverImpl
+mappingResolver.enrollProfileMappingResolver.mapping.0.filter.appletMajorVersion=1
+mappingResolver.enrollProfileMappingResolver.mapping.0.filter.appletMinorVersion=
+mappingResolver.enrollProfileMappingResolver.mapping.0.filter.tokenATR=
+mappingResolver.enrollProfileMappingResolver.mapping.0.filter.tokenCUID.end=b1000000000000000000
+mappingResolver.enrollProfileMappingResolver.mapping.0.filter.tokenCUID.start=b0000000000000000000
+mappingResolver.enrollProfileMappingResolver.mapping.0.filter.tokenType=userKey
+mappingResolver.enrollProfileMappingResolver.mapping.0.target.tokenType=userKey
+mappingResolver.enrollProfileMappingResolver.mapping.1.filter.appletMajorVersion=1
+mappingResolver.enrollProfileMappingResolver.mapping.1.filter.appletMinorVersion=
+mappingResolver.enrollProfileMappingResolver.mapping.1.filter.tokenATR=
+mappingResolver.enrollProfileMappingResolver.mapping.1.filter.tokenCUID.end=a0000000000000001000
+mappingResolver.enrollProfileMappingResolver.mapping.1.filter.tokenCUID.start=a0000000000000000000
+mappingResolver.enrollProfileMappingResolver.mapping.1.filter.tokenType=soKey
+mappingResolver.enrollProfileMappingResolver.mapping.1.target.tokenType=soKey
+mappingResolver.enrollProfileMappingResolver.mapping.2.filter.appletMajorVersion=
+mappingResolver.enrollProfileMappingResolver.mapping.2.filter.appletMinorVersion=
+mappingResolver.enrollProfileMappingResolver.mapping.2.filter.tokenATR=
+mappingResolver.enrollProfileMappingResolver.mapping.2.filter.tokenCUID.end=
+mappingResolver.enrollProfileMappingResolver.mapping.2.filter.tokenCUID.start=
+mappingResolver.enrollProfileMappingResolver.mapping.2.filter.tokenType=
+mappingResolver.enrollProfileMappingResolver.mapping.2.target.tokenType=userKey
+mappingResolver.enrollProfileMappingResolver.mapping.order=1,0,2
+----
+
+In this example, three mappings are defined for the keySetMappingResolver, numbered 0, 1, and 2.
+
+The mappings are ordered in the following mapping order:
+
+----
+mappingResolver.<MappingResolver instance name>.mapping.order=1,0,2
+----
+
+Which means, the input filter parameters will be run against mapping 1's filters first.
+
+If a token with the following characteristics is evaluated
+
+* CUID=a0000000000000000011
+* appletMajorVersion=1
+* appletMinorVersion=0
+* extension: tokenType=soKey
+
+then it would pass mapping 1 and being assigned mapping 1's target, which is soKey, because the applet version matche, the CUID falls within the cuid start and end range, and the extension tokenType matches.
+
+Whereas if a token with the following characteristics come in
+
+* CUID=b0000000000000000010
+* appletMajorVersion=1
+* appletMinorVersion=1
+
+then it would fail mapping 1, because it is outside the range for the CUID filter;  It would then fail mapping 0, due to the missing tokenType extension; In mapping 2, t will then be assigned to userKey as all filters in mapping 2 are not specified as a "catch all" for default.
