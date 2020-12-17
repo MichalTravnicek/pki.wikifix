@@ -1,0 +1,129 @@
+= PKI Subsystem Java API =
+
+The following services are available on all subsystems (ie. CA, KRA, OCSP, TKS, TPS). 
+
+----
+String subsystem = <subsystem name>;  // e.g. ca, kra
+
+SubsystemClient subsystemClient = new SubsystemClient(client, subsystem);
+----
+
+= Account Services =
+
+Each PKI subsystem has its own realm (i.e. set of users and groups). The client certificate used for SSL authentication is mapped to different users in different subsystems.
+
+To authenticate against a subsystem in a generic way:
+
+----
+AccountInfo accountInfo = subsystemClient.login();
+----
+
+The AccountInfo contains information about the subsystem user (e.g. user ID, full name, email, roles).
+To remove the session:
+
+----
+subsystemClient.logout();
+----
+
+See also link:https://git.fedorahosted.org/cgit/pki.git/tree/base/common/src/com/netscape/certsrv/client/SubsystemClient.java[SubsystemClient.java].
+
+= User Services =
+
+----
+UserClient userClient = new UserClient(subsystemClient);
+----
+
+== Listing users ==
+
+----
+UserCollection users = userClient.findUsers(filter, start, size);
+
+for (UserData user : users.getEntries()) {
+    System.out.println("User ID: " + user.getID());
+}
+----
+
+== Retrieving a user ==
+
+----
+UserData user = userClient.getUser(userID);
+----
+
+== Adding a user ==
+
+----
+UserData user = new UserData();
+userClient.addUser(user);
+----
+
+== Modifying a user ==
+
+----
+UserData user = userClient.getUser(userID);
+...<modify user>...
+
+userClient.modifyUser(userID, user);
+----
+
+== Removing a user ==
+
+----
+userClient.removeUser(userID);
+----
+
+= User Certificate Services =
+
+== Listing user certificates ==
+
+----
+UserCertCollection userCerts = userClient.findUserCerts(userID, start, size);
+
+for (UserCertData userCert : userCerts.getEntries()) {
+    System.out.println("Cert ID: " + userCert.getID());
+    System.out.println("Subject DN: " + userCert.getSubjectDN());
+}
+----
+
+== Retrieving a user certificate ==
+
+----
+UserCertData userCert = userClient.getUserCert(userID, certID);
+System.out.println(userCert.getEncoded());
+----
+
+== Adding a user certificate ==
+
+----
+UserCertData userCert = ...
+userClient.addUserCert(userID, userCert);
+----
+
+== Removing a user certificate ==
+
+----
+userClient.removeUserCert(userID, certID);
+----
+
+= User Role Services =
+
+== Listing user roles ==
+
+----
+UserMembershipCollection userRoles = userClient.findUserMemberships(userID, filter, start, size);
+
+for (UserMembershipData userRole : userRoles.getEntries()) {
+    System.out.println("Role ID: " + userRole.getID());
+}
+----
+
+== Adding a user role ==
+
+----
+userClient.addUserMembership(userID, roleID);
+----
+
+== Removing a user role ==
+
+----
+userClient.removeUserMembership(userID, roleID);
+----
