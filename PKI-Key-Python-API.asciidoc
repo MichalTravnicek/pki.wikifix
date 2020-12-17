@@ -1,0 +1,160 @@
+= Overview =
+
+The key resource provides clients(agents only) to perform operations to fetch information related to keys.
+
+The two operations available are to list all the keys and to retrieve a single key.
+
+The KeyResource object requires a - PKIConnection object with the subsystem value set to "kra".
+
+----
+connection = PKIConnection(subsystem='kra')
+key_resource = KeyResource(connection)
+----
+
+See also:
+
+* link:https://github.com/dogtagpki/pki/blob/master/base/common/python/pki/key.py[pki.key]
+
+= KeyClient Class =
+
+== Listing keys ==
+
+----
+list_keys(self, client_id=None, status=None, max_results=None, max_time=None, start=None, size=None)
+----
+
+List/Search archived secrets in the DRM. Performs a GET http request to https://<hostname>:<port>/kra/rest/agent/keys
+with the arguments passed as query parameters.
+
+Parameters:
+
+* client_id -- Client identifier (Any random unique secret identifier for client)
+* status -- Status of the Key (ex: active)
+* max_results -- Length of the list.
+* start, size -- Parameters for pagination purposes.
+
+Returns:
+
+A KeyInfoCollection object which consists of an "entries" list of KeyInfo objects.
+
+Exceptions:
+
+* PKIException -- Raised if any error is thrown while retrieving data from the database.
+
+Example Usage:
+
+To list all the keys with specific clientUID and status:
+ 
+----
+key_resource.list_keys(client_uid='UUID: 123-45-6789 VEK Tue Feb 11 13:19:56 EST 2014',status='active')
+----
+
+which sends a http request like:
+
+---- 
+https://localhost:8443/kra/rest/agent/keys?status=active&client_id=UUID%3A+123-45-6789+VEK+Tue+Feb+11+13%3A19%3A56+EST+2014 
+----
+
+for which the json response looks like:
+
+---- 
+{
+    "total": 1,
+    "entries": [
+        {
+            "keyURL": "https://localhost:8443/kra/rest/agent/keys/1",
+            "clientID": "UUID: 123-45-6789 VEK Tue Feb 11 13:19:56 EST 2014",
+            "status": "active",
+            "algorithm": "DES3",
+            "size": 0,
+            "ownerName": "IPA Agent"
+        }
+    ],
+    "Link": []
+}
+----
+
+where:
+
+* total: total number of records returned.
+* entries: list of KeyInfo objects with values of the KeyURL, clientUID, status, algorithm, size and the owner name.
+* Link: Any links related to the objects in the entries list.
+ 
+Calling the method without any parameters i.e. key_resource.list_keys() lists all the keys stored.
+
+== Retrieving a key ==
+ 
+----
+retrieve_key(self, key_recovery_request)
+----
+
+Retrieve a secret from the DRM. A POST request is sent to the server to the URL /kra/rest/agent/keys/retrieve, with a KeyRecoveryRequest object as payload.
+
+Parameters:
+
+* key_recovery_request -- An object of the class KeyRecoveryRequest. 
+
+All the parameters required for searching and retrieving a specific key have to be added to the attribute list of a KeyRecoveryRequest.
+The parameters to be passed are:
+
+* keyId of the key to retrieve,
+* requestId of the key request used, 
+* transWrappedSessionKey, a newly generated session key (used for wrapping the secret in the response) wrapped by the KRA transport cert (so the session key can only be read by the KRA),                                                            
+* nonceData.
+
+Returns:
+
+A KeyData object containing the wrapped secret.
+
+Exceptions:
+
+* 410 - Http Gone Exception -- If there is no record satisfying the request.
+* PKIException -- For internal failure.
+
+Example Usage:
+
+The json representation for a valid recovery request looks like:
+
+----
+{
+    "Attributes": {
+        "Attribute": [
+            {
+                "name": "keyId",
+                "value": "1"
+            },
+            {
+                "name": "requestId",
+                "value": "2"
+            },
+            {
+                "name": "transWrappedSessionKey",
+                "value": "69d4mU4P8W/hFmrP5q0Sh50zTMGToCzPcTRBZVfmR3rLEiQA1rs8ovZ93e4l/uUQ\r\n
+SbMZLF/CgFEncMBPeknGfzOpplGh0XgwaqsMwy20vO0H/8QWWDtv/Af0f64EYCbN\r\n
+GI+yiaan14gO4QCdcFvZ4CBSAZWH/gpTGndLqO10VaXtZWZD6tlw0+wJpspOrnf5\r\n
+CiXwbCTsrPRYlBxdyN6s+8SSskjm8/Xvn2bCxw38CH2JQFd3JVUUXKP1slMo9mZG\r\n
+pvFo2qQRV7wA6q4IMwHfFx7Bms2NmD6fJ5GMcJVtOf5OsKXAdB6JVDePGxoHIVj7\r\n
+wFugwuU4xh12pIxqRRjZ3g==\r\n"
+            },
+            {
+                "name": "nonceData",
+                "value": "8lVOywa9Scg=\r\n"
+            }
+        ]
+    },
+    "ClassName":"com.netscape.certsrv.key.KeyRecoveryRequest"
+}
+----
+
+The response consists of a KeyData object with information about the key such as the wrappedPrivateData (secret wrapped with the session key), nonce data, p12data, algorithm used, size.
+
+For the above example request, the json representation of the response looks like:
+
+----
+{
+    "wrappedPrivateData":"LtjYfjWrrxCeQcPvr0aI8eRcmmF6h1tJf7X4gWj7gxY=\r\n",
+    "nonceData":"BGTbH7i77F4=\r\n",
+    "algorithm":"DES3",
+    "size":0
+}
+----
