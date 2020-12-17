@@ -1,0 +1,510 @@
+= Overview =
+
+This document describes the cert client that will be written to interact with the Certificate and Certificate Request resources
+to generate certificate requests and certificates.  The goal here is to define methods that help make the API very intuitive and easy
+to use. On installing the dogtag rpms, this client and all of its supporting classes can be found in the cert module in `$PYTHON_LIB/pki`.
+This module can be imported in code using, import pki.cert.
+
+See also:
+
+* link:https://github.com/dogtagpki/pki/blob/master/base/common/python/pki/cert.py[pki.cert]
+
+= Data model =
+
+The following are the classes, in this module, that can be used to store some type of certificate or certificate request information.
+
+== ClassId Class ==
+
+----
+class CertId:
+----
+
+* The CertId class represents the identifier for a particular cert record. 
+* Its __init__ method takes a string and stores it in its value attribute as a BigInteger.
+
+Attributes: 
+
+* value - the certificate identifier.
+
+== CertData Class ==
+
+----
+class CertData:
+----
+
+* An object of this class represents a certificate stored in the CA.
+* It consists of all the attributes of the certificate and it binary data.
+
+Attributes:
+
+* serial_number
+* issuer_dn
+* subject_dn
+* pretty_print
+* encoded
+* pkcs7_cert_chain 
+* not_before
+* not_after
+* status
+* nonce
+
+== CertDataInfo Class ==
+
+----
+class CertDataInfo:
+----
+
+* This class contains all the information about a certificate for a given certificate identifier.
+
+Attributes: 
+
+* cert_id - the CertId object
+* subject_dn
+* status
+* type
+* version
+* key_algorithm_oid
+* key_length
+* not_valid_before
+* not_valid_after
+* issued_on
+* issued_by.
+
+== CertDataInfoCollection Class ==
+
+----
+class CertDataInfoCollection:
+----
+
+* This class represents a collection CertDataInfo objects.
+* It also consists of the list of links that are needed for pagination of the search results.
+* The base class of the *Collection Java classes contains the total number of search results, 
+the entries in the requested page, and the REST URLs of those entries.
+
+== CertRequestInfo Class ==
+
+----
+class CertRequestInfo:
+----
+
+* This class represents a certificate request sent to the CA to enroll a certificate.
+* It contains information such as the request URL, certificate URL, the type of the request, 
+the result of the operation and an error message, if any.
+* It also provides convenience methods for getting the cert id and the request id from their respective URLs.
+
+Attributes:
+
+* cert_id - the CertId object
+* request_id - the RequestId object
+* request_status
+* request_url
+* cert_url
+* cert_request_type
+* operation_result
+* error_message
+
+== CertRequestInfoCollection Class ==
+
+----
+class CertRequestInfoCollection:
+----
+
+* This class represents a collection of CertRequestInfo objects.
+* It also consists of the list of links that are needed for pagination of the search results.
+* The base class of the *Collection Java classes contains the total number of search results, the entries in the requested page, and the REST URLs of those entries.
+
+== CertReviewResponse Class ==
+
+----
+class CertReviewResponse:
+----
+
+* An object of this class is returned as the output for reviewing a request for a given request id.
+* It contains information such as the RequestId object, type of request, it's status and owner, 
+creation and modification time, and information about the profile used.
+* It also has a nonce attribute for a one time - session identification use.
+* It is used to perform actions such as approve, cancel, reject etc. on the certificate request
+with the given request id.
+
+== CertEnrollmentRequest Class ==
+
+----
+class CertEnrollmentRequest:
+----
+
+* This class represents a certificate enrollment request. 
+* It contains information required by the server, from the client, to issue the desired type of certificate.
+* Desired type means the type of profile used for issuance of the certificate.
+
+== CertSearchRequest Class ==
+
+----
+class CertSearchRequest:
+----
+
+* An object of this class is used to search for certificates in the CA.
+* It consists of attributes, whose values are used to generate a filter and return a list of certificates.
+
+Attributes:
+
+* Query parameters for serial number
+** serial_to
+** serial_from
+* Query parameters for Subject Name
+** email
+** common_name
+** user_id
+** org_unit
+** org
+** locality
+** state
+** country
+** match_exactly
+* Query parameter for Status
+** status
+* Query parameter for Revoked By user
+** revoked_by
+* Query parameter for Revoked On date
+** revoked_on_from
+** revoked_on_to
+* Query parameter for Revocation Reason
+** revocation_reason
+* Query parameter for Issued By user
+** issued_by
+* Query parameter for Issued On date
+** issued_on_from
+** issued_on_to
+* Query parameter for Valid Not Before date
+** valid_not_before_from
+** valid_not_before_to
+* Query parameter for Valid Not After date
+** valid_not_after_from
+** valid_not_after_to
+* Query parameter for Validity Length
+** validity_operation
+** validity_count
+** validity_unit
+* Query parameter for Cert Type - takes values on/off
+** cert_type_sub_email_ca
+** cert_type_sub_ssl_ca
+** cert_type_secure_email
+** cert_type_ssl_client
+** cert_type_ssl_server
+
+= CertClient Class =
+
+== Initialization ==
+
+----
+__init__(connection):
+----
+
+* Initializes the CertClient object.
+
+Parameters:
+
+* connection - a PKIConnection object.
+
+Defines an attribute, `enrollment_templates`, to cache the templates that are retrieved from the server,
+to reduce the number of server interactions. This would be a dictionary of {profileId, enrollment_template}
+
+== Listing certificates ==
+
+----
+list_certs(cert_search_request=None, max_results=None, max_time=None, start=None, size=None):
+----
+
+* List all the requests satisfying all the parameters passed using a `GET /certs` request.
+* If no parameters are passed all the certificates in the CA are listed.
+
+Parameters:
+
+* cert_search_request - A CertSearchRequest object.
+* max_results -  the maximum size of the list to be generated.
+* max_time - the maximum time to be taken by the operation.
+* start, size - parameters used for pagination purpose. 
+
+Return: a `CertDataInfoCollection` object which contains a list of `CertDataInfo` objects of all the certificates that satisfy the query.
+
+== Retrieving a certificate ==
+
+----
+get_cert(cert_id):
+----
+
+* Retrieves a certificate by performing a '''GET certs/{cert_id}''' operation.
+
+Parameters:
+
+* cert_id - the certificate identifier(string).
+
+Returns a `CertData` object, which contains all the information about the certificate, except the nonce data for the session.
+
+== Reviewing a certificate ==
+
+----
+review_cert(cert_id):
+----
+
+* Retrieves a certificate using '''GET agent/certs/{cert_id}'''.
+
+Parameters:
+
+* cert_id - the certificate identifier(string).
+
+Returns a `CertData` object, which contains all the information about the certificate, with a nonce generated for the current session.
+
+== Revoking a certificate ==
+ 
+----
+revoke_cert(cert_id, revocation_reason=UNSPECIFIED, invalidity_date=None, comments=None, nonce=None):
+----
+
+* Revokes a certificate using a '''POST agent/certs/{cert_id}/revoke''' request.
+
+Parameters:
+
+* cert_id - the certificate identifier(string)
+* revocation_reason
+* invalidity_date
+* comments
+* nonce - Nonce data fetched by reviewing the cert. If None, review_cert(cert_id) is called to fetch the nonce.
+
+This method can be used to revoke a normal certificate.
+A certificate revocation is a 2 step process.
+
+* Review the cert and get a nonce for the session from the server.
+* Create a CertRevokeRequest object with the required parameters and submit the revoke request for a certificate. 
+
+Returns a `CertRequestInfo` object.
+
+== Revoking a CA certificate ==
+
+----
+revoke_ca_cert(cert_id, revocation_reason=UNSPECIFIED, invalidity_date=None, comments=None, nonce=None): 
+----
+
+Revokes a CA certificate using a `POST agent/certs/{cert_id}/revoke-ca` request.
+
+Parameters:
+
+* cert_id - the certificate identifier(string)
+* revocation_reason
+* invalidity_date
+* comments
+* nonce - Nonce data fetched by reviewing the cert. If None, review_cert(cert_id) is called to fetch the nonce.
+
+This method can be used to revoke a normal certificate.
+A certificate revocation is a 2 step process.
+
+* Review the cert and get a nonce for the session from the server.
+* Create a CertRevokeRequest object with the required parameters and submit the revoke request for a CA certificate. 
+
+Returns a `CertRequestInfo` object.
+
+== Putting a certificate on hold ==
+
+----
+hold_cert(cert_id, comments=None):
+----
+
+* A convenience method to put the certificate on hold.
+* Calls `revoke_cert(cert_id, revocation_reason=CERTIFICATE_ON_HOLD, comments)`
+* Returns a CertRequestInfo object.
+
+== Unrevoing a certificate ==
+
+----
+unrevoke_cert(cert_id):
+----
+
+Un-revokes a certificate using a `POST agent/certs/{cert_id}/unrevoke` request.
+
+Paramaters:
+
+* cert_id - a certificate identifier(string)
+
+Returns a `CertRequestInfo` object that contains the information about the details/result of the request.
+
+== Retrieving a certificate request ==
+
+----
+get_request(request_id):
+----
+
+* Performs a `GET /certrequests/{request_id}` operation to retrieve information about a certificate request,
+
+Parameter:
+
+* request_id - a request identifier(string).
+
+Returns a `CertRequestInfo` object.
+
+== Listing certificate requests ==
+
+----
+list_requests(request_status=None, request_type=None, from_request_id=None, size=None, max_results=None, max_time=None):
+----
+
+* Gets a list of certificate requests using the arguments as query parameters using a `GET agent/certrequests` request.
+
+Parameters:
+
+* request_state - State of the requests to be listed.
+* request_type - Type of requests to be listed.
+* from_request_id - Lowest id for a request in the generated list.
+* size - Size of the page.
+* max_results - Maximum size of the list. 
+* max_time - Maximum time to perform the query.
+
+Returns a `CertRequestInfoCollection` object.
+
+== Reviewing certificate request ==
+
+----
+review_request(request_id):
+----
+
+* Review a certificate request using a `GET agent/certrequests/{request_id}`.
+
+Parameters:
+
+* request_id - a request identifier(string)
+
+Returns a `CertReviewResponse` object which can be used to take actions like approve/cancel/reject/validate/update/assign/unassign on the certificate request.
+
+== Updating certificate request ==
+
+----
+[approve/cancel/reject/validate/update/assign/unassign]_request(request_id, review_response=None):
+----
+
+Parameters:
+
+* request_id - the certificate request identifier(string)
+*review_response - A CertReviewResponse object, with a nonce, which is returned by the review_request method.
+
+If `review_response=None`, reviews the certificate request using `review_request(request_id)` and fetches the `CertReviewResponse` object.
+Then performs a `POST agent/certrequests/{request_id}/{action}`, where action = approve/cancel/reject/validate/update/assign/unassign.
+
+== Listing enrollment templates ==
+
+----
+list_enrollment_templates(start=None, size=None)
+----
+
+* Gets a list of all the enrollment templates using a `GET certrequests/profiles`.
+* Each ProfileDataInfo object in the ProfileDataInfos objects contains information about a profile such as the profile_id, profile_name, profile_description.
+
+Returns the `ProfileDataInfos` object.
+
+== Retrieving enrollment templates ==
+
+----
+get_enrollment_template(profile_id):
+----
+
+Parameters:
+
+* profile_id - a profile identifier.
+
+* If the template for the given profile_id is cached in enrollment_templates dict, return that template. 
+* If not, gets the enrollment template using `GET certrequests/profile/{profile_id}` for the given profile_id.
+* Stores the template in `enrollment_templates` dictionary.
+* Returns the template - a CertEnrollmentRequest object.
+
+== Creating enrollment request ==
+
+----
+create_enrollment_request(profile_id, inputs):
+----
+
+* Gets a CertEnrollmetRequest object for the given profile_id and fills it with the inputs provided.
+
+Parameters:
+
+* profile_id - profile identifier of the template to be used.
+* inputs - A dictionary with (name,value) pairs of (profile_attribute, value)
+
+Iterates through the inputs dict, and updates attributes in the enrollment template with matching attribute names.
+Returns the completed CertEnrollmentRequest object.
+
+== Submitting enrollment request ==
+
+----
+submit_enrollment_request(cert_enrollment_request=None):
+----
+
+* Performs a `POST certrequests` to submit a CertEnrollmentRequest object to the server to process.
+
+Parameters:
+
+* cert_enrollment_request - A CertEnrollmentRequest object
+
+Returns a `CertRequestInfoCollection` object which contains a list of `CertDataInfo` objects - with information about all the 
+certificates generated for the given cert_enrollment_request object.
+
+== Enrolling a certificate ==
+
+----
+enroll_cert(profile_id, inputs):
+----
+
+* This is a convenience method which would be executed by an agent.  It allows you to request, approve and provide the cert in a single call.
+* The inputs parameter is a dictionary of namve,value pairs of type [profile_attribute-name, value].
+* It creates an enrollment request by calling the create_request(profile_id, inputs).
+* It should be noted that a profile may spawn multiple requests and return multiple certs. For example, a signing and encryption cert.
+* Returns a list of CertData objects for all the certificates generated by the request.
+
+The implementation of this method will mostly look like this:
+
+----
+# Create the CertEnrollmentRequest object for the profile caUserCert with the above inputs
+cert_enrollment_request = create_enrollment_request(profile_id, inputs)
+
+# Validates the generated certificate enrollment request.
+validate_enrollment_request(cert_enrollment_request)
+
+# Submit the generated CertEnrollmentRequest object for caUserCert profile to the CA
+cert_request_infos = submit_request(cert_enrollment_request)
+
+# List to store the CertData objects for all the certificates generated.
+cert_data_objects = []
+
+for request_info in request_infos:
+    request_id = request_info.get_request_id()
+
+    # Review and approve the request
+    approve_request(request_id)
+     
+    # Fetch the certificate request information to get the cert_id
+    info = get_request_info(request_id)
+
+    # Get the certificate(CertData object) using the certificate ID
+    certs_data_objects.append(get_cert(info.get_cert_id()))
+    
+return cert_data_objects
+----
+
+== Validating enrollment request ==
+
+----
+validate_enrollment_request(cert_enrollment_request):
+----
+
+* Performs client side validation on a CertEnrollmentRequest object.
+* Gets profile_id from cert_enrollment_request.
+* Gets template by calling get_enrollment_template(profile_id)
+* Iterates through the profile attributes of the ProfileInput objects and validates their value w.r.t the syntax attribute.
+
+Parameters:
+
+* cert_enrollment_request - A CertEnrollmentRequest object to validate.
+
+Returns true, if everything passes. Else an exception is thrown.
+
+*Note:* This method will be implemented in the next iteration.
+
+= Examples =
+
+The sample code for using the CertClient can be found link:https://www.dogtagpki.org/wiki/Dogtag_10_Sample_python_cert_client_usage[here].
