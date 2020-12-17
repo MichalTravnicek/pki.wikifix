@@ -1,0 +1,226 @@
+= Overview =
+
+OCSP services are defined in OCSP's link:https://github.com/dogtagpki/pki/blob/master/base/ocsp/shared/webapps/ocsp/WEB-INF/web.xml[web.xml].
+
+= OCSP Services =
+
+|===
+| Path | Service | Authentication | SSL
+
+| /ee/ocsp
+| ocspOCSP
+|
+|
+
+| /ee/ocsp/*
+| ocspOCSP
+|
+|
+
+| /ocsp
+| ocspocsp
+|
+|
+
+| /agent/ocsp/checkCert.html
+| ocspReadCheckCertPage
+| certUserDBAuthMgr
+|
+
+| /agent/ocsp/addCRL.html
+| ocspReadAddCRLPage
+| certUserDBAuthMgr
+|
+
+| /agent/ocsp/getOCSPInfo
+| ocspGetOCSPInfo
+| certUserDBAuthMgr
+|
+
+| /agent/ocsp/listCAs
+| ocspListCAs
+| certUserDBAuthMgr
+|
+
+| /agent/ocsp/addCRL
+| ocspAddCRL
+| certUserDBAuthMgr
+|
+
+| /agent/ocsp/checkCert
+| ocspCheckCert
+| certUserDBAuthMgr
+|
+
+| /agent/ocsp/addCA
+| ocspAddCA
+| certUserDBAuthMgr
+|
+
+| /agent/ocsp/removeCA
+| ocspRemoveCA
+| certUserDBAuthMgr
+|
+
+| /agent/ocsp/addCA.html
+| ocspReadAddCAPage
+| certUserDBAuthMgr
+|
+|===
+
+= Installation Services =
+
+|===
+| Path | Service | Authentication | SSL
+
+| /ee/ocsp/tokenAuthenticate
+| ocspTokenAuthenticate
+|
+|
+
+| /agent/ocsp/updateDomainXML
+| ocspUpdateDomainXML
+| certUserDBAuthMgr
+|
+
+| /admin/ocsp/securityDomainLogin
+| ocspSecurityDomainLogin
+|
+|
+
+| /admin/ocsp/getCookie
+| ocspGetCookie
+| passwdUserDBAuthMgr
+|
+
+| /admin/ocsp/tokenAuthenticate
+| ocspTokenAuthenticate-admin
+|
+|
+
+| /admin/ocsp/getDomainXML
+| ocspGetDomainXML
+|
+|
+
+| /admin/ocsp/updateDomainXML
+| ocspUpdateDomainXML-admin
+| TokenAuth
+|
+
+| /admin/ocsp/getConfigEntries
+| ocspGetConfigEntries
+| TokenAuth
+|
+
+| /admin/console/config/savepkcs12
+| ocspDownloadPKCS12
+| TokenAuth
+|
+|===
+
+= Other Services =
+
+|===
+| Path | Service | Authentication | SSL
+
+| /rest/account/*
+| AccountService
+| certUserDBAuthMgr, passwdUserDBAuthMgr
+| Required
+
+| /rest/installer/configure
+| OCSPInstallerService
+|
+|
+
+| /rest/securityDomain/installToken
+| SecurityDomainService
+|
+| Required
+
+| /rest/securityDomain/domainInfo
+| SecurityDomainService
+|
+|
+
+| /rest/selftests/*
+| SelfTestService
+| certUserDBAuthMgr
+| Required
+
+| /rest/admin/groups/*
+| GroupService
+| certUserDBAuthMgr
+| Required
+
+| /rest/admin/users/*
+| UserService
+| certUserDBAuthMgr
+| Required
+
+| /rest/config/cert/*
+| SystemCertService
+|
+|
+
+| /ug
+| ocspug
+|
+|
+
+| /acl
+| ocspacl
+|
+|
+
+| /jobsScheduler
+| ocspjobsScheduler
+|
+|
+
+| /server
+| ocspserver
+|
+|
+
+| /log
+| ocsplog
+|
+|
+
+| /auths
+| ocspauths
+|
+|
+
+| /start
+| ocspstart
+|
+|
+
+| /agent/index
+| ocspindex
+| certUserDBAuthMgr
+|
+
+| /ee/ocsp/ports
+| ocspports
+|
+|
+
+| /agent/header
+| ocspheader
+| certUserDBAuthMgr
+|
+
+| /services
+| services
+|
+|
+
+| /admin/ocsp/getStatus
+| link:PKI-GetStatus-Service[PKI GetStatus Service]
+|
+|
+|===
