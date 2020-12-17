@@ -1,0 +1,645 @@
+= Overview =
+
+CA services are defined in CA's link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/webapps/ca/WEB-INF/web.xml[web.xml].
+
+= Certificate Services =
+
+|===
+| Path | Service | Authentication | SSL
+
+| /ca/getAdminCertBySerial
+| caGetAdminCertBySerial
+|
+|
+
+| /certbasedenrollment
+| cacertbasedenrollment
+|
+|
+
+| /enrollment
+| caenrollment
+|
+|
+
+| /doRevoke
+| caProxyDoRevoke
+|
+|
+
+| /capublisher
+| capublisher
+|
+|
+
+| /renewal
+| caRenewal
+| sslClientCertAuthMgr
+|
+
+| /ee/ca/getCertChain
+| caGetCertChain
+|
+|
+
+| /ee/ca/getCertFromRequest
+| caGetCertFromRequest
+|
+|
+
+| /ee/ca/getBySerial
+| caGetBySerial
+|
+|
+
+| /ee/ca/checkRequest
+| caCheckRequest
+|
+|
+
+| /ee/subsystem/ca/doRevoke
+| caDoRevoke1
+| certUserDBAuthMgr
+|
+
+| /ee/ca/displayCertFromRequest
+| caDisplayCertFromRequest
+|
+|
+
+| /ee/ca/listCerts
+| caListCerts
+|
+|
+
+| /eeca/ca/getCertFromRequest
+| caGetCertFromRequest
+|
+|
+
+| /ee/ca/getCAChain
+| caGetCAChain
+|
+|
+
+| /ee/ca/CMCRevReq
+| caCMCRevReq
+| CMCAuth
+|
+
+| /ee/subsystem/ca/doUnrevoke
+| caDoUnrevoke1
+| certUserDBAuthMgr
+|
+
+| /ee/ca/displayBySerial
+| caDisplayBySerial
+|
+|
+
+| /ee/ca/revocation
+| caRevocation
+| sslClientCertAuthMgr
+|
+
+| /ee/ca/srchCerts
+| caSrchCerts
+|
+|
+
+| /ee/ca/doRevoke
+| caDoRevoke
+|
+|
+
+| /ca/getCertFromRequest
+| caGetCertFromRequest-agent
+| certUserDBAuthMgr
+|
+
+| /ca/displayCertFromRequest
+| caDisplayCertFromRequest-agent
+| certUserDBAuthMgr
+|
+
+| /ca/getBySerial
+| caGetBySerial-agent
+| certUserDBAuthMgr
+|
+
+| /agent/ca/reasonToRevoke
+| caReasonToRevoke
+| certUserDBAuthMgr
+|
+
+| /agent/ca/listRequests.html
+| caListRequests
+| certUserDBAuthMgr
+|
+
+| /agent/ca/searchReqs
+| casearchReqs
+| certUserDBAuthMgr
+|
+
+| /agent/ca/srchCerts
+| caSrchCerts-agent
+| certUserDBAuthMgr
+|
+
+| /agent/ca/listCerts
+| caListCerts-agent
+| certUserDBAuthMgr
+|
+
+| /agent/ca/queryReq
+| caqueryReq
+| certUserDBAuthMgr
+|
+
+| /agent/ca/processReq
+| caProcessReq
+| certUserDBAuthMgr
+|
+
+| /agent/ca/srchCert.html
+| caSrchCert
+| certUserDBAuthMgr
+|
+
+| /agent/ca/displayBySerial
+| caDisplayBySerial-agent
+| certUserDBAuthMgr
+|
+
+| /agent/ca/srchRevokeCert.html
+| caSrchRevokeCert
+| certUserDBAuthMgr
+|
+
+| /agent/ca/doUnrevoke
+| caDoUnrevoke
+| certUserDBAuthMgr
+|
+
+| /agent/ca/doRevoke
+| caDoRevoke-agent
+| certUserDBAuthMgr
+|
+
+| /agent/ca/bulkissuance
+| cabulkissuance
+| certUserDBAuthMgr
+|
+
+| /agent/ca/queryBySerial.html
+| caQueryBySerial
+| certUserDBAuthMgr
+|
+
+| /agent/bulkissuance
+| caProxyBulkIssuance
+|
+|
+
+| /admin/ca/adminEnroll
+| caadminEnroll
+| passwdUserDBAuthMgr
+|
+
+| /admin/ca/getCertChain
+| caGetCertChainAdmin
+|
+|
+
+| /admin/ca/getBySerial
+| caGetAdminBySerial
+|
+|
+|===
+
+= Profile Services =
+
+|===
+| Path | Service | Authentication | SSL
+
+| /profileSubmit
+| caProxyProfileSubmit
+|
+|
+
+| /ee/ca/profileSubmitSSLClient
+| caProfileSubmitSSLClient
+|
+|
+
+| /ee/ca/profileSubmitCMCFull
+| caProfileSubmitCMCFull
+|
+|
+
+| /ee/ca/profileList
+| caProfileList
+|
+|
+
+| /ee/ca/profileSubmit
+| caProfileSubmit
+|
+|
+
+| /ee/ca/profileSelect
+| caProfileSelect
+|
+|
+
+| /ee/ca/profileSubmitCMCSimple
+| caProfileSubmitCMCSimple
+|
+|
+
+| /eeca/ca/profileSubmitSSLClient
+| caProfileSubmitSSLClient
+|
+|
+
+| /agent/ca/profileList
+| caProfileList-agent
+| certUserDBAuthMgr
+|
+
+| /agent/ca/profileSelect
+| caProfileSelect-agent
+| certUserDBAuthMgr
+|
+
+| /agent/ca/profileProcess
+| caProfileProcess
+| cetUserDBAuthMgr
+|
+
+| /agent/ca/processCertReq
+| caProcessCertReq
+| certUserDBAuthMgr
+|
+
+| /agent/ca/profileApprove
+| caProfileApprove
+| certUserDBAuthMgr
+|
+
+| /agent/ca/profileReview
+| caProfileReview
+| certUserDBAuthMgr
+|
+|===
+
+= CRL Services =
+
+|===
+| Path | Service | Authentication | SSL
+
+| /ee/ca/getCRL
+| caGetCRL
+|
+|
+
+| /agent/ca/updateCRL
+| camasterCAUpdateCRL
+| certUserDBAuthMgr
+|
+
+| /agent/ca/displayCRL
+| camasterCADisplayCRL
+| certUserDBAuthMgr
+|
+|===
+
+= OCSP Services =
+
+|===
+| Path | Service | Authentication | SSL
+
+| /ocsp
+| caOCSP
+|
+|
+
+| /ocsp/*
+| caOCSP
+|
+|
+
+| /ee/ca/updateOCSPConfig
+| caUpdateOCSPConfig
+| TokenAuth
+|
+
+| /agent/ca/getOCSPInfo
+| caGetOCSPInfo
+| certUserDBAuthMgr
+|
+|===
+
+= SCEP Services =
+
+|===
+| Path | Service | Authentication | SSL
+
+| /cgi-bin/pkiclient.exe
+| caSCEP
+|
+|
+
+| /ee/ca/pkiclient
+| caRASCEP
+|
+|
+|===
+
+= Installation Services =
+
+|===
+| Path | Service | Authentication | SSL
+
+| /admin/ca/getCookie
+| caGetCookie
+| passwdUserDBAuthMgr
+|
+
+| /admin/ca/getDomainXML
+| caGetDomainXML
+|
+|
+
+| /agent/ca/updateDomainXML
+| caUpdateDomainXML
+| certUserDBAuthMgr
+|
+
+| /admin/ca/updateDomainXML
+| caUpdateDomainXML-admin
+| TokenAuth
+|
+
+| /admin/ca/updateNumberRange
+| caUpdateNumberRange
+| TokenAuth
+|
+
+| /admin/ca/securityDomainLogin
+| caSecurityDomainLogin
+|
+|
+
+| /ee/ca/tokenAuthenticate
+| caTokenAuthenticate
+|
+|
+
+| /admin/ca/tokenAuthenticate
+| caTokenAuthenticate-admin
+|
+|
+
+| /admin/ca/getConfigEntries
+| caGetConfigEntries
+| TokenAuth
+|
+
+| /admin/console/config/savepkcs12
+| caDownloadPKCS12
+| TokenAuth
+|
+
+| /admin/ca/updateConnector
+| caUpdateConnector
+| TokenAuth
+|
+
+| /admin/ca/registerUser
+| caRegisterUser
+| TokenAuth
+|
+
+| /admin/ca/registerRaUser
+| caRegisterRaUser
+| TokenAuth
+|
+|===
+
+= Other Services =
+
+|===
+| Path | Service | Authentication | SSL
+
+| /rest/account/*
+| AccountService
+| certUserDBAuthMgr, passwdUserDBAuthMgr
+| Required
+
+| /rest/audit/*
+| AuditService
+|
+|
+
+| /rest/installer/*
+| CAInstallerService
+|
+|
+
+| /rest/certs/*
+| CertService
+|
+|
+
+| /rest/agent/certs/*
+| CertService
+| certUserDBAuthMgr
+| Required
+
+| /rest/certrequests/*
+| CertRequestService
+|
+|
+
+| /rest/agent/certrequests/*
+| CertRequestService
+| certUserDBAuthMgr
+| Required
+
+| /rest/profiles/*
+| ProfileService
+| certUserDBAuthMgr
+| Required
+
+| /rest/selftests/*
+| SelfTestService
+| certUserDBAuthMgr
+| Required
+
+| /rest/admin/groups/*
+| GroupService
+| certUserDBAuthMgr
+| Required
+
+| /rest/admin/users/*
+| UserService
+| certUserDBAuthMgr
+| Required
+
+| /rest/config/cert/*
+| SystemCertResource
+|
+|
+
+| /rest/admin/kraconnector/*
+| UserService
+| certUserDBAuthMgr
+| Required
+
+| /rest/securityDomain/installToken
+| SecurityDomainService
+| passwdUserDBAuthMgr
+| Required
+
+| /rest/securityDomain/domainInfo
+| SecurityDomainService
+|
+|
+
+| /ug
+| caug
+|
+|
+
+| /acl
+| caacl
+|
+|
+
+| /server
+| caserver
+|
+|
+
+| /capolicy
+| capolicy
+|
+|
+
+| /log
+| calog
+|
+|
+
+| /caadmin
+| caca
+|
+|
+
+| /registry
+| caregistry
+|
+|
+
+| /auths
+| caauths
+|
+|
+
+| /start
+| castart
+|
+|
+
+| /caprofile
+| caprofile
+|
+|
+
+| /ee/dynamicVars.js
+| caDynamicVariables
+|
+|
+
+| /agent/dynamicVars.js
+| caDynamicVariables-agent
+|
+|
+
+| /admin/dynamicVars.js
+| caDynamicVariables-admin
+|
+|
+
+| /jobsScheduler
+| cajobsScheduler
+|
+|
+
+| /agent/ca/updateDir
+| caUpdateDir
+| certUserDBAuthMgr
+|
+
+| /index
+| caindex
+| certUserDBAuthMgr
+|
+
+| /agent/ca/monitor
+| caMonitor
+| certUserDBAuthMgr
+|
+
+| /agent/ca/updateDir.html
+| caUpdateDirectory
+| certUserDBAuthMgr
+|
+
+| /ca/connector
+| caConnector
+| certUserDBAuthMgr
+|
+
+| /agent/header
+| caheader
+| certUserDBAuthMgr
+|
+
+| /ee/ca/ports
+| caports
+|
+|
+
+| /agent/ca/getInfo
+| camasterCAGetInfo
+| certUserDBAuthMgr
+|
+
+| /agent/ca/getStats
+| caStats
+| certUserDBAuthMgr
+|
+
+| /ee/ca/getInfo
+| caGetInfo
+|
+|
+
+| /services
+| services
+|
+|
+
+| /admin/ca/getSubsystemCert
+| caGetSubsystemCert
+|
+|
+
+| /admin/ca/getStatus
+| link:PKI-GetStatus-Service[PKI GetStatus Service]
+|
+|
+|===
