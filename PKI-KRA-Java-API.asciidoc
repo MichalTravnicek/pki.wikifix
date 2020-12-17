@@ -1,0 +1,18 @@
+= KRA Client Java API =
+
+To create a KRA session:
+
+----
+KRAClient kraClient = new KRAClient(client);
+AccountInfo accountInfo = kraClient.login();
+----
+
+The AccountInfo contains information about the subsystem user (e.g. user ID, full name, email, roles).
+
+To remove the session:
+
+----
+kraClient.logout();
+----
+
+See also link:https://git.fedorahosted.org/cgit/pki.git/tree/base/common/src/com/netscape/certsrv/kra/KRAClient.java[KRAClient.java].
