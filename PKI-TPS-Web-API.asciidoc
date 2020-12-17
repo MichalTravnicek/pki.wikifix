@@ -1,0 +1,126 @@
+= Overview =
+
+TPS services are defined in TPS's link:https://github.com/dogtagpki/pki/blob/master/base/tps/shared/webapps/tps/WEB-INF/web.xml[web.xml].
+
+= Token Services =
+
+|===
+| Path | Service | Authentication | SSL
+
+| /phoneHome
+| phoneHome
+|
+|
+
+| /tps
+| tps
+|
+|
+|===
+
+
+= Other Services =
+
+|===
+| Path | Service | Authentication | SSL
+
+| /rest/account/*
+| AccountService
+| certUserDBAuthMgr, passwdUserDBAuthMgr
+| Required
+
+| /rest/audit/*
+| AuditService
+| certUserDBAuthMgr
+| Required
+
+| /rest/installer/*
+| TPSInstallerService
+|
+|
+
+| /rest/admin/groups/*
+| GroupService
+| certUserDBAuthMgr
+| Required
+
+| /rest/admin/users/*
+| UserService
+| certUserDBAuthMgr
+| Required
+
+| /rest/config/cert/*
+| SystemCertService
+|
+|
+
+| /rest/activities/*
+| ActivityService
+|
+|
+
+| /rest/authenticators/*
+| AuthenticatorService
+| certUserDBAuthMgr
+| Required
+
+| /rest/certs/*
+| TPSCertService
+| certUserDBAuthMgr
+|
+
+| /rest/config/*
+| ConfigService
+| certUserDBAuthMgr
+| Required
+
+| /rest/connectors/*
+| ConnectorService
+| certUserDBAuthMgr
+| Required
+
+| /rest/profiles/*
+| ProfileService
+| certUserDBAuthMgr
+| Required
+
+| /rest/profile-mappings/*
+| ProfileMappingService
+| certUserDBAuthMgr
+| Required
+
+| /rest/selftests/*
+| SelfTestService
+| certUserDBAuthMgr
+| Required
+
+| /rest/tokens/*
+| TokenService
+| certUserDBAuthMgr
+| Required
+
+| /ui/*
+| UI
+|
+| Required
+
+| /ug
+| tpsug
+|
+|
+
+| /start
+| tpsstart
+|
+|
+
+| /log
+| tpslog
+|
+|
+
+| /admin/tps/getStatus
+| link:PKI-GetStatus-Web-API[PKI GetStatus Web API]
+|
+|
+|===
