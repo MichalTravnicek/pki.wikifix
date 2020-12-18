@@ -1,0 +1,56 @@
+= Support for Group Certificates =
+
+== Introduction ==
+
+There may exist a need for a group of people to share an encryption certificate.
+This design proposes one way of doing it. The goal is to provide an easy to use mechanism to generate group certs/keys;
+Members of the group will "recover" them at their next enrollment.
+Some ideas have been kicked around.
+One is Auto-generation of "first" token and auto-population of its certsToAdd data to other members of the group.
+However, it could be problematic.
+For example:
+
+* Have to determine who is first when multiple users are enrolling - how to eliminate such window?
+* if we solved issue 1 above, do the other externalReg recovery ops hang and wait, or proceed without recovering any, or fail with error while waiting? How do we know when to do what?
+* maintenance.  With the data populated to all members of the group, any change to the group certificate will have to be propagated to all members.
+* etc.
+
+== Proposal ==
+
+This design proposes:
+
+* make generating the "group cert" a separate step
+* TPS will provide a per-group entry for a "group certsToAdd" entry.  Upon enrollment via externalReg, the enrolling user's personal certsToAdd entry will be concatenated with the group certToAdd entry.
+**This eliminates the need to populate certsToAdd 
+**administering the group certsToAdd is much simplier
+
+=== Assumption ===
+
+* The members of the each group has something like "memberOf' ldap attribute in each user record.
+* A user could belong to multiple groups; and multiple "group certsToAdd" coule be applied to each user enrollment
+
+=== On CA ===
+
+* Create a group enrollment profile for encryption certs only.  e.g. tokenGroupEncCertProfile.cfg, it is for initiating the enrollment of a group cert that can be later used to "recover" using the externalReg mechanism.
+** we could add a new profilie input to take group name for group enrollment
+** we could add a new authz evaluator to compare the group input to see if its one of the actual authenticating user memberOf list of groups
+** we could make the profile take the group info to be applied in the subject dn
+
+=== On TPS ===
+
+* provide a "group record" in TPS db associated with each group where we could add a group "certsToAdd" attribute
+* modify TPS externalReg code so that during each user enrollment it will pull and "recover" the certs/keys in both
+** group "certsToAdd" (multiple groups allowed)
+** user "certsToAdd"
+
+=== Advantages ===
+
+* Since the group certs/keys info are centralized in one single location, no propagation needed
+* maintenance of the group certs is much easier, not having to touch all user records when group certs are updated
+* if a user belongs to multiple groups, this should work as well
+
+=== Procedure (flow) ===
+
+* A designated member of each group goes through enrollment via the tokenGroupEncCertProfile to enroll a certificate and have its private key escrowed with kra.
+* TPS admin runs ldapmodify to add the certsToAdd attribute with the new group cert and keyid info to the "group record" certsToAdd attribute
+* when a user enrolls his/her token, both user record and group record will be pulled for a concatenated certs to add list in TPS memory for further processing
