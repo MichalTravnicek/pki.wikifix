@@ -1,0 +1,435 @@
+= Supporting Multiple keySets for Different Cards for ExternalReg =
+
+== Introduction ==
+
+Currently, in the case of non-externalReg, we use the filtering system that processes a set of mappings such as following to resolve the tokenType (tps profile):
+
+----
+op.enroll.mapping.0.filter.appletMajorVersion=1
+op.enroll.mapping.0.filter.appletMinorVersion=
+op.enroll.mapping.0.filter.tokenATR=
+op.enroll.mapping.0.filter.tokenCUID.end=
+op.enroll.mapping.0.filter.tokenCUID.start=
+op.enroll.mapping.0.filter.tokenType=userKey
+op.enroll.mapping.0.target.tokenType=userKey
+op.enroll.mapping.1.filter.appletMajorVersion=
+op.enroll.mapping.1.filter.appletMinorVersion=
+op.enroll.mapping.1.filter.tokenATR=
+op.enroll.mapping.1.filter.tokenCUID.end=
+op.enroll.mapping.1.filter.tokenCUID.start=
+op.enroll.mapping.1.filter.tokenType=soKey
+op.enroll.mapping.1.target.tokenType=soKey
+op.enroll.mapping.2.filter.appletMajorVersion=
+op.enroll.mapping.2.filter.appletMinorVersion=
+op.enroll.mapping.2.filter.tokenATR=
+op.enroll.mapping.2.filter.tokenCUID.end=
+op.enroll.mapping.2.filter.tokenCUID.start=
+op.enroll.mapping.2.filter.tokenType=
+op.enroll.mapping.2.target.tokenType=userKey
+op.enroll.mapping.order=0,1,2
+----
+
+The keySet is determined by the following configuration:
+
+----
+...
+conn.tks1.keySet=defKeySet
+...
+----
+
+When multiple keySets are desired, one is expected to define multiple sets of conn.tks entries, e.g.
+
+----
+...
+conn.tks2.keySet=jForte
+...
+----
+
+TPS Profiles will then point to the "conn.tks" that defines the desired keySet. e.g.
+
+----
+op.enroll.delegateIEtoken.tks.conn=tks1
+----
+
+In the case of externalReg, however, the above filtering system is completely bypassed and instead it retrieves the tokenType from the user record.
+This presents a challenge when in an environment where multiple vendor cards are supported where keySets are to be different.
+When a user's ldap record is populated with a set tokenType, it does not know which card will end up doing the enrollment, and therefore keySet cannot be predetermined.
+
+== Design Proposal ==
+
+We can extend the existing GetTokenType filtering system to support resolving keySet.
+Currently the function signature looks like this:
+
+----
+bool RA_Processor::GetTokenType(const char *prefix, int major_version, int minor_version,
+    const char *cuid, const char *msn, NameValueSet *extensions,
+    RA_Status &o_status /* out */, const char *&o_tokenType /* out */)
+----
+
+It is cleaner to let externalReg have its own set of filtering config params.
+So, instead of "op.enroll.", we will replace the prefix with "externalReg."when calling.
+Since "prefix" is already one of the parameters, it does not require changes to the function as far as prefix is concerned.
+The following is one way to do it:
+
+* change the name GetTokenType to something like ProcessMappingFilter
+* in the now ProcessMappingFilter function, we have to make the tokenType-specific code generic enough to work for both tokenType and keySet.  Here is a sample function that I changed from the existing GetTokenType().  Note: This is meant for giving an idea of the design only, it is by no means complete or efficient.
+
+----
+/*
+* Determine the selection by processing through a set up mapping rules.
+* Admin can set up mapping rules in the config file which allow different
+* operations depending on the CUID, apple tversion, ATR, etc.
+* This method is currently intended for making Token Type or Key Set
+* selection.
+*/
+bool RA_Processor::ProcessMappingFilter(const char *prefix, int major_version, int  minor_version, const char *cuid, const char *msn, NameValueSet *extensions,
+    RA_Status &o_status /* out */, const char *&o_selection /* out */)
+{
+    const char *e_tokenATR = NULL;
+    const char *tokenATR = NULL;
+    const char *e_tokenType = NULL;
+    const char *tokenType = NULL;
+    const char *tokenCUIDStart = NULL;
+    const char *tokenCUIDEnd = NULL;
+    const char *targetSelection = NULL;
+    const char *majorVersion = NULL;
+    const char *minorVersion = NULL;
+    const char *order = NULL;
+    char *order_x = NULL;
+    const char *mappingId = NULL;
+    char configname[256];
+    int start_pos = 0, done = 0;
+    unsigned int end_pos = 0;
+    const char *cuid_x = NULL;
+
+    const char *e_keySet = NULL;
+    const char *keySet = NULL;
+    const char *FN="RA_Processor::ProcessMappingFilter";
+
+    // just use isExternalReg to decide for now; can refine by adding another
+    // config
+    PR_snprintf((char *)configname, 256, "externalReg.enable");
+    bool isExternalReg = RA::GetConfigStore()->GetConfigAsBool(configname, 0);
+
+    cuid_x = cuid;
+
+    sprintf(configname, "%s.mapping.order", prefix);
+    order = RA::GetConfigStore()->GetConfigAsString(configname);
+    if (order == NULL) {
+        RA::Error(FN, "Token type is not found");
+        // should probably add something like STATUS_ERROR_FILTER_ORDER_NOT_FOUND
+        o_status = STATUS_ERROR_DEFAULT_TOKENTYPE_NOT_FOUND;
+        RA::Debug(LL_PER_PDU, FN,
+                "cannot find config ", configname);
+        return false; /* no mapping found */
+    }
+
+    RA::Debug(LL_PER_PDU, FN,
+            "Starting:");
+    order_x = PL_strdup(order);
+
+    start_pos = 0;
+    end_pos = 0;
+    done = 0;
+    while (1)
+    {
+        if (done) {
+            break;
+        }
+        end_pos = start_pos;
+        while ((end_pos < strlen(order)) && (order_x[end_pos] != ',')) {
+            end_pos++;
+        }
+        }
+        if (end_pos < strlen(order)) {
+            order_x[end_pos] = '\0';
+            done = 0;
+        } else {
+            done = 1;
+        }
+        mappingId = &order_x[start_pos];
+        RA::Debug(LL_PER_PDU, FN,
+                "mappingId='%s'", mappingId);
+
+        start_pos = end_pos + 1;
+
+        if (!isExternalReg) {
+            sprintf(configname, "%s.mapping.%s.target.tokenType", prefix,
+                mappingId);
+        } else {
+            sprintf(configname, "%s.mapping.%s.target.keySet", prefix,
+                mappingId);
+        }
+        targetSelection = RA::GetConfigStore()->GetConfigAsString(configname);
+
+        if (targetSelection == NULL) {
+            break;
+        }
+
+        // isExternalReg should not care what the caller wants for tokenType
+        if (!isExternalReg) {
+            sprintf(configname, "%s.mapping.%s.filter.tokenType", prefix,
+                    mappingId);
+            tokenType = RA::GetConfigStore()->GetConfigAsString(configname);
+
+            RA::Debug(LL_PER_PDU, FN,
+                    "tokenType: %s",tokenType);
+
+            if (tokenType != NULL && strlen(tokenType) > 0) {
+                if (extensions == NULL) {
+                    continue; /* mapping not matched, next mapping */
+                }
+                e_tokenType = extensions->GetValue("tokenType");
+                if (e_tokenType == NULL) {
+                    continue; /* mapping not matched, next mapping */
+                }
+                if (strcmp(tokenType, e_tokenType) != 0) {
+                    continue; /* mapping not matched, next mapping */
+                }
+            }
+        } else {
+            sprintf(configname, "%s.mapping.%s.filter.keySet", prefix,
+                    mappingId);
+            keySet = RA::GetConfigStore()->GetConfigAsString(configname);
+
+            RA::Debug(LL_PER_PDU, "RA_Processor::ProcessMappingFilter",
+                    "keySet: %s",keySet);
+
+            if (keySet != NULL && strlen(keySet) > 0) {
+                if (extensions == NULL) {
+                    continue; /* mapping not matched, next mapping */
+                }
+                e_keySet = extensions->GetValue("keySet");
+                if (e_keySet == NULL) {
+                    continue; /* mapping not matched, next mapping */
+                }
+                if (strcmp(keySet, e_keySet) != 0) {
+                    continue; /* mapping not matched, next mapping */
+                }
+            }
+        }
+
+        sprintf(configname, "%s.mapping.%s.filter.tokenATR", prefix,
+                mappingId);
+        tokenATR = RA::GetConfigStore()->GetConfigAsString(configname);
+        if (tokenATR != NULL && strlen(tokenATR) > 0) {
+            if (extensions == NULL) {
+                continue; /* mapping not matched, next mapping */
+            }
+            e_tokenATR = extensions->GetValue("tokenATR");
+            if (e_tokenATR == NULL) {
+                continue; /* mapping not matched, next mapping */
+            }
+            if (strcmp(tokenATR, e_tokenATR) != 0) {
+                continue; /* mapping not matched, next mapping */
+            }
+        }
+        sprintf(configname, "%s.mapping.%s.filter.tokenCUID.start", prefix, 
+                mappingId);
+        tokenCUIDStart = RA::GetConfigStore()->GetConfigAsString(configname);
+        if (tokenCUIDStart != NULL && strlen(tokenCUIDStart) > 0) {
+            if (cuid_x == NULL) {
+                continue; /* mapping not matched, next mapping */
+            }
+            RA::Debug(LL_PER_PDU, FN,
+                    "cuid_x=%s tokenCUIDStart=%s %d", cuid_x, tokenCUIDStart,
+                    PL_strcasecmp(cuid_x, tokenCUIDStart));
+
+            if(strlen(tokenCUIDStart) != 20)
+            {
+                RA::Debug(LL_PER_PDU, FN,
+                        "Invalid tokenCUIDStart: %s",tokenCUIDStart);
+                continue;
+            }
+
+            char *pend = NULL; 
+            strtol((const char *) tokenCUIDStart, &pend, 16);
+
+            if(*pend != '\0')
+            {
+                RA::Debug(LL_PER_PDU, FN,
+                        "Invalid tokenCUIDStart: %s",tokenCUIDStart);
+
+                continue;
+            }
+
+            if (PL_strcasecmp(cuid_x, tokenCUIDStart) < 0) {
+                continue; /* mapping not matched, next mapping */
+            }
+        }
+        sprintf(configname, "%s.mapping.%s.filter.tokenCUID.end", prefix,
+                mappingId);
+        tokenCUIDEnd = RA::GetConfigStore()->GetConfigAsString(configname);
+        if (tokenCUIDEnd != NULL && strlen(tokenCUIDEnd) > 0) {
+            if (cuid_x == NULL) {
+                continue; /* mapping not matched, next mapping */
+            }
+            RA::Debug(LL_PER_PDU, FN,
+                    "cuid_x=%s tokenCUIDEnd=%s %d", cuid_x, tokenCUIDEnd,
+                    PL_strcasecmp(cuid_x, tokenCUIDEnd));
+
+            if(strlen(tokenCUIDEnd) != 20)
+            {
+                RA::Debug(LL_PER_PDU, FN,
+                        "Invalid tokenCUIDEnd: %s",tokenCUIDEnd);
+                continue;
+            }
+
+            char *pend = NULL; 
+            strtol((const char *) tokenCUIDEnd, &pend, 16);
+
+            if(*pend != '\0')
+            {
+
+                RA::Debug(LL_PER_PDU, FN,
+                        "Invalid tokenCUIDEnd: %s",tokenCUIDEnd);
+
+                continue;
+            }
+
+            if (PL_strcasecmp(cuid_x, tokenCUIDEnd) > 0) {
+                continue; /* mapping not matched, next mapping */
+            }
+        }
+        sprintf(configname, "%s.mapping.%s.filter.tokenCUID.end", prefix,
+                mappingId);
+        tokenCUIDEnd = RA::GetConfigStore()->GetConfigAsString(configname);
+        if (tokenCUIDEnd != NULL && strlen(tokenCUIDEnd) > 0) {
+            if (cuid_x == NULL) {
+                continue; /* mapping not matched, next mapping */
+            }
+            RA::Debug(LL_PER_PDU, FN,
+                    "cuid_x=%s tokenCUIDEnd=%s %d", cuid_x, tokenCUIDEnd,
+                    PL_strcasecmp(cuid_x, tokenCUIDEnd));
+
+            if(strlen(tokenCUIDEnd) != 20)
+            {
+                RA::Debug(LL_PER_PDU, FN,
+                        "Invalid tokenCUIDEnd: %s",tokenCUIDEnd);
+                continue;
+            }
+
+            char *pend = NULL; 
+            strtol((const char *) tokenCUIDEnd, &pend, 16);
+
+            if(*pend != '\0')
+            {
+
+                RA::Debug(LL_PER_PDU, FN,
+                        "Invalid tokenCUIDEnd: %s",tokenCUIDEnd);
+
+                continue;
+            }
+
+            if (PL_strcasecmp(cuid_x, tokenCUIDEnd) > 0) {
+                continue; /* mapping not matched, next mapping */
+            }
+        }
+        sprintf(configname, "%s.mapping.%s.filter.tokenCUID.end", prefix,
+                mappingId);
+        tokenCUIDEnd = RA::GetConfigStore()->GetConfigAsString(configname);
+        if (tokenCUIDEnd != NULL && strlen(tokenCUIDEnd) > 0) {
+            if (cuid_x == NULL) {
+                continue; /* mapping not matched, next mapping */
+            }
+            RA::Debug(LL_PER_PDU, FN,
+                    "cuid_x=%s tokenCUIDEnd=%s %d", cuid_x, tokenCUIDEnd,
+                    PL_strcasecmp(cuid_x, tokenCUIDEnd));
+
+            if(strlen(tokenCUIDEnd) != 20)
+            {
+                RA::Debug(LL_PER_PDU, FN,
+                        "Invalid tokenCUIDEnd: %s",tokenCUIDEnd);
+                continue;
+            }
+
+            char *pend = NULL; 
+            strtol((const char *) tokenCUIDEnd, &pend, 16);
+
+            if(*pend != '\0')
+            {
+
+                RA::Debug(LL_PER_PDU, FN,
+                        "Invalid tokenCUIDEnd: %s",tokenCUIDEnd);
+
+                continue;
+            }
+            if (PL_strcasecmp(cuid_x, tokenCUIDEnd) > 0) {
+                continue; /* mapping not matched, next mapping */
+            }
+        }
+        sprintf(configname, "%s.mapping.%s.filter.appletMajorVersion",
+                prefix, mappingId);
+        majorVersion = RA::GetConfigStore()->GetConfigAsString(configname);
+        if (majorVersion != NULL && strlen(majorVersion) > 0) {
+            if (major_version != atoi(majorVersion)) {
+                continue; /* mapping not matched, next mapping */
+            }
+        }
+        sprintf(configname, "%s.mapping.%s.filter.appletMinorVersion",
+                prefix, mappingId);
+        minorVersion = RA::GetConfigStore()->GetConfigAsString(configname);
+        if (minorVersion != NULL && strlen(minorVersion) > 0) {
+            if (minor_version != atoi(minorVersion)) {
+                continue; /* mapping not matched, next mapping */
+            }
+        }
+
+        if( order_x != NULL ) { 
+            PL_strfree( order_x );
+            order_x = NULL;
+        }
+        RA::Debug(FN,
+                        "Selection is '%s'", targetSelection);
+        o_selection = targetSelection;
+        return true;
+    }
+
+    if( order_x != NULL ) { 
+        PL_strfree( order_x );
+        order_x = NULL;
+    }
+    RA::Error(FN, "selection is not found");
+    // maybe add a STATUS_ERROR_FILTER_KEYSET_NOT_FOUND for isExternalReg
+    o_status = STATUS_ERROR_DEFAULT_TOKENTYPE_NOT_FOUND;
+
+    return false;
+}
+----
+
+* in the code where RequestUserId() and AuthenticateUser() are called under isExternalReg, we add a call to the new function ProcessMappingFilter() to resolve the keySet.
+* wherever keySet is retrieved, e.g.
+
+----
+        PR_snprintf((char *)configname, 256, "conn.%s.keySet", connid);
+        const char *keySet = RA::GetConfigStore()->GetConfigAsString(configname);
+----
+
+we use the keySet resolved from ProcessMappingFilter()
+
+== Testing ==
+
+Here is an example instruction on how to test this feature, once implemented:
+
+=== server side ===
+
+The above sample code did not provide a separate config parameter for this feature, so let's just assume the isExternalReg parameter is the trigger as sample indicated above:
+
+* make sure ldap is setup, and all config in place and set correctly
+* turn on isExteranalReg
+* add the externalReg.mapping.X.target.Y=Z parameters like the op.enroll. ones, with the following exceptions (instead of tokenType, you do keySet):
+** externalReg.mapping.X.target.keySet=<selected keySet name supported on tks>
+** externalReg.mapping.X.filter.keySet=<selected keySet name supported on tks>
+* make sure you specify a cuid range that your card(s) will fall into
+* restart server
+
+=== client side ===
+
+* if you have all the supported actual physical smart cards, then you can just try to format and enroll
+* if you are testing with tpsclient, you need to add extra extension keySet and leave out the tokenType . e.g.:
+** op=ra_enroll uid=user2a num_threads=1 pwd=netscape new_pin=netscape extensions=keySet=defKeySet
+** also make sure your cuid fall into the cuid range filter that you intend it to fall into
+
+== others ==
+
+It seems this method could be used in the non-externalReg condition too.
