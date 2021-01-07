@@ -1,0 +1,478 @@
+= Alternative Base External Registration Design =
+
+*NOTE:* Because of some internal limitations,
+all mentioning of the "retaining" feature in regards to encryption certs below shall be exercised with the full 4-tuplet
+(serial#, caID, keyid, drmID), just like when you are "recovering" a cert/key.
+
+= Assumptions =
+
+When this new option is turned on, the following are assumed:
+
+* The External Registration DS is expected to contain user login entries where each entry contains expected attributes specified in the proposal below.
+* All the inherent TPS policies are ignored, such as:
+** one token per user
+** revocation per change of token status
+** which certs/keys to recover
+** etc.
+* the "Registration DB" is the same as TPS' "authentication db" specified in CS.cfg:
+** e.g. auth.instance.0.authId=ldap3
+** where the host, port, baseDN, etc have been defined
+* The connector definition information (e.g. conn.ca1.xxx, conn.drm1.xxx) are retained for revocation and recovery purpose.
+
+= Proposed Design =
+
+This is proposed as an alternative to the original *Base External Registration Design*.
+In this case, it differs in that instead of having two separate lists, one to recover, and one to delete
+(revocation assumed not to happen upon delete), this alternative design only works with one list,
+where the certs represents ALL of the certs (and their associated keys)
+to put on (or retained) the token after the TPS profile has been processed for enrollment or renewal.
+Any extra certs/keys not newly created or listed on this list will be deleted (with option to revoke).
+
+The idea is actually pretty straight-forward.
+Whatever you want to keep on the token, you put the necessary info in "certsToAdd",
+and whatever you want issued anew, you specify in the profile (just like before).
+Anything not falling into either gets removed.
+
+== Recovering (Adding) certs onto Existing Token ==
+
+The externalRegAddToToken profile is a sample profile that shows how to "add" certs to the token without generating new certs
+(yes, even if your token already has some certs on it).
+So for example, if you have 3 existing certs: signingA, encryptionB, and authC on the token, and you want to add encryptionB2
+without disturbing the existing certs/keys on token, you
+
+* point to externalRegAddToToken profile
+* add ALL certs' info on the user's registration record certsToAdd attribute.  e.g. (say, signingA is serial #32, encryptionB is serial#33, and authC is serial#34, and encryptionB2 is serial#12)
+** certsToAdd: 32,ca1
+** certsToAdd: 33,ca1,4,drm1
+** certsToAdd: 34,ca1
+** certsToAdd: 12,ca1,1,drm1
+
+Note how all the encryption certs need drm info (regardless of whether it's retaining or adding).
+
+== Regenerate, Retain, and Recover (Add) ==
+
+Now, if you want to "generate, retain, and recover certificates all in one swoop" then you can point to a profile such as userKey,
+and change your certsToAdd attribute.
+The userKey will generate the new certs/keys for you, and if you fill in the info correctly as instructed above with certsToAdd,
+then it should do the "generate, retain, and recover certificates all in one swoop" for you.
+
+== New Configuration Parameters ==
+
+* New global flag introduced into CS.cfg to turn on and off such "lookup registration db" option: 
+** externalReg.default.tokenType=externalRegAddToToken
+** externalReg.delegation.enable=true
+** externalReg.enable=true
+** externalReg.format.loginRequest.enable=false
+* New per db instance parameters for the lookup attributes: 
+** auth.instance.2.externalReg.certs.recoverAttributeName=certsToAdd
+** auth.instance.2.externalReg.cuidAttributeName=tokenCUID
+** auth.instance.2.externalReg.tokenTypeAttributeName=tokenType
+* New global parameter to point to one of the auth instances:
+** e.g. externalReg.authId=ldap3 (where the value is the auth.instance.authId value)
+
+Note that we are hoping the "tokenCerts" attribute is a multi-valued attribute. 
+It is also proposed to use class-of-service on ldap to define group certs,
+where it will share the same attribute tokenCerts as the certs to go on the token.
+e.g. (34456, ca1, 81, drm1+++<del>+++, revoke+++</del>+++),
+where 34456 is the serial number (in decimal),
+81 is the key id (in decimal),
+and ca1 and drm1 are respective connid's defined in TPS's CS.cfg.
+
+Note now the "revoke" flag is removed from this alternative design.
+The idea is that since there is now a "revoke" flag in the tokendb cert entry,
+we can assume no revocation for deletion, unless specified
+otherwise in the tokendb cert entry.
+Also the revocation can be done on the CA manually.
+
+In case of a signing cert/key already on token, a serial number and ca connid are enough to identify the object.
+The cuid part of usage is the same as that of the Base Design, where it's presence will restrict the enrollment
+of the user to one particular token with the specified unique tokenCUID in record.
+
+== Design Detail ==
+
+* Design regarding tokenType and enrollment from profiles remains the same as that of the Base Design.
+* TPS uses the tokenCerts as a template to decide what needs to go on the token and what not.
+** *All certs and their associated keys that do not appear on the tokenCerts list are deleted. Revocation is now to be managed manually when needed.*
+* Enrollment is still done per profile.  A new per-cert-per-profile attribute might be added to decide is a cert is to be revoked when delete is performed:
+** op.enroll.userKey.keyGen.encryption.delete.revokeCert=false
+** upon enrollment per such profile, the revocation instruction is stored on the new attribute in the tokendb.
+
+== To Revoke or Not to Revoke (VERY IMPORTANT) ==
+
+Since part of the reason for having this new feature is to allow shared certs within a whole department or group,
+*revocation* decision should be made with caution because *you don't want to inadvertently revoke the shared cert unnecessarily*.
+And because of this reason, we have set all the externalReg profiles revokeCert configuration parameters to *"false" by default*,
+and allowing sites to make their own decision to *turn them back on* or *just go to the CA to revoke certs manually*.
+
+*Warning: This applies even when you terminate a token when there is a possibility of key compromise.*
+
+In the case when a shared cert is revoked, all tokens need to be updated with a new shared cert, it involves a numbers of things to be updated on *every token that contained the revoked shared cert*:
+
+* Delete the revoked shared cert on the token: This involves no steps, as if you don't list the cert in the certsToAdd attribute in the user registration record, it's deleted
+* Add the new shared cert on the token: Modify the certsToAdd attribute to have the new cert info,
+** e.g. certsToAdd: 23,cs1,4,drm1
+* *Retain* the individual certs existing on each token: Find out ALL info on every cert and list them into certsToAdd attribute(s)
+** *WARNING: If you don't add them to the certsToAdd list, you lose them*
+*** and when you *lose* them, either of the following will happen:
+**** if they are NOT revoked: they become orphaned, unused certs.
+**** if they are revoked: they cause your CRL to grow unnecessarily large
+** *This can be cumbersome, but it is the approved design*
+
+== Test Description ==
+
+(this section is slightly outdated; when in doubt, always read the design above)
+
+Some background:
+
+1. Please read the design above.
+2. ALL profiles provided are just samples to demonstrate what you can do.
+   People are expected to customize these profiles.
+3. Please note that the new profiles are introduced as addition to existing profiles, not replacing in
+   the case of externalReg.  For example,
+   * there is no existing profile that allows one to "recover" certs only (without generating new certs),
+     so externalRegAddToToken is added to demonstrate that. The existing userKey can be used with externalReg
+     to already demonstrate that you can issue new certs AND recover using externalReg, so no need to create 
+     another sample profile specific for it. 
+4. There are two major features introduced on that design page: 
+   * The concept of allowing the registration record to control which profile to use and which certs to "recover"
+      - to use and which certs to "recover"
+   * The concept of allowing "delegation" (which is explained in the design).
+     And for this, as examples, two new sample profiles are provided to show the delegation feature:
+     - delegateISEtoken and delegateIEtoken 
+     They are ONLY for delegation case.
+
+The test cases scenarios are somewhat outdated.
+
+=== Scenario 1: Same userid for one user. In a non-delegation, externalReg environment ===
+
+* Note during each of these scenarios, there may be a need to format a token. For this to work in the exernal reg environment, the tokenCUID field of the registration record must match that of the token for even Format to succeed.
+
+==== case 1 ====
+
+(with blank token) enrollment for an ISE (Id, Signing, Encryption) token, where the "encryption" cert is a shared cert "recovered" from ldap.
+
+* Modify user record, "user1a", with the following info:
+** tokenType: delegateISEtoken
+** certsToAdd: 33,ca1,55,drm1
+* enroll with user1a
+** (this will generate two certs: signing and authentication, but "recover" the encryption cert as specified)
+
+==== case 2 ====
+
+(with  same already-loaded token) enrollment for an ISE token, where the "encryption" cert is a shared cert "recovered" from ldap to ADD to the existing certs/keys on the token without destroying them.)
+
+* Modify user record, "user1a", with the following info:
+** tokenType: externalRegAddToToken
+** certsToAdd: 44,ca1,66,drm1
+** certsToAdd: <find out what's already on the token, and add them to this multi-value field>
+* enroll with user1a
+** (this will not generate any new certs, but retain the existing certs on token, but "recover" one more encryption cert onto the token as specified)
+
+==== case 3 ====
+
+(with same already-loaded token) enrollment for an ISE token, where there are TWO "encryption" certs that are "recovered" from ldap.
+
+* replace the tokenType: delegateISE
+* replace certsToAdd from user1a with two values:
+** certsToAdd: 33,ca1,55,drm1
+** certsToAdd: 77,ca1,88,drm1
+* enroll with user1a
+** (this will wipe out the existing certs/keys on token, and generate two certs: signing and authentication, but "recover" the two encryption certs as specified)
+** also, for the certs that are "wiped out"
+*** if externalReg.delete.deleteFromDB=true, then check if the cert entry is deleted from TUS
+*** if externalReg.delete.deleteFromDB= false, then check if the cert entry stays in TUS
+*** (note: revocation is NOT assumed per design... one will have to go to the CA to do so manually)
+
+==== case 4 ====
+
+(with same already-loaded token) enrollment for an ISE token, where there is one "encryption" cert that is to be "recovered" from ldap, and one existing encryption cert on token to be retained, and one existing signing cert and one existing ID (authentication) cert to be deleted.
+
+** certsToAdd: 44,ca1,66,drm1
+** certsToAdd: 33,ca1
+*** note: if drm id and key id are specified a full "recovery" will be processed from DRM, whereas if they are missing as specified above, then the (serial#, caID) will be used to search in the existing pkcs11 object on token to retain.
+
+* enroll with user1a
+** this will 
+*** generate the certs specified in the TPS profile
+*** recover or retain the certs/keys specified in certsToAdd
+*** delete all the certs not in "certsToAdd"
+
+*NOTE:*
+
+* At the minimum, negative cases should not cause any system crash
+* Ideally, negative cases should not leave token in a "between" state (e.g. keys gone on the token but cert did not)
+
+Below is just a few sample negative cases. It's not exhaustive.
+
+==== case 4 ====
+
+negative case - ca unreachable
+
+* replace certsToAdd: 44,ca4,66,drm1 (where ca4 is undefined)
+
+==== case 5 ====
+
+negative case - drm unreachable
+
+* replace certsToAdd: 44,ca1,66,drm4 (where drm4 is undefined)
+
+==== case 6 ====
+
+negative case - keyid not found on drm1
+
+* replace certsToAdd: 50,ca1,80,drm1 (where keyid 80 not found)
+
+=== Scenario 2: Unique userid at each enrollment, for one user. In a non-delegation, externalReg environment ===
+
+* setup
+** create a user record, "user1b" (this is the same user as "user1a" above, but a different uid for new enrollment)
+** modify the following CS.cfg:
+*** externalReg.delegation.enable=false
+** restart the server
+
+==== case 1 ====
+
+(with the same already-loaded token) enrollment for an IE token, where the Id cert is generated, and the encryption cert is "recovered" from ldap.
+
+* add tokenType: delegateIE
+* add certsToAdd from user1b with the value:
+** certsToAdd: 33,ca1,55,drm1
+* add tokenCUID: <the token's CUID>
+* Enroll with the token, which will be compared with the tokenCUID (if exists) and if it's a match, it'll be allowed to enroll, if not, it is not allowed.  If tokenCUID does not exist then it doesn't care.
+* Enroll with a different token, which should result in failure.
+
+=== Scenario 3: In a delegation externalReg environment ===
+
+* setup
+** create a user record, "executive1"
+** enroll for executive1 (e.g. using userKey profile)
+** create a user record, "delegate1"
+** modify the following CS.cfg:
+*** externalReg.delegation.enable=true
+*** op.enroll.delegateISEtoken.keyGen.signing.ca.profileId=
+**** from caTokenUserSigningKeyEnrollment to caTokenUserDelegateSigningKeyEnrollment
+*** op.enroll.delegateISEtoken.keyGen.encryption.ca.profileId=
+**** from caTokenUserAuthenticationKeyEnrollment to caTokenUserDelegateAuthenticationKeyEnrollment
+** restart the server
+
+==== case 1 ====
+
+delegate1 (with a blank token) enrollment for an ISE (Id, Signing, Encryption) token, where the "encryption" cert will be executive1's encryption cert
+
+* add tokenType: delegateISE
+* add certToAdd: <executive1's cert and key info> (e.g. 202,ca1,89,drm1)
+* add lastname (e.g. Doe)
+* add firstname (e.g. John)
+* add memberID (e.g. 7654321)
+* add catCode (e.g. AC)
+* add mail (e.g. johndoe@EXAMPLE.com)
+* add exec-memberID (e.g. 1234567)
+* add exec-catCode (e.g. AC)
+* add exec-mail (e.g. janeexec@EXAMPLE.com)
+* Once enrolled, authentication (ID) cert and signing cert should be generated, while encryption cert should be taken from executive1. Note the following:
+** subject DN should have the "dnpattern" mapping worked out
+** Subject Alternative Name extension should have the "SANpattern" mapping worked out
+
+== Instruction ==
+
+This section provides instruction on how to setup and configure for this feature. _Please ignore the externalReg.prototype.* parameters in CS.cfg._
+
+=== External Registration (authentication ldap) setup ===
+
+The premise of enabling the External Registration feature is that an external ldap db is setup for authentication and retrieval of needed information to make decisions on a few things that used to be determined solely by TPS and CA.  Such information include:
+
+* tokenType (the TPS "profile" used for enrollment activities)
+* certificates to be "recovered" onto the token
+
+In addition, the following two additions allow finer control of the subject DN and Subject Alternative name by allowing patterns to be specified in the TPS profile where each $<pattern-token>$ can be replaced by <pattern-token> attributes defined in the ldap record:
+
+* dnpattern
+** e.g. op.enroll.delegateIEtoken.keyGen.authentication.dnpattern=cn=$auth.firstname$.$auth.lastname$.$auth.edipi$,e=$auth.mail$,o=TMS Org
+* SANpattern
+** e.g. op.enroll.delegateIEtoken.keyGen.authentication.SANpattern=$auth.exec-edipi$.$auth.exec-pcc$@EXAMPLE.com
+with the following interested TPS profile params:
+* auth.instance.2.attributes=mail,cn,uid,tokenCUID,tokenType,lastname,firstname,edipi,pcc,exec-edipi,exec-pcc,exec-mail,certsToAdd
+** this is so that during authentication, the interested attributes will be retrieved to fulfil the pattern mappings
+** note that this specification is per authentication instance
+* op.enroll.delegateIEtoken.keyGen.authentication.ca.profileId=caTokenUserDelegateAuthKeyEnrollment
+** this is so that the right ca enrollment profile will be used to cooperate and form the right DN and SAN during issuance
+** note that this specification is per profile
+
+To take advantage of the new features, one needs to determine and setup the following for each of the authentication ldap user record:
+
+* ldap attribute name for the tokenType (TPS profile):
+** This attribute now determines which TPS profile to use
+** e.g. auth.instance.2.externalReg.tokenTypeAttributeName=tokenType
+* ldap attribute name for the CUID:
+** this attribute, if specified in the ldap user record, will be used to compare and restrict the token used for the action
+** e.g. auth.instance.2.externalReg.cuidAttributeName=tokenCUID
+* ldap attribute name for the field where certs to recover are specified:
+** this attribute, if specified correctly, lists out all the certs to be either retained or recovered onto the token, aside from the certs generated per specified by the tokenType.
+** e.g. auth.instance.2.externalReg.certs.recoverAttributeName=certsToAdd
+
+Here is an example of what an ldap record looks like with the above attribute names:
+
+  dn: uid=test9,ou=People,dc=sjc,dc=redhat,dc=com
+  objectClass: top
+  objectClass: person
+  objectClass: organizationalPerson
+  objectClass: inetorgperson
+  objectClass: extensibleObject
+  uid: test9
+  cn: test9
+  sn: test9
+  givenName: test9
+  userPassword: {SSHA}1KvkyymH93B7Pd1LxtrCIJSkpBnMZHIjP421oA==
+  certstoadd: 200,ca1,88,drm1
+  certstoadd: 202,ca1,89,drm1
+  certstoadd: 375,ca1
+  certstoadd: 376,ca1
+  tokenType: externalRegAddToToken
+  lastname: Doe
+  firstname: JanePaul
+  edipi: 123456789
+  pcc: AA
+  mail: janedoe@EXAMPLE.com
+  exec-edipi: 999999999
+  exec-pcc: BB
+  exec-mail: joeexec@EXAMPLE.com
+
+Note that the "certstoadd" attribute is multi-valued so one can add multiple certs.  Also note that there are two types of specification for this attribute:
+
+* The ones with keyid and drm id (e.g. 200,ca1,88,drm1) specifies which ca to retrieve which serial number (in decimal), and which drm to retrieve which key id (in decimal)
+* The ones with only serial number and ca id (e.g. 375,ca1) specifies which cert that's currently on the token to retain. *NOTE: as per design, all certs/keys currently on token, but are not specified in the "certstoadd" attribute are deleted from the token.*
+
+=== TPS Configuration ===
+
+Now that the ldap server used for external registration authentication is setup, we need to make sure that TPS configuration is configured correctly.
+
+First of all, as discussed above, the authentication instance points to the External Registration ldap, and the required attribute names need to be set to match the ones you set up in the ldap server.  e.g.:
+
+ ...
+ auth.instance.2.authId=ldap3
+ auth.instance.2.externalReg.tokenTypeAttributeName=tokenType
+ auth.instance.2.externalReg.cuidAttributeName=tokenCUID
+ auth.instance.2.externalReg.certs.recoverAttributeName=certsToAdd
+ ...
+ auth.instance.2.attributes._000=##############################################
+ auth.instance.2.attributes._001=# For isExternalReg
+ auth.instance.2.attributes._002=#   attributes will be available as
+ auth.instance.2.attributes._003=#       $<attribute>$
+ auth.instance.2.attributes._004=#   attributes example:
+ auth.instance.2.attributes._005=#mail,cn,uid,edipi,pcc,firstname,lastname,exec-pcc,exec-mail
+ auth.instance.2.attributes._006=##############################################
+ auth.instance.2.attributes=mail,cn,uid,tokenCUID,tokenType,lastname,firstname,edipi,pcc,exec-edipi,exec-pcc,exec- mail,certsToAdd
+ ...
+
+the following are the relevant global parameters in the TPS CS.cfg:
+
+ externalReg._000=#########################################
+ externalReg._001=#External Registration
+ externalReg._002=#    Design: http://pki.fedoraproject.org/wiki/TPS_-_New_Recovery_Option:_External_Registration_DS
+ externalReg._003=#
+ externalReg._004=# enable - is user external registration DB enabled?
+ externalReg._005=# authId - auth id of the user external registration DB
+ externalReg._006=# delegation.enable - is delegation enabled?
+ externalReg._007=#
+ externalReg._008=# 
+ externalReg._009=# format.loginRequest.enable - login required for format?
+ externalReg._010=#                   1. requires no login to format
+ externalReg._011=#                     or
+ externalReg._012=#                   2. user record does not contain tokenType
+ externalReg._013=#########################################
+ externalReg.authId=ldap3
+ externalReg.default.tokenType=userKey
+ externalReg.delegation.enable=false
+ externalReg.enable=false
+ externalReg.format.loginRequest.enable=false
+
+* externalReg.enable
+** used to turn on the external registration feature.  By default, it is set to false.
+* externalReg.authId
+** Authentication id used to store registration records. By default, it is set to ldap3.  Make sure you point it to the auth instance specifically for external registration db
+* externalReg.delegation.enable
+** used to turn on delegation option.  By default it is set to false.
+* externalReg.format.loginRequest.enable
+** used to turn on login request for the format operation.  By default, it is set to false.
+
+The following are the relevant parameters in each of the default TPS profile (tokenType):
+
+* delegateIEtoken
+** This example demonstrates a token with ID (Authentication) and Encryption certs where
+*** the "ID" (authentication) cert is newly requested with the dnpattern and SANpattern mapped as specified
+*** the "encryption" cert is expected to be "recovered", if specified in the ldap registration user record (not specified in the TPS profile)
+
+ op.enroll.delegateIEtoken._000=#########################################
+ op.enroll.delegateIEtoken._001=# Enrollment for externalReg
+ op.enroll.delegateIEtoken._002=#     ID, Encryption
+ op.enroll.delegateIEtoken._003=#    where Encryption cert/keys are "recovered"
+ op.enroll.delegateIEtoken._004=#    is controlled by registration user record
+ op.enroll.delegateIEtoken._005=#########################################
+ ...
+ op.enroll.delegateIEtoken.keyGen.authentication.dnpattern=
+    cn=$auth.firstname$.$auth.lastname$.$auth.edipi$,e=$auth.mail$,o=TMS Org
+ op.enroll.delegateIEtoken.keyGen.authentication.SANpattern=$auth.exec-edipi$.$auth.exec-pcc$@EXAMPLE.com
+ op.enroll.delegateIEtoken.keyGen.authentication.ca.profileId=caTokenUserDelegateAuthKeyEnrollment
+ ...
+ op.pinReset.delegateIEtoken.*
+ op.format.delegateIEtoken.*
+
+* delegateISEtoken - 
+** This example demonstrates a token with (Authentication), Signing, and Encryption certs where
+*** the "ID" (authentication) cert is newly requested with the dnpattern and SANpattern mapped as specified
+*** the "signing" cert is newly requested with the dnpattern and SANpattern mapped as specified
+*** the "encryption" cert is expected to be "recovered", if specified in the ldap registration user record (not specified in the TPS profile)
+** note the following errors:
+*** op.enroll.delegateISEtoken.keyGen.encryption.ca.profileId=caTokenUserAuthenticationKeyEnrollment, where  caTokenUserAuthenticationKeyEnrollment does not exist.  caTokenUserEncryptionKeyEnrollment would be more suitable.  However, "encrytion" is not turned on in this profile by default)
+*** <op.pinReset.delegateISEtoken.*  -- this one seems to be missing in default; manually add when needed>
+
+ op.enroll.delegateISEtoken._000=#########################################
+ op.enroll.delegateISEtoken._001=# Enrollment for externalReg
+ op.enroll.delegateISEtoken._002=#     ID, Signing, Encryption
+ op.enroll.delegateISEtoken._003=#    where Encryption cert/keys is "recovered"
+ op.enroll.delegateISEtoken._004=#    is controlled by registration user record
+ op.enroll.delegateISEtoken._005=#########################################
+ ...
+ op.enroll.delegateISEtoken.keyGen.signing.dnpattern=cn=
+     $auth.firstname$.$auth.lastname$.$auth.edipi$,e=$auth.mail$,o=TMS Org
+ op.enroll.delegateISEtoken.keyGen.signing.SANpattern=$auth.exec-mail$
+ op.enroll.delegateISEtoken.keyGen.signing.ca.profileId=caTokenUserDelegateSigningKeyEnrollment
+ ...
+ op.enroll.delegateISEtoken.keyGen.authentication.dnpattern=
+     cn=$auth.firstname$.$auth.lastname$.$auth.edipi$,e=$auth.mail$,o=TMS Org
+ op.enroll.delegateISEtoken.keyGen.authentication.SANpattern=$auth.exec-edipi$.$auth.exec-pcc$@redhat.com
+ op.enroll.delegateISEtoken.keyGen.authentication.ca.profileId=caTokenUserDelegateAuthKeyEnrollment
+ ...
+ op.format.delegateISEtoken.*
+
+* externalRegAddToToken
+** This example demonstrates a token with no new certs and the profile's purpose is just to "recover" certs/keys onto the token.
+** notice how the authentication must be enabled so that the certstoadd attributes can be retrieved and processed
+
+ op.enroll.externalRegAddToToken._000=#########################################
+ op.enroll.externalRegAddToToken._001=# for externalReg recovering certs/keys only
+ op.enroll.externalRegAddToToken._002=#########################################
+ op.enroll.externalRegAddToToken.auth.enable=true
+ op.enroll.externalRegAddToToken.auth.id=ldap3
+ ...
+
+=== Misc. Configuration Parameters ===
+
+By default, TPS has a an HTTP receive buffer size of 8192. In case of certain errors such as recovering an revoked cert,
+the response by CA is truncated whereby the actual cert is not in the receive buffer.  To fix the issue, one will have to
+increase the buffer size to something larger (perhaps double it).  The default is maintained as is to minimize memory use.
+The parameter to tune the size is the following:
+
+----
+tps.recvBufSize=16384
+----
+
+NOTE: The response from CA has been trimmed to be minimal reply, so in general, the default 8192 bytes buffer should be large enough.
+
+Also, by default the printing of Buffer is truncated in the tps-debug log.  To print full Buffer's, one can enable it:
+
+----
+tps.printBufFull=true/false
+----
+
+Note that enabling it will increase the debug log a great deal; use with caution.
