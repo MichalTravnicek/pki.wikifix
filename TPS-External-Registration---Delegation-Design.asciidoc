@@ -1,0 +1,43 @@
+= Delegation Design =
+
+This design is considered as an optional option *on top of* the base design specified above and the alternative base design below. The scenario is that an executive has a number of delegates that can act on his/her behalf, in terms of:
+
+* authentication (login)
+* encrypt/decrypt emails
+* signing (LIMITED use)
+
+It offers the following features:
+
+* The delegate has two tokens:
+** a token of his own which contains his own certs. It is to be registered through the system with the base design above.  This will not be discussed further in this part of the design.
+** a token (ref. as "delegate token" here on) that the delegate uses to act on behalf of the executive, which contains a combination of (determined by TPS profiles) the following certs/keys:
+*** auth cert/keys - cn contains name and the unique id of the delegate's; SAN (Subject Alternative Name extension) contains the UPN (Other Name:Principal Name) of the executive's.
+*** enc cert - the executive's encryption cert (exact copy of the executive's own encryption cert)
+*** signing cert - cn contains name and the unique id of the delegate's; SAN contains RFC822Name of the executive's.
+
+== Assumptions ==
+
+The assumptions for the Delegation option are the same as that of the base design.
+
+== Proposed Design ==
+
+=== New Configuration Parameters ===
+
+In addition to the proposed parameters in the base design, a few more parameters are introduced:
+
+* New global flag introduced into CS.cfg to turn on and off such "delegation" option:
+** e.g. externalReg.delegation.enable=true|false
+* Note: The name attributes can be retrieved via the auth parameter, e.g.
+** auth.instance.0.attributes=mail,cn,uid,tokenType,certsToRecover,certsToDelete,tokenCUID,execRFC822Name
+* New profile-specific parameters:
+** op.enroll.userKey.keyGen.signing.DN=
+** op.enroll.userKey.keyGen.signing.SAN=
+
+=== Design Detail ===
+
+* TPS: TPS profile enhancement: a (or, a set of) per-TPS profile parameter(s) to get the desired DN and the exec's upn:
+** a pattern'd DN entry (e.g. op.enroll.userKey.keyGen.signing.DN=CN=$auth.cn$,O=Token Key User (assuming auth instance ldap attributes set includes the needed entries: e.g. auth.instance.1.attributes=execUPN,cn,uid )
+** a pattern'd SAN entry (e.g. op.enroll.userKey.keyGen.signing.SAN=$auth.execRFC822Name$
+** RHCS will provide sample TPS profiles that make use of the new enhancements (perhaps one for the id/enc token and one for the id/enc/sign token).
+* CA: a new CA enrollment profile as well as needed profile default plugin will be implemented to take DN and UPN directly from TPS.
+* DRM: for key recovery, per design for recovery above, only the serial numbers and associated subsystem ids are stored in the user registration record, DRM (and TPS) will be modified to handle "recovery by serial numbers."
