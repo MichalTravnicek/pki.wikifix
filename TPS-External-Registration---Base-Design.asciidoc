@@ -1,0 +1,76 @@
+= Base Design =
+
+Note: Only one of the base designs will be implemented.  We currently prefer the 
+Alternative Base External Registration Design and unless we hear otherwise, 
+we will start on the implementation of this alternative base design on 7/15/2013.
+
+== Assumptions ==
+
+When this new option is turned on, the following are assumed:
+
+* The External Registration DS is expected to contain user login entries where each entry contains expected attributes specified in the proposal below.
+* All the inherent TPS policies are ignored, such as:
+** one token per user
+** revocation per change of token status
+** which certs/keys to recover
+** etc.
+* the "Registration DB" is the same as TPS' "authentication db" specified in CS.cfg:
+** e.g. auth.instance.0.authId=ldap1
+** where the host, port, baseDN, etc have been defined
+* The connector definition information (e.g. conn.ca1.xxx, conn.drm1.xxx) are retained for revocation and recovery purpose.
+
+== Proposed Design ==
+=== New Configuration Parameters ===
+
+* New global flag introduced into CS.cfg to turn on and off such "lookup registration db" option: 
+** e.g. externalReg.enable=true|false
+* New global (not per db instance) parameters for the lookup attributes: 
+** externalReg.tokenTypeAttributeName=tokenType 
+** externalReg.certs.recoverAttributeName=certsToRecover
+** externalReg.certs.deleteAttributeName=certsToDelete
+** externalReg.certs.cuidAttributeName=tokenCUID
+* New global parameter to point to one of the auth instances:
+** e.g. externalReg.authId=0 (where the value is the auth.instance.X value)
+
+Note that we are hoping the "recover" and "delete" attributes are multi-valued attributes. 
+It is also proposed to use class-of-service on ldap to define group certs,
+where it will share the same attribute certsToRecover as the certs to recover.
+
+Also note that for recovery, it is essential for TPS to know which DRM instance to recover the cert(s) from.
+It is therefore proposed that the drm id being stored with the certsToRecover.
+e.g. (34456, ca1, 81, drm1), where 34456 is the serial number (in decimal), 81 is the key id (in decimal)
+and ca1 and drm1 are respective connid's defined in TPS's CS.cfg
+
+Also to consider is whether certsToDelete should include a flag to indicate if the cert(s) should be revoked or not,
+e.g. (2231, ca1, true), where 2231 is the serial number, ca1 is the connid, and true indicates revocation is requested
+
+In order to ensure the right token gets updated by the rightful owner, another ldap attribute can be added to store the 
+cuid of the smart card token along with the user registration entry.
+e.g. (a00192030405060800c9)
+
+In this case the registration software that manages the external db can do the following:
+
+* if the cuid attribute is absent in the user registration entry, at each enrollment, cuid can be extracted
+  from the TPS token db and stored in the user entry.
+  (assumption here is that initially, for a blank token, it does not matter which user it is tied to)
+
+while TPS can do the following:
+
+* if the cuid attribute is present in the user registration entry, then at each enrollment/recovery, the cuid is verified
+* if the cuid attribute is absent in the user registration entry, then enrollment/recovery is allowed once passed authentication
+* The names under externalReg.certs.xxxAttriuteName need to be listed under an existing auth attributes parameter in order to be retrieved:
+** e.g. auth.instance.0.attributes=mail,cn,uid,tokenType,certsToRecover,certsToDelete,tokenCUID
+
+=== Design Detail ===
+
+* If externalReg is enabled, relax all the relevant policies; otherwise, it works the same as before.
+* token has already been formatted (not necessarily tied to any uid)
+* user authentication takes place before token type is determined (retrieved from user entry in registration db).
+** this turns things around in TPS.  Currently, the tokenType is determined before auth db is identified.  In the new design when externalReg is enabled, the "op.enroll.<tokenType>.auth.id" will be ignored, as the tokenType is retrieved from the reg user entry on the ldap after the authentication.
+** tokenCUID attribute retrieved and
+*** If present, then it is validated against the active token to assure that only the right token is being acted upon.
+*** If not present, then any token can be used (which is the case for any initial enrollment).
+* during enrollment or recovery, enrollment info will be retrieved from the tokenType entry in CS.cfg and enrollment will proceed; whereas the "certs.recover" info will be retrieved from the user reg entry on the ldap.  And if "certs.delete" is specified, certs specified will be deleted. For example, op.enroll.userKey.keyGen.signing.xxx instructs TPS to generate new signing keys/cert, while the "externalReg.certs.recoverAttributeName" gives info on which encryption keys/certs to recover.
+* the "certs to recover" are identified by the drm and serial number (and perhaps additional ca SKI for verification purposes).
+* modify the code so that for each cert/key added to the token, it has a "counter" added to the label to make sure each name is unique.
+* At this point, we do not need anything fancy to handle cases when a token is full (just reject gracefully will be good enough)
