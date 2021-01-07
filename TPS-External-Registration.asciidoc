@@ -1,0 +1,20 @@
+= New Recovery Option: External Registration DS =
+
+This page contains a preliminary design that implements a new TPS cert/key recovery option in which TPS will obtain key enrollment and recovery information from an external registration Directory Server where user entries are kept.  Such an option would allow a site to have control to overwrite the token enrollment, revocation, and recovery policies which were previously inherent to TPS.
+
+* *Base External Registration Design*
+** In the first part of this document, it details the *Base External Registration Design*.
+* *Delegation Option*
+** In the second part of this document, an optional enhancement called "<b>Delegation Option</b>" is introduced. The Delegation option will be useful in the scenario that a delegate could potentially own a token which contains certain certificates and their keys so that a delegate can act on behalf of the executive.
+* *Alternative Base External Registration Design* (currently preferred)
+** In the third part of this document, an alternative to the Base Design is introduced.  It is to replace the Base Design in how the certs/keys on the token are controlled from the registration database.  The introduction of this alternative base design does not affect the delegation option listed above.
+
+Note: Only one of the base designs will be implemented.  We currently prefer the 
+Alternative Base External Registration Design and unless we hear otherwise, 
+we will start on the implementation of this alternative base design on 7/15/2013.
+
+* link:TPS-External-Registration---Base-Design[Base External Registration Design]
+* link:TPS-External-Registration---Delegation-Design[Delegation Design]
+* link:TPS-External-Registration---Alternative-Base-Design[Alternative Base External Registration Design]
+* link:TPS-External-Registration---Multiple-Key-Sets[Supporting Multiple Key Sets for Different Cards for External Registration]
+* link:TPS-External-Registration---Group-Certificates[Support for Group Certificates]
