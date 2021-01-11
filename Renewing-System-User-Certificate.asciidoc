@@ -1,0 +1,126 @@
+= Overview =
+
+This document describes the process to renew a client certificate for a PKI system user.
+
+= Submitting Renewal Request =
+
+== Renewing valid user certificate ==
+
+To renew a system user certificate using the certificate itself for authentication, the certificate must still be valid and stored in the client NSS database:
+
+----
+$ pki -c Secret.123 client-cert-find
+----------------------
+1 certificate(s) found
+----------------------
+  Serial Number: 0x7
+  Nickname: testuser
+  Subject DN: UID=testuser
+  Issuer DN: CN=CA Signing Certificate,O=EXAMPLE
+----------------------------
+Number of entries returned 1
+----------------------------
+----
+
+As the system user, submit the renewal request over SSL connection using the client certificate for authentication:
+
+----
+$ pki -U https://<hostname>:<secure port> -c <client NSS database password> -n <client certificate nickname> \
+    client-cert-request <subject DN> --profile <renewal profile>
+----
+
+For example:
+
+----
+$ pki -U https://server.example.com:8443 -c Secret.123 -n testuser \
+    client-cert-request uid=testuser --profile caManualRenewal
+----
+
+See link:https://www.dogtagpki.org/wiki/Certificate_Profiles[Certificate Profiles].
+
+== Renewing expired user certificate ==
+
+If the system user certificate has already expired, use the general link:https://www.dogtagpki.org/wiki/Certificate_Renewal[Certificate Renewal] procedure.
+
+= Approving Renewal Request =
+
+If the certificate renewal requires agent approval, it can be done with the following command:
+
+----
+$ pki -n caadmin -c Secret.123 ca-cert-request-review 28 --action approve
+-------------------------------
+Approved certificate request 28
+-------------------------------
+  Request ID: 28
+  Type: enrollment
+  Request Status: complete
+  Operation Result: success
+  Certificate ID: 0x1c
+----
+
+See link:Handling-Certificate-Request[Handling Certificate Request].
+
+= Assigning Renewed Certificate =
+
+As the PKI admin assign the new certificate to the system user.
+
+== PKI 10.4 or later ==
+
+Assign the new certificate to the system user with this command:
+
+----
+$ pki -n caadmin -c Secret.123 ca-user-cert-add testuser --serial 0x1c
+----
+
+Then delete the old certificate from the system user. In PKI 10.4 it can be done with the following command:
+
+----
+$ pki -n caadmin -c Secret.123 ca-user-cert-del testuser --serial 0x7
+----
+
+== PKI 10.3 or earlier ==
+
+Assign the new certificate to the system user with this command:
+
+----
+$ pki -n caadmin -c Secret.123 ca-user-cert-add testuser --serial 0x1c
+----
+
+Determine the ID of the certificate to be deleted with this command:
+
+----
+$ pki -n caadmin -c Secret.123 ca-user-cert-find testuser
+----
+
+Then delete the certificate with this command:
+
+----
+$ pki -n caadmin -c Secret.123 ca-user-cert-del \
+    testuser "2;7;CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE;UID=testuser"
+----
+
+= Retrieving Renewed Certificate =
+
+As the system user, replace the certificate in the client NSS database (see link:Retrieving-Certificate[Retrieving Certificate]).
+
+== PKI 10.4 or later ==
+
+In PKI 10.4 it can be done with the following command:
+
+----
+$ pki -c Secret.123 client-cert-import testuser --serial 0x1c --overwrite
+----
+
+== PKI 10.3 or earlier ==
+
+In PKI 10.3 delete the old certificate first:
+
+----
+$ certutil -D -d ~/.dogtag/nssdb -n testuser
+----
+
+Then import the new certificate:
+
+----
+$ pki -c Secret.123 client-cert-import testuser --serial 0x1c
+----
