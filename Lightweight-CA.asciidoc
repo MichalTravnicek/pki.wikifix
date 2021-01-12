@@ -35,38 +35,7 @@ Ticket for adding support for multiple OCSP signing certificates. Each sub-CA wi
 
 = Use cases =
 
-== FreeIPA use cases ==
-
-FreeIPA usefulness and appeal as a PKI is currently limited by the fact that there is a single X.509 issuer (Certificate Authority). Any certificate issued by FreeIPA is signed by the single authority, regardless of purpose.
-
-FreeIPA requires a mechanism to issues certificates with different certification chains, so that certificates issues for some particular use (e.g. Puppet, VPN authentication, DNP3) can be regarded as invalid for other uses.
-
-The existing Dogtag sub-CA capabilities, i.e. spawning a new instance configured as a sub-CA, has been deemed too heavyweight and complex for this use case. Reasons include:
-
-* Spawning a Dogtag instance is an expensive operation.
-* The spawning would need to take place and all replicas, and replication agreements set up.
-* FreeIPA would need to track the ports of all sub-CAs instances and communicate on those ports.
-
-Accordingly, a more lightweight solution to the sub-CA problem is sought. Ideally, the capability to create new sub-CAs would be exposed via the REST API, and no manual intervention would be necessary in order to begin using a new sub-CA.
-
-Some activities require special attention to ensure that sub-CAs continue to work:
-
-* Root / host CA chain of trust changes
-* Key rotation of the host CA or an intermediate CA.
-
-== Hosting unrelated CAs / sub-CAs ==
-
-For FreeIPA 4.2 the requirement is only for sub-CAs directly subordinate to the host CA. In future releases we want Dogtag to support multiple ''independent'' CAs hosted in a single instance.
-
-Of this use case, Dmitri wrote:
-
-* I see the architecture to be such that Dogtag would provide multiple CAs from one dogtag instance. In this single Dogtag instance there will be a "main" CA of IPA. It can be root or chained. There will be additional CAs. These additional CAs will be either independent root CAs, chained to some other CAs or chained to IPA main CA. In future may be even chained to each other. IPA would wrap this functionality and allow creation and establishing relations between these CAs.
-
-Nathan Kinder provided a concrete use case:
-
-* Consider Barbican in OpenStack. Barbican is getting into certificate issuance now, but it's quite likely that separate tenants within a cloud do not want to trust each other. Barbican backed by IPA/Dogtag could offer PKI-as-a-service, where each tenant could create their own root and then issue certificates for their services/applications within their instances.
-
-These use cases should be considered in the design of the sub-CAs feature.
+See link:Lightweight-CA-Use-Cases[Lightweight CA Use Cases].
 
 = Operating System Platforms and Architectures =
 
