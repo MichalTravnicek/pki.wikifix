@@ -1,0 +1,30 @@
+= Implementation =
+
+== EnrollProfile and CAEnrollProfile ==
+
+The `EnrollProfile` class is responsible for populating certificate information. Modifications needed are:
+
+* When creating request objects, store the sub-CA indicator from the profile context in the request data.
+* When executing requests, switch the `ICertificateAuthority` context for enrollment to the sub-CA indicated in the request data (if any).
+
+== SigningUnit ==
+
+Update `SigningUnit` and have its owners supply the nickname configuration, so that there can be multiple `SigningUnit` instances using different keys.
+
+== CertificateAuthority and ICertificateAuthority ==
+
+Add methods to retrieve a sub-CAs given a `String` sub-CA reference or an ordered `List<String>` of individual sub-CA handles.
+
+Update construction and initialisation to give the instance awareness of its position in the CA heirarchy, and to initialise the `CertificateRepository`, `SigningUnit` instances to the correct DNs, nicknames, etc.
+
+== AuthorityKeyIdentifierExtDefault ==
+
+The ''Authority Key Identifier'' extension must identify the immediate signing authority, which could be a sub-CA. Accordingly, the authority ID is read from the request data and used to query the host CA for the corresponding lightweight CA, whose identifier shall be included in the extension.
+
+== Servlets and web interface ==
+
+Servlets and web templates (HTML, javascript) will be update to recognise and propagate the `authorityId` request parameter, which indicates a lightweight CA. If the parameter is absent or empty, the host CA is implied.
+
+Care must be taken in JavaScript code to ensure that `null` values for the `authorityId` parameter do not result in a literal string value of `"null"`. This case should be handle by either using the empty string or omitting the parameter from the subsequent request.
+
+Where appropriate, web forms shall include a field (e.g. drop-down menu) to select an authority.
