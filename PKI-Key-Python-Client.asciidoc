@@ -1,0 +1,211 @@
+= Overview =
+
+The Python Key Client is a client framework that allows you to easily interact with the DRM to archive, generate and recover secrets
+over the REST framework.  This all assumes code that is currently in the trunk (master branch) in Dogtag 10.2.
+
+Note that all the python code is installed under /usr/lib/python2.7/site-packages/pki.  In the discussions below, we will refer to
+this directory as $PYTHON_PATH/pki.
+
+A build for x86_64 architectures for Fedora 20 can be found here:  http://vakwetu.fedorapeople.org/10.2.0/
+
+= Prerequisites =
+
+Install CA and KRA as described in the link:https://github.com/dogtagpki/pki/wiki/Installation-Guide[Installation Guide].
+
+= Setup for the Python client =
+
+== Authentication ==
+
+The client uses python-requests to interact with the DRM.  All interactions with the DRM require
+client certificate authentication by a trusted agent.  Fortunately, as part of the installation process,
+an admin user who is also a trusted agent was created.  We need to take the cert/private key for this
+user (which is stored in a pkcs12 file) and copy it to a PEM file for use with the python client.
+You will be prompted for a password and probably want to put this file in a well known location.
+
+----
+$ openssl pkcs12 -in ~/.dogtag/pki-tomcat/ca_admin_cert.p12 -out ~/admin_cert.pem -nodes
+----
+
+== Cryptography ==
+
+Some of the functions in the client require some cryptographic operations like generating a symmetric key,
+or wrapping a symmetric key with the DRM transport key.  There are three possible options here.  The method
+you select will depend on your particular environment.
+
+=== Option 1: Use NSS Crypto locally. ===
+
+In this option, an NSS database that contains the DRM transport key is set up locally, and used by the Python client
+for crypto operations.  This is by far the easiest mechanism to set up, as we have provided NSS crypto functions
+to do all the required operations.  The python class that implements these operations is NSSCryptoUtil located in
+$PYTHON_PATH/pki/cryptoutil.py.  Here is the python code that would set up the certificate database, populate it with
+the transport cert and initialize the database for use.
+
+----
+import base64
+import pki
+import pki.cryptoutil as cryptoutil
+import pki.key as key
+
+def main():
+   # set up the connection to the DRM, including authentication credentials
+    connection = PKIConnection('https', 'localhost', '8443', 'kra')
+    connection.set_authentication_cert('/tmp/admin_cert.pem')
+
+    # create an NSS DB for crypto operations 
+    certdb_dir = "/tmp/drmtest-certdb"
+    certdb_password = "Secret.123"
+    cryptoutil.NSSCryptoUtil.setup_database(certdb_dir, certdb_password, over_write=True)
+
+    # create kraclient
+    crypto = cryptoutil.NSSCryptoUtil(certdb_dir, certdb_password)
+    kraclient = KRAClient(connection, crypto)
+
+    # Get transport cert and insert in the certdb
+    transport_nick = "kra transport cert"
+    transport_cert = kraclient.system_certs.get_transport_cert()
+    tcert = transport_cert[len(pki.CERT_HEADER):len(transport_cert) -len(pki.CERT_FOOTER)]
+    crypto.import_cert(transport_nick, base64.decodestring(tcert), "u,u,u")
+
+    # initialize the certdb for crypto operations
+    # for NSS db, this must be done after importing the transport cert
+    crypto.initialize()
+
+    # get a key client
+    keyclient = kraclient.keys
+    keyclient.set_transport_cert(transport_nick)
+----
+
+Of course, all of this needs to be done only once assuming you keep your certdb around.
+In subsequent invocations, you can just do this:
+
+----
+   connection = PKIConnection('https', 'localhost', '8443', 'kra')
+   connection.set_authentication_cert('/tmp/admin_cert.pem')
+
+   crypto = cryptoutil.NSSCryptoUtil(certdb_dir, certdb_password)
+   kraclient = KRAClient(connection, crypto, transport_nick)
+
+   # get a key client
+   keyclient = kraclient.keys
+----
+   
+=== Option 2: Use something else (OpenSSL?) crypto locally ===
+
+In this option, the crypto operations (generating keys/ wrapping/ unwrapping) would still
+be done locally, but not using NSS for the cryptographic library.  The python client code
+uses the CryptoUtil abstract class in $PYTHON_PATH/pki/cryptoutil.py to perform cryptographic functions.
+NSSCryptoUtil described above is an implementation of that class.  We plan to write an
+OpenSSLCryptoUtil at some point soon as well.
+ 
+To use something other than NSS then, you would need to subclass CryptoUtil and implement the 
+abstract methods.  The setup code would then be similar to the code shown above - except that
+your subclass would be passed into the constructor for KRAClient instead of the NSSCryptoUtil class.
+
+=== Option 3: Have the python client not do crypto locally. ===
+
+In this option, all cryptographic operations are done outside of the Dogtag python client and the
+relevant encrypted values are passed in when key client calls are made.  This is the case when
+the symmetric keys and wrappings are being done on a separate client server, and this client 
+server does not interface with the DRM directly.
+
+This is most likely the scenario, for example, in the Barbican configuration where keys are generated
+and wrapped on a Barbican client machine and then passed to the Barbican server.  The Barbican
+server then makes calls to the DRM.
+
+This case is relatively easy to set up as is shown below, but it does mean that all the crypto
+needs to be done outside of the Dogtag Python client.
+
+----
+   connection = PKIConnection('https', 'localhost', '8443', 'kra')
+   connection.set_authentication_cert('/tmp/admin_cert.pem')
+
+   kraclient = KRAClient(connection, None, transport_nick)
+   keyclient = kraclient.keys
+----
+
+= Working with the Key Client = 
+
+As shown in the code samples above, the end result is a KeyClient object which is defined in 
+$PYTHON_PATH/pki/key.py.  Furthermore, in the source code in drmtest.py, there are examples of the invocation
+of the functions.  You should look at that class to see all the relevant methods and more detailed
+description of each method.  We will describe the most common use cases below.
+
+There are a few parameters that are worth mentioning though:
+
+* client_key_id: this is a label that is provided by the caller for the stored secret.  It is not guaranteed to be unique, If uniqueness is required, this is the responsibility of the caller.  Secrets can be either active/inactive.  There can be no more than one active secret per client_key_id.  Attempting to archive or generate another key with the same client_key_id will fail.  If this parameter is in the method definition, then it usually required.<br>  Note that there is currently a restriction that the client_key_id should not include "/" characters,
+
+* key_id: this is a unique identifier assigned to the secret by the DRM when it is generated or archived.  It is uniquely only to this DRM (and its clones).
+
+* A note about exceptions:  In general, if invalid parameters are detected on the client side, a TypeError is thrown.  Exceptions from the server as typically caught and cast as pki.PKIException objects.
+
+== Generating and archiving a symmetric key ==
+
+This function takes in some key parameters and returns the key_id for the generated
+(and archived) key.  In future, it will also be able to return the generated key at the same
+time.  We will implement that functionality soon.
+
+This is basically the Barbican encode() function.
+
+----
+import pki.key as key
+
+client_key_id = "My identifier for the key"
+algorithm = key.KeyClient.AES_ALGORITHM
+key_size = 128
+usages = [key.SymKeyGenerationRequest.DECRYPT_USAGE, key.SymKeyGenerationRequest.ENCRYPT_USAGE]
+response = keyclient.generate_symmetric_key(client_key_id,
+                                            algorithm=algorithm,
+                                            size=key_size,
+                                            usages=usages)
+key_id = response.get_key_id()
+----
+
+== Retrieving a secret ==
+
+There are different functions depending whether the client is doing crypto operations locally
+or whether the crypto operations are being performed outside of the Dogtag Python client.
+
+This is the case where Dogtag Python Client is doing all the crypto (options 1 or 2 above).
+
+----
+# get active key for a particular client ID
+key_info = keyclient.get_active_key_info(client_key_id)
+key_data, unwrapped_key = keyclient.retrieve_key(key_info.get_key_id())
+----
+
+key_data will contain information about the secret (algorithm etc.), unwrapped_key will be
+the raw key.
+
+This is the case where all the crypto is done outside the Dogtag python client.  This is 
+most likely what Barbican will use for its decode() function.
+
+----
+# client generates and passes in wrapped_session_key
+    
+# get active key for a particular client ID
+key_info = keyclient.get_active_key_info(client_key_id)
+
+key_data, _unwrapped_key = keyclient.retrieve_key(key_info.get_key_id(), 
+                                                  trans_wrapped_session_key=wrapped_session_key)
+
+# executed on the client where session key was generated
+unwrapped_key = crypto.symmetric_unwrap(key_data.wrappedPrivateData,
+                                        session_key,
+                                        nonce_iv=key_data.nonceData)
+----
+
+wrapped session_key is a 168 bit 3DES symmetric key used as a session key, that has been wrapped by
+the public key in the DRM transport certificate.  This session key will be decoded on the DRM, and will
+be used to wrap the secret.  The wrapped secret will be returned in the key_data object. The _unwrapped_key
+parameter will return None.
+
+The example code shows how to unwrap the key given knowledge of the session_key.  This code must
+be executed on the client where the session_key was generated.
+
+Some code to create the wrapped session key using python-nss and NSSCryptoUtil is given below
+for reference.  You can look into that code to see how the session key is generated.
+
+----
+session_key = crypto.generate_session_key()
+wrapped_session_key = crypto.asymmetric_wrap(session_key, keyclient.transport_cert)
+----
