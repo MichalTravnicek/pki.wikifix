@@ -1,5 +1,18 @@
 = PKI 10.4 or Later =
 
+To renew a certificates:
+
+----
+$ pki ca-cert-request-submit --profile caManualRenewal --serial 0x6 --renewal
+-----------------------------
+Submitted certificate request
+-----------------------------
+  Request ID: 28
+  Type: renewal
+  Request Status: pending
+  Operation Result: success
+----
+
 To renew CA certificate:
 
 ----
@@ -9,19 +22,6 @@ Submitted certificate request
 -----------------------------
   Request ID: 7
   Type: enrollment
-  Request Status: pending
-  Operation Result: success
-----
-
-To renew other certificates:
-
-----
-$ pki ca-cert-request-submit --profile caManualRenewal --serial 0x6 --renewal
------------------------------
-Submitted certificate request
------------------------------
-  Request ID: 28
-  Type: renewal
   Request Status: pending
   Operation Result: success
 ----
