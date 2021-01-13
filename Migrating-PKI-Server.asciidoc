@@ -1,29 +1,23 @@
 = Overview =
 
-This document describes the process to migrate PKI 9 server into a new PKI 10 server.
-
-There are several mechanisms:
-
-* cloning
-* export and import
+This document describes the process to migrate PKI server into a new instance.
 
 = Cloning =
 
 This mechanism works by cloning the old server to the new one, promoting the new one as master, then decommissioning the old one.
 
-This mechanism has only been tested in IPA environment. See the following pages:
-
 * link:https://www.dogtagpki.org/wiki/Migrating_PKI_9_Instances_to_PKI_10[Migrating PKI 9 Instances to PKI 10]
-* link:http://www.freeipa.org/page/Howto/Dogtag9ToDogtag10Migration[Dogtag 9 to Dogtag 10 Migration]
-* link:http://www.freeipa.org/page/Howto/Migration[IPA Migration]
 
 = Export and Import =
 
 This mechanism works by exporting the database and configuration from the old server, installing a new server with the new configuration, then importing the database to the new server.
 
-See also:
-
 * link:https://www.dogtagpki.org/wiki/Migrating_a_CA_using_general_mechanism[Migrating a CA using general mechanism]
 * link:https://www.dogtagpki.org/wiki/Migrating_a_CA_using_existing_CA_mechanism[Migrating a CA using existing CA mechanism]
 * link:https://www.dogtagpki.org/wiki/Migrating_a_CA_with_HSM_using_existing_CA_mechanism[Migrating a CA with HSM using existing CA mechanism]
 * link:https://www.dogtagpki.org/wiki/Database_Migration[Database Migration]
+
+= See Also =
+
+* link:http://www.freeipa.org/page/Howto/Dogtag9ToDogtag10Migration[Dogtag 9 to Dogtag 10 Migration]
+* link:http://www.freeipa.org/page/Howto/Migration[IPA Migration]
