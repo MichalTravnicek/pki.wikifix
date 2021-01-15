@@ -1,0 +1,50 @@
+= Web Engine =
+
+The Certificate System employs Red Hat Fortitude as its HTTP engine; this runs secure Tomcat for the CA, OCSP, TKS, and DRM subsystems and secure Apache for TPS and RA. Fortitude supports the subsystem instance HTTP interfaces and provides the entry point for all users and applications to access Certificate System subsystem functions through the different user interfaces: administrative console, agent services, and end-entities pages.
+
+* Tomcat - CA, OCSP, TKS, DRM
+* Apache - TPS, RA
+
+= Crypto Engine =
+
+== JSS and the JNI Layer ==
+
+JSS provides a Java™ interface for security operations performed by NSS. JSS and higher levels of the Certificate System architecture are built with the Java™ Native Interface (JNI), which provides binary compatibility across different versions of the Java™ Virtual Machine (JVM). This design allows customized subsystem services to be compiled and built once and run on a range of platforms. JSS supports most of the security standards and encryption technologies supported by NSS. JSS also provides a pure Java™ interface for ASN.1 types and BER-DER encoding. JSS documentation is available on-line at link:https://www.dogtagpki.org/wiki/JSS[JSS].
+
+== NSS ==
+
+Network Security Services (NSS) is a set of libraries designed to support cross-platform development of security-enabled communications applications. Applications built with the NSS libraries support the SSL protocol for authentication, tamper detection, and encryption, as well as PKCS#11 for cryptographic token interfaces. Red Hat uses NSS to support these features in a wide range of products, including Certificate System. NSS documentation is available on-line at link:https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSS[NSS].
+
+== Standard PKCS#11 Interface ==
+
+Public-Key Cryptography Standard (PKCS) #11 specifies an API used to communicate with devices that hold cryptographic information and perform cryptographic operations. Because it supports PKCS#11, Certificate System is compatible with a wide range of hardware and software devices.
+
+== SSL/TLS and Supported Cipher Suites ==
+
+Secure Sockets Layer (SSL) and Transport Layer Security (TLS) protocols are universally accepted standards for authenticated and encrypted communication between clients and servers. Both client and server authentication occur over SSL/TLS. SSL/TLS uses a combination of public key and symmetric-key encryption. Symmetric-key encryption is much faster than public-key encryption, but public-key encryption provides better authentication techniques. An SSL/TLS session always begins with an exchange of messages called the SSL handshake, initial communication between the server and client. The handshake allows the server to authenticate itself to the client using public-key techniques, then allows the client and the server to cooperate in the creation of symmetric keys used for rapid encryption, decryption, and tamper detection during the session that follows.
+
+Both of these protocols support using a variety of different cryptographic algorithms, or ciphers, for operations such as authenticating the server and client, transmitting certificates, and establishing session keys. Clients and servers may support different cipher suites, or sets of ciphers. Among other functions, the SSL handshake determines how the server and client negotiate which cipher suite they will use to authenticate each other, to transmit certificates, and to establish session keys.
+
+Key-exchange algorithms such as RSA govern the way the server and client determine the symmetric keys to use during an SSL session. The most common SSL cipher suites use RSA key exchange. The Certificate System supports RSA public-key cryptographic systems. 
+
+NOTE: Most web servers can continue to use 1024-bit RSA keys without negatively affecting security for normal operations. Switching to 2048-bit keys for most applications may hurt server performance. All CAs, however, should use 2048-bit RSA keys or higher.
+
+= Common Framework =
+
+The common framework, which is written in Java, provides the management of subsystem, logging, authentication, access control, self tests, and notifications.
+
+= Internal Directory Server =
+
+The Certificate System uses link:https://directory.fedoraproject.org/[389 Directory Server] as its database for storing information such as certificates, requests, users, roles, ACLs, and other internal information. The Certificate System communicates with the internal LDAP database securely through SSL client authentication.
+
+= Clients =
+
+* link:PKI-CLI[PKI CLI]
+* link:PKI-Console[PKI Console]
+* link:Enterprise-Security-Client[Enterprise Security Client]
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/PKI_Design[PKI Design]
+* link:https://www.dogtagpki.org/wiki/PKI_Developers[PKI Developers]
+* link:https://www.dogtagpki.org/wiki/PKI_Roles_and_Privileges[PKI Roles and Privileges]
