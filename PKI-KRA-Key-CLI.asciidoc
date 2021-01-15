@@ -99,7 +99,8 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin kra-key-request-
 To approve a key request:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin kra-key-request-review 0x1 --action approve
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
+    kra-key-request-review 0x1 --action approve
 ------
 Result
 ------
@@ -138,7 +139,8 @@ Number of entries returned 1
 To generate a new key on the server:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin kra-key-generate test --key-algorithm RSA --key-size 1024
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
+    kra-key-generate test --key-algorithm RSA --key-size 1024
 ---------------------------
 Key generation request info
 ---------------------------
@@ -155,7 +157,8 @@ Key generation request info
 To archive a binary data stored in a file:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin kra-key-archive --clientKeyID test --input-data private.key
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
+    kra-key-archive --clientKeyID test --input-data private.key
 ------------------------
 Archival request details
 ------------------------
@@ -170,7 +173,8 @@ Archival request details
 To archive a passphrase specified in the command-line:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin kra-key-archive --clientKeyID test --passphrase secret
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
+    kra-key-archive --clientKeyID test --passphrase secret
 ------------------------
 Archival request details
 ------------------------
@@ -201,7 +205,8 @@ To recover a key, prepare the request in a file using the recovery template, for
 Then submit the request with the following command:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin kra-key-recover --input recoverKey.xml
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
+    kra-key-recover --input recoverKey.xml
 ----
 
 == Retrieving Key ==
@@ -213,7 +218,8 @@ By default key retrieval will be done with randomly generated security parameter
 To retrieve a key and store it into a file:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin kra-key-retrieve --keyID 0x1 --output-data private.key
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
+    kra-key-retrieve --keyID 0x1 --output-data private.key
 ------------------------
 Retrieve Key Information
 ------------------------
