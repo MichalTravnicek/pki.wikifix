@@ -154,7 +154,7 @@ Key generation request info
 
 The `pki kra-key-archive` command can be used to archive a binary data, a passphrase, or a pre-encrypted secret into KRA.
  
-The command accepts a `--transport` parameter that can be used to specify the nickname of the transport certificate already in the client's  NSS database. If not specified, the command will retrieve the transport certificate from KRA.
+The command accepts a `--transport <nickname>` parameter that can be used to specify the nickname of the transport certificate already in the client's NSS database. If not specified, the command will retrieve the transport certificate from KRA and store it in the client's NSS database.
 
 === Archiving a binary data ===
 
@@ -210,7 +210,7 @@ To archive a pre-encrypted secret, store the input in a file (e.g. input.json):
             },
             {
                 "name": "wrappedPrivateData",
-                "value": "...."
+                "value": "..."
             },
             {
                 "name": "keyAlgorithm",
