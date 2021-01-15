@@ -86,104 +86,104 @@ Submitted certificate request
 
 By default it will download the transport certificate from the CA. To use a transport certificate stored in a local file, specify `--transport <filename>`. Either way, the transport certificate will be imported into the client's NSS database.
 
-See also [https://www.dogtagpki.org/wiki/Certificate_Key_Archival#Submitting_Certificate_Request submitting certificate request with key archival].
+See also link:https://www.dogtagpki.org/wiki/Certificate_Key_Archival#Submitting_Certificate_Request[submitting certificate request with key archival].
 
 = Importing CA Certificate =
 
 This operation is optional. When the CLI connects to the server via SSL it will check if the CA certificate already exists in the client security database. If it does not exist, the CLI will ask the user whether to download and import the CA certificate from the CA server.
 
-<pre>
+----
 $ pki ... user-find
 WARNING: UNTRUSTED ISSUER encountered on 'CN=server.example.com,O=EXAMPLE' indicates a non-trusted CA cert 'CN=CA Signing Certificate,O=EXAMPLE'
 Import CA certificate (Y/n)?
 CA server URI [http://server.example.com:8080/ca]:
-</pre>
+----
 
 Alternatively, the server certificate chain can be imported manually. To download and import CA certificate from the CA server:
 
-<pre>
+----
 $ pki client-cert-import "CA Certificate" --ca-server
 -------------------------------------
 Imported certificate "CA Certificate"
 -------------------------------------
-</pre>
+----
 
 To import CA certificate from a file:
 
-<pre>
+----
 $ pki client-cert-import "CA Certificate" --ca-cert ca.pem
 -------------------------------------
 Imported certificate "CA Certificate"
 -------------------------------------
-</pre>
+----
 
 = Importing Client Certificate =
 
 To import client certificate directly from CA:
 
-<pre>
+----
 $ pki client-cert-import testuser --serial 0x8
-</pre>
+----
 
 To import client certificate from file:
 
-<pre>
+----
 $ pki client-cert-import testuser --cert testuser.crt
-</pre>
+----
 
 = Importing Client Certificate and Private key =
 
 This operation is also optional for the admin. When the admin creates a new subsystem the admin certificate (e.g. caadmin) and the private key will automatically be stored in the client security database. The admin certificate can be used directly as follows:
 
-<pre>
+----
 $ pki ... -n caadmin ...
-</pre>
+----
 
 Otherwise, the client certificate and the private key can be imported from a PKCS #12 file using the following command:
 
-<pre>
+----
 $ pk12util -i client_cert.p12 -d ~/.dogtag/nssdb -K Secret.123 -W Secret.123
 pk12util: PKCS12 IMPORT SUCCESSFUL
-</pre>
+----
 
-<pre>
+----
 $ pki -c Secret.123 client-cert-import --pkcs12 ca_admin_cert.p12 --pkcs12-password Secret.123
 ----------------------------------------
 Imported certificates from PKCS #12 file
 ----------------------------------------
-</pre>
+----
 
 = Displaying Client Certificate Usages =
 
 To display client certificate usage:
 
-<pre>
+----
 $ pki client-cert-validate testuser
 Cert has the following usages: SSLClient,UserCertImport,VerifyCA,ProtectedObjectSigner,AnyCA
-</pre>
+----
 
 = Validating Client Certificate =
 
 To validate client certificate usage:
 
-<pre>
+----
 $ pki client-cert-validate testuser --certusage SSLClient
 Valid certificate: testuser
-</pre>
+----
 
 = Removing Client Certificate =
 
 Client certificates can be removed with the following command:
 
-<pre>
+----
 $ pki client-cert-del testuser
 ------------------------------
 Removed certificate "testuser"
 ------------------------------
-</pre>
+----
 
-= References =
+= See Also =
 
-* [https://github.com/dogtagpki/pki/wiki/PKI-CLI PKI CLI]
-* [https://github.com/dogtagpki/pki/wiki/Generating-Certificate-Request Generating Certificate Request]
-* [https://www.dogtagpki.org/wiki/Certificate_Profiles Certificate Profiles]
+* link:PKI-CLI[PKI CLI]
+* link:Generating-Certificate-Request[Generating Certificate Request]
+* link:https://www.dogtagpki.org/wiki/Certificate_Profiles[Certificate Profiles]
