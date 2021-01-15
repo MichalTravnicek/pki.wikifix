@@ -1,0 +1,7 @@
+= OCSP Manager =
+
+The Certificate System CA supports the Online Certificate Status Protocol as defined in Public-Key Infrastructure (X.509) (PKIX) standard link:http://www.ietf.org/rfc/rfc2560.txt[RFC 2560]. The OCSP protocol enables OCSP-compliant applications to determine the state of a certificate, including the revocation status, without having to directly check a CRL published by a CA to the validation authority. The validation authority, which is also called an OCSP responder, checks for the application.
+
+The Online Certificate Status Protocol (OCSP) subsystem is the component that provides OCSP responder services, which means it stored CRLs for CAs and can distribute the load for verifying certificate status.
+
+The OCSP subsystem is implemented in Java and it runs on top of Tomcat.
