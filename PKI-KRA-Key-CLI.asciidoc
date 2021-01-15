@@ -152,13 +152,19 @@ Key generation request info
 
 == Archiving Key ==
 
+The `pki kra-key-archive` command can be used to archive a binary data, a passphrase, or a pre-encrypted secret into KRA.
+ 
+The command accepts a `--transport` parameter that can be used to specify the nickname of the transport certificate already in the client's  NSS database. If not specified, the command will retrieve the transport certificate from KRA.
+
 === Archiving a binary data ===
 
-To archive a binary data stored in a file:
+To archive a binary data:
 
 ----
 $ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
-    kra-key-archive --clientKeyID test --input-data private.key
+    kra-key-archive \
+    --clientKeyID test \
+    --input-data private.key
 ------------------------
 Archival request details
 ------------------------
@@ -170,11 +176,13 @@ Archival request details
 
 === Archiving a passphrase ===
 
-To archive a passphrase specified in the command-line:
+To archive a passphrase:
 
 ----
 $ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
-    kra-key-archive --clientKeyID test --passphrase secret
+    kra-key-archive \
+    --clientKeyID test \
+    --passphrase secret
 ------------------------
 Archival request details
 ------------------------
@@ -186,7 +194,52 @@ Archival request details
 
 === Archiving a pre-encrypted secret ===
 
-See link:PKI-KRA-Key-Archive-Java-API[PKI KRA Key Archive Java API].
+To archive a pre-encrypted secret, store the input in a file (e.g. input.json):
+
+----
+{
+    "Attributes": {
+        "Attribute": [
+            {
+                "name": "clientKeyID",
+                "value": "test"
+            },
+            {
+                "name": "dataType",
+                "value":"symmetricKey"
+            },
+            {
+                "name": "wrappedPrivateData",
+                "value": "...."
+            },
+            {
+                "name": "keyAlgorithm",
+                "value": "AES"
+            },
+            {
+                "name": "realm",
+                "value": "example"
+            },
+            {
+                "name": "keySize",
+                "value": "128"
+            }
+        ]
+    },
+    "ClassName": "com.netscape.certsrv.key.KeyArchivalRequest"
+}
+----
+
+Then execute the following command:
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
+    kra-key-archive \
+    --input input.json \
+    --input-format json
+----
+
+See also link:PKI-KRA-Key-Archive-Java-API[PKI KRA Key Archive Java API].
 
 == Recovering Key ==
 
