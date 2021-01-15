@@ -38,7 +38,7 @@ byte[] transWrappedSessionKey = crypto.wrapSessionKeyWithTransportCert(sessionKe
 byte[] encryptedData = crypto.wrapWithSessionKey(secret, sessionKey, nonceData);
 ----
 
-Then store the input parameters in a file using the archival template, for example:
+Store the input parameters in a file. For example, in XML format:
 
 ----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -49,14 +49,9 @@ Then store the input parameters in a file using the archival template, for examp
         <Attribute name="keyAlgorithm"/>
         <Attribute name="keySize">0</Attribute>
         <Attribute name="algorithmOID">{1 2 840 113549 3 7}</Attribute>
-        <Attribute name="symmetricAlgorithmParams">RPSh1ifBg6E=&#xD;</Attribute>
-        <Attribute name="wrappedPrivateData">ogUkFUS04tM=&#xD;</Attribute>
-        <Attribute name="transWrappedSessionKey">W0Xf8OoIeaOgE56Rfz8tTn2yDAmWBkuH4ryTYDIjlEaSEv32/Bg73Mj75RUGSl/B&#xD;
-BOGAFOwcXXIw1KEUZWF/UBy6TcgLPthnAaKCkEoVYmI07QzkRSw9SXBsQIaglvAi&#xD;
-ZBAJuEi275YmrwAx7RIm4PAOBTqx40p/JEjtE8sA7BvKQ0P3a9Koll5dTOIMc4bf&#xD;
-9AbFy+hKu8vTgNLrsHCYtdHHfrLTZK5WCvR6UiaYNbnzY1hmNo1nDvnSrKTiWBmA&#xD;
-bJtzOdQwdbtew3G3VTyOWW1bYtMxwXOG9mijQIS/FhkPWUayIHarJ5pdOa4V78M0&#xD;
-XX7iRePHIlnh7vWjdlcqPA==&#xD;</Attribute>
+        <Attribute name="symmetricAlgorithmParams">...</Attribute>
+        <Attribute name="wrappedPrivateData">...</Attribute>
+        <Attribute name="transWrappedSessionKey">...</Attribute>
     </Attributes>
     <ClassName>com.netscape.certsrv.key.KeyArchivalRequest</ClassName>
 </KeyArchivalRequest>
@@ -65,7 +60,59 @@ XX7iRePHIlnh7vWjdlcqPA==&#xD;</Attribute>
 Then execute the following command:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin kra-key-archive --input archiveKey.xml
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
+    kra-key-archive \
+    --input input.xml \
+    --input-format xml
+----
+
+Alternatively, the input parameters can be specified in JSON format:
+
+----
+{
+    "Attributes": {
+        "Attribute": [
+            {
+                "name": "clientKeyID",
+                "value": "test"
+            },
+            {
+                "name": "dataType",
+                "value":"passPhrase"
+            },
+            {
+                "name": "keySize",
+                "value": "0"
+            },
+            {
+                "name": "algorithmOID",
+                "value": "{1 2 840 113549 3 7}"
+            },
+            {
+                "name": "symmetricAlgorithmParams",
+                "value": "..."
+            },
+            {
+                "name": "wrappedPrivateData",
+                "value": "..."
+            },
+            {
+                "name": "transWrappedSessionKey",
+                "value": "..."
+            }
+        ]
+    },
+    "ClassName": "com.netscape.certsrv.key.KeyArchivalRequest"
+}
+----
+
+Then execute the following command:
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
+    kra-key-archive \
+    --input input.json \
+    --input-format json
 ----
 
 = See Also =
