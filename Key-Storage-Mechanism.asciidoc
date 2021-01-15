@@ -1,0 +1,125 @@
+= Key Storage Mechanism =
+
+The KRA stores keys by using a generated symmetric key (using algorithms like AES, DES3) and wraps the symmetric key with an asymmetric public key (using algorithms like RSA).
+
+== Encryption Choices ==
+
+You can modify the encryption algorithms by modifying the corresponding entries in `/etc/pki/pki-tomcat/kra/CS.cfg`:
+
+The following snippet is taken from an installed instance
+
+----
+kra.storageUnit.wrapping.0.payloadEncryptionAlgorithm=DESede
+kra.storageUnit.wrapping.0.payloadEncryptionIV=AQEBAQEBAQE=
+kra.storageUnit.wrapping.0.payloadEncryptionMode=CBC
+kra.storageUnit.wrapping.0.payloadEncryptionPadding=PKCS5Padding
+kra.storageUnit.wrapping.0.payloadWrapAlgorithm=DES3/CBC/Pad
+kra.storageUnit.wrapping.0.payloadWrapIV=AQEBAQEBAQE=
+kra.storageUnit.wrapping.0.sessionKeyKeyGenAlgorithm=DESede
+kra.storageUnit.wrapping.0.sessionKeyLength=168
+kra.storageUnit.wrapping.0.sessionKeyType=DESede
+kra.storageUnit.wrapping.0.sessionKeyWrapAlgorithm=RSA
+kra.storageUnit.wrapping.1.payloadEncryptionAlgorithm=AES
+kra.storageUnit.wrapping.1.payloadEncryptionIVLen=16
+kra.storageUnit.wrapping.1.payloadEncryptionMode=CBC
+kra.storageUnit.wrapping.1.payloadEncryptionPadding=PKCS5Padding
+kra.storageUnit.wrapping.1.payloadWrapAlgorithm=AES KeyWrap/Padding
+kra.storageUnit.wrapping.1.sessionKeyKeyGenAlgorithm=AES
+kra.storageUnit.wrapping.1.sessionKeyLength=128
+kra.storageUnit.wrapping.1.sessionKeyType=AES
+kra.storageUnit.wrapping.1.sessionKeyWrapAlgorithm=RSA
+----
+
+More algorithms can be added by modifying the entry number. The following parameter chooses the type 1 encryption algorithm:
+
+----
+kra.storageUnit.wrapping.choice=1
+----
+
+== Password Phrase ==
+
+To archive a passphrase specified in the command-line:
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
+    kra-key-archive \
+    --clientKeyID test \
+    --passphrase secret
+------------------------
+Archival request details
+------------------------
+  Request ID: 0x1
+  Key ID: 0x1
+  Type: securityDataEnrollment
+  Status: complete
+----
+
+This creates an entry similar to the following in LDAP:
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/KRA-pass-1.png[KRA Record with Password Phrase]
+
+The `metaInfo` field contains all the required info used in encryption. Note that `privateKeyData` is a Binary Data and can be viewed using following `ldapsearch` command:
+
+----
+$ ldapsearch -H ldap://127.0.0.1:389 -x -D "cn=Directory Manager" -W -b "cn=4,ou=keyRepository,ou=kra,dc=kra,dc=pki,dc=example,dc=com"
+Enter LDAP Password: 
+# extended LDIF
+#
+# LDAPv3
+# base <cn=4,ou=keyRepository,ou=kra,dc=kra,dc=pki,dc=example,dc=com> with scope subtree
+# filter: (objectclass=*)
+# requesting: ALL
+#
+# 4, keyRepository, kra, kra.pki.example.com
+
+dn: cn=4,ou=keyRepository,ou=kra,dc=kra,dc=pki,dc=example,dc=com
+objectClass: top
+objectClass: keyRecord
+keyState: VALID
+serialno: 014
+ownerName: kraadmin
+privateKeyData:: MIIBFgSCAQBAeY/Hn2ahIJgMeqHHdqOor6wC+vawbFMqDpmpXfx2mQgue5Rsu
+ VBIJQ0Sv9bbVOnHgC7BtwJQk8EjnQqMh8MfrLxoDpfWZ74XnmW3WY/aHaOFsxKY2VRGubiCKHPXlo
+ Ze6KfwHDUF9qi84rf/8qPjCUQvQxIThagajEwUM5DNw0S1i0K8TebXuFDXPC1qytywjUA37E4j98+
+ wZXQGQo89Y91WV+h1b/j1HgTfAXeuS0uWr4e5gRzsvHqoXSAK2gaR/JbaXjouYm6JAzlbjAhpDETh
+ xBpQzvt6ziZT2VMriHeeshyTVbKL/V0AkVUbziOwxukY98t17qquly8WH673BBCcObVu/bW5ewA+H
+ xh2oJca
+
+<snipped...>
+
+# numResponses: 2
+# numEntries: 1
+----
+
+The `privateKeyData` is shown in base64 format. This is field represents the following value:
+
+----
+assymmetric(symmetric) || symmetric(password)
+----
+
+Where `||` is the concatenation and the values are in DER format. The password is encrypted using symmetric key, which in turn is wrapped using Asymmetric key.
+
+A new symmetric key is generated for every key archival request. The default symmetric key used is AES (in 10.5 or later) or DES3 (in PKI < 10.5). The payload is encrypted using this key.
+
+Depending on the condition, the transport or storage certs are used to wrap this symmetric key. Transport Cert is used when symmetric key is generated at client. This is then unwrapped and rewrapped using Storage Cert at the server side.
+
+== Client Encryption Cert ==
+
+This is similar to the password phrase storage archival. The ldap entry differs a bit and looks as shown below:
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/KRA-cert-1.png[KRA Record with Encryption Cert]
+
+To archive a client's encryption cert, please refer link:Certificate-Enrollment-with-Key-Archival[archival instructions].
+
+The value of the `publicKeyData` carries the public key of the encryption cert that is archived while `privateKeyData` carries the following value:
+
+----
+Asymmetric(Symmetric) || Symmetric(private key)
+----
+
+Here the private key is wrapped using a generated symmetric key like AES, which in turn is wrapped using transport/storage cert's cert
+
+= See Also =
+
+* link:https://github.com/SilleBille/pki/blob/Ref_KRA_Personal_test/base/java-tools/src/com/netscape/cmstools/TestPassPhrase.java[Testing Pass Phrase Archival]
+* link:https://github.com/SilleBille/pki/blob/Ref_KRA_Personal_test/base/java-tools/src/com/netscape/cmstools/TestEncryptionCert.java[Testing Encryption Cert Key Archival]
