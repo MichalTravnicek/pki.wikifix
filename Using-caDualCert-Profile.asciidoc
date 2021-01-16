@@ -1,0 +1,15 @@
+= Manual User Signing & Encryption Certificates Enrollment =
+
+This certificate profile is for enrolling dual user certificates. It only works with Netscape 7.0 or later.
+
+----
+$ pki client-cert-request uid=testuser \
+    --profile caDualCert \
+    --type crmf \
+    --transport transport.pem
+----
+
+= See Also =
+
+* link:Retrieving-KRA-Transport-Certificate[Retrieving KRA Transport Certificate]
+* link:https://github.com/dogtagpki/pki/issues/1977[Ticket 1977: Problem with CRMF request via CLI]
