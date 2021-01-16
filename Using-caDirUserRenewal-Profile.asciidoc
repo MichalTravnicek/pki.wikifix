@@ -1,0 +1,15 @@
+= Renewal: Directory-Authenticated User Certificate Self-Renew profile =
+
+This certificate profile is for renewing a certificate by serial number by using directory based authentication.
+
+----
+$ pki -n testuser \
+    client-cert-request \
+    uid=testuser \
+    --profile caDirUserRenewal
+Password: ********
+----
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/Directory-Authenticated_Profiles[Directory-Authenticated Profiles]
