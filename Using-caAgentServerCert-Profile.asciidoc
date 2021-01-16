@@ -1,0 +1,10 @@
+= Agent-Authenticated Server Certificate Enrollment =
+
+This certificate profile is for enrolling server certificates with agent authentication.
+
+----
+$ pki -n caadmin \
+    client-cert-request \
+    cn=$HOSTNAME \
+    --profile caAgentServerCert
+----
