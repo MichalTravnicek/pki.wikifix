@@ -1,0 +1,170 @@
+= Introduction =
+
+The only CA which can revoke a certificate is the CA which issued the certificate.
+When a CA is retired, it is possible to route revocation requests for tokens to that CA, while still routing enrollment and other requests to the new, active CA.
+Originally, TPS revocation is tied to the TPS profile (tokenKey) from which the certificate was issued from.
+
+An example CA definition in the TPS CS.cfg:
+
+----
+conn.ca1.clientNickname=subsystemCert cert-pki-tps-final
+conn.ca1.hostadminport=glyph.dsdev.sjc.redhat.com:9972
+conn.ca1.hostagentport=glyph.dsdev.sjc.redhat.com:9970
+conn.ca1.hostport=glyph.dsdev.sjc.redhat.com:9971
+conn.ca1.keepAlive=true
+conn.ca1.retryConnect=3
+conn.ca1.servlet.enrollment=/ca/ee/ca/profileSubmitSSLClient
+conn.ca1.servlet.renewal=/ca/ee/ca/profileSubmitSSLClient
+conn.ca1.servlet.revoke=/ca/ee/subsystem/ca/doRevoke
+conn.ca1.servlet.unrevoke=/ca/ee/subsystem/ca/doUnrevoke
+conn.ca1.timeout=100
+----
+
+An example of TPS profile pointing to a pre-defined ca connection:
+
+----
+op.enroll.userKey.renewal.encryption.ca.conn=ca1
+----
+
+During revocation, TPS looks up the profile (by "tokenType") where the certificate is issued from and sends revocation request to the ca listed in the profile (e.g. tokenType == "userKey").
+
+The problem occurs in the case if the initial issuing ca is retired from active issuance and goes into "revocation only" mode, and a new ca takes its place in the tokenKey configuration entry, then during revocation of the initial certificate, it loses it's tie with the retired CA in TPS's CS.cfg.
+
+= Design =
+
+This solution requires that the critical ca definitions (i.e. host name and port number) are maintained over the life cycle of a TPS even with the retirement of the ca.  New CA definitions can be added, however.
+The enrollment process still goes through the same TPS profile directed ca connection;
+
+For revocation, the following changes are made:
+
+For the ca definitions, we added three more fields in the CS.cfg, so for example:
+
+----
+conn.ca1.clientNickname=subsystemCert cert-pki-tps-final
+conn.ca1.hostadminport=glyph.dsdev.sjc.redhat.com:9972
+conn.ca1.hostagentport=glyph.dsdev.sjc.redhat.com:9970
+conn.ca1.hostport=glyph.dsdev.sjc.redhat.com:9971
+conn.ca1.keepAlive=true
+conn.ca1.retryConnect=3
+conn.ca1.servlet.enrollment=/ca/ee/ca/profileSubmitSSLClient
+conn.ca1.servlet.renewal=/ca/ee/ca/profileSubmitSSLClient
+conn.ca1.servlet.revoke=/ca/ee/subsystem/ca/doRevoke
+conn.ca1.servlet.unrevoke=/ca/ee/subsystem/ca/doUnrevoke
+conn.ca1.timeout=100
+
+### new fields ###
+#Subject Key Identifier (in Base64) of the ca certificate
+#     (automatically calculated by the system)
+conn.ca1.caSKI=
+#nickname of the ca certificate
+conn.ca1.caNickname=
+#list of ca connection IDs for revocation routing
+#where <n>  - CA connection ID
+conn.ca.list=ca1,ca2...ca<n>
+----
+
+Note: assumption is that the signing CA's cert must be in the internal db trusted database.
+
+During revocation, the CA certificate's DN is retrieved, and its SubjectKeyIdentifier (SKI) is calculated and stored in the new parameters.  The revoking cert's AuthorityKeyIdentifier (AKI) is extracted from the cert and mapped to the right ca before the matched ca is connected for revocation.
+
+== Design Update (for Java TPS) ==
+
+Although the design stays the same, in the java-based TPS, the connection-related configuration parameters have been changed to the following (example with two ca's):
+
+Note that the following parameters needs to be manually added at this time:
+
+* tps.connCAList=<ca connID 1>,<ca connID 2>
+** e.g. tps.connCAList=ca1,ca2
+* tps.connector.<ca connID>.caNickname=<ca signing cert's nickname>
+** e.g. tps.connector.ca1.caNickname=caSigningCert cert-pki-tomcat CA
+
+----
+tps.connCAList=ca1,ca2
+tps.connector.ca1.caNickname=caSigningCert cert-pki-tomcat CA
+tps.connector.ca1.caSKI=<auto-calculated by TPS>
+tps.connector.ca1.enable=true
+tps.connector.ca1.host=ca1.Example.com
+tps.connector.ca1.maxHttpConns=15
+tps.connector.ca1.minHttpConns=1
+tps.connector.ca1.nickName=ca1 subsystemCert cert-pki-tomcat
+tps.connector.ca1.port=8443
+tps.connector.ca1.timeout=30
+tps.connector.ca1.uri.enrollment=/ca/ee/ca/profileSubmitSSLClient
+tps.connector.ca1.uri.getcert=/ca/ee/ca/displayBySerial
+tps.connector.ca1.uri.renewal=/ca/ee/ca/profileSubmitSSLClient
+tps.connector.ca1.uri.revoke=/ca/ee/subsystem/ca/doRevoke
+tps.connector.ca1.uri.unrevoke=/ca/ee/subsystem/ca/doUnrevoke
+tps.connector.ca2.caSKI=<auto-calculated by TPS>
+tps.connector.ca2.caNickname=caSigningCert cert-pki-tomcat CA2
+tps.connector.ca2.enable=true
+tps.connector.ca2.host=ca2.Example.com
+tps.connector.ca2.maxHttpConns=15
+tps.connector.ca2.minHttpConns=1
+tps.connector.ca2.nickName=ca2 subsystemCert cert-pki-tomcat
+tps.connector.ca2.port=8443
+tps.connector.ca2.timeout=30
+tps.connector.ca2.uri.enrollment=/ca/ee/ca/profileSubmitSSLClient
+tps.connector.ca2.uri.getcert=/ca/ee/ca/displayBySerial
+tps.connector.ca2.uri.renewal=/ca/ee/ca/profileSubmitSSLClient
+tps.connector.ca2.uri.revoke=/ca/ee/subsystem/ca/doRevoke
+tps.connector.ca2.uri.unrevoke=/ca/ee/subsystem/ca/doUnrevoke
+----
+
+== Renewal ==
+
+The scenario for TPS revocation routing is for when a CA is retired and a revocation is required off of the original issuing CA.
+The retired CA is not supposed to issue any more certs, which includes renewals.
+Therefore, we do not support renewals of certs issued by retired CA.
+We recommend rekey for new issuance from active CA's.
+
+= Test Example =
+
+Here is a test example:
+new parameters description now in TPS CS.cfg:
+
+----
+conn.ca1._019=# conn.ca<n>.caNickname:
+conn.ca1._020=#   - nickname of the ca certificate
+conn.ca1._021=# conn.ca<n>.caSKI:
+conn.ca1._022=#   - Subject Key Identifier (in Base64) of the ca certificate
+conn.ca1._023=#     (automatically calculated by the system)
+conn.ca1._024=#
+conn.ca1._025=# conn.ca.list=ca1,ca2...ca<n>
+conn.ca1._026=#   - list of ca connection IDs for revocation routing
+conn.ca1._027=#.
+----
+
+Example test TPS CS.cfg (at beginning):
+
+----
+conn.ca.list=ca2,ca1
+conn.ca1.caNickname=caCert
+...
+...
+conn.ca2.caNickname=caTest
+...
+...
+op.enroll.userKey.keyGen.encryption.ca.conn=ca1
+...
+...
+op.enroll.userKey.keyGen.signing.ca.conn=ca1
+----
+
+where caCert is the actual issuing ca signing cert's nickname;
+caTest is another ca which did not sign any certs for this TPS.
+
+First test useing tpsclient with the userKey profile to enroll.
+Should get both encryption and signing cert successfully.
+
+Change op.enroll.userKey.keyGen.encryption.ca.conn=ca2 (this is to emulate a CA change, while retaining ca1 one connection info so ca1 plays the part of a "revocation only" ca.
+
+Now as a TPS agent, mark the token "temporarily lost" to trigger a revocation. ca2 is supposed to be hit first for encryption cert, which should have an SKI not equal to the AKI of the cert, the Search routine will then kick in and try tp match and find the right ca (ca1).
+
+* Observe that caSKI parameter is added and filled in CS.cfg.
+* Observe in the debug log for such activities.
+
+You can expand on this and play with the configuration to test other reasonable scenarios for your test cases.
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/TPS_Revocation_Routing_(2013)[TPS Revocation Routing (2013)]
