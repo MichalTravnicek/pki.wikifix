@@ -1,0 +1,19 @@
+= Manual Certificate Manager Signing Certificate Enrollment =
+
+This certificate profile is for enrolling CA certificates.
+
+----
+$ pki client-cert-request \
+    "cn=Signing Certificate" \
+    --profile caCACert
+----
+
+To renew a CA certificate:
+
+----
+$ pki ca-cert-request-submit \
+    --profile caCACert \
+    --csr-file ca_signing.csr \
+    --renewal \
+    --serial 0x1
+----
