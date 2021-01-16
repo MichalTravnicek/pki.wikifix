@@ -1,0 +1,48 @@
+= Renewal: Renew certificate to be manually approved by agents =
+
+This certificate profile is for renewing certificates to be approved manually by agents.
+
+To renew client certificate that is still valid:
+
+----
+$ pki -n testuser client-cert-request uid=testuser \
+    --profile caManualRenewal
+----
+
+To renew expired client certificate or other certificate, download the profile:
+
+----
+$ pki ca-cert-request-profile-show caManualRenewal --output caManualRenewal.xml
+----
+
+Enter the serial number of the certificate to be renewed in the `<SerialNumber>` element or in the `<Attribute name="serial_num">`. The serial number must be specified in decimal number.
+
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<CertEnrollmentRequest>
+    <Attributes/>
+    <ProfileID>caManualRenewal</ProfileID>
+    <Renewal>true</Renewal>
+    <SerialNumber></SerialNumber>
+    <RemoteHost></RemoteHost>
+    <RemoteAddress></RemoteAddress>
+    <Input id="i1">
+        <ClassID>serialNumRenewInputImpl</ClassID>
+        <Name>Serial Number of Certificate to Renew</Name>
+        <Attribute name="serial_num">
+            <Value></Value>
+            <Descriptor>
+                <Syntax>string</Syntax>
+                <Description>Serial Number of Certificate to Renew</Description>
+            </Descriptor>
+        </Attribute>
+    </Input>
+</CertEnrollmentRequest>
+----
+
+Then submit the request:
+
+----
+$ pki ca-cert-request-submit caManualRenewal.xml
+----
+
