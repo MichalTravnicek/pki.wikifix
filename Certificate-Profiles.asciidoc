@@ -1,22 +1,67 @@
-= Certificate Profiles =
+= Certificate Enrollment Profiles =
 
-* link:Using-AdminCert-Profile[Using AdminCert Profile]
-* link:Using-caAgentServerCert-Profile[Using caAgentServerCert Profile]
-* link:Using-caCACert-Profile[Using caCACert Profile]
-* link:Using-caCMCUserCert-Profile[Using caCMCUserCert Profile]
-* link:Using-caDirUserCert-Profile[Using caDirUserCert Profile]
-* link:Using-caDirUserRenewal-Profile[Using caDirUserRenewal Profile]
-* link:Using-caDualCert-Profile[Using caDualCert Profile]
-* link:Using-caECDirUserCert-Profile[Using caECDirUserCert Profile]
-* link:Using-caManualRenewal-Profile[Using caManualRenewal Profile]
-* link:Using-caOCSPCert-Profile[Using caOCSPCert Profile]
-* link:Using-caOtherCert-Profile[Using caOtherCert Profile]
-* link:Using-caServerCert-Profile[Using caServerCert Profile]
-* link:Using-caSignedLogCert-Profile[Using caSignedLogCert Profile]
-* link:Using-caSSLClientSelfRenewal-Profile[Using caSSLClientSelfRenewal Profile]
-* link:Using-caStorageCert-Profile[Using caStorageCert Profile]
-* link:Using-caSubsystemCert-Profile[Using caSubsystemCert Profile]
-* link:Using-caTPSCert-Profile[Using caTPSCert Profile]
-* link:Using-caTransportCert-Profile[Using caTransportCert Profile]
-* link:Using-caUserCert-Profile[Using caUserCert Profile]
-* link:Using-caUserSMIMEcapCert-Profile[Using caUserSMIMEcapCert Profile]
+* link:Using-AdminCert-Profile[AdminCert]: Manual Administrator Certificate Enrollment
+* caAgentFileSigning: Agent-Authenticated File Signing
+* link:Using-caAgentServerCert-Profile[caAgentServerCert]: Agent-Authenticated Server Certificate Enrollment
+* link:Using-caCACert-Profile[caCACert]: Manual Certificate Manager Signing Certificate Enrollment
+* link:Using-caCMCUserCert-Profile[caCMCUserCert]: Signed CMC-Authenticated User Certificate Enrollment
+* caDirPinUserCert
+* link:Using-caDirUserCert-Profile[caDirUserCert]: Directory-Authenticated User Dual-Use Certificate Enrollment
+* link:Using-caDualCert-Profile[caDualCert]: Manual User Signing & Encryption Certificates Enrollment
+* link:Using-caECDirUserCert-Profile[caECDirUserCert]: Directory-Authenticated User Dual-Use ECC Certificate Enrollment
+* caInstallCACert: Manual Security Domain Certificate Authority Signing Certificate Enrollment
+* link:Using-caOCSPCert-Profile[caOCSPCert]: Manual OCSP Manager Signing Certificate Enrollment
+* link:Using-caOtherCert-Profile[caOtherCert]: Other Certificate Enrollment
+* link:Using-caServerCert-Profile[caServerCert]: Manual Server Certificate Enrollment
+* link:Using-caSignedLogCert-Profile[caSignedLogCert]: Manual Log Signing Certificate Enrollment
+* link:Using-caStorageCert-Profile[caStorageCert]: Manual Data Recovery Manager Storage Certificate Enrollment
+* link:Using-caSubsystemCert-Profile[caSubsystemCert]: Manual Subsystem Certificate Enrollment
+* link:Using-caTPSCert-Profile[caTPSCert]: Manual TPS Server Certificate Enrollment
+* link:Using-caTransportCert-Profile[caTransportCert]: Manual Data Recovery Manager Transport Certificate Enrollment
+* link:Using-caUserCert-Profile[caUserCert]: Manual User Dual-Use Certificate Enrollment
+* link:Using-caUserSMIMEcapCert-Profile[caUserSMIMEcapCert]: Manual User Dual-Use S/MIME capabilities Certificate Enrollment
+* caUUIDdeviceCert: Manual device Dual-Use Certificate Enrollment to contain UUID in SAN
+* DomainController: Domain Controller
+
+= Certificate Renewal Profiles =
+
+* link:Using-caDirUserRenewal-Profile[caDirUserRenewal]: Directory-Authenticated User Certificate Self-Renew profile
+* link:Using-caManualRenewal-Profile[caManualRenewal]: Renew certificate to be manually approved by agents
+* link:Using-caSSLClientSelfRenewal-Profile[caSSLClientSelfRenewal]: Self-renew user SSL client certificates
+
+= Hidden Profiles =
+
+* caAdminCert
+* caCrossSignedCACert
+* caDualRAuserCert
+* caECDualCert
+* caECUserCert
+* caEncECUserCert
+* caEncUserCert
+* caFullCMCUserCert: Signed CMC-Authenticated User Certificate Enrollment
+* caInternalAuthAuditSigningCert
+* caInternalAuthDRMstorageCert
+* caInternalAuthOCSPCert
+* caInternalAuthServerCert
+* caInternalAuthSubsystemCert
+* caInternalAuthTransportCert
+* caIPAserviceCert
+* caJarSigningCert
+* caRAagentCert
+* caRACert: Manual Registration Manager Signing Certificate Enrollment
+* caRARouterCert
+* caRAserverCert
+* caRouterCert
+* caSimpleCMCUserCert
+* caTempTokenDeviceKeyEnrollment
+* caTempTokenUserEncryptionKeyEnrollment
+* caTempTokenUserSigningKeyEnrollment
+* caTokenDeviceKeyEnrollment
+* caTokenMSLoginEnrollment
+* caTokenUserAuthKeyRenewal
+* caTokenUserDelegateAuthKeyEnrollment
+* caTokenUserDelegateSigningKeyEnrollment
+* caTokenUserEncryptionKeyEnrollment
+* caTokenUserEncryptionKeyRenewal
+* caTokenUserSigningKeyEnrollment
+* caTokenUserSigningKeyRenewal
