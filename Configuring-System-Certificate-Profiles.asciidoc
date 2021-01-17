@@ -1,0 +1,47 @@
+= Overview =
+
+System certificate profiles are used to generate the initial system certificates during installation.
+
+The system certificate profile templates are stored in link:https://github.com/dogtagpki/pki/tree/master/base/ca/shared/conf[/usr/share/pki/ca/conf]. During CA installation the system certificate profiles will be copied into `/var/lib/pki/<instance>/<subsystem>/conf`.
+
+To customize system certificates profiles, see link:https://www.dogtagpki.org/wiki/Two-Step_Installation[Two-Step Installation].
+
+See also link:https://www.dogtagpki.org/wiki/CA_Certificate_Profiles[CA Certificate Profiles].
+
+= Profile Configuration =
+
+System certificate profile configuration consists of the following parameters:
+
+----
+id=...
+name=...
+description=...
+profileIDMapping=...
+profileSetIDMapping=...
+list=<list of numbers>
+<number>.default.class=...
+<number>.default.name=...
+<number>.default.params.<name>=...
+----
+
+See also link:https://www.dogtagpki.org/wiki/Certificate_Profile_Constraints[Certificate Profile Constraints].
+
+= System Certificate Profiles =
+
+* https://github.com/dogtagpki/pki/blob/master/base/ca/shared/conf/rsaAdminCert.profile[rsaAdminCert.profile]
+* https://github.com/dogtagpki/pki/blob/master/base/ca/shared/conf/eccServerCert.profile[eccServerCert.profile]
+* https://github.com/dogtagpki/pki/blob/master/base/ca/shared/conf/ECsubsystemCert.profile[ECsubsystemCert.profile]
+* https://github.com/dogtagpki/pki/blob/master/base/ca/shared/conf/rsaServerCert.profile[rsaServerCert.profile]
+* https://github.com/dogtagpki/pki/blob/master/base/ca/shared/conf/eccAdminCert.profile[eccAdminCert.profile]
+* https://github.com/dogtagpki/pki/blob/master/base/ca/shared/conf/rsaSubsystemCert.profile[rsaSubsystemCert.profile]
+* https://github.com/dogtagpki/pki/blob/master/base/ca/shared/conf/caOCSPCert.profile[caOCSPCert.profile]
+* https://github.com/dogtagpki/pki/blob/master/base/ca/shared/conf/caCert.profile[caCert.profile]
+* https://github.com/dogtagpki/pki/blob/master/base/ca/shared/conf/eccSubsystemCert.profile[eccSubsystemCert.profile]
+* https://github.com/dogtagpki/pki/blob/master/base/ca/shared/conf/caAuditSigningCert.profile[caAuditSigningCert.profile]
+* https://github.com/dogtagpki/pki/blob/master/base/ca/shared/conf/ECserverCert.profile[ECserverCert.profile]
+* https://github.com/dogtagpki/pki/blob/master/base/ca/shared/conf/ECadminCert.profile[ECadminCert.profile]
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/Certificate_Profiles[Certificate Profiles]
+* link:https://www.ietf.org/rfc/rfc3280.txt[RFC 3280]
