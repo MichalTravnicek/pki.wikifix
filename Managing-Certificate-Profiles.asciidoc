@@ -1,0 +1,59 @@
+= Overview =
+
+Certificate profiles are stored in link:https://github.com/dogtagpki/pki/tree/master/base/ca/shared/profiles/ca[/var/lib/pki/<instance>/ca/profiles/ca]. In IPA environment the profiles are imported into DS database.
+
+To manage CA certificate profiles, use link:https://github.com/dogtagpki/pki/wiki/PKI-CA-Profile-CLI[PKI CA Profile CLI].
+
+See also link:https://www.dogtagpki.org/wiki/System_Certificate_Profiles[System Certificate Profiles].
+
+= Configuration =
+
+Profile configuration consists of the following parameters:
+
+----
+desc=...
+visible=...
+enable=...
+enableBy=...
+auth.class_id=...
+name=...
+input.list=<list of inputs>
+input.<input>.class_id=...
+output.list=<list of outputs>
+output.<output>.class_id=...
+policyset.list=<list of policies>
+policyset.<policy>.list=<list of numbers>
+policyset.<policy>.<number>.constraint.class_id=...
+policyset.<policy>.<number>.constraint.name=...
+policyset.<policy>.<number>.constraint.params.<name>=...
+policyset.<policy>.<number>.default.class_id=...
+policyset.<policy>.<number>.default.name=...
+policyset.<policy>.<number>.default.params.<name>=...
+----
+
+= Authentication =
+
+Profile authentication is configured using the `auth.instance_id` parameter. Supported authentications are:
+
+* No authentication (blank)
+* AgentCertAuth
+* CMCAuth
+* flatFileAuth
+* PinDirEnrollment
+* raCertAuth
+* SSLclientCertAuth
+* TokenAuth
+* UserDirEnrollment
+
+= SAN Extension =
+
+To add a SAN extension:
+
+----
+policyset.<profile>.<number>.constraint.class_id=noConstraintImpl
+policyset.<profile>.<number>.constraint.name=No Constraint
+policyset.<profile>.<number>.constraint.subjAltNameExtCritical=false
+policyset.<profile>.<number>.default.class_id=userExtensionDefaultImpl
+policyset.<profile>.<number>.default.name=User Supplied Extension Default
+policyset.<profile>.<number>.default.params.userExtOID=2.5.29.17
+----
