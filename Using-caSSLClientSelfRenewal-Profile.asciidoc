@@ -1,0 +1,10 @@
+= Renewal: Self-renew user SSL client certificates =
+
+This certificate profile is for renewing SSL client certificates.
+
+----
+$ pki -n testuser \
+    client-cert-request \
+    cn=$HOSTNAME \
+    --profile caSSLClientSelfRenewal
+----
