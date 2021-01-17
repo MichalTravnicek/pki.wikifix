@@ -1,8 +1,8 @@
 = Overview =
 
-Certificate profiles are stored in link:https://github.com/dogtagpki/pki/tree/master/base/ca/shared/profiles/ca[/var/lib/pki/<instance>/ca/profiles/ca]. In IPA environment the profiles are imported into DS database.
+Certificate profile templates are stored in link:https://github.com/dogtagpki/pki/tree/master/base/ca/shared/profiles/ca[/usr/share/pki/ca/profiles/ca]. During CA installation, the certificate profiles will be copied into `/var/lib/pki/<instance>/ca/profiles/ca`. During IPA installation, the profiles will be imported into the database as well.
 
-To manage CA certificate profiles, use link:https://github.com/dogtagpki/pki/wiki/PKI-CA-Profile-CLI[PKI CA Profile CLI].
+To manage CA certificate profiles, use link:https://github.com/dogtagpki/pki/wiki/PKI-CA-Profile-CLI[PKI CA Profile CLI] to ensure the profiles are updated properly regardless of storage location.
 
 See also link:https://www.dogtagpki.org/wiki/System_Certificate_Profiles[System Certificate Profiles].
 
@@ -31,7 +31,23 @@ policyset.<policy>.<number>.default.name=...
 policyset.<policy>.<number>.default.params.<name>=...
 ----
 
-= Authentication =
+= Enabling/Disabling Profile =
+
+To enable or disable a profile, set the `enable` to *true* to *false*:
+
+----
+enable=<true|false>
+----
+
+= Profile Visibility =
+
+To show or hide a profile, set the `visible` to *true* to *false*:
+
+----
+visible=<true|false>
+----
+
+= Profile Authentication =
 
 Profile authentication is configured using the `auth.instance_id` parameter. Supported authentications are:
 
