@@ -72,67 +72,6 @@ Storing deployment configuration into /etc/sysconfig/pki/tomcat/pki-tomcat/ca/de
 
 See also link:https://github.com/dogtagpki/pki/blob/master/docs/installation/ca/Installing_CA.md[Installing CA].
 
-= Creating KRA Subsystem =
-
-Run pkispawn to create KRA subsystem in interactive mode:
-
-----
-$ pkispawn
-Subsystem (CA/KRA/OCSP/TKS/TPS) [CA]: KRA
-
-Tomcat:
-  Instance [pki-tomcat]:
-  HTTP port [8080]:
-  Secure HTTP port [8443]:
-  AJP port [8009]:
-  Management port [8005]:
-
-Administrator:
-  Username [kraadmin]:
-  Password: Secret.123
-  Verify password: Secret.123
-  Import certificate (Yes/No) [Y]?
-  Import certificate from [/root/.dogtag/pki-tomcat/ca_admin.cert]:
-  Export certificate to [/root/.dogtag/pki-tomcat/ca_admin.cert]:
-
-Directory Server:
-  Hostname [server.example.com]:
-  Port [389]:
-  Bind DN [cn=Directory Manager]:
-  Password: Secret.123
-  Base DN [o=pki-tomcat-KRA]:
-
-Security Domain:
-  Hostname [server.example.com]:
-  Secure HTTP port [8443]:
-  Name: example.com Security Domain
-  Username [caadmin]:
-  Password: Secret.123
-
-Begin installation (Yes/No/Quit)? Y
-
-Installing KRA into /var/lib/pki/pki-tomcat.
-Storing deployment configuration into /etc/sysconfig/pki/tomcat/pki-tomcat/kra/deployment.cfg.
-
-    ==========================================================================
-                                INSTALLATION SUMMARY
-    ==========================================================================
-
-      Administrator's username:             kraadmin
-
-      To check the status of the subsystem:
-            systemctl status pki-tomcatd@pki-tomcat.service
-
-      To restart the subsystem:
-            systemctl restart pki-tomcatd@pki-tomcat.service
-      The URL for the subsystem is:
-            https://server.example.com:8443/kra
-
-    ==========================================================================
-----
-
-See also link:https://github.com/dogtagpki/pki/blob/master/docs/installation/kra/Installing_KRA.md[Installing KRA].
-
 = Accessing PKI Services =
 
 To access PKI services via Web UI open https://server.example.com:8443 with a browser.
@@ -143,21 +82,11 @@ By default only the link:https://www.dogtagpki.org/wiki/Default_CA_Admin[Default
 
 = Managing PKI Services =
 
-To manage PKI services via PKI Console:
+See link:Administration-Guide[Administration Guide].
 
-----
-$ pkiconsole https://server.example.com:8443/<subsystem>
-----
+= Using PKI Services =
 
-To manage PKI services via CLI, use the link:PKI-Server-CLI[PKI Server CLI].
-
-= Common PKI Tasks =
-
-* link:https://www.dogtagpki.org/wiki/CA_Admin_Setup[CA Admin Setup]
-* link:https://www.dogtagpki.org/wiki/CA_Agent_Setup[CA Agent Setup]
-* link:https://www.dogtagpki.org/wiki/Server_Certificate_Setup[Server Certificate Setup]
-* link:https://www.dogtagpki.org/wiki/Enabling_SSL_Connection_with_Internal_Database[Enabling SSL Connection with Internal Database]
-* link:Configuring-Client-Certificate-Authentication-to-Internal-Database[Configuring Client Certificate Authentication to Internal Database]
+See link:User-Guide[User Guide].
 
 = Removing PKI Subsystem =
 
@@ -173,7 +102,3 @@ Uninstalling CA from /var/lib/pki/pki-tomcat.
 
 Uninstallation complete.
 ----
-
-= See Also =
-
-* link:Installation-Guide[Installation Guide]
