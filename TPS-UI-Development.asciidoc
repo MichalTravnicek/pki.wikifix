@@ -1,0 +1,154 @@
+= Overview =
+
+The new TPS UI is written as part of link:TPS-Rewrite[TPS Rewrite] and will use the link:PKI-TPS-REST-API[TPS REST API] to interact with TPS services. It's designed to completely run on the client side (i.e. in the browser) using jQuery and other supporting libraries.
+
+= Source Code =
+
+In general the TPS UI files are organized in base/tps and packaged in the pki-tps. However, some of the files can be actually reused for other subsystem UI in the future, the common files are stored in base/server and packaged in the pki-server package.
+
+The HTML templates are defined in link:https://git.fedorahosted.org/cgit/pki.git/tree/base/tps/shared/webapps/tps/ui[base/tps/shared/webapps/tps/ui].
+
+CSS files are stored in link:https://git.fedorahosted.org/cgit/pki.git/tree/dogtag/common-ui/shared/css[dogtag/common-ui/shared/css].
+
+The common JavaScript libraries are defined in link:https://git.fedorahosted.org/cgit/pki.git/tree/base/server/share/webapps/pki/js[base/server/share/webapps/pki/js]. The TPS-specific libraries are stored in link:https://git.fedorahosted.org/cgit/pki.git/tree/base/tps/shared/webapps/tps/js[base/tps/shared/webapps/tps/js].
+
+Images (e.g. icons) are stored in link:https://git.fedorahosted.org/cgit/pki.git/tree/dogtag/common-ui/shared/images[dogtag/common-ui/shared/images].
+
+Font files are stored in link:https://git.fedorahosted.org/cgit/pki.git/tree/dogtag/common-ui/shared/fonts[dogtag/common-ui/shared/fonts].
+
+= PatternFly =
+
+----
+$ git clone https://github.com/patternfly/patternfly
+$ cd patternfly
+$ sudo npm install -g bower
+$ sudo npm install -g grunt-cli
+$ bower install
+$ npm install
+$ grunt server
+----
+
+= RCUE =
+
+----
+$ git clone https://github.com/rhamilto/rcue.git
+$ cd rcue
+$ sudo npm install -g bower
+$ sudo npm install -g grunt-cli
+$ bower install
+$ npm install
+$ grunt server
+----
+
+= PKI UI Library =
+
+The PKI UI library defines the base classes to build various UI components.
+
+The framework is defined in link:https://git.fedorahosted.org/cgit/pki.git/tree/base/server/share/webapps/pki/js/pki-ui.js[base/server/share/webapps/pki/js/pki-ui.js].
+
+== Model ==
+
+`Model` represents a single entry (e.g. a token). Usually it's mapped to a single entry in the REST resource. The `Model` base class is defined as follows:
+
+----
+var Model = Backbone.Model.extend({
+    urlRoot: ...,
+    parseResponse: function(response) {
+        ...
+    },
+    createRequest: function(attributes) {
+        ...
+    }
+});
+----
+
+The `urlRoot` attribute is used to define the base URL of the REST resource corresponding of this entry. The `parseResponse()` and `createRequest()` are methods for converting the JSON object obtained from the REST resource into another JSON object that can be used by Backbone, and vice versa.
+
+See the following example of a `Model`:
+
+----
+var TokenModel = Model.extend({
+    urlRoot: "/tps/rest/tokens",
+    parseResponse: function(response) {
+        ...
+    },
+    createRequest: function(attributes) {
+        ...
+    }
+});
+----
+
+The `TokenModel` inherits from the base Model. It's mapped to REST resources in `/tps/rest/tokens/{id}`. Previously the server was using Jettison, the conversion was necessary since there is a structural difference. Now the server is being converted to use Jackson, so the only conversion needed is for the field names. These methods may even be removed completely in the future.
+
+== Collection ==
+
+`Collection` represents a group of entries (e.g. list of visible entries in a table). Usually it's mapped to multiple entries in the REST resource.
+
+See the following example: 
+
+----
+var TokenCollection = Collection.extend({
+    model: TokenModel,
+    urlRoot: "/tps/rest/tokens",
+    getEntries: function(response) {
+        ...
+    },
+    getLinks: function(response) {
+        ...
+    },
+    parseEntry: function(entry) {
+        ...
+    }
+});
+----
+
+The `TokenCollection` inherits from the base `Collection`. This collection contains `TokenModel` instances. The collection is mapped into REST resources at `/tps/rest/tokens`. A collection consists of lists of entries and links. The `getEntries()` and `getLinks()` are methods used to get those lists. The `parseEntry()` is used to create a `TokenModel` instance from a single entry in the list.
+
+== Dialog ==
+
+`Dialog` represents a dialog box (e.g. add/edit dialog).
+
+== TableItem ==
+
+`TableItem` represents a single row in the table. Usually it's mapped to a model.
+
+== Table ==
+
+`Table` represents a table with fixed number of rows. Usually it's mapped to a collection. The table supports paging. It only shows a subset of the collection and provides navigation links to view other pages.
+
+= TPS UI Library =
+
+The TPS UI library defines models and collections for various TPS resources. The HTML pages define the content of the pages and use the library to initialize it.
+
+Each TPS resource is represented with a table. The table will initially be populated with the first page from the database. This page represents a limited find operation (with start and size parameters). The table provides links (e.g. Prev, Next) to go to other pages. There is a search field to execute a find operation with filter, but currently it's not implemented yet.
+
+Usually a table will have two dialog boxes representing the add and show/modify operations. They will have the same set of fields (because it depends on the model) but some of the fields might be read-only depending on the operation. Additional dialog boxes or buttons representing other operations (e.g. approve, reject) can be added as needed.
+
+There is also a remove button representing remove operation on the table, but currently it's not implemented yet. Removing multiple entries at once can be done by selecting the checkboxes next to the entries to be removed.
+
+The navigation is still being developed. It should provide tabs/drop-down menus to view a certain resource. It should also provide breadcrumbs showing the path from the main page to the current page.
+
+There should be a welcome page that is unprotected to show that this is the TPS UI. There should be a link to go to the protected area where users would have to authenticate first (e.g. using client certificate). There should be a logout button which invalidates the user session and redirects the user back to the welcome page.
+
+There should be a user profile page to edit the full name, email, phone, etc.
+
+There should be a message box containing events or operation confirmations that happen while the user is logged on.
+
+= TPS UI Elements =
+
+See link:https://github.com/dogtagpki/pki/wiki/TPS-UI-Elements[TPS UI Elements].
+
+= PKI 10.3 =
+
+* link:https://fedorahosted.org/pki/query?component=TPS&proposedmilestone=10.3&or&component=UI&proposedmilestone=10.3&order=id&col=id&col=summary&col=component&col=owner&col=type&col=priority&col=version[Proposed PKI 10.3 Tickets]
+* link:https://fedorahosted.org/pki/query?milestone=10.3&component=TPS&or&milestone=10.3&component=UI&col=id&col=summary&col=component&col=owner&col=type&col=priority&col=version&order=id[PKI 10.3 Tickets]
+
+= See Also =
+
+* link:TPS-UI[TPS UI]
+* link:http://jquery.com[jQuery]
+* link:http://code.google.com/p/jquery-i18n-properties[jquery-i18n-properties]
+* link:http://backbonejs.org[backbone.js]
+* link:http://underscorejs.org[underscore.js]
+* link:https://www.dogtagpki.org/wiki/NPM[NPM]
+* link:https://www.dogtagpki.org/wiki/PatternFly[PatternFly]
