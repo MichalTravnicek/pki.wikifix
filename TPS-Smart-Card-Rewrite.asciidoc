@@ -1,0 +1,55 @@
+= Introduction =
+
+The purpose of this page is to list out a set of porting tasks required to port the current C++ based TPS module to Java within the in progress TPS rewrite. This portion of the rewrite will have to do mainly with the nuts and bolts of performing operations upon the smart card as we do today. There are many other portions of TPS concerned with things like the TPS UI and Token database. This part of the code is what will be responsible for writing the actual certs and keys onto the token.This code will intersect with the token db and UI portions in that after successful token operations, the token db will have to be updated with the new information. As a result this new token information will be reflected upon the UI. There will also be a certain amount of token STATUS processing that is ultimately controlled BY the TPS UI.
+
+This rewrite will have the following main goals:
+
+* Rewrite this functionality in Java such that we duplicate all the features available today, without adding any new features unless absolutely needed. The one clear example of a new feature required is that of support for secure channel protocol 02. This effort will expand to changes neede for the TKS and Coolkey applet.
+
+* Proceed with a reasonably straightforward translation to Java. The current class setup for this functionality should be sufficient for a reasonable translation. The main problem with the current code is complexity of the actual implementation due to much duplicated code and the complex memory management required in the C++ code. Java all by itself will simplify the memory management portion. A conservative refactor of the code should suffice to remove duplicated code and to simplify some of the logic.
+
+* Make best use of the current server framework that our Java subsystems provide. Examples:
+** Logging support which gives us the important Audit logging functionality
+** Configuration parameter processing
+** Http Connector/Client functionality when contacting other CS subsystems such as the TKS, CA, and DRM.
+
+= Tasks =
+
+The following will be a list of tasks required to accomplish the rewrite in a bottom up layered approach. The goal should be to bring the functionality up in an orderly fashion from simplest to most complex. For instance we need to be able to have a Secure Channel established before we attempt to Format a token. Before we can have a Secure Channel, we need to be able to work with APDUs to the token. In the first bare bones pass, we can perform the minimal processing to get the token populated as desired. Save the symmetric key changeover functionality for a future pass and perform the operations with the developer key set. Also get Secure Channel 01 working first but write the code such that adding 02 won't be difficult. Also save for later the process of Revoking certificates associated with the formatted token and for interacting with the token db. User Authentication can proceed later or be done as a concurrent step. Erollment and Pin Reset can have the auth faked until the basic process is working. Finally features such as Token Key Recovery can be implemented on top of the already simplified code base.
+
+* *Chunked Encoding Support* - Provide chunked encoding functionality to support protocol from existing clients. - Basically done, need to verify that a full persistent command can be completed.
+* *APDU Commands* - Provide implementations of all the classes that currently represent the APDU's that go to and emerge from the token. This will require a class to mimic the Buffer functionality the server relies upon. - First cut of this is implemented in local tree.
+* *Incoming command parsing* - Accept incoming commands from the client and parse them to be dispatched to the proper functionality. Actually I believe that Endi already has code to decompose the incoming message into name value pairs. Here we just need to dispatch accordingly.
+* *Bare Bones Token Operations* - Work on implementing the bare bones functionality of the 3 major token operations, Format, Enrolment, and Pin Reset.
+** *Phone Home Back End* - Quickly implement the phone home cgi to satisfy ESC when it phones home.
+** *Token Format* Format a basic token.
+*** *Low Level Token Commands* - Implement some of the commands based on APDUs needed to talk to the token. For instance we need to Select the Applet and Get CLPC Data from the token. These APDUs usually have a method that uses the proper APDU class to make a request of the token. 
+*** *Applet Upgrade* - Write the routine to check and upgrade the applet to the proper version.
+*** *Create Secure Channel* - In order to do this, we need to be able to create a secure channel to the card. Implement this function in the Secure_Channel class. 
+*** *Communication with TKS/Connector* - To create a secure channel we need to talk to the TKS. Use existing Connector class to get this done. Any code written should have a common portion that can be reused when we talk to the CA and DRM. Major operations of the Secure Channel are InitialzeUpdate and ExternalAuthenticate.
+*** *More Low Level Token Commands* - Format will need commands to delete the current applet instances and install the new applet instance.
+** *Token Enrollment* - Enroll a token
+*** *Simple profile based Enrollment* - Implement simple enrollment based on basic token profile. Defer recovery and exernal reg recovery.
+*** *Token Side Key Generation* - Implement the code to generate the key on the token. 
+*** *Cert Enrollment with CA* - Implement CertEnroll functionality which talks to the CA and gets the certificates to write to the token.
+*** *Low Level PKCS#11 token Objects* - At this point implement the classes from the "main" directory that know how to deal with the PKCS#11 objects for keys and certs on the token. We need this here because we need to write the objects correctly to the token. Note: This code is pretty generic C++ that should port fairly easily to Java.
+*** *Token Cert Population* - Implement the commands that write the certs onto the token.
+*** *Server Side Keygen* - Double back and implement server side keygen.
+*** *Key Recovery with DRM* - For server side keygen, implement code to recover a key by talking to the DRM over a Connector.
+*** *Key Importation Command to Token* - Implement method to actually import a private key onto the token. Here we make sure we still support RSA and ECC.
+*** *Final PKCS#11 blob Commit to Token* - Write code to write the final PKCS#11 blob to the token to complete an enrollment.
+** *Token Pin Reset* - Reset the Pin of a token
+*** *Low Level Pin Reset Commands* - Implement APDU based command methods similar to those mentioned in the Format operation. The main one is to actually reset the token's pin. Secure channel functionality should be ready to use at this point.
+* *Pass 2 Tasks* - Second pass tasks after bare bones operations are working.
+** *Symmetric Key Changeover* - Implement Symmetric Key Changeover for all operations.
+** *User Authentication LDAP* - Implement Authentication so we know who is trying to operate on a token.
+** *Token Renewal* - Handle the enrollment case where we want to renew certificates on the token.
+** *Legacy Token Recovery* - Implement basic Recovery. Note this is optional in case we decide we want to do ONLY Token Key Recovery feaure recently implemented.
+** *External Registration Token Key Recovery* - Layer in Exernal Registration Recovery carefully into the completed operations. Try to simplify the code here.
+** *Certificate Revocation/Unrevocation* - Implement functionality to Revoke and UnRevoke Certificates. The HTTP Connector class should work here as well.
+** *Update of Token DB* - Implement code that interfaces with the Token db as the result of completed operations such as Format and Enrollment. This also relates to the token states that must be checked when performing operations and changed when completing operations. For insance when enrolling a token, we change the state to ACTIVE.
+** *Audit Logging* - Implement any audit logging not yet completed.
+** *Exernal Enrollment UI* - External Enrollment UI. HTML and Javascript based simple enrollment UI on the server.
+** *Secure Channel Protoco 02* - Double back and implement Secure Channel protocol 02. This will require applet and TKS changes as well.
+* *Misc Tasks* - Tasks we might want to consider
+** *Security Officer Mode* Implement the Security Officer mode UI based on HTML and Javascript.
