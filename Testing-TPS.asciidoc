@@ -1,0 +1,169 @@
+= Overview =
+
+This page describes the test procedure to verify communication between TKS and TPS.
+
+The example below assumes PKI 10 utilizing a Tomcat7-based TKS instance stored under `/var/lib/pki/pki-tomcat/tks` and an Apache-based TPS instance stored under `/var/lib/pki-tps`.
+
+= Test Procedure =
+
+* Install a CA instance (e. g. `/var/lib/pki/pki-tomcat/ca`)
+
+* Optionally, install a DRM instance (e. g. `/var/lib/pki/pki-tomcat/kra`)
+
+* Install a TKS instance (e. g. `/var/lib/pki/pki-tomcat/tks`)
+
+* Use `tkstool` to generate a sharedSecret in this TKS instance
+
+* Install a TPS instance (e. g. `/var/lib/pki-tps`)
+
+* Use `tkstool` to import the sharedSecret generated above into this TPS instance
+
+* Obtain the TPS instance ports by running something similar to the following command:
+
+----
+$ pkicontrol status tps pki-tps
+----
+
+* Shutdown this TPS instance:
+
+----
+$ systemctl stop pki-tpsd@pki-tps
+----
+
+* Shutdown the CA, optional DRM, and TKS instances:
+
+----
+$ systemctl stop pki-tomcatd@pki-tomcat.service
+----
+  
+NOTE: This example assumes that the CA instance and the optional DRM instance are all located inside a common PKI instance which contains the TKS (e.g. `/var/lib/pki/pki-tomcat`). If the deployment being used contains their CA instance and/or optional DRM instances in containers which are separate from the TKS, these too should be shutdown.
+
+* Shutdown the DS instance:
+
+----
+$ systemctl stop dirsrv.target
+----
+
+* Edit DS configuration (i.e. `/etc/dirsrv/slapd-<instance>/dse.ldif`) to turn off syntax checking in the DS instance replacing `<instance>` with the appropriate value:
+  
+----
+nsslapd-syntaxcheck: off
+----
+
+* Edit TKS configuration (i.e. `/etc/pki/<instance>/tks/CS.cfg`) adding values similar to the following replacing `<hostname>`, and `<TPS secure clientauth port>` with the appropriate values:
+
+----
+tps.0.host=<hostname>
+tps.0.nickname=sharedSecret
+tps.0.port=<TPS secure clientauth port>
+tps.0.userid=TPS-<hostname>-<TPS secure clientauth port>
+tps.list=0
+----
+
+* Restart the DS instance:
+
+----
+$ systemctl start dirsrv.target
+----
+
+* Restart the CA, optional DRM, and TKS instances:
+
+----
+$ systemctl start pki-tomcatd@pki-tomcat.service
+----
+  
+NOTE: This example assumes that the CA instance and the optional DRM instance are all located inside a common PKI instance which contains the TKS (e.g. `/var/lib/pki/pki-tomcat`). If the deployment being used contains their CA instance and/or optional DRM instances in containers which are separate from the TKS, these too should be restarted.
+
+* Restart the TPS instance:
+
+----
+$ systemctl start pki-tpsd@pki-tps
+----
+
+* Create an LDIF file (e.g. `sample.ldif`) similar to the following replacing `<uid>`, `<domain>`, and `<password>` with the appropriate values:
+
+----
+dn: uid=<uid>,ou=People,dc=example,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetorgperson
+objectClass: top
+objectClass: extensibleobject
+cn: <uid>
+sn: <uid>
+uid: <uid>
+givenName: <uid>
+mail: <uid>@<domain>
+firstname: <uid>
+edipi: 123456789
+pcc: AA
+exec-edipi: 999999999
+exec-pcc: BB
+exec-mail: <uid>@<domain>
+userPassword: <password>
+----
+
+* Execute an `ldapadd` command similar to the following to add this entry (e.g. located in `sample.ldif`) to the DS instance replacing `<password>` with the appropriate value:
+
+----
+$ ldapadd -x -D "cn=Directory Manager" -w <password> -h localhost -f sample.ldif
+----
+
+* Create a sample test `tpsclient` format file (e.g. `format.tst`) similar to the following replacing `<hostname>`, `<TPS unsecure port>`, `<uid>`, and `<password>` with the appropriate values:
+
+----
+op=var_set name=ra_host value=<hostname>
+op=var_set name=ra_port value=<TPS unsecure port>
+op=var_set name=ra_uri value=/nk_service
+op=token_set cuid=40906145C76224192D2B msn=01020304 app_ver=6FBBC105 key_info=0101 major_ver=0 minor_ver=0
+op=token_set auth_key=404142434445464748494a4b4c4d4e4f
+op=token_set mac_key=404142434445464748494a4b4c4d4e4f
+op=token_set kek_key=404142434445464748494a4b4c4d4e4f
+op=ra_format uid=<uid> pwd=<password> new_pin=<password> num_threads=1
+op=exit
+----
+
+* Create a sample test `tpsclient` enrollment file (e.g. `enroll.tst`) similar to the following replacing `<hostname>`, `<TPS unsecure port>`, `<uid>`, and `<password>` with the appropriate values:
+
+----
+op=var_set name=ra_host value=<hostname>
+op=var_set name=ra_port value=<TPS unsecure port>
+op=var_set name=ra_uri value=/nk_service
+#op=var_set name=test_enable value=true
+#op=var_set name=test_apdu_ea_return_enable value=true
+#op=var_set name=test_apdu_ea_return value=9100
+op=token_set cuid=4090002901010000C05F  msn=01020304 app_ver=6FBBC105 key_info=0101 major_ver=0 minor_ver=0
+op=token_set auth_key=404142434445464748494a4b4c4d4e4f
+op=token_set mac_key=404142434445464748494a4b4c4d4e4f
+op=token_set kek_key=404142434445464748494a4b4c4d4e4f
+op=ra_enroll uid=<uid> pwd=<password> new_pin=<password> num_threads=1
+op=exit
+----
+
+* Run a `tpsclient` format test using the sample format file (e.g. `format.tst`):
+
+----
+$ tpsclient < format.tst
+----
+
+which should finish successfully with something similar to this:
+  
+----
+Output> Thread (0) status='1' time='1702 msec'
+Result> Success - Operation 'ra_format' Success (1703 msec)
+Command>op=exit
+----
+
+* Run a `tpsclient` enrollment test using the sample enrollment file (e.g. `enroll.tst`):
+
+----
+$ tpsclient < enroll.tst
+----
+
+which should finish successfully with something similar to this:
+  
+----
+Output> Thread (0) status='1' time='6042 msec'
+Result> Success - Operation 'ra_enroll' Success (6043 msec)
+Command>op=exit
+----
