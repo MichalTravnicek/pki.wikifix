@@ -1,0 +1,274 @@
+= Overview =
+
+The current TPS subsystem is written in C++ and Perl/CGI and it is running on Apache HTTP server. To support better extensibility and integration with other subsystems, the TPS will be rewritten in Java and will run in Tomcat server.
+
+TPS subsystem consists of 2 Apache modules:
+
+* Token database module (mod_tokendb): This module handles database operations. TPS has several databases (e.g. tokens, profiles, users, groups, connections).
+* TPS module (mod_tps): This module handles token processing.
+
+Note: The *token database module* can be confused with the actual token database, and the *TPS module* can be confused with the whole TPS subsystem. To avoid confusion, we'll refer to them as *database module* and *processor module*, respectively.
+
+= Database module =
+
+== Interface ==
+
+The current interface is defined as TPS operations (e.g. op=...). 
+In the new implementation these operations are mapped into link:PKI-TPS-REST-API[PKI TPS REST API].
+
+== Server ==
+
+=== Old implementation ===
+
+The module is defined in link:https://git.fedorahosted.org/cgit/pki.git/tree/base/tps/apache/conf/httpd.conf[base/tps/apache/conf/httpd.conf]:
+
+----
+LoadModule tokendb_module     [FORTITUDE_MODULE]/mod_tokendb.so
+
+<Location /tus>
+    SetHandler tus
+</Location>
+----
+
+Client requests are handled by a function in link:https://git.fedorahosted.org/cgit/pki.git/tree/base/tps/src/modules/tokendb/mod_tokendb.cpp[base/tps/src/modjules/tokendb/mod_tokendb.cpp]:
+
+----
+mod_tokendb_handler(request) {
+
+    // initialization
+    if (!is_tus_db_initialized())
+        tus_db_init();
+
+    // get user certificate
+    cert = nss_var_lookup();
+
+    // authenticate user
+    userid = tus_authenticate(...)
+
+    // get user roles
+    is_admin = tus_authorize(...)
+    is_agent = tus_authorize(...)
+    is_operator = tus_authorize(...)
+
+    // get HTTP request
+    uri = ...
+    query = ...
+
+    // handle TPS operation
+    if (uri == NULL || query == NULL) {
+
+    } else if (query == "op=index_operator") {
+
+        // only operator is allowed
+        if (!is_operator) return
+
+        add_authorization_data()
+        safe_injection_strcat()
+
+        // return index page for operator
+        buf = getData(indexOperatorTemplate,injection)
+
+    } else if (query == "op=index_admin") {
+
+        // only admin is allowed
+        if (!is_admin) return
+
+        add_authorization_data()
+        safe_injection_strcat()
+
+        // return index page for admin
+        buf = getData(indexAdminTemplate, injection)
+
+        ...
+    }
+}
+----
+
+This function is hard to maintain because it handles everything (e.g. authentication, authorization, business logic, UI) in a single huge function.
+
+=== New implementation ===
+
+In the new implementation the services are written as separate REST resources using link:https://www.dogtagpki.org/wiki/RESTEasy[RESTEasy]. The authentication and authorization are handled by separate and configurable modules. The interface can be used by both CLI and UI which will be written separately.
+
+The source code are stored in link:https://git.fedorahosted.org/cgit/pki.git/tree/base/tps-tomcat[base/tps-tomcat]:
+
+----
+base/tps-tomcat:
++ setup
++ share
+  + conf                      -- configuration files
+  + etc
+  + lib                       -- systemd files
+  + webapps                   -- web application files
++ src
+  + org/dogtagpki/server/tps  -- source code
+----
+
+The `TPSSubsystem` class defines all TPS databases (e.g. `TokenDatabase`). All TPS databases inherit from a base `Database` class which stores generic records and provides basic CRUD operations. Each database will specify the actual record type stored in the database (e.g. `TokenRecord`). There are 2 subclasses of `Database`:
+
+* `ConfigDatabase`: It stores TPS configuration records in CS.cfg.
+* `LDAPDatabase`: It stores records in LDAP. The LDAP attribute names and object classes can be specified in the record class using annotations.
+
+The `TPSApplication` class defines the REST services to access these databases (e.g. `TokenService`). These services translate client requests into database operations and send the result back to the client.
+
+== Client ==
+
+The current implementation provides a UI. The UI templates are located in link:https://git.fedorahosted.org/cgit/pki.git/tree/base/tps/apache/docroot/tokendb[base/tps/apache/docroot/tokendb].
+
+The new implementation provides link:PKI-TPS-CLI[PKI TPS CLI] and a new jQuery-based link:TPS-UI[TPS UI]. The CLI is located in link:https://git.fedorahosted.org/cgit/pki.git/tree/base/java-tools/src/com/netscape/cmstools/tps[base/java-tools/src/com/netscape/cmstools/tps]. The UI is located in link:https://git.fedorahosted.org/cgit/pki.git/tree/base/tps-tomcat/shared/webapps/tps[base/tps-tomcat/shared/webapps/tps].
+
+= Processor module =
+
+== Interface ==
+
+TPS client and server communicates using TPS messages. The client will open an HTTP connection to the server and use chunk encoding to send and receive the TPS messages. To maintain backward compatibility with existing clients, this encoding must be maintained.
+
+Generally, when sending an HTTP message using chunk-encoding the content of the message will be split into chunks, then they are sent sequentially through the same connection. Each chunk will be preceeded by the chunk length in hexadecimal. The chunks and the chunk lengths are separated by CR-LF characters. Usually upon arrival the chunks will be joined back into a single HTTP message.
+
+----
+Transfer-Encoding: chunked
+
+<chunk length in hex>\r\n
+<chunk>\r\n
+<chunk length in hex>\r\n
+<chunk>\r\n
+...
+----
+
+For TPS, the TPS messages will be sent as individual chunks. The lengths of the chunks will be the same as the lengths of the TPS messages. Upon arrival the TPS messages will need to be kept separate so they can be processed correctly.
+
+----
+Transfer-Encoding: chunked
+
+<TPS message length in hex>\r\n
+<TPS message>\r\n
+<TPS message length in hex>\r\n
+<TPS message>\r\n
+...
+----
+
+== Server ==
+
+=== Old implementation ===
+
+The module is defined in link:https://git.fedorahosted.org/cgit/pki.git/tree/base/tps/apache/conf/httpd.conf[base/tps/apache/conf/httpd.conf]: 
+
+----
+# Required module for command 'TPSConfigPathFile':
+LoadModule tps_module         [FORTITUDE_MODULE]/mod_tps.so
+
+<Location /nk_service>
+    SetHandler nk_service
+</Location>
+----
+
+The handler is defined in link:https://git.fedorahosted.org/cgit/pki.git/tree/base/tps/src/modules/tps/mod_tps.cpp[base/tps/src/modules/tps/mod_tps.cpp]:
+
+----
+static int mod_tps_handler( request_rec *rq ) {
+
+    // only handle requests to /nk_service
+    if (strcmp(rq->handler,"nk_service") != 0) {
+        return DECLINED;
+    }
+
+    // read chunked TPS message
+    session = mod_tps_create_session( rq );
+    begin_op_msg = ( RA_Begin_Op_Msg * ) session->ReadMsg();
+
+    // execute the requested operation
+    if( begin_op_msg->GetOpType() == OP_ENROLL ) {
+        status = m_enroll_processor.Process( session, extensions );
+
+    } else if( begin_op_msg->GetOpType() == OP_UNBLOCK ) {
+        status = m_unblock_processor.Process( session, extensions );
+
+    } else {
+        ...
+    }
+}
+----
+
+The server code that reads TPS messages is currently implemented in link:https://git.fedorahosted.org/cgit/pki.git/tree/base/tps/src/modules/tps/AP_Session.cpp[base/tps/src/modules/tps/AP_Session.cpp]:
+
+----
+RA_Msg *AP_Session::ReadMsg() {
+
+    // get message length
+    msg_len = GetMsgLen(m_rq);
+
+    // get message
+    len = GetMsg(m_rq, msg, msg_len);
+
+    // process message
+    ...
+}
+----
+
+=== New implementation ===
+
+The new processor will be implemented as servlets running in Tomcat. By default, Tomcat is capable to handle chunked encoding, but incoming requests are de-chunked transparently so the servlets will never see the individual chunks. All the servlets will see is a continuous stream of bytes without any delimiters between the messages. Fortunately, the message length is always encoded in the first parameter in all TPS messages, so the messages can still be parsed correctly.
+
+----
+s=<message length>&msg_type=<message type>&...
+s=<message length>&msg_type=<message type>&...
+----
+
+The servlets can be written using `TPSConnection` and `TPSMessage` classes in link:https://git.fedorahosted.org/cgit/pki.git/tree/base/common/src/com/netscape/certsrv/tps[base/common/src/com/netscape/certsrv/tps]:
+
+----
+public void service(HttpServletRequest request, HttpServletResponse response) {
+
+    response.setHeader("Transfer-Encoding", "chunked");
+
+    TPSConnection con = new TPSConnection(
+            request.getInputStream(), response.getOutputStream(), true);
+
+    TPSMessage message = con.read();
+
+    message = new TPSMessage();
+    message.put("msg_type", 9);
+    message.put("pdu_size", 12);
+    ...
+
+    con.write(message);
+}
+----
+
+== Client ==
+
+The current client (tpsclient) is implemented in link:https://git.fedorahosted.org/cgit/pki.git/tree/base/tps/tools/raclient/RA_Client.cpp[base/tps/tools/raclient/RA_Client.cpp]. This should continue to work with the new implementation.
+
+----
+void RA_Client::Execute() {
+    while (!done) {
+        rc = ReadLine (line, 1024);
+        NameValueSet *params = NameValueSet::Parse (line, " ");
+        op = params->GetValue ("op");
+        InvokeOperation (op, params);
+    }
+}
+
+void RA_Client::InvokeOperation(char *op, NameValueSet * params) {
+    if (strcmp (op, "help") == 0) {
+        status = OpHelp(params);
+
+    } else if (strcmp (op, "ra_format") == 0) {
+	status = OpConnStart (params, OP_CLIENT_FORMAT);
+
+    } else if (strcmp (op, "ra_reset_pin") == 0) {
+	status = OpConnStart (params, OP_CLIENT_RESET_PIN);
+
+    } else {
+        ...
+    }
+}
+----
+
+= See Also =
+
+* link:http://httpd.apache.org/docs/2.4/developer/modules.html[Converting Modules from Apache 1.3 to Apache 2.0]
+* link:https://access.redhat.com/site/documentation/en-US/Red_Hat_Certificate_System/8.1/html/Deploy_and_Install_Guide/setting-up-tps.html[Setting up TPSs]
+* link:https://access.redhat.com/site/documentation/en-US/Red_Hat_Certificate_System/8.0/html/Command-Line_Tools_Guide/tpsclient.html[tpsclient]
+* link:https://access.redhat.com/site/documentation/en-US/Red_Hat_Certificate_System/8.1/html/Command-Line_Tools_Guide/tpsclient.html[tpsclient (Debugging the TPS)]
+* link:https://access.redhat.com/site/documentation/en-US/Red_Hat_Certificate_System/8.1/html/Deploy_and_Install_Guide/setting-up-others.html[Setting up DRMs, OCSPs, and TKSs]
