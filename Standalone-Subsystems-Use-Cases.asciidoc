@@ -1,0 +1,48 @@
+= Case I: Stand-alone DRM =
+
+* A PKI deployment should be able to setup a DRM without the need to have a CA.
+* This stand-alone DRM should not be expected to communicate with any other PKI subsystem (with the possible exception of any DRMs that have been cloned from this stand-alone DRM).
+* This stand-alone DRM should host its own security domain.
+* This stand-alone DRM will require five PKI subsystem certificates to be signed and issued by a single External CA:
+** Transport Certificate
+** Storage Certificate
+** SSL Server Certificate
+** Subsystem Certificate
+** Audit Log Signing Certificate
+* Additionally, for administration purposes, this DRM will require an Administration Certificate to be signed and issued by the same External CA that signed its other five certificates.
+* This stand-alone DRM should be able to be cloned.
+* Each DRM clone will be limited to use the master DRM security domain.
+
+= Case II: DRM Cloned from Stand-alone DRM =
+
+* A PKI deployment should be able to clone a DRM from a fully configured stand-alone DRM.
+* This cloned DRM should not be expected to communicate with any other PKI subsystem other than the master stand-alone DRM from which it was cloned. 
+* This cloned DRM must use the master stand-alone DRM as its security domain.
+* This cloned DRM will require one PKI subsystem certificate to be signed and issued by the same External CA that was utilized by the master stand-alone DRM:
+** SSL Server Certificate
+
+NOTE: For administration purposes, this cloned DRM will utilize the Administration Certificate that was signed and issued for the DRM master.
+
+= Case III: Stand-alone OCSP =
+
+* A PKI deployment should be able to setup an OCSP without the need to have a CA.
+* This stand-alone OCSP should not be expected to communicate with any other PKI subsystem (with the possible exception of any OCSPs that have been cloned from this stand-alone OCSP).
+* This stand-alone OCSP should host its own security domain.
+* This stand-alone OCSP will require four PKI subsystem certificates to be signed and issued by a single External CA:
+** OCSP Signing Certificate
+** SSL Server Certificate
+** Subsystem Certificate
+** Audit Log Signing Certificate
+* Additionally, for administration purposes, this OCSP will require an Administration Certificate to be signed and issued by the same External CA that signed its other four certificates.
+* This stand-alone OCSP should be able to be cloned.
+* Each OCSP clone will be limited to use the master OCSP security domain.
+
+= Case IV: OCSP Cloned from Stand-alone OCSP =
+
+* A PKI deployment should be able to clone an OCSP from a fully configured stand-alone OCSP.
+* This cloned OCSP should not be expected to communicate with any other PKI subsystem other than the master stand-alone OCSP from which it was cloned.
+* This cloned OCSP must use the master stand-alone OCSP as its security domain.
+* This cloned OCSP will require one PKI subsystem certificate to be signed and issued by the same External CA that was utilized by the master stand-alone OCSP:
+** SSL Server Certificate
+
+NOTE: For administration purposes, this cloned OCSP will utilize the Administration Certificate that was signed and issued for the OCSP master.
