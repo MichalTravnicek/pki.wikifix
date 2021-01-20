@@ -55,3 +55,39 @@ PKI stand-alone subsystems will consist of their own security domain (i.e. they 
 PKI stand-alone subsystems are not expected to communicate with any other PKI subsystem (with the notable exception of any master-clone communication).
 
 PKI stand-alone subsystems will have the ability to be cloned with the imposed restriction that any clone of a stand-alone PKI subsystem must utilize the master stand-alone PKI subsystem as its security domain.
+
+= Implementation =
+
+= Major configuration options and enablement =
+
+= Cloning =
+
+PKI stand-alone subsystems will have the ability to be cloned with the imposed restriction that any clone of a stand-alone PKI subsystem must utilize the master stand-alone PKI subsystem as its security domain.
+
+= Updates and Upgrades =
+
+Since this is a brand new feature, it should require no update/upgrade logic.
+
+== Tests ==
+
+See link:Testing-Standalone-Subsystems[Testing Standalone Subsystems].
+
+= Dependencies =
+
+This design should require no new package or library dependencies.
+
+= Packages =
+
+This design will be contained within the existing packages, and therefore should require no new packages.
+
+= External Impact =
+
+T.B.D.
+
+= History =
+
+*ORIGINAL DESIGN DATE:* September 5, 2013
+
+*Proposed Solution:* When the initial patch was provided (as documented in link:https://github.com/dogtagpki/pki/issues/1237[Ticket #1237: provide option for ca-less drm install]), it was believed that no security domain would be required.  Additionally, the initial patch attempted to provide a solution for the legacy GUI browser interface rather than the `pkispawn` RESTEasy interface.
+
+*Reason for Rejection:* Upon closer examination of the code, it was realized that in order to provide the ability for a stand-alone PKI component to perform cloning, a security domain would be required. Additionally, the order of the implementation phases as described in this ticket was revised such that the initial implementation would address the `pkispawn` RESTEasy interface rather than the legacy GUI browser interface.
