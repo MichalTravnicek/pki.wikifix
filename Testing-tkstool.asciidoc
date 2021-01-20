@@ -1,0 +1,150 @@
+= Overview =
+
+This page describes the procedure to use `tkstool` to generate and utilize a shared key between TKS and TPS.
+
+The example below assumes PKI 10 utilizing a Tomcat7-based TKS instance stored under `/var/lib/pki/pki-tomcat/tks` and an Apache-based TPS instance stored under `/var/lib/pki-tps`.
+
+= TKS =
+
+* Stop the TKS instance:
+
+----
+$ systemctl stop pki-tomcatd@pki-tomcat.service
+----
+
+* Obtain the `internal` password of this TKS instance:
+
+----
+$ cat /var/lib/pki/pki-tomcat/conf/password.conf
+----
+
+* Generate a shared key (e.g. `sharedSecret`) to be shared between this TKS instance and a TPS instance:
+
+----
+$ tkstool -T -d /var/lib/pki/pki-tomcat/alias -n sharedSecret
+
+NOTE:  If you are using a hardware token, the tkstool script could
+       return an error requiring you to set environment variables
+       before running the tool. Set the environment variables as
+       directed, and then re-run the tool.
+
+IMPORTANT:  Be sure to write down and SAVE all values, as they
+            will be needed to successfully configure the TPS!
+
+Generating the first session key share . . .
+    first session key share:      792F AB89 8989 D902 
+                                  9429 6137 8632 7CC4 
+    first session key share KCV:  D1B6 14FD
+Generating the second session key share . . .
+    second session key share:      4CDF C8E0 B385 68EC 
+                                   380B 6D5E 1C19 3E5D 
+    second session key share KCV:  1EC7 8D4B
+Generating the third session key share . . .
+    third session key share:      CD32 3140 25B3 C789 
+                                  B54F 2C94 26C4 9752 
+    third session key share KCV:  73D6 8633
+Generating first symmetric key . . .
+Generating second symmetric key . . .
+Generating third symmetric key . . .
+Extracting transport key from operational token . . .
+    transport key KCV:  A8D0 97A2
+Storing transport key on final specified token . . .
+Naming transport key "sharedSecret" . . .
+Successfully generated, stored, and named the transport key!
+----
+
+* Reset the terminal echo to a visible state:
+
+----
+$ stty sane
+----
+
+* Restart this TKS instance:
+
+----
+$ systemctl start pki-tomcatd@pki-tomcat.service
+----
+
+* Obtain the `internal` password of this TKS instance:
+
+----
+$ cat /var/lib/pki/pki-tomcat/conf/password.conf
+----
+
+* Display the contents of this TKS instance's security databases to verify that it contains the shared key:
+
+----
+$ tkstool -L -d /var/lib/pki/pki-tomcat/alias
+
+ slot:  NSS User Private Key and Certificate Services                  
+token:  NSS Certificate DB
+
+Enter Password or Pin for "NSS Certificate DB": xxxxx
+        <0> sharedSecret
+----
+
+The shared key should be `sharedSecret`, which is the name utilized in this example.
+
+= TPS =
+
+* Stop the TPS instance:
+
+----
+$ systemctl stop pki-tpsd@pki-tps
+----
+
+* Obtain the `internal` password of this TPS instance:
+
+----
+$ cat /var/lib/pki-tps/conf/password.conf
+----
+
+* Import the shared key (e.g. `sharedSecret`) that was generated for the TKS instance above into this TPS instance:
+
+----
+$ tkstool -I -d /var/lib/pki-tps/alias -n sharedSecret
+
+Apply the following TKS values written down from above:
+
+    * first session key share
+    * first session key share KCV
+    * second session key share
+    * second session key share KCV
+    * third session key share
+    * third session key share KCV
+
+Compare the value of the TKS 'transport key KCV' written down above
+with the TPS 'transport key KCV' value displayed; these two values must match.
+----
+
+* Reset the terminal echo to a visible state:
+
+----
+$ stty sane
+----
+
+* Restart this TPS instance:
+
+----
+$ systemctl start pki-tpsd@pki-tps
+----
+
+* Obtain the `internal` password of this TPS instance:
+
+----
+$ cat /var/lib/pki-tps/conf/password.conf
+----
+
+* Display the contents of this TPS instance's security databases to verify that the shared key was imported:
+
+----
+$ tkstool -L -d /var/lib/pki-tps/alias
+
+ slot:  NSS User Private Key and Certificate Services
+token:  NSS Certificate DB
+
+Enter Password or Pin for "NSS Certificate DB":
+        <0> sharedSecret
+----
+
+The shared key should be `sharedSecret`, which is the name utilized in this example.
