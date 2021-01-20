@@ -1,0 +1,318 @@
+= Phases =
+
+Implementation of this feature will take place in the following phases:
+
+* Phase I:&nbsp;&nbsp;&nbsp;&nbsp; Stand-alone DRM using `pkispawn` RESTEasy Interface
+* Phase II:&nbsp;&nbsp;&nbsp; Stand-alone DRM using `pkispawn` + Browser GUI Legacy Interface
+* Phase III:&nbsp;&nbsp; Stand-alone OCSP using `pkispawn` RESTEasy Interface
+* Phase IV:&nbsp;&nbsp; Stand-alone OCSP using `pkispawn` + Browser GUI Legacy Interface
+
+NOTE: Phases II and IV above are dependent upon the status of whether or not link:https://github.com/dogtagpki/pki/issues/1284[Ticket #1284: Review panel for configuration wizard] has been completed.  If complete, then only testing of these two phases is required.
+
+= Changes to default.cfg =
+
+For `pkispawn`, the `default.cfg` file will contain the following sections which must be overridden by a configuration file passed to `pkispawn` via the `-f <file>` command-line option:
+
+----
+###############################################################################
+##  KRA Configuration:                                                       ##
+##                                                                           ##
+##  Values in this section are common to KRA subsystems                      ##
+##  including 'PKI KRAs', 'Cloned KRAs', and 'Stand-alone KRAs' and contain  ##
+##  required information which MAY be overridden by users as necessary.      ##
+##                                                                           ##
+##      STAND-ALONE KRAs:  To specify a 'Stand-alone KRA', change the value  ##
+##                         of 'pki_standalone' from 'False' to 'True', and   ##
+##                         specify the various "pki_external" parameters     ##
+##                         as appropriate.                                   ##
+###############################################################################
+[KRA]
+pki_standalone=False
+pki_external_admin_csr_path=%(pki_instance_configuration_path)s/%(pki_subsystem_type)s_admin.csr
+pki_external_audit_signing_csr_path=%(pki_instance_configuration_path)s/%(pki_subsystem_type)s_audit_signing.csr
+pki_external_sslserver_csr_path=%(pki_instance_configuration_path)s/%(pki_subsystem_type)s_sslserver.csr
+pki_external_storage_csr_path=%(pki_instance_configuration_path)s/%(pki_subsystem_type)s_storage.csr
+pki_external_subsystem_csr_path=%(pki_instance_configuration_path)s/%(pki_subsystem_type)s_subsystem.csr
+pki_external_transport_csr_path=%(pki_instance_configuration_path)s/%(pki_subsystem_type)s_transport.csr
+pki_external_step_two=False
+pki_external_ca_cert_chain_path=%(pki_instance_configuration_path)s/external_ca_chain.cert
+pki_external_ca_cert_path=%(pki_instance_configuration_path)s/external_ca.cert
+pki_external_admin_cert_path=%(pki_instance_configuration_path)s/%(pki_subsystem_type)s_admin.cert
+pki_external_audit_signing_cert_path=%(pki_instance_configuration_path)s/%(pki_subsystem_type)s_audit_signing.cert
+pki_external_sslserver_cert_path=%(pki_instance_configuration_path)s/%(pki_subsystem_type)s_sslserver.cert
+pki_external_storage_cert_path=%(pki_instance_configuration_path)s/%(pki_subsystem_type)s_storage.cert
+pki_external_subsystem_cert_path=%(pki_instance_configuration_path)s/%(pki_subsystem_type)s_subsystem.cert
+pki_external_transport_cert_path=%(pki_instance_configuration_path)s/%(pki_subsystem_type)s_transport.cert
+
+###############################################################################
+##  OCSP Configuration:                                                      ##
+##                                                                           ##
+##  Values in this section are common to OCSP subsystems                     ##
+##  including 'PKI OCSPs', 'Cloned OCSPs', and 'Stand-alone OCSPs' and       ##
+##  contain required information which MAY be overridden by users as         ##
+##  necessary.                                                               ##
+##                                                                           ##
+##      STAND-ALONE OCSPs:  To specify a 'Stand-alone OCSP', change the      ##
+##                          value of 'pki_standalone' from 'False' to        ##
+##                          'True', and specify the various "pki_external"   ##
+##                          parameters as appropriate.                       ##
+##                                                                           ##
+###############################################################################
+[OCSP]
+pki_standalone=False
+pki_external_admin_csr_path=%(pki_instance_configuration_path)s/%(pki_subsystem_type)s_admin.csr
+pki_external_audit_signing_csr_path=%(pki_instance_configuration_path)s/%(pki_subsystem_type)s_audit_signing.csr
+pki_external_signing_csr_path=%(pki_instance_configuration_path)s/%(pki_subsystem_type)s_signing.csr
+pki_external_sslserver_csr_path=%(pki_instance_configuration_path)s/%(pki_subsystem_type)s_sslserver.csr
+pki_external_subsystem_csr_path=%(pki_instance_configuration_path)s/%(pki_subsystem_type)s_subsystem.csr
+pki_external_step_two=False
+pki_external_ca_cert_chain_path=%(pki_instance_configuration_path)s/external_ca_chain.cert
+pki_external_ca_cert_path=%(pki_instance_configuration_path)s/external_ca.cert
+pki_external_admin_cert_path=%(pki_instance_configuration_path)s/%(pki_subsystem_type)s_admin.cert
+pki_external_audit_signing_cert_path=%(pki_instance_configuration_path)s/%(pki_subsystem_type)s_audit_signing.cert
+pki_external_signing_cert_path=%(pki_instance_configuration_path)s/%(pki_subsystem_type)s_signing.cert
+pki_external_sslserver_cert_path=%(pki_instance_configuration_path)s/%(pki_subsystem_type)s_sslserver.cert
+pki_external_subsystem_cert_path=%(pki_instance_configuration_path)s/%(pki_subsystem_type)s_subsystem.cert
+----
+
+= Changes to acl.ldif and db.ldif =
+
+== DRM ==
+
+The following code needs to be added to the DRM `acl.ldif` file to provide the ability for a stand-alone DRM subsystems to support a security domain:
+
+----
+resourceACLS: certServer.securitydomain.domainxml:read,modify:allow (read) user="anybody";allow (modify) group="Subsystem Group" ||
+group="Enterprise KRA Administrators":Anybody is allowed to read domain.xml but only Subsystem group and Enterprise Administrators are allowed to modify the domain.xml
+----
+
+Similarly, the following code needs to be added to the DRM `db.ldif` file to provide the ability for stand-alone DRM subsystems to support a security domain:
+
+----
+dn: cn=Security Domain Administrators,ou=groups,{rootSuffix}
+objectClass: top
+objectClass: groupOfUniqueNames
+cn: Security Domain Administrators
+description: People who are the Security Domain administrators
+
+dn: cn=Enterprise KRA Administrators,ou=groups,{rootSuffix}
+objectClass: top
+objectClass: groupOfUniqueNames
+cn: Enterprise KRA Administrators
+description: People who are the administrators for the security domain for KRA
+----
+
+== OCSP ==
+
+The following code needs to be added to the OCSP `acl.ldif` file to provide the ability for stand-alone OCSP subsystems to support a security domain:
+
+----
+resourceACLS: certServer.securitydomain.domainxml:read,modify:allow (read) user="anybody";allow (modify) group="Subsystem Group" ||
+group="Enterprise OCSP Administrators":Anybody is allowed to read domain.xml but only Subsystem group and Enterprise Administrators are allowed to modify the domain.xml
+----
+
+Similarly, the following code needs to be added to the OCSP `db.ldif` file to provide the ability for stand-alone OCSP subsystems to support a security domain:
+
+----
+dn: cn=Security Domain Administrators,ou=groups,{rootSuffix}
+objectClass: top
+objectClass: groupOfUniqueNames
+cn: Security Domain Administrators
+description: People who are the Security Domain administrators
+
+dn: cn=Enterprise OCSP Administrators,ou=groups,{rootSuffix}
+objectClass: top
+objectClass: groupOfUniqueNames
+cn: Enterprise OCSP Administrators
+description: People who are the administrators for the security domain for OCSP
+----
+
+= Changes to web.xml =
+
+The following code needs to be added to the DRM/OCSP `web.xml` files whose availability will probably be controlled via a defined "slot" variable associated with stand-alone PKI subsystems:
+
+----
+   <servlet>
+      <servlet-name>  caGetDomainXML  </servlet-name>
+      <servlet-class> com.netscape.cms.servlet.csadmin.GetDomainXML  </servlet-class>
+             <init-param><param-name>  GetClientCert  </param-name>
+                         <param-value> false       </param-value> </init-param>
+             <init-param><param-name>  authority   </param-name>
+                         <param-value> ca          </param-value> </init-param>
+             <init-param><param-name>  ID          </param-name>
+                         <param-value> caGetDomainXML </param-value> </init-param>
+   </servlet>
+
+   <servlet>
+      <servlet-name>  caUpdateDomainXML  </servlet-name>
+      <servlet-class> com.netscape.cms.servlet.csadmin.UpdateDomainXML  </servlet-class>
+             <init-param><param-name>  GetClientCert  </param-name>
+                         <param-value> true       </param-value> </init-param>
+             <init-param><param-name>  authority   </param-name>
+                         <param-value> ca          </param-value> </init-param>
+             <init-param><param-name>  ID          </param-name>
+                         <param-value> caUpdateDomainXML </param-value> </init-param>
+             <init-param><param-name>  interface   </param-name>
+                         <param-value> agent          </param-value> </init-param>
+             <init-param><param-name>  AuthMgr     </param-name>
+                         <param-value> certUserDBAuthMgr </param-value> </init-param>
+             <init-param><param-name>  AuthzMgr    </param-name>
+                         <param-value> BasicAclAuthz </param-value> </init-param>
+             <init-param><param-name>  resourceID  </param-name>
+                         <param-value> certServer.securitydomain.domainxml </param-value> </init-param>
+   </servlet>
+
+ <servlet>
+      <servlet-name>  caUpdateDomainXML-admin  </servlet-name>
+      <servlet-class> com.netscape.cms.servlet.csadmin.UpdateDomainXML  </servlet-class>
+             <init-param><param-name>  GetClientCert  </param-name>
+                         <param-value> false       </param-value> </init-param>
+             <init-param><param-name>  authority   </param-name>
+                         <param-value> ca          </param-value> </init-param>
+             <init-param><param-name>  ID          </param-name>
+                         <param-value> caUpdateDomainXML </param-value> </init-param>
+             <init-param><param-name>  interface   </param-name>
+                         <param-value> admin          </param-value> </init-param>
+             <init-param><param-name>  AuthMgr     </param-name>
+                         <param-value> TokenAuth </param-value> </init-param>
+             <init-param><param-name>  AuthzMgr    </param-name>
+                         <param-value> BasicAclAuthz </param-value> </init-param>
+             <init-param><param-name>  resourceID  </param-name>
+                         <param-value> certServer.securitydomain.domainxml </param-value> </init-param>
+   </servlet>
+
+   <servlet>
+      <servlet-name>  caSecurityDomainLogin  </servlet-name>
+      <servlet-class> com.netscape.cms.servlet.csadmin.SecurityDomainLogin  </servlet-class>
+            <init-param> <param-name>properties</param-name>
+                         <param-value>/WEB-INF/velocity.properties</param-value> </init-param>
+             <init-param><param-name>  GetClientCert  </param-name>
+                         <param-value> false       </param-value> </init-param>
+             <init-param><param-name>  AuthzMgr    </param-name>
+                         <param-value> BasicAclAuthz </param-value> </init-param>
+             <init-param><param-name>  authority   </param-name>
+                         <param-value> ca          </param-value> </init-param>
+             <init-param><param-name>  ID          </param-name>
+                         <param-value> caSecurityDomainLogin  </param-value> </init-param>
+             <init-param><param-name>  resourceID  </param-name>
+                         <param-value> certServer.ee.certificates </param-value> </init-param>
+   </servlet>
+
+   <servlet>
+      <servlet-name>  caGetCookie  </servlet-name>
+      <servlet-class> com.netscape.cms.servlet.csadmin.GetCookie  </servlet-class>
+            <init-param> <param-name>properties</param-name>
+                         <param-value>/WEB-INF/velocity.properties</param-value> </init-param>
+             <init-param><param-name>  GetClientCert  </param-name>
+                         <param-value> false       </param-value> </init-param>
+             <init-param><param-name>  AuthzMgr    </param-name>
+                         <param-value> BasicAclAuthz </param-value> </init-param>
+             <init-param><param-name>  authority   </param-name>
+                         <param-value> ca          </param-value> </init-param>
+             <init-param><param-name>  ID          </param-name>
+                         <param-value> caGetCookie  </param-value> </init-param>
+             <init-param><param-name>  AuthMgr     </param-name>
+                         <param-value> passwdUserDBAuthMgr </param-value> </init-param>
+             <init-param><param-name>  templatePath  </param-name>
+                         <param-value> /admin/ca/sendCookie.template </param-value> </init-param>
+             <init-param><param-name>  errorTemplatePath  </param-name>
+                         <param-value> /admin/ca/securitydomainlogin.template </param-value> </init-param>
+   </servlet>
+
+   <servlet>
+      <servlet-name>  caTokenAuthenticate  </servlet-name>
+      <servlet-class> com.netscape.cms.servlet.csadmin.TokenAuthenticate  </servlet-class>
+             <init-param><param-name>  GetClientCert  </param-name>
+                         <param-value> false       </param-value> </init-param>
+             <init-param><param-name>  authority   </param-name>
+                         <param-value> ca          </param-value> </init-param>
+             <init-param><param-name>  ID          </param-name>
+                         <param-value> caTokenAuthenticate  </param-value> </init-param>
+             <init-param><param-name>  interface   </param-name>
+                         <param-value> ee          </param-value> </init-param>
+   </servlet>
+
+   <servlet>
+      <servlet-name>  caTokenAuthenticate-admin  </servlet-name>
+      <servlet-class> com.netscape.cms.servlet.csadmin.TokenAuthenticate  </servlet-class>
+             <init-param><param-name>  GetClientCert  </param-name>
+                         <param-value> false       </param-value> </init-param>
+             <init-param><param-name>  authority   </param-name>
+                         <param-value> ca          </param-value> </init-param>
+             <init-param><param-name>  ID          </param-name>
+                         <param-value> caTokenAuthenticate  </param-value> </init-param>
+             <init-param><param-name>  interface   </param-name>
+                         <param-value> admin          </param-value> </init-param>
+   </servlet>
+
+ <servlet-mapping>
+      <servlet-name>  caGetDomainXML </servlet-name>
+      <url-pattern>   /admin/ca/getDomainXML  </url-pattern>
+   </servlet-mapping>
+
+   <servlet-mapping>
+      <servlet-name>  caUpdateDomainXML </servlet-name>
+      <url-pattern>   /agent/ca/updateDomainXML  </url-pattern>
+   </servlet-mapping>
+
+   <servlet-mapping>
+      <servlet-name>  caUpdateDomainXML-admin </servlet-name>
+      <url-pattern>   /admin/ca/updateDomainXML  </url-pattern>
+   </servlet-mapping>
+   <servlet-mapping>
+      <servlet-name>  caSecurityDomainLogin </servlet-name>
+      <url-pattern>   /admin/ca/securityDomainLogin  </url-pattern>
+   </servlet-mapping>
+
+   <servlet-mapping>
+      <servlet-name>  caGetCookie </servlet-name>
+      <url-pattern>   /admin/ca/getCookie  </url-pattern>
+   </servlet-mapping>
+
+   <servlet-mapping>
+      <servlet-name>  caTokenAuthenticate </servlet-name>
+      <url-pattern>   /ee/ca/tokenAuthenticate  </url-pattern>
+   </servlet-mapping>
+
+   <servlet-mapping>
+      <servlet-name>  caTokenAuthenticate-admin </servlet-name>
+      <url-pattern>   /admin/ca/tokenAuthenticate  </url-pattern>
+   </servlet-mapping>
+
+   <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Security Domain Services</web-resource-name>
+            <url-pattern>/rest/securityDomain/installToken</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>*</role-name>
+        </auth-constraint>
+        <user-data-constraint>
+            <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+        </user-data-constraint>
+    </security-constraint>
+----
+
+= Source Code Changes =
+
+To expose the REST security domain servlets, the following code needs to be added to `KeyRecoveryAuthorityApplication.java` for DRM subsystems:
+
+----
+IConfigStore cs = CMS.getConfigStore();
+boolean standalone = cs.getBoolean("kra.standalone", false);
+if (standalone) {
+    classes.add(SecurityDomainService.class);
+}
+----
+
+and to `OCSPApplication.java` for OCSP subsystems:
+
+----
+IConfigStore cs = CMS.getConfigStore();
+boolean standalone = cs.getBoolean("ocsp.standalone", false);
+if (standalone) {
+    classes.add(SecurityDomainService.class);
+}
+----
+
+Some `pkidaemon` Python code will require changes to implement this feature.
