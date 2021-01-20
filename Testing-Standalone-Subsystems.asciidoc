@@ -1,0 +1,181 @@
+= Case I: Stand-alone DRM =
+
+== External CA Installation/Configuration ==
+
+Create an *External CA* for testing purposes:
+
+* Sample `default.cfg` override file (e.g. `/tmp/pki/ca.cfg`):
+
+----
+[DEFAULT]
+pki_admin_password=<password>
+pki_client_pkcs12_password=<password>
+pki_ds_password=<password>
+pki_ajp_port=18009
+pki_http_port=18080
+pki_https_port=18443
+pki_instance_name=external-ca
+pki_security_domain_https_port=18443
+pki_tomcat_server_port=18005
+----
+
+* Run `pkispawn` to create this instance:
+
+----
+$ pkispawn -s CA -f /tmp/pki/ca.cfg -vvv
+----
+
+== Stand-alone DRM (Step 1) Installation/Configuration ==
+
+Create a *Stand-alone DRM* (Step 1):
+
+*  Sample `default.cfg` override file (e.g. `/tmp/pki/kra_pass_one.cfg`):
+
+----
+[DEFAULT]
+pki_admin_password=<password>
+pki_client_database_password=<password>
+pki_client_pkcs12_password=<password>
+pki_ds_password=<password>
+pki_instance_name=standalone-drm
+[KRA]
+pki_standalone=True
+----
+
+* Run `pkispawn` to create this instance:
+
+----
+$ pkispawn -s KRA -f /tmp/pki/kra_pass_one.cfg -vvv
+  . . .
+  Please obtain the necessary certificates for this stand-alone KRA,
+  and re-run the configuration for step two.
+----
+
+* Verify that the certificate requests have been generated and stored in `CS.cfg`:
+
+----
+$ grep "\.certreq=" /etc/pki/standalone-drm/kra/CS.cfg
+kra.admin.certreq=MIICujCCAaICAQAwd . . .
+kra.audit_signing.certreq=MIICmjCCA . . .
+kra.sslserver.certreq=MIICmDCCAYACA . . .
+kra.storage.certreq=MIIClDCCAXwCAQA . . .
+kra.subsystem.certreq=MIICljCCAX4CA . . .
+kra.transport.certreq=MIICljCCAX4CA . . .
+----
+
+* Verify that a value for `preop.cert.admin.dn` has been stored in `CS.cfg`:
+
+----
+$ grep "preop.cert.admin.dn=" /etc/pki/standalone-drm/kra/CS.cfg
+preop.cert.admin.dn=cn=PKI Administrator,e=kraadmin@example.com,o=example.com Security Domain
+----
+
+* Verify that the certificates contain the following values for Step 1 in `CS.cfg`:
+
+----
+$ grep "\.cert=" /etc/pki/standalone-drm/kra/CS.cfg
+kra.admin.cert=...paste certificate here...
+kra.audit_signing.cert=...paste certificate here...
+kra.sslserver.cert=...paste certificate here...
+kra.storage.cert=...paste certificate here...
+kra.subsystem.cert=...paste certificate here...
+kra.transport.cert=...paste certificate here...
+----
+
+* Verify that the certificate requests exist in CSR files for convenience:
+
+----
+$ ls -1 /etc/pki/standalone-drm/*.csr
+kra_admin.csr
+kra_audit_signing.csr
+kra_sslserver.csr
+kra_storage.csr
+kra_subsystem.csr
+kra_transport.csr
+----
+
+== Use of External CA for Certificate Creation ==
+
+* Submit each CSR to the appropriate Certificate Profile of the External CA configured above:
+** Manual Administrator Certificate Enrollment
+*** `/etc/pki/standalone-drm/kra_admin.csr`
+*** Subject Name: `cn=PKI Administrator,e=kraadmin@example.com,o=example.com Security Domain`
+** Manual Log Signing Certificate Enrollment
+*** `/etc/pki/standalone-drm/kra_audit_signing.csr`
+** Manual Server Certificate Enrollment
+*** `/etc/pki/standalone-drm/kra_sslserver.csr`
+** Manual Subsystem Certificate Enrollment
+*** `/etc/pki/standalone-drm/kra_subsystem.csr`
+** Manual Data Recovery Manager Storage Certificate Enrollment
+*** `/etc/pki/standalone-drm/kra_storage.csr`
+** Manual Data Recovery Manager Transport Certificate Enrollment
+*** `/etc/pki/standalone-drm/kra_transport.csr`
+
+* Approve each CSR and obtain the following certificates from the External CA configured above and place them into the files identified below:
+** `CN=CA Signing Certificate,O=example.com Security Domain`
+*** `/etc/pki/standalone-drm/external_ca.cert`
+*** `/etc/pki/standalone-drm/external_ca_chain.cert`
+** `CN=PKI Administrator,E=kraadmin@example.com,O=example.com Security Domain`
+*** `/etc/pki/standalone-drm/kra_admin.cert`
+** `CN=KRA Audit Signing Certificate,O=example.com Security Domain`
+*** `/etc/pki/standalone-drm/kra_audit_signing.cert`
+** `CN=standalone-drm.example.com,O=example.com Security Domain`
+*** `/etc/pki/standalone-drm/kra_sslserver.cert`
+** `CN=KRA Subsystem Certificate,O=example.com Security Domain`
+*** `/etc/pki/standalone-drm/kra_subsystem.cert`
+** `CN=DRM Storage Certificate,O=example.com Security Domain`
+*** `/etc/pki/standalone-drm/kra_storage.cert`
+** `CN=DRM Transport Certificate,O=example.com Security Domain`
+*** `/etc/pki/standalone-drm/kra_transport.cert`
+
+* Verify that the certificates exist in files for use by Stand-alone DRM (Step 2):
+
+----
+$ ls -1 /etc/pki/standalone-drm/*.cert
+external_ca.cert
+external_ca_chain.cert
+kra_admin.cert
+kra_audit_signing.cert
+kra_sslserver.cert
+kra_storage.cert
+kra_subsystem.cert
+kra_transport.cert
+----
+
+== Stand-alone DRM (Step 2) Installation/Configuration ==
+
+Create a *Stand-alone DRM* (Step 2):
+
+* Sample `default.cfg` override file (e.g. `/tmp/pki/kra_pass_two.cfg`):
+
+----
+[DEFAULT]
+pki_admin_password=<password>
+pki_client_database_password=<password>
+pki_client_pkcs12_password=<password>
+pki_ds_password=<password>
+pki_instance_name=standalone-drm
+[KRA]
+pki_standalone=True
+pki_external_step_two=True
+----
+
+* Run `pkispawn` to create this instance:
+
+----
+$ pkispawn -s KRA -f /tmp/pki/kra_pass_two.cfg -vvv
+----
+
+* Verify that the certificates contain the following values for Step 2 in `CS.cfg`:
+
+----
+$ grep "\.cert=" /etc/pki/standalone-drm/kra/CS.cfg
+kra.admin.cert=MIID4DCCAsigAwIBAgIBF . . .
+kra.audit_signing.cert=MIIDcDCCAligA . . .
+kra.external_ca.cert=MIIDyjCCArKgAwI . . .
+kra.external_ca_chain.cert=MIID/QYJK . . .
+kra.sslserver.cert=MIIDvjCCAqagAwIBA . . .
+kra.storage.cert=MIIDsDCCApigAwIBAgI . . .
+kra.subsystem.cert=MIIDsjCCApqgAwIBA . . .
+kra.transport.cert=MIIDsjCCApqgAwIBA . . .
+----
