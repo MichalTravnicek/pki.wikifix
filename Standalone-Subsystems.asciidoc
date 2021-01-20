@@ -62,7 +62,115 @@ See link:https://www.dogtagpki.org/wiki/Stand-alone_PKI_Subsystems[Stand-alone P
 
 = Major Configuration Options and Enablement =
 
-See link:https://www.dogtagpki.org/wiki/Stand-alone_PKI_Subsystems[Stand-alone PKI Subsystems].
+== DRM ==
+
+=== Master ===
+
+An example of a first-pass `default.cfg` override file for a stand-alone DRM might look something like this:
+
+----
+[DEFAULT]
+pki_admin_password=<password>
+pki_client_database_password=<password>
+pki_client_pkcs12_password=<password>
+pki_ds_password=<password>
+[KRA]
+pki_standalone=True
+----
+
+An example of a second-pass `default.cfg` override file for a stand-alone DRM might look something like this:
+
+----
+[DEFAULT]
+pki_admin_password=<password>
+pki_client_database_password=<password>
+pki_client_pkcs12_password=<password>
+pki_ds_password=<password>
+[KRA]
+pki_standalone=True
+pki_external_step_two=True
+----
+
+Each stand-alone DRM instance will contain the following parameter in its `CS.cfg` file:
+
+----
+kra.standalone=true
+----
+
+NOTE: `kra.standalone` will be set to `false` on non-standalone DRMs, and this parameter will not be present in legacy DRMs.
+
+=== Clone ===
+
+An example of a first-pass `default.cfg` override file for a cloned DRM of a stand-alone DRM might look something like this:
+
+T.B.D.
+
+An example of a second-pass `default.cfg` override file for a cloned DRM of a stand-alone DRM might look something like this:
+
+T.B.D.
+
+Each cloned DRM of a stand-alone DRM instance will contain the following parameter in its `CS.cfg` file:
+
+----
+kra.standalone=true
+----
+
+NOTE: `kra.standalone` will be set to `false` on non-standalone cloned DRMs, and this parameter will not be present in legacy cloned DRMs.
+
+== OCSP ==
+
+=== Master ===
+
+An example of a first-pass `default.cfg` override file for a stand-alone OCSP might look something like this:
+
+----
+[DEFAULT]
+pki_admin_password=<password>
+pki_client_database_password=<password>
+pki_client_pkcs12_password=<password>
+pki_ds_password=<password>
+[OCSP]
+pki_standalone=True
+----
+
+An example of a second-pass `default.cfg` override file for a stand-alone OCSP might look something like this:
+
+----
+[DEFAULT]
+pki_admin_password=<password>
+pki_client_database_password=<password>
+pki_client_pkcs12_password=<password>
+pki_ds_password=<password>
+[OCSP]
+pki_standalone=True
+pki_external_step_two=True
+----
+
+Each stand-alone OCSP instance will contain the following parameter in its `CS.cfg` file:
+
+----
+ocsp.standalone=true
+----
+
+NOTE: `ocsp.standalone` will be set to `false` on non-standalone OCSPs, and this parameter will not be present in legacy OCSPs.
+
+=== Clone ===
+
+An example of a first-pass `default.cfg` override file for a cloned OCSP of a stand-alone OCSP might look something like this:
+
+T.B.D.
+
+An example of a second-pass `default.cfg` override file for a cloned OCSP of a stand-alone OCSP might look something like this:
+
+T.B.D.
+
+Each cloned OCSP of a stand-alone OCSP instance will contain the following parameter in its `CS.cfg` file:
+
+----
+ocsp.standalone=true
+----
+
+NOTE: `ocsp.standalone` will be set to `false` on non-standalone cloned OCSPs, and this parameter will not be present in legacy cloned OCSPs.
 
 = Cloning =
 
