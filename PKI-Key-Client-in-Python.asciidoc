@@ -3,8 +3,8 @@
 The Python Key Client is a client framework that allows you to easily interact with the DRM to archive, generate and recover secrets
 over the REST framework.  This all assumes code that is currently in the trunk (master branch) in Dogtag 10.2.
 
-Note that all the python code is installed under /usr/lib/python2.7/site-packages/pki.  In the discussions below, we will refer to
-this directory as $PYTHON_PATH/pki.
+Note that all the Python code is installed under `/usr/lib/python2.7/site-packages/pki`.
+In the discussions below, we will refer to this directory as `$PYTHON_PATH/pki`.
 
 A build for x86_64 architectures for Fedora 20 can be found here:  http://vakwetu.fedorapeople.org/10.2.0/
 
@@ -36,8 +36,8 @@ you select will depend on your particular environment.
 
 In this option, an NSS database that contains the DRM transport key is set up locally, and used by the Python client
 for crypto operations.  This is by far the easiest mechanism to set up, as we have provided NSS crypto functions
-to do all the required operations.  The python class that implements these operations is NSSCryptoUtil located in
-$PYTHON_PATH/pki/cryptoutil.py.  Here is the python code that would set up the certificate database, populate it with
+to do all the required operations.  The python class that implements these operations is `NSSCryptoUtil` located in
+`$PYTHON_PATH/pki/cryptoutil.py`.  Here is the python code that would set up the certificate database, populate it with
 the transport cert and initialize the database for use.
 
 ----
@@ -93,13 +93,13 @@ In subsequent invocations, you can just do this:
 
 In this option, the crypto operations (generating keys/ wrapping/ unwrapping) would still
 be done locally, but not using NSS for the cryptographic library.  The python client code
-uses the CryptoUtil abstract class in $PYTHON_PATH/pki/cryptoutil.py to perform cryptographic functions.
-NSSCryptoUtil described above is an implementation of that class.  We plan to write an
-OpenSSLCryptoUtil at some point soon as well.
+uses the `CryptoUtil` abstract class in `$PYTHON_PATH/pki/cryptoutil.py` to perform cryptographic functions.
+`NSSCryptoUtil` described above is an implementation of that class.  We plan to write an
+`OpenSSLCryptoUtil` at some point soon as well.
  
-To use something other than NSS then, you would need to subclass CryptoUtil and implement the 
+To use something other than NSS then, you would need to subclass `CryptoUtil` and implement the 
 abstract methods.  The setup code would then be similar to the code shown above - except that
-your subclass would be passed into the constructor for KRAClient instead of the NSSCryptoUtil class.
+your subclass would be passed into the constructor for `KRAClient` instead of the `NSSCryptoUtil` class.
 
 === Option 3: Have the python client not do crypto locally. ===
 
@@ -125,18 +125,18 @@ needs to be done outside of the Dogtag Python client.
 
 = Working with the Key Client = 
 
-As shown in the code samples above, the end result is a KeyClient object which is defined in 
-$PYTHON_PATH/pki/key.py.  Furthermore, in the source code in drmtest.py, there are examples of the invocation
+As shown in the code samples above, the end result is a `KeyClient` object which is defined in 
+`$PYTHON_PATH/pki/key.py`.  Furthermore, in the source code in `drmtest.py`, there are examples of the invocation
 of the functions.  You should look at that class to see all the relevant methods and more detailed
 description of each method.  We will describe the most common use cases below.
 
 There are a few parameters that are worth mentioning though:
 
-* client_key_id: this is a label that is provided by the caller for the stored secret.  It is not guaranteed to be unique, If uniqueness is required, this is the responsibility of the caller.  Secrets can be either active/inactive.  There can be no more than one active secret per client_key_id.  Attempting to archive or generate another key with the same client_key_id will fail.  If this parameter is in the method definition, then it usually required.<br>  Note that there is currently a restriction that the client_key_id should not include "/" characters,
+* `client_key_id`: this is a label that is provided by the caller for the stored secret.  It is not guaranteed to be unique, If uniqueness is required, this is the responsibility of the caller.  Secrets can be either active/inactive.  There can be no more than one active secret per `client_key_id`.  Attempting to archive or generate another key with the same `client_key_id` will fail.  If this parameter is in the method definition, then it usually required.  Note that there is currently a restriction that the `client_key_id` should not include "/" characters,
 
-* key_id: this is a unique identifier assigned to the secret by the DRM when it is generated or archived.  It is uniquely only to this DRM (and its clones).
+* `key_id`: this is a unique identifier assigned to the secret by the DRM when it is generated or archived.  It is uniquely only to this DRM (and its clones).
 
-* A note about exceptions:  In general, if invalid parameters are detected on the client side, a TypeError is thrown.  Exceptions from the server as typically caught and cast as pki.PKIException objects.
+* A note about exceptions:  In general, if invalid parameters are detected on the client side, a `TypeError` is thrown.  Exceptions from the server as typically caught and cast as `pki.PKIException` objects.
 
 == Generating and archiving a symmetric key ==
 
@@ -144,7 +144,7 @@ This function takes in some key parameters and returns the key_id for the genera
 (and archived) key.  In future, it will also be able to return the generated key at the same
 time.  We will implement that functionality soon.
 
-This is basically the Barbican encode() function.
+This is basically the Barbican `encode()` function.
 
 ----
 import pki.key as key
@@ -165,7 +165,7 @@ key_id = response.get_key_id()
 There are different functions depending whether the client is doing crypto operations locally
 or whether the crypto operations are being performed outside of the Dogtag Python client.
 
-This is the case where Dogtag Python Client is doing all the crypto (options 1 or 2 above).
+This is the case where PKI Python Client is doing all the crypto (options 1 or 2 above).
 
 ----
 # get active key for a particular client ID
@@ -173,11 +173,11 @@ key_info = keyclient.get_active_key_info(client_key_id)
 key_data, unwrapped_key = keyclient.retrieve_key(key_info.get_key_id())
 ----
 
-key_data will contain information about the secret (algorithm etc.), unwrapped_key will be
+`key_data` will contain information about the secret (algorithm etc.), `unwrapped_key` will be
 the raw key.
 
-This is the case where all the crypto is done outside the Dogtag python client.  This is 
-most likely what Barbican will use for its decode() function.
+This is the case where all the crypto is done outside the PKI Python client.  This is 
+most likely what Barbican will use for its `decode()` function.
 
 ----
 # client generates and passes in wrapped_session_key
@@ -194,15 +194,15 @@ unwrapped_key = crypto.symmetric_unwrap(key_data.wrappedPrivateData,
                                         nonce_iv=key_data.nonceData)
 ----
 
-wrapped session_key is a 168 bit 3DES symmetric key used as a session key, that has been wrapped by
+wrapped `session_key` is a 168 bit 3DES symmetric key used as a session key, that has been wrapped by
 the public key in the DRM transport certificate.  This session key will be decoded on the DRM, and will
-be used to wrap the secret.  The wrapped secret will be returned in the key_data object. The _unwrapped_key
-parameter will return None.
+be used to wrap the secret.  The wrapped secret will be returned in the `key_data` object. The `unwrapped_key`
+parameter will return `None`.
 
-The example code shows how to unwrap the key given knowledge of the session_key.  This code must
-be executed on the client where the session_key was generated.
+The example code shows how to unwrap the key given knowledge of the `session_key`.  This code must
+be executed on the client where the `session_key` was generated.
 
-Some code to create the wrapped session key using python-nss and NSSCryptoUtil is given below
+Some code to create the wrapped session key using `python-nss` and `NSSCryptoUtil` is given below
 for reference.  You can look into that code to see how the session key is generated.
 
 ----
