@@ -6,7 +6,7 @@ It allows users to perform GET and POST calls for archiving, retrieving and modi
 
 A build for x86_64 architectures for Fedora 20 can be found here: http://vakwetu.fedorapeople.org/10.2.0/.
 
-On installing the rpms, the jar files can be found at /usr/share/java/pki .
+On installing the rpms, the jar files can be found at `/usr/share/java/pki`.
 
 = Prerequisites =
 
@@ -64,11 +64,11 @@ your code to use the client framework.
 
 == Authentication ==
 
-The client uses JSS(NSS in Java) libraries to interact with the DRM.  All interactions with the DRM require
+The client uses JSS (NSS in Java) libraries to interact with the DRM.  All interactions with the DRM require
 client certificate authentication by a trusted agent.An admin user who is also a trusted agent is created 
 as part of the installation process. The PKCS12 file containing the cert/private key for this admin user can be found at
-~/.dogtag/pki-tomcat/ca_admin_cert.p12. Since you can only install the subsystems as a root user on your system, you should also
-provide access to the file for all other users. You can use commands like certutil and pk12util, provided by nss-tools package,
+`~/.dogtag/pki-tomcat/ca_admin_cert.p12`. Since you can only install the subsystems as a root user on your system, you should also
+provide access to the file for all other users. You can use commands like `certutil` and `pk12util`, provided by `nss-tools` package,
 to create an NSS database, import the p12 file into the database and use it for authentication.
 
 Following are the steps to setup an NSS database and import the cert stored in the p12 file:
@@ -102,9 +102,9 @@ you select will depend on your particular environment.
 
 In this option, an NSS database needs to be set up locally, and used by the Java client for crypto operations. 
 Since you will already have an NSS database for authentication, this approach takes the least effort to perform all the required crypto operations.
-The java class that implements these operations is NSSCryptoProvider located in /usr/share/java/certsrv.jar.
-The constructor of NSSCryptoProvider will initialize the NSS database at the location specified in the ClientConfig object.
-Here is how we pass on the NSSCryptoProvider to the KeyClient.
+The Java class that implements these operations is `NSSCryptoProvider` located in `/usr/share/java/certsrv.jar`.
+The constructor of `NSSCryptoProvider` will initialize the NSS database at the location specified in the `ClientConfig` object.
+Here is how we pass on the `NSSCryptoProvider` to the `KeyClient`.
 
 ----        
 ClientConfig config = new ClientConfig();
@@ -125,24 +125,24 @@ transportCert = transportCert.substring(PKIService.HEADER.length(),
 keyClient.setTransportCert(transportCert);
 ----
 
-So you first create a ClientConfig instance storing the details of the server URI, and the NSS database.
-Create an NSSCryptoProvider instance using the ClientConfig object and pass it on to the KRAClient
-as part of the PKIClient instance. 
-You can access the KeyClient from the KRAClient instance. The PKIClient which has all the configuration details will
+So you first create a `ClientConfig` instance storing the details of the server URI, and the NSS database.
+Create an `NSSCryptoProvider` instance using the ClientConfig object and pass it on to the `KRAClient`
+as part of the `PKIClient` instance. 
+You can access the `KeyClient` from the `KRAClient` instance. The `PKIClient` which has all the configuration details will
 take care of the authenticating using the NSS database.
 
 === Option 2: Use something else (OpenSSL?) crypto locally ===
 
 In this option, the crypto operations (generating keys/ wrapping/ unwrapping) would still
-be done locally, but not using NSS for the cryptographic library. The NSSCryptoProvider which does the crypto
-operations is an implementation of an abstract base class CryptoProvider. All the functions declared in the 
-CryptoProvider class are used by the key client to perform the crypto operations. 
+be done locally, but not using NSS for the cryptographic library. The `NSSCryptoProvider` which does the crypto
+operations is an implementation of an abstract base class `CryptoProvider`. All the functions declared in the 
+`CryptoProvider` class are used by the key client to perform the crypto operations. 
  
-To use something other than NSS then, you would need to subclass CryptoProvider and implement the 
+To use something other than NSS then, you would need to subclass `CryptoProvider` and implement the 
 abstract methods.  The setup code would then be similar to the code shown above - except that
-your subclass would be passed into the constructor for PKIClient instead of the NSSCryptoUtil class.
+your subclass would be passed into the constructor for `PKIClient` instead of the `NSSCryptoUtil` class.
 
-We plan to write an OpenSSLCryptoUtil at some point soon as well.
+We plan to write an `OpenSSLCryptoUtil` at some point soon as well.
 
 === Option 3: Handling the crypto operations outside the Key client ===
 
@@ -152,22 +152,22 @@ the symmetric keys and wrappings are being done on a separate application, and t
 
 = Working with the Key Client = 
 
-As shown in the code samples above, the end result is a KeyClient object which is defined in 
-KeyClient.java.  Furthermore, in the source code in link:https://git.fedorahosted.org/cgit/pki.git/tree/base/kra/functional/src/com/netscape/cms/servlet/test/DRMTest.java[DRMTest.java], there are examples of the invocation
+As shown in the code samples above, the end result is a `KeyClient` object which is defined in 
+`KeyClient.java`.  Furthermore, in the source code in link:https://git.fedorahosted.org/cgit/pki.git/tree/base/kra/functional/src/com/netscape/cms/servlet/test/DRMTest.java[DRMTest.java], there are examples of the invocation
 of the functions.  You should look at that class to see all the relevant methods and more detailed
 description of each method.  We will describe the most common use cases below.
 
 There are a few parameters that are worth mentioning though:
 
-* clientKeyId: this is a label that is provided by the caller for the stored secret.  Secrets can be either active or inactive, but there should only be one active secret per client key id.  Attempting to archive or generate another key with the same client_key_id will fail, if the existing key is active.<br>It is possible to modify the status of an existing key using the modifyStatus() call.  Care should be exercised though - it is possible to modify more than key's status to "active". It is also the responsibility of the caller to maintain uniqueness of a client_key_id. If this parameter is in the method definition, then it usually required.<br>  Note that there is currently a restriction that the client_key_id should not include "/" characters,
+* `clientKeyId`: this is a label that is provided by the caller for the stored secret.  Secrets can be either active or inactive, but there should only be one active secret per client key id.  Attempting to archive or generate another key with the same `client_key_id` will fail, if the existing key is active. It is possible to modify the status of an existing key using the `modifyStatus()` call.  Care should be exercised though - it is possible to modify more than key's status to "active". It is also the responsibility of the caller to maintain uniqueness of a `client_key_id`. If this parameter is in the method definition, then it usually required.  Note that there is currently a restriction that the `client_key_id` should not include "/" characters,
 
-* keyId: this is a unique identifier assigned to the secret by the DRM when it is generated or archived.  It is uniquely only to this DRM (and its clones).
+* `keyId`: this is a unique identifier assigned to the secret by the DRM when it is generated or archived.  It is uniquely only to this DRM (and its clones).
 
-* A note about exceptions:  In general, if invalid parameters are detected on the client side, an IllegalArgumentException is thrown.  Server exceptions are thrown as PKIException objects.
+* A note about exceptions:  In general, if invalid parameters are detected on the client side, an `IllegalArgumentException` is thrown.  Server exceptions are thrown as `PKIException` objects.
 
 == Generating and archiving a symmetric key ==
 
-This function takes in some key parameters and returns the key_id for the generated
+This function takes in some key parameters and returns the `key_id` for the generated
 (and archived) key.  In future, it will also be able to return the generated key at the same
 time.  We will implement that functionality soon.
 
@@ -198,14 +198,14 @@ keyId = requestResponse.getKeyId();
 
 The above code archives a secret of passphrase type. The secret is passed directly to the client without any encryption
 i.e the crypto operations are done locally. A session key is generated and is used to wrap the secret. The session key is
-then wrapped using the public key in the transport cert of the DRM. Both the transWrappedSessionKey and sessionWrappedPassphrase are
+then wrapped using the public key in the transport cert of the DRM. Both the `transWrappedSessionKey` and `sessionWrappedPassphrase` are
 sent to the DRM, which does the decryption and archives the secret.
 
-A symmetric key can be archived using the archiveSymmetricKey method.
+A symmetric key can be archived using the `archiveSymmetricKey` method.
 
-For the case where encryption is done externally, the method archiveEncryptedData can be used, to archive the secret.
+For the case where encryption is done externally, the method `archiveEncryptedData` can be used, to archive the secret.
 
-A secret can also be archived by creating a PKIArchiveOptions object using the secret 
+A secret can also be archived by creating a `PKIArchiveOptions` object using the secret 
 (passphrase/symmetric key) and transport cert of the DRM. This object can be used to archive the secret.
 
 ----
@@ -234,9 +234,9 @@ KeyId keyId2 = keyInfo.getKeyId();
 Key keyData = keyClient.retrieveKey(keyId);
 ----
 
-keyData will contain information about the secret (algorithm etc.) along with the secret
+`keyData` will contain information about the secret (algorithm etc.) along with the secret
 as the attribute "data" since there is no transport key wrapped session key passed in the
-retrieveKey call.  
+`retrieveKey` call.  
 
 The following code snippet is an example of encryption done externally, i.e. an application or an intermediate server
 which uses the client API to talk to the DRM.
@@ -260,12 +260,12 @@ byte[] unwrappedKey = crypto.unwrapWithSessionKey(encryptedKey, recoveryKey, Key
 String secret = new String(unwrappedKey, "UTF-8");
 ----
 
-transWrappedSessionKey is a 168 bit 3DES symmetric key used as a session key, that has been wrapped by
+`transWrappedSessionKey` is a 168 bit 3DES symmetric key used as a session key, that has been wrapped by
 the public key in the DRM transport certificate.  This session key will be decoded on the DRM, and will
-be used to wrap the secret.  The encrypted secret will be returned in the Key object. 
+be used to wrap the secret.  The encrypted secret will be returned in the `Key` object. 
 
-The code sample above shows how to generate a transWrappedSessionKey using NSSCryptoUtil(crypto) to give you an
-understanding of how the transWrappedSessionKey is created and used to retrieve a key.
-This is what is done in the client internally, when the method retrieveKey(KeyId keyId) is called.
+The code sample above shows how to generate a `transWrappedSessionKey` using `NSSCryptoUtil(crypto)` to give you an
+understanding of how the `transWrappedSessionKey` is created and used to retrieve a key.
+This is what is done in the client internally, when the method `retrieveKey(KeyId keyId)` is called.
 In addition to retrieving the key data wrapped in a symmetric key, it can also be retrieved wrapped in a pass-phrase.
-The methods retrieveKeyByPassphrase in the KeyClient class provides this feature.
+The methods `retrieveKeyByPassphrase` in the `KeyClient` class provides this feature.
