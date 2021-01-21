@@ -1,0 +1,49 @@
+= Overview =
+
+PKI provides REST interface to allow clients to access services on the server. The REST services are implemented using link:https://www.dogtagpki.org/wiki/RESTEasy[RESTEasy].
+
+= Authentication and Authorization =
+
+Authentication will be handled by Tomcat realm, but each resource may require specific authentication methods (e.g. anonymous, username/password, client certificate).
+
+All users (operators, agents, administrators) will access the same resources, but depending on the access rights, some of the above operations might not be available to the user. The TPS service is responsible for determining if the user has the access right before executing the operation. Regardless, the client applications (CLI or Web UI) can still provide customized UI based for specific roles.
+
+= Concurrency Control =
+
+Concurrency control can be added later using HTTP ETag. ETag is a unique identifier representing the current state of the resource. If the resource has changed, it will have a different ETag.
+
+With ETag the update operation will have to be done in two steps. In the first step the client will obtain the ETag of the resource. In the second step the client will send the actual update request with the ETag obtained earlier. If the ETag in the request matches the current ETag of the resource, it means the resource has not changed, so the server will execute the update operation.
+
+ETag usually can be obtained from a GET operation, but it can be obtained from a previous update operation too. For example, adding a new user will generate an ETag. This ETag can then be used to modify the user. In this case it's not necessary to perform an additional GET operation to get the ETag.
+
+= Vulnerabilities =
+
+Cross-Site Scripting (XSS) is a vulnerability where an attacker can inject client-side code into a page that will be used/viewed by the user. To prevent this attack, the REST services will need to encode/escape the parameters so they will not interfere with the XML output. Web applications that use the XML output may also need to escape the parameters to prevent interference with the HTML output.
+
+Cross-Site Request Forgery (CSRF/one-click/session riding) is a vulnerability where an attacker can trigger a single operation using the user's active session. To prevent this attack, all update operations must be done in two steps. In the first step the client will get a nonce from the server. The nonce can be obtained once during login operation, or before every update operation. In the second step the client will submit the update request with the nonce. If the nonce is valid, the server will execute the operation.
+
+= REST API =
+
+PKI provides a REST API to access the services on PKI server:
+
+* link:PKI-REST-API[PKI REST API]
+* link:PKI-ACME-REST-API[PKI ACME REST API]
+* link:PKI-CA-REST-[PKI CA REST API]
+* link:PKI-KRA-REST-API[PKI KRA REST API]
+* link:PKI-OCSP-REST-API[PKI OCSP REST API]
+* link:PKI-TKS-REST-API[PKI TKS REST API]
+* link:PKI-TPS-REST-API[PKI TPS REST API]
+
+= REST Clients =
+
+The REST API can be used with any HTTP client (e.g. PKI CLI, web browser, curl). The REST requests and responses are sent in XML/JSON formats. The link:PKI-CLI[PKI CLI] provides parameters to see the requests sent and responses received for each CLI command.
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/REST[REST]
+* link:https://www.dogtagpki.org/wiki/REST_API_Design[REST API Design]
+* link:https://www.dogtagpki.org/wiki/RESTEasy[RESTEasy]
+* link:https://www.dogtagpki.org/wiki/PKI_Client_API[PKI Client API]
+* link:http://en.wikipedia.org/wiki/HTTP_ETag[HTTP ETag]
+* link:http://en.wikipedia.org/wiki/Cross-site_scripting[Cross-site scripting]
+* link:http://en.wikipedia.org/wiki/Cross-site_request_forgery[Cross-site request forgery]
