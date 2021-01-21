@@ -1,0 +1,557 @@
+= Overview =
+
+This page provides an example of a PKI certificate client in Python.
+
+All PKI Python modules are installed at `$PYTHON_LIB/pki`.
+The pem file is used for client auth. The pem file is created from the p12 cert file.
+
+= Initial Setup =
+
+----
+from pki.client import PKIConnection
+from pki.cert import CertClient
+
+connection = PKIConnection(hostname="localhost", port="8443")
+connection.set_authentication_cert("/tmp/auth_cert.pem")
+
+client = CertClient(connection)
+----
+
+= Enrolling a user certificate using the CertClient =
+
+----
+# Create a dictionary that stores values required for certificate enrollment
+inputs = {}
+
+# Set the cert_request_type
+inputs['cert_request_type'] = 'crmf'
+
+# Set the base64 encoded string of the crmf request generated to attribute cert_request
+inputs['cert_request'] = """-----BEGIN CERTIFICATE REQUEST-----
+MIIBpDCCAaAwggEGAgUAy2GsBDCBx4ABAqUOMAwxCjAIBgNVBAMTAXimgZ8wDQYJ
+KoZIhvcNAQEBBQADgY0AMIGJAoGBAK8MSzINrAjSmcFO3rrp3GMNDNN9YihhcQkW
+a3qzT2fia9Ifv3qVmbBvuMhuZlqo3iCocyn73daYNryIEOvJxhZrgV0Hv01BaZOl
+LIpb/9fKK2bejg34aGB2EJqksG+btB46zoSiv6ChjPLMACIFoiE6r3x2CucmRpju
+W2k+mlvxAgMBAAGpEDAOBgNVHQ8BAf8EBAMCBeAwMzAVBgkrBgEFBQcFAQEMCHJl
+Z1Rva2VuMBoGCSsGAQUFBwUBAgwNYXV0aGVudGljYXRvcqGBkzANBgkqhkiG9w0B
+AQUFAAOBgQAzfpEunK6bEj6SXQ8TX6Aqpj5qPrk2L787KHMK7I6sP3lIonVqqfM/
+VDZkBJDBWlrn82JycSpNTvPllXBjO8DzICySlWjL0oNIjLs3f1+jNQKjnyAHD9my
+RgwE/JE8KzT2JuHI+u/5CG6BkzopzPfGXfUGIlK98qRLsYDvxE0gqg==
+-----END CERTIFICATE REQUEST-----
+"""
+
+#Set the values for subject name attributes UID, Email, Common Name
+inputs['sn_uid'] = 'test12345'
+inputs['sn_e'] = 'example@redhat.com')
+inputs['sn_cn'] = 'TestUser')
+
+# Create, submit and approve the enrollment request
+cert_data_objects = client.enroll_cert('caUserCert', inputs)
+
+# Since the caUserCert profile is used in the example the cert_data_objects list contains only one element.
+cert_data = cert_data_objects[0]
+
+# Print the certificate information
+print('Serial Number: ' + cert_data.serial_number)
+print('Issuer: ' + cert_data.issuer_dn)
+print('Subject: ' + cert_data.subject_dn)
+print('Status: ' + cert_data.status)
+print('Not Before: ' + cert_data.not_before)
+print('Not After: ' + cert_data.not_after)
+print('Encoded: ')
+print(cert_data.encoded)
+print("Pretty print format: ")
+print(cert_data.pretty_print)
+----
+
+The result for the above code snippet, using a CA which already has 7 approved certificates, looks like:
+
+----
+Serial Number: 0x8
+Issuer: CN=CA Signing Certificate,O=redhat.com Security Domain
+Subject: UID=test12345,E=example@redhat.com,CN=TestUser
+Status: VALID
+Not Before: Thu Apr 24 23:45:37 EDT 2014
+Not After: Tue Oct 21 23:45:37 EDT 2014
+Encoded: 
+-----BEGIN CERTIFICATE-----
+MIIDJjCCAg6gAwIBAgIBCDANBgkqhkiG9w0BAQsFADBGMSMwIQYDVQQKDBpyZWRo&#xD;
+YXQuY29tIFNlY3VyaXR5IERvbWFpbjEfMB0GA1UEAwwWQ0EgU2lnbmluZyBDZXJ0&#xD;
+aWZpY2F0ZTAeFw0xNDA0MjUxODE0MjhaFw0xNDEwMjIxODE0MjhaMFExETAPBgNV&#xD;
+BAMMCFRlc3RVc2VyMSEwHwYJKoZIhvcNAQkBFhJleGFtcGxlQHJlZGhhdC5jb20x&#xD;
+GTAXBgoJkiaJk/IsZAEBDAl0ZXN0MTIzNDUwgZ8wDQYJKoZIhvcNAQEBBQADgY0A&#xD;
+MIGJAoGBAK8MSzINrAjSmcFO3rrp3GMNDNN9YihhcQkWa3qzT2fia9Ifv3qVmbBv&#xD;
+uMhuZlqo3iCocyn73daYNryIEOvJxhZrgV0Hv01BaZOlLIpb/9fKK2bejg34aGB2&#xD;
+EJqksG+btB46zoSiv6ChjPLMACIFoiE6r3x2CucmRpjuW2k+mlvxAgMBAAGjgZcw&#xD;
+gZQwHwYDVR0jBBgwFoAU8s3In1AiATHApEyRPsfaXKqDss0wQgYIKwYBBQUHAQEE&#xD;
+NjA0MDIGCCsGAQUFBzABhiZodHRwOi8vYWtvbmVydS5yZWRoYXQuY29tOjgwODAv&#xD;
+Y2Evb2NzcDAOBgNVHQ8BAf8EBAMCBeAwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsG&#xD;
+AQUFBwMEMA0GCSqGSIb3DQEBCwUAA4IBAQCr9bdOIC4ZldeuW6AeJSz2/7gzS3gR&#xD;
+CfXAoX5y7fwFZvhf3BUZcjgOWvAVnm0Tlye0Pm3yhDf3mcG2KmEKnDm2gkTAnMSO&#xD;
+CLQVqGR4kdM7jqU2x9gzrueVCy4/WDV/G5Ey6sUCk3Q9F+VakHlTvLT67TabYmn0&#xD;
+dJX4fTnIfrllSLB1ZObH68j5ru5D+RwR/i+0qjKb2OZIPLEj74XuTlsBgEkP8nmx&#xD;
+S46ZbO5h0lSNjounQ8PTMyX7e+YTS4KwjAwy1Ojlp+ybMrQ4/0WNqu3jDdfdHKFd&#xD;
+Dxdr49GrEUidPm1+k3ii18YG8XfCF/5bZ4LH5/1LUQNKRwY3f9ORDMio&#xD;
+-----END CERTIFICATE-----
+Pretty print format:
+ Certificate:
+      Data:
+          Version:  v3
+          Serial Number: 0x8
+          Signature Algorithm: SHA256withRSA - 1.2.840.113549.1.1.11
+          Issuer: CN=CA Signing Certificate,O=redhat.com Security Domain
+          Validity:
+              Not Before: Friday, April 25, 2014 2:14:28 PM EDT America/New_York
+              Not  After: Wednesday, October 22, 2014 2:14:28 PM EDT America/New_York
+          Subject: UID=test12345,E=example@redhat.com,CN=TestUser
+          Subject Public Key Info:
+              Algorithm: RSA - 1.2.840.113549.1.1.1
+              Public Key:
+                  Exponent: 65537
+                  Public Key Modulus: (1024 bits) :
+                      AF:0C:4B:32:0D:AC:08:D2:99:C1:4E:DE:BA:E9:DC:63:
+                      0D:0C:D3:7D:62:28:61:71:09:16:6B:7A:B3:4F:67:E2:
+                      6B:D2:1F:BF:7A:95:99:B0:6F:B8:C8:6E:66:5A:A8:DE:
+                      20:A8:73:29:FB:DD:D6:98:36:BC:88:10:EB:C9:C6:16:
+                      6B:81:5D:07:BF:4D:41:69:93:A5:2C:8A:5B:FF:D7:CA:
+                      2B:66:DE:8E:0D:F8:68:60:76:10:9A:A4:B0:6F:9B:B4:
+                      1E:3A:CE:84:A2:BF:A0:A1:8C:F2:CC:00:22:05:A2:21:
+                      3A:AF:7C:76:0A:E7:26:46:98:EE:5B:69:3E:9A:5B:F1
+          Extensions:
+              Identifier: Authority Key Identifier - 2.5.29.35
+                  Critical: no
+                  Key Identifier:
+                      F2:CD:C8:9F:50:22:01:31:C0:A4:4C:91:3E:C7:DA:5C:
+                      AA:83:B2:CD
+              Identifier: Authority Info Access: - 1.3.6.1.5.5.7.1.1
+                  Critical: no
+                  Access Description:
+                      Method #0: ocsp
+                      Location #0: URIName: http://akoneru.redhat.com:8080/ca/ocsp
+              Identifier: Key Usage: - 2.5.29.15
+                  Critical: yes
+                  Key Usage:
+                      Digital Signature
+                      Non Repudiation
+                      Key Encipherment
+              Identifier: Extended Key Usage: - 2.5.29.37
+                  Critical: no
+                  Extended Key Usage:
+                      1.3.6.1.5.5.7.3.2
+                      1.3.6.1.5.5.7.3.4
+          Signature:
+              Algorithm: SHA256withRSA - 1.2.840.113549.1.1.11
+              Signature:
+                  AB:F5:B7:4E:20:2E:19:95:D7:AE:5B:A0:1E:25:2C:F6:
+                  FF:B8:33:4B:78:11:09:F5:C0:A1:7E:72:ED:FC:05:66:
+                  F8:5F:DC:15:19:72:38:0E:5A:F0:15:9E:6D:13:97:27:
+                  B4:3E:6D:F2:84:37:F7:99:C1:B6:2A:61:0A:9C:39:B6:
+                  82:44:C0:9C:C4:8E:08:B4:15:A8:64:78:91:D3:3B:8E:
+                  A5:36:C7:D8:33:AE:E7:95:0B:2E:3F:58:35:7F:1B:91:
+                  32:EA:C5:02:93:74:3D:17:E5:5A:90:79:53:BC:B4:FA:
+                  ED:36:9B:62:69:F4:74:95:F8:7D:39:C8:7E:B9:65:48:
+                  B0:75:64:E6:C7:EB:C8:F9:AE:EE:43:F9:1C:11:FE:2F:
+                  B4:AA:32:9B:D8:E6:48:3C:B1:23:EF:85:EE:4E:5B:01:
+                  80:49:0F:F2:79:B1:4B:8E:99:6C:EE:61:D2:54:8D:8E:
+                  8B:A7:43:C3:D3:33:25:FB:7B:E6:13:4B:82:B0:8C:0C:
+                  32:D4:E8:E5:A7:EC:9B:32:B4:38:FF:45:8D:AA:ED:E3:
+                  0D:D7:DD:1C:A1:5D:0F:17:6B:E3:D1:AB:11:48:9D:3E:
+                  6D:7E:93:78:A2:D7:C6:06:F1:77:C2:17:FE:5B:67:82:
+                  C7:E7:FD:4B:51:03:4A:47:06:37:7F:D3:91:0C:C8:A8
+          FingerPrint
+              MD2:
+                  94:EC:2B:10:DF:96:1B:69:09:B4:1B:16:45:90:DB:7E
+              MD5:
+                  CF:9A:21:50:10:F0:CB:83:11:0D:B7:AA:BC:B8:98:1A
+              SHA-1:
+                  6F:33:C3:F3:B8:26:15:39:2F:84:14:17:84:7E:C5:4B:
+                  D4:D0:AD:D2
+              SHA-256:
+                  B0:74:E7:AE:1A:DC:33:29:E4:18:E5:70:7B:84:05:9A:
+                  B1:95:1C:18:0E:8D:B1:E4:3D:18:F0:8F:66:47:6D:17
+              SHA-512:
+                  38:75:BD:87:11:6F:F5:4E:75:6C:90:70:D1:BF:80:6E:
+                  50:4B:61:7C:9E:74:6F:F9:87:3A:B3:D2:18:6D:FD:C8:
+                  4A:22:BC:26:1D:C8:C2:ED:E9:25:1F:1A:81:64:BC:2A:
+                  FB:71:A1:58:94:4E:11:2D:E0:54:17:CA:78:30:9F:5C
+----
+
+= Enrolling a server certificate using the CertClient =
+
+----
+# Create a dictionary that stores values required for certificate enrollment
+inputs = {}
+
+# Set the cert_request_type
+inputs['cert_request_type'] = 'pkcs10'
+
+# Set the base64 encoded string of the crmf request generated to attribute cert_request
+inputs['cert_request'] = """-----BEGIN CERTIFICATE REQUEST-----
+MIIBmDCCAQECAQAwWDELMAkGA1UEBhMCVVMxCzAJBgNVBAgMAk5DMRAwDgYDVQQH
+DAdSYWxlaWdoMRUwEwYDVQQKDAxSZWQgSGF0IEluYy4xEzARBgNVBAMMClRlc3RT
+ZXJ2ZXIwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMJpWz92dSYCvWxllrQC
+Y5atPKCswUwyppRNGPnKmJ77AdHBBI4dFyET+h/+69jQMTLZMa8FX7SbyHvgbgLB
+P4Q/RzCSE2S87qFNjriOqiQCqJmcrzDzdncJQiP+O7T6MSpLo3smLP7dK1Vd7vK0
+Vy8yHwV0eBx7DgYedv2slBPHAgMBAAGgADANBgkqhkiG9w0BAQUFAAOBgQBvkxAG
+KwkfK3TKwLc5Mg0IWp8zGRVwxdIlghAL8DugNocCNNgmZazglJOOehLuk0/NkLX1
+ZM5RrVgM09W6kcfWZtIwr5Uje2K/+6tW2ZTGrbizs7CNOTMzA/9H8CkHb4H9P/qR
+T275zHIocYj4smUnXLwWGsBMeGs+OMMbGvSrHg==
+-----END CERTIFICATE REQUEST-----
+"""
+
+#Set the values for requestor details
+inputs['requestor_name'] = 'Tester'
+inputs['requestor_email'] = 'example@redhat.com')
+
+cert_data_objects = client.enroll_cert('caServerCert', inputs)
+
+# Since the caUserCert profile is used in the example the cert_data_objects list contains only one element.
+cert_data = cert_data_objects[0]
+
+# Print the certificate information
+print('Serial Number: ' + cert_data.serial_number)
+print('Issuer: ' + cert_data.issuer_dn)
+print('Subject: ' + cert_data.subject_dn)
+print('Status: ' + cert_data.status)
+print('Not Before: ' + cert_data.not_before)
+print('Not After: ' + cert_data.not_after)
+print('Encoded: ')
+print(cert_data.encoded)
+print("Pretty print format: ")
+print(cert_data.pretty_print)
+----
+
+The result for the above code snippet, using a CA which already has 8 approved certificates, looks like:
+
+----
+Serial Number: 0x9
+Issuer: CN=CA Signing Certificate,O=redhat.com Security Domain
+Subject: CN=TestServer,O=Red Hat Inc.,L=Raleigh,ST=NC,C=US
+Status: VALID
+Not Before: Fri Apr 25 01:13:07 EDT 2014
+Not After: Thu Apr 14 01:13:07 EDT 2016
+Encoded:
+-----BEGIN CERTIFICATE-----
+MIIDLTCCAhWgAwIBAgIBCTANBgkqhkiG9w0BAQsFADBGMSMwIQYDVQQKDBpyZWRo&#xD;
+YXQuY29tIFNlY3VyaXR5IERvbWFpbjEfMB0GA1UEAwwWQ0EgU2lnbmluZyBDZXJ0&#xD;
+aWZpY2F0ZTAeFw0xNDA0MjUxODMxMDFaFw0xNjA0MTQxODMxMDFaMFgxCzAJBgNV&#xD;
+BAYTAlVTMQswCQYDVQQIDAJOQzEQMA4GA1UEBwwHUmFsZWlnaDEVMBMGA1UECgwM&#xD;
+UmVkIEhhdCBJbmMuMRMwEQYDVQQDDApUZXN0U2VydmVyMIGfMA0GCSqGSIb3DQEB&#xD;
+AQUAA4GNADCBiQKBgQDCaVs/dnUmAr1sZZa0AmOWrTygrMFMMqaUTRj5ypie+wHR&#xD;
+wQSOHRchE/of/uvY0DEy2TGvBV+0m8h74G4CwT+EP0cwkhNkvO6hTY64jqokAqiZ&#xD;
+nK8w83Z3CUIj/ju0+jEqS6N7Jiz+3StVXe7ytFcvMh8FdHgcew4GHnb9rJQTxwID&#xD;
+AQABo4GXMIGUMB8GA1UdIwQYMBaAFPLNyJ9QIgExwKRMkT7H2lyqg7LNMEIGCCsG&#xD;
+AQUFBwEBBDYwNDAyBggrBgEFBQcwAYYmaHR0cDovL2Frb25lcnUucmVkaGF0LmNv&#xD;
+bTo4MDgwL2NhL29jc3AwDgYDVR0PAQH/BAQDAgTwMB0GA1UdJQQWMBQGCCsGAQUF&#xD;
+BwMBBggrBgEFBQcDAjANBgkqhkiG9w0BAQsFAAOCAQEAGd2173Zb+5kDVNYCmvMG&#xD;
+r7u9Kz/JFvr31aEipKJ0PM4hCMi8zeXlgJoh0G5WIoCL2CekDk9FOLDGFes57QvZ&#xD;
++Yi4nvXxZPieVv6VGmbDNnnrnPJe0a/0xyK/pHvey+q4IemKntRTQeFQSEIqMf03&#xD;
+nyqvLnVgmbNFSkFnrUF21YmoAJFufea4eY3V757hN0d8m/eUlpoqQxoVZHUCrJDd&#xD;
+XT9r9VK9X70rqtDMgigLzYtXeA0vu0Xcl0SwaGkVsPa5GOQLACfnirr57s2o5DTy&#xD;
+NvD73PlGWgV1Y8DBK+9Po94CY/BLLsUuWe7YJcKn6cbS3TlDsxUKvmEAXi3bC9d8&#xD;
+qQ==&#xD;
+-----END CERTIFICATE-----
+Pretty print format:
+Certificate:
+       Data:
+           Version:  v3
+           Serial Number: 0x9
+           Signature Algorithm: SHA256withRSA - 1.2.840.113549.1.1.11
+           Issuer: CN=CA Signing Certificate,O=redhat.com Security Domain
+           Validity:
+               Not Before: Friday, April 25, 2014 2:31:01 PM EDT America/New_York
+               Not  After: Thursday, April 14, 2016 2:31:01 PM EDT America/New_York
+           Subject: CN=TestServer,O=Red Hat Inc.,L=Raleigh,ST=NC,C=US
+           Subject Public Key Info:
+               Algorithm: RSA - 1.2.840.113549.1.1.1
+               Public Key:
+                   Exponent: 65537
+                   Public Key Modulus: (1024 bits) :
+                       C2:69:5B:3F:76:75:26:02:BD:6C:65:96:B4:02:63:96:
+                       AD:3C:A0:AC:C1:4C:32:A6:94:4D:18:F9:CA:98:9E:FB:
+                       01:D1:C1:04:8E:1D:17:21:13:FA:1F:FE:EB:D8:D0:31:
+                       32:D9:31:AF:05:5F:B4:9B:C8:7B:E0:6E:02:C1:3F:84:
+                       3F:47:30:92:13:64:BC:EE:A1:4D:8E:B8:8E:AA:24:02:
+                       A8:99:9C:AF:30:F3:76:77:09:42:23:FE:3B:B4:FA:31:
+                       2A:4B:A3:7B:26:2C:FE:DD:2B:55:5D:EE:F2:B4:57:2F:
+                       32:1F:05:74:78:1C:7B:0E:06:1E:76:FD:AC:94:13:C7
+           Extensions:
+               Identifier: Authority Key Identifier - 2.5.29.35
+                   Critical: no
+                   Key Identifier:
+                       F2:CD:C8:9F:50:22:01:31:C0:A4:4C:91:3E:C7:DA:5C:
+                       AA:83:B2:CD
+               Identifier: Authority Info Access: - 1.3.6.1.5.5.7.1.1
+                   Critical: no
+                   Access Description:
+                       Method #0: ocsp
+                       Location #0: URIName: http://akoneru.redhat.com:8080/ca/ocsp
+               Identifier: Key Usage: - 2.5.29.15
+                   Critical: yes
+                   Key Usage:
+                       Digital Signature
+                       Non Repudiation
+                       Key Encipherment
+                       Data Encipherment
+               Identifier: Extended Key Usage: - 2.5.29.37
+                   Critical: no
+                   Extended Key Usage:
+                       1.3.6.1.5.5.7.3.1
+                       1.3.6.1.5.5.7.3.2
+           Signature:
+               Algorithm: SHA256withRSA - 1.2.840.113549.1.1.11
+               Signature:
+                   19:DD:B5:EF:76:5B:FB:99:03:54:D6:02:9A:F3:06:AF:
+                   BB:BD:2B:3F:C9:16:FA:F7:D5:A1:22:A4:A2:74:3C:CE:
+                   21:08:C8:BC:CD:E5:E5:80:9A:21:D0:6E:56:22:80:8B:
+                   D8:27:A4:0E:4F:45:38:B0:C6:15:EB:39:ED:0B:D9:F9:
+                   88:B8:9E:F5:F1:64:F8:9E:56:FE:95:1A:66:C3:36:79:
+                   EB:9C:F2:5E:D1:AF:F4:C7:22:BF:A4:7B:DE:CB:EA:B8:
+                   21:E9:8A:9E:D4:53:41:E1:50:48:42:2A:31:FD:37:9F:
+                   2A:AF:2E:75:60:99:B3:45:4A:41:67:AD:41:76:D5:89:
+                   A8:00:91:6E:7D:E6:B8:79:8D:D5:EF:9E:E1:37:47:7C:
+                   9B:F7:94:96:9A:2A:43:1A:15:64:75:02:AC:90:DD:5D:
+                   3F:6B:F5:52:BD:5F:BD:2B:AA:D0:CC:82:28:0B:CD:8B:
+                   57:78:0D:2F:BB:45:DC:97:44:B0:68:69:15:B0:F6:B9:
+                   18:E4:0B:00:27:E7:8A:BA:F9:EE:CD:A8:E4:34:F2:36:
+                   F0:FB:DC:F9:46:5A:05:75:63:C0:C1:2B:EF:4F:A3:DE:
+                   02:63:F0:4B:2E:C5:2E:59:EE:D8:25:C2:A7:E9:C6:D2:
+                   DD:39:43:B3:15:0A:BE:61:00:5E:2D:DB:0B:D7:7C:A9
+           FingerPrint
+               MD2:
+                   EB:8B:67:6B:78:26:62:37:B3:0C:51:73:CF:52:82:7B
+               MD5:
+                   3A:C9:D5:8A:13:75:FE:79:42:95:54:1D:31:3A:19:89
+               SHA-1:
+                   26:4D:4E:0D:85:A2:65:85:90:F5:33:41:AA:33:E8:0C:
+                   78:8B:08:39
+               SHA-256:
+                   35:D0:FD:35:ED:3E:6F:D0:08:EF:C9:28:6B:26:20:1B:
+                   CD:35:96:CA:A0:28:AB:1F:32:DE:D2:14:D5:E0:C6:C8
+               SHA-512:
+                   2D:D2:57:32:4D:E2:A0:3E:6E:08:DA:91:4A:C3:49:A8:
+                   F2:4D:03:77:C3:CF:A6:52:25:E4:75:3B:C9:EA:50:53:
+                   22:8F:EB:AC:24:A1:48:A8:EA:94:FB:8D:30:22:06:18:
+                   E1:2F:69:CC:99:D9:2F:98:A1:CA:17:D4:F4:DF:D0:28
+----
+
+= List the certificates =
+
+----
+cert_search_request = CertSearchRequest(serial_from='6', status='VALID')
+cert_data_infos = client.list_certs(cert_search_request)
+
+for cert_data_info in cert_data_infos:
+    print("Serial Number: " + cert_data_info.serial_number)
+    print("Subject DN: " + cert_data_info.subject_dn)
+    print("Status: " + cert_data_info.status)
+----
+     
+The output for the above code snippet looks like this:
+
+----
+Serial Number: 0x6
+Subject DN: CN=PKI Administrator,E=caadmin@redhat.com,O=redhat.com Security Domain
+Status: VALID
+
+Serial Number: 0x7
+Subject DN: CN=TestServer,O=Red Hat Inc.,L=Raleigh,ST=NC,C=US
+Status: VALID
+
+Serial Number: 0x8
+Subject DN: UID=test12345,E=example@redhat.com,CN=TestUser
+Status: VALID
+
+Serial Number: 0x9
+Subject DN: CN=TestServer,O=Red Hat Inc.,L=Raleigh,ST=NC,C=US
+Status: VALID
+----
+  
+= Get a specific certificate =
+
+----
+cert_data = client.get_cert('9')
+
+# Print the certificate information
+print('Serial Number: ' + cert_data.serial_number)
+print('Issuer: ' + cert_data.issuer_dn)
+print('Subject: ' + cert_data.subject_dn)
+print('Status: ' + cert_data.status)
+print('Not Before: ' + cert_data.not_before)
+print('Not After: ' + cert_data.not_after)
+print('Encoded: ')
+print(cert_data.encoded)
+print("Pretty print format: ")
+print(cert_data.pretty_print)
+----
+
+The result for the above code snippet, using a CA which already has 8 approved certificates, looks like:
+
+----
+Serial Number: 0x9
+Issuer: CN=CA Signing Certificate,O=redhat.com Security Domain
+Subject: CN=TestServer,O=Red Hat Inc.,L=Raleigh,ST=NC,C=US
+Status: VALID
+Not Before: Fri Apr 25 01:13:07 EDT 2014
+Not After: Thu Apr 14 01:13:07 EDT 2016
+Encoded:
+-----BEGIN CERTIFICATE-----
+MIIDLTCCAhWgAwIBAgIBCTANBgkqhkiG9w0BAQsFADBGMSMwIQYDVQQKDBpyZWRo&#xD;
+YXQuY29tIFNlY3VyaXR5IERvbWFpbjEfMB0GA1UEAwwWQ0EgU2lnbmluZyBDZXJ0&#xD;
+aWZpY2F0ZTAeFw0xNDA0MjUxODMxMDFaFw0xNjA0MTQxODMxMDFaMFgxCzAJBgNV&#xD;
+BAYTAlVTMQswCQYDVQQIDAJOQzEQMA4GA1UEBwwHUmFsZWlnaDEVMBMGA1UECgwM&#xD;
+UmVkIEhhdCBJbmMuMRMwEQYDVQQDDApUZXN0U2VydmVyMIGfMA0GCSqGSIb3DQEB&#xD;
+AQUAA4GNADCBiQKBgQDCaVs/dnUmAr1sZZa0AmOWrTygrMFMMqaUTRj5ypie+wHR&#xD;
+wQSOHRchE/of/uvY0DEy2TGvBV+0m8h74G4CwT+EP0cwkhNkvO6hTY64jqokAqiZ&#xD;
+nK8w83Z3CUIj/ju0+jEqS6N7Jiz+3StVXe7ytFcvMh8FdHgcew4GHnb9rJQTxwID&#xD;
+AQABo4GXMIGUMB8GA1UdIwQYMBaAFPLNyJ9QIgExwKRMkT7H2lyqg7LNMEIGCCsG&#xD;
+AQUFBwEBBDYwNDAyBggrBgEFBQcwAYYmaHR0cDovL2Frb25lcnUucmVkaGF0LmNv&#xD;
+bTo4MDgwL2NhL29jc3AwDgYDVR0PAQH/BAQDAgTwMB0GA1UdJQQWMBQGCCsGAQUF&#xD;
+BwMBBggrBgEFBQcDAjANBgkqhkiG9w0BAQsFAAOCAQEAGd2173Zb+5kDVNYCmvMG&#xD;
+r7u9Kz/JFvr31aEipKJ0PM4hCMi8zeXlgJoh0G5WIoCL2CekDk9FOLDGFes57QvZ&#xD;
++Yi4nvXxZPieVv6VGmbDNnnrnPJe0a/0xyK/pHvey+q4IemKntRTQeFQSEIqMf03&#xD;
+nyqvLnVgmbNFSkFnrUF21YmoAJFufea4eY3V757hN0d8m/eUlpoqQxoVZHUCrJDd&#xD;
+XT9r9VK9X70rqtDMgigLzYtXeA0vu0Xcl0SwaGkVsPa5GOQLACfnirr57s2o5DTy&#xD;
+NvD73PlGWgV1Y8DBK+9Po94CY/BLLsUuWe7YJcKn6cbS3TlDsxUKvmEAXi3bC9d8&#xD;
+qQ==&#xD;
+-----END CERTIFICATE-----
+Pretty print format:
+Certificate:
+       Data:
+           Version:  v3
+           Serial Number: 0x9
+           Signature Algorithm: SHA256withRSA - 1.2.840.113549.1.1.11
+           Issuer: CN=CA Signing Certificate,O=redhat.com Security Domain
+           Validity:
+               Not Before: Friday, April 25, 2014 2:31:01 PM EDT America/New_York
+               Not  After: Thursday, April 14, 2016 2:31:01 PM EDT America/New_York
+           Subject: CN=TestServer,O=Red Hat Inc.,L=Raleigh,ST=NC,C=US
+           Subject Public Key Info:
+               Algorithm: RSA - 1.2.840.113549.1.1.1
+               Public Key:
+                   Exponent: 65537
+                   Public Key Modulus: (1024 bits) :
+                       C2:69:5B:3F:76:75:26:02:BD:6C:65:96:B4:02:63:96:
+                       AD:3C:A0:AC:C1:4C:32:A6:94:4D:18:F9:CA:98:9E:FB:
+                       01:D1:C1:04:8E:1D:17:21:13:FA:1F:FE:EB:D8:D0:31:
+                       32:D9:31:AF:05:5F:B4:9B:C8:7B:E0:6E:02:C1:3F:84:
+                       3F:47:30:92:13:64:BC:EE:A1:4D:8E:B8:8E:AA:24:02:
+                       A8:99:9C:AF:30:F3:76:77:09:42:23:FE:3B:B4:FA:31:
+                       2A:4B:A3:7B:26:2C:FE:DD:2B:55:5D:EE:F2:B4:57:2F:
+                       32:1F:05:74:78:1C:7B:0E:06:1E:76:FD:AC:94:13:C7
+           Extensions:
+               Identifier: Authority Key Identifier - 2.5.29.35
+                   Critical: no
+                   Key Identifier:
+                       F2:CD:C8:9F:50:22:01:31:C0:A4:4C:91:3E:C7:DA:5C:
+                       AA:83:B2:CD
+               Identifier: Authority Info Access: - 1.3.6.1.5.5.7.1.1
+                   Critical: no
+                   Access Description:
+                       Method #0: ocsp
+                       Location #0: URIName: http://akoneru.redhat.com:8080/ca/ocsp
+               Identifier: Key Usage: - 2.5.29.15
+                   Critical: yes
+                   Key Usage:
+                       Digital Signature
+                       Non Repudiation
+                       Key Encipherment
+                       Data Encipherment
+               Identifier: Extended Key Usage: - 2.5.29.37
+                   Critical: no
+                   Extended Key Usage:
+                       1.3.6.1.5.5.7.3.1
+                       1.3.6.1.5.5.7.3.2
+           Signature:
+               Algorithm: SHA256withRSA - 1.2.840.113549.1.1.11
+               Signature:
+                   19:DD:B5:EF:76:5B:FB:99:03:54:D6:02:9A:F3:06:AF:
+                   BB:BD:2B:3F:C9:16:FA:F7:D5:A1:22:A4:A2:74:3C:CE:
+                   21:08:C8:BC:CD:E5:E5:80:9A:21:D0:6E:56:22:80:8B:
+                   D8:27:A4:0E:4F:45:38:B0:C6:15:EB:39:ED:0B:D9:F9:
+                   88:B8:9E:F5:F1:64:F8:9E:56:FE:95:1A:66:C3:36:79:
+                   EB:9C:F2:5E:D1:AF:F4:C7:22:BF:A4:7B:DE:CB:EA:B8:
+                   21:E9:8A:9E:D4:53:41:E1:50:48:42:2A:31:FD:37:9F:
+                   2A:AF:2E:75:60:99:B3:45:4A:41:67:AD:41:76:D5:89:
+                   A8:00:91:6E:7D:E6:B8:79:8D:D5:EF:9E:E1:37:47:7C:
+                   9B:F7:94:96:9A:2A:43:1A:15:64:75:02:AC:90:DD:5D:
+                   3F:6B:F5:52:BD:5F:BD:2B:AA:D0:CC:82:28:0B:CD:8B:
+                   57:78:0D:2F:BB:45:DC:97:44:B0:68:69:15:B0:F6:B9:
+                   18:E4:0B:00:27:E7:8A:BA:F9:EE:CD:A8:E4:34:F2:36:
+                   F0:FB:DC:F9:46:5A:05:75:63:C0:C1:2B:EF:4F:A3:DE:
+                   02:63:F0:4B:2E:C5:2E:59:EE:D8:25:C2:A7:E9:C6:D2:
+                   DD:39:43:B3:15:0A:BE:61:00:5E:2D:DB:0B:D7:7C:A9
+           FingerPrint
+               MD2:
+                   EB:8B:67:6B:78:26:62:37:B3:0C:51:73:CF:52:82:7B
+               MD5:
+                   3A:C9:D5:8A:13:75:FE:79:42:95:54:1D:31:3A:19:89
+               SHA-1:
+                   26:4D:4E:0D:85:A2:65:85:90:F5:33:41:AA:33:E8:0C:
+                   78:8B:08:39
+               SHA-256:
+                   35:D0:FD:35:ED:3E:6F:D0:08:EF:C9:28:6B:26:20:1B:
+                   CD:35:96:CA:A0:28:AB:1F:32:DE:D2:14:D5:E0:C6:C8
+               SHA-512:
+                   2D:D2:57:32:4D:E2:A0:3E:6E:08:DA:91:4A:C3:49:A8:
+                   F2:4D:03:77:C3:CF:A6:52:25:E4:75:3B:C9:EA:50:53:
+                   22:8F:EB:AC:24:A1:48:A8:EA:94:FB:8D:30:22:06:18:
+                   E1:2F:69:CC:99:D9:2F:98:A1:CA:17:D4:F4:DF:D0:28
+----
+
+= Generating a list of certificate requests =
+
+----
+cert_request_infos = client.list_requests(request_status='success', start = '6')
+for cert_request_info in cert_request_infos:
+    print("Request ID: " + cert_request_info.get_request_id())
+    print("Type: " + cert_request_info.cert_request_type)
+    print("Status: " + cert_request_info.request_status)
+    print("Certificate ID: " + cert_request_info.cert_id)
+----
+
+The output for the code snippet above looks like:
+
+----
+Request ID: 6
+Type: enrollment
+Request Status: complete
+Certificate ID: 0x6
+
+Request ID: 7
+Type: enrollment
+Request Status: complete
+Certificate ID: 0x7
+
+Request ID: 8
+Type: enrollment
+Request Status: complete
+Certificate ID: 0x8
+
+Request ID: 9
+Type: enrollment
+Request Status: complete
+Certificate ID: 0x9  
+----
+
+= Getting information for a specific certificate request =
+
+----
+cert_request_info = client.get_request('6')
+
+print("Request ID: " + cert_request_info.get_request_id())
+print("Type: " + cert_request_info.cert_request_type)
+print("Status: " + cert_request_info.request_status)
+print("Operation Result: " + cert_request_info.operation_result)
+print("Certificate ID: " + cert_request_info.cert_id)
+----
+ 
+Output:
+
+----
+Request ID: 6
+Type: enrollment
+Request Status: complete
+Operation Result: success
+Certificate ID: 0x6
+----
