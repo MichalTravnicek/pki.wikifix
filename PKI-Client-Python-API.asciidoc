@@ -1,0 +1,61 @@
+= Overview =
+
+This document introduces what is available in the PKI ReST interface and how to use it. It provides information about the resources available, authentication mechanisms etc.
+
+The versioning scheme to be followed is documented link:http://pki.fedoraproject.org/wiki/API_Versioning[here].
+
+Note: The code snippets provided are part of the python binding for REST interface.
+
+= Connection =
+
+----
+connection = PKIConnection(uri='https://localhost:8443')
+----
+
+= Authentication =
+
+The `PKIConnection` class in link:https://github.com/dogtagpki/pki/blob/master/base/common/python/pki/client.py[base/common/python/pki/client.py] stores the connection details and the authentication parameters.
+It also manages the session variables.
+A basic authentication using the username/password or a client certificate authentication can be used to access the resources.
+These can be specified while creating the connection object in the client.
+
+----
+connection = PKIConnection()
+connection.authenticate('AgentX','XXXXXXX')
+connection.set_authentication_cert(<path to the PEM file>)
+----
+
+= Account =
+
+----
+accountClient = AccountClient(connection)
+accountClient.login()
+----
+
+----
+accountClient.logout()
+----
+
+= Security Domain =
+
+----
+securityDomainClient = pki.system.SecurityDomainClient(connection)
+securityDomainInfo = securityDomainClient.getSecurityDomainInfo()
+----
+
+= Resources =
+
+This API provides resources such as certs, users, groups, keys, keyrequests etc. for the clients to access.
+The following sections provide information about a few resources and how the clients can access them.
+
+== CA Client API ==
+
+* link:PKI-Certificate-Python-API[PKI Certificate Python API]
+* link:PKI-Certificate-Profile-Python-API[PKI Certificate Profile Python API]
+
+== KRA Client API ==
+
+* link:PKI-KRA-Python-API[PKI KRA Python API]
+* link:PKI-Key-Python-API[PKI Key Python API]
+* link:PKI-Key-Request-Python-API[PKI Key Request Python API]
+* link:PKI-Key-Python-Client[PKI Key Python Client]
