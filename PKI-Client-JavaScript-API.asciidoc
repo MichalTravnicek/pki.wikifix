@@ -1,0 +1,25 @@
+= PKI Client JavaScript API =
+
+To include PKI client library:
+
+----
+<script type="text/javascript" language="JavaScript" src="/pki/js/pki.js"></script>
+----
+
+= Authentication =
+
+To authenticate against PKI server:
+
+----
+PKI.connect({
+    success: function(data, textStatus, jqXHR) {
+        // access granted
+        // redirect to next page
+    },
+    error: function(jqXHR, textStatus, errorThrown) {
+        // access denied
+        var exception = jqXHR.responseJSON;
+        // display exception.Message
+    }
+});
+----
