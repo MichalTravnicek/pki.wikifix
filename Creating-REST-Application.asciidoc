@@ -1,0 +1,33 @@
+= Creating REST Application =
+
+To create a REST application, add the `HttpServletDispatcher` into the `web.xml` and specify the application class.
+
+----
+<servlet>
+    <servlet-name>RESTEasy</servlet-name>
+    <servlet-class>org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher</servlet-class>
+    <init-param>
+        <param-name>javax.ws.rs.Application</param-name>
+        <param-value>org.dogtagpki.server.ca.rest.CAApplication</param-value>
+    </init-param>
+</servlet>
+----
+
+To enable the REST services they need to be registered in the application class.
+
+----
+public class CAApplication extends Application {
+
+    private Set<Object> singletons = new HashSet<Object>();
+    private Set<Class<?>> classes = new HashSet<Class<?>>();
+
+    public CertificateAuthorityApplication() {
+        classes.add(AccountService.class);
+        classes.add(UserService.class);
+    }
+}
+----
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/RESTEasy[RESTEasy]
