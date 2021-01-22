@@ -1,0 +1,57 @@
+= PKI REST Service =
+
+PKI REST services are implemented as a Java class that implements the resource interface. The REST service class will only exist on the server. The `PKIService` base class is provided to simplify the implementation.
+
+----
+public class UserService extends PKIService implements UserResource {
+
+    public UserCollection findUsers(String filter, Integer start, Integer size) {
+
+        UserCollection response = new UserCollection();
+
+        Enumeration<IUser> users = userGroupManager.findUsers(filter);
+        ... add users into response ...
+
+        return response;
+    }
+
+    public UserData getUser(String userID) {
+
+        IUser user = userGroupManager.getUser(userID);
+        UserData userData = createUserData(user);
+
+        return userData;
+    }
+}
+----
+
+= Authentication method =
+
+The `@AuthMethodMapping` annotation can be used to limit the authentication methods that can be used to access the REST methods. The configuration is stored in `/usr/share/pki/ca/conf/auth-method.properties`, for example:
+
+----
+default = *
+account = certUserDBAuthMgr,passwdUserDBAuthMgr
+admin = certUserDBAuthMgr
+agent = * certUserDBAuthMgr
+securityDomain.installToken = passwdUserDBAuthMgr
+----
+
+= Access control =
+
+The `@ACLMapping` annotation can be used to control who can access the REST methods. The configuration is stored in `/usr/share/pki/<subsystem>/conf/acl.properties`, for example:
+
+----
+account.login = certServer.ca.account,login
+account.logout = certServer.ca.account,logout
+admin.users = certServer.ca.users,execute
+admin.groups = certServer.ca.groups,execute
+admin.kraconnector = certServer.ca.connectorInfo,modify
+agent.certrequests = certServer.ca.certrequests,execute
+agent.certs = certServer.ca.certs,execute
+securityDomain.installToken = certServer.securitydomain.domainxml,read
+----
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/RESTEasy[RESTEasy]
