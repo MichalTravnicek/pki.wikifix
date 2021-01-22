@@ -1,0 +1,423 @@
+= Overview =
+
+Recently, we added support for fine grained authorization in the KRA based on authorization realms.
+The implementation was based on the design located here:  https://pagure.io/test_dogtag_designs/pull-request/5
+
+This is a brief overview of this feature from an operations point of view.  That is, we will discuss
+why this feature would be useful, how this new feature should be configured  and the behavior we expect to see.
+
+= Why fine grained authz? =
+
+Up till now, authorization in the KRA has been very coarse.  In the default install, there was only one set of
+agents which could either store or retrieve keys.  Now it was (and still is) possible to create additional
+groups and modify acls for particular operations, but the ACLs still governed all keys.  It was not possible to
+specify that some keys would be governed by some agents, and others by different agents.  Moreover, all
+requests were visible by all agents.
+
+With the advent of the use of the KRA to store secrets for different applications (for instance, barbican and
+IPA), the need to segregate keys(secrets) and requests on those secrets became important.  Moreover, even without
+other applications, there was a need to be able to segregate keys amongst different sub-organizations.
+
+= How does fine grained authz work? =
+
+A new database attribute ("realm") has been added to the `KeyRecord` and `RequestRecord`.  This of course means that
+a database migration is required for existing instances.  The "realm" is a tag that maps to a particular
+authorization instance as configured in the CS.cfg.
+
+When a secret is archived or generated through the REST interface, the user has the option of providing a
+value for the authorization realm.  We'll see an example of this below.  This value is stored in the secret's key
+record.  When the secret is retrieved, the server will notice that the key entry has a realm, and will
+invoke the authorization plugin defined for that realm in CS.cfg.  That authorization plugin will determine whether
+access is allowed.
+
+Actually, the logic for realms is as follows:
+
+* if no realm is defined, allow access.
+* if no authz plugin is defined for that realm, then deny access.  This is to ensure that requests do not inadvertently get relegated to the default realm through typos.
+* If the authz plugin defined for the realm allows access, allow access.
+* Otherwise deny access.
+
+Realm authorization has been added to all important operations, including:
+
+* archiving or generating keys
+* recovering keys
+* listing keys and key requests
+* acting on key requests (approving, rejecting etc.)
+
+The authorization call for each operation will include the resource, realm and operation.  It will be up
+to the authz plugin to determine access appropriately.
+
+A new basic group base authz plugin has been added that simply provide access based on group membership.
+In addition, the ACL plugins have been modified to combine the realm and resource to check for a realm-specific
+resource of the format "realm.resource".  Examples of both plugins will be shown below.
+
+Remember that the realm authorization is in addition (and after) any other authz mechanisms in place.  By default, 
+for instance, the KRA requires authentication with a client certificate and that the requester be a KRA agent.
+
+= Example 1  (Simple Group based authz) =
+
+Lets make all this more explicit.  In this example, we will store and retrieve secrets using a tag "barbican".
+
+For the authz instance, we will use the newly added `BasicGroupACL` authz instance, which simply determines access
+depending on whether a user is a member of a group found in the KRA database.  This plugin was provided for testing
+and simple purposes (and may in fact be used in the first pass) for the Barbican application, but we expect that
+other applications might use a more complicated authz plugin - something  for instance that subclasses the `BasicAclAuthz`
+plugin.
+
+We will add the following lines to the KRA CS.cfg (and restart the server):
+
+----
+authz.impl.BasicGroupAuthz.class=com.netscape.cms.authorization.BasicGroupAuthz
+authz.instance.BasicGroupAuthz.pluginName=BasicGroupAuthz
+authz.instance.BasicGroupAuthz.group=barbican
+authz.instance.BasicGroupAuthz.realm=barbican
+----
+
+This configures the `BasicGroupAuthz` instance to be invoked when a key has the "barbican" realm.  Access will be granted if
+the requester is part of the "barbican" group in the KRA's internal DB.
+
+We will now create two users:
+
+* agent1 - agent1 is not a member of the barbican group.  He will not be able to archive, read, list or recover barbican tagged keys or requests.
+* agent2 - agent2 will be a member of the barbican group and therefore will be able to perform all operations on barbican tagged secrets and requests,
+
+Note that both agents will be members of the KRA Agents group.  Otherwise, they would not be able to access anything
+on the KRA at all.  Moreover, as members of the KRA Agents group, they have access to all requests and keys that are
+not explicitly tagged with a realm.  We will call this the default/non-realm case.
+
+Below are commands used to create all the relevant users, provide them with certificates, and associate them with the
+relevant groups.
+
+----
+# create agent 1, get a cert, add to the user entry and the client certdb
+# use the appropriate serial numbers/ request numbers based on the results of each command 
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n "PKI Administrator for laptop" kra-user-add agent1 --fullName "KRA Agent1"
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 client-cert-request uid=agent1
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n "PKI Administrator for laptop" ca-cert-request-review 10 --action approve
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n "PKI Administrator for laptop" kra-user-cert-add agent1 --serial 0xa
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 client-cert-import agent1 --serial 0xa
+
+# create agent 2, get a cert, add to the user entry and the client certdb
+# use the appropriate serial numbers/ request numbers based on the results of each command 
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n "PKI Administrator for laptop" kra-user-add agent2 --fullName "KRA Agent2"
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 client-cert-request uid=agent2
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n "PKI Administrator for laptop" ca-cert-request-review 11 --action approve
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n "PKI Administrator for laptop" kra-user-cert-add agent2 --serial 0xb
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 client-cert-import agent2 --serial 0xb
+
+# add both agents to KRA agent group  
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n  "PKI Administrator for laptop" kra-group-member-add "Data Recovery Manager Agents" agent1
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n  "PKI Administrator for laptop" kra-group-member-add "Data Recovery Manager Agents" agent2
+ 
+# add barbican group
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n  "PKI Administrator for laptop" kra-group-add --description "group for barbican access" barbican
+
+# add agent2 to barbican group
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n  "PKI Administrator for laptop" kra-group-member-add "barbican" agent2
+----
+
+We can now use agent2 to archive and generate secrets tagged both with and without a barbican realm.
+
+----
+# create realm secrets
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent2 kra-key-archive --clientKeyID "realm passphrase" --passphrase "my realm passphrase" --realm barbican
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent2 kra-key-generate "realm generated symkey" --key-algorithm AES --key-size 256 --usages "encrypt,decrypt" --realm barbican
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent2 kra-key-generate "realm generated asymkey" --key-algorithm RSA --key-size 2048 --usages "encrypt,decrypt"  --realm barbican
+
+# create non-realm secrets
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent2 kra-key-archive --clientKeyID "nonrealm passphrase" --passphrase "my non realm passphrase"
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent2 kra-key-generate "nonrealm generated symkey" --key-algorithm AES --key-size 256 --usages "encrypt,decrypt"
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent2 kra-key-generate "nonrealm generated asymkey" --key-algorithm RSA --key-size 2048 --usages "encrypt,decrypt"
+----
+
+Based on the setup above, we expect the following behavior:
+
+|===
+| Activity | Allowed | Denied | Example (using agent2)
+
+| List barbican keys
+| agent2
+| agent1
+| pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent2 kra-key-find --realm barbican
+
+| List non-realm keys 
+| all
+| None
+| pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent2 kra-key-find
+
+| List barbican requests
+| agent2
+| agent1
+| pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent2 kra-key-request-find --relam barbican
+
+| List non-realm requests 
+| all
+| None
+| pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent1 kra-key-request-find 
+
+| Get specific barbican request 
+| agent2
+| agent1
+| pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent2 kra-key-request-show 0xb
+
+| Get specific non-realm request 
+| all
+| None
+| pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent2 kra-key-request-show 0xc
+
+| Retrieve barbican key 
+| agent2
+| agent1
+| pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent2 kra-key-retrieve --keyID 0xb
+
+| Retrieve non-realm key 
+| all
+| None
+| pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent2 kra-key-retrieve --keyID 0xc
+
+| Submit barbican key recovery request 
+| agent2
+| agent1
+| pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent2 kra-key-recover --keyID 0xb
+
+| Submit non-realm key recovery request 
+| all
+| None
+| pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent2 kra-key-recover --keyID 0xc
+
+| Approve barbican recovery request
+| agent2
+| agent1
+| pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent2 kra-key-request-review 0x10 --action approve
+
+| Approve non-realm key recovery request
+| all
+| None
+| pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent2 kra-key-request-review 0x10 --action approve
+|===
+
+== Example 2 (ACL based Authz plugin) ==
+In this case, we will use the DirAclAuthz plugin, and will add ACLs for the barbican realm.
+The ACLs can be made as complicated or as simple as required.  The previous example can in fact
+be recast using the DirAclAuthz plugin where all ACLs simply require membership in the Barbican
+group.
+
+In this case, we will test a more complicated but realistic case.  We will make use of two groups
+
+* "barbican" - members of this group will be able to store or generate secrets in the barbican realm.  They will also be able to retrieve their own secrets, but not retrive any other realm member's secrets.
+* "barbican agents" - members of this group will be able to list and act on all requests and keys in the barbican group.
+
+In our example, we will create three users - agent1 who will be a member of the barbican group, agent2 who will be a member of both the barbican and "barbican agents" group and agent3, who is not a member of either group (and therefore has no access to any barbican tagged keys and requests).
+
+To configure the authz plugin, simply add the following to the KRA's `CS.cfg` (and restart the server):
+
+----
+authz.instance.DirAclAuthz.realm=barbican
+----
+
+Then add the required ACLs using the following LDIF:
+
+----
+dn: cn=aclResources,o=pki-tomcat-KRA
+changetype: modify
+add: resourceACLS
+resourceACLS: barbican.certServer.kra.key:read,recover,download:allow (read,recover) group="barbican agents":Only barbican agents retrieve key information
+-
+add: resourceACLS
+resourceACLS: barbican.certServer.kra.keys:list,execute:allow (list,execute) group="barbican agents":Only barbican agents list keys and execute key operations
+-
+add: resourceACLS
+resourceACLS: barbican.certServer.kra.request:read:allow (read) group="barbican agents":barbican Agents may read request
+-
+add: resourceACLS
+resourceACLS: barbican.certServer.kra.requests:list,execute:allow (list, execute) group="barbican agents":Agents may execute key request operations
+-
+add: resourceACLS
+resourceACLS: barbican.certServer.kra.requests.archival:execute:allow (execute) group="barbican":Only barbican users are allowed to execute archival requests
+-
+add: resourceACLS
+resourceACLS: barbican.certServer.kra.requests.asymkey:execute:allow (execute) group="barbican":Only barbican users are allowed to execute archival requests
+-
+add: resourceACLS
+resourceACLS: barbican.certServer.kra.requests.symkey:execute:allow (execute) group="barbican":Only barbican users are allowed to execute archival requests
+----
+
+Below are commands used to create all the relevant users, provide them with certificates, and associate them with the
+relevant groups.
+
+----
+# create agent 1, get a cert, add to the user entry and the client certdb
+# use the appropriate serial numbers/ request numbers based on the results of each command 
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n "PKI Administrator for laptop" kra-user-add agent1 --fullName "KRA Agent1"
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 client-cert-request uid=agent1
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n "PKI Administrator for laptop" ca-cert-request-review 10 --action approve
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n "PKI Administrator for laptop" kra-user-cert-add agent1 --serial 0xa
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 client-cert-import agent1 --serial 0xa
+
+# create agent 2, get a cert, add to the user entry and the client certdb
+# use the appropriate serial numbers/ request numbers based on the results of each command 
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n "PKI Administrator for laptop" kra-user-add agent2 --fullName "KRA Agent2"
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 client-cert-request uid=agent2
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n "PKI Administrator for laptop" ca-cert-request-review 11 --action approve
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n "PKI Administrator for laptop" kra-user-cert-add agent2 --serial 0xb
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 client-cert-import agent2 --serial 0xb
+ 
+# create agent 3, get a cert, add to the user entry and the client certdb
+# use the appropriate serial numbers/ request numbers based on the results of each command 
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n "PKI Administrator for laptop" kra-user-add agent3 --fullName "KRA Agent3"
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 client-cert-request uid=agent3
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n "PKI Administrator for laptop" ca-cert-request-review 13 --action approve
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n "PKI Administrator for laptop" kra-user-cert-add agent3 --serial 0xc
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 client-cert-import agent3 --serial 0xc
+  
+# add all agents to KRA agent group  
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n  "PKI Administrator for laptop" kra-group-member-add "Data Recovery Manager Agents" agent1
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n  "PKI Administrator for laptop" kra-group-member-add "Data Recovery Manager Agents" agent2
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n  "PKI Administrator for laptop" kra-group-member-add "Data Recovery Manager Agents" agent3
+
+# add barbican group
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n  "PKI Administrator for laptop" kra-group-add --description "group for barbican access" barbican
+
+# add agent2 and agent1 to barbican group
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n  "PKI Administrator for laptop" kra-group-member-add "barbican" agent1
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n  "PKI Administrator for laptop" kra-group-member-add "barbican" agent2
+ 
+# add "barbican agents" group
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n  "PKI Administrator for laptop" kra-group-add --description "group for barbican agent access" "barbican agents"
+
+# add agent2 to "barbican agents" group
+pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n  "PKI Administrator for laptop" kra-group-member-add "barbican agents" agent2
+----
+
+Based on the setup above, we expect the following behavior:
+
+|===
+| Activity | Allowed | Denied | Example (using agent1)
+
+| List barbican keys 
+| agent2
+| agent1, agent3
+| pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent1 kra-key-find --realm barbican
+
+| List non-realm keys 
+| all
+| None
+| pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent1 kra-key-find
+
+| List barbican requests 
+| agent2
+| agent1, agent3
+| pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent1 kra-key-request-find --relam barbican
+
+| List non-realm requests 
+| all
+| None
+| pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent1 kra-key-request-find 
+
+| Get specific barbican request 
+| agent2
+| agent3
+| pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent1 kra-key-request-show 0xb
+
+| 
+| agent1 (for keys it owns)
+|
+|
+
+| Get specific non-realm request 
+| all
+| None
+| pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent1 kra-key-request-show 0xc
+
+| Retrieve barbican key
+| agent2
+| agent3
+| pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent1 kra-key-retrieve --keyID 0xb
+
+|
+| agent1 (for keys it owns)
+|
+|
+
+| Retrieve non-realm key
+| all
+| None
+| pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent1 kra-key-retrieve --keyID 0xc
+
+| Submit barbican key recovery request 
+| agent2
+| agent3
+| pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent1 kra-key-recover --keyID 0xb
+
+| 
+| agent1 (for keys it owns)
+|
+|
+
+| Submit non-realm key recovery request 
+| all
+| None
+| pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent1 kra-key-recover --keyID 0xc
+
+| Approve barbican recovery request
+| agent2
+| agent3
+| pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent1 kra-key-request-review 0x10 --action approve
+
+| 
+| agent1 (for keys it owns)
+|
+|
+
+| Approve non-realm key recovery request
+| all
+| None
+| pki -d ~/.dogtag/pki-tomcat/alias -c redhat123 -n agent1 kra-key-request-review 0x10 --action approve
+|===
+
+= Configuration on the CA =
+
+It is also possible to archive secrets (specifically private encryption keys) through the CA-KRA connector by executing a
+profile in which archival is enabled.  An example of this is the caDualCert profile, where the encryption key is archived
+to the KRA.
+
+If the CA administrator wishes to enforce that the key should be stored within a particular realm, he can add a new default
+and constraint to the relevant profile.  Enrollments using that profile will then have the realm injected into the request
+and passed to the KRA for archival.
+
+Moreover, when enrollments are submitted, an authz check will be performed to confirm that the user is permitted to submit
+requests to that realm.  The authz setup is identical to the KRA authz setup.
+
+The instructions below show how to set up a CA profile to use the 'barbican' realm.
+
+* Add the realm default and constraint to the desired profile.
+
+----
+policyset.encryptionCertSet.10.constraint.class_id=authzRealmConstraintImpl
+policyset.encryptionCertSet.10.constraint.name=Authz Realm
+policyset.encryptionCertSet.10.constraint.params.realmsAllowed=barbican
+policyset.encryptionCertSet.10.default.class_id=authzRealmDefaultImpl
+policyset.encryptionCertSet.10.default.name=Authz Realm
+policyset.encryptionCertSet.10.default.params.realm=barbican
+----
+
+* Set up a barbican authz plugin in CS.cfg:
+
+----
+authz.instance.DirAclAuthz.realm=barbican
+----
+
+* Add an acl to allow users to submit to the barbican realm:
+
+----
+dn: cn=aclResources,o=pki-tomcat-CA
+changetype: modify
+add: resourceACLS
+resourceACLS: barbican.certServer.ca.request.enrollment:submit:allow (submit) user="anybody":Anybody can add Barbican requests
+----
+
+* Submit a request to the relevant profile.  In the case of this example, we will be using a modified caDualCert profile.
+
+----
+$ pki  -c redhat123 client-cert-request uid=testuser --profile caDualCert --type crmf --transport transport.pem
+----
