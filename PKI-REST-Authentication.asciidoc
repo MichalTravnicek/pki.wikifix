@@ -1,0 +1,125 @@
+= Overview =
+
+PKI relies on Tomcat framework and RESTEasy framework to implement authentication and authorization mechanisms.
+
+= Authentication =
+
+== Connector ==
+
+The SSL Connector in Tomcat is configured to optionally request client certificate but it will not fail if the client doesn't provide any certificate:
+
+----
+<Connector name="Secure" port="8443"
+    ...
+    clientAuth="want"
+    ...
+    />
+----
+
+There's a bug in Tomcat JSS so this option doesn't work now.
+
+See also link:http://tomcat.apache.org/tomcat-7.0-doc/config/http.html[The HTTP Connector].
+
+== REST services ==
+
+In the `web.xml` most REST services are configured to require certain roles. This will trigger authentication and authorization process.
+
+----
+<security-constraint>
+
+    <web-resource-collection>
+        <web-resource-name>Agent Services</web-resource-name>
+        <url-pattern>/rest/agent/*</url-pattern>
+    </web-resource-collection>
+
+    <auth-constraint>
+        <role-name>*</role-name>
+    </auth-constraint>
+
+    ...
+
+</security-constraint>
+----
+
+== Authenticaticator and Realm ==
+
+In the `context.xml` each PKI Web application is configured with an authenticator and a realm:
+
+----
+<Context crossContext="true" allowLinking="true">
+
+    <Valve className="com.netscape.cms.tomcat.SSLAuthenticatorWithFallback" />
+
+    <Realm className="com.netscape.cms.tomcat.ProxyRealm" />
+
+</Context>
+----
+
+The fallback authenticator will authenticate the user certificate if it's provided. Otherwise it will request username and password. The actual authentication will be performed by the realm.
+
+Tomcat requires that the classes for the authenticator and the realm must be stored in common/lib. The problem is the PKI classes that do the authentication are stored in the `WEB-INF/lib`, which is not accessible directly by the realm. To address this problem, a `ProxyRealm` is created in `common/lib` to satisfy Tomcat's requirement and a `PKIRealm` is created in `WEB-INF/lib` to execute the actual authentication. When the Web application is started, the `ProxyRealm` will be linked to the `PKIRealm` (see `CMSStartServlet.java` below). The `ProxyRealm` will then forward any incoming authentication request to the `PKIRealm`.
+
+----
+// Register realm for this subsystem
+String context = getServletContext().getContextPath();
+if (context.startsWith("/")) context = context.substring(1);
+ProxyRealm.registerRealm(context, new PKIRealm());
+----
+
+See also link:http://tomcat.apache.org/tomcat-7.0-doc/config/realm.html[The Realm Component].
+
+= Authorization =
+
+PKI executes several pre-process interceptors before executing a REST method to verify whether the user has the required authorization:
+
+* authentication method verification
+* group membership (access control list) verification
+
+See also link:http://docs.jboss.org/resteasy/docs/2.3.5.Final/userguide/html_single/index.html#PreProcessInterceptors[PreProcessInterceptor].
+
+== Authentication method verification ==
+
+The `@AuthMethodMapping` annotation is used to map a REST method to a list of allowed authentication methods.
+
+----
+@Path("")
+public interface CertResource {
+
+    @GET
+    @Path("agent/certs/{id}")
+    @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+    @ACLMapping("agent.certs")
+    @AuthMethodMapping("agent")
+    public CertData reviewCert(@PathParam("id") CertId id);
+
+}
+----
+
+The list can be stored in `<instance>/<subsystem>/conf/auth-method.properties`. By default it will use the following configuration:
+
+----
+default = *
+account = certUserDBAuthMgr,passwdUserDBAuthMgr
+admin = certUserDBAuthMgr
+agent = certUserDBAuthMgr
+securityDomain.installToken = passwdUserDBAuthMgr
+----
+
+The `AuthMethodInterceptor` will validate the actual authentication method used by the user against the list.
+
+== ACL verification ==
+
+The `@ACLMapping` annotation is used to map a REST method to a list of ACL's. The list is stored in `WEB-INF/auth.properties`, for example:
+
+----
+account.login = certServer.ca.account,login
+account.logout = certServer.ca.account,logout
+admin.users = certServer.ca.users,execute
+admin.groups = certServer.ca.groups,execute
+admin.kraconnector = certServer.ca.connectorInfo,modify
+agent.certrequests = certServer.ca.certrequests,execute
+agent.certs = certServer.ca.certs,execute
+securityDomain.installToken = certServer.securitydomain.domainxml,read
+----
+
+The `ACLInterceptor` will validate whether the user belongs to the group specified in the ACL and has permission to execute the operation.
