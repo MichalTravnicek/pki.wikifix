@@ -4,7 +4,7 @@ This document describes the process to install basic PKI subsystems.
 
 = Installing Dependencies =
 
-To install the required DS and PKI packages:
+To install DS and PKI packages, execute the following command:
 
 ----
 $ dnf install 389-ds-base dogtag-pki
@@ -16,7 +16,7 @@ See link:DS-Installation[DS Installation].
 
 = Creating CA Subsystem =
 
-Run `pkispawn` to create CA subsystem in interactive mode:
+To create CA subsystem in interactive mode, run `pkispawn` :
 
 ----
 $ pkispawn
@@ -90,6 +90,8 @@ See link:User-Guide[User Guide].
 
 = Removing CA Subsystem =
 
+To remove the CA subsystem in interactive mode, run `pkidestroy` :
+
 ----
 $ pkidestroy
 Subsystem (CA/KRA/OCSP/TKS/TPS) [CA]:
@@ -102,3 +104,5 @@ Uninstalling CA from /var/lib/pki/pki-tomcat.
 
 Uninstallation complete.
 ----
+
+See also link:Installation-Guide[Installation Guide].
