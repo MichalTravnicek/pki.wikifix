@@ -1,0 +1,64 @@
+= Introduction =
+
+The role and interactions of the DRM has changed.  No longer do we expect the DRM to only support
+privste key escrow and to talk only with the CA and a group of agents, but we expect the DRM to
+be accessed by a number of different applications - Barbican, CA, IPA (for the vault), and other services
+such as DNSSEC.
+
+In order to facilitate these interactions, a number of enhancements have been proposed.  They are:
+
+* Partitioning of secrets and requests so that different applications only have access to their specific secrets and requests.
+* Addition of additional authentication mechanisms - and in particular for IPA use cases, GSSAPI.
+* Addition of the ability to define an authentication database, which could be used to define addtional agents.
+
+The basic idea is that we will continue to restrict access to the DRM to "agents" ie. a restricted set of users
+each of which will have the ability to store and restrieve a specific set of secrets.
+
+* PKI users will continue to store private keys through interactions with the CA. Their agents will continue to access the web UI through client auth certificates.
+* For the IPA vault case, end users will authenticate to and interact with IPA, which will interact with the DRM through a trusted agent.  This agent can continue to use client auth for authentication, although with the addition of GSSAPI as an authentication method and an authentication database, it may be possible to define a set of IPA users as IPA agents.
+* For the case of services like Barbican or DNSSEC, these services will interact with the DRM directly much in the same mechanism as IPA.  In fact, IPA is pretty much just a service like anything else.
+
+= Partitioning the secrets and requests =
+
+== High Level Design ==
+
+One possible way of doing this is by defining a multiple valued attribute, which, for lack of a better name, I will call
+"context" in this design.  Both records for keys and key requests will have this attribute.
+
+This could work something like this:
+
+* We could define an auxilliary object (say pkiAgentGroup) that would define a multivalued context attribute.  This object would adorn groups of agents.  To give an agent permissions to manage secrets of a certain context, we would simply add the agent to the relevant group.
+* Creating the groups, modifying the group membership and modifying the group's contexts will be a administrator only operation.
+* When an escrow occurs, a context will need to be provided.  The server would need to confirm that the agent has permissions to access that context.  Assuming the agent has the relevant permissions, an escrow request with the relevant context is created.  When that request is processed, the server will select this context for the key entry.
+* For backward compatibility, we would likely need to define (though configurable in CS.cfg), a default context in case a private key is escrowed from an older CA.  In fact, in the case where no context is provided, the system could select the context of the agent (assuming that it is unique), and failing that, fall back to a default context.
+* If an agent attempts to escrow to an invalid context, a 401 (Unauthorized) will be returned.
+* For retrieval and listing requests and keys, the server will confirm that the agent requesting the resource has the relevant context.
+
+= An authentication database =
+
+== High Level Design ==
+
+In order to make it easier for applications to use the DRM, it should be possible to define an authentication database just like the case of the TPS.  Users can then be defined within this database along with any relevant credentials.
+
+These database settings should be maintained for each application.  If no authentication database is defined, then only the users specified in the DRM internal DB will be searched for authentication.  The config entries could be defined in CS.cfg as follows:
+
+----
+application.contexts=pkiuser,barbican,ipa,dnssec,...
+application.default=pkiuser
+application.ipa.authdb.hostname=...
+application,ipa.authdb,port=... etc.
+----
+
+If an authentication db is defined, then the authentication db could be used to locate and authenticate the user or to provide authorization info.  The more that I think about this though, I'm not sure what it this buys us - other than the ability to authenticate using ldap.  If we end up implementing GSSAPI this may not matter.
+
+The key point here is that agent groups MUST be defined on the DRM.  Why?  Because otherwise there is no way for the DRM to assure the separation of different contexts.  If the groups are defined in the authentication database, then its easy enough for the admin of that service to define a group that contains the contexts for other
+contexts.
+
+The service should define use the provided REST admin interfaces to modify the group on the DRM.
+
+= Additional Authentication Mechanism =
+
+== High Level Design ==
+
+The current authentication realm allows you to specify multiple authentication methods, and they will be attempted in order.
+We need to implement GSSAPI to allow easier integration with IPA.  More details to come.
