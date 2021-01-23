@@ -1,0 +1,63 @@
+= Current Implementation =
+
+When a KRA is installed, it calls the `updateConnector` servlet on the CA (i.e. `/ca/admin/ca/updateConnector`) with the following parameters:
+
+----
+ca.connector.KRA.enable=true
+ca.connector.KRA.local=false
+ca.connector.KRA.timeout=30
+ca.connector.KRA.uri=/kra/agent/kra/connector
+ca.connector.KRA.host=<ownagenthost>
+ca.connector.KRA.port=<ownagentsport>
+ca.connector.KRA.transportCert=<transportCert>
+----
+
+These are the parameters that are stored in the CA's `CS.cfg` when a connector is defined.  The `UpdateConnector` servlet fist checks to see if the connector is already defined.  If not, then it stores these values in the `CS.cfg`, starts the connector, and sends back success.  If the connector is already defined, it returns `FAILURE`.
+
+This is of course a problem in current installs.  We can install a KRA and then remove it - but the connector config still exists on the CA, preventing another KRA being configured to the same CA.  We therefore should provide a mechanism for removing the KRA connector info when `pkidestory` is called on the KRA.
+
+Simply removing the KRA connector info is not sufficient though.  It is possible to configure the CA to have failover between multiple cloned KRAs. All the KRAs must use the same transport cert.  In this case, `ca.connector.KRA.host` can be multiply defined and have any of the following:
+
+----
+ca.connector.KRA.host = kra_vip           (port defined in ca.connector.KRA.port )
+ca.connector.KRA.host = host1: port1 host2:port2 etc.. (in this case, the value in ca.connector.KRA.port is ignored, except in log messages)
+----
+
+= Servlet to manage KRA config =
+
+We'll define a new restful servlet to manage connector info at `/config/connector` (`com.netscape.certsrv.system.ConnectorResource.java`)
+This servlet will require token authentication.  Or we might just extend the current `UpdateConnector` servlet (and add an add/remove operation).
+
+== Removing connector info ==
+
+* Requires `host`, `port` as inputs.
+* If `connector` not defined, return `SUCCESS`.
+* If `connector.KRA.host` = `host` and `connector.KRA.port` = `port`, then remove all entries and return `SUCCESS.`  If the `vip_host` and `vip_port` are passed in, then this would take care of that scenario.
+* If `connector.KRA.host` = `host:port host2:port2`, then remove `host:port` from the list and return `SUCCESS`.  If `host:port` is not in the list return `SUCCESS`.
+
+== Adding connector info ==
+
+* Requires all the info above (including `host`, `port`, `transportCert`)
+* If `connector` not defined, add the connector info, start the connector and return `SUCCESS`.
+* If `connector.KRA.host` = `host` and `connector.KRA.port` = `port`, then overwrite the connector parameters and return `SUCCESS`.
+* If `connector.KRA.transportCert` != `transportCert`, return `FAILURE` (Connector already defined)
+* If `connector.KRA.host` is not a list, then either `connector.KRA.host` or `connector.KRA.port` are different from the passed in host and port.  Change `connector.KRA.host` to a list of `host:port`.  Return `SUCCESS`.
+* If `connector.KRA.host` is a list, check to see if `host:port` is in the list.  If not, add it.  Return `SUCCESS`.
+
+== Changes to pkispawn/ SystemConfig servlet ==
+
+Add parameters to allow user to specify the connector `host` and `port`.  This will allow specification of a VIP if desired.
+
+----
+[KRA]
+pki_kra_connector_host=%(pki_hostname)s
+pki_kra_connector_port=%(pki_https_port)s
+----
+
+System Config servlet must of course be modified to use these new parameters.  At the end of the installation, we should store these parameters in the KRA's `CS.cfg` for use by `pkidestroy`.  Store as: `kra.connector.host`, `kra.connector.port`
+
+== Changes to pkidestroy ==
+
+* New optional parameter added to `pkidestroy --remove-kra-connector-vip` (default false)
+* If `--remove-kra-connector-vip` is `true`, read `kra.connector.host`, `kra.connector.port` from CS.cfg, and send those parameters in to the remove connector servlet.  This will remove the vip config.
+* Otherwise, send in `host`, `port` to the remove connector servlet.
