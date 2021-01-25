@@ -1,0 +1,26 @@
+= Browser =
+
+A regular Web browser can be used to view REST resources using HTTP `GET`. For example, to view all certificates simply open the following URL:
+
+----
+https://localhost:8443/ca/rest/certs
+----
+
+To view a specific certificate open the following URL:
+
+----
+https://localhost:8443/ca/rest/certs/0x1
+----
+
+= Java Client =
+
+----
+DefaultHttpClient httpClient = new DefaultHttpClient();
+ApacheHttpClient4Engine engine = new ApacheHttpClient4Engine(httpClient);
+ResteasyClient resteasyClient = new ResteasyClientBuilder().httpEngine(engine).build();
+
+ResteasyWebTarget target = resteasyClient.target(url);
+ProxyBuilder<T> builder = target.proxyBuilder(CertResource.class);
+
+CertResource proxy = builder.build();
+----
