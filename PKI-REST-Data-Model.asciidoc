@@ -1,0 +1,67 @@
+The data model is defined using Plain Old Java Objects. The data model also contains annotations to map the resource to XML to transport over HTTP. For a single resource the data model can be defined as follows:
+
+----
+@XmlRootElement(name="User")
+public class UserData {
+
+    @XmlAttribute(name="id")
+    String id;
+
+    @XmlElement(name="FullName")
+    String fullName;
+
+    @XmlElement(name="Email")
+    String email;
+
+    ...
+
+    public int hashCode() { ... }
+    public boolean equals(Object object) { ... }
+
+    public String toString() { ... generate XML data ... }
+    public static UserData valueOf(String string) { ... parse XML data ... }
+}
+----
+
+The XML annotations map the class and the fields to the following XML object:
+
+----
+<User id="...">
+    <FullName>...</FullName>
+    <Email>...</Email>
+    ...
+</User>
+----
+
+For a collection of resources the data model can be defined as follows:
+
+----
+@XmlRootElement(name="Users")
+public class UserCollection {
+
+    Collection<UserData> users = new ArrayList<UserData>();
+
+    @XmlElementRef
+    public Collection<UserData> getUsers() {
+        return users;
+    }
+}
+----
+
+The XML annotations map the class and the fields to the following XML object:
+
+----
+<Users>
+    <User id="...">
+        <FullName>...</FullName>
+        <Email>...</Email>
+        ...
+    </User>
+    <User id="...">
+        <FullName>...</FullName>
+        <Email>...</Email>
+        ...
+    </User>
+    ...
+</Users>
+----
