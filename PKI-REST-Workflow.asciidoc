@@ -1,0 +1,267 @@
+= Enrollment =
+
+|===
+| Workflow | Operation | Client | CA | DRM | OCSP | Notes
+
+| Enrollment
+| Get list of profiles
+| GET /pki/profiles
+| Returns list of profiles (name; description; link to profile)
+| 
+| 
+| 
+
+| 
+| 
+| GET /pki/profile/$id
+| Return details of profile - inputs; outputs; constraints
+| 
+| 
+| 
+
+| 
+| 
+| Client can parse profile to determine required inout parameters
+| 
+| 
+| 
+| 
+|===
+
+= Manual Enrollment =
+
+|===
+| Workflow | Operation | Client | CA | DRM | OCSP | Notes
+
+| Manual Enrollment
+| Create a request
+| POST-a  /pki/request/$profile_id Payload contains all inputs required by the profile
+| Creates a request.  Returns 201 - Created  Returns link to request created /pki/request/$rid
+| 
+| 
+| 
+
+| 
+| Agent gets list of requests
+| GET /pki/requests
+| Return collection of requests (some details and request links)
+| 
+| 
+| 
+
+| 
+| Agent approves request
+| PUT /pki/request/$rid/status Payload includes request status object (which specifies approved)
+| Request is modified.  Certificate object is created;  Returns link to certifcate.
+| 
+| 
+| 
+
+| 
+| Get request status
+| GET /pki/request/$rid/status
+| Returns 200 OK. Returns status object which includes link to request; link to cert; status
+| 
+| 
+| 
+
+| 
+| Get certificate 
+| GET /pki/certificate/$certid
+| Return 200 OK. Returns certificate in whatever relevant format (base64; binary?)
+| 
+| 
+| 
+|===
+
+= Automated Enrollment =
+
+|===
+| Workflow | Operation | Client | CA | DRM | OCSP | Notes
+
+
+| Automated Enrollment
+| Create a request
+| POST-a  /pki/request/$profile_id Payload contains all inputs required by the profile
+| Creates a request.  Returns 201 - Created  Returns link to request created /pki/request/$rid.  Also creates certificate object and passes back link to cert /pki/certificate/$certid
+| 
+| 
+| 
+
+| 
+| Get certificate
+| GET /pki/certificate/$certid
+| Return 200 OK. Returns certificate in whatever relevant format (base64; binary?)
+| 
+| 
+| How do we account for nonces? CSRF
+|===
+
+= Automated Enrollment with Key Archival =
+
+|===
+| Workflow | Operation | Client | CA | DRM | OCSP | Notes
+
+
+| Automated Enrollment with Key Archival
+| Get transport key
+| GET /pki/config/kra/cert/transport
+| 
+| Returns 200 OK. Payload includes DRM transport cert.
+| 
+| 
+
+| 
+| Create a request
+| POST-a  /pki/request/$profile_id Payload contains all inputs required by the profile.  This includes a client generated session key wrapped in the DRM transport key and the private key wrapped in the session key
+| Creates a request. 
+| 
+| 
+| 
+
+| 
+| 
+| 
+| POST-a /pki/keyrequest/archive with payload including the wrapped sesssion and private keys
+| Return status 201 - Created. Create key request and mark as approved. Create key object (unwrapping and storing keys). Return link to key archival request - /pki/keyrequest/$rid and link to key /pki/key/$kid
+| 
+| 
+
+| 
+| 
+| 
+| Update cert record.  Returns 201 - Created  Returns link to request created /pki/request/$rid.  Also creates certificate object and passes back link to cert /pki/certificate/$certid
+| 
+| 
+| 
+|===
+
+= Revoke Certificate =
+
+|===
+| Workflow | Operation | Client | CA | DRM | OCSP | Notes
+
+| Revoke cert
+| Agent revokes cert
+| PUT /pki/certificate/$id/status with status=revoked and revocation reason
+| Return 200 OK. Set certificate as revoked and update CRL.  Return status or 204 (no content)
+| 
+| 
+| 
+|===
+
+= Key Recovery =
+
+|===
+| Workflow | Operation | Client | CA | DRM | OCSP | Notes
+
+| Key recovery
+| Get list of keys/ search for relevant keys
+| GET /pki/keys - including search criteria such as the cert (for example).
+| 
+| Return collection of references to keys
+| 
+| 
+
+| 
+| Agent Requests key recovery
+| POST-a /pki/keyrequest/recovery - payload includes key_id
+| 
+| Return 201 - Created.  Returns link to request created - /pki/keyrequest/$rid
+| 
+| 
+
+| 
+| Agent gets list of pending requests
+| GET /pki/keyrequests with relevant search criteria
+| 
+| Return collection of key requests
+| 
+| 
+
+| 
+| Agent approves request (for N agents)
+| PUT /pki/keyrequest/$rid/status with status=approved
+| 
+| Agent is added to list of approvers.  Return 200 OK and return request status - number and list of approvers? approvals still needed?
+| 
+| 
+
+| 
+| Agent gets status of request
+| GET /pki/keyrequest/$rid/status
+| 
+| Return request status.  If the agent is the requestor; provide link to key
+| 
+| 
+
+| 
+| Agent gets key
+| GET /pki/key/$kid - must include approved $rid and be the requestor for that request;  Do $rids expire?  Also include wrapping mechanism (pk12 passwords or client generated symmetric key) wrapped in drm transport key
+| 
+| Return key wrapped in pk12 package or wrapped in symmetric key;
+| 
+| 
+|===
+
+= Key Storage =
+
+|===
+| Workflow | Operation | Client | CA | DRM | OCSP | Notes
+
+| Key storage
+| Get transport key
+| GET /pki/config/kra/cert/transport
+| 
+| Returns 200 OK. Payload includes DRM transport cert.
+| 
+| 
+
+| 
+| Agent Requests key archival
+| POST-a /pki/keyrequest/archive with payload including the key wrapped with the DRM transport key
+| 
+| Return status 201 - Created. Create key request and mark as approved. Create key object (storing private key). Return link to key archival request - /pki/keyrequest/$rid and link to key /pki/key/$kid
+| 
+| Exact wrapping mechanisms depend on whether it is sync/async.  We should use the same mechanisms supported by KMIP
+|===
+
+= Automated Key Recovery (nAgents=1) =
+
+|===
+| Workflow | Operation | Client | CA | DRM | OCSP | Notes
+
+| Automated  Key recovery (nAgents=1)
+| Agent Requests key recovery
+| POST-a /pki/keyrequest/recovery - payload includes key_id, Also include wrapping secret wrapped in DRM transport key 
+| 
+| Return 207 - Other.  Returns link to request created - /pki/keyrequest/$rid, link to the key, and the relevant wrapped key(s)
+| 
+| This occurs (for example) in the token case.  Do we want to do this in one step? CSRF?
+|===
+
+= Get Generated Key =
+
+|===
+| Workflow | Operation | Client | CA | DRM | OCSP | Notes
+
+| Get generated key
+| Agent requests generated key pair
+| POST-a /pki/keyrequest/generate/token - payload includes identifiers (cuid, userid etc.), archival choice and wrapping mechanism (symmetric key) wrapped in drm transport key
+| 
+| Return 207 - Other. Returns link to request created - /pki/keyrequest/$rid.  Also returns generated key pair (wrapped in symmetric key) and link to key stored if archival selected.
+| 
+| Server-side keygen in token, but can be extended to general case.  Do we want to do this in one step? CSRF?
+|===
+
+= Manual Enrollment =
+
+= Manual Enrollment with Archival =
+
+= Agent-Authenticated Enrollment =
+
+= Agent-Authenticated Enrollment with Archival =
+
+= Directory-Authenticated Enrollment =
+
+= Directory-Authenticated Enrollment with Archival =
