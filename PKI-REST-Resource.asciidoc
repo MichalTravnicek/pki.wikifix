@@ -1,0 +1,73 @@
+= Overview =
+
+Using RESTEasy framework the resources are defined as Java interface. The interface defines the resource location, methods, and data model used to transport the parameters and results. The interfaces and data models are shared between the client and server.
+
+= Resource definition =
+
+The following Java interface defines a user resource:
+
+----
+@Path("admin/users")
+public interface UserResource {
+
+    @GET
+    public UserCollection findUsers(
+            @QueryParam("filter") String filter,
+            @QueryParam("start") Integer start,
+            @QueryParam("size") Integer size);
+
+    @POST
+    public Response addUser(UserData userData);
+
+    @GET
+    @Path("{userID}")
+    public UserData getUser(@PathParam("userID") String userID);
+
+    @POST
+    @Path("{userID}")
+    public Response modifyUser(@PathParam("userID") String userID, UserData userData);
+
+    @DELETE
+    @Path("{userID}")
+    public void removeUser(@PathParam("userID") String userID);
+}
+----
+
+= Resource path =
+
+The `@Path` defines the resource path. The `@Path` may be defined on the class and on the method and they should be combined to get the full path:
+
+* `admin/users`: collection of users
+* `admin/users/{userID}`: a single user
+
+= Method mapping =
+
+Each HTTP operation is mapped into different REST method:
+
+* `GET admin/users` -> `findUsers()`
+* `POST admin/users` -> `addUser()`
+* `GET admin/users/{userID}` -> `getUser()`
+* `POST admin/users/{userID}` -> `modifyUser()`
+* `DELETE admin/users/{userID}` -> `removeUser()`
+
+= Method parameters =
+
+The parameters to the methods can passed either as part of the path or as an query parameters. For example:
+
+----
+GET admin/users?filter=James&start=10&size=5
+----
+
+The above HTTP request will invoke findUsers() with the following parameters:
+
+* `filter`: `James`
+* `start`: `10`
+* `size`: `5`
+
+----
+DELETE admin/users/testuser
+----
+
+The above HTTP request will invoke `removeUser()` the following parameter:
+
+* `userID`: `testuser`
