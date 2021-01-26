@@ -1,0 +1,825 @@
+= Overview =
+
+PKI provides REST interfaces to allow clients to access services on the server.
+
+= Design =
+
+The REST interface uses regular HTTP verbs:
+
+* `GET`: Fetch data, no side effects
+* `POST`: Create new entries in the namespace
+* `PUT`: Update entires in the namespace.
+
+In general, `POST` will not create entries that are active, but will require a further `PUT` to approve. One exception is when agents create and approve certificates in one call. If we continue this approach, we will have to revise the security mechanisms around it, as currently it requires disabling nonces.
+
+All HTTP calls should have return codes defined for expected success and error cases. 
+
+= Top Level =
+
+|===
+| Operation | Path | Description | Mapped Servlets (CA) | Mapped Servlets (KRA) | Mapped Servlets (OCSP) | Mapped Servlets (TKS)
+
+| GET
+| /pki
+| top level
+| services; caindex
+| kraindex; services
+| service; ocspindex
+| services
+|===
+
+= Controller Objects =
+
+|===
+| Operation | Path | Description | Mapped Servlets (CA) | Mapped Servlets (KRA) | Mapped Servlets (OCSP) | Mapped Servlets (TKS)
+
+| GET
+| /pki/token/sessionKey
+| Calculate token session key material
+| 
+| 
+| 
+|  tksSessionKey
+
+| GET
+| /pki/token/diversifiedKey
+| Calculate upgraded key set data for token symmetric key changeover
+| 
+| 
+| 
+| tksCreateKeySetData
+
+| GET
+| /pki/token/encryptedData
+| Calculate encrypted block of data
+| 
+| 
+| 
+| tksEncryptData
+
+| GET
+| /pki/token/randomData
+| Calculate random block of data of given size
+| 
+| 
+| 
+| tksRandomData 
+|===
+
+= Certificates =
+
+|===
+| Operation | Path | Description | Mapped Servlets (CA) | Mapped Servlets (KRA) | Mapped Servlets (OCSP) | Mapped Servlets (TKS)
+
+| GET
+| /pki/certificates
+| Get list of certificates
+| caSrchCerts-agent; caListCerts-agent;caSrchCert; caSrchRevokeCert; caSrchCerts; caListCerts
+| 
+| 
+| 
+
+| 
+| /pki/certifcate/$id/details
+| Get certifcate details
+| caDisplayCertFromRequest-agent; caDisplayBySerial-agent; caDisplayCertFromRequest; caDisplayBySerial
+| 
+| 
+| 
+
+| POST-b
+| /pki/certificate/ocsp
+| Get OCSP response
+| caOCSP
+| 
+| ocspCheckCert; ocspReadCheckCertPage
+| 
+
+| GET
+| /pki/certificate/$id
+| Get certifcate
+| caGetAdminCertBySerial; caGetCertChain; caGetCertChainAdmin; caGetCertFromRequest-agent;caGetBySerial-agent; caQueryBySerial; caGetBySerial; caGetAdminBySerial; caGetCAChain; caGetCertFromRequest
+| 
+| 
+| 
+|===
+
+= Certificate Status =
+
+|===
+| Operation | Path | Description | Mapped Servlets (CA) | Mapped Servlets (KRA) | Mapped Servlets (OCSP) | Mapped Servlets (TKS)
+
+| PUT
+| /pki/certificate/$id/status
+| Modify certificate status - revoke; unrevoke
+| caDoUnrevoke; caDoRevoke-agent; caDoRevoke1; caDoRevoke1; caCMCRevReq; caDoUnrevoke1; caRevocation; caDoRevoke; caProxyDoRevoke
+| 
+| 
+| 
+
+| GET 
+| /pki/certificate/$id/status
+| Get certificate status
+|  
+| 
+| 
+| 
+|===
+
+= Certificate Requests =
+
+|===
+| Operation | Path | Description | Mapped Servlets (CA) | Mapped Servlets (KRA) | Mapped Servlets (OCSP) | Mapped Servlets (TKS)
+
+| GET
+| /pki/requests
+| Get list of requests
+| caListRequests; caSearchReqs
+| 
+| 
+| 
+
+| GET
+| /pki/request/$id
+| Get request details
+| caqueryReq; caCheckRequest
+| 
+| 
+| 
+
+| POST-a
+| /pki/request
+| Add a request
+| caProfileSubmit; caenrollment;cacertbasedenrollment; caProfileSubmitCMCSimple; profileSubmitCMCFull; caProfileSubmitSSLClient; caProxyProfileSubmit; cabulkissuance; caProxyBulkIssuance; caRenewal; caSCEP; caRASCEP
+| 
+| 
+| 
+
+| PUT
+| /pki/request/$id
+| Modify a request - if a request is not approved an agent can modify it before approving.
+| caProfileProcess; caProcessCertReq; caProcessReq
+| 
+| 
+| 
+|===
+
+= Certificate Request Status =
+
+|===
+| Operation | Path | Description | Mapped Servlets (CA) | Mapped Servlets (KRA) | Mapped Servlets (OCSP) | Mapped Servlets (TKS)
+
+| PUT
+| /pki/request/$id/status
+| Modify request status - approve; deny etc;
+| caProfileProcess; caProcessCertReq; caProcessReq
+| 
+| 
+| 
+
+| GET
+| /pki/request/$id/status
+| Get request status
+| caCheckRequest
+| 
+| 
+| 
+|===
+
+= Certificate Profiles =
+
+|===
+| Operation | Path | Description | Mapped Servlets (CA) | Mapped Servlets (KRA) | Mapped Servlets (OCSP) | Mapped Servlets (TKS)
+
+| GET
+| /pki/profiles
+| Get list of profiles
+| caProfileList-agent; caProfileList
+| 
+| 
+| 
+
+| GET
+| /pki/profile/$id
+| Get profile details
+| caProfileReview; caProfileSelect-agent; caProfileSelect; caSCEP; caRASCEP
+| 
+| 
+| 
+
+| PUT
+| /pki/profile/$id
+| Add or modify profile
+| caprofile; caProfileApprove
+| 
+| 
+| 
+
+| DEL
+| /pki/profile/$id
+| Delete a profile
+| caprofile
+| 
+| 
+| 
+|===
+
+= Certificate Revocation List =
+
+|===
+| Operation | Path | Description | Mapped Servlets (CA) | Mapped Servlets (KRA) | Mapped Servlets (OCSP) | Mapped Servlets (TKS)
+
+| GET
+| /pki/crls
+| Get list of CRLs
+| None
+| 
+| 
+| 
+
+| GET
+| /pki/crl/details
+| Get CRL details
+| camasterCADisplayCRL
+| 
+| ocspReadAddCRLPage
+| 
+
+| GET
+| /pki/crl
+| Get CRL
+| caGetCRL
+| 
+| 
+| 
+
+| PUT
+| /pki/crl
+| Add a CRL
+| 
+| 
+| ocspAddCRL
+| 
+
+| POST-b
+| /pki/crl
+| Modify a CRL
+| camasterCAUpdateCRL
+| 
+| 
+| 
+
+| DEL
+| /pki/crl
+| Delete a CRL
+| 
+| 
+| 
+|  
+|===
+
+= CA for OCSP =
+
+|===
+| Operation | Path | Description | Mapped Servlets (CA) | Mapped Servlets (KRA) | Mapped Servlets (OCSP) | Mapped Servlets (TKS)
+
+| GET
+| /pki/ocsp/cas
+| Get list of CAs
+|  
+| 
+| ocspListCAs
+| 
+
+| GET
+| /pki/ocsp/ca/$id
+| Get CA details
+|  
+| 
+| ocspReadAddCAPage
+| 
+
+| PUT
+| /pki/ocsp/ca/$id
+| Add or modify a CA
+| 
+| 
+| ocspAddCA
+| 
+
+| DEL
+| /pki/ocsp/ca/$id
+| Delete a CA
+| 
+| 
+| ocspRemoveCA
+| 
+|===
+
+= Keys =
+
+|===
+| Operation | Path | Description | Mapped Servlets (CA) | Mapped Servlets (KRA) | Mapped Servlets (OCSP) | Mapped Servlets (TKS)
+
+| GET
+| /pki/keys
+| Get list of keys
+| 
+| kraSrchKey; kraKRASrchKey; kraKRASrchKeyForRecovery; kraSrchRecoverKey
+| 
+| 
+
+| GET
+| /pki/key/$id
+| Get key
+| 
+| kraKRAGetPk12; kraKRAGetAsyncPk12
+| 
+| 
+
+| GET
+| /pki/key/$id/details
+| Get key details
+| 
+| kraKRADisplayBySerialForRecovery; kraKRADisplayBySerial
+| 
+| 
+
+| PUT
+| /pki/key/$id
+| Add a key
+| 
+| 
+| 
+| 
+|===
+
+= Key Requests =
+
+|===
+| Operation | Path | Description | Mapped Servlets (CA) | Mapped Servlets (KRA) | Mapped Servlets (OCSP) | Mapped Servlets (TKS)
+
+| GET
+| /pki/keyrequests
+| Get list of key requests
+| 
+| kraListRequests; krakraqueryReq
+| 
+| 
+
+| GET
+| /pki/keyrequest/$id
+| Get key request details
+| 
+| kraKRAGetApprovalStatus; kraKRAExamineRecovery; 
+| 
+| 
+
+| POST-a
+| /pki/keyrequest/archive
+| Add a key archival request
+| 
+| kraConnector
+| 
+| 
+
+| POST-a
+| /pki/keyrequest/recovery
+| Add a key recovery request(async)
+| 
+| kraKRARecoverBySerial; tokenKeyRecovery
+| 
+| 
+
+| POST-a
+| /pki/keyrequest/generate
+| Add a request to generate a key pair.  Return key pair and optionally archive it.
+| 
+| GenerateKeyPairServlet 
+| 
+| 
+|===
+
+= Key Request Status =
+
+|===
+| Operation | Path | Description | Mapped Servlets (CA) | Mapped Servlets (KRA) | Mapped Servlets (OCSP) | Mapped Servlets (TKS)
+
+| PUT
+| /pki/keyrequest/$id/status
+| Modify a key request status (approve async recovery)
+| 
+| kraKRAGrantRecovery; kraKRAGrantAsyncRecovery; kraKRAProcessReq; kraGrantRecovery; 
+| 
+| 
+
+| GET
+| /pki/keyrequest/$id/status
+| Get key request status 
+| 
+| 
+| 
+| 
+
+| DEL
+| /pki/keyrequest/$id
+| Delete a key request
+| 
+| None
+| 
+| 
+|===
+
+== Users ==
+
+|===
+| Operation | Path | Description | Mapped Servlets (CA) | Mapped Servlets (KRA) | Mapped Servlets (OCSP) | Mapped Servlets (TKS)
+
+| GET
+| /pki/users
+| Get list of users
+| caug
+| kraug
+| ocspug
+| tksug
+
+| GET
+| /pki/user/$id
+| Get user details
+| caug
+| kraug
+| ocspug
+| tksug
+
+| PUT
+| /pki/user/$id
+| Add or modify a user
+| caug; caRegisterUser; caRegisterRaUser; caAdminEnroll
+| kraRegisterUser; kraug
+| ocspug
+| tksug; tksRegisterUser
+
+| DEL
+| /pki/user/$id
+| Delete a user
+| caug
+| kraug
+| ocspug
+| tksug
+|===
+
+= System =
+
+|===
+| Operation | Path | Description | Mapped Servlets (CA) | Mapped Servlets (KRA) | Mapped Servlets (OCSP) | Mapped Servlets (TKS)
+
+| GET
+| /pki/X/status
+| Get subsystem status
+| caGetStatus
+| 
+| 
+| 
+
+| GET
+| /pki/X/stats
+| Get subsystem stats
+| caStats
+| 
+| 
+| 
+
+| GET
+| /pki/X/monitor
+| Get subsystem monitor stats
+| caMonitor
+| 
+| 
+| 
+
+| GET
+| /pki/X/logs
+| Get list of logs for subsystem
+| calog
+| kralog
+| ocsplog
+| tkslog
+
+| GET
+| /pki/X/log/$id
+| Get log contents
+| calog
+| kralog
+| ocsplog
+| tkslog
+|===
+
+= Config =
+
+|===
+| Operation | Path | Description | Mapped Servlets (CA) | Mapped Servlets (KRA) | Mapped Servlets (OCSP) | Mapped Servlets (TKS)
+
+| GET
+| /pki/config/X/acls
+| Get list of acls
+| caacl
+| kraacl
+| ocspacl
+| tksacl
+
+| GET
+| /pki/config/X/acl/$id
+| Get acl details
+| caacl
+| kraacl
+| ocspacl
+| tksacl
+
+| PUT
+| /pki/config/X/acl/$id
+| Add or modify an acl
+| caacl
+| kraacl
+| ocspacl
+| tksacl
+
+| DEL
+| /pki/config/X/acl/$id
+| Delete an acl
+| caacl
+| kraacl
+| ocspacl
+| tksacl
+
+| GET
+| /pki/config/X/logs
+| Get list of logs
+| calog
+| kralog
+| ocsplog
+| tkslog
+
+| GET
+| /pki/config/X/log/$id
+| Get log details
+| calog
+| kralog
+| ocsplog
+| tkslog
+
+| PUT
+| /pki/config/X/log/$id
+| Add or modify a log configuration
+| calog
+| kralog
+| ocsplog
+| tkslog
+
+| DEL
+| /pki/config/X/log/$id
+| Delete an log configuration
+| calog
+| kralog
+| ocsplog
+| tkslog
+
+| GET
+| /pki/config/ca/systems
+| Get list of systems from security domain
+| caGetDomainXML
+| 
+| 
+| 
+
+| GET
+| /pki/config/ca/system/$id
+| Get system details from sec domain
+| None as yet
+| 
+| 
+| 
+
+| PUT
+| /pki/config/ca/system/$id
+| Add or modify a system in security domain
+| caUpdateDomainXML
+| 
+| 
+| 
+
+| DEL
+| /pki/config/ca/system/$id
+| Delete an system from security domain
+| caUpdateDomainXML
+| 
+| 
+| 
+
+| GET
+| /pki/config/ca/publishers
+| Get list of publishers
+| capublisher
+| 
+| 
+| 
+
+| GET
+| /pki/config/ca/publisher/$id
+| Get publisher details
+| capublisher
+| 
+| 
+| 
+
+| PUT
+| /pki/config/ca/publisher/$id
+| Add or modify a publisher
+| capublisher
+| 
+| 
+| 
+
+| DEL
+| /pki/config/ca/publisher/$id
+| Delete a publisher
+| capublisher
+| 
+| 
+| 
+
+| GET
+| /pki/config/X/jobs
+| Get list of jobs
+| cajobsScheduler
+| krajobsScheduler
+| ocspjobsScheduler
+| tksjobsScheduler
+
+| GET
+| /pki/config/X/job/$id
+| Get job details
+| cajobsScheduler
+| krajobsScheduler
+| ocspjobsScheduler
+| tksjobsScheduler
+
+| PUT
+| /pki/config/X/job/$id
+| Add an job
+| cajobsScheduler
+| krajobsScheduler
+| ocspjobsScheduler
+| tksjobsScheduler
+
+| DEL
+| /pki/config/X/job/$id
+| Delete an job
+| cajobsScheduler
+| krajobsScheduler
+| ocspjobsScheduler
+| tksjobsScheduler
+
+| GET
+| /pki/config/X/auths
+| Get list of authentication plugins
+| caauths
+| kraauths
+| ocspauths
+| tksauths
+
+| GET
+| /pki/config/X/auth/$id
+| Get authentication plugin details
+| caauths
+| kraauths
+| ocspauths
+| tksauths
+
+| PUT
+| /pki/config/X/auth/$id
+| Add or modify an authentication plugin
+| caauths
+| kraauths
+| ocspauths
+| tksauths
+
+| DEL
+| /pki/config/X/auth/$id
+| Delete an authentication plugin
+| caauths
+| kraauths
+| ocspauths
+| tksauths
+
+| GET
+| /pki/config/X/certs
+| Get list of system_certs
+| caserver
+| kraserver
+| ocspserver
+| tksserver
+
+| GET
+| /pki/config/X/cert/$id
+| Get system_cert 
+| caGetSubsystemCert
+| kraGetTransportCert
+| 
+| 
+
+| GET
+| /pki/config/X/cert/Y/details
+| Get system_cert details
+| caserver
+| kraKRADisplayTransport; kraserver
+| ocspserver
+| tksserver
+
+| PUT
+| /pki/config/X/cert/$id
+| Add an system_cert
+| caserver
+| kraserver
+| ocspserver
+| tksserver; tksImportTransportCert
+
+| DEL
+| /pki/config/X/cert/$id
+| Delete an system_cert
+| caserver
+| kraserver
+| ocspserver
+| tksserver
+
+| GET
+| /pki/config/X/serialnos/$id
+| Get serial number range
+| None as yet
+| None as yet
+| 
+| 
+
+| PUT
+| /pki/config/X/serialnos/$id
+| Update serial number range
+| caUpdateNumberRange
+| kraUpdateNumberRange
+| 
+| 
+
+| GET
+| /pki/config/X/connector/$id
+| Get connector config
+| 
+| kraConnector
+| 
+| 
+
+| PUT
+| /pki/config/X/connector/$id
+| Add or modify connector config
+| caUpdateConnector
+| 
+| 
+| 
+
+| GET
+| /pki/config/X/ocsp
+| Get ocsp config 
+| caGetOCSPInfo
+| 
+| ocspGetOCSPInfo
+| 
+
+| PUT
+| /pki/config/X/ocsp
+| Modify ocsp config
+| caUpdateOCSPConfig
+| 
+| 
+| 
+
+| GET
+| /pki/config/X/cloning
+| Get cloning config
+| caGetConfigEntries
+| kraGetConfigEntries
+| ocspGetConfigEntries
+| tksGetConfigEntries
+
+| GET
+| /pki/config/X/tokeninfo
+| Get token info (for cloning)
+| caGetTokenInfo
+| kraGetTokenInfo
+| ocspGetTokenInfo
+| tksGetTokenInfo
+|===
+
+= Notes =
+
+1. There is still misc admin that has not yet been characterized.  This is in `caca`; `caregistry`; `krakra`; `ocspocsp`; `tkstks` servlets which map to the admin servlet.	
+2. Wizard and installation servlets are not covered (for the most part).	
+3. We need to figure out how to handle client-auth vs. non-clientauth - which maps to `ee/agent/admin`.  Currently we do this by filtering URLs.	
+4. This is just a first cut and hopefully a useful starting point for discussions	
+5. We need to revisit `POST-b` in CRLs
