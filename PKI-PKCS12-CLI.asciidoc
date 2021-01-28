@@ -9,21 +9,9 @@ Generally the PKCS #12 commands can be executed without an NSS database. However
 * exporting certificates and keys the PKCS #12 file
 * running in FIPS mode
 
-If required, use an existing NSS database or create a new one.
+If an NSS database is required, by default the command will use `~/.dogtag/nssdb`.
 
-A new NSS database can be created as follows:
-
-----
-$ pki -d <NSS database location> -c <NSS password> client-init
-----
-
-The password can also be specified in a file:
-
-----
-$ pki -d <NSS database location> -C <NSS password file> client-init
-----
-
-To execute the PKCS #12 commands with the NSS database:
+A different NSS database can be specified with a `-d <directory>` parameter. The password for the NSS database can be specified using a `-c <password>` or `-C <password file>`, for example:
 
 ----
 $ pki -d <NSS database location> -c <NSS password> pkcs12-...
@@ -34,8 +22,6 @@ or:
 ----
 $ pki -d <NSS database location> -C <NSS password file> pkcs12-...
 ----
-
-Note that if option -d is omitted the default location will be `~/.dogtag/nssdb`.
 
 = Listing Certificates =
 
@@ -103,7 +89,7 @@ Imported certificate "caadmin"
 The trust flags can be overwritten with the `--trust-flags` parameter:
 
 ----
-$ pki -c Secret.123 pkcs12-cert-import caadmin \
+$ pki pkcs12-cert-import caadmin \
     --pkcs12-file test.p12 \
     --pkcs12-password Secret.123 \
     --trust-flags <trust flags>
@@ -115,7 +101,7 @@ Imported certificate "caadmin"
 To import a certificate from client NSS database without the key:
 
 ----
-$ pki -c Secret.123 pkcs12-cert-import caadmin \
+$ pki pkcs12-cert-import caadmin \
     --pkcs12-file test.p12 \
     --pkcs12-password Secret.123 \
     --no-key
@@ -152,8 +138,9 @@ Imported certificate "caadmin"
 DEPRECATED: To add a certificate including the key and trust flags from client NSS database:
 
 ----
-$ pki -c Secret.123 pkcs12-cert-add caadmin \
-    --pkcs12-file test.p12 --pkcs12-password Secret.123
+$ pki pkcs12-cert-add caadmin \
+    --pkcs12-file test.p12 \
+    --pkcs12-password Secret.123
 ---------------------------
 Added certificate "caadmin"
 ---------------------------
