@@ -14,13 +14,13 @@ If an NSS database is required, by default the command will use `~/.dogtag/nssdb
 A different NSS database can be specified with a `-d <directory>` parameter. The password for the NSS database can be specified using a `-c <password>` or `-C <password file>`, for example:
 
 ----
-$ pki -d <NSS database location> -c <NSS password> pkcs12-...
+$ pki -d <directory> -c <password> pkcs12-...
 ----
 
 or:
 
 ----
-$ pki -d <NSS database location> -C <NSS password file> pkcs12-...
+$ pki -d <directory> -C <password file> pkcs12-...
 ----
 
 = Listing Certificates =
@@ -154,7 +154,9 @@ To export a certificate from PKCS #12 file into a PEM file:
 
 ----
 $ pki pkcs12-cert-export caadmin \
-    --pkcs12-file test.p12 --pkcs12-password Secret.123 --cert-file caadmin.pem
+    --pkcs12-file test.p12 \
+    --pkcs12-password Secret.123 \
+    --cert-file caadmin.pem
 ----
 
 = Modifying Certificate in PKCS #12 File =
@@ -163,7 +165,8 @@ To change the nickname of a certificate by its ID:
 
 ----
 $ pki pkcs12-cert-mod 75e2ac1d08ca99ed4c9bd31ad847fd18bc4db9ca \
-    --pkcs12-file test.p12 --pkcs12-password Secret.123 \
+    --pkcs12-file test.p12 \
+    --pkcs12-password Secret.123 \
     --friendly-name "CA admin"
 ---------------------------------------------------------------
 Modified certificate "75e2ac1d08ca99ed4c9bd31ad847fd18bc4db9ca"
@@ -174,7 +177,8 @@ To change the nickname of a certificate by its current nickname:
 
 ----
 $ pki pkcs12-cert-mod caadmin \
-    --pkcs12-file test.p12 --pkcs12-password Secret.123 \
+    --pkcs12-file test.p12 \
+    --pkcs12-password Secret.123 \
     --friendly-name "CA admin"
 ------------------------------
 Modified certificate "caadmin"
@@ -185,7 +189,8 @@ To change the trust flags of a certificate by its ID:
 
 ----
 $ pki pkcs12-cert-mod 75e2ac1d08ca99ed4c9bd31ad847fd18bc4db9ca \
-    --pkcs12-file test.p12 --pkcs12-password Secret.123 \
+    --pkcs12-file test.p12 \
+    --pkcs12-password Secret.123 \
     --trust-flags "u,u,u"
 ---------------------------------------------------------------
 Modified certificate "75e2ac1d08ca99ed4c9bd31ad847fd18bc4db9ca"
@@ -196,7 +201,8 @@ To change the trust flags of a certificate by its nickname:
 
 ----
 $ pki pkcs12-cert-mod caadmin \
-    --pkcs12-file test.p12 --pkcs12-password Secret.123 \
+    --pkcs12-file test.p12 \
+    --pkcs12-password Secret.123 \
     --trust-flags "u,u,u"
 ------------------------------
 Modified certificate "caadmin"
@@ -211,7 +217,8 @@ To delete a certificate from PKCS #12 file:
 
 ----
 $ pki pkcs12-cert-del caadmin \
-    --pkcs12-file test.p12 --pkcs12-password Secret.123
+    --pkcs12-file test.p12 \
+    --pkcs12-password Secret.123
 -----------------------------
 Deleted certificate "caadmin"
 -----------------------------
@@ -223,7 +230,8 @@ To delete a key from PKCS #12 file:
 
 ----
 $ pki pkcs12-key-del 16228b70f066d50a68d59e64c9367b53c234473d \
-    --pkcs12-file test.p12 --pkcs12-password Secret.123
+    --pkcs12-file test.p12 \
+    --pkcs12-password Secret.123
 ------------------------------------------------------
 Deleted key "16228b70f066d50a68d59e64c9367b53c234473d"
 ------------------------------------------------------
@@ -234,7 +242,9 @@ Deleted key "16228b70f066d50a68d59e64c9367b53c234473d"
 To import PKCS #12 file into the client security database (default: `~/.dogtag/nssdb`):
 
 ----
-$ pki -c Secret.123 pkcs12-import --pkcs12-file test.p12 --pkcs12-password Secret.123
+$ pki pkcs12-import \
+    --pkcs12-file test.p12 \
+    --pkcs12-password Secret.123
 ---------------
 Import complete
 ---------------
@@ -243,7 +253,9 @@ Import complete
 Optionally, the nicknames of the certificates to be imported can be specified as arguments:
 
 ----
-$ pki -c Secret.123 pkcs12-import --pkcs12-file test.p12 --pkcs12-password Secret.123 \
+$ pki pkcs12-import \
+    --pkcs12-file test.p12 \
+    --pkcs12-password Secret.123 \
     "caSigningCert cert-pki-tomcat CA" \
     "subsystemCert cert-pki-tomcat"
 ---------------
@@ -254,8 +266,10 @@ Import complete
 To import without the trust flags:
 
 ----
-$ pki -c Secret.123 pkcs12-import \
-    --pkcs12-file test.p12 --pkcs12-password Secret.123 --no-trust-flags
+$ pki pkcs12-import \
+    --pkcs12-file test.p12 \
+    --pkcs12-password Secret.123 \
+    --no-trust-flags
 ---------------
 Import complete
 ---------------
@@ -264,7 +278,9 @@ Import complete
 The passwords can be specified in a file:
 
 ----
-$ pki -C nsspwd.txt pkcs12-import --pkcs12-file test.p12 --pkcs12-password-file pkcs12pwd.txt
+$ pki -C nsspwd.txt pkcs12-import \
+    --pkcs12-file test.p12 \
+    --pkcs12-password-file pkcs12pwd.txt
 ----
 
 = Exporting NSS Database into PKCS #12 File =
@@ -272,7 +288,9 @@ $ pki -C nsspwd.txt pkcs12-import --pkcs12-file test.p12 --pkcs12-password-file 
 To export NSS database (default: `~/.dogtag/nssdb`) into PKCS #12 file:
 
 ----
-$ pki -c Secret.123 pkcs12-export --pkcs12-file test.p12 --pkcs12-password Secret.123
+$ pki pkcs12-export \
+    --pkcs12-file test.p12 \
+    --pkcs12-password Secret.123
 ---------------
 Export complete
 ---------------
@@ -283,7 +301,9 @@ It will overwrite existing PKCS #12 file.
 To export certain certificates only, specify the nicknames as command arguments:
 
 ----
-$ pki -c Secret.123 pkcs12-export --pkcs12-file test.p12 --pkcs12-password Secret.123 \
+$ pki pkcs12-export \
+    --pkcs12-file test.p12 \
+    --pkcs12-password Secret.123 \
     "auditSigningCert cert-pki-tomcat CA" \
     "ocspSigningCert cert-pki-tomcat CA"
 ---------------
@@ -296,8 +316,10 @@ It will include the specified certificates with their keys, and the certificate 
 To export without the trust flags:
 
 ----
-$ pki -c Secret.123 pkcs12-export \
-    --pkcs12-file test.p12 --pkcs12-password Secret.123 --no-trust-flags
+$ pki pkcs12-export \
+    --pkcs12-file test.p12 \
+    --pkcs12-password Secret.123 \
+    --no-trust-flags
 ---------------
 Export complete
 ---------------
@@ -306,7 +328,9 @@ Export complete
 The passwords can be specified in files:
 
 ----
-$ pki -C nsspwd.txt pkcs12-export --pkcs12-file test.p12 --pkcs12-password-file pkcs12pwd.txt
+$ pki -C nsspwd.txt pkcs12-export \
+    --pkcs12-file test.p12 \
+    --pkcs12-password-file pkcs12pwd.txt
 ----
 
 = See Also =
