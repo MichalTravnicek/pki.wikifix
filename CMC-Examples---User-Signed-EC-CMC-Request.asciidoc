@@ -1,0 +1,136 @@
+= User-Signed EC CMC Request =
+
+This example shows generation of an EC cert request that is signed with an a previously issued user EC cert.
+In this example, we are using the EC cert issued in the above example to sign the next request.
+
+* Prepare the user signing cert:
+** Copy and paste the previously enrolled EC user cert into a file in PEM format and add to the working NSS database, e.g.:
+
+----
+$ certutil -d . -A -t "u,u,u" -n "cfuEC cert1" -a -i cfu-ec-cert.b64
+----
+
+** Make sure the EC user signing cert has its key in the NSS database (must show `u,u,u`):
+
+----
+$ certutil -d . -L
+
+Certificate Nickname                                         Trust Attributes
+                                                             SSL,S/MIME,JAR/XPI
+
+<snip>
+cfuEC cert1                                                  u,u,u
+----
+
+* Generate an EC pkcs10 request, e.g.:
+
+----
+$ PKCS10Client -d . -p netscape -a ec -c nistp256 -o p10-ec2.req -n "CN=cfuEC2"
+PKCS10Client: Debug: got token.
+PKCS10Client: Debug: thread token set.
+PKCS10Client: token Internal Key Storage Token logged in...
+PKCS10Client: key pair generated.
+PKCS10Client: CertificationRequest created.
+PKCS10Client: b64encode completes.
+Keypair private key id: 5db268462ffb0c0c5735a157b5c95d2a760d8c41
+
+-----BEGIN CERTIFICATE REQUEST-----
+MIHLMHMCAQAwETEPMA0GA1UEAwwGY2Z1RUMyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEgK3LPJ9YVokPPPdJRKaFrr798eSSgMTkado7Q3j5qcZUYi/qfVcwe/A60Kr1ezH0nRKyB2zr5sR8l6OFB3S+2aAAMAoGCCqGSM49BAMCA0gAMEUCIQCtBLmB6TBMcZdQzAkjiGCtP9XB1DdfVW6Ocsy0OuIadwIgH+rskwMWEiwOKncNUQTcPVrvwLq6jajSGtzdqglAHwA=
+-----END CERTIFICATE REQUEST-----
+PKCS10Client: done. Request written to file: p10-ec2.req
+----
+
+* Create a `CMCRequest` cfg file, e.g. link:https://raw.githubusercontent.com/wiki/dogtagpki/pki/files/cmc-p10-user-signed-ec2.cfg[cmc-p10-user-signed-ec2.cfg]
+** make sure `nickname` contains the EC user cert that was issued previously
+** make sure the `input` is the CSR we just generated from the `PKCS10Client` command above
+* run `CMCRequest` to generate a user-signed CMC request:
+
+----
+$ CMCRequest cmc-p10-user-signed-ec2.cfg
+
+cert/key prefix = 
+path = /root/cfu/test/cmc/
+CryptoManger initialized
+token internal logged in...
+got signerCert: cfuEC cert1
+createPKIData: begins
+k=0
+createPKIData:  format: pkcs10
+PKCS10: PKCS10: begins
+PKCS10: PKCS10: ends
+selfSign is false...
+signData: begins: 
+getPrivateKey: got signing cert
+signData:  got signer privKey
+createSignedData: begins
+getSigningAlgFromPrivate: begins.
+getSigningAlgFromPrivate: found signingKeyType=EC
+getSigningAlgFromPrivate: using SignatureAlgorithm: ECSignatureWithSHA256Digest
+createSignedData: digest created for pkidata
+createSignedData: digest algorithm =EC
+createSignedData: building cert chain
+signData: signed request generated.
+getCMCBlob: begins
+getCMCBlob: generating signed data
+
+The CMC enrollment request in base-64 encoded format:
+
+MIII7gYJKoZIhvcNAQcCoIII3zCCCNsCAQMxDzANBglghkgBZQMEAgEFADCB8gYI
+<snip>
+The CMC enrollment request in binary format is stored in /root/cfu/test/cmc/cmc.p10-ec2.req
+----
+
+* Create the `HttpClient` cfg file (e.g. link:https://raw.githubusercontent.com/wiki/dogtagpki/pki/files/HttpClient.p10-ec2.cfg[HttpClient.p10-ec2.cfg])
+** Make sure `nickname` contains the same EC user signing cert that was used to sign the CMC request from `CMCRequest` above
+* Run `HttpClient` to submit the CMC request
+
+----
+$ HttpClient HttpClient.p10-ec2.cfg
+
+Total number of bytes read = 2290
+after SSLSocket created, thread token is Internal Key Storage Token
+client cert is not null
+handshake happened
+writing to socket
+Total number of bytes read = 2291
+MIII7wYJKoZIhvcNAQcCoIII4DCCCNwCAQMxDzANBglghkgBZQMEAgEFADAxBggr
+<snip>
+
+The response in binary format is stored in /root/cfu/test/cmc/cmc.p10-ec2.resp
+----
+
+* run `CMCResponse` to check the result:
+
+----
+$ CMCResponse -d . -i /root/cfu/test/cmc/cmc.p10-ec2.resp
+Certificates: 
+    Certificate: 
+        Data: 
+            Version:  v3
+            Serial Number: 0x166
+            Signature Algorithm: SHA256withRSA - 1.2.840.113549.1.1.11
+            Issuer: CN=CA Signing Certificate,OU=pki-tomcat,O=sjc.redhat.com Security Domain
+            Validity: 
+                Not Before: Wednesday, October 25, 2017 3:16:27 PM PDT America/Los_Angeles
+                Not  After: Monday, April 23, 2018 3:16:27 PM PDT America/Los_Angeles
+            Subject: CN=cfuEC
+            Subject Public Key Info: 
+                Algorithm: EC - 1.2.840.10045.2.1
+<snip>
+Number of controls is 1
+Control #0: CMCStatusInfoV2
+   OID: {1 3 6 1 5 5 7 7 25}
+   BodyList: 1 
+   Status: SUCCESS
+----
+
+* Note the `SUCCESS` status in the `CMCResponse`;  In addition, you can
+** Check relevant audit messages, e.g.:
+
+----
+0.http-bio-8443-exec-8 - [25/Oct/2017:15:16:27 PDT] [14] [6] [AuditEvent=CMC_USER_SIGNED_REQUEST_SIG_VERIFY_SUCCESS][SubjectID=CN=cfuEC][Outcome=Success][ReqType=enrollment][CertSubject=CN=cfuEC2][SignerInfo=CN=cfuEC] User signed CMC request signature verification success
+0.http-bio-8443-exec-8 - [25/Oct/2017:15:16:27 PDT] [14] [6] [AuditEvent=PROOF_OF_POSSESSION][SubjectID=CN=cfuEC][Outcome=Success][Info=method=EnrollProfile: fillTaggedRequest: ] proof of possession
+0.http-bio-8443-exec-8 - [25/Oct/2017:15:16:27 PDT] [14] [6] [AuditEvent=PROFILE_CERT_REQUEST][SubjectID=CN=cfuEC][Outcome=Success][ReqID=564][ProfileID=caFullCMCUserSignedCert][CertSubject=CN=cfuEC] certificate request made with certificate profiles
+0.http-bio-8443-exec-8 - [25/Oct/2017:15:16:27 PDT] [14] [6] [AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=CN=cfuEC][Outcome=Success][ReqID=564][CertSerialNum=358] certificate request processed
+0.http-bio-8443-exec-8 - [25/Oct/2017:15:16:27 PDT] [14] [6] [AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=x1.x2.x3.x4][ServerIP=u1.y2.y3.y4][SubjectID=CN=cfuEC][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
+----
