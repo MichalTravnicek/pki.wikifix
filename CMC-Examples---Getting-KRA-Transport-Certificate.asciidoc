@@ -1,0 +1,107 @@
+= Getting KRA Transport Certificate =
+
+* Generate a PKCS10 request
+** Note: make sure the subject name is as intended.
+
+----
+$ PKCS10Client -d . -p netscape -n "CN=KRA Transport Certificate,OU=pki-tomcat,O=mySecurityDomain" -o sys_transport_pkcs10.req
+
+PKCS10Client: Debug: got token.
+PKCS10Client: Debug: thread token set.
+PKCS10Client: token Internal Key Storage Token logged in...
+PKCS10Client: key pair generated.
+PKCS10Client: CertificationRequest created.
+PKCS10Client: b64encode completes.
+Keypair private key id: 24afd2357220ce1e8f126624bbcc8ac0c9c7c6fd
+
+-----BEGIN CERTIFICATE REQUEST-----
+MIICmTCCAYECAQAwVDEZMBcGA1UECgwQbXlTZWN1cml0eURvbWFpbjETMBEGA1UECwwKcGtpLXRvbWN
+<snip>
+-----END CERTIFICATE REQUEST-----
+PKCS10Client: done. Request written to file: sys_transport_pkcs10.req
+----
+
+* Edit the `CMCRequest` cfg file to make sure that
+** the `nickname` contains the agent cert that will sign the request
+** see `CMCRequest` cfg file example: link:https://raw.githubusercontent.com/wiki/dogtagpki/pki/files/cmc.sys_transport_pkcs10.cfg[cmc.sys_transport_pkcs10.cfg]
+
+----
+$ CMCRequest cmc.sys_transport_pkcs10.cfg
+
+cert/key prefix = 
+path = /root/cfu/test/cmc/
+CryptoManger initialized
+token internal logged in...
+got signerCert: PKI Administrator for unknown00262DFC6A5E
+createPKIData: begins
+k=0
+createPKIData:  format: pkcs10
+PKCS10: PKCS10: begins
+PKCS10: PKCS10: ends
+selfSign is false...
+signData: begins: 
+getPrivateKey: got signing cert
+signData:  got signer privKey
+createSignedData: begins
+getSigningAlgFromPrivate: begins.
+getSigningAlgFromPrivate: found signingKeyType=RSA
+getSigningAlgFromPrivate: using SignatureAlgorithm: RSASignatureWithSHA256Digest
+createSignedData: digest created for pkidata
+createSignedData: digest algorithm =RSA
+createSignedData: building cert chain
+signData: signed request generated.
+getCMCBlob: begins
+getCMCBlob: generating signed data
+
+The CMC enrollment request in base-64 encoded format:
+
+MIIM3gYJKoZIhvcNAQcCoIIMzzCCDMsCAQMxDzANBglghkgBZQMEAgEFADCCAsQG
+<snip>
+
+The CMC enrollment request in data format is stored in /root/cfu/test/cmc/cmc.sys_transport_pkcs10.req
+----
+
+* Submit the CMC request
+** make sure the `nickname` contains the signing agent's certificate nickname
+** make sure `secure=true` and `clientmode=true`
+** make sure `servlet=/ca/ee/ca/profileSubmitCMCFullKRAtransportCert`
+** example: link:https://raw.githubusercontent.com/wiki/dogtagpki/pki/files/HttpClient_sys_transport.cfg[HttpClient_sys_transport.cfg]
+
+----
+$ HttpClient HttpClient_sys_transport.cfg
+
+Total number of bytes read = 3298
+after SSLSocket created, thread token is Internal Key Storage Token
+client cert is not null
+handshake happened
+writing to socket
+Total number of bytes read = 2571
+MIIKBwYJKoZIhvcNAQcCoIIJ+DCCCfQCAQMxDzANBglghkgBZQMEAgEFADAxBggr
+<snip>
+
+The response in data format is stored in /root/cfu/test/cmc/cmc.sys_transport_pkcs10.resp
+----
+
+* Check the result: (note that the response is a PKCS#7 cert chain in the success case) 
+
+----
+$ CMCResponse -d . -i /root/cfu/test/cmc/cmc.sys_transport_pkcs10.resp
+Certificates: 
+    Certificate: 
+        Data: 
+            Version:  v3
+            Serial Number: 0x47
+            Signature Algorithm: SHA256withRSA - 1.2.840.113549.1.1.11
+            Issuer: CN=CA Signing Certificate,OU=pki-tomcat,O=unknown00262DFC6A5E Security Domain
+            Validity: 
+                Not Before: Thursday, July 6, 2017 3:27:06 PM PDT America/Los_Angeles
+                Not  After: Wednesday, June 26, 2019 3:27:06 PM PDT America/Los_Angeles
+            Subject: CN=KRA Transport Certificate,OU=pki-tomcat,O=mySecurityDomain
+<snip>
+
+Number of controls is 1
+Control #0: CMCStatusInfoV2
+   OID: {1 3 6 1 5 5 7 7 25}
+   BodyList: 1 
+   Status: SUCCESS
+----
