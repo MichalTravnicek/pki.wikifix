@@ -1,0 +1,83 @@
+= Unsigned CMC Revocation Request (sharedToken-based) =
+
+This example demonstrate an unsigned, sharedToken-based CMC revocation request.
+
+* Create a CMC revocation request config file; Note that
+** `nickname` is not needed in the unsigned case and will be ignored
+** `revRequest.serial`, `revRequest.reason`, `revRequest.issuer` and `revRequest.sharedSecret` must contain valid values, e.g.:
+*** `revRequest.serial=56`
+*** `revRequest.reason=unspecified`
+*** `revRequest.issuer=<issuer subjectdn>`
+*** `revRequest.sharedSecret=<shared secret>`
+** optionally `revRequest.comment` can be added
+* See example link:https://raw.githubusercontent.com/wiki/dogtagpki/pki/files/cmc-revoke-shared-secret.cfg[cmc-revoke-shared-secret.cfg]
+
+----
+$ CMCRequest cmc-revoke-shared-secret.cfg
+
+cert/key prefix = 
+path = /root/cfu/test/cmc/
+CryptoManger initialized
+token internal logged in...
+Missing format..assume revocation
+addRevRequestAttr: sharedSecret found; request will be unsigned;
+addRevRequestAttr: RevokeRequest control created.
+getCMCBlob: begins
+getCMCBlob: generating unsigned data
+
+The CMC enrollment request in base-64 encoded format:
+
+MIHTBgkqhkiG9w0BBwGggcUEgcIwgb8wgbYwgbMCAQEGCCsGAQUFBwcRMYGjMIGg
+<snip>
+
+The CMC enrollment request in data format is stored in /root/cfu/test/cmc/cmc.revoke.sharedSecret.req.
+----
+
+* Submit request; See `HttpClient` example config file: link:https://raw.githubusercontent.com/wiki/dogtagpki/pki/files/HttpClient.revoke.sharedSecret.cfg[HttpClient.revoke.sharedSecret.cfg]
+
+----
+$ HttpClient HttpClient.revoke.sharedSecret.cfg
+
+Total number of bytes read = 214
+after SSLSocket created, thread token is Internal Key Storage Token
+handshake happened
+writing to socket
+handshake happened
+Total number of bytes read = 1598
+MIIGOgYJKoZIhvcNAQcCoIIGKzCCBicCAQMxDzANBglghkgBZQMEAgEFADAxBggr
+<snip>
+The response in data format is stored in /root/cfu/test/cmc/cmc.revoke.resp
+----
+
+* Observe the `CMCResponse` to be `SUCCESS`
+
+----
+$ CMCResponse -d . -i /root/cfu/test/cmc/cmc.revoke.resp
+Certificates: 
+    Certificate: 
+        Data: 
+            Version:  v3
+            Serial Number: 0x1
+            Signature Algorithm: SHA256withRSA - 1.2.840.113549.1.1.11
+            Issuer: CN=CA Signing Certificate,OU=pki-tomcat,O=unknown00262DFC6A5E Security Domain
+            Validity: 
+                Not Before: Wednesday, May 17, 2017 6:06:50 PM PDT America/Los_Angeles
+                Not  After: Sunday, May 17, 2037 6:06:50 PM PDT America/Los_Angeles
+            Subject: CN=CA Signing Certificate,OU=pki-tomcat,O=unknown00262DFC6A5E Security Domain
+<snip>
+Number of controls is 1
+Control #0: CMCStatusInfo
+   OID: {1 3 6 1 5 5 7 7 1}
+   BodyList: 1 
+   Status: SUCCESS
+----
+
+* observe the audit log events
+
+----
+0.http-bio-8443-exec-19 - [15/Jun/2017:18:08:53 PDT] [14] [6] [AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=y.y.y.y][ServerIP=x.x.x.x][SubjectID=][Outcome=Success] access session establish success
+0.http-bio-8443-exec-19 - [15/Jun/2017:18:08:53 PDT] [14] [6] [AuditEvent=AUTHZ_SUCCESS][SubjectID=$Unidentified$][Outcome=Success][aclResource=certServer.ee.profile][Op=submit] authorization success
+0.http-bio-8443-exec-19 - [15/Jun/2017:18:08:54 PDT] [14] [6] [AuditEvent=CERT_STATUS_CHANGE_REQUEST_PROCESSED][SubjectID=Signer Christina Fu][Outcome=Success][ReqID=$Unidentified$][CertSerialNum=44][RequestType=revoke][RevokeReasonNum=Unspecified][Approval=complete] certificate status change request processed
+0.http-bio-8443-exec-19 - [15/Jun/2017:18:08:54 PDT] [14] [6] [AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=y.y.y.y][ServerIP=x.x.x.x][SubjectID=][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
+----
+
