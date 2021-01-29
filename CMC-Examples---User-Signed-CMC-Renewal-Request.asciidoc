@@ -1,0 +1,44 @@
+= User-Signed CMC Renewal Request =
+
+The following example demonstrates how a CMC same-key renewal is processed. 
+To demonstrate this, we will just resend one of the CMC requests we generate earlier to the URI `/ca/ee/ca/profileSubmitUserSignedCMCFull`, e.g.:
+
+* See example `HttpConfig` file: link:https://raw.githubusercontent.com/wiki/dogtagpki/pki/files/HttpClient-cmc-p10-user-signed.cfg[HttpClient-cmc-p10-user-signed.cfg]
+
+----
+$ HttpClient HttpClient-cmc-p10-user-signed.cfg
+
+Total number of bytes read = 3373
+after SSLSocket created, thread token is Internal Key Storage Token
+handshake happened
+writing to socket
+Total number of bytes read = 1601
+MIIGPQYJKoZIhvcNAQcCoIIGLjCCBioCAQMxDzANBglghkgBZQMEAgEFADA0Bggr
+<snip>
+The response in data format is stored in /root/cfu/test/cmc/cmc.pkcs10Resp
+----
+
+* Check the result
+** Since the default `RenewGracePeriodConstraint` is 30 days before and after the expiration, and we only just got the certificate of the same key at previous example, we should expect a failure.
+*** One could set the renew grace period to be shorter to see success result
+*** One could also try to revoke an earlier cert with same key to see that renewal will be rejected
+** see the audit log failure message at end of relevant audit messages below:
+
+----
+0.http-bio-8443-exec-5 - [24/May/2017:17:43:33 PDT] [14] [6] [AuditEvent=CMC_USER_SIGNED_REQUEST_SIG_VERIFY_SUCCESS][SubjectID=Lady Christina Fu][Outcome=Success][ReqType=enrollment][CertSubject=CN=just me cfu,UID=cfu][SignerInfo=Lady Christina Fu] User signed CMC request signature verification success
+0.http-bio-8443-exec-5 - [24/May/2017:17:43:33 PDT] [14] [6] [AuditEvent=PROOF_OF_POSSESSION][SubjectID=Lady Christina Fu][Outcome=Success][Info=method=EnrollProfile: fillTaggedRequest: ] proof of possession
+0.http-bio-8443-exec-5 - [24/May/2017:17:43:34 PDT] [14] [6] [AuditEvent=PROFILE_CERT_REQUEST][SubjectID=Lady Christina Fu][Outcome=Success][ReqID=44][ProfileID=caFullCMCUserSignedCert][CertSubject=CN=Lady Christina Fu,UID=cfu,OU=self-signed] certificate request made with certificate profiles
+0.http-bio-8443-exec-5 - [24/May/2017:17:43:34 PDT] [14] [6] [AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=Lady Christina Fu][Outcome=Failure][ReqID=44][InfoName=rejectReason][InfoValue=Request Outside of Renewal Grace Period: 30 days before and 30 days after original cert expiration date Rejected - {1}] certificate request processed
+----
+
+----
+$ CMCResponse -d . -i /root/cfu/test/cmc/cmc.pkcs10Resp
+<snip>
+Number of controls is 1
+Control #0: CMCStatusInfo
+   OID: {1 3 6 1 5 5 7 7 1}
+   BodyList: 1 
+   OtherInfo type: FAIL
+----
+
+Note: re-key renewal will be treated just like new enrollment;  It would not be able to utilize the `RenewGracePeriodConstraint`.
