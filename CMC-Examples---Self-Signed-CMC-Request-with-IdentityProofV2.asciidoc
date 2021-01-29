@@ -1,0 +1,144 @@
+= Self-Signed CMC Request with IdentityProofV2 =
+
+This example demonstrates a CMC request signed by the paring private key of that of the certificate request.
+It also demonstrates IdentityProofV2, which is required in the self-sign case.
+
+* Generate a cert request (pkcs10 or crmf. Though in case of `PKCS10Client`, `-y true` is needed instead of just `-y`)
+** Note: the following `CRMFPopClient` example assumes that `kra.transport` contains the KRA's transport certificate in PEM format to achieve key archival.
+
+----
+$ CRMFPopClient -d . -p netscape -n "cn=Christina Fu, uid=cfu" -q POP_SUCCESS -b kra.transport -y -v -o crmf.req
+Initializing security database: .
+Loading transport certificate
+Parsing subject DN
+RDN: OU=self-signed
+RDN: UID=cfu
+RDN: CN=Lady Christina Fu
+Generating key pair
+Keypair private key id: -32cdd65ab08ae3ed35ae529c1e3c8ca5cb3b776e
+Creating certificate request
+CRMFPopClient: self_sign true. Generating SubjectKeyIdentifier extension.
+CryptoUtil: createKeyIdentifier: begins
+Creating signer
+Creating POP
+Creating CRMF request
+Storing CRMF requrest into crmf.self.req
+----
+
+* Edit `CMCRequest` cfg file so that
+** make sure `request.selfSign=true`
+** make sure `identityProofV2.enable=true`
+** make sure `identification.enable=true`
+** make sure `request.privKey` contains the matching *private key ID* from the CSR generation above
+** see CMC config file: link:https://raw.githubusercontent.com/wiki/dogtagpki/pki/files/cmc-crmf-self.cfg[cmc-crmf-self.cfg]
+
+----
+$ CMCRequest cmc-crmf-self.cfg
+cert/key prefix = 
+path = /root/cfu/test/cmc/
+CryptoManger initialized
+token internal logged in...
+got request privKeyId: -32cdd65ab08ae3ed35ae529c1e3c8ca5cb3b776e
+got private key
+createPKIData: begins
+createPopLinkWitnessV2Attr: begins
+createPopLinkWitnessV2Attr: keyGenAlg=SHA-256; macAlg=SHA-256-HMAC
+createPopLinkWitnessV2Attr: Successfully created id_cmc_idPOPLinkRandom control. bpid = 1
+createPopLinkWitnessV2Attr: Successfully created PopLinkWitnessV2 control.
+createPopLinkWitnessV2Attr: returning...
+
+k=0
+createPKIData:  format: crmf
+CryptoUtil: getSKIExtensionFromCertTemplate: checking extension in request:{2 5 29 14}
+CryptoUtil: getSKIExtensionFromCertTemplate: extension found
+createPKIData:  SubjectKeyIdentifier extension found in self-signed request
+createPKIData: popLinkWitnessV2 enabled. reconstructing crmf
+createNewPOP: begins
+createNewPOP: about to create POPOSigningKey
+createNewPOP: creating and returning newPopOfSigningKey
+createPKIData: new CRMF b64encode completes.
+-----BEGIN CERTIFICATE REQUEST-----
+MIIJFzCCCRMwggf3AgEBMIIBk4ABAqVJMEcxFDASBgNVBAsTC3NlbGYtc2lnbmVk
+<snip>
+-----END CERTIFICATE REQUEST-----
+
+identification control: identification =testuser
+Successfully create identification control. bpid = 1
+
+CMCRequest: addIdentityProofV2Attr: hashAlg=SHA-512; macAlg=SHA-256-HMAC
+Identity Proof V2 control: 
+   Value: -106 -107 45 -39 120 22 -104 103 -50 127 32 4 -58 84 28 92 107 -69 -112 -71 -57 -26 34 -125 97 -78 -54 -24 -76 87 4 -9 
+Successfully create identityProofV2 control. bpid = 2
+
+selfSign is true...
+signData for selfSign: begins: 
+createSignedData: begins
+getSigningAlgFromPrivate: begins.
+getSigningAlgFromPrivate: found signingKeyType=RSA
+getSigningAlgFromPrivate: using SignatureAlgorithm: RSASignatureWithSHA256Digest
+createSignedData: digest created for pkidata
+createSignedData: digest algorithm =RSA
+getCMCBlob: begins
+
+The CMC enrollment request in base-64 encoded format:
+
+MIILsAYJKoZIhvcNAQcCoIILoTCCC50CAQMxDzANBglghkgBZQMEAgEFADCCCfQG
+<snip>
+The CMC enrollment request in data format is stored in /root/cfu/test/cmc/cmc.self.req.
+----
+
+* Submit the CMC request
+** Make sure `HttpClient` config file `servlet` points to `servlet=/ca/ee/ca/profileSubmitSelfSignedCMCFull`
+** see `HttpClient` config file: link:https://raw.githubusercontent.com/wiki/dogtagpki/pki/files/HttpClient-cmc-crmf.self.cfg[HttpClient-cmc-crmf.self.cfg]
+
+----
+$ HttpClient HttpClient-cmc-crmf.self.cfg
+
+Total number of bytes read = 2996
+after SSLSocket created, thread token is Internal Key Storage Token
+handshake happened
+writing to socket
+Total number of bytes read = 2568
+MIIKBAYJKoZIhvcNAQcCoIIJ9TCCCfECAQMxDzANBglghkgBZQMEAgEFADAxBggr
+<snip>
+The response in data format is stored in /root/cfu/test/cmc/cmc.self.Resp
+----
+
+* Check the result: (note that the response is a PKCS#7 cert chain in the success case)
+** At the end of the `CMCResponse` call below, observe that
+*** the `CMCResponse` has a `SUCCESS` status
+*** the new cert was really issued
+*** If key archival is set up, check that key is archived (only available if the underlying request is CRMF)
+*** Check relevant audit messages in audit log (e.g.) TBD
+
+----
+0.http-bio-8443-exec-2 - [24/May/2017:16:21:23 PDT] [14] [6] [AuditEvent=CMC_USER_SIGNED_REQUEST_SIG_VERIFY_SUCCESS][SubjectID=$NonRoleUser$][Outcome=Success][ReqType=enrollment][CertSubject=OU=self-signed, , CN=Lady Christina Fu][SignerInfo=selfSigned] User signed CMC request signature verification success
+0.http-bio-8443-exec-2 - [24/May/2017:16:21:23 PDT] [14] [6] [AuditEvent=CMC_PROOF_OF_IDENTIFICATION][SubjectID=testuser][Outcome=Success][Info=method=EnrollProfile:verifyIdentityProofV2: ] proof of identification in CMC request
+0.http-bio-8443-exec-2 - [24/May/2017:16:21:23 PDT] [14] [6] [AuditEvent=PROOF_OF_POSSESSION][SubjectID=testuser][Outcome=Success][Info=method=EnrollProfile: verifyPOP: ] proof of possession
+0.http-bio-8443-exec-2 - [24/May/2017:16:21:23 PDT] [14] [6] [AuditEvent=PROFILE_CERT_REQUEST][SubjectID=testuser][Outcome=Success][ReqID=43][ProfileID=caFullCMCSelfSignedCert][CertSubject=CN=Lady Christina Fu,UID=cfu,OU=self-signed] certificate request made with certificate profiles
+0.http-bio-8443-exec-2 - [24/May/2017:16:21:24 PDT] [14] [6] [AuditEvent=PRIVATE_KEY_ARCHIVE_REQUEST][SubjectID=testuser][Outcome=Success][ReqID=43][ArchiveID=43] private key archive request
+0.http-bio-8443-exec-2 - [24/May/2017:16:21:24 PDT] [14] [6] [AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=testuser][Outcome=Success][ReqID=43][CertSerialNum=24] certificate request processed
+----
+
+----
+$ CMCResponse -d . -i /root/cfu/test/cmc/cmc.self.Resp
+Certificates: 
+    Certificate: 
+        Data: 
+            Version:  v3
+            Serial Number: 0x18
+            Signature Algorithm: SHA256withRSA - 1.2.840.113549.1.1.11
+            Issuer: CN=CA Signing Certificate,OU=pki-tomcat,O=unknown00262DFC6A5E Security Domain
+            Validity: 
+                Not Before: Wednesday, May 24, 2017 4:21:23 PM PDT America/Los_Angeles
+                Not  After: Monday, November 20, 2017 4:21:23 PM PST America/Los_Angeles
+            Subject: CN=Lady Christina Fu,UID=cfu,OU=self-signed
+<snip>
+Number of controls is 1
+Control #0: CMCStatusInfo
+   OID: {1 3 6 1 5 5 7 7 1}
+   BodyList: 1 
+   Status: SUCCESS
+----
+
+* Import the new certificate
