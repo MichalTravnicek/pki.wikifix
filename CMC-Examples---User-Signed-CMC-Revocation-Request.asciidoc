@@ -1,0 +1,94 @@
+= User-Signed CMC Revocation Request =
+
+This example demonstrates a user-signed CMC revocation request.
+
+* Create a CMC revocation request config file; Note that
+** `nickname` should be a valid user signing certificate that belongs to the same user subject as that of the certificate to be revoked (but not necessarily the same certificate)
+** `revRequest.serial` and `revRequest.reason` must contain valid values, e.g.:
+*** `revRequest.serial=56`
+*** `revRequest.reason=unspecified`
+** optionally `revRequest.comment` can be added
+** note that in case of user-signed CMC revocation request, `revRequest.issuer` and `revRequest.sharedSecret` are ignored because
+*** `issuer` is obtained from the signer's certificate
+*** a signed request already proves the origin; `sharedSecret` is only used when it's an unsigned request
+** See example: link:https://raw.githubusercontent.com/wiki/dogtagpki/pki/files/cmc-user-signed-revoke.cfg[cmc-user-signed-revoke.cfg]
+
+----
+$ CMCRequest cmc-revoke-user-signed.cfg
+
+cert/key prefix = 
+path = /root/cfu/test/cmc/
+CryptoManger initialized
+token internal logged in...
+got signerCert: signer cfu cert
+addRevRequestAttr: no sharedSecret found; request will be signed;
+addRevRequestAttr: RevokeRequest control created.
+selfSign is false...
+signData: begins: 
+getPrivateKey: got signing cert
+signData:  got signer privKey
+createSignedData: begins
+getSigningAlgFromPrivate: begins.
+getSigningAlgFromPrivate: found signingKeyType=RSA
+getSigningAlgFromPrivate: using SignatureAlgorithm: RSASignatureWithSHA256Digest
+createSignedData: digest created for pkidata
+createSignedData: digest algorithm =RSA
+createSignedData: building cert chain
+signData: signed request generated.
+getCMCBlob: begins
+getCMCBlob: generating signed data
+
+The CMC enrollment request in base-64 encoded format:
+
+MIIKiQYJKoZIhvcNAQcCoIIKejCCCnYCAQMxDzANBglghkgBZQMEAgEFADCBswYI
+<snip>
+
+The CMC enrollment request in data format is stored in /root/cfu/test/cmc/cmc.revoke.userSigned.req.
+----
+
+* Edit `HttpClient` config file so that it is signed by the same user
+** see example link:https://raw.githubusercontent.com/wiki/dogtagpki/pki/files/HttpClient.revoke.userSigned.cfg[HttpClient.revoke.userSigned.cfg]
+
+----
+$ HttpClient HttpClient.revoke.userSigned.cfg
+
+Total number of bytes read = 2701
+after SSLSocket created, thread token is Internal Key Storage Token
+client cert is not null
+handshake happened
+writing to socket
+Total number of bytes read = 1598
+MIIGOgYJKoZIhvcNAQcCoIIGKzCCBicCAQMxDzANBglghkgBZQMEAgEFADAxBggr
+<snip>
+The response in data format is stored in /root/cfu/test/cmc/cmc.revoke.userSigned.resp
+----
+
+* check the result:
+
+----
+$ CMCResponse -d . -i /root/cfu/test/cmc/cmc.revoke.userSigned.resp
+Certificates: 
+    Certificate: 
+        Data: 
+            Version:  v3
+            Serial Number: 0x1
+            Signature Algorithm: SHA256withRSA - 1.2.840.113549.1.1.11
+            Issuer: CN=CA Signing Certificate,OU=pki-tomcat,O=unknown00262DFC6A5E Security Domain
+<snip>
+Number of controls is 1
+Control #0: CMCStatusInfo
+   OID: {1 3 6 1 5 5 7 7 1}
+   BodyList: 1 
+   Status: SUCCESS
+----
+
+* Observe the audit log events:
+
+----
+.http-bio-8443-exec-22 - [15/Jun/2017:17:10:05 PDT] [14] [6] [AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=y.y.y.y][ServerIP=x.x.x.x][SubjectID=CN=Signer Christina Fu,UID=cfu,OU=self-signed][Outcome=Success] access session establish success
+0.http-bio-8443-exec-22 - [15/Jun/2017:17:10:05 PDT] [14] [6] [AuditEvent=CMC_USER_SIGNED_REQUEST_SIG_VERIFY_SUCCESS][SubjectID=Signer Christina Fu][Outcome=Success][ReqType=revocation][CertSubject=$Unidentified$][SignerInfo=Signer Christina Fu] User signed CMC request signature verification success
+0.http-bio-8443-exec-22 - [15/Jun/2017:17:10:05 PDT] [14] [6] [AuditEvent=AUTH_SUCCESS][SubjectID=Signer Christina Fu][Outcome=Success][AuthMgr=CMCUserSignedAuth] authentication success
+0.http-bio-8443-exec-22 - [15/Jun/2017:17:10:05 PDT] [14] [6] [AuditEvent=AUTHZ_SUCCESS][SubjectID=Signer Christina Fu][Outcome=Success][aclResource=certServer.ee.profile][Op=submit] authorization success
+0.http-bio-8443-exec-22 - [15/Jun/2017:17:10:05 PDT] [14] [6] [AuditEvent=CERT_STATUS_CHANGE_REQUEST_PROCESSED][SubjectID=Signer Christina Fu][Outcome=Success][ReqID=Signer Christina Fu][CertSerialNum=45][RequestType=revoke][RevokeReasonNum=Unspecified][Approval=complete] certificate status change request processed
+0.http-bio-8443-exec-22 - [15/Jun/2017:17:10:05 PDT] [14] [6] [AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=y.y.y.y][ServerIP=x.x.x.x][SubjectID=CN=Signer Christina Fu,UID=cfu,OU=self-signed][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
+----
