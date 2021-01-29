@@ -1,0 +1,247 @@
+= User-Signed CMC Request without POP (Encrypted POP / Decrypted POP) =
+
+This example demonstrates a user-signed CMC request where the CRMF request contains no POP, which would subsequently trigger an EncryptedPOP response from the CA and how to prepare the client to respond with DecryptedPOP to complete the certificate issuance.  This method will require round trip.
+
+Note that a request that contains no POP is a general indication that it’s not a signing key, so it could not be self-signed.
+
+* Generate a certificate request with no POP
+** Note that to see Encrypted POP and Decrypted POP in action, the initial CRMF request has to contain no signing pop, hence the `POP_NONE` directive in the `CRMFPopClient` command
+** Note: the following `CRMFPopClient` example assumes that `kra.transport` contains the KRA's transport certificate in PEM format to achieve key archival.
+
+----
+$ CRMFPopClient -d . -p netscape -n "cn=Lady Christina Fu, uid=cfu" -q POP_NONE -b kra.transport -v -o crmf2.req
+Initializing security database: .
+Loading transport certificate
+Parsing subject DN
+RDN: UID=cfu
+RDN: CN=Lady Christina Fu
+Generating key pair
+Keypair private key id: -25aa0a8aad395ebac7e6a19c364f0dcb5350cfef
+Creating certificate request
+Creating CRMF request
+Storing CRMF requrest into crmf2.req
+----
+
+* Edit the `CMCRequest` cfg file to make sure that
+** the `nickname` contains the user signing cert instead of admin cert
+** make sure `identityProofV2.enable=false`
+** make sure `popLinkWitnessV2.enable=false`
+** make sure `request.privKey` contains the matching *private key ID* from the CSR generation above
+** see CMC config file: link:https://raw.githubusercontent.com/wiki/dogtagpki/pki/files/cmc-crmf-EncryptedPOP.cfg[cmc-crmf-EncryptedPOP.cfg]
+
+* Generate CMC Request
+
+----
+$ CMCRequest cmc-crmf-EncryptedPOP.cfg
+cert/key prefix =
+path = /root/cfu/test/cmc/
+CryptoManger initialized
+token internal logged in...
+got signerCert: signer cfu cert
+createPKIData: begins
+k=0
+createPKIData:  format: crmf
+identification control: identification =testuser
+Successfully create identification control. bpid = 1
+
+selfSign is false...
+signData: begins:
+getPrivateKey: got signing cert
+signData:  got signer privKey
+createSignedData: begins
+getSigningAlgFromPrivate: begins.
+getSigningAlgFromPrivate: found signingKeyType=RSA
+getSigningAlgFromPrivate: using SignatureAlgorithm: RSASignatureWithSHA256Digest
+createSignedData: digest created for pkidata
+createSignedData: digest algorithm =RSASignatureWithSHA256Digest
+createSignedData: building cert chain
+signData: signed request generated.
+getCMCBlob: begins
+getCMCBlob: generating signed data
+
+The CMC enrollment request in base-64 encoded format:
+
+MIIR9gYJKoZIhvcNAQcCoIIR5zCCEeMCAQMxDzANBglghkgBZQMEAgEFADCCCCEG
+<snip>
+
+The CMC enrollment request in data format is stored in /root/cfu/test/cmc/cmc2.req.
+----
+
+* Submit the CMC request
+** example `HttpClient` cfg: link:https://raw.githubusercontent.com/wiki/dogtagpki/pki/files/HttpClient-cmc-crmf-EncryptedPOP.cfg[HttpClient-cmc-crmf-EncryptedPOP.cfg]
+
+----
+$ HttpClient HttpClient2.cfg
+Total number of bytes read = 2529
+after SSLSocket created, thread token is Internal Key Storage Token
+handshake happened
+writing to socket
+Total number of bytes read = 4124
+MIIQGAYJKoZIhvcNAQcCoIIQCTCCEAUCAQMxDzANBglghkgBZQMEAgEFADCCCg0G
+
+<snip>
+
+The response in data format is stored in /root/cfu/test/cmc/cmcResp2-round1
+----
+
+* Check the result: (note that the response is a PKCS#7 cert chain in the success case)
+** At the end of the `CMCResponse` call below, observe that
+*** NO CERT was being issued
+*** The return controls contains “encrypted POP”
+*** The return status is `FAIL` with `failInfo=POP` required
+*** The request id is displayed under CMC `ResponseInfo`
+*** Check relevant audit messages in audit log (e.g.) Observe that the `PROFILE_CERT_REQUEST` event is logged and `CMCResposne` below shows pending state
+
+----
+0.http-bio-8443-exec-1 - [15/Jun/2017:15:43:45 PDT] [14] [6] [AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=y.y.y.y][ServerIP=x.x.x.x][SubjectID=CN=Signer Christina Fu,UID=cfu,OU=self-signed][Outcome=Success] access session establish success
+0.http-bio-8443-exec-1 - [15/Jun/2017:15:43:45 PDT] [14] [6] [AuditEvent=CMC_USER_SIGNED_REQUEST_SIG_VERIFY_SUCCESS][SubjectID=Signer Christina Fu][Outcome=Success][ReqType=enrollment][CertSubject=, CN=Lady Christina Fu][SignerInfo=Signer Christina Fu] User signed CMC request signature verification success
+0.http-bio-8443-exec-1 - [15/Jun/2017:15:43:45 PDT] [14] [6] [AuditEvent=AUTH_SUCCESS][SubjectID=Signer Christina Fu][Outcome=Success][AuthMgr=CMCUserSignedAuth] authentication success
+0.http-bio-8443-exec-1 - [15/Jun/2017:15:43:45 PDT] [14] [6] [AuditEvent=AUTHZ_SUCCESS][SubjectID=Signer Christina Fu][Outcome=Success][aclResource=certServer.ee.profile][Op=submit] authorization success
+0.http-bio-8443-exec-1 - [15/Jun/2017:15:43:45 PDT] [14] [6] [AuditEvent=CMC_ID_POP_LINK_WITNESS][SubjectID=Signer Christina Fu][Outcome=Success][Info=EnrollProfile: parseCMC: : ident_s=testuser] Identification Proof of Possession linking witness verification
+0.http-bio-8443-exec-1 - [15/Jun/2017:15:43:45 PDT] [14] [6] [AuditEvent=PROFILE_CERT_REQUEST][SubjectID=Signer Christina Fu][Outcome=Success][ReqID=85][ProfileID=caFullCMCUserSignedCert][CertSubject=CN=Signer Christina Fu,UID=cfu,OU=self-signed] certificate request made with certificate profiles
+----
+
+----
+$ CMCResponse -d . -i /root/cfu/test/cmc/cmcResp2-round1
+
+Certificates:
+    Certificate:
+        Data:
+            Version:  v3
+            Serial Number: 0x1
+            Signature Algorithm: SHA256withRSA - 1.2.840.113549.1.1.11
+            Issuer: CN=CA Signing Certificate,OU=pki-tomcat,O=unknown00262DFC6A5E Security Domain
+            Validity:
+                Not Before: Wednesday, May 17, 2017 6:06:50 PM PDT America/Los_Angeles
+                Not  After: Sunday, May 17, 2037 6:06:50 PM PDT America/Los_Angeles
+            Subject: CN=CA Signing Certificate,OU=pki-tomcat,O=unknown00262DFC6A5E Security Domain
+
+<snip>
+
+Number of controls is 3
+Control #0: CMC encrypted POP
+   OID: {1 3 6 1 5 5 7 7 9}
+     encryptedPOP decoded
+Control #1: CMCStatusInfoV2
+   OID: {1 3 6 1 5 5 7 7 25}
+   BodyList: 1 
+   OtherInfo type: FAIL
+     failInfo=POP required
+Control #2: CMC ResponseInfo
+   requestID: 15
+----
+
+* prepare "round 2" (DecryptedPOP) CMC cfg file
+** see example link:https://raw.githubusercontent.com/wiki/dogtagpki/pki/files/cmc-crmf-DecryptedPOP.cfg[cmc-crmf-DecryptedPOP.cfg]
+* Generate DecryptedPOP CMC request:
+
+----
+$ CMCRequest cmc-crmf-DecryptedPOP.cfg
+cert/key prefix =
+path = /root/cfu/test/cmc/
+CryptoManger initialized
+token internal logged in...
+got signerCert: lady cfu cert
+got request privKeyId: -25aa0a8aad395ebac7e6a19c364f0dcb5350cfef
+got private key
+processEncryptedPopResponse:  begins.
+processEncryptedPopResponse:  previous response read.
+processEncryptedPopResponse: Number of controls is 3
+processEncryptedPopResponse: Control #0: CMC encrypted POP
+processEncryptedPopResponse:    OID: {1 3 6 1 5 5 7 7 9}
+processEncryptedPopResponse:      encryptedPOP decoded successfully
+processEncryptedPopResponse: Control #1: CMCStatusInfoV2
+processEncryptedPopResponse:    OID: {1 3 6 1 5 5 7 7 25}
+processEncryptedPopResponse:    BodyList: 1 
+processEncryptedPopResponse:    OtherInfo type: FAIL
+processEncryptedPopResponse:      failInfo=POP required
+processEncryptedPopResponse:    what we expected, as decryptedPOP.enable is true;
+processEncryptedPopResponse: Control #2: CMC ResponseInfo
+processEncryptedPopResponse:    requestID: 15
+processEncryptedPopResponse: ends
+constructDecryptedPopRequest: begins
+constructDecryptedPopRequest:  previous response parsed.
+constructDecryptedPopRequest: symKey unwrapped.
+constructDecryptedPopRequest: challenge decrypted.
+CryptoUtil: getNameFromHashAlgorithm: {2 16 840 1 101 3 4 2 1}
+constructDecryptedPopRequest: Yay! witness verified
+constructDecryptedPopRequest: calculating POP Proof Value
+constructDecryptedPopRequest: constructing DecryptedPOP...
+constructDecryptedPopRequest: DecryptedPOP constructed successfully
+constructDecryptedPopRequest: adding decryptedPop control
+constructDecryptedPopRequest: decryptedPop control added
+constructDecryptedPopRequest: regInfo control added
+constructDecryptedPopRequest:  completes.
+selfSign is false...
+signData: begins:
+getPrivateKey: got signing cert
+signData:  got signer privKey
+createSignedData: begins
+getSigningAlgFromPrivate: begins.
+getSigningAlgFromPrivate: found signingKeyType=RSA
+getSigningAlgFromPrivate: using SignatureAlgorithm: RSASignatureWithSHA256Digest
+createSignedData: digest created for pkidata
+createSignedData: digest algorithm =RSAignatureWithSHA256Digest
+createSignedData: building cert chain
+signData: signed request generated.
+getCMCBlob: begins
+getCMCBlob: generating signed data
+
+The CMC enrollment request in base-64 encoded format:
+
+MIIR2wYJKoZIhvcNAQcCoIIRzDCCEcgCAQMxDzANBglghkgBZQMEAgEFADCCCAYG
+
+<snip>
+The CMC enrollment request in data format is stored in cmc.decreyptedPOP.req.
+----
+
+* submit the DecryptedPOP CMC request
+** make sure `HttpClient` points to the right URI
+** see example `HttpClient` cfg file: link:https://raw.githubusercontent.com/wiki/dogtagpki/pki/files/HttpClient-crmf-DecryptedPOP.cfg[HttpClient-crmf-DecryptedPOP.cfg]
+
+----
+Total number of bytes read = 4472
+after SSLSocket created, thread token is Internal Key Storage Token
+handshake happened
+writing to socket
+Total number of bytes read = 2437
+MIIJgQYJKoZIhvcNAQcCoIIJcjCCCW4CAQMxDzANBglghkgBZQMEAgEFADAxBggr
+<snip>
+The response in data format is stored in /root/cfu/test/cmc/cmcResp2-round2
+----
+
+* Check the result
+** Check that the `CMCResponse` has a `SUCCESS` status
+** Check that the new cert was really issued
+** If key archival is set up, check that key is archived
+** Observe audit log events, where `CERT_REQUEST_PROCESSED` even is logged and the `CMCResponse` shows success
+
+----
+0.http-bio-8443-exec-2 - [15/Jun/2017:15:51:50 PDT] [14] [6] [AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=y.y.y.y][ServerIP=x.x.x.x][SubjectID=CN=Signer Christina Fu,UID=cfu,OU=self-signed][Outcome=Success] access session establish success
+0.http-bio-8443-exec-2 - [15/Jun/2017:15:51:50 PDT] [14] [6] [AuditEvent=CMC_USER_SIGNED_REQUEST_SIG_VERIFY_SUCCESS][SubjectID=Signer Christina Fu][Outcome=Success][ReqType=enrollment][CertSubject=, CN=Lady Christina Fu][SignerInfo=Signer Christina Fu] User signed CMC request signature verification success
+0.http-bio-8443-exec-2 - [15/Jun/2017:15:51:50 PDT] [14] [6] [AuditEvent=AUTH_SUCCESS][SubjectID=Signer Christina Fu][Outcome=Success][AuthMgr=CMCUserSignedAuth] authentication success
+0.http-bio-8443-exec-2 - [15/Jun/2017:15:51:50 PDT] [14] [6] [AuditEvent=AUTHZ_SUCCESS][SubjectID=Signer Christina Fu][Outcome=Success][aclResource=certServer.ee.profile][Op=submit] authorization success
+0.http-bio-8443-exec-2 - [15/Jun/2017:15:51:50 PDT] [14] [6] [AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=Signer Christina Fu][Outcome=Success][ReqID=85][CertSerialNum=45] certificate request processed
+0.http-bio-8443-exec-2 - [15/Jun/2017:15:51:50 PDT] [14] [6] [AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=y.y.y.y][ServerIP=x.x.x.x][SubjectID=CN=Signer Christina Fu,UID=cfu,OU=self-signed][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
+----
+
+----
+$ CMCResponse -d . -i /root/cfu/test/cmc/cmcResp2-round2
+Certificates: 
+    Certificate: 
+        Data: 
+            Version:  v3
+            Serial Number: 0x2D
+            Signature Algorithm: SHA256withRSA - 1.2.840.113549.1.1.11
+            Issuer: CN=CA Signing Certificate,OU=pki-tomcat,O=unknown00262DFC6A5E Security Domain
+            Validity: 
+                Not Before: Thursday, June 15, 2017 3:43:45 PM PDT America/Los_Angeles
+                Not  After: Tuesday, December 12, 2017 3:43:45 PM PST America/Los_Angeles
+            Subject: CN=Signer Christina Fu,UID=cfu,OU=self-signed
+<snip>
+Number of controls is 1
+Control #0: CMCStatusInfo
+   OID: {1 3 6 1 5 5 7 7 1}
+   BodyList: 1 
+   Status: SUCCESS
+----
