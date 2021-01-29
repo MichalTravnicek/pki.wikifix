@@ -1,0 +1,118 @@
+= Agent-Signed EC CMC Request =
+
+This example shows generation of and EC cert request that is pre-signed with an agent (RSA) cert.
+
+* Generate an EC pkcs10 request, e.g.:
+
+----
+$ PKCS10Client -d . -p netscape -a ec -c nistp256 -o p10-ec.req -n "CN=cfuEC"
+PKCS10Client: Debug: got token.
+PKCS10Client: Debug: thread token set.
+PKCS10Client: token Internal Key Storage Token logged in...
+PKCS10Client: key pair generated.
+PKCS10Client: CertificationRequest created.
+PKCS10Client: b64encode completes.
+Keypair private key id: 1aaa5f1c7e68cded2a9aeaeca1c203e9e65449b4
+
+-----BEGIN CERTIFICATE REQUEST-----
+MIHJMHICAQAwEDEOMAwGA1UEAwwFY2Z1RUMwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAS1KwcgUYIYLQn8V216jOqhlv/5t36rjdFD6Xe2/unLzvq5i92iiRr0GD8pp99x0CYA4KXZmnwvgb4J5MR5s9T9oAAwCgYIKoZIzj0EAwIDRwAwRAIgV9DVBvNhudP8nvt6jJLBjAbTq8iDa6ArZVQKGtVjlQQCIEzfw+neiCWZ3bLX8dQTedqj7lRHjh2ifh5iDc5mtEDg
+-----END CERTIFICATE REQUEST-----
+PKCS10Client: done. Request written to file: p10-ec.req
+----
+
+* Create an agent-signed CMC request config file: link:https://raw.githubusercontent.com/wiki/dogtagpki/pki/files/cmc.role_p10.cfg[cmc.role_p10.cfg]
+** make sure the `nickname` value in `cmc.role_p10.cfg` is an agent cert
+** make sure the `input` points to the CSR you just generated
+** (in this case) make sure the `format` is `pkcs10`
+* Run `CMCRequest` to generate the CMC request
+
+----
+$ CMCRequest cmc.role_p10.cfg
+
+cert/key prefix = 
+path = /root/cfu/test/cmc/
+CryptoManger initialized
+token internal logged in...
+got signerCert: cfuAgent2 cert
+createPKIData: begins
+k=0
+createPKIData:  format: pkcs10
+PKCS10: PKCS10: begins
+PKCS10: PKCS10: ends
+selfSign is false...
+signData: begins: 
+getPrivateKey: got signing cert
+signData:  got signer privKey
+createSignedData: begins
+getSigningAlgFromPrivate: begins.
+getSigningAlgFromPrivate: found signingKeyType=RSA
+getSigningAlgFromPrivate: using SignatureAlgorithm: RSASignatureWithSHA256Digest
+createSignedData: digest created for pkidata
+createSignedData: digest algorithm =RSA
+createSignedData: building cert chain
+signData: signed request generated.
+getCMCBlob: begins
+getCMCBlob: generating signed data
+
+The CMC enrollment request in base-64 encoded format:
+
+MIIKlwYJKoZIhvcNAQcCoIIKiDCCCoQCAQMxDzANBglghkgBZQMEAgEFADCB8AYI
+<snip>
+The CMC enrollment request in binary format is stored in /root/cfu/test/cmc/cmc.role_p10-ec.req
+----
+
+* Create an `HttpClient` cfg file. e.g. link:https://raw.githubusercontent.com/wiki/dogtagpki/pki/files/HttpClient_role_p10-ec.cfg[HttpClient_role_p10-ec.cfg]
+* Run `HttpClient` to submit request
+
+----
+$ HttpClient HttpClient_role_p10-ec.cfg
+
+Total number of bytes read = 2715
+after SSLSocket created, thread token is Internal Key Storage Token
+client cert is not null
+handshake happened
+writing to socket
+Total number of bytes read = 2291
+MIII7wYJKoZIhvcNAQcCoIII4DCCCNwCAQMxDzANBglghkgBZQMEAgEFADAxBggr
+<snip>
+The response in binary format is stored in /root/cfu/test/cmc/cmc.role_p10-ec.resp
+----
+
+* run `CMCResponse` to see result:
+
+----
+$ CMCResponse -d . -i /root/cfu/test/cmc/cmc.role_p10-ec.resp
+Certificates: 
+    Certificate: 
+        Data: 
+            Version:  v3
+            Serial Number: 0x165
+            Signature Algorithm: SHA256withRSA - 1.2.840.113549.1.1.11
+            Issuer: CN=CA Signing Certificate,OU=pki-tomcat,O=sjc.redhat.com Security Domain
+            Validity: 
+                Not Before: Wednesday, October 25, 2017 11:55:31 AM PDT America/Los_Angeles
+                Not  After: Monday, April 23, 2018 11:55:31 AM PDT America/Los_Angeles
+            Subject: CN=cfuEC
+            Subject Public Key Info: 
+                Algorithm: EC - 1.2.840.10045.2.1
+                Public Key: 
+                    04:B5:2B:07:20:51:82:18:2D:09:FC:57:6D:7A:8C:EA:
+<snip>
+Number of controls is 1
+Control #0: CMCStatusInfoV2
+   OID: {1 3 6 1 5 5 7 7 25}
+   BodyList: 1 
+   Status: SUCCESS
+----
+
+* Note the `SUCCESS` status in the `CMCResponse`;  In addition, you can
+** Check relevant audit messages, e.g.:
+
+----
+0.http-bio-8443-exec-2 - [25/Oct/2017:11:55:31 PDT] [14] [6] [AuditEvent=CMC_SIGNED_REQUEST_SIG_VERIFY][SubjectID=UID=TestAgent2,OU=example][Outcome=Success][ReqType=enrollment][CertSubject=CN=cfuEC][SignerInfo=UID=TestAgent2,OU=example] agent pre-approved CMC request signature verification
+0.http-bio-8443-exec-2 - [25/Oct/2017:11:55:31 PDT] [14] [6] [AuditEvent=ROLE_ASSUME][SubjectID=cfu][Outcome=Success][Role=Certificate Manager Agents] assume privileged role
+0.http-bio-8443-exec-2 - [25/Oct/2017:11:55:31 PDT] [14] [6] [AuditEvent=PROOF_OF_POSSESSION][SubjectID=cfu][Outcome=Success][Info=method=EnrollProfile: fillTaggedRequest: ] proof of possession
+0.http-bio-8443-exec-2 - [25/Oct/2017:11:55:31 PDT] [14] [6] [AuditEvent=PROFILE_CERT_REQUEST][SubjectID=cfu][Outcome=Success][ReqID=563][ProfileID=caFullCMCUserCert][CertSubject=CN=cfuEC] certificate request made with certificate profiles
+0.http-bio-8443-exec-2 - [25/Oct/2017:11:55:31 PDT] [14] [6] [AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=cfu][Outcome=Success][ReqID=563][CertSerialNum=357] certificate request processed
+0.http-bio-8443-exec-2 - [25/Oct/2017:11:55:31 PDT] [14] [6] [AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=x1.x2.x3.x4][ServerIP=y1.y2.y3.y4][SubjectID=UID=TestAgent2,OU=example][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
+----
