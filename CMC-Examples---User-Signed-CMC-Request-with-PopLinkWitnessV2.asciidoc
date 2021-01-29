@@ -1,0 +1,155 @@
+= User-Signed CMC Request with PopLinkWitnessV2 =
+
+This example demonstrates a CMC request signed by an existing (non-privileged) user signing certificate.
+This example also demonstrates PopLinkWitnessV2 control.
+
+* Enroll for a user signing cert (use any working mechanism is fine), and import into your test NSS database.
+** In my test NSS database, I have a user signing cert
+*** nickname `ladyCfu cert`
+*** Subject DN `CN=Lady Christina Fu,UID=cfu`
+*** This user signing cert will be the existing user signing cert used for signing other CMC requests for certs belong to the same user
+* Generate a cert request (pkcs10 or crmf)
+
+----
+$ PKCS10Client -d . -p netscape -n "cn=just me cfu, uid=cfu" -o pkcs10.req
+PKCS10Client: Debug: got token.
+PKCS10Client: Debug: thread token set.
+PKCS10Client: token Internal Key Storage Token logged in...
+PKCS10Client: key pair generated.
+PKCS10Client: CertificationRequest created.
+PKCS10Client: b64encode completes.
+Keypair private key id: -3ee22f9ba039c9c4b65f8512beea7b009b730e9d
+
+-----BEGIN CERTIFICATE REQUEST-----
+MIICcDCCAVgCAQAwKzETMBEGCgmSJomT8ixkAQEMA2NmdTEUMBIGA1UEAwwLanVzdCBtZSBjZnUwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEK<snip>
+-----END CERTIFICATE REQUEST-----
+PKCS10Client: done. Request written to file: pkcs10.req
+----
+
+* Edit `CMCRequest` cfg file so that
+** the `nickname` contains the user signing cert instead of admin cert
+** make sure `identityProofV2.enable=false`
+** make sure `request.privKey` contains the matching *private key ID* from the CSR generation above
+** see CMC config file: link:https://raw.githubusercontent.com/wiki/dogtagpki/pki/files/cmc-p10-user-signed.cfg[cmc-p10-user-signed.cfg]
+
+----
+$ CMCRequest cmc-p10-user-signed.cfg
+cert/key prefix = 
+path = /root/cfu/test/cmc/
+CryptoManger initialized
+token internal logged in...
+got signerCert: lady cfu cert
+got request privKeyId: -3ee22f9ba039c9c4b65f8512beea7b009b730e9d
+got private key
+createPKIData: begins
+createPopLinkWitnessV2Attr: begins
+createPopLinkWitnessV2Attr: keyGenAlg=SHA-256; macAlg=SHA-256-HMAC
+createPopLinkWitnessV2Attr: Successfully created id_cmc_idPOPLinkRandom control. bpid = 1
+createPopLinkWitnessV2Attr: Successfully created PopLinkWitnessV2 control.
+createPopLinkWitnessV2Attr: returning...
+
+k=0
+createPKIData:  format: pkcs10
+PKCS10: PKCS10: begins
+PKCS10: PKCS10: ends
+createPKIData: popLinkWitnessV2 enabled. reconstructing pkcs#10
+createPKIData:  new pkcs#10 Attribute created for id_cmc_popLinkWitnessV2.
+getSigningAlgFromPrivate: begins.
+getSigningAlgFromPrivate: found signingKeyType=RSA
+getSigningAlgFromPrivate: using SignatureAlgorithm: RSASignatureWithSHA256Digest
+createPKIData:  new pkcs#10 CertificationRequestInfo created.
+createPKIData: new pkcs#10 CertificationRequest created.
+createPKIData: calling Utils.b64encode.
+createPKIData: new PKCS#10 b64encode completes.
+-----BEGIN CERTIFICATE REQUEST-----
+MIICuzCCAaMCAQAwKzETMBEGCgmSJomT8ixkAQEMA2NmdTEUMBIGA1UEAwwLanVz
+<snip>
+-----END CERTIFICATE REQUEST-----
+
+identification control: identification =testuser
+Successfully create identification control. bpid = 2
+
+selfSign is false...
+signData: begins: 
+getPrivateKey: got signing cert
+signData:  got signer privKey
+createSignedData: begins
+getSigningAlgFromPrivate: begins.
+getSigningAlgFromPrivate: found signingKeyType=RSA
+getSigningAlgFromPrivate: using SignatureAlgorithm: RSASignatureWithSHA256Digest
+createSignedData: digest created for pkidata
+createSignedData: digest algorithm =RSA
+createSignedData: building cert chain
+signData: signed request generated.
+getCMCBlob: begins
+
+The CMC enrollment request in base-64 encoded format:
+
+MIINKQYJKoZIhvcNAQcCoIINGjCCDRYCAQMxDzANBglghkgBZQMEAgEFADCCA1QG
+<snip>
+The CMC enrollment request in data format is stored in /root/cfu/test/cmc/cmc.pkcs10.req.
+----
+
+* Submit the CMC request
+** Make sure `clientmode=true`
+** Make sure `nickname=<the certificate that has a subject matching that of the cmc request signer>`
+** Make sure `HttpClient` config file `servlet` points to `servlet=/ca/ee/ca/profileSubmitUserSignedCMCFull`
+** see `HttpClient` config file: link:https://raw.githubusercontent.com/wiki/dogtagpki/pki/files/HttpClient-cmc-p10-user-signed.cfg[HttpClient-cmc-p10-user-signed.cfg]
+
+----
+$ HttpClient HttpClient-cmc-p10-user-signed.cfg
+
+Total number of bytes read = 3373
+after SSLSocket created, thread token is Internal Key Storage Token
+handshake happened
+writing to socket
+Total number of bytes read = 2568
+MIIKBAYJKoZIhvcNAQcCoIIJ9TCCCfECAQMxDzANBglghkgBZQMEAgEFADAxBggr
+<snip>
+The response in data format is stored in /root/cfu/test/cmc/cmc.pkcs10Resp
+----
+
+* Check the result: (note that the response is a PKCS#7 cert chain in the success case)
+** At the end of the `CMCResponse` call below, observe that
+*** the `CMCResponse` has a `SUCCESS` status
+*** the new cert was really issued
+*** the new cert bears the same subject as that of the user signing cert (NOT what’s specified in the initial pkcs10 request)
+*** If key archival is set up, check that key is archived (only available if the underlying request is CRMF)
+*** Check relevant audit messages in audit log (e.g.) TBD
+
+----
+0.http-bio-8443-exec-1 - [14/Jun/2017:10:06:59 PDT] [14] [6] [AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=y.y.y.y][ServerIP=x.x.x.x[SubjectID=CN=Signer Christina Fu,UID=cfu,OU=self-signed][Outcome=Success] access session establish success
+0.http-bio-8443-exec-1 - [14/Jun/2017:10:06:59 PDT] [14] [6] [AuditEvent=CMC_USER_SIGNED_REQUEST_SIG_VERIFY_SUCCESS][SubjectID=Signer Christina Fu][Outcome=Success][ReqType=enrollment][CertSubject=CN=just me cfu,UID=cfu][SignerInfo=Signer Christina Fu] User signed CMC request signature verification success
+0.http-bio-8443-exec-1 - [14/Jun/2017:10:06:59 PDT] [14] [6] [AuditEvent=AUTH_SUCCESS][SubjectID=Signer Christina Fu][Outcome=Success][AuthMgr=CMCUserSignedAuth] authentication success
+0.http-bio-8443-exec-1 - [14/Jun/2017:10:06:59 PDT] [14] [6] [AuditEvent=CMC_ID_POP_LINK_WITNESS][SubjectID=Signer Christina Fu][Outcome=Success][Info=EnrollProfile: parseCMC: : ident_s=testuser] Identification Proof of Possession linking witness verification
+0.http-bio-8443-exec-1 - [14/Jun/2017:10:06:59 PDT] [14] [6] [AuditEvent=PROOF_OF_POSSESSION][SubjectID=Signer Christina Fu][Outcome=Success][Info=method=EnrollProfile: fillTaggedRequest: ] proof of possession
+0.http-bio-8443-exec-1 - [14/Jun/2017:10:06:59 PDT] [14] [6] [AuditEvent=PROFILE_CERT_REQUEST][SubjectID=Signer Christina Fu][Outcome=Success][ReqID=83][ProfileID=caFullCMCUserSignedCert][CertSubject=CN=Signer Christina Fu,UID=cfu,OU=self-signed] certificate request made with certificate profiles
+0.http-bio-8443-exec-1 - [14/Jun/2017:10:06:59 PDT] [14] [6] [AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=Signer Christina Fu][Outcome=Success][ReqID=83][CertSerialNum=43] certificate request processed
+----
+
+----
+$ CMCResponse -d . -i /root/cfu/test/cmc/cmc.pkcs10Resp
+Certificates: 
+    Certificate: 
+        Data: 
+            Version:  v3
+            Serial Number: 0x17
+            Signature Algorithm: SHA256withRSA - 1.2.840.113549.1.1.11
+            Issuer: CN=CA Signing Certificate,OU=pki-tomcat,O=unknown00262DFC6A5E Security Domain
+            Validity: 
+                Not Before: Wednesday, May 24, 2017 2:56:47 PM PDT America/Los_Angeles
+                Not  After: Monday, November 20, 2017 2:56:47 PM PST America/Los_Angeles
+            Subject: CN=Lady Christina Fu,UID=cfu,OU=self-signed
+<snip>
+Number of controls is 1
+Control #0: CMCStatusInfo
+   OID: {1 3 6 1 5 5 7 7 1}
+   BodyList: 1 
+   Status: SUCCESS
+----
+
+* Import the new certificate
+
+----
+$ certutil -d . -A -t "u,u,u" -n "new lady cfu cert" -i cmc.pkcs10Resp
+----
