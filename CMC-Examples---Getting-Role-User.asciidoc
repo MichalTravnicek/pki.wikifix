@@ -1,0 +1,158 @@
+= Example - Getting a Role user (Administrator, Agent, or Auditor) Certificate =
+
+A user's role status is determined by one's group membership within the certificate authority groups database.
+This section only demonstrates how a role user's certificate can be obtained via a CMC request.
+Once the certificate is obtained successfully, the administrator of the certificate authority should follow documented instruction
+to add the user and his/her certificate into the proper group membership.
+
+Note: This procedure differs from the *User-signed* procedure above in that it requires a CA agent to sign the CMC request.
+Please pay special attention to the `servlet` parameter value in the `HttpClient` config file.
+
+== Agent-signed CMC requests Example ==
+
+This example demonstrates a CMC request signed by an existing CA agent.  It can often be used for getting a role user certificate.
+
+First, the user that wishes to obtain a certificate performs the following:
+
+* Generate a cert request (pkcs10 or crmf) 
+** Note: the following `CRMFPopClient` example assumes that `kra.transport` contains the KRA's transport certificate in PEM format to achieve key archival.
+** Also note that HSM is assumed to be used by KRA, hence the additional of the option `-w  "AES/CBC/PKCS5Padding"`
+
+----
+$ CRMFPopClient -d . -p netscape -n "cn=admin cfu, uid=admincfu" -q POP_SUCCESS -b kra.transport  -w  "AES/CBC/PKCS5Padding" -v -o crmf.req
+Initializing security database: .
+Loading transport certificate
+Parsing subject DN
+RDN: UID=admincfu
+RDN: CN=admin cfu
+Generating key pair
+Keypair private key id: -7b9321c5a247d4877683b9a0e110167c0b604034
+Using key wrap algorithm: AES KeyWrap/Padding
+Creating certificate request
+Creating signer
+Creating POP
+Creating CRMF request
+Storing CRMF requrest into crmf.req
+----
+
+* Hand the CSR to a CA agent
+
+Now, a CA agent should perform the following:
+
+* Take the CSR that the user generated from the above step and store in a file. The CSR should be in BER data format as was directly output by the either of the Dogtag tools (`CRMFPopClient` and `PKCS10Client`) depicted above.
+* Edit `CMCRequest` cfg file so that
+** the `nickname` contains the CA agent signing cert
+** the `format` matches the csr format in the above step
+** the `input` points to the CSR file
+** the `output` points to where you intend the output to go
+** see cmc config file: link:https://raw.githubusercontent.com/wiki/dogtagpki/pki/files/cmc.role_crmf.cfg[cmc.role_crmf.cfg]
+
+----
+$ CMCRequest cmc.role_crmf.cfg
+
+cert/key prefix = 
+path = /root/cfu/test/cmc/
+CryptoManger initialized
+token internal logged in...
+got signerCert: PKI Administrator for Example.com
+createPKIData: begins
+k=0
+createPKIData:  format: crmf
+selfSign is false...
+signData: begins: 
+getPrivateKey: got signing cert
+signData:  got signer privKey
+createSignedData: begins
+getSigningAlgFromPrivate: begins.
+getSigningAlgFromPrivate: found signingKeyType=RSA
+getSigningAlgFromPrivate: using SignatureAlgorithm: RSASignatureWithSHA256Digest
+createSignedData: digest created for pkidata
+createSignedData: digest algorithm =RSA
+createSignedData: building cert chain
+signData: signed request generated.
+getCMCBlob: begins
+getCMCBlob: generating signed data
+
+The CMC enrollment request in base-64 encoded format:
+
+MIIOvAYJKoZIhvcNAQcCoIIOrTCCDqkCAQMxDzANBglghkgBZQMEAgEFADCCCK4G
+<snip>
+
+The CMC enrollment request in data format is stored in /root/cfu/test/cmc/cmc.role_crmf.req
+----
+
+* submit the CMC request
+** make sure `clientmode=true`
+** make sure `nickname=<the agent certificate that signs the cmc request>`
+** make sure the `HttpClient` config file `servlet` points to `servlet=/ca/ee/ca/profileSubmitCMCFull?profileId=caCMCUserCert`
+** see `HttpClient` config file: link:https://raw.githubusercontent.com/wiki/dogtagpki/pki/files/HttpClient_role_crmf.cfg[HttpClient_role_crmf.cfg]
+
+----
+$ HttpClient HttpClient_role_crmf.cfg
+Total number of bytes read = 3776
+after SSLSocket created, thread token is Internal Key Storage Token
+client cert is not null
+handshake happened
+writing to socket
+Total number of bytes read = 2523
+MIIJ1wYJKoZIhvcNAQcCoIIJyDCCCcQCAQMxDzANBglghkgBZQMEAgEFADAxBggr
+<snip>
+
+The response in data format is stored in /root/cfu/test/cmc/cmc.role_crmf.resp
+----
+
+* Check the result: (note that the response is a PKCS#7 cert chain in the success case)
+** At the end of the `CMCResponse` call below, observe that
+*** the `CMCResponse` has a SUCCESS status
+*** the new certificate was really issued 
+*** the certificate bears the subject name as intended
+*** If key archival is set up, check that key is archived (only available if the underlying request is CRMF)
+*** Check relevant audit messages in audit log (e.g.) TBD
+
+----
+0.http-bio-8443-exec-2 - [21/Jul/2017:12:06:50 PDT] [14] [6] [AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.14.72.96][ServerIP=10.14.72.96][SubjectID=CN=PKI Administrator,E=caadmin@Example.com,OU=pki-tomcat,O=Example.com Security Domain][Outcome=Success] access session establish success
+0.http-bio-8443-exec-2 - [21/Jul/2017:12:06:50 PDT] [14] [6] [AuditEvent=CMC_SIGNED_REQUEST_SIG_VERIFY][SubjectID=$NonRoleUser$][Outcome=Success][ReqType=enrollment][CertSubject=, CN=admin cfu][SignerInfo=PKI Administrator] agent pre-approved CMC request signature verification
+0.http-bio-8443-exec-2 - [21/Jul/2017:12:06:50 PDT] [14] [6] [AuditEvent=AUTH_SUCCESS][SubjectID=caadmin][Outcome=Success][AuthMgr=CMCAuth] authentication success
+0.http-bio-8443-exec-2 - [21/Jul/2017:12:06:50 PDT] [14] [6] [AuditEvent=AUTHZ_SUCCESS][SubjectID=caadmin][Outcome=Success][aclResource=certServer.ee.profile][Op=submit] authorization success
+0.http-bio-8443-exec-2 - [21/Jul/2017:12:06:50 PDT] [14] [6] [AuditEvent=ROLE_ASSUME][SubjectID=caadmin][Outcome=Success][Role=Certificate Manager Agents, Administrators, Security Domain Administrators, Enterprise CA Administrators, Enterprise KRA Administrators, Enterprise OCSP Administrators, Enterprise TKS Administrators, Enterprise RA Administrators, Enterprise TPS Administrators] assume privileged role
+0.http-bio-8443-exec-2 - [21/Jul/2017:12:06:50 PDT] [14] [6] [AuditEvent=PROOF_OF_POSSESSION][SubjectID=caadmin][Outcome=Success][Info=method=EnrollProfile: verifyPOP: ] proof of possession
+0.http-bio-8443-exec-2 - [21/Jul/2017:12:06:50 PDT] [14] [6] [AuditEvent=PROFILE_CERT_REQUEST][SubjectID=caadmin][Outcome=Success][ReqID=14][ProfileID=caFullCMCUserCert][CertSubject=CN=admin cfu,UID=admincfu] certificate request made with certificate profiles
+0.http-bio-8443-exec-3 - [21/Jul/2017:12:06:50 PDT] [14] [6] [AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.14.72.96][ServerIP=10.14.72.96][SubjectID=CN=Subsystem Certificate,OU=pki-tomcat,O=Example.com Security Domain][Outcome=Success] access session establish success
+0.http-bio-8443-exec-3 - [21/Jul/2017:12:06:50 PDT] [14] [6] [AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=10.14.72.96][ServerIP=10.14.72.96][SubjectID=CN=Subsystem Certificate,OU=pki-tomcat,O=Example.com Security Domain][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
+0.http-bio-8443-exec-2 - [21/Jul/2017:12:06:50 PDT] [14] [6] [AuditEvent=SECURITY_DATA_ARCHIVAL_REQUEST][SubjectID=caadmin][Outcome=Success][ArchivalRequestID=14][RequestId=14][ClientKeyID=null] security data archival request made
+0.http-bio-8443-exec-2 - [21/Jul/2017:12:06:50 PDT] [14] [6] [AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Success][ReqID=14][CertSerialNum=14] certificate request processed
+0.http-bio-8443-exec-2 - [21/Jul/2017:12:06:50 PDT] [14] [6] [AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=10.14.72.96][ServerIP=10.14.72.96][SubjectID=CN=PKI Administrator,E=caadmin@Example.com,OU=pki-tomcat,O=Example.com Security Domain][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
+----
+
+----
+$ CMCResponse -d . -i /root/cfu/test/cmc/cmc.role_crmf.resp
+Certificates: 
+    Certificate: 
+        Data: 
+            Version:  v3
+            Serial Number: 0xE
+            Signature Algorithm: SHA256withRSA - 1.2.840.113549.1.1.11
+            Issuer: CN=CA Signing Certificate,OU=pki-tomcat,O=sjc.redhat.com Security Domain
+            Validity: 
+                Not Before: Friday, July 21, 2017 12:06:50 PM PDT America/Los_Angeles
+                Not  After: Wednesday, January 17, 2018 12:06:50 PM PST America/Los_Angeles
+            Subject: CN=admin cfu,UID=admincfu
+<snip>
+
+Number of controls is 1
+Control #0: CMCStatusInfoV2
+   OID: {1 3 6 1 5 5 7 7 25}
+   BodyList: 1 
+   Status: SUCCESS
+----
+
+* Hand the resulting certificate to the user
+* add the user certificate to user record and add the user to the appropriate role group member per instruction.
+
+Once the certificate is received, the user would want to import the certificate:
+
+* import the new certificate
+
+----
+$ certutil -d . -A -t "u,u,u" -n "new lady cfu administrator cert" -i cmc.role_crmf.resp
+----
