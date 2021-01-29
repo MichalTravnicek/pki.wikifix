@@ -1,0 +1,24 @@
+= Issuing Certificate =
+
+Submit the certificate request with the following command:
+
+----
+$ pki ca-cert-request-submit --profile caUserCert --csr-file admin.csr --subject uid=admin
+----
+
+Approve the request with the following command:
+
+----
+$ pki -n caadmin ca-cert-request-review <request ID> --action approve
+----
+
+Retrieve the certificate with the following commands:
+
+----
+$ pki ca-cert-show <certificate ID> --output admin.crt
+----
+
+= See Also =
+
+* link:Generating-System-Certificates[Generating System Certificates]
+* link:Generating-Admin-Certificate[Generating Admin Certificate]
