@@ -1,0 +1,251 @@
+= Design =
+
+For 10.4, the CMC certificate request mechanism has been updated to conform to link:https://tools.ietf.org/html/rfc5272[RFC 5272] with update from link:https://tools.ietf.org/html/rfc6402[RFC 6402].
+It does so by adding the following CMC features.
+
+== Proof of Origin, Proof of Possession, and Id-POP linking for non-agent users ==
+
+* CMC Identity proof by signing with another cert owned by the same entity. If a subscriber already possesses a signing cert, the individual can just use the signing cert to sign another CMC request (this applies to enrollment, renewal, as well as revocation requests).  Upon receiving a request, CA will verify the signature (as identity proof), verify the POP, and verify whether the signer matches with the request subject before issuance. Note that when this form of identity proof is provided, the identity proof control (v1 and v2), if exists in the CMC request, will be bypassed.
+** This signing verification effectively proves the identity based on previously proven (the fact the valid signing cert exists and signs) identity.
+** uses `SignerIdentifier.ISSUER_AND_SERIALNUMBER` support per RFC
+** The new enrollment profile used with this method is `caFullCMCUserSignedCert.cfg` where `cmcUserSignedSubjectNameDefault` and `cmcUserSignedSubjectNameConstraint` are used to ensure that the resulting certificate has matching subject name as that of the signing certificate.
+** For renewal, `uniqueKeyConstraint` has the configuration parameter `allowSameKeyRenewal` to control whether same key renewal is allowed or not (revoked certs cannot be renewed); `renewGracePeriodConstraint` can be used to control how long before or after expiration date can a cert be renewed.
+* CMC Identity Proof V2 - This control requires administrator to generate and distribute a shared secret to the subscriber before each enrollment; When the subscriber generates a certificate request, the shared secret is used to compute a witness value that the server could verify with.  For efficiency, the implementation requires the identification control to be used in combination with the identity prof v2 control.  By default, the `SharedToken` plugin that retrieves the shared secret uses subscriber’s LDAP UID.  Upon receipt of the certificate request, if the CMC request is not signed by a valid subscriber certificate (as per described in the previous bullet), CA will retrieve the shared secret associated with the identification provided in the request and compute the witness value to compare with the witness value in the request.  *Note:* It is intended to be used when the subscriber does not already have a signing cert.  In the case one already has a signing cert, the above signing method could be used instead for efficiency (no need for distributing shared secrets)
+** This control effectively provides the Proof of Origin based on the secret that can only be shared between CA and the intended subscriber.
+** CMC controls added:
+*** `id-cmc-identityProofV2` - corresponding `CMCRequest` parameter e.g.:
+**** `identityProofV2.enable=true`
+**** `identityProofV2.hashAlg=SHA-512`
+**** `identityProofV2.macAlg=SHA-256-HMAC`
+*** `id-cmc-identification`  - corresponding `CMCRequest` parameter e.g.:
+**** `identification.enable=true`
+**** `identification=testUser`
+** added `SignerIdentifier.SUBJECT_KEY_IDENTIFIER` support per RFC
+*** The enrollment profile to be used with this method is `caFullCMCSelfSignedCert.cfg`
+* CMC Encrypted POP and Decrypted POP - Since encryption-only keys cannot do the signing operation required for the proof of possession required before this release, new controls are implemented to allow that.  In this release, if a signing POP is not present in the certificate request, CA will assume that it is an encryption-only key.  CA will generate a challenge and encrypt it with the subscriber public key in the request. CA will then compute and place all necessary information in the request record and construct an EncryptedPOP along with a failed response with the `requestId` in the `responseInfo` control back to the client.  Client can process the EncryptedPOP, decrypt and retrieve the challenge, compute the witness value and construct a DecryptedPOP requestID in the `regInfo` control and send back to the server.  CA will then use the `requestId` embedded in the DecryptedPOP to find the pending request, retrieve all the POP-related info, recompute and compare/varify the witness value before issuance.
+** This control effectively provides the Proof of Possession (POP) for encryption-only keys based on the fact that only the subscriber that possesses the matching private key of the request public key can decrypt the challenge and compute the witness.
+** controls added:
+*** `id-cmc-encryptedPOP`
+*** `id-cmc-decryptedPOP`
+*** `id-cmc-responseInfo`
+*** `id-cmc-regInfo`
+* CMC POP Link Witness V2 - In the case when Proof of Identity and Proof of Possession are verified, there is still no proof that the identity proven in the Proof of Identity is the same identity that owns the private key in the Proof of Possession.  The POP Link Witness V2 provides such proof by making sure that a shared secret associated with an identity is used to compute a witness value which in turns is placed in the underlying (CRMF or PKCS#10) request. This release requires the identification control to be used in combination with this control so that CA can find the `sharedSecret` more efficiently.
+** This control effectively provides the link between the Proof of identity and the POP.
+** control added: `id-cmc-popLinkWitnessV2`
+** control used: `id_cmc_idPOPLinkRandom`
+* TLS client authentication enforcement for user-signed CMC requests (enrollment & revocation), where the authenticating TLS client certificate must match that of the CMC request signing certificate.  This means, for `HttpClient` the config file will need the following:
+** `secure=true`
+** `clientMode=true`
+** `nickname=<cert nickname that matches the cmc request signer's>`
+
+== New (CMC UserSigned / SelfSigned) Authentication Plugin ==
+
+As mentioned above, prior to this release, `CMCAuth` was the only method of CMC authentication.  It requires a CA agent to sign the requests.  In 10.4, `CMCUserSignedAuth` has been introduced to handle:
+
+* Requests that are self-signed (signed with private key of the request itself) -- via `SignerIdentifier.SUBJECT_KEY_IDENTIFIER`
+** This is normally used to obtain user's first certificate (a signing cert), which would later be used to obtain other type of certificates.
+** Again, this has to be combined with the Identity Proof (v2) control for proof of origin.
+** Both `CRMFPopClient` and `PKCS10Client` have been updated to handle the `-y` option for self-signed requests.
+* Requests signed by non-privileged users -- via `SignerIdentifier.ISSUER_AND_SERIALNUMBER`
+** This can only be used when the user already obtained a signing certificate so that it can be used to prove its identity for other certificates.
+
+Here is an example that shows a profile that requires authentication through `CMCUserSignedAuth` (user-signed)
+
+----
+auth.instance_id=CMCUserSignedAuth
+----
+
+The new profiles that has this authentication by default are :
+
+* `caFullCMCUserSignedCert`
+* `caFullCMCSelfSignedCert`
+
+Here is an example that shows a profile that requires authentication through `CMCAuth` (agent-signed)
+
+----
+auth.instance_id=CMCAuth
+----
+
+== New Enrollment/Renewal Profiles and corresponding URIs ==
+
+=== 10.5 update ===
+
+In the 10.5, `profileSubmitCMCFull` servlet has been updated so that profile id can be specified.  This provides flexible profile specification without having to add new URI's as in the following "10.4" section.
+
+Here is an example from `HttpClient` configuration file:
+
+----
+servlet=/ca/ee/ca/profileSubmitCMCFull?profileId=caFullCMCUserSignedCert
+----
+
+where we expect the `CMCUserSignedAuth` authentication plugin to be specified in the profile `caFullCMCUserSignedCert.cfg`:
+
+----
+auth.instance_id=CMCUserSignedAuth
+----
+
+Some examples in the Examples section will use this method, and will be labeled for ease of distinction.
+
+Note: I think the URIs in the "10.4" section still work at time of this writing, but one should try to use the new method described above.
+
+=== 10.4 ===
+
+Prior to 10.4, the accessing URI to CMC requests is `/ee/ca/profileSubmitCMCFull`, which would lead to the enrollment profile `caFullCMCUserCert.cfg`, where authentication instance `CMCAuth` is specified.  As discussed before, that is an agent-only authentication.
+
+In this release, for non-agent approved CMC enrollment, two new accessing URI are introduced, each would lead to a new enrollment profile:
+
+* `/ee/ca/profileSubmitUserSignedCMCFull` => `caFullCMCUserSignedCert.cfg`
+** As the name implied, this is the case when a user already has a valid signing certificate, which is used to sign other CMC certificate requests.
+** This is the same access point for renewals.
+** Profile `caFullCMCUserSignedCert.cfg` by default contains the following relevant profile default/constraints:
+*** `CmcUserSignedSubjectNameDefault` / `CmcUserSignedSubjectNameConstraint` - to ensure that the new certificate will contain the same subject name as that of the signing certificate
+*** `UniqueKeyConstraint` - provides control for whether same key renewal is allowed or not;  It searches for the newest cert in the repository with the same key to renew if allowed.  Revoked certificates are not renewable.
+*** `RenewGracePeriodConstraint` - allows for control of renewal grace period in case of same key renewals.  Rekey renewal would not be able to use this as it would be treated as new enrollment.
+
+* `/ee/ca/profileSubmitSelfSignedCMCFull` => `caFullCMCSelfSignedCert.cfg`
+** As the name implied, this is the case when a user does not already have a valid signing certificate, so it's self-signed, and Identity Proof (v2) control would be needed to complete the proof of origin.
+
+For system certificates using CMC enrollment, the following new accessing URIs are introduced, each would lead to a new enrollment profile:
+
+* `/ee/ca/profileSubmitCMCFullCACert` => `caCMCcaCert.cfg`
+* `/ee/ca/profileSubmitCMCFullServerCert` => `caCMCserverCert.cfg`
+* `/ee/ca/profileSubmitCMCFullSubsystemCert` => `caCMCsubsystemCert.cfg`
+* `/ee/ca/profileSubmitCMCFullOCSPCert` => `caCMCocspCert.cfg`
+* `/ee/ca/profileSubmitCMCFullAuditSigningCert` => `caCMCauditSigningCert.cfg`
+* `/ee/ca/profileSubmitCMCFullKRAstorageCert` => `caCMCkraStorageCert.cfg`
+* `/ee/ca/profileSubmitCMCFullKRAtransportCert` => `caCMCkraTransportCert.cfg`
+
+== Configuration ==
+
+The following are CMC-related configuration parameters in the CA's `CS.cfg` (with defaults displayed)
+
+----
+cmc.popLinkWitnessRequired=false
+cmc.token=internal
+
+cert.issuance_protection.nickname=cmcIssuanceProtectionCert
+----
+
+* `cmc.popLinkWitnessRequired` - This requires sharedSecret;  By default it is `false`;  Replace with `true` to turn it on
+** note: see `cmc.sharedSecret` below
+* `cmc.revokeCert.sharedSecret.class` - (to be implemented) - *10.5 update:* implemented.  See https://www.dogtagpki.org/wiki/PKI_10.5_CMC_Shared_Token
+** note: before the `sharedSecret` class is implemented, this parameter is removed from the default `CS.cfg` at installation
+** for testing purposes, "mock SharedSecret plugin" can be added in `CS.cfg`, but be sure to remove it for production:
+*** `cmc.revokeCert.sharedSecret.class=com.netscape.cms.authentication.SharedSecret`
+* `cmc.sharedSecret.class` (to be implemented) - *10.5 update:* implemented.  See https://www.dogtagpki.org/wiki/PKI_10.5_CMC_Shared_Token
+** note: before the `sharedSecret` class is implemented, this parameter is removed from the default `CS.cfg` at installation
+** for testing purposes, "mock SharedSecret plugin" can be added in `CS.cfg`, but be sure to remove it for production:
+*** `cmc.sharedSecret.class=com.netscape.cms.authentication.SharedSecret`
+* `cmc.token` - This is the token name that should matches with the token where the CA's subsystem certificate (and keys) reside.
+* `cert.issuance_protection.nickname` - Contains the nickname of the Issuance Protection certificate used for PoP related encryption; By default, when this parameter is not set, the subsystem certificate specified in `cert.subsystem.nickname` is used.
+
+== Client changes ==
+
+The following clients have been updated to support the new CMC features:
+
+* `CRMFPopClient`
+** a `-y` option has been added to support self-sign, where a `subjectKeyIdentifier` extension is required by the RFC to be present in the request
+** private key id is printed in output for use in needed CMC controls
+** due to limitation of HSM, if KRA is employs HSM, `CRMFPopClient` should be run with the following option:
+*** `-w "AES/CBC/PKCS5Padding"`
+* `PKCS10Client`
+** a `-y` option has been added to support self-sign, where a `subjectKeyIdentifier` extension is required by the RFC to be present in the request
+** private key id is printed in output for use in needed CMC controls
+* `CMCRequest` (for more information: `man CMCRequest`)
+** `identityProofV2` - prove identity in self-signed case
+*** `identityProofV2.enable` - `true` to enable, `false` otherwise.
+*** `identityProofV2.hashAlg` - supported values are: `SHA-1`, `SHA-256`, `SHA-384`, and `SHA-512`
+*** `identityProofV2.macAlg` - supported values are: `SHA-1-HMAC`, `SHA-256-HMAC`, `SHA-384-HMAC`, and `SHA-512-HMAC`
+** `witness` - Used for identityProofV2 and popLinkWitnessV2
+*** `witness.sharedSecret` - value must match what's stored with CA;
+** `request.selfSign` - true is self-sign, false otherwise
+** `request.privKeyId` - used for the case of self-sign or popLinkWitnessV2
+** `identification` - Used for identityProofV2 and popLinkWitnessV2
+*** `identification.enable` - true will add id-cmc-identification control, false otherwise
+*** `identification` - value must match what CA knows; 
+** `popLinkWitnessV2` - used to link identity with POP
+*** `popLinkWitnessV2.enable` - `true` to enable, `false` otherwise
+*** `popLinkWitnessV2.keyGenAlg` - supported values are: `SHA-1`, `SHA-256`, `SHA-384`, and `SHA-512`
+*** `popLinkWitnessV2.macAlg` - supported values are: `SHA-1-HMAC`, `SHA-256-HMAC`, `SHA-384-HMAC`, and `SHA-512-HMAC`
+** DecryptedPOP -used after EncryptedPop is received after round-1, where round-1 being a CMC request without POP
+*** `decryptedPop.enable` - `true` enabled, `false` otherwise
+*** `encryptedPopResponseFile` - input file from the output of round-1 in case of success
+*** `decryptedPopRequestFile` - output file
+
+* `CMCResponse` (for more information: `man CMCResponse`)
+** modified to handle EncryptedPOP; no new options;
+
+Note: clients that are not listed above have not been updated to support the newest CMC features.
+
+* (New in 10.5) `CMCSharedToken`  (for more information: `man CMCSharedToken`)
+** new tool to process a user passphrase and create shared token to be stored by the CA to allow Shared Secret-based proof of origin in cases such as CMC certificate issuance and revocation.
+
+Tips: If CA's system keys are on an HSM, Two things to keep in mind
+
+* `CRMFPopClient` should be used with the `-y false`
+* CA's `CS.cfg` should have the `cmc.token` parameter set to the HSM token
+
+== Revocation ==
+
+In RFC5272, CMC revocation requests are done with the `id-cmc-revokeRequest` control. In releases prior to Dogtag 10.4, there appear to be two ways intended for submitting a CMC revocation request.
+
+* One is via `ca/ee/ca/CMCRevReq.html`, which would lead into backend servlet `CMCRevReqServlet.java` and authenticate the CMC signer using the above-mentioned agent authentication method, `CMCAuth`.
+** This provision is provided at the CA EE portal *CMC Revoke* tab.
+** This method is actually in violation with the link:https://tools.ietf.org/html/rfc5273[RFC 5273] CMC Transport Protocols, as for HTTP/HTTPS, the body of the message is the binary value of the BER encoding of the PKI Request or Response, so HTML is not an approved method.
+
+* The other method follows the same path as the CMC requests described above by submitting directly to the `/ca/ee/ca/profileSubmitCMCFull` servlet, where it is authenticated with the agent authenticator `CMCAuth`.  While in terms of CMC Protocol (link:https://tools.ietf.org/html/rfc5273[RFC 5273]) it is conforming, it is limited to agent authentication, much like CMC enrollment requests prior to the 10.4 release.
+
+Note: The second method described above had not been maintained or tested so it appears not to work prior to this release.  It is unclear when it was broken, but the intent is to fix it for this release and add the additional feature below.
+
+In this release, we will add revocation handling to the new `/ca/ee/ca/profileSubmitUserSignedCMCFull` servlet with the method 2 described above so that a user with matching subjectdn can sign its own revocation requests.
+
+== Shared Secret ==
+
+Update: this feature has been implemented and documented here: https://www.dogtagpki.org/wiki/PKI_10.5_CMC_Shared_Token
+
+Note, this area has not yet been implemented at time of writing.  Please consider this a high-level design.
+
+In prior releases, areas where *shared secrets* are needed were done with a dummy class `SharedSecret`, which implements `ISharedToken`, where a hardcoded string `testing` was returned.
+In this release, a real class will be written to respond to the `getSharedToken(...)` method of the `ISharedToken` class.
+CMC features that will take advantage of the new `ISharedToken` class include:
+
+* IdentifyProofV2
+* popLinkWitnessV2
+* revokeRequest
+
+=== Framework ===
+
+RFC5272 does not dictate how the shared secret provision should be implemented.  For 10.4, while we will provide a default implementation, we will continue the tradition of allowing the flexibility for sites to implement their own mechanism by making the shared secret provision a Java Plugin framework, much like how the existing authentication, authorization, and many other mechanisms are provided in the current system.
+
+=== Repository ===
+
+By default, we use CA’s internal LDAP repository for storing `uid`/`sharedToken` information. The LDAP instance will be configurable so that an external LDAP system could be used.  The configuration will be much like like LDAP-based authentication plugin is configured.
+
+=== Protection ===
+
+Like many other areas that require protection of the directory entries, mechanism much like the KRA’s key archival/recovery mechanism will be used to encrypt/decrypt the shared secrets stored in the repository.  The mechanism involves generation of a symmetric key that is used to encrypt the shared secrete, a system-wide certificate that is used to encrypt the per-entry symmetric key.  Each repository entry will contain at the minimum (userID, symm-encrypted-sharedSecret, system-cert-encrypted-symm).
+Retrieval of the entry is based on the usrID provided through the relevant CMC requests `id_cmc_identification` control.
+
+=== One-Time Use Provision ===
+
+One-Time use can be configured so that sites can choose to disallow a shared secret being reused. 
+
+=== Set Up ===
+
+In the first release of this implementation, administrators are expected to:
+
+* use auxiliary mechanism to generate the shared secrets
+* Use any LDAP mechanisms to store the secret into corresponding user entries
+** this could be done by enhancing pki-user
+* Use any site-approved method to communicate the shared secrets to their intended users.
+
+=== Future ===
+
+In the future, we should improve on usability.
+
+== Notes ==
+
+A couple notes:
+
+* Auditing have been added (not finalized - TBD)
+* CMC controls not mentioned should continue to function as was before
