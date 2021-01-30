@@ -1,0 +1,134 @@
+= Practical Usage Scenarios (Work in Progress) =
+
+This section depicts the most practical usage scenarios to assist CA administrators in deciding which CMC method to go with which situation.
+
+== Obtaining System/Server Certificates ==
+
+When a TLS server (web server, ldap server, Dogtag subsystems, etc.) needs a TLS server certificate, the administrator of the said server should follow the instruction from the respective server to generate a CSR (generally in PKCS#10).  The CSR then can be sent to a CA's agent for approval.
+
+System/Server certificate issuance should require agent approval.  It is therefore strongly advised that each of the following categories are being met.
+
+* Enrollment Profiles
+** One should use either one of the existing CMC system/server profiles or create a custom profile that employs the `CMCAuth` authentication mechanism. i.e. the profile should contain:
+*** `auth.instance_id=CMCAuth`
+* CMC Signing Certificate
+** A CA agent should generate and sign the CMC request.  This is done by specifying the `nickname` value in the `CMCRequest` configuration file as one of the CA agents.  Note that only the CA agent should have access to his/her own private key so the CMC request generation itself should be done by the CA agent.  The generation of the PKCS#10 CSR should normally be done by the requesting system/server's administrator. *Note:* System/server CSRs are normally in the format of PKCS#10.
+* `HttpClient` SSL Client nickname
+** This should be the same agent certificate, so should be done by the same CA agent.
+* Other Useful Information
+** When an agent pre-signs a CSR, the Proof of Identification is considered established.  As the agent is expected to have examined the CSR for identification.  No additional CMC-specific identification proof is needed.
+** PKCS#10 by itself already provides Proof of Origin, so no additional POP is needed.
+** popLinkWitness(v2) should in general be bypassed in agent pre-approved requests because the identification is checked out-of-band by the agent. Plus, the establishment of popLinkWitness(v2) would require shared token being set up, which adds unnecessary complication and redundancy to what the agent would have done.
+
+=== Examples ===
+
+* Enrolling for system certificates:
+** See Examples - System Certificates
+* Installation
+** link:https://www.dogtagpki.org/wiki/PKI_10.5_Installation_with_CMC[PKI 10.5 Installation with CMC]
+** Root CA:
+*** for a more secure and flexible alternative: link:https://www.dogtagpki.org/wiki/Two-Step_Installation[Two-Step Installation]
+
+== Obtaining First User Signing Certificate ==
+
+There are two ways to approve a user's first signing certificate:
+
+1. Signing CMC request with an Agent Certificate
+2. Authenticating for Certificate Enrollment with a Shared Secret
+
+=== Signing CMC request with an Agent Certificate ===
+
+In this case, user generates a CSR (with tools such as `PKCS10Client` or `CRMFPopClient`) and sends to a CA agent for approval.  This is no different than the *Obtaining System/Server Certificates* case above.  Please see the section for information.
+
+Upon receiving the CSR (PKCS#10 or CRMF), CA agent runs `CMCRequest` tool to generate a CMC request, then `HttpClient` to submit the request.
+
+When certificate is issued successfully, user can import the certificate into the token where the initial keys were generated for the CSR.
+
+==== Example ====
+
+See Agent-Signed CMC Requests Example.
+
+=== Authenticating for Certificate Enrollment with a Shared Secret ===
+
+In the case when user-initiated enrollment is desired (e.g. in case when agent pre-approval is not practical), getting the first user signing certificate should be the first step for such automation for the reason that once the first signing cert is obtained, it can be used to sign other certificates for the same user.
+
+In this scenario, the CMC Shared Secret mechanism could be employed to carry out the Proof of Origin.
+The workflow would be like the following:
+
+* Generating a shared token (`man CMCSharedToken`)
+** this could be done either by the user (preferred) or by the CA administrator
+*** If done by the user, then the token generated from `CMCSharedToken` needs to be snet to the CA administrator
+*** Note: the `token` generated from `CMCSharedToken` is encrypted; Only the user who generates the token knows the actual `secret` or `passphrase`. Therefore this method is more secure.
+*** If done by the administrator, then the shared secret (the actual `secret` or `passphrase`) needs to be distributed to the intended user
+**** extra caution will need to be taken so that the shared secret is not disclosed (how distribution is done is outside the scope of this software)
+*** The user is not the only person that knows about the `secret` or `passphrase` in this scenario.
+* Storing the shared token into user's LDAP record
+** Once the CA administrator has the encrypted shared token, instruction should be followed to enter the value into the user's LDAP record.
+* User follows instruction for using shared secret to obtain his/her first signing certificate.
+* Other Useful Information
+** Since Shared Token is required, the following `CMCRequest` configuration parameters are required:
+*** `identification[.enable]`
+*** `witness.sharedSecret`
+*** `identityProofV2.[enable, hashAlg, macAlg]`
+*** `request.selfSign`
+*** `request.privKeyId`
+** Optionally, if required by the CA, the following `CMCRequest` configuration parameters could be used
+*** `popLinkWitnessV2.[enable, keyGenAlg, macAlg]`
+
+==== Examples ====
+
+Note: setup procedure is needed before the Shared Secret feature can be exercised.
+
+* setup procedure: link:https://www.dogtagpki.org/wiki/PKI_10.5_CMC_Shared_Token#Adding_SharedToken_Authentication_Plugin[CMC Shared Token - Adding SharedToken Authentication Plugin]
+* example: link:https://www.dogtagpki.org/wiki/PKI_10.5_CMC_Shared_Token#Examples[CMC Shared Token - Examples]
+
+== Obtaining User Encryption-only Certificate ==
+
+If a user is expected to possess multiple certificates with different usages, where one being signing, then signing certificate should be obtained via the procedure documented in *Obtaining First User Signing Certificate* section above.  This is so that once a user owns a signing certificate, it can be used to achieve Proof Of Origin without the hassle of having to set up and rely on the CMC Shared Secret mechanism.
+
+The following is the workflow for getting an encryption-only certificate by *signing with an existing user signing certificate*.
+
+* User: make sure the signing cert/keys are in user crypto token (e.g. NSS database or smartcard)
+* User: generate PKCS#10 or CRMF requests (possibly depending on site policy on whether key archival is required)
+* User: generate CMC request
+** Since this is an encryption-only certificate, the private key would not be able to sign, hence POP will not be included;  This would cause EncryptedPOP/DecryptedPOP to happen (two trips).
+*** First trip:
+**** The following are the key first-trip `CMCRequest` configuration parameters (`man CMCRequest` for detail), aside from the basic paramsters:
+***** `identification[.enable]`
+***** `witness.sharedSecret`
+***** `identityProofV2.[enable, hashAlg, macAlg]`
+***** `popLinkWitnessV2.[enable, keyGenAlg, macAlg]`  (if required by CA)
+***** `request.privKeyId`
+**** Response will contain
+***** CMC encrypted POP control
+***** CMCStatusInfoV2 with "POP required" failInfo
+***** CMC ResponseInfo with requestID
+*** Second trip:
+**** The following are the key second-trip `CMCRequest` configuration parameters (`man CMCRequest` for detail), aside from the basic paramsters:
+***** `decryptedPop.enable`
+***** `encryptedPopResponseFile`
+***** `decryptedPopRequestFile`
+***** `request.privKeyId`
+
+=== Example ===
+
+See link:CMC-Examples---User-Signed-CMC-Request-without-POP[User-Signed CMC Request without POP].
+
+== Revocatoin ==
+
+Revocation can either be done in two ways:
+
+* User Signed
+* Shared Token based
+
+=== Revocation - User Signed ===
+
+==== Example ====
+
+See link:CMC-Examples---User-Signed-CMC-Revocation-Request[User-Signed CMC Revocation Request].
+
+=== Revocation - Shared Token based ===
+
+==== Example ====
+
+link:https://www.dogtagpki.org/wiki/PKI_10.5_CMC_Shared_Token#Example_Revocation_Procedure[CMC Shared Token - Example Revocation Procedure]
