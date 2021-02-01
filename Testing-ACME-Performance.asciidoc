@@ -1,0 +1,20 @@
+= Certificate Enrollment =
+
+Install and start a web server (e.g. NGINX):
+
+----
+$ dnf install nginx
+$ systemctl start nginx
+----
+
+Create the ACME challenge directory:
+
+----
+$ mkdir -p /usr/share/nginx/html/.well-known/acme-challenge
+----
+
+To run the certificate enrollment test:
+
+----
+$ python tests/dogtag/pytest-ansible/pytest/performance_test/test_acme_cert_enrollment.py
+----
