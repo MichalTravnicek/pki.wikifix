@@ -1,0 +1,25 @@
+= Overview =
+
+Currently most of the upstream PKI docs are residing at https://www.dogtagpki.org (a.k.a. the old wiki) which has some issues:
+
+* The infrastructure must be maintained manually (e.g. backup, upgrade).
+* The pages are written in MediaWiki format. The preferred format now is AsciiDoc.
+* The pages are not versioned to match the code (e.g. there is only one CLI page for all PKI versions) unless the page is manually split into separate versions (e.g. separate pages for PKI 10.5 CLI and PKI 10.6 CLI).
+
+GitHub provides a wiki space at https://github.com/dogtagpki/pki/wiki (a.k.a. the new wiki) which addresses some of the issues:
+
+* The infrastructure is maintained by GitHub.
+* GitHub wiki supports multiple formats including AsciiDoc, Markdown, and MediaWiki (although not completely identical to the old wiki)
+
+However, the pages are still not versioned to match the code. To address the last issue the pages should eventually be moved into the source repository at https://github.com/dogtagpki/pki/tree/master/docs. This way when the code is branched, the docs will also be branched as well. However, ideally pages that are added into the source repository should be considered a product documentation instead of wiki, so it should meet some standards:
+
+* The content should be more formal. For example, don't use "I". Avoid using "you" if possible.
+* The document should use AciiDoc format.
+* The document should be nicely formatted (e.g. don't use bullet list excessively).
+* The document should be consistent (e.g. use `$` for all command prompts).
+* The document should be organized into:
+** Install Guide: for people who install the package and create the server instances.
+** Administration Guide: for people who have full access to the server machine and configuration.
+** User Guide: for people who only can only access the server via web interface (no direct access to the machine).
+** Programming Guide: for people who writes code to access PKI web services or PKI programming API.
+** Development Guide: for people who develop PKI.
