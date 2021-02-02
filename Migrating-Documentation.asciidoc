@@ -24,9 +24,9 @@ However, the pages are still not versioned to match the code. To address the las
 ** Programming Guide: for people who write code using PKI web services or PKI programming API.
 ** Development Guide: for people who develop PKI.
 
-= Migration Procedure =
+= Migrating a Page from Old Wiki to New Wiki =
 
-== Adding a New Page ==
+== Adding the New Page ==
 
 * Select a page in the old wiki to migrate.
 * Click *edit* at the bottom of the page.
@@ -34,7 +34,7 @@ However, the pages are still not versioned to match the code. To address the las
 * Enter a title for the new page. It doesn't have to be the same as the old page. Simplify the title if possible.
 * Copy and paste the content of the old page into the new page. Change the *Edit mode* to *MediaWiki*.
 * Optionally, convert the content into AsciiDoc, and change the *Edit mode* to *AsciiDoc*.
-* Fix the links if necessary.
+* Fix the links/images if necessary.
 * Click *Preview* to verify that the content is correctly rendered. Compare with the old page.
 * Click *Save Page*.
 
@@ -63,3 +63,23 @@ This page has been moved into <URL>.
 ----
 [<URL> <link description>]
 ----
+
+= Migrating a Page from New Wiki to Source Repository =
+
+* Select a page in the new wiki to migrate.
+* Create a file with `.adoc` extension.
+* Copy the content into the file.
+* Fix the content/links/images if necessary.
+* Add links in existing pages to the new page if necessary.
+* Commit the changes into a local branch.
+* Push the branch into personal PKI repository fork.
+* Verify that the page is rendered correctly.
+* Create a pull request.
+* Review the pull request.
+* Merge the pull request.
+* Get the URL of the new page.
+* Change the page in the new wiki into:
+----
+This page has been moved into <URL>.
+----
+* Change all links to the page in the new wiki into to the new URL.
