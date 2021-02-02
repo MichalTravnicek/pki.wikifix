@@ -38,16 +38,6 @@ However, the pages are still not versioned to match the code. To address the las
 * Click *Preview* to verify that the content is correctly rendered. Compare with the old page.
 * Click *Save Page*.
 
-== Linking the New Page ==
-
-* Find an existing page in the new wiki to add a link to the new page.
-* Edit that page and add a link to the new page. See other links in that page as an example. In AsciiDoc format the link will look like this:
-----
-link:<page-ID>[<link description>]
-----
-* The `<page-ID>` should be just the last part of the URL of the new page. Don't put the whole URL in the link.
-* Click *Save Page* then click the link to verify it.
-
 == Updating the Old Page ==
 
 * Copy the URL of the new page. Change the old page into:
@@ -63,6 +53,16 @@ This page has been moved into <URL>.
 ----
 [<URL> <link description>]
 ----
+
+== Adding New Links ==
+
+* Find an existing page in the new wiki to link to the new page such that the new page can be found from the new wiki front page.
+* Edit that page and add a link to the new page. See other links in that page as an example. In AsciiDoc format the link will look like this:
+----
+link:<page-ID>[<link description>]
+----
+* The `<page-ID>` should be just the last part of the URL of the new page. Don't put the whole URL in the link.
+* Click *Save Page* then click the link to verify it.
 
 = Migrating a Page from New Wiki to Source Repository =
 
