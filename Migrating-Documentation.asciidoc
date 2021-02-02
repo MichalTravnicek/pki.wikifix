@@ -21,5 +21,43 @@ However, the pages are still not versioned to match the code. To address the las
 ** Install Guide: for people who install the package and create the server instances.
 ** Administration Guide: for people who have full access to the server machine and configuration.
 ** User Guide: for people who only can only access the server via web interface (no direct access to the machine).
-** Programming Guide: for people who writes code to access PKI web services or PKI programming API.
+** Programming Guide: for people who write code using PKI web services or PKI programming API.
 ** Development Guide: for people who develop PKI.
+
+= Migration Procedure =
+
+== Adding a New Page ==
+
+* Select a page in the old wiki to migrate.
+* Click *edit* at the bottom of the page.
+* Enter a title for the new page. It doesn't have to be exactly the same as the old page. Simplify the title if possible.
+* Copy and paste the old page into the new page. Change the *Edit mode* to *MediaWiki*.
+* Optionally, convert the content into AsciiDoc, and change the *Edit mode* to *AsciiDoc*.
+* Click *Preview* to verify that the content is correctly displayed. Compare with the old page.
+* Click *Save Page*.
+
+== Linking the New Page ==
+
+* Find an existing page in the new wiki to add a link to the new page.
+* Edit that page and add a link to the new page. See other links in that page as an example. In AsciiDoc format the link will look like this:
+----
+link:<page-ID>[<link description>]
+----
+* The `<page-ID>` should be just the last part of the URL of the new page. Don't put the whole URL in the link.
+* Click *Save Page* then click the link to verify it.
+
+== Updating the Old Page ==
+
+* Copy the URL of the new page. Change the old page into:
+----
+This page has been moved into <URL>.
+----
+* Click *Save page*
+
+== Updating Old Links ==
+
+* Click *What links here* in the old page.
+* Replace all links to the old page in the old wiki with the following:
+----
+[<URL> <link description>]
+----
