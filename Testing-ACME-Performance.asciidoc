@@ -16,5 +16,10 @@ $ mkdir -p /usr/share/nginx/html/.well-known/acme-challenge
 To run the certificate enrollment test:
 
 ----
-$ python tests/dogtag/pytest-ansible/pytest/performance_test/test_acme_cert_enrollment.py
+$ python tests/dogtag/pytest-ansible/pytest/performance_test/test_acme_cert_enrollment.py \
+    --domain $HOSTNAME \
+    --acme-dir /usr/share/nginx/html/.well-known/acme-challenge \
+    --directory-url http://$HOSTNAME:8080/acme/directory \
+    --number-of-threads 1 \
+    --number-of-tests-per-thread 1
 ----
