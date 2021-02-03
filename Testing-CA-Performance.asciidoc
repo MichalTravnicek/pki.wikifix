@@ -6,14 +6,7 @@ Export the CA signing certificate:
 $ pki-server cert-export ca_signing --cert-file ca_signing.crt
 ----
 
-Install the CA signing certificate:
-
-----
-$ cp ca_signing.crt /etc/pki/ca-trust/source/anchors
-$ update-ca-trust
-----
-
-Export the CA admin's certificate and key into a PEM file:
+Export the CA admin's certificate and key:
 
 ----
 $ openssl pkcs12 \
@@ -29,6 +22,7 @@ To run certificate enrollment test:
 $ python tests/dogtag/pytest-ansible/pytest/performance_test/test_cert_enrollment.py \
     --hostname $HOSTNAME \
     --port 8443 \
+    --ca-cert-path ca_signing.crt \
     --client-cert caadmin.pem \
     --number-of-clients 1 \
     --number-of-tests-per-client 1
