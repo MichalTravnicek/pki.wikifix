@@ -1,21 +1,33 @@
 = Certificate Enrollment =
 
-Export the CA admin's certificate and key into a PEM file:
+To export the CA signing certificate:
 
 ----
-$ echo Secret.123 > password.txt
+$ pki-server cert-export ca_signing --cert-file ca_signing.crt
+----
+
+To install the CA signing certificate:
+
+----
+$ cp ca_signing.crt /etc/pki/ca-trust/source/anchors
+$ update-ca-trust
+----
+
+To export the CA admin's certificate and key into a PEM file:
+
+----
 $ openssl pkcs12 \
-    -in ~/.dogtag/pki-tomcat/ca_admin_cert.p12 \
-    -passin file:password.txt \
+    -in $HOME/.dogtag/pki-tomcat/ca_admin_cert.p12 \
+    -passin file:$HOME/.dogtag/pki-tomcat/ca/pkcs12_password.conf \
     -out caadmin.pem \
     -nodes
 ----
 
-To run the enrollment test:
+To run certificate enrollment test:
 
 ----
 $ python tests/dogtag/pytest-ansible/pytest/performance_test/test_cert_enrollment.py \
-    --hostname localhost \
+    --hostname $HOSTNAME \
     --port 8443 \
     --client-cert caadmin.pem \
     --number-of-clients 1 \
