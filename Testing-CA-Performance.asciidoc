@@ -1,19 +1,19 @@
 = Certificate Enrollment =
 
-To export the CA signing certificate:
+Export the CA signing certificate:
 
 ----
 $ pki-server cert-export ca_signing --cert-file ca_signing.crt
 ----
 
-To install the CA signing certificate:
+Install the CA signing certificate:
 
 ----
 $ cp ca_signing.crt /etc/pki/ca-trust/source/anchors
 $ update-ca-trust
 ----
 
-To export the CA admin's certificate and key into a PEM file:
+Export the CA admin's certificate and key into a PEM file:
 
 ----
 $ openssl pkcs12 \
