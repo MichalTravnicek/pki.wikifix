@@ -1,0 +1,120 @@
+= Introduction =
+
+Ok, so I think the correct way to move forward on this is to use the same subsystem certificate in each subsystem in a shared instance.
+
+Before explaining how this will work, let me explain how we currently use subsystem certs.
+Subsystem certs are currently used in two ways:
+
+* They are used as authentication when one PKI subsystem talks to another.  This is for system -> system communications like the CA talking to the KRA through the KRA connector, or the TPS talking to the CA, TKS or KRA.
+* They are used to authenticate the `pkidbuser`, which is created at server configuration and can be used to communicate securely with a LDAP database using client auth. This is actually used by IPA.
+
+The exact details of what happens during configuration is as follows:
+
+* A subsystem certificate is generated for each subsystem.
+* When needed, a user is created on the target subsystem to facilitate inter-subsystem communications. So, for example, when the KRA is configured, a user is created on the KRA (i.e. `uid=CA-<hostname>-<port>,ou=people,<KRA base DN>`), which contains the CA subsystem certificate.  The CA presents this certificate when initiating communication with the KRA.
+* A user is created to communicate with the database.  This user `uid=pkidbuser,ou=people,<base DN>` contains the subsystem cert and also has an attribute `seeAlso`, which contains the subject DN of the certificate.  This attribute is important.  When the database is configured, it is expected that `certmap.conf` will be configured to check this attribute when matching the cert presented by the client.
+
+The ticket describes the problems that occur when Tomcat instances/databases are shared.
+
+The basic outline of the proposed solution is as follows:
+
+* When a new subsystem is created, a system user will be created using the subsystem cert.
+* If the subsystems share a Tomcat instance, then they will use the same subsystem certificate.
+* If the subsystems share the same Tomcat instance and share the same database, then only one user will have the `seeAlso` attribute.
+
+The details are in the cases below:
+
+= Case 1: Shared Tomcat Instance and Shared Database =
+
+This is what we decided would be the default case.  For sake of illustration, I will consider the installation of a CA and KRA, although this is extensible to the TPS interactions as well.
+
+* The CA is configured.  A system user is created `uid=pkiSystemUser,ou=people,<CA base DN>` with the CA subsystem certificate and the `seeAlso` attribute.  This user can be used to communicate with the database.
+
+* The KRA is configured.  In the configuration we specify:
+** `shared_tomcat_instance=true`
+** `shared_db=True`
+** `subsystem_cert_subject_dn=<CA subsystem cert subject dn>`
+** `subsystem_cert_nick=<ca subsystem cert nick>`
+** uid of CA dbuser -> `uid=pkiSystemUser,ou=people,<CA base DN>`
+* During KRA configuration,
+** A new subsystem cert is not created, instead the nicks/entries in CS.cfg are obtained from the provided `subsystem_nick`
+** We create a new user `uid=pkiSystemUser,ou=people,<KRA base DN>` with the provided subsystem cert retrieved from the specified nick.
+** This user is placed in the relevant agent groups.  In the case of the CA -> KRA, this must be a KRA agent group.
+** The new user does *not* have the `seeAlso` attribute.  Because the database is shared, we expect that the database will resolve the CA dbuser when the subsystem cert is presented.  We will ensure that the CA dbuser has the relevant acls to read the KRA entries.
+ 
+= Case 2: Shared Tomcat Instance and Non-Shared Database =
+
+* The CA is configured.  A system user is created `uid=pkiSystemUser,ou=people,<CA base DN>` with the CA subsystem certificate and the `seeAlso` attribute.  This user can be used to communicate with the database.
+* The KRA is configured.  In the configuration we specify:
+** `shared_tomcat_instance=true`
+** `shared_db=False`
+** `subsystem_cert_subject_dn=<ca subsystem cert subject dn>`
+** `subsystem_cert_nick=<ca subsystem cert nick>`
+* During KRA configuration,
+** A new subsystem cert is not created, instead the nicks/entries in CS.cfg are obtained from the provided `subsystem_nick`
+** We create a new user uid=pkiSystemUser, ou=people, o=<KRA base DN> with the provided subsystem cert retrieved from the specified nick.
+** This user is placed in the relevant agent groups.  In the case of the CA -> KRA, this must be a KRA agent group.
+** The new user *does* have the `seeAlso` attribute and relevant acls.  Because the database is not shared, we expect no complications when the subsystem contacts the database.
+
+= Case 3: Non-Shared Tomcat Instance =
+
+In this case, we expect the existing code to work just fine.  Because the Tomcat instance is not shared, there is no problem with SSL caching, and we do not share subsystem certs.
+
+* The CA is configured.  A system user is created `uid=pkiSystemUser,ou=people,o=<CA base DN>` with the CA subsystem certificate and the `seeAlso` attribute.  This user can be used to communicate with the database.
+* The KRA is configured.  In the configuration we specify:
+** `shared_tomcat_instance=False`
+** `shared_db=False`
+* During KRA configuration,
+** A new subsystem cert is created - and all config entries are updated as we currently do.
+** A new user `uid=CA-<hostname>-<port>`,ou=people,<kra basedb>` is created with the CA subsystem cert and put in the relevant agent groups.  This is exactly the same as existing code.
+** We create a new user `uid=pkiSystemUser,ou=people,<KRA base DN>` with the new subsystem nick and `seeAlso` attribute. This user is used to communicate with the database.  This is identical to existing code, except that the user name has been changed from `pkidbuser` to `pkiSystemUser`.
+
+= TPS Interactions =
+
+It is worth also discussing how this will work with the TPS.  Things are a little different than the CA - >KRA setup because the CA initiates contact with the KRA.
+
+In the TPS case, because the TPS initiates connections with the CA, KRA and TKS, the TPS configuration code must call a servlet (`registerUser`) on each of those subsystems to create a user.
+
+The TPS communicates with the CA, KRA and TKS in essentially the same way.  I will describe the setup of the TPS -> CA connection.
+
+== Case 1: Shared Tomcat Instance, Shared Database ==
+
+* The CA is configured. A system user is created `uid=pkiSystemUser,ou=people,<CA base DN>` with the CA subsystem certificate and the `seeAlso` attribute. This user can be used to communicate with the database.
+* The TPS is configured. In the configuration we specify:
+** `shared_tomcat_instance=True`
+** `shared_db=True`
+** `subsystem_cert_subject_dn=<ca subsystem cert subject dn>`
+** `subsystem_cert_nick=<ca subsystem cert nick>`
+** uid of CA dbuser -> `uid=pkiSystemUser,ou=people,<CA base DN>`
+* During TPS configuration,
+** A new subsystem cert is not created, instead the nicks/entries in CS.cfg are obtained from the provided `subsystem_nick`
+** We call `registerUser` on the CA and provide a new query parameter: `generateUser=False`.  As before, we pass in the subsystem cert.
+** On the CA, the relevant system user is looked up from the cert, and is added to the relevant agent groups.
+** We create a new user `uid=pkiSystemUser,ou=people,<TPS base DN>` with the provided subsystem cert retrieved from the specified nick.  At this point, this user isn't actually used for anything, but is there in case we ever need to initiate communications with the TPS.
+** The new user does not have the `seeAlso` attribute. Because the daetabase is shared, we expect that the database will resolve the CA dbuser when the subsystem cert is presented. We will ensure that the CA dbuser has the relevant ACLs to read the TPS entries.
+
+== Case 2: Shared Tomcat Instance, Non-Shared Database ==
+
+* The CA is configured. A system user is created `uid=pkiSystemUser,ou=people,<CA base DN>` with the CA subsystem certificate and the `seeAlso` attribute. This user can be used to communicate with the database.
+* The TPS is configured. In the configuration we specify:
+** `shared_tomcat_instance=True`
+** `shared_db=False`
+** `subsystem_cert_subject_dn=<ca subsystem cert subject dn>`
+** `subsystem_cert_nick=<ca subsystem cert nick>`
+* During TPS configuration,
+** A new subsystem cert is not created, instead the nicks/entries in CS.cfg are obtained from the provided subsystem_nick
+** We call `registerUser` on the CA and provide a new query parameter: `generateUser=False`.  As before, we pass in the subsystem cert.
+** On the CA, the relevant system user is looked up from the cert, and is added to the relevant agent groups.
+** We create a new user `uid=pkiSystemUser,ou=people,<TPS base DN>` with the provided subsystem cert retrieved from the specified nick.  This user *does* have the `seeAlso` attribute so that it can be used to communicate with the database.
+
+== Case 3: Non-Shared Tomcat Instance ==
+
+* The CA is configured. A system user is created `uid=pkiSystemUser,ou=people,<CA base DN>` with the CA subsystem certificate and the `seeAlso` attribute. This user can be used to communicate with the database.
+* The TPS is configured. In the configuration we specify:
+** `shared_tomcat_instance=False`
+** `shared_db=False`
+* During TPS configuration,
+** A new subsystem cert is created and the config is updated as normal.
+** We call `registerUser` on the CA and provide a new query parameter and pass in the subsystem cert.  We will default generateUser to the previous behavior with is True.
+** On the CA, the new system user is added (with its cert) and is added to the relevant agent groups.
+** We create a new user `uid=pkiSystemUser,ou=people,<TPS base DN>` with the provided subsystem cert retrieved from the specified nickname.  At this point, this user has the `seeAlso` attribute so it can be used to communicate with its database.
