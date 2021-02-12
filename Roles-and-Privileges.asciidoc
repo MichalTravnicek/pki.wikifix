@@ -1,0 +1,21 @@
+= Privileged User Roles =
+
+* Administrators: Users who can perform any administrative or configuration task for a subsystem. 
+* Agents: Users who perform PKI management tasks, like approving certificate requests, managing token enrollments, or recovering keys.
+* Auditors: Users who can view and configure audit logs.
+
+= Bootstrap User =
+
+Bootstrap user is special user automatically created at time of installation. This user possesses all role user privileges.
+
+= Trusted Managers =
+
+Trusted Managers is a special group used for inter-CS communication.
+
+** CA -> KRA
+** TPS -> CA, TPS -> TKS
+** An RA (Registration Authority) is an extension for the CA given to an external entity that handles its own authentication and can act on behalf of the users that it governs to submit requests to the CA
+
+= Non-Role Users/Entities =
+
+* EE: End-entity users who have no privileges in the realm of RHCS system.
