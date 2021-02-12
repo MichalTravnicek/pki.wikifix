@@ -1,0 +1,30 @@
+= Introduction =
+
+Enrollment processing in profile framework includes certificate publishing.
+Publishing to external directory over congested network slows down issuance (link:https://enterprise.redhat.com/issue-tracker/?module=issues&action=view&tid=189575[189575])
+and it can lead to situations in which multiple certificates are issued base on single certificate request (link:https://enterprise.redhat.com/issue-tracker/?module=issues&action=view&tid=325612[325612]).
+
+Temporary network congestion can be overcome by separating certificate publishing from the enrollment process.
+Request records have to be updated in the request queue to avoid issuing multiple certificates from single request and to enable before publishing queue.
+
+= Associated Bugs =
+
+== Issue Tracker ==
+
+* link:https://enterprise.redhat.com/issue-tracker/?module=issues&action=view&tid=325612[325612 - Incorrectly Issuing Multiple Certificates from Single Request]
+* link:https://enterprise.redhat.com/issue-tracker/?module=issues&action=view&tid=189575[189575 - Certificate issuance transaction time performance issue]
+
+== Bugzilla ==
+
+* link:https://bugzilla.redhat.com/show_bug.cgi?id=516632[Bug 516632 - CA can issue multiple certificates from single certificate request]
+* link:https://bugzilla.redhat.com/show_bug.cgi?id=539604[Bug 539604 - CA enrollment process depends on certificate publishing]
+* link:https://bugzilla.redhat.com/show_bug.cgi?id=453834[Bug 453834 - Certificate issuance transaction time performance issue]
+* link:https://bugzilla.redhat.com/show_bug.cgi?id=649343[Bug 649343 - Publishing queue should recover from CA crash]
+
+== Configuration ==
+
+See link:Configuring-Publishing-Queue[Configuring Publishing Queue].
+
+== Testing ==
+
+See link:Testing-Publishing-Queue[Testing Publishing Queue].
