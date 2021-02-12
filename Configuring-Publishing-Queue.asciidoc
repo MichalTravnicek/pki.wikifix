@@ -1,0 +1,26 @@
+= Enabling Publishing Queue =
+
+By default publishing queue is disabled.
+Publishing queue can be enabled by adding the following line to `CS.cfg` in `ca` section:
+
+----
+ca.publish.queue.enable=true
+----
+
+Enabled publishing queue assumes default parameters equivalent to following configuration:
+
+----
+ca.publish.queue.enable=true
+ca.publish.queue.maxNumberOfThreads=3
+ca.publish.queue.pageSize=40
+ca.publish.queue.priorityLevel=0
+ca.publish.queue.saveStatus=200
+----
+
+Publishing queue can be also enabled using `pkiconsole`:
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/publishing-queue.png[Publishing Queue]
+
+Publishing queue will be recovered on CA restart if `CS.cfg` contains `ca.publish.queue.saveStatus=N` for `N` > `0`.
+
+See link:https://bugzilla.redhat.com/show_bug.cgi?id=649343[Bug #649343] for more details.
