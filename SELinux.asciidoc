@@ -1,0 +1,236 @@
+= Overview =
+
+This is a non-expert's attempt at a quick overview of the main concepts.
+SELinux is concerned with securing all the _objects_ on the system.
+Objects are grouped into classes which include: files (e.g., block, character, links), directories, filesystems, sockets, network interfaces, and processes.
+These classes correspond to the Linux API, which is not a coincidence.
+
+To secure these objects, SELinux assigns a security context to each object.
+This is a triplet of three values: user, role, and type.
+The most important of these three is the type.
+I will only talk about that in this summary.
+
+SELinux then defines rules about what can be done with each type.
+The most important concept to grasp is that SELinux is concerned with what processes can do with each type.
+This is different from how we're used to thinking about things.
+With normal Unix security we're mostly concerned about who you are, but with SELinux you need to keep in mind that _you_ are not interacting with the objects in the computer, a _process_ is interacting with them.
+Even the command line shell is simply a process. SELinux is process focused.
+
+The rules define what a process with a certain type can do with objects on the system of certain types.
+You'll often hear the word domain in SELinux.
+A domain is nothing more than the type of a process.
+So to restate, a rule defines what a domain can do with objects of certain types on the system.
+These rules are called type enforcement rules or access vector rules.
+
+So, if you want your shell to be able to `ls` a directory, there needs to be a rule that allows the domain of your shell process _read_ access to the type of the directory object.
+Allowing your editor to write to a file also requires a rule allowing the domain of your editor process write access to the type of the file.
+Note that these SELinux rules are in addition to standard unix permissions.
+In a SELinux system, you will need `+w` permission in addition to SELinux type rules in order to write to a file.
+Also note that SELinux is a deny-by-default system.
+It assumes no permissions by default.
+All access needs to be granted, permission by permission.
+
+SELinux enhances many commands to allow you to see the types of everything.
+You can do this by adding a `-Z` flag to the command.
+The extra column displayed is the `user:role:type` of the security context.
+
+----
+[user@host]% ls -Z
+drwxr-xr-x  user group user_u:object_r:user_home_t      alias/
+-rw-r--r--  user group user_u:object_r:user_home_t      ant.xml
+drwxr-xr-x  user group user_u:object_r:user_home_t      apache/
+drwxr-xr-x  user group user_u:object_r:user_home_t      doc/
+drwxr-xr-x  user group user_u:object_r:user_home_t      emails/
+drwxr-xr-x  user group user_u:object_r:user_home_t      etc/
+drwxr-xr-x  user group user_u:object_r:user_home_t      forms/
+-rw-r--r--  user group user_u:object_r:user_home_t      fpki-ra.spec
+drwxr-xr-x  user group user_u:object_r:user_home_t      lib/
+-rw-r--r--  user group user_u:object_r:user_home_t      LICENSE
+drwxr-xr-x  user group user_u:object_r:user_home_t      logs/
+-rw-r--r--  user group user_u:object_r:user_home_t      product.xml
+drwxr-xr-x  user group user_u:object_r:user_home_t      scripts/
+drwxr-xr-x  user group user_u:object_r:user_home_t      setup/
+----
+
+----
+[user@host]% ps -Z
+LABEL                             PID TTY          TIME CMD
+user_u:system_r:unconfined_t    32084 pts/30   00:00:00 zsh
+user_u:system_r:unconfined_t    32124 pts/30   00:00:00 ps
+----
+
+----
+[user@host]% id -Z
+user_u:system_r:unconfined_t
+----
+
+The more domains and types on your system, the more rules you will need for things to work properly.
+SELinux therefore provides a couple modes you can run it in.
+Targeted mode has fewer types and domains.
+It also has a couple domains that have (almost) _carte blanche_ access.
+Most things (including your shell) run in those domains and thus SELinux stays out of your way.
+Strict mode has many domains and types and a lot of rules to go along with them.
+It also has no _carte blanche_ domains.
+
+The set of rules a system runs is called the policy.
+Strict and targeted mode are both policies.
+These policies are bundled up and loaded into the kernel during boot time.
+In RHEL4 the policy was a single large file.
+RHEL5 allows you to split the policy into pieces - a core file, and modules.
+The modules can even be loaded after the system is booted (or when an RPM is installed).
+
+= Domain Transitions =
+
+Files have their security context attached in the filesystem (using `xattrs` on `ext3`).
+This allows their types to remain sticky across reboots.
+But how do processes get the correct security context attached to them?
+This is accomplished by a domain transition.
+By default, when a process is `fork()`/`execve()`-ed from a parent process, the child process will inherit its same security context from the parent.
+Domain transition rules define certain situations where the child process is allowed to change to a different security context.
+
+The key point to understand is that a particular executable file is tagged as an entrypoint to a new domain.
+When that file is executed (`fork`/`execve`) the child process will be given a new security context (instead of inheriting the parent process' context).
+The type of the executable file is (by convention) labelled `xxx_exec_t`.
+The domain of the resulting process is usually labelled `xxx_t`.
+
+Granting a process a new domain is _giving it the keys to the front door_ for a particular set of policy rules.
+The new domain is what separates CA from `slapd` or `mysqld`.
+Therefore this transition is carefully controlled by SELinux.
+There are basically three checks that are done as a part of a domain transition:
+
+1. The parent process must be able to execute files with type `xxx_exec_t`
+2. The file with type `xxx_exec_t` must be given _entrypoint_ permission to the domain `xxx_t`. (Strangely SELinux grants this in the reverse direction: the domain `xxx_t` is given entrypoint permission to the file, but I find it confusing to think of that way)
+3. The parent process' domain must have permission to transition to the `xxx_t` domain.
+
+If any of these permissions aren't granted, the parent process will not be able to launch a child process in the new domain (it will simply inherit the parent process' domain).
+As a side note, there is also a fourth rule usually defined that allows the domain transition to happen automatically, but that's a usability issue not important to understand for now.
+
+This entrypoint file is important for how we write policies for our subsystems.
+Each subsystem will need one file specially tagged as the entrypoint file.
+The entrypoint file should be between the init script and the OS components we use (such as Java, Tomcat, or `httpd`).
+Once we pass through the entrypoint file, we will be able to run Java or `httpd` in our own domain, instead of one that was defined in the OS.
+
+= Design Decisions =
+
+== Number of domains ==
+
+Without a custom policy, Certificate Server (the Tomcat based components) by default _just work_ on RHEL5 when running in targeted mode.
+So the default choice would be to ship without a policy.
+This decision won't take advantage of any SELinux security benefits.
+
+The real decision is how many _partitions_ we want to make within our policy.
+We could provide a single domain that all Cert Server subsystems use.
+A single domain is easier to design and manage.
+However, this would not provide any protection between systems.
+It additionally doesn't account for differences between our subsystems.
+The domain would have to be granted the union of all privileges amongst our subsystems, which would grant each subsystem more than it needs.
+
+A better approach is to partition by subsystem: having an entrypoint and domain for CA, OCSP, TKS, DRM, RA, and TPS.
+This means we need to design and maintain 6 different policies, but provides the best protection.
+
+== Number of types ==
+
+The currently SELinux policies have interfaces that are designed around filesystem location/purpose: init scripts (`/etc/init.d`), conf files (`/etc/`), `/usr` files, `/var/lib` files, log files, and `/usr/bin` files.
+I recommend we similarly partition our files.
+They are already installed in this manner and keeping our types similar to the SELinux interfaces makes it easier for us.
+
+== Entrypoints ==
+
+The entrypoint for our Tomcat-based components is already well defined: the `/usr/bin/dtomcat5-pki-*` shell scripts.
+These scripts will be invoked by init, domain transition to the `pkixxx_t` domain and then launch Java (Tomcat) in that domain.
+
+We will need to create similar entrypoint scripts for TPS and RA.
+These will allow the subsystem to enter our own domain before launching Apache.
+In doing this, we will need to "take control" of that http process.
+Our policy will not allow them to run other CGI scripts or serve other content.
+The administrator will need to launch an entirely different instance of Apache to do things outside TPS/RA functionality.
+
+== Dynamic instances ==
+
+This is the trickiest aspect of dealing with the certificate server: our subsystem components are created post-install, and are highly configurable by the administrator.
+This runs against the grain of how SELinux is designed to be used.
+This issue needs to be discussed further to resolve.
+Currently there are several proposed solutions to the problem:
+
+_Force a directory/file prefix and broaden our labelling to use wildcards._
+What that means is that we would force instances to be under `/var/lib/pki-[name]` and define our labelling such that all `/var/lib/pki-*` are appropriately labelled as a PKI file type.
+Similarly under `/usr/bin`, `/etc`, `/var/lib`, etc.
+The problem is, while we can force installation in this manner, we can't prevent someone from creating a `/var/lib/pki-foo` directory that has nothing to do with the Cert Server.
+We could end up granting inappropriate permissions to files we know nothing about.
+
+_Create mini-roots for each part of the application._
+In this case, we could create `/var/lib/pki`, `/usr/bin/pki`, `/etc/pki`, `/var/log/pki` roots for each part of the application and require the instances to be installed in these mini-roots.
+An additional benefit is that files inherit the security context from their parent directory.
+Thus we might be able to get away with labelling the mini-roots when installed pki-common and need no further labelling.
+This approach doesn't provide flexibility to install the subsystems in a non-standard layout, however.
+
+_Have a policy-generator script._
+We could ship a template-based policy-generation script.
+Post-instance creation (or perhaps as a part of instance creation) the script would create and load a custom policy file.
+This provides the most flexibility, but there are a few tricky parts.
+The default interfaces provide calls centered around parts of the filesystem.
+We need to investigate what interface calls such as `files_usr_filetrans()` do if the files in question don't actually reside under usr.
+
+== Dynamic ports ==
+
+Regardless of how we deal with dynamic instances, we still need to deal with dynamic ports.
+Currently, the administrator can determine custom ports for each subsystem to run on.
+The policy creates a type for the ports, but the type is assigned to a port during policy installation by the `semanage` command.
+If a port isn't taken, we can assign our type to that port.
+If a port is already taken, we need to _ask permission_ to use the port.
+
+As a more concrete example, Apache defines a type `http_port_t` which is attached to tcp ports 80, 443, 488, 8008, 8009, 8443.
+If TPS wanted to use port 443 it would either have to steal the port from Apache (which would then cease to work) or call an Apache policy interface asking permission to use the port.
+This kind of thing may be tricky to put into our policy regardless of how we deal with dynamic instances.
+
+== Issues to Resolve ==
+
+There are several issues which make it more difficult than usual to create a policy for the Certificate Server.
+
+* _Our JRE may affect permissions we need._ So far I've been testing policy creation using IBM 1.5.0 JRE. It is still unknown how using a different JRE will affect policy. Different JRE's may behave slightly differently.
+* `pkicreate` _can put the parts of the application in completely non-standard locations._ In addition to being post-install generated, the `pkicreate` script can be further instructed to put the parts of the application wherever desired. This may not work well with our profile, and may not be able to be supported running under SELinux.
+* _How does the targeted policy and `unconfined_t` domain interact with our policy._ More investigation into what `unconfined_t` is, and how it works, is needed. It's supposed to _stay of your way_, but what does that mean with respect to securing the Cert Server?
+* _Stickyness of ports (and `semanage` labelled objects)._ Since port numbers are assigned by `semanage`, we need to understand what happens when a system is rebooted, or when the administrator switched between strict and targeted policy. What happens to objects labelled by `semanage` but not listed in the FC?
+
+= Current Policy Types/Domains =
+
+NOTE: This section needs to be updated when we implement the second draft of policy files.
+
+Working with Dan Walsh and the `system-config-selinux druid` has created an initial policy fileset for the CA.
+The current policy files are located here TBD.
+The main file of interest is the `.te` file.
+It defines the basic types and rules.
+
+The primary domain for the application is defined by `rhpki_t`.
+The file types are partitioned into `/usr`, `/etc`, `/var/lib`, `/var/log`, and `/var/run` type files.
+A type is also defined for the ports that will be used.
+
+The `rhpki.sh` is an example of the commands that would be run as part of RPM `postinstall`.
+Currently, the file shows `/var/lib/pki-ca` being labelled.
+We can either do this after the `postinstall` script is run (and only support SELinux for the default instance) or embed some of these commands in `pkicreate`.
+The `restorecon` relies on default labels in the policy itself as defined by the `.fc` file.
+
+The `semanage` command can also be used to directly label files.
+The problem with using `semanage` directly is that the policy itself doesn't know about these labels.
+When the machine is switched between different policies, it is relabelled on boot.
+The files not defined in the `.fc` file would get overwritten with a default type and the application stop working.
+The only way around this may be to create default top level directories to contain all instances: `/usr/bin/pki`, `/usr/share/java/pki`, `/usr/share/pki`, `/etc/pki`, `/var/log/pki`.
+
+= Status =
+
+With the policy files enabled the CA is able to start up and generate certificates.
+I've made a couple changes to the `init.d` script and spec files to comply with SELinux policy (system accounts shouldn't have a shell, and the PID file has to be manually assigned the right context), but it seems to be working.
+From here, we need to test more aspects of the CA and then the other components.
+
+= More Information =
+
+To explore the interfaces defined in selinux, install the `selinux-policy` package.
+Then point your browser to `file:///usr/share/doc/selinux-policy-2.4.6/html/index.html`
+
+The source code to the interfaces can be viewed by installing the `selinux-policy-devel` package.
+The interfaces can be found under `/usr/share/selinux/devel/include`.
+
+The full source code for a policy can be viewed using the src rpm for the policy.
+For example, unpack the `selinux-policy-targeted` src rpm.
+Inside will be a `serefpolicy-2.4.6` directory.
+From there, the `modules/*` directories contain all the `.te`, `.fc`, and `.if` files.
