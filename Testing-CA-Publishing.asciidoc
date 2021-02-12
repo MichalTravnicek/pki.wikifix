@@ -1,0 +1,82 @@
+= Testing CA Publishing =
+
+Install external directory on separate system or VM and emulate network congestion by use the following command:
+
+----
+$ tc qdisc add dev eth0 root netem delay 4000ms 1000ms 25% 
+----
+
+This causes the added delay to be 4000ms ± 1000ms with the next random element depending 25% on the last one.
+
+== Multiple Certificates Issued from Single Request ==
+
+* Enable LDAP publishing to external directory with configured delay.
+* Submit certificate request, which has to be approved by CA agent.
+* Open two agent pages with submitted certificate request.
+* Approve above certificate request simultaneously through both pages.
+
+== Publishing Queue ==
+
+* Enable LDAP publishing to external directory with configured delay.
+* Create LDAP entry for `UID=qqq,OU=People,DC=example,DC=com`
+
+----
+dn: uid=qqq,ou=People,dc=example,dc=com
+changetype: add
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetorgperson
+uid: qqq
+cn: qq qq
+sn: qq
+givenName: qq
+userPassword: password
+----
+
+* Make `caIPAserviceCert` profile visible
+* Add admin to *Registration Manager Agents* group.
+* Submit the following request using *IPA-RA Agent-Authenticated Server Certificate Enrollment* as long as required to see publishing queue working.
+
+----
+-----BEGIN NEW CERTIFICATE REQUEST-----
+MIICrTCCAZUCAQAwaDETMBEGCgmSJomT8ixkARkWA2NvbTEWMBQGCgmSJomT8ixk
+ARkWBnJlZGhhdDETMBEGCgmSJomT8ixkARkWA3NqYzEPMA0GA1UECxMGUGVvcGxl
+MRMwEQYKCZImiZPyLGQBARMDcXFxMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIB
+CgKCAQEAweukzCW9sC63xsKGP6ZMLwvfaIRgKFY3LFNyWVCg5PIm0A+tLzHZJSKe
+SQ+im0N2lX+Ny8+0MvovTGiKxSFpv4LS7ZDy3aeqck/ozcQSbU9NM1FYfePck8BF
+YyZBSdZDUASOD43q91lW4Mx+L2iBnn0Vj1726mtJO5dTBS4pdgjybTLXYKLOpOJS
+8Ve13kjzqYMOppd+nsrjc6JlOqy9uvRLmWbbP78pBqNYmecezw/mdo12Ktgc7EcY
+EkhqGvZDsKsJa32hfDB6VoA1Yvmjy/wF5wnHL4TQl+6S5FYkpv3u0BqkHStQfqnS
+6KdZGZ/ktcqsYkTAvRParO98PWqzjwIDAQABoAAwDQYJKoZIhvcNAQEFBQADggEB
+ACNy1S2JeU+DOy3PItrOIhbn47U/7pvLAfv8/HtmldjIf1u98bK3Pn36d5boj5j+
+zNhGdVl7C0al6UJT08lJn1OyQaUc8VqDkV7Yy9JGzZyQccWfe7dDVrHppMmzU2ok
+S91hcyOhWu9iUb04T4taVEvO6ulN/J/Ncp8xstoH85e4dm35crkS5dq+KsOyL6sP
+SeGaXx4J/rpwBWLE32F0Iks8lkoT9809X+EmtdIpSndbHjd4TkPJCqQixC0ZEjMn
+eBFsBYnryqzmGAt+d4rVnisU+QJoMWaM+Lu6qfTZCvP7HOCmaw06UngQSKNrGc/u
+zdl40huPFAeL8hrBScsaFhk=
+-----END NEW CERTIFICATE REQUEST----- 
+----
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/new-entry.png[New entry]
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/added-entry.png[Added entry]
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/added-certificate.png[Added certificate]
+
+== Publishing Queue Paging ==
+
+* Decrease page size to 9 and restart CA:
+
+----
+ca.publish.queue.enable=true
+ca.publish.queue.maxNumberOfThreads=3
+ca.publish.queue.priorityLevel=0
+ca.publish.queue.pageSize=9
+----
+
+* Follow the steps for *Publishing Queue* till the moment in which paging mechanism can be verified.
+
+= Future Improvements =
+
+Submitting request can be automated. This automation should improve speed in which this feature can be tested.
