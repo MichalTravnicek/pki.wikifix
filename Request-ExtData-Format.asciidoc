@@ -1,0 +1,36 @@
+= Overview =
+
+For a very long time, request entries in LDAP had a field called `requestAttrs`.
+This field contained a serialized Java `Hashtable`.
+The `Hashtable` contained assorted information that varied, depending on the kind of request made.
+Ten years ago, this didn't seem to be a bad idea, but gradually became a maintenance/upgrade nightmare.
+Not to mention all the data wasn't viewable outside the application by LDAP clients.
+
+ExtData, short for extended data, is a replacement for the serialized `Hashtable`.
+It stores string name/values in LDAP, breaking the tie to Java and allowing them to be queried via LDAP.
+
+= Storage in LDAP =
+
+ExtData allows key => value and (key + subkey) => value data to be stored in LDAP.
+Each key is stored in its own LDAP attribute, using the special `extensibleObject objectClass`. 
+This `objectClass` allows unconstrained attributes to be added to an entry.
+
+The keys are prefixed with `extdata-` to give them their own namespace.
+Subkeys are stored as an extended attribute.
+Thus all the ExtData attributes in an entry are of the format extdata-key;subkey => value.
+
+The `get`/`set` calls have been replaced with `getExtDataInXXX()` and `setExtData(XXX)` calls.
+Strings and string-like data is stored as a `String`.
+Arrays are stored using the subkey as a index.
+`Hashtable`s also use the subkeys.
+All other data is BER-encoded and then MIME-64 encoded.
+
+As an example, if you had an array `["jim", "bones", "spock"]` stored with the key `names`, it would be stored as:
+
+----
+extdata-names;0      "jim"
+extdata-names;1      "bones"
+extdata-names;2      "spock"
+----
+
+Note that the array can be retrieved as a `Hashtable`, and vice-versa if all the keys are numeric.
