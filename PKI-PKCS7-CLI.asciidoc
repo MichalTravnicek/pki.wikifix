@@ -1,4 +1,4 @@
-= Importing PKCS #7 File into NSS Database =
+= Importing Certificate Chain into NSS Database =
 
 To import a PKCS #7 file that contains a certificate chain without a corresponding key in the NSS database:
 
@@ -13,6 +13,22 @@ $ pki pkcs7-import --input-file test.p7b --trust-flags <trust flags> <nickname>
 ----
 
 *Availability:* since PKI 10.9
+
+= Exporting Certificate Chain from NSS Database =
+
+To export a certificate chain from NSS database to the console in PKCS #7 format:
+
+----
+$ pki pkcs7-export sslserver
+----
+
+To export a certificate chain from NSS database into a file in PKCS #7 format:
+
+----
+$ pki pkcs7-export sslserver --pkcs7 sslserver.p7b
+----
+
+*Availability:* since PKI 10.11
 
 = Listing Certificates in PKCS #7 File =
 
@@ -47,7 +63,7 @@ $ pki pkcs7-cert-import --pkcs7-file test.p7b --cert-file sslserver.crt --append
 
 = Exporting Certificates from PKCS #7 File =
 
-To export the certificates from a PKCS #7 file:
+To export the certificates from a PKCS #7 file into separate files:
 
 ----
 $ pki pkcs7-cert-export --pkcs7-file test.p7b --output-prefix test- --output-suffix .crt
