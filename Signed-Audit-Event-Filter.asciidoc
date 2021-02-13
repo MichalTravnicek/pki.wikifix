@@ -1,0 +1,78 @@
+= Overview =
+
+Since version 10.5 PKI provides a mechanism to define filters for audit events that will be logged in the audit log file.
+
+Each audit event contains a set of attributes (see link:Signed-Audit-Events[Signed Audit Events]). For example:
+
+* `SubjectID`
+* `Outcome`
+* `ReqID`
+
+An audit event filter is an assertion of the audit event attributes. One filter can be defined for each event type. Events that match the filter will be logged, and events that do not match will be discarded.
+
+The filter is defined in LDAP filter format. Supported filters are:
+
+|===
+| Type | Format | Example
+
+| Presence
+| `(<attribute>=*)`
+| `(ReqID=*)`
+
+| Equality
+| `(<attribute>=<value>)`
+| `(Outcome=Failure)`
+
+| Substring
+| `(<attribute>=<initial> * <any> * ... * <any> * <final>)`
+| `(SubjectID=* admin *)`
+
+| AND operation
+| `(&<filter 1><filter 2>...<filter N>)`
+| `(&(SubjectID=admin)(Outcome=Failure))`
+
+| OR operation
+| `(&#x7c;<filter 1><filter 2>...<filter N>)`
+| `(&#x7c;(SubjectID=admin)(Outcome=Failure))`
+
+| NOT operation
+| `(!<filter>)`
+| `(!(SubjectID=admin))`
+|===
+
+= Configuration =
+
+The audit event filter can be configured for each event in `/etc/pki/<instance>/<subsystem>/CS.cfg` as follows:
+
+----
+log.instance.SignedAudit.filters.<event>=<filter>
+----
+
+Restart the server to apply the filters.
+
+= Examples =
+
+For example, normally the server will generate the following logs:
+
+----
+[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Success][ReqID=7][CertSerialNum=7] certificate request succeeded
+[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Failure][ReqID=8][InfoName=rejectReason][InfoValue=<null>] certificate request processed
+[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Failure][ReqID=9][InfoName=cancelReason][InfoValue=<null>] certificate request processed
+----
+
+Suppose the following filter is added:
+
+----
+log.instance.SignedAudit.filters.CERT_REQUEST_PROCESSED=(|(InfoName=rejectReason)(InfoName=cancelReason))
+----
+
+The above filters indicate that only rejected or canceled `CERT_REQUEST_PROCESSED` events will be logged.
+
+With the above filters defined, the server will only generate the following logs:
+
+----
+[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Failure][ReqID=8][InfoName=rejectReason][InfoValue=<null>] certificate request processed
+[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Failure][ReqID=9][InfoName=cancelReason][InfoValue=<null>] certificate request processed
+----
+
+Note that the successful `CERT_REQUEST_PROCESSED` is no longer logged.
