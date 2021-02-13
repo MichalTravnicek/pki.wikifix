@@ -1,0 +1,99 @@
+= Overview =
+
+Signed audit logs can be verified using the following procedure.
+
+= Client-Side Verification =
+
+Audit log files can be verified by the auditors after downloading the files to the client.
+
+== Initializing PKI client ==
+
+Import CA certificate into PKI client:
+
+----
+$ pki client-cert-import "CA Signing Certificate" --ca-server
+---------------------------------------------
+Imported certificate "CA Signing Certificate"
+---------------------------------------------
+----
+
+Find the audit signing certificate for the subsystem logs to verify, for example:
+
+----
+$ pki ca-cert-find --name "CA Audit Signing Certificate"
+---------------
+1 entries found
+---------------
+  Serial Number: 0x5
+  Subject DN: CN=CA Audit Signing Certificate,O=EXAMPLE
+  Status: VALID
+  Type: X.509 version 3
+  Key Algorithm: PKCS #1 RSA with 2048-bit key
+  Not Valid Before: Fri Jul 08 03:56:08 CEST 2016
+  Not Valid After: Thu Jun 28 03:56:08 CEST 2018
+  Issued On: Fri Jul 08 03:56:08 CEST 2016
+  Issued By: system
+----------------------------
+Number of entries returned 1
+----------------------------
+----
+
+Import the audit signing certificate into PKI client:
+
+----
+$ pki client-cert-import "CA Audit Signing Certificate" --serial 0x5 --trust ",,P"
+---------------------------------------------------
+Imported certificate "CA Audit Signing Certificate"
+---------------------------------------------------
+----
+
+== Retrieving audit logs ==
+
+Use link:PKI-Audit-CLI[PKI Audit CLI] to download the audit logs.
+
+== Verifying audit logs ==
+
+Create a file containing a list of audit log files in chronological order, for example:
+
+----
+$ cat > audit.txt << EOF
+ca_audit.20170613052057
+ca_audit.20170613054359
+ca_audit
+EOF
+----
+
+Run the audit tool:
+
+----
+$ AuditVerify -d ~/.dogtag/nssdb -n "CA Audit Signing Certificate" -a audit.txt
+Verification process complete.
+Valid signatures: 10
+Invalid signatures: 0
+----
+
+Verification failures will be displayed as follows:
+
+----
+$ AuditVerify -d ~/.dogtag/nssdb -n "CA Audit Signing Certificate" -a audit.txt
+======
+File: /home/user/pki/ca_audit
+======
+Line 53: VERIFICATION FAILED: signature of /home/user/pki/ca_audit:1 to /home/user/pki/ca_audit:52
+
+Verification process complete.
+Valid signatures: 9
+Invalid signatures: 1
+----
+
+= Server-Side Verification =
+
+Audit log files can be verified by the admin directly on the server-side without downloading the files with the following command:
+
+----
+$ pki-server <subsystem>-audit-file-verify
+
+Verification process complete.
+Valid signatures: 10
+Invalid signatures: 0
+----
