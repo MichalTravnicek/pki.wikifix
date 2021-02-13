@@ -1,0 +1,78 @@
+= Enabling TPS Agent Approval =
+
+The following TPS components can be configured such that changes must be approved by TPS agent:
+
+* `Authentication_Sources`
+* `Subsystem_Connections`
+* `Profiles`
+* `Profile_Mappings`
+
+By default only profile changes must be approved by TPS agent.
+
+To configure other components to require TPS agent approval, specify the components in the following property in `/var/lib/pki/<instance>/tps/conf/CS.cfg`:
+
+----
+target.agent_approve.list=Authentication_Sources,Subsystem_Connections,Profiles,Profile_Mappings
+----
+
+Then update the link:TPS-ACL[TPS ACL] accordingly. For profile mappings:
+
+----
+$ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 <<EOF
+dn: cn=aclResources,dc=tps,dc=pki,dc=example,dc=com
+changetype: modify
+delete: resourceACLS
+resourceACLS: certServer.tps.profile-mappings:read,change-status,add,modify,remo
+ ve:allow (read,change-status,add,modify,remove) group="Administrators" :Only ad
+ mins can access profile mappings.
+-
+add: resourceACLS
+resourceACLS: certServer.tps.profile-mappings:read,change-status,add,modify,remo
+ ve:allow (read,change-status) group="Administrators" || group="TPS Agents";allo
+ w (add,modify,remove) group="Administrators":Admins and agents can read and cha
+ nge status, but only admins can add, modify, and remove.
+-
+EOF
+----
+
+For authenticators:
+
+----
+$ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 <<EOF
+dn: cn=aclResources,dc=tps,dc=pki,dc=example,dc=com
+changetype: modify
+delete: resourceACLS
+resourceACLS: certServer.tps.authenticators:read,change-status,add,modify,remove
+ :allow (read,change-status,add,modify,remove) group="Administrators":Only admin
+ s can access authenticators.
+-
+add: resourceACLS
+resourceACLS: certServer.tps.authenticators:read,change-status,add,modify,remove
+ :allow (read,change-status) group="Administrators" || group="TPS Agents";allow 
+ (add,modify,remove) group="Administrators":Admins and agents can read and chang
+ e status, but only admins can add, modify, and remove.
+-
+EOF
+----
+
+For connectors:
+
+----
+$ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 <<EOF
+dn: cn=aclResources,dc=tps,dc=pki,dc=example,dc=com
+changetype: modify
+delete: resourceACLS
+resourceACLS: certServer.tps.connectors:read,change-status,add,modify,remove:all
+ ow (read,change-status,add,modify,remove) group="Administrators":Only admins ca
+ n access connectors.
+-
+add: resourceACLS
+resourceACLS: certServer.tps.connectors:read,change-status,add,modify,remove:all
+ ow (read,change-status) group="Administrators" || group="TPS Agents";allow (add
+ ,modify,remove) group="Administrators":Admins and agents can read and change st
+ atus, but only admins can add, modify, and remove.
+-
+EOF
+----
+
+Finally, restart the server and reload the TPS UI.
