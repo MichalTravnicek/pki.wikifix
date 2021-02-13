@@ -1,24 +1,24 @@
 = Overview =
 
-TPS audit events can be configured in log.instance.SignedAudit.events property.
+TPS audit events can be configured in `log.instance.SignedAudit.events` property.
 
 Notes:
 
-* Each operation is preceded by a separate AUTHZ_* event
+* Each operation is preceded by a separate `AUTHZ_*` event
 * Authentication event only happens once initially at login
-* some operations with specific changes to fields within an object (e.g. profiles, authenticators) might produce larger quantity of data. Examples below are selected ones that produce less data.
-* "Service" or "OP" in general can be any of the services provided by the REST interface
+* Some operations with specific changes to fields within an object (e.g. profiles, authenticators) might produce larger quantity of data. Examples below are selected ones that produce less data.
+* `Service` or `OP` in general can be any of the services provided by the REST interface
 
 Event properties:
 
-* SubjectID: the subject user that triggers the audit event
-* Outcome: Success or Failure of the action that triggers the audit event
-* Service: in general, the name of the operation method where the audit event occurs
-* ParamNameValPairs: name/value pairs where
-** name and value are separated by the delimiter ";;"
-** if more than one "name;;value" pair,  separated by '+'
-** secret component (password) MUST NOT be logged
-* Info: in general is used for caturing error info for failed cases; In case of success, it is usually left as null.
+* `SubjectID`: the subject user that triggers the audit event
+* `Outcome`: Success or Failure of the action that triggers the audit event
+* `Service`: in general, the name of the operation method where the audit event occurs
+* `ParamNameValPairs`: name/value pairs where
+** `<name>` and `<value>` are separated by the delimiter `;;`
+** If more than one `<name>;;<value>` pair,  separated by `+`
+** Secret component (password) MUST NOT be logged
+* `Info`: in general is used for capturing error info for failed cases; In case of success, it is usually left as null.
 
 = Default Events =
 
@@ -118,7 +118,7 @@ token record configuration parameter(s) change
 
 This event is triggered when token processor op request made.
 
-* OP can be "format", "enroll", or "pinReset"
+* `OP` can be `format`, `enroll`, or `pinReset`
 
 ----
 [AuditEvent=TOKEN_OP_REQUEST][IP={0}][CUID={1}][MSN={2}][Outcome={3}][OP={4}][AppletVersion={5}] token processor op request made
@@ -168,12 +168,12 @@ This event is triggered when a token state has been changed.
 
 Properties:
 
-* CUID: card unique id
-* MSN: manufacturer serial number
-* TokenType: TPS profile name
-* Serial: serial number in decimal
-* CA_ID: CA id as defined in TPS CS.cfg
-* KRA_ID: KRA id as defined in TPS CS.cfg
+* `CUID`: card unique ID
+* `MSN`: manufacturer serial number
+* `TokenType`: TPS profile name
+* `Serial`: serial number in decimal
+* `CA_ID`: CA id as defined in TPS CS.cfg
+* `KRA_ID`: KRA id as defined in TPS CS.cfg
 
 == TOKEN_CERT_ENROLLMENT ==
 
@@ -203,9 +203,9 @@ This event is used for TPS when token certificate retrieval request is made.
 
 This event is used when a token certificate status change request (e.g. revocation) is made.
 
-* CUID must be the last token that the certificate was associated with
-* CertSerialNum must be the serial number (in decimal) of the certificate to be revoked
-* RequestType must be "revoke", "on-hold", "off-hold"
+* `CUID` must be the last token that the certificate was associated with
+* `CertSerialNum` must be the serial number (in decimal) of the certificate to be revoked
+* `RequestType` must be `revoke`, `on-hold`, `off-hold`
 
 ----
 [AuditEvent=TOKEN_CERT_STATUS_CHANGE_REQUEST][IP={0}][SubjectID={1}][CUID={2}][Outcome={3}][tokenType={4}][CertSerialNum={5}][RequestType={6}][RevokeReasonNum={7}][CA_ID={8}][Info={9}] token certificate revocation/unrevocation request made
@@ -269,9 +269,9 @@ This event is triggered when token key changeover failed.
 
 This event is triggered when authentication failed.
 
-* Outcome should always be "failure" in this event
-* when authentication failed, AttemptedID is logged instead of SubjectID, as in the event of TOKEN_AUTH_FAILURE
-* AuthMgr must be the authentication manager instance name that did this authentication
+* `Outcome` should always be `failure` in this event
+* When authentication failed, `AttemptedID` is logged instead of `SubjectID`, as in the event of `TOKEN_AUTH_FAILURE`
+* `AuthMgr` must be the authentication manager instance name that did this authentication
 
 ----
 [AuditEvent=TOKEN_AUTH_FAILURE][IP={0}][AttemptedID={1}][CUID={2}][MSN={3}][Outcome={4}][OP={5}][tokenType={6}][AppletVersion={7}][AuthMgr={8}] token authentication failure
@@ -281,8 +281,8 @@ This event is triggered when authentication failed.
 
 This event is triggered when authentication succeeded.
 
-* Outcome should always be "success" in this event
-* AuthMgr must be the authentication manager instance name that did this authentication
+* `Outcome` should always be `success` in this event
+* `AuthMgr` must be the authentication manager instance name that did this authentication
 
 ----
 [AuditEvent=TOKEN_AUTH_SUCCESS][IP={0}][SubjectID={1}][CUID={2}][MSN={3}][Outcome={4}][OP={5}][tokenType={6}][AppletVersion={7}][AuthMgr={8}] token authentication success
@@ -306,6 +306,29 @@ This event is triggered when authentication succeeded.
 [AuditEvent=TOKEN_AUTH_SUCCESS][IP=a.b.c.d][SubjectID=user1a][CUID=A10192030405018001C0][MSN=01%02%03%04%][Outcome=success][OP=enroll][tokenType=userKey][AppletVersion=0.0.6fbbc105][AuthMgr=ldap1] token authentication success
 [AuditEvent=TOKEN_APPLET_UPGRADE_SUCCESS][IP=a.b.c.d][SubjectID=user1a][CUID=A10192030405018001C0][MSN=01%02%03%04%][Outcome=success][KeyVersion=0101][oldAppletVersion=0.0.6fbbc105][newAppletVersion=1.4.54de790f][Info=null] token applet upgrade success
 [AuditEvent=TOKEN_CERT_ENROLLMENT][IP=a.b.c.d][SubjectID=user1a][CUID=A10192030405018001C0][Outcome=success][tokenType=userKey][KeyVersion=0101][Serial=131][CA_ID=ca1][Info=null] token certificate enrollment request made
+----
+
+== Token Find ==
+
+Execute the following command to search tokens:
+
+----
+$ pki -n caadmin tps-token-find
+----
+
+The command will generate the following logs:
+
+----
+[AuditEvent=AUTH_SUCCESS][SubjectID=tpsadmin][Outcome=Success][AuthMgr=certUserDBAuthMgr] authentication success
+[AuditEvent=AUTHZ_SUCCESS][SubjectID=tpsadmin][Outcome=Success][aclResource=certServer.tps.account][Op=login][Info=AccountResource.login] authorization success
+[AuditEvent=AUTHZ_SUCCESS][SubjectID=tpsadmin][Outcome=Success][aclResource=certServer.tps.tokens][Op=read][Info=TokenResource.findTokens] authorization success
+[AuditEvent=AUTHZ_SUCCESS][SubjectID=tpsadmin][Outcome=Success][aclResource=certServer.tps.account][Op=logout][Info=AccountResource.logout] authorization success
+----
+
+== Modifying Profile Mapping ==
+
+----
+[AuditEvent=AUTHZ_SUCCESS][SubjectID=tpsadmin][Outcome=Success][aclResource=certServer.tps.profile-mappings][Op=modify][Info=ProfileMappingResource.updateProfileMapping] authorization success
 ----
 
 == Pin Reset ==
