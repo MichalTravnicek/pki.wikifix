@@ -33,7 +33,9 @@ $ cp *.db saved
 * Create new request by running the following command
 
 ----
-$ PKCS10Client -d . -p <password> \
+$ PKCS10Client \
+    -d . \
+    -p <password> \
     -o req.txt \
     -n "CN=DRM Transport 2 Certificate,O=example.com Security Domain"
 ----
@@ -41,7 +43,9 @@ $ PKCS10Client -d . -p <password> \
 or
 
 ----
-$ certutil -R -d . -f <password-file> \
+$ certutil -R \
+    -d . \
+    -f <password-file> \
     -k rsa \
     -g 2048 \
     -s "CN=DRM Transport 2 Certificate,O=example.com Security Domain" \
@@ -117,7 +121,8 @@ $ systemctl stop pki-tomcatd@pki-tomcat.service
 * Import transport certificate into KRA's NSS database by:
 
 ----
-$ certutil -A -d . \
+$ certutil -A \
+    -d . \
     -n "transportCert-<serial-number> cert-pki-tomcat KRA" \
     -t "u,u,u" \
     -i cert-<serial-number>.txt \
