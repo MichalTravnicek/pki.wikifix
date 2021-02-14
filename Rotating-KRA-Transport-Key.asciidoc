@@ -1,0 +1,331 @@
+= KRA Transport Key and Certificate Generation =
+
+KRA transport key and certificate generation is part link:https://www.dogtagpki.org/wiki/DRM_Transport_Key_Rotation[KRA Transport Key Rotation] process.
+
+Here is the manual process for KRA transport certificate generation and KRA configuration update.
+
+== Request KRA Transport Certificate ==
+
+* Stop KRA
+
+----
+$ systemctl stop pki-tomcatd@pki-tomcat.service
+----
+
+* Go to KRA's NSS database directory
+
+----
+$ cd /etc/pki/pki-tomcat/alias
+----
+
+* Create subdirectory
+
+----
+$ mkdir saved
+----
+
+and save all NSS database files
+
+----
+$ cp *.db saved
+----
+
+* Create new request by running the following command
+
+----
+$ PKCS10Client -d . -p <password> \
+    -o req.txt \
+    -n "CN=DRM Transport 2 Certificate,O=example.com Security Domain"
+----
+
+or
+
+----
+$ certutil -R -d . -f <password-file> \
+    -k rsa \
+    -g 2048 \
+    -s "CN=DRM Transport 2 Certificate,O=example.com Security Domain" \
+    -o <transport-certificate-request-file> \
+    -a
+----
+
+* Start KRA
+
+----
+$ systemctl start pki-tomcatd@pki-tomcat.service
+----
+
+* Submit transport certificate request on *Manual Data Recovery Manager Transport Certificate Enrollment* page
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/Transport1.png[Submit transport certificate request]
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/Transport2.png[Submit transport certificate request]
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/Transport3.png[Submit transport certificate request]
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/Transport4.png[Submit transport certificate request]
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/Transport5.png[Submit transport certificate request]
+
+* Wait for agent approval of submitted request to retrieve certificate by checking request status on EE retrieval page
+
+== KRA Transport Certificate Approval ==
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/TransportApproval1.png[Approval of transport certificate request]
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/TransportApproval2.png[Approval of transport certificate request]
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/TransportApproval3.png[Approval of transport certificate request]
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/TransportApproval4.png[Approval of transport certificate request]
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/TransportApproval5.png[Approval of transport certificate request]
+
+== Retrieve KRA Transport Certificate ==
+
+* Go to KRA's NSS database directory
+
+----
+$ cd /etc/pki/pki-tomcat/alias
+----
+
+* Wait for agent approval of submitted request to retrieve certificate by checking request status on EE retrieval page
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/Transport6.png[Retrieve KRA Transport Certificate]
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/Transport7.png[Retrieve KRA Transport Certificate]
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/Transport8.png[Retrieve KRA Transport Certificate]
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/Transport9.png[Retrieve KRA Transport Certificate]
+
+* Once new KRA transport certificate certificate is available then paste its base64-encoded value into a text file `cert-<serial-number>.txt`. Do not include header `-----BEGIN CERTIFICATE-----` or footer `-----END CERTIFICATE-----`.
+
+=== Import KRA Transport Certificate ===
+
+* Go to KRA's NSS database directory
+
+----
+$ cd /etc/pki/pki-tomcat/alias
+----
+
+* Stop KRA
+----
+$ systemctl stop pki-tomcatd@pki-tomcat.service
+----
+
+* Import transport certificate into KRA's NSS database by:
+
+----
+$ certutil -A -d . \
+    -n "transportCert-<serial-number> cert-pki-tomcat KRA" \
+    -t "u,u,u" \
+    -i cert-<serial-number>.txt \
+    -a
+----
+
+=== Update KRA Transport Certificate Configuration ===
+
+* Go to KRA's NSS database directory
+
+----
+$ cd /etc/pki/pki-tomcat/alias
+----
+
+* Stop KRA
+
+----
+$ systemctl stop pki-tomcatd@pki-tomcat.service
+----
+
+* Verify if new KRA transport certificate is imported by running
+
+----
+$ certutil -L -d .
+----
+
+followed by
+
+----
+$ certutil -L -d . -n "transportCert-<serial-number> cert-pki-tomcat KRA"
+----
+
+* Edit `/var/lib/pki/pki-tomcat/kra/conf/CS.cfg` to add the following line:
+
+----
+kra.transportUnit.newNickName=transportCert-<serial-number> cert-pki-tomcat KRA
+----
+
+* Start KRA
+
+----
+$ systemctl start pki-tomcatd@pki-tomcat.service
+----
+
+===  Propagate New Transport Key and Certificate to KRA Clones  ===
+
+Here is how to transfer new transport key and certificate to KRA clone:
+
+* Go to KRA's NSS database directory
+
+----
+$ cd /etc/pki/pki-tomcat/alias
+----
+
+* Stop KRA
+
+----
+$ systemctl stop pki-tomcatd@pki-tomcat.service
+----
+
+* Verify if new KRA transport certificate is present by running
+
+----
+$ certutil -L -d .
+----
+
+followed by
+
+----
+$ certutil -L -d . -n "transportCert-<serial-number> cert-pki-tomcat KRA"
+----
+
+* Export KRA's new transport key and certificate by
+
+----
+$ pk12util -o transport.p12 -d . -n "transportCert-021 cert-pki-tomcat KRA"
+----
+
+* Verify exported KRA's transport key and certificate by
+
+----
+$ pk12util -l transport.p12
+----
+
+* Transport `transport.p12` file including transport key and certificate to KRA's clone location.
+* Go to clone's NSS database directory
+
+----
+$ cd /etc/pki/pki-tomcat/alias
+----
+
+* Stop KRA clone
+
+----
+$ systemctl stop pki-tomcatd@pki-tomcat.service
+----
+
+* Check content of clone's KRA database by running
+
+----
+$ certutil -L -d .
+----
+
+* Import clone's new transport key and certificate by
+
+----
+$ pk12util -i transport.p12 -d .
+----
+
+* Edit clone's configuration file `/var/lib/pki/pki-tomcat/kra/conf/CS.cfg` to add the following line:
+
+----
+kra.transportUnit.newNickName=transportCert-<serial-number> cert-pki-tomcat KRA
+----
+
+* Start KRA clone
+
+----
+$ systemctl start pki-tomcatd@pki-tomcat.service
+----
+
+=== Update KRA configuration to use only new transport key and certificate ===
+
+* Go to KRA's NSS database directory
+
+----
+$ cd /etc/pki/pki-tomcat/alias
+----
+
+* Stop KRA
+
+----
+$ systemctl stop pki-tomcatd@pki-tomcat.service
+----
+
+* Verify if new KRA transport certificate is imported by running
+
+----
+$ certutil -L -d .
+----
+
+followed by
+
+----
+$ certutil -L -d . -n "transportCert-<serial-number> cert-pki-tomcat KRA"
+----
+
+* Edit `/var/lib/pki/pki-tomcat/kra/conf/CS.cfg` by replacing nickName included in line
+
+----
+kra.transportUnit.nickName=transportCert cert-pki-tomcat KRA
+----
+
+with newNickName included in line
+
+----
+kra.transportUnit.newNickName=transportCert-<serial-number> cert-pki-tomcat KRA
+----
+
+to obtain
+
+----
+kra.transportUnit.nickName=transportCert-<serial-number> cert-pki-tomcat KRA
+----
+
+* Edit `/var/lib/pki/pki-tomcat/kra/conf/CS.cfg` by removing `newNickName` line
+
+----
+kra.transportUnit.newNickName=transportCert-<serial-number> cert-pki-tomcat KRA
+----
+
+* Save updated `/var/lib/pki/pki-tomcat/kra/conf/CS.cfg`
+* Start KRA
+
+----
+$ systemctl start pki-tomcatd@pki-tomcat.service
+----
+
+= CAs with New KRA Transport Certificates =
+
+== Update CA Configuration with new KRA Transport Certificate ==
+
+Here is how to update CA configuration with new KRA transport certificate:
+
+* Stop CA
+
+----
+$ systemctl stop pki-tomcatd@pki-tomcat.service
+----
+
+* Get the KRA transport certificate file `cert-<serial-number>.txt` obtained in link:https://fedorahosted.org/pki/ticket/734#comment:2[Ticket #734 comment #2]
+* Convert base64-encoded certificate included in `cert-<serial-number>.txt` to single line file by
+
+----
+$ tr -d '\n' < cert-<serial-number>.txt > cert-one-line-<serial-number>.txt
+----
+
+* Edit `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg` by replacing certificate included in line
+
+----
+ca.connector.KRA.transportCert=...
+----
+
+with certificate included in `cert-one-line-<serial-number>.txt`
+
+* Save updated `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg`
+* Start CA
+
+----
+$ systemctl start pki-tomcatd@pki-tomcat.service
+----
