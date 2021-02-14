@@ -1,0 +1,120 @@
+= Overview =
+
+It is a good security practice to rotate keys.
+In this case, key rotation support will be added for KRA transport keys.
+For this purpose, support for a second KRA transport key will be added.
+
+Here are link:https://fedorahosted.org/pki/ticket/129#comment:7[requirements] for KRA transport keys rotation provided by customers:
+
+* The requirement is to rotate KRA transport keys periodically.
+* KRAs and CAs have to have ability to work with multiple transport public/private key pairs simultaneously as big enterprise deployments cannot switch transport keys in a very small time window.
+* KRA transport key rotation has to be provided as graceful transition from old to new transport key without loss of client services. KRA has to be able to utilize simultaneously at least two transport keys.
+* Graceful transport key rotation has to be provided for KRAs using HSMs.
+
+= Associated Bugs and Tickets =
+
+link:https://fedorahosted.org/pki/ticket/129[Ticket 129] is the main ticket for KRA transport key rotation.
+Subtasks defined through th following tickets:
+
+* link:https://fedorahosted.org/pki/ticket/729[Ticket 729] - CA to include transport certificate when submitting archival request to KRA
+* link:https://fedorahosted.org/pki/ticket/730[Ticket 730] - KRA to detect presence of transport certificate attribute in submitted archival request and validate transport certificate against KRA's transport key list
+* link:https://fedorahosted.org/pki/ticket/731[Ticket 731] - KRA to provide handling for alternative transport key based on detected and validated transport certificate arriving as a part of extended archival request
+* link:https://fedorahosted.org/pki/ticket/732[Ticket 732] - requesting new transport certificate
+* link:https://fedorahosted.org/pki/ticket/733[Ticket 733] - obtaining issued certificate
+* link:https://fedorahosted.org/pki/ticket/734[Ticket 734] - importing of new transport certificate and keys to KRA's NSS database
+* link:https://fedorahosted.org/pki/ticket/735[Ticket 735] - updating of KRA configuration to reflect existence of new transport certificate and keys
+* link:https://fedorahosted.org/pki/ticket/736[Ticket 736] - propagation of new transport certificate and keys to KRA clones
+* link:https://fedorahosted.org/pki/ticket/737[Ticket 737] - replacement of the current transport certificate and keys during process of transfer of the new transport certificate and keys to become the current one.
+* link:https://fedorahosted.org/pki/ticket/738[Ticket 738] - propagation of new transport certificate to all CAs communicating with updated KRA (including CAs' clones)
+
+= Use Cases =
+
+To rotate KRA transport key you need to generate new transport key pair, submit certificate request, and retrieve new transport certificate. New transport key pair and certificate needs to be included in KRA's configuration to provide support for second transport key. Once KRA supports two transport keys, administrators can start transition CAs to new transport key. KRA support for the old transport key can be removed once all CAs are moved to the new transport key, 
+
+= Operating System Platforms and Architectures =
+
+This feature will be provided for Dogtag 10.1.
+
+= Design =
+
+Support for KRA transport key rotation, requires the following link:https://fedorahosted.org/pki/ticket/129#comment:9[main sub features]:
+
+* ability to distinguish KRA transport keys used in archival process in new KRA environment supporting dual transport keys
+* new process of KRA transport certificate generation
+* new process of KRA transport certificate propagation
+
+Due to time restrictions only the first subtask will be implemented. Other two subtasks are going to be provided as a set of manual procedures.
+
+== Adding Ability to Distinguish KRA Transport Keys ==
+
+There were few methods considered for adding ability to distinguish KRA transport keys used in archival process in new KRA environment supporting multiple transport keys. Considered methods included simple mapping, sequential decrypting of symmetric key, and and connector request extension. Mapping method was rejected as manual and therefore error prone method. Sequential decrypting of symmetric key was rejected as very expensive for RSA algorithms. Connector requests are designed to be extended so connector requests extension has been selected as the method providing backwards compatibility and performance. Transport certificate will be used to identify transport key used in archiving option and for that reason transport certificate will be transfered through CA-KRA connector.
+
+Providing link:https://fedorahosted.org/pki/ticket/129#comment:11[ability to distinguish KRA transport keys] used in archival process in new KRA environment supporting dual transport keys requires:
+
+* link:https://fedorahosted.org/pki/ticket/729[Ticket 729] - CA to include transport certificate when submitting archival request to KRA
+* link:https://fedorahosted.org/pki/ticket/730[Ticket 730] - KRA to detect presence of transport certificate attribute in submitted archival request and validate transport certificate against KRA's transport key list
+* link:https://fedorahosted.org/pki/ticket/731[Ticket 731] - KRA to provide handling for alternative transport key based on detected and validated transport certificate arriving as a part of extended archival request
+
+== Adding Process of KRA Transport Certificate Generation ==
+
+Due to time restrictions, process of KRA transport certificate generation will be provided as a link:Rotating-KRA-Transport-Key[set of manual procedures]:
+
+* link:https://fedorahosted.org/pki/ticket/732[Ticket 732] - link:https://fedorahosted.org/pki/ticket/732#comment:3[requesting new KRA transport certificate]
+* link:https://fedorahosted.org/pki/ticket/733[Ticket 733] - link:https://fedorahosted.org/pki/ticket/733#comment:3[retrieving new KRA transport certificate]
+* link:https://fedorahosted.org/pki/ticket/734[Ticket 734] - link:https://fedorahosted.org/pki/ticket/734#comment:2[importing of new transport certificate and keys to KRA's NSS database]
+* link:https://fedorahosted.org/pki/ticket/735[Ticket 735] - link:https://fedorahosted.org/pki/ticket/735#comment:3[updating of KRA configuration to reflect existence of new transport certificate and keys]
+* link:https://fedorahosted.org/pki/ticket/736[Ticket 736] - link:https://fedorahosted.org/pki/ticket/736#comment:2[propagation of new transport certificate and keys to KRA clones]
+
+== Adding Process of KRA Transport Certificate Propagation ==
+
+Due to time restrictions, process of KRA transport certificate propagation will be provided as a link:https://github.com/dogtagpki/pki/wiki/Rotating-KRA-Transport-Key[set of manual procedures]:
+
+* link:https://fedorahosted.org/pki/ticket/737[Ticket 737] - link:https://fedorahosted.org/pki/ticket/737#comment:2[replacement of the current transport certificate and keys during process of transfer of the new transport certificate and keys to become the current one]
+* link:https://fedorahosted.org/pki/ticket/738[Ticket 738] - link:https://fedorahosted.org/pki/ticket/738#comment:2[propagation of new transport certificate to all CAs communicating with updated KRA (including CAs' clones)]
+
+== Backward Compatibility ==
+
+* Old CAs with new KRA's will work because new KRA will use current transport key and fail if keys will not match.
+* Old KRA with new CA will work because KRA will use current transport key and fail if keys will not match.
+
+= Implementation =
+
+TBD
+
+= Major configuration options and enablement =
+
+TBD
+
+= Cloning =
+
+Configuration updates for cloning are part of manual procedures:
+
+* link:https://fedorahosted.org/pki/ticket/736[Ticket 736] - link:https://fedorahosted.org/pki/ticket/736#comment:2[propagation of new transport certificate and keys to KRA clones]
+* link:https://fedorahosted.org/pki/ticket/738[Ticket 738] - link:https://fedorahosted.org/pki/ticket/738#comment:2[propagation of new transport certificate to all CAs communicating with updated KRA (including CAs' clones)]
+
+= Updates and Upgrades =
+
+No impact on updates and upgrades.
+
+= Tests =
+
+Only manual procedures can be used for testing and they are listed in the design section.
+
+link:https://github.com/dogtagpki/pki/wiki/Rotating-KRA-Transport-Key[KRA Transport Key Rotation Procedures] are provided on a separate wiki page.
+
+= Dependencies =
+
+No new package and library dependencies.
+
+= Packages =
+
+pki-core-TBD
+
+= External Impact =
+
+No impact on other development teams and components.
+
+= History =
+
+* *ORIGINAL DESIGN DATE:* September 11, 2013 
+* *Included manual procedures:* September 18, 2013
