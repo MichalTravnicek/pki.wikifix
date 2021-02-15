@@ -97,7 +97,7 @@ op=ra_format uid=testuser pwd=Secret.123 new_pin=Secret.123 num_threads=1 extens
 
 * The `uid` must match the user's uid attribute.
 * The `pwd` must match the user's userPassword attribute.
-* The `num_threads` can make the client spawn off many requests to the server at once.
+* The `num_threads` can be used to spawn off many requests at once.
 * The `extensions=tokenType=userKey` is used to force the server to use the `userKey` token profile type.
 
 == Enrollment Operation ==
@@ -106,7 +106,9 @@ op=ra_format uid=testuser pwd=Secret.123 new_pin=Secret.123 num_threads=1 extens
 op=ra_enroll uid=testuser pwd=Secret.123 new_pin=Secret.123 num_threads=1 extensions=tokenType=userKey
 ----
 
-* The `num_threads` can be used to spawn off many requests to the server at once.
+* The `uid` must match the user's uid attribute.
+* The `pwd` must match the user's userPassword attribute.
+* The `num_threads` can be used to spawn off many requests at once.
 * The `extensions=tokenType=userKey` is used to force the server to use the `userKey` token profile type.
 
 == PIN Reset ==
