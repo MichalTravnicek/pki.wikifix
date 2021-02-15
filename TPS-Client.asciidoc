@@ -55,24 +55,35 @@ Restart the TPS subsystem.
 
 == Setting Connection Parameters ==
 
+Specify the TPS server hostname:
+
 ----
-# Specify the TPS server hostname
 op=var_set name=ra_host value=tps.example.com
+----
 
-# Specify the TPS server non-ssl port.
+Specify the TPS server non-ssl port:
+
+----
 op=var_set name=ra_port value=8080
+----
 
-# Specify the TPS service path.
+Specify the TPS service path:
+
+----
 op=var_set name=ra_uri value=/tps/tps
 ----
 
 == Setting Token Parameters ==
 
-----
-# This is info that represents a virtual token, the cuid can be changed to simulate different tokens in other scripts.
-op=token_set cuid=40906145C76224192D2B msn=0120304 app_ver=6FBBC105 key_info=0101 major_ver=0 minor_ver=0
+This is info that represents a virtual token, the cuid can be changed to simulate different tokens in other scripts.
 
-# Secure channel info, don't change if TPS intance is using developer key set, otherwise this tool won't work.
+----
+op=token_set cuid=40906145C76224192D2B msn=0120304 app_ver=6FBBC105 key_info=0101 major_ver=0 minor_ver=0
+----
+
+Secure channel info, don't change if TPS intance is using developer key set, otherwise this tool won't work.
+
+----
 op=token_set auth_key=404142434445464748494a4b4c4d4e4f
 op=token_set mac_key=404142434445464748494a4b4c4d4e4f
 op=token_set kek_key=404142434445464748494a4b4c4d4e4f
@@ -80,26 +91,27 @@ op=token_set kek_key=404142434445464748494a4b4c4d4e4f
 
 == Format Operation ==
 
+----
+op=ra_format uid=testuser pwd=Secret.123 new_pin=Secret.123 num_threads=1 extensions=tokenType=userKey
+----
+
 * The `uid` must match the user's uid attribute.
 * The `pwd` must match the user's userPassword attribute.
 * The `num_threads` can make the client spawn off many requests to the server at once.
 * The `extensions=tokenType=userKey` is used to force the server to use the `userKey` token profile type.
 
-----
-op=ra_format uid=testuser pwd=Secret.123 new_pin=Secret.123 num_threads=1 extensions=tokenType=userKey
-----
-
 == Enrollment Operation ==
 
 ----
-# Operation, note the num_threads, this can make the client spawn off many requests to the server at once.
-# "extensions=tokenType=userKey, is used to force the server to use the "userKey" token profile type.
 op=ra_enroll uid=testuser pwd=Secret.123 new_pin=Secret.123 num_threads=1 extensions=tokenType=userKey
 ----
 
+* The `num_threads` can be used to spawn off many requests to the server at once.
+* The `extensions=tokenType=userKey` is used to force the server to use the `userKey` token profile type.
+
 == PIN Reset ==
 
-To reset token's PIN, the token must be in ACTIVE state.
+To reset token's PIN, the token must be in `ACTIVE` state.
 
 ----
 op=ra_reset_pin uid=testuser pwd=Secret.123 new_pin=Secret.123 num_threads=1
