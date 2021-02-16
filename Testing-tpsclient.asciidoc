@@ -8,7 +8,7 @@ The example below assumes PKI 10 utilizing a Tomcat7-based TKS instance stored u
 
 * Install a CA instance (e. g. `/var/lib/pki/pki-tomcat/ca`)
 
-* Optionally, install a DRM instance (e. g. `/var/lib/pki/pki-tomcat/kra`)
+* Optionally, install a KRA instance (e. g. `/var/lib/pki/pki-tomcat/kra`)
 
 * Install a TKS instance (e. g. `/var/lib/pki/pki-tomcat/tks`)
 
@@ -30,13 +30,13 @@ $ pkicontrol status tps pki-tps
 $ systemctl stop pki-tpsd@pki-tps
 ----
 
-* Shutdown the CA, optional DRM, and TKS instances:
+* Shutdown the CA, optional KRA, and TKS instances:
 
 ----
 $ systemctl stop pki-tomcatd@pki-tomcat.service
 ----
   
-NOTE: This example assumes that the CA instance and the optional DRM instance are all located inside a common PKI instance which contains the TKS (e.g. `/var/lib/pki/pki-tomcat`). If the deployment being used contains their CA instance and/or optional DRM instances in containers which are separate from the TKS, these too should be shutdown.
+NOTE: This example assumes that the CA instance and the optional KRA instance are all located inside a common PKI instance which contains the TKS (e.g. `/var/lib/pki/pki-tomcat`). If the deployment being used contains their CA instance and/or optional KRA instances in containers which are separate from the TKS, these too should be shutdown.
 
 * Shutdown the DS instance:
 
@@ -66,13 +66,13 @@ tps.list=0
 $ systemctl start dirsrv.target
 ----
 
-* Restart the CA, optional DRM, and TKS instances:
+* Restart the CA, optional KRA, and TKS instances:
 
 ----
 $ systemctl start pki-tomcatd@pki-tomcat.service
 ----
   
-NOTE: This example assumes that the CA instance and the optional DRM instance are all located inside a common PKI instance which contains the TKS (e.g. `/var/lib/pki/pki-tomcat`). If the deployment being used contains their CA instance and/or optional DRM instances in containers which are separate from the TKS, these too should be restarted.
+NOTE: This example assumes that the CA instance and the optional KRA instance are all located inside a common PKI instance which contains the TKS (e.g. `/var/lib/pki/pki-tomcat`). If the deployment being used contains their CA instance and/or optional KRA instances in containers which are separate from the TKS, these too should be restarted.
 
 * Restart the TPS instance:
 
