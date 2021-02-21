@@ -1,0 +1,523 @@
+= Introduction to Authentication Plugins =
+
+Authentication plugins are used to _verify a user's identity_ to a particular Public Key Infrastructure (PKI) Certificate System (CS) server instance.  This can be accomplished in numerous ways as detailed by the various out-of-the-box authentication plugin samples included in the PKI source code, or as described in detail in link:https://www.dogtagpki.org/wiki/PKI_Authentication_Plug-ins[Creating Authentication Plugin].
+
+An authentication plugin is generally the second type of plugin called during the life-cycle of a certificate request.  Although numerous different authentication plugins may exist, only one may be called during a particular certificate request.  The following diagram shows an authentication plugin's relative position within the scope of an entire PKI server instance:
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/authentication_plugin.gif[Dogtag PKI]
+
+Additional information about authentication plugins may be found in the corresponding link:http://pki.fedoraproject.org/pki/javadocs/dogtag_9/pki-common/index.html?com/netscape/certsrv/authentication/package-summary.html[com.netscape.certsrv.authentication] javadocs.
+
+= General Structure of Authentication Plugins =
+
+A typical authentication plugin resembles the following diagram:
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/authentication_class.gif[Dogtag PKI]
+
+Basic authentication plugins `implement` the link:http://pki.fedoraproject.org/pki/javadocs/dogtag_9/pki-common/index.html?com/netscape/certsrv/authentication/IAuthManager.html[com.netscape.certsrv.authentication.IAuthManager] interface,
+and the link:http://pki.fedoraproject.org/pki/javadocs/dogtag_9/pki-common/index.html?com/netscape/certsrv/base/IExtendedPluginInfo.html[com.netscape.certsrv.base.IExtendedPluginInfo] interface.
+Additionally, if an authentication plugin needs to interact with the *profiles* framework, it will also need to `implement` the link:http://pki.fedoraproject.org/pki/javadocs/dogtag_9/pki-common/index.html?com/netscape/certsrv/profile/IProfileAuthenticator.html[com.netscape.certsrv.profile.IProfileAuthenticator] interface.
+
+= Typical Internal Structure of Authentication Plugins =
+
+== Package Statement ==
+
+In order for an instance of the PKI server to locate a particular authentication plugin contained inside a subdirectory structure, an
+authentication plugin would need to include a single `package` statement.
+
+For example, if the authentication plugin had been placed in the directory structure `/var/lib/tomcat5/shared/classes/mydir/mysubdir`, the following statement would be required:
+
+----
+package mydir.mysubdir;
+----
+
+== Import statements ==
+
+Include any external classes that a particular authentication plugin is dependent upon.
+
+For example, most authentication plugins would typically include the following dependencies:
+
+----
+/* cert server imports */
+import com.netscape.certsrv.apps.*;
+import com.netscape.certsrv.authentication.*;
+import com.netscape.certsrv.base.IConfigStore;
+import com.netscape.certsrv.base.EBaseException;
+import com.netscape.certsrv.base.IExtendedPluginInfo;
+import com.netscape.certsrv.logging.ILogger;
+import com.netscape.cmsutil.util.Utils;
+
+/* cert server imports */
+/* (ONLY required if interaction with the profile framework is desired) */
+import com.netscape.certsrv.profile.*;
+import com.netscape.certsrv.property.*;
+import com.netscape.certsrv.request.*;
+
+/* java sdk imports */
+import java.io.*;
+import java.util.Enumeration;
+import java.util.Locale;
+import java.util.Properties;
+import java.util.Vector;
+----
+
+== Class definition ==
+
+An authentication plugin should `implement` the link:http://pki.fedoraproject.org/pki/javadocs/dogtag_9/pki-common/index.html?com/netscape/certsrv/authentication/IAuthManager.html[com.netscape.certsrv.authentication.IAuthManager] interface,
+or `extend` one of its class implementations.
+For example, the tutorial `implements` the link:http://pki.fedoraproject.org/pki/javadocs/dogtag_9/pki-common/index.html?com/netscape/certsrv/profile/IProfileAuthenticator.html[com.netscape.certsrv.profile.IProfileAuthenticator] interface,
+which itself actually `extends` the link:http://pki.fedoraproject.org/pki/javadocs/dogtag_9/pki-common/index.html?com/netscape/certsrv/authentication/IAuthManager.html[com.netscape.certsrv.authentication.IAuthManager] interface.
+Note that it is mandatory for an authentication manager to `implement` this interface *IF AND ONLY IF* the authentication manager must interact with the profile framework.
+Additionally, to provide help features, all authentication plugins should also `implement` the link:http://pki.fedoraproject.org/pki/javadocs/dogtag_9/pki-common/index.html?com/netscape/certsrv/base/IExtendedPluginInfo.html[com.netscape.certsrv.base.IExtendedPluginInfo] interface.
+
+If the authentication plugin requires interaction with the profiles framework:
+
+----
+public class <Authentication Plugin Class Name>
+implements IAuthManager, IExtendedPluginInfo, IProfileAuthenticator
+{
+    .
+    .
+    .
+}
+----
+
+== Default parameters ==
+
+Determine the parameters that would be required by all of a particular authentication plugin's default methods.
+
+For example, an authentication plugin may wish to keep track of how many times all instances of it have been referenced:
+
+----
+private static int reference_count = 0;
+----
+
+== IAuthManager parameters ==
+
+Determine the parameters that would be required by all of a particular authentication plugin's `IAuthManager` methods.
+
+Most authentication plugins require parameters for the configuration store, the plugin name, and the plugin instance name:
+
+----
+/* authentication plugin configuration store */
+private IConfigStore mConfig;
+
+/* authentication plugin name */
+private String mImplName = null;
+
+/* authentication plugin instance name */
+private String mName = null;
+----
+
+Additionally, parameters are generally required for any authentication plugin instance's fields and values during instantiation.
+These are used when creating/editing an authentication plugin instance:
+
+----
+/* authentication plugin fields */
+protected static final String PROP_FIELD_1 = "field_1";
+protected static final String PROP_FIELD_2 = "field_2";
+
+/* Holds authentication plugin fields accepted by this implementation.
+ * This list is passed to the configuration console so configuration
+ * for instances of this implementation can be configured through the
+ * console.
+ */
+protected static String[] mConfigParams =
+          new String[]  { PROP_FIELD_1,
+                          PROP_FIELD_2 };
+
+/* authentication plugin values */
+private String mValue1 = null;
+private String mValue2 = null;
+----
+
+Additionally, some authentication plugin instances may require certain properties in order to be utilized:
+
+----
+/* authentication plugin properties */
+private Properties mProperties = null;
+----
+
+Finally, most authentication plugin instances require credentials that are passed in from an enrollment form that are used to perform the actual authentication:
+
+----
+/* required credentials to authenticate. */
+public static final String CRED_CREDENTIAL_1 = "credential_1";
+public static final String CRED_CREDENTIAL_2 = "credential_2";
+
+protected static String[] mRequiredCreds = { CRED_CREDENTIAL_1,
+                                             CRED_CREDENTIAL_2 };
+----
+
+== IExtendedPluginInfo parameters ==
+
+Determine the parameters that would be required by all of a particular authentication plugin's `IExtendedPluginInfo` methods.
+
+Generally, this consists of setting up a `Vector` to store all help messages for a particular authentication plugin:
+
+----
+/* Vector of extendedPluginInfo strings */
+protected static Vector mExtendedPluginInfo = null;
+
+/* actual help messages */
+static {
+         mExtendedPluginInfo = new Vector();
+         mExtendedPluginInfo.add(PROP_FIELD_1+
+                                 ";string,required;A string "+
+                                 "containing a descriptive "+
+                                 "help message for "+
+                                 "required PROP_FIELD_1.");
+         mExtendedPluginInfo.add(PROP_FIELD_2+
+                                 ";string;A string "+
+                                 "containing a descriptive "+
+                                 "help message for "+
+                                 "optional PROP_FIELD_2.");
+         mExtendedPluginInfo.add(IExtendedPluginInfo.HELP_TEXT+
+                                 ";A general help message "+
+                                 "that explains the overall "+
+                                 "purpose of this particular "+
+                                 "authentication plugin.");
+}
+----
+
+Help messages referring to an individual `PROP_FIELD` are displayed during configuration of a particular authentication plugin instance when the user highlights the VALUE portion of that particular FIELD.
+
+Help messages referring to an `IExtendedPluginInfo.HELP_TEXT` are displayed during the initial configuration of a particular authentication plugin instance.
+
+== IProfileAuthenticator parameters ==
+
+In general, unless the default profile framework behavior needs to be modified, no `IProfileAuthenticator` parameters are necessary.
+
+== Logger parameters ==
+
+Determine the parameters that would be required by all of a particular authentication plugin's `Logger` methods.
+
+Generally, this is usually just the simple creation of an authentication plugin's logging facility:
+
+----
+/* the system's logger */
+private ILogger mLogger = CMS.getLogger();
+----
+
+== Default methods ==
+
+Determine all of the default methods that would be required by this particular authentication plugin.
+
+Generally, the only default authentication plugin method is the constructor:
+
+----
+/**
+ * Default constructor, initialization must follow.
+ */
+public <Authentication Plugin Class Name>()
+{
+    .
+    .
+    .
+}
+----
+
+== IAuthManager methods ==
+
+Provide implementations for all `IAuthManager` methods for this particular authentication plugin.
+If this authentication plugin `extends` (or subclasses) a class which implements the `IAuthManager` interface, be sure to call `super.<method name>(...)` with the appropriate parameters whenever necessary.
+
+This consists of the following methods:
+
+----
+/**
+ * Initializes the authentication plugin.
+ * <p>
+ * @param name The name for this authentication plugin instance.
+ * @param implNamel The name of the authentication plugin.
+ * @param config - The configuration store for this instance.
+ * @exception EBaseException If an error occurs during initialization.
+ */
+public void init(String name, String implName, IConfigStore config)
+    throws EBaseException
+{
+    .
+    .
+    .
+}
+
+/**
+ * Authenticates user by CRED_CREDENTIALS
+ * Resulting AuthToken sets a TOKEN_SUBJECT for the subject name.
+ * <p>
+ * @param authCred Authentication credentials,
+ *        CRED_CREDENTIAL_1 and CRED_CREDENTIAL_2.
+ * @return an AuthToken
+ * @exception com.netscape.certsrv.authentication.EMissingCredential
+ *            If a required authentication credential is missing.
+ * @exception com.netscape.certsrv.authentication.EInvalidCredentials
+ *            If credentials failed authentication.
+ * @exception com.netscape.certsrv.base.EBaseException
+ *            If an internal error occurred.
+ * @see com.netscape.certsrv.authentication.AuthToken
+ */
+public AuthToken authenticate(IAuthCredentials authCred)
+    throws EMissingCredential, EInvalidCredentials, EBaseException
+{
+    .
+    .
+    .
+}
+
+/**
+ * Returns a list of configuration parameter names.
+ * The list is passed to the configuration console so instances of
+ * this implementation can be configured through the console.
+ * <p>
+ * @return String array of configuration parameter names.
+ */
+public String[] getConfigParams()
+{
+    .
+    .
+    .
+}
+
+/**
+ * gets the configuration substore used by this authentication
+ *  plugin
+ * <p>
+ * @return configuration store
+ */
+public IConfigStore getConfigStore()
+{
+    .
+    .
+    .
+}
+
+/**
+ * gets the plugin name of this authentication plugin.
+ * <p>
+ * @return plugin name
+ */
+public String getImplName()
+{
+    .
+    .
+    .
+}
+
+/**
+ * gets the name of this authentication plugin instance
+ * <p>
+ * @return instance name
+ */
+public String getName()
+{
+    .
+    .
+    .
+}
+
+/**
+ * get the list of required credentials.
+ * <p>
+ * @return list of required credentials as strings.
+ */
+public String[] getRequiredCreds()
+{
+    .
+    .
+    .
+}
+
+/**
+ * prepares for shutdown.
+ */
+public void shutdown()
+{
+    .
+    .
+    .
+}
+----
+
+== IExtendedPluginInfo methods ==
+
+Provide implementations for all `IExtendedPluginInfo` methods for this particular authentication plugin.
+
+This consists of only the following method:
+
+----
+/**
+ * Activate the help system.
+ * <p>
+ * @param locale end user locale
+ * @return help messages
+ */
+public String[] getExtendedPluginInfo(Locale locale)
+{
+    .
+    .
+    .
+}
+----
+
+== IProfileAuthenticator-related methods ==
+
+Assuming that this authentication plugin requires interaction with the profile framework,
+provide implementations for all `IProfileAuthenticator` methods for this particular authentication plugin.
+If this authentication plugin `extends` (or subclasses) a class which implements the `IProfileAuthenticator` interface,
+be sure to call `super.<method name>(...)` with the appropriate parameters whenever necessary.
+
+This consists of the following methods:
+
+----
+/**
+ * Initializes this default policy.
+ * <p>
+ * @param profile owner of this authenticator
+ * @param config configuration store
+ * @exception EProfileException failed to initialize
+ */
+public void init(IProfile profile, IConfigStore config)
+    throws EProfileException
+{
+    .
+    .
+    .
+}
+
+/**
+ * Populates authentication specific information into the
+ * request for auditing purposes.
+ * <p>
+ * @param token authentication token
+ * @param request request
+ * @exception EProfileException failed to populate
+ */
+public void populate(IAuthToken token, IRequest request)
+    throws EProfileException
+{
+    .
+    .
+    .
+}
+
+/**
+ * Retrieves the localizable name of this policy.
+ * <p>
+ * @param locale end user locale
+ * @return localized authenticator name
+ */
+public String getName(Locale locale)
+{
+    .
+    .
+    .
+}
+
+/**
+ * Retrieves the localizable description of this policy.
+ * <p>
+ * @param locale end user locale
+ * @return localized authenticator description
+ */
+public String getText(Locale locale)
+{
+    .
+    .
+    .
+}
+
+/**
+ * Retrieves a list of names of the value parameter.
+ * <p>
+ * @return a list of property names
+ */
+public Enumeration getValueNames()
+{
+    .
+    .
+    .
+}
+
+/**
+ * Checks if the value of the given property should be
+ * serializable into the request. Passsword or other
+ * security-related value may not be desirable for
+ * storage.
+ * <p>
+ * @param name property name
+ * @return true if the property is not security related
+ */
+public boolean isValueWriteable(String name)
+{
+    .
+    .
+    .
+}
+
+/**
+ * Retrieves the descriptor of the given value
+ * property by name.
+ * <p>
+ * @param locale user locale
+ * @param name property name
+ * @return descriptor of the requested property
+ */
+public IDescriptor getValueDescriptor(Locale locale, String name)
+{
+    .
+    .
+    .
+}
+
+/**
+ * Checks if this authenticator requires SSL client authentication.
+ * <p>
+ * @return client authentication required or not
+ */
+public boolean isSSLClientRequired()
+{
+    .
+    .
+    .
+}
+----
+
+== Logger methods ==
+
+Determine all of the `Logger` methods that would be required by this particular authentication plugin.
+
+Generally, the only `Logger` authentication plugin method is the following:
+
+----
+/**
+ * Logs a message for this class in the system log file.
+ * <p>
+ * @param level The log level.
+ * @param msg The message to log.
+ * @see com.netscape.certsrv.logging.ILogger
+ */
+protected void log(int level, String msg)
+{
+    .
+    .
+    .
+}
+----
+
+= Customization of Authentication Plugins =
+
+After creating, building, and installing a custom authentication plugin and all of its supplementary items, follow these steps to customize the effort:
+
+== Register the Authentication Plugin ==
+
+Utilize the PKI console to register the implementation of this custom authentication plugin.
+
+== Create an Instance of the Authentication Plugin ==
+
+Utilize the PKI console to create an instance of this custom authentication plugin.
+
+== Customize the End-Entity Enrollment Forms for the Authentication Plugin ==
+
+If the authentication plugin requires interaction with the profiles framework:
+
+* Utilize a command-line editor to record the necessary profile information in each appropriate `<instance>/profiles/<subsystem>` directory, as well as recording the necessary configuration information in each appropriate `<instance>/conf/CS.cfg` file to create and display a profile for use from the end-entity enrollment form.
