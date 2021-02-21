@@ -2,15 +2,16 @@
 
 PKI provides a set of CLIs to manage the lightweight CAs (LWCA).
 
-'''Note:''' The current LWCA implementation has some limitations:
-* It does not work with clone outside of IPA environment. See [https://pagure.io/dogtagpki/issue/2836 Ticket #2836].
-* It does not include authority ID into some audit events. See [https://pagure.io/dogtagpki/issue/2839 Ticket #2839].
+*Note:* The current LWCA implementation has some limitations:
+
+* It does not work with clone outside of IPA environment. See link:https://github.com/dogtagpki/pki/issues/2956[Ticket #2956].
+* It does not include authority ID into some audit events. See link:https://github.com/dogtagpki/pki/issues/2959[Ticket #2959].
 
 = Listing Authorities =
 
 To list all authorities:
 
-<pre>
+----
 $ pki -n caadmin ca-authority-find
 -----------------
 2 entries matched
@@ -34,11 +35,11 @@ $ pki -n caadmin ca-authority-find
 ----------------------------
 Number of entries returned 2
 ----------------------------
-</pre>
+----
 
 To search by parent ID:
 
-<pre>
+----
 $ pki -n caadmin ca-authority-find \
     --parent-id f37225e8-b6d7-49be-abe1-6a2f5f3e0be3
 -----------------
@@ -54,11 +55,11 @@ $ pki -n caadmin ca-authority-find \
 ----------------------------
 Number of entries returned 1
 ----------------------------
-</pre>
+----
 
 To search by issuer DN:
 
-<pre>
+----
 $ pki -n caadmin ca-authority-find \
     --issuer-dn "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE"
 -----------------
@@ -83,13 +84,13 @@ $ pki -n caadmin ca-authority-find \
 ----------------------------
 Number of entries returned 2
 ----------------------------
-</pre>
+----
 
 = Displaying Authority Details =
 
 To display a particular authority given an authority ID:
 
-<pre>
+----
 $ pki -n caadmin ca-authority-show 4aa054e0-4742-4968-8c38-6c7b8539ceb1
   Authority DN:   CN=test
   ID:             4aa054e0-4742-4968-8c38-6c7b8539ceb1
@@ -98,12 +99,11 @@ $ pki -n caadmin ca-authority-show 4aa054e0-4742-4968-8c38-6c7b8539ceb1
   Serial no:      7
   Enabled:        true
   Ready to sign:  true
-
-</pre>
+----
 
 To display a particular authority given an authority DN (not yet implemented):
 
-<pre>
+----
 $ pki -n caadmin ca-authority-show --dn CN=test
   Authority DN:   CN=test
   ID:             4aa054e0-4742-4968-8c38-6c7b8539ceb1
@@ -112,11 +112,11 @@ $ pki -n caadmin ca-authority-show --dn CN=test
   Serial no:      7
   Enabled:        true
   Ready to sign:  true
-</pre>
+----
 
 To display the host/main authority:
 
-<pre>
+----
 $ pki -n caadmin ca-authority-show --host-authority
   Host authority: true
   Authority DN:   CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
@@ -126,13 +126,13 @@ $ pki -n caadmin ca-authority-show --host-authority
   Enabled:        true
   Ready to sign:  true
   Description:    Host authority
-</pre>
+----
 
 = Creating an Authority =
 
 To create a sub-authority with the parent ID:
 
-<pre>
+----
 $ pki -n caadmin ca-authority-create CN=test \
     --parent f37225e8-b6d7-49beabe1-6a2f5f3e0be3
   Authority DN:   CN=test
@@ -142,11 +142,11 @@ $ pki -n caadmin ca-authority-create CN=test \
   Serial no:      7
   Enabled:        true
   Ready to sign:  true
-</pre>
+----
 
 To create a sub-authority with the parent DN (not yet implemented):
 
-<pre>
+----
 $ pki -n caadmin ca-authority-create CN=test \
     --parent-dn "CN=CA Signing Certificate,O=EXAMPLE"
   Authority DN:   CN=test
@@ -156,11 +156,11 @@ $ pki -n caadmin ca-authority-create CN=test \
   Serial no:      7
   Enabled:        true
   Ready to sign:  true
-</pre>
+----
 
 To create a top-level authority (not yet implemented):
 
-<pre>
+----
 $ pki -n caadmin ca-authority-create CN=test
   Authority DN:   CN=test
   ID:             4aa054e0-4742-4968-8c38-6c7b8539ceb1
@@ -168,13 +168,13 @@ $ pki -n caadmin ca-authority-create CN=test
   Serial no:      7
   Enabled:        true
   Ready to sign:  true
-</pre>
+----
 
 = Enabling/Disabling an Authority =
 
 To enable an authority:
 
-<pre>
+----
 $ pki -n caadmin ca-authority-enable 4aa054e0-4742-4968-8c38-6c7b8539ceb1
   Authority DN:   CN=test
   ID:             4aa054e0-4742-4968-8c38-6c7b8539ceb1
@@ -183,11 +183,11 @@ $ pki -n caadmin ca-authority-enable 4aa054e0-4742-4968-8c38-6c7b8539ceb1
   Serial no:      7
   Enabled:        true
   Ready to sign:  true
-</pre>
+----
 
 To disable an authority:
 
-<pre>
+----
 $ pki -n caadmin ca-authority-disable 4aa054e0-4742-4968-8c38-6c7b8539ceb1
   Authority DN:   CN=test
   ID:             4aa054e0-4742-4968-8c38-6c7b8539ceb1
@@ -196,21 +196,21 @@ $ pki -n caadmin ca-authority-disable 4aa054e0-4742-4968-8c38-6c7b8539ceb1
   Serial no:      7
   Enabled:        false
   Ready to sign:  true
-</pre>
+----
 
 = Downloading Authority Certificate =
 
 To download the signing certificate:
 
-<pre>
+----
 $ wget http://$HOSTNAME:8080/ca/rest/authorities/77d0eaca-27d5-41ef-bfa5-44185294cfc7/cert
-</pre>
+----
 
 To download the certificate chain:
 
-<pre>
+----
 $ wget http://$HOSTNAME:8080/ca/rest/authorities/77d0eaca-27d5-41ef-bfa5-44185294cfc7/chain
-</pre>
+----
 
 = Certificate Enrollment =
 
@@ -218,51 +218,51 @@ $ wget http://$HOSTNAME:8080/ca/rest/authorities/77d0eaca-27d5-41ef-bfa5-4418529
 
 In PKI 10.5 or later the certificate request can be submitted with the issuer ID:
 
-<pre>
+----
 $ pki client-cert-request UID=testuser \
     --issuer-id 77d0eaca-27d5-41ef-bfa5-44185294cfc7
-</pre>
+----
 
 or with the issuer DN:
 
-<pre>
+----
 $ pki client-cert-request UID=testuser --issuer-dn CN=test
-</pre>
+----
 
 In PKI 10.4 or older, first generate a CSR:
 
-<pre>
+----
 $ PKCS10Client -d ~/.dogtag/nssdb -p Secret.123 -a rsa -l 1024 -o testuser.csr -n UID=testuser
-</pre>
+----
 
 Then submit the CSR with the issuer ID:
 
-<pre>
+----
 $ pki ca-cert-request-submit --csr-file testuser.csr \
     --issuer-id 77d0eaca-27d5-41ef-bfa5-44185294cfc7
-</pre>
+----
 
 or with the issuer DN:
 
-<pre>
+----
 $ pki ca-cert-request-submit --csr-file testuser.csr --issuer-dn CN=test
-</pre>
+----
 
 == Issuing certificate ==
 
 Approve the request:
 
-<pre>
+----
 $ pki -n caadmin ca-cert-request-review <request ID> --action approve
-</pre>
+----
 
 Display the certificate:
 
-<pre>
+----
 $ pki ca-cert-show <serial number>
-</pre>
+----
 
 = See Also =
 
-* [[PKI CA CLI]]
-* [[PKI CA Certificate CLI]]
+* link:PKI-CA-CLI[PKI CA CLI]
+* link:PKI-CA-Certificate-CLI[PKI CA Certificate CLI]
