@@ -1,0 +1,370 @@
+= Overview =
+
+The administrator of a Public Key Infrastructure (PKI) Certificate System (CS) server would like users to obtain their certificates by merely entering their user id (UID) and their Social Security Number (SSN).  This tutorial describes step-by-step how an administrator can build, install, and run an authentication plugin so that users may authenticate themselves to the Certificate Authority (CA) by merely entering their UID and SSN. 
+
+This plugin is for demonstration purposes only and it is only compatible with DCS 1.0.0 or later.
+
+= Prerequisites for this Authentication Plugin =
+
+For the illustrative purposes of this tutorial, it will be necessary for the user to setup a basic test CA which can be thrown away at the completion of this tutorial.
+
+This tutorial assumes that the user is at least somewhat familiar with the administrative and operational tasks required to run a basic CA within a PKI CS.  The user should know what an "instance" is, and should be able to install
+and configure a CA, and obtain an administration certificate for at least one instance of this CA.  Additionally, the user should be familiar with basic command line tools for copying, editing, and removing files and how they work on their chosen operating system.
+
+Before continuing with this document, the reader is advised to read the following information:
+
+* link:https://github.com/dogtagpki/pki/blob/master/docs/installation/ca/Installing_CA.md[Installing CA] - instructions for installing a CA,
+* link:http://pki.fedoraproject.org/pki/javadocs/dogtag_9/pki-common/index.html?com/netscape/cms/authentication/package-summary.html[com.netscape.cms.authentication] - out-of-the-box authentication plugin samples, and
+* link:Authentication-Plugins[Authentication Plugins] - a complete ''generic'' description of the composition of an authentication plugin.
+
+= Creating this Authentication Plugin =
+
+== Building this Authentication Plugin ==
+
+* Invoke a command line window on the Linux host.
+* Download link:http://pki.fedoraproject.org/pki/tutorials/pki_authentication.tar.gz[pki_authentication.tar.gz].
+* Unpackage `pki_authentication.tar.gz`:
+
+```
+$ gtar -zxvf pki_authentication.tar.gz
+```
+
+* A directory called `authentication` will be created containing the following files:
+
+** link:https://www.dogtagpki.org/wiki/PKI_Authentication_SSNAuth.java[SSNAuth.java] - the source code for this authentication plugin,
+** link:https://www.dogtagpki.org/wiki/PKI_Authentication_SSNEnroll.cfg[SSNEnroll.cfg] - the configuration file for this authentication plugin, and 
+** link:https://www.dogtagpki.org/wiki/PKI_Authentication_build.sh[build.sh] - the build script used to create this authentication plugin.
+* Go to the `authentication` subdirectory:
+
+```
+$ cd authentication
+```
+
+* It may be necessary to edit the `build.sh` as the original jar names may have changed:
+
+```
+CLASSPATH=${PKIHOME}/pki-cmsutil.jar:${PKIHOME}/pki-cms.jar:${CLASSPATH}
+CLASSPATH=${PKIHOME}/pki-nsutil.jar:${PKIHOME}/pki-certsrv.jar:${CLASSPATH}
+```
+
+* To build this authentication plugin in the current directory, execute this command:
+
+```
+$ ./build.sh
+```
+
+*NOTE:* If version 1.5.x or later of `javac` is used, the user may see something similar to the following warning:
+
+```
+Note: SSNAuth.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+```
+
+This warning may be safely ignored, as it refers to features specific to Java SDK 1.5 or later.
+
+* A file called `SSNAuth.class` should be created in this `authentication` directory.
+
+== Installing this Authentication Plugin ==
+
+PKI authentication plugins are only relevant to CA subsystems.
+
+To install this authentication plugin to be _unique to a particular CA instance_, perform the following commands for each desired CA subsystem:
+
+* Assume the role of the root user.
+
+* Execute:
+
+----
+$ cp SSNAuth.class <pki-instance>/webapps/<pki-subsystem>/WEB-INF/classes
+----
+
+where `<pki-instance>` is the complete path to the desired CA instance, and `<pki-subsystem>` is always `ca` for all authentication plugins. (For example, the default instance directory for the first instance is `/var/lib/pki-ca`).
+
+* Execute:
+
+----
+$ chown <pki-instance-owner>:<pki-instance-group> <pki-instance>/webapps/<pki-subsystem>/WEB-INF/classes/SSNAuth.class
+----
+
+where `<pki-instance-owner>` is the user id of the owner of the specified instance, `<pki-instance-group>` is the group id of the owner of the specified instance, `<pki-instance>` is the complete path to the specified CA instance, and `<pki-subsystem>` is always `ca` for all authentication plugins.
+
+* Execute:
+
+----
+$ cp SSNEnroll.cfg <pki-instance>/conf
+----
+
+where `<pki-instance>` is the complete path to the desired CA instance.
+
+* Execute:
+
+----
+$ chown <pki-instance-owner>:<pki-instance-group> <pki-instance>/conf/SSNEnroll.cfg
+----
+
+where `<pki-instance-owner>` is the user id of the owner of the specified instance, `<pki-instance-group>` is the group id of the owner of the specified instance, and `<pki-instance>` is the complete path to the specified CA instance.
+* Dismiss the command line window on the Linux host.
+
+*NOTE:* It was recently reported that these `<pki-instance>` specific paths no longer work in newer versions of Dogtag; as root, try executing the following instead: 
+
+----
+$ mkdir -p /usr/share/pki/ca/webapps/ca/WEB-INF/classes
+$ cp SSNAuth.class /usr/share/pki/ca/webapps/ca/WEB-INF/classes/SSNAuth.class
+----
+
+= Customizing this Authentication Plugin =
+
+== Launch the PKI Console ==
+
+* Invoke a command line window on the Linux host.
+* Invoke the PKI console and login.
+* Login to a PKI instance, providing the requested *Username* and *Password*.
+* A new screen entitled *Certificate System* should appear with two tabs labeled *Configuration*, and *Status*.
+* Select the *Configuration* tab.
+* Click on the *Authentication* option presented in the menu on the left-side of this panel.
+* Two tabs should appear on the right-side labeled *Authentication Instance* and *Authentication Plugin Registration*.
+
+== Register the Authentication Plugin ==
+
+* Select the *Authentication Plug-in Registration* tab:
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/PKI_console_begin_register_authentication_plugin.gif[Dogtag PKI]
+
+* Press the *Register* button, and a dialog box entitled *Register Authentication Plug-in Implementation* appears:
+** For the *Plug-in name:* field, type in `SSNAuth`.
+** For the *Class name:* field, type in the path to the `SSNAuth.class` class finishing with the name `SSNAuth` (do NOT type in the `.class` extension).
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/PKI_console_register_authentication_plugin.gif[Dogtag PKI]
+
+*NOTE:* For the purposes of this tutorial, it is ONLY necessary to type in a *Class Name* of `SSNAuth`.  This is due to the fact that the default search path order for plugins ALWAYS searches for plugins in the following order:
+
+1. the `<pki-instance>/webapps/<pki-subsystem>/WEB-INF/classes` directory (and all subdirectories under this directory for this _specific_ instance)
+2. a combination of default PKI JAR files and default PKI JRE JAR files
+
+For example, if the `SSNAuth.class` had been placed in a directory called `<pki-instance>/webapps/<pki-subsystem>/WEB-INF/classes/mydir/mysubdir`, the java source code would need to contain a `package mydir.mysubdir;` statement, be rebuilt, and the subsequent `SSNAuth.class` binary would then need to be placed into this directory. Finally, the user would need to type `mydir.mysubdir.SSNAuth` within this dialog box to register their plugin.
+
+* Press the *OK* button to dismiss the dialog box, and this plugin should now appear in alphabetical order on the list of authentication plugins displayed on this panel.  If it does not, try pressing the *Refresh* button until it does:
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/PKI_console_end_register_authentication_plugin.gif[Dogtag PKI]
+
+== Create an Instance of the Authentication Plugin ==
+
+* Select the *Authentication Instance* tab:
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/PKI_console_begin_authentication_plugin_instance.gif[Dogtag PKI]
+
+* Press the *Add* button, and a dialog box entitled *Select Authentication Plugin Implementation* appears:
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/PKI_console_select_authentication_plugin_instance.gif[Dogtag PKI]
+
+* Highlight `SSNAuth`, and press the *Next* button.  A dialog entitled *Authentication Instance Editor* appears:
+** For the *Authentication Instance ID:* field, type in `SSNEnroll`.
+** For the *Authentication Plugin ID:* field, the string `SSNAuth` should already be present (and non-editable).
+** For the required *baseSubjectDN:* field, type in the desired base subject DN to be appended to the UID on each certificate.
+** For the required *ssnfile:* field, type in the fully qualified path to the `SSNEnroll.cfg` file.
+
+|===
+| Field | Example Value
+
+| Authentication Instance ID:
+| SSNEnroll
+
+| Authentication Plugin ID:
+| SSNAuth
+
+| baseSubjectDN:
+| `o=<Organization>`, c=US
+
+| ssnfile:
+| `<pki-instance>/conf/SSNEnroll.cfg`
+|===
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/PKI_console_edit_authentication_plugin_instance.gif[Dogtag PKI]
+
+* Press the *OK* button to dismiss the dialog box, and this plugin should now appear on the list of authentication plugin instances displayed on this panel.  If it does not, try pressing the *Refresh* button until it does:
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/PKI_console_end_authentication_plugin_instance.gif[Dogtag PKI]
+
+* Close the console.
+
+* Dismiss the command line window on the Linux host.
+
+== Stop Each Selected PKI Instance ==
+
+Stop each selected PKI instance by performing the following *shutdown* sequence:
+
+* Invoke a command line window on the Linux host.
+* Assume the role of the *root* user.
+* Type `cd /etc/init.d`.
+* For each selected PKI instance, execute `./<pki-instance> stop`, where `<pki-instance>` is the name of the selected PKI instance, to shutdown this instance of the PKI server.
+* *Optional Verification:* At this time, to verify that the `SSNEnroll` authentication plugin was actually installed, the user may verify that the `<pki-instance>/conf/CS.cfg` file, where `<pki-instance>` is the complete path to the specified CA instance, contains the following values:
+
+----
+    .
+    .
+    .
+auths.impl.SSNAuth.class=SSNAuth
+    .
+    .
+    .
+auths.instance.SSNEnroll.baseSubjectDN=o=&lt;Organization&gt;,c=US
+auths.instance.SSNEnroll.pluginName=SSNAuth
+auths.instance.SSNEnroll.ssnfile=&lt;pki-instance&gt;/conf/SSNEnroll.cfg
+    .
+    .
+    .
+----
+
+* Dismiss the command line window on the Linux host.
+
+== Customize the End-Entity Enrollment Page with a new Profile ==
+
+Perform the following customization to automatically create a profile for this authentication plugin which will be directly available from the end-entity (EE) port (default EE port number is 9443).  Perform the following tasks for each selected instance of the PKI server:
+
+* Invoke a command line window on the Linux host.
+
+* Assume the role of the *root* user.
+
+* Execute:
+
+----
+$ cd <pki-instance>/profiles/<pki-subsystem>
+----
+
+where `<pki-instance>` is the complete path to the desired CA instance, and `<pki-subsystem>` is always `ca` for all authentication plugins.
+
+* Execute:
+
+----
+$ cp -p caDirUserCert.cfg caSSNUserCert.cfg
+----
+
+to create a new customized enrollment page, and preserve the permissions of the owner of this CA instance.
+
+* Edit the `<pki-instance>/profiles/<pki-subsystem>/caSSNUserCert.cfg` file to make the following highlighted changes:
+
+----
+desc=This certificate profile is for enrolling user certificates with SSN authentication.</b>
+visible=true
+enable=true
+enableBy=admin<b>
+name=SSN User Dual-Use Certificate Enrollment
+auth.instance_id=SSNEnroll</b>
+    .
+    .
+    .
+----
+
+* Execute:
+
+----
+$ cd <pki-instance>/conf
+----
+
+where `<pki-instance>` is the complete path to the same CA instance.
+
+* Edit the `<pki-instance>/conf/CS.cfg` file to make the following highlighted changes:
+
+----
+    .
+    .
+    .
+profile.list=caUserCert,caDualCert,caSignedLogCert,caTPSCert,caRARouterCert,caRo
+uterCert,caServerCert,caOtherCert,caCACert,caInstallCACert,caRACert,caOCSPCert,c
+aTransportCert,caDirUserCert,caAgentServerCert,caAgentFileSigning,caCMCUserCert,
+caFullCMCUserCert,caSimpleCMCUserCert,caTokenDeviceKeyEnrollment,caTokenUserEncr
+yptionKeyEnrollment,caTokenUserSigningKeyEnrollment,caTempTokenDeviceKeyEnrollme
+nt,caTempTokenUserEncryptionKeyEnrollment,caTempTokenUserSigningKeyEnrollment,ca
+AdminCert,caInternalAuthServerCert,caInternalAuthTransportCert,caInternalAuthDRM
+storageCert,caInternalAuthSubsystemCert,caInternalAuthOCSPCert,DomainController,
+caDualRAuserCert,caRAagentCert,caRAserverCert<b>,caSSNUserCert</b>
+    .
+    .
+    .
+profile.caRouterCert.class_id=caEnrollImpl
+profile.caRouterCert.config=&lt;pki-instance&gt;/profiles/&lt;pki-subsystem&gt;/caRouterCert.cfg<b>
+profile.caSSNUserCert.class_id=caEnrollImpl
+profile.caSSNUserCert.config=&lt;pki-instance&gt;/profiles/&lt;pki-subsystem&gt;/caSSNUserCert.cfg</b>
+profile.caServerCert.class_id=caEnrollImpl
+profile.caServerCert.config=&lt;pki-instance&gt;/profiles/&lt;pki-subsystem&gt;/caServerCert.cfg 
+    .
+    .
+    .
+----
+
+* Dismiss the command line window on the Linux host.
+
+== Start Each Selected PKI Instance ==
+
+Refresh each selected PKI instance by performing the following *startup* sequence:
+
+* Invoke a command line window on the Linux host.
+* Assume the role of the *root* user.
+* Execute:
+
+----
+$ cd /etc/rc.d/init.d
+----
+
+* For each selected PKI instance, execute `./<pki-instance> start`, where `<pki-instance>` is the name of the selected PKI instance, to startup this instance of the PKI server.
+
+* Dismiss the command line window on the Linux host.
+
+= Running this Authentication Plugin =
+
+== Launch a Browser to Test this Authentication Plugin ==
+
+* Launch a browser (preferably Mozilla Firefox 2.0 or later).
+* Type the URL `https://<PKI hostname>:<PKI secure EE port>/<pki-subsystem>/ee/<pki-subsystem>`, where `<pki-subsystem>` is always `ca` for authentication plugins, into the browser to list the CA Certificate Profiles:
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/PKI_browser_authentication_plugin_profiles.gif[Dogtag PKI]
+
+* Select the *SSN User Dual-Use Certificate Enrollment* profile presented in the menu on the right-side of the Enrollment panel to display the following SSN User enrollment profile:
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/PKI_browser_SSN_enrollment_authentication_plugin_profile.gif[Dogtag PKI]
+
+* Perform the following Test Cases for this Authentication Plugin:
+
+== Test Case I: Successful Certificate Issuance for "hmiller" -- expected SUCCESS ==
+
+* Enter `hmiller` for User ID.
+* Enter `000112222` for SSN.
+* Press the *Submit* button, and the browser should notify the user that it needs to begin generating a key (the user may need to press the *OK* button).  The browser should then start generating the key before it returns a screen stating the following:
+
+----
+Congratulations, your request has been processed successfully
+----
+
+The remainder of the screen should reference the request ID, and contain the requested certificate for the user *hmiller*.
+
+== Test Case II: Incorrect SSN entered for "scarter" -- expected FAILURE ==
+
+* Enter `scarter` for User ID.
+* Enter `000112222` for SSN.
+* Press the *Submit* button, and the browser should notify the user that it needs to begin generating a key (the user may need to press the *OK* button).  The browser should then start generating the key before it returns a screen stating the following:
+
+----
+Sorry, your request is not submitted. The reason is "Authentication Error".
+----
+
+== Test Case III: Successful Certificate Issuance for "scarter" -- expected SUCCESS ==
+
+* Enter `scarter` for User ID.
+* Enter `999887777` for SSN.
+* Press the *Submit* button, and the browser should notify the user that it needs to begin generating a key (the user may need to press the *OK* button).  The browser should then start generating the key before it returns a screen stating the following:
+
+----
+Congratulations, your request has been processed successfully
+----
+
+The remainder of the screen should reference the request ID, and contain the requested certificate for the user *scarter*.
+
+== Test Case IV: Unknown user entered for "smiller" -- expected FAILURE ==
+
+* Enter `smiller` for User ID.
+* Enter `000112222` for SSN.
+* Press the *Submit* button, and the browser should notify the user that it needs to begin generating a key (the user may need to press the *OK* button).  The browser should then start generating the key before it returns a screen stating the following:
+
+----
+Sorry, your request is not submitted. The reason is "Authentication Error".
+----
