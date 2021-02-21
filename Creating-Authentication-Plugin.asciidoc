@@ -207,9 +207,9 @@ auths.impl.SSNAuth.class=SSNAuth
     .
     .
     .
-auths.instance.SSNEnroll.baseSubjectDN=o=&lt;Organization&gt;,c=US
+auths.instance.SSNEnroll.baseSubjectDN=o=<Organization>,c=US
 auths.instance.SSNEnroll.pluginName=SSNAuth
-auths.instance.SSNEnroll.ssnfile=&lt;pki-instance&gt;/conf/SSNEnroll.cfg
+auths.instance.SSNEnroll.ssnfile=<pki-instance>/conf/SSNEnroll.cfg
     .
     .
     .
@@ -244,12 +244,12 @@ to create a new customized enrollment page, and preserve the permissions of the 
 * Edit the `<pki-instance>/profiles/<pki-subsystem>/caSSNUserCert.cfg` file to make the following highlighted changes:
 
 ----
-desc=This certificate profile is for enrolling user certificates with SSN authentication.</b>
+desc=This certificate profile is for enrolling user certificates with SSN authentication.
 visible=true
 enable=true
-enableBy=admin<b>
+enableBy=admin
 name=SSN User Dual-Use Certificate Enrollment
-auth.instance_id=SSNEnroll</b>
+auth.instance_id=SSNEnroll
     .
     .
     .
@@ -277,16 +277,16 @@ yptionKeyEnrollment,caTokenUserSigningKeyEnrollment,caTempTokenDeviceKeyEnrollme
 nt,caTempTokenUserEncryptionKeyEnrollment,caTempTokenUserSigningKeyEnrollment,ca
 AdminCert,caInternalAuthServerCert,caInternalAuthTransportCert,caInternalAuthDRM
 storageCert,caInternalAuthSubsystemCert,caInternalAuthOCSPCert,DomainController,
-caDualRAuserCert,caRAagentCert,caRAserverCert<b>,caSSNUserCert</b>
+caDualRAuserCert,caRAagentCert,caRAserverCert,caSSNUserCert
     .
     .
     .
 profile.caRouterCert.class_id=caEnrollImpl
-profile.caRouterCert.config=&lt;pki-instance&gt;/profiles/&lt;pki-subsystem&gt;/caRouterCert.cfg<b>
+profile.caRouterCert.config=<pki-instance>/profiles/<pki-subsystem>/caRouterCert.cfg
 profile.caSSNUserCert.class_id=caEnrollImpl
-profile.caSSNUserCert.config=&lt;pki-instance&gt;/profiles/&lt;pki-subsystem&gt;/caSSNUserCert.cfg</b>
+profile.caSSNUserCert.config=<pki-instance>/profiles/<pki-subsystem>/caSSNUserCert.cfg
 profile.caServerCert.class_id=caEnrollImpl
-profile.caServerCert.config=&lt;pki-instance&gt;/profiles/&lt;pki-subsystem&gt;/caServerCert.cfg 
+profile.caServerCert.config=<pki-instance>/profiles/<pki-subsystem>/caServerCert.cfg 
     .
     .
     .
@@ -314,8 +314,8 @@ $ cd /etc/rc.d/init.d
 
 == Launch a Browser to Test this Authentication Plugin ==
 
-* Launch a browser (preferably Mozilla Firefox 2.0 or later).
-* Type the URL `https://<PKI hostname>:<PKI secure EE port>/<pki-subsystem>/ee/<pki-subsystem>`, where `<pki-subsystem>` is always `ca` for authentication plugins, into the browser to list the CA Certificate Profiles:
+* Launch a browser.
+* Type the URL `https://<hostname>:<port>/<pki-subsystem>/ee/<pki-subsystem>`, where `<pki-subsystem>` is always `ca` for authentication plugins, into the browser to list the CA Certificate Profiles:
 
 image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/PKI_browser_authentication_plugin_profiles.gif[Dogtag PKI]
 
