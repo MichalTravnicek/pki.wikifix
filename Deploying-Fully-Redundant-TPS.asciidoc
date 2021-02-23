@@ -1,0 +1,108 @@
+= Overview =
+This procedure was used to set up two cloned TPS instances behind a software load balancer. The TPS instances are connected to cloned pairs of CA, KRA, and TKS instances, which are configured on the TPS in failover lists.  
+
+With this setup, enrollment requests are processed on both TPS instances in a round robin fashion.  When one TPS is shut down, the other handles all requests seamlessly.  In addition, if any one of the CA, KRA, or TKS clone pairs goes down, enrollments still succeed through the other clone.  Thus, the system is load balanced and highly available.
+
+= Setup =
+
+* host1: ca, kra, tks, tps1, ds (with internal database for ca, kra, tks, tps1, auth database)
+* host2: ca2 (clone of ca), kra2 (clone of kra), tks2 (clone of tks), tps2 (manually cloned), ds (with internal database for ca2, kra2, tks2, tps2)
+* host3: load balancer
+
+= Procedure =
+
+* Create the directory server instances on host1 and host2.  So that the console could be used to create the replication agreements, I used `setup-admin-ds.pl` (with both instances being registered to the same admin server).
+* On host1, install and configure ca, kra, tks, tps1.  For the auth database, I chose to use a suffix on host1's ds instance.  In practice, this is likely to be a separate instance altogether.
+* On host2, install and configure ca2, kra2, tks2.  These are clones of their corresponding instances on host1 using the ds instance on host2 to store their internal database.  
+* On host2, install and configure tps2.  I chose the instance and suffix on host1's ds instance for the auth database, and to the ds on host2 for the internal database.  Point to the CA, KRA and TKS on host2.       
+* Set up the replication agreement between tps1 and tps2's internal database.  To do this, you need to do the following in the ds console (while logged in ad directory manager)
+
+** On the host2 ds instance, create a new suffix with the same value as the tps on host1.  By default, this will be `dc=<hostname of host1>-<tps instance name>`  -- i.e. something like `dc=host1-pki-tps`.
+** On both host1 and host2, create a replication user with password.  I used `uid=rmanager,cn=config`.  The user needs to be outside the suffix you are trying to replicate.
+** Enable changelog on the tps internal database suffix on both host1 and host2 instances.  Give them different replicaIDs.
+** Create replication multi-master agreements from tps1 to tps2, and from tps2 to tps1.  Initialize the consumer in both cases.        
+
+* Modify the `CS.cfg` for tps2 to point to the new basedn.  Look for all instances of `<hostname of host2>-<instance name>` (by default) and replace with `<hostname of host1>-<instance name>`.  As of now, the following are attributes that have to be changed:
+
+** `auth.instance.1.baseDN`
+** `tokendb.baseDN`
+** `tokendb.activityBaseDN`
+** `tokendb.certBaseDN`
+** `tokendb.userBaseDN`
+
+*NOTE:* When a TPS is newly created, the only thing in the database is the entry of the admin user. So once you switch to the new baseDN, you will no longer be able to use tps2's admin user to log into tps2. You will, however, be able to use tps1's admin user instead, and you can always create more users.
+
+* Modify the `CS.cfg` for the TPS on both instances to include the host and port for both CA and clone, KRA and clone, and TKS and clone.  The expected format is `host1:port host2:port` (separated by a single space).  This is a fail-over list.  This means that the first entry will always be contacted first, and if that fails, the second entry will be tried.  So, to keep activity on the subsystems balanced, you might want to configure tps1 to have `host1:port host2:port`, and tps2 to have `host2:port host1:port`.  The parameters affected are:
+
+** `conn.ca1.hostport`
+** `conn.kra1.hostport`
+** `conn.tks1.hostport`
+
+* On both TPS, the following files need to be edited to point to the load balancer instead of either host1 or host2.  These are the html files displayed in the phone home URL and on the security officer workstation.
+
+** `/var/lib/pki-tps/cgi-bin/demo/index.cgi`
+** `/var/lib/pki-tps/cgi-bin/home/index.cgi`
+** `/var/lib/pki-tps/cgi-bin/so/index.cgi`
+
+* On both TPS, the following parameters should be changed to point to the load balancer instead of host1 or host2 in `CS.cfg`.  These are the phone home URLs burned on the card.  They are of the format `op.<operation>.<profile>.issuerinfo.value`.
+
+** `op.enroll.soKey.issuerinfo.value`
+** `op.enroll.userKey.issuerinfo.value`
+** `op.format.soKey.issuerinfo.value`
+** `op.format.soUserKey.issuerinfo.value`
+** etc.
+
+* Restart the TPS instances.
+* To do load balancing, I used the following simple load-balancing software on a separate load balancer box, link:http://sourceforge.net/projects/balance/files/balance/balance-3.34/balance-3.34.tgz/download[balancer]. You basically unzip the software and run as follows. This will round robin balance requests to local port 7888 and 7889 to host1 and host2
+
+----
+$ ./balance 7888 host1 host2
+$ ./balance 7889 host1 host2
+----
+
+= Testing Done =
+
+With this setup, I tested the following operations:
+
+* enrollments (with real tokens and `tpsclient`)
+* renewals (with real tokens)
+* key changeover.  I generated a new key on one TKS and used the documented procedure to transport the key to the other TKS, and reconfigure the TPS instances.  See link:http://docs.redhat.com/docs/en-US/Red_Hat_Certificate_System/8.1/html/Command-Line_Tools_Guide/TKS_Tool-Usage.html[tkstool] for details.
+
+= Notes =
+
+== Admin Users on TPS ==
+
+When a TPS is newly created, the only thing in the database is the entry of the admin user.  So once you switch to the new baseDN, you will no longer be able to use tps2's admin user to log into tps2. You will, however, be able to use tps1's admin user instead, and you can always create more users.
+
+== Schema Replication ==
+
+When I originally set this up, I created tps2 before I created the cloned instances ca2, kra2, tks2, because I just want to test high availability of TPS behind a loadbalancer.  I then ran into the following schema replication issue.  If you follow the procedure above, you will not run into this issue.
+
+When replication occurs, the schema is also replicated.  The problem is that the schema on host2 instance is "newer" and so it will overwrite the schema on host1. But host2 only contains the schema for TPS - and not for the other instances.  This means that the schema for the CA, KRA, and TKS on host1's ds instance will be lost.
+
+To ensure this does not happen - you can always choose to use separate database instances for your tps instances.  In practice, that is what is likely to be the configuration in any case.  
+
+But, you can also easily fix this by re-importing the CA, KRA, and TKS schema using `ldapmodify` on host1.
+
+----
+$ ldapmodify -h localhost -p 7389 -D "cn=directory manager" -w redhat123 -f /usr/share/pki/ca/conf/schema.ldif
+----
+
+And so on for the other subsystems.
+
+== KRA Transport Cert ==
+
+The KRA transport certificate is usually updated on the TKS during TPS installation.  Because I had originally set up tps2 before I set up tks2, this step was not performed.  So, I needed to add the KRA transport cert to the tks2 security database and set it accordingly in `CS.cfg`.  This step is not necessary if you follow the procedure above.
+
+* On the tks, modify the following parameter in `CS.cfg` to be the same as on tks1: `tks.kra_transport_cert_nickname`
+* Stop the tks and add the KRA transport cert to the security database.
+
+----
+$ service pki-tks stop
+Stopping pki-tks: ...............................[  OK  ]
+$ certutil -A -d /var/lib/pki-tks/alias/ -n "KRA Transport Certificate - RhtsEngBosRedhat Domain tps clonetest domain" -t "c,c,c" -a -i transport.txt
+----
+
+== CA-KRA Connections ==
+
+The CA has configuration information in `CS.cfg` for a CA-KRA connector.  This is how the CA communicates to the KRA.  Currently, there is no way to configure the CA-KRA connector to use a failover list. However, if the KRA and its clone are behind a load balancer - and the connector is provided with load balancer address - then the connector will fail over with no problems.
