@@ -1,0 +1,78 @@
+= Overview =
+
+PKI 9 instances are configured as Tomcat 6 instances.  Unfortunately, Tomcat 6 is no longer supported on Fedora 19.
+To ensure that users do not inadvertently upgrade to Fedora 19 and render their Dogatg 9 instances inoperable, 
+code has been added to check for the existence of PKI 9 instances prior to upgrade and to cause the upgrade to abort
+if those instances exist.
+
+As a clarification, PKI 9 instances are those which were originally created using PKI 9.  These instances
+continue to work if PKI packages are updated to PKI 10 (during an upgrade from Fedora 17 to 18, for example).
+Note that this only applies to CA, KRA, OCSP ad TKS subsystems.
+
+If an upgrade to Fedora 19 is desired, then the PKI 9 instances will need to be migrated to PKI 10.
+
+= Migration Procedure =
+
+The simplest way of migrating a PKI 9 instance to PKI 10 is to create a PKI 10 clone (replica) of the instance.
+
+IPA users should follow the replication procedure as detailed here: 
+https://access.redhat.com/site/documentation/en-US/Red_Hat_Enterprise_Linux/6/html-single/Identity_Management_Guide/index.html#Setting_up_IPA_Replicas
+
+For non-IPA users, the procedure is roughly as follows:
+
+* Create a new database instance to use as the internal database of the clone instance.  If you are using the same machine for both master andclone, then the new instance will have to be on a different port from the original DS.
+* Create a pk12 file containing the system certificates of the master using `PKCS12Export`.  This file needs to have the selinux context `pki_tomcat_cert_t` to prevent selinux errors.
+* Use `pkispawn` to create the clone instance.  Note that the default ports have changed between PKI 9 and PKI 10.  Whereas PKI 9 used ports 9443, 9444, 9445 and 9446 by default,  PKI 10 instances only use a single HTTPS port 8443 (by default) and a single HTTP port (8080).  It is thus possible to create the new clone on the same machine as the original master as long as all the ports are different.
+* Test the new instance and confirm that everything is working correctly.
+* `pkidestroy` the old master.
+* Remove the old DS instance.  Be sure to sever any replication agreements first
+
+A sample `pkispawn` configuration file for cloning a CA is given below.  It would be invoked as follows:
+
+----
+$ pkispawn -s <subsystem> -f pkispawn.cfg
+----
+
+See the man page for `pkispawn` for details.
+
+----
+[DEFAULT]
+pki_ds_password=<directory manager password for clone instance DS>
+pki_security_domain_password=<password of security domain user on master CA>
+pki_security_domain_hostname=<hostname of security domain CA>
+pki_security_domain_https_port=<admin port for security domain CA>
+pki_security_domain_user=<username on security domain CA, by default in PKI 9, this was admin>
+
+[CA]
+pki_clone=True
+pki_clone_pkcs12_password=<password for the pk12 file containing the certs>
+pki_clone_pkcs12_path=<path to pkcs12 file>
+pki_clone_uri=https://<master_host>:<master EE SSL port>
+----
+
+`pkispawn` will create and completely configure the clone instance.
+
+= Workaround =
+
+If you cannot migrate your PKI 9 instance, it is still possible to work around the install check,
+The code checks for the existence of PKI 9 instances by looking for entries in the directories 
+`/etc/sysconfig/pki/ca`, `/etc/sysconfig/pki/kra`, `/etc/sysconfig/pki/ocsp` and `/etc/sysconfig/pki/tks`.
+
+You can trick the installer by moving these directories -- say,:
+
+----
+$ mv /etc/sysconfig/pki/ca /etc/sysconfig/pki/ca.moved
+----
+
+Once the upgrade is completed, you can move these directories back to their original location.
+Then run `pki-upgrade` to run any upgrade scripts.
+
+Because these instances require PKI 9, these instances will no longer be functional.
+It _may_ be possible to get these instances working by doing the following:
+
+* Installing Tomcat 6 from Fedora 18
+* Downgrading the tomcatjss version to the version in Fedora 18.
+
+Keep in mind though, that even if the instances work, they will be unstable in that they could be 
+broken by future updates on the system.  Also, any new RESTful functionality will  not be availalble.
+Doing the migration instead is highly recommended.
