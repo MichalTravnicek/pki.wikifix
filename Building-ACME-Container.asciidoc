@@ -1,6 +1,6 @@
 = Overview =
 
-This page describes the procedure to build PKI ACME responder as a container.
+This page describes the procedure to build PKI ACME container.
 
 = Prerequisites =
 
@@ -18,17 +18,16 @@ $ dnf install docker
 
 = Dockerfile =
 
-The `Dockerfile` is located at https://github.com/dogtagpki/pki/blob/master/Dockerfile.
+The ACME `Dockerfile` is located at https://github.com/dogtagpki/pki/blob/master/base/acme/Dockerfile.
 
-= Building Container Image =
+= Building Container Image Locally =
 
 To build with Podman:
 
 ----
 $ podman build \
-    --build-arg COPR_REPO=@pki/master \
-    --target pki-acme \
-    --tag pki-acme \
+    -f base/acme/Dockerfile \
+    -t pki-acme \
     .
 ----
 
@@ -36,34 +35,40 @@ To build with Docker:
 
 ----
 $ docker build \
-    --build-arg COPR_REPO=@pki/master \
-    --target pki-acme \
-    --tag pki-acme \
+    -f base/acme/Dockerfile \
+    -t pki-acme \
     .
 ----
 
-= Pushing Container Image to Quay.io =
+= Pushing Container Image to Quay =
 
 ----
 $ podman tag pki-acme:latest quay.io/<username>/pki-acme:latest
 $ podman push quay.io/<username>/pki-acme:latest
 ----
 
-= Configuring Autobuild on Quay.io (WIP) =
+= Configuring Autobuild on Quay =
 
 * Open https://quay.io/repository
 * Click a container repository (e.g. *dogtagpki/pki-acme*)
 * Click *Builds*
 * Click *Create Build Trigger*
 * Click *GitHub Repository Push*
-* Select a source repository (e.g. *dogtagpki/pki*)
+* Select a GitHub organization (e.g. *dogtagpki*)
+* Click *Continue*
+* Select a source repository (e.g. *pki*)
+* Click *Continue*
 * Select *Trigger only on branches and tags matching a regular expression*
 * Enter regular expression: `heads/master`
-* Unselect *Add latest tag if on default branch*
 * Click *Continue*
-* Enter Dockerfile location: `/Dockerfile`
+* Don't change anything under *Configure Tagging*
+* Click *Continue*
+* Enter Dockerfile location: `/base/acme/Dockerfile`
 * Enter Docker context: `/`
 * Click *Continue*
+* Don't select anything under *Optional Robot Account*
+* Click *Continue*
+* Under *Ready to go!* click *Continue*
 
 = Configuring Autobuild on Docker Hub =
 
@@ -76,14 +81,10 @@ $ podman push quay.io/<username>/pki-acme:latest
 ** Source Type: *Branch*
 ** Source: `master`
 ** Docker Tag: `latest`
-** Dockerfile location: `Dockerfile`
+** Dockerfile location: `base/acme/Dockerfile`
 ** Build Context: `/`
 ** Autobuild: *Enabled*
 ** Build Caching: *Enabled*
-* Click *+* next to *BUILD ENVIRONMENT VARIABLES*
-* Enter:
-** Key: `COPR_REPO`
-** Value: `@pki/master`
 * Click *Save and Build*
 
 = See Also =
