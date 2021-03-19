@@ -1,0 +1,19 @@
+= Overview =
+
+By default DS will generate a self-signed CA certificate and a sever certificate signed by the CA certificate.
+
+= Exporting CA Certificate =
+
+To export the self-signed CA certificate:
+
+----
+$ certutil -L -d /etc/dirsrv/slapd-localhost -n "Self-Signed-CA" -a > ds_signing.crt
+----
+
+= Exporting Server Certificate =
+
+To export the server certificate:
+
+----
+$ certutil -L -d /etc/dirsrv/slapd-localhost -n "Server-Cert" -a > ds_server.crt
+----
