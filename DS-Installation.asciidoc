@@ -17,16 +17,16 @@ $ dnf install -y 389-ds-base
 Generate a configuration template:
 
 ----
-$ dscreate create-template ds.tmp
+$ dscreate create-template ds.inf
 ----
 
 Customize the configuration as follows:
 
 ----
-$ sed \
+$ sed -i \
     -e 's/;root_password = .*/root_password = Secret.123/g' \
     -e 's/;suffix = .*/suffix = dc=example,dc=com/g' \
-    ds.tmp > ds.inf
+    ds.inf
 ----
 
 To create the instance:
