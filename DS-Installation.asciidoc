@@ -33,10 +33,10 @@ $ sed -i \
 
 where
 
-* *root_password*: password for DS admin (i.e. `cn=Directory Manager`)
-* *suffix*: root suffix for the DS instance
-* *instance_name*: the name of the DS instance
-* *self_sign_cert*: flag for creating self-signed DS signing certificate
+* *root_password* specifies the password for DS admin (i.e. `cn=Directory Manager`). In this example it's set to `Secret.123`.
+* *suffix* specifies the namespace for the DS instance. In this example it's set to `dc=example,dc=com`.
+* *instance_name* specifies the name of the DS instance. In this example it's set to `localhost`.
+* *self_sign_cert* specifies whether to create self-signed certificates for SSL connection. In this example it's set to `False`. The SSL connection can be enabled later in link:Enabling-SSL-Connection-on-DS[this document].
 
 See the parameter descriptions in the DS configuration file itself (i.e. `ds.inf`) and link:https://directory.fedoraproject.org/docs/389ds/design/dsadm-dsconf.html[DS documentation] for further information.
 
