@@ -1,14 +1,14 @@
 = Overview =
 
-This page describes the process to enable SSL connection in DS
-using a self-signed DS signing certificate and DS server certificate
+This page describes the process to enable SSL connection on DS
+using a self-signed signing certificate and server certificate
 created using link:PKI-CLI[PKI CLI].
 
 This page assumes that a DS instance named `localhost` is already created without any certificate.
 
-= Create DS Signing Certificate =
+= Creating DS Signing Certificate =
 
-To generate DS signing CSR:
+First, generate DS signing CSR with the following command:
 
 ----
 $ pki \
@@ -20,7 +20,7 @@ $ pki \
     --csr ds_signing.csr
 ----
 
-To issue DS signing certificate:
+Next, issue DS signing certificate:
 
 ----
 $ pki \
@@ -32,7 +32,7 @@ $ pki \
     --cert ds_signing.crt
 ----
 
-To import DS signing certificate:
+Finally, import DS signing certificate:
 
 ----
 $ pki \
@@ -50,9 +50,9 @@ To verify the DS signing certificate:
 $ certutil -L -d /etc/dirsrv/slapd-localhost -n Self-Signed-CA
 ----
 
-= Create DS Server Certificate =
+= Creating DS Server Certificate =
 
-To generate DS server CSR:
+First, generate DS server CSR with the following command:
 
 ----
 $ pki \
@@ -64,7 +64,7 @@ $ pki \
     --csr ds_server.csr
 ----
 
-To issue DS server certificate:
+Next, issue DS server certificate:
 
 ----
 $ pki \
@@ -77,7 +77,7 @@ $ pki \
     --cert ds_server.crt
 ----
 
-To import DS server certificate:
+Finally, import DS server certificate:
 
 ----
 $ pki \
@@ -94,11 +94,16 @@ To validate the DS server certificate:
 $ certutil -L -d /etc/dirsrv/slapd-localhost -n Server-Cert
 ----
 
-= Enabling DS Security =
+= Enabling SSL on DS =
 
-To enable DS security:
+To enable SSL on the DS instance:
 
 ----
 $ dsconf localhost config replace nsslapd-security=on
+----
+
+Finally, restart the DS instance:
+
+----
 $ dsctl localhost restart
 ----
