@@ -4,8 +4,8 @@ PKI provides CLI to manage KRA connector configuration in CA. All KRA connector 
 
 = Displaying KRA Connector Info =
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-kraconnector-show
+----
+$ pki caadmin ca-kraconnector-show
 
 Host: kra1.example.com:8443 kra2.example.com:8443
 Enabled: true
@@ -33,13 +33,13 @@ HKIX8WHihMO1LHo0vwiy0S/uKoYy9bZGzrMCaoXfGGLhcN38A2tVS2Uhg1WjjtLN
 CZBGMUHm1UFBrjMT1cdwkbHi2kqCvRHQZqYDRttD/2nUNs0ix/Q+tTXAZdO3IwAZ
 MIYMTHHF/Ma78p4lSFvzo2eTAikjIuBu7YhU7xiqZPDQbAU2RstEtPd14BSd3osq
 b6bDthhCTkfakfevWRygGZ/gmolLNrI2aEzTEStu3rmrJylMG5QLFtRNDG37
-</pre>
+----
 
 = Creating KRA Connector =
 
 Specify the KRA connector configuration in an XML file:
 
-<pre>
+----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <kraConnectorInfo>
     <host>server.example.com</host>
@@ -50,38 +50,37 @@ Specify the KRA connector configuration in an XML file:
     <local>false</local>
     <enable>true</enable>
 </kraConnectorInfo>
-</pre>
+----
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-kraconnector-add --input-file kra-connector.xml
+----
+$ pki -n caadmin ca-kraconnector-add --input-file kra-connector.xml
 -------------------
 Added KRA connector
 -------------------
-</pre>
+----
 
 = Adding KRA Host =
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-kraconnector-add --host server.example.com --port 8443
+----
+$ pki -n caadmin ca-kraconnector-add --host server.example.com --port 8443
 ----------------------------------------
 Added KRA host "server.example.com:8443"
 ----------------------------------------
-</pre>
+----
 
 = Deleting KRA Host =
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-kraconnector-del --host server.example.com --port 8443
+----
+$ pki -n caadmin ca-kraconnector-del --host server.example.com --port 8443
 ------------------------------------------
 Removed KRA host "server.example.com:8443"
 ------------------------------------------
-</pre>
+----
 
 = Deleting KRA Connector =
 
 When the last KRA host is removed, the KRA connector will be removed automatically.
 
-= References =
+= See Also =
 
-* [[PKI CA CLI]]
-* [https://www.dogtagpki.org/wiki/Installing_KRA_Clone Installing KRA Clone]
+* link:https://www.dogtagpki.org/wiki/Installing_KRA_Clone[Installing KRA Clone]
