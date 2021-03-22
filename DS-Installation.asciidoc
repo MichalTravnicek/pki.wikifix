@@ -46,7 +46,23 @@ To create the instance:
 $ dscreate from-file ds.inf
 ----
 
-To add PKI base entries:
+= Creating PKI Subtree =
+
+Once the DS instance is created, it's recommended to create a top-level PKI subtree (e.g. `dc=pki,dc=example,dc=com`)
+such that all PKI subsystems can store their databases under this subtree:
+
+----
+dc=example,dc=com
++ dc=pki
+  + dc=ca
+  + dc=kra
+  + dc=ocsp
+  + dc=tks
+  + dc=tps
+  + dc=acme
+----
+
+To create the root entry and PKI subtree in the DS instance:
 
 ----
 $ ldapadd -h $HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 << EOF
@@ -59,6 +75,8 @@ objectClass: domain
 dc: pki
 EOF
 ----
+
+The PKI subsystem subtrees (e.g. `dc=ca,dc=pki,dc=example,dc=com`) will be created when the subsystem is installed.
 
 = Removing DS Instance =
 
