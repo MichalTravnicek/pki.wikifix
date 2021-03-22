@@ -1,0 +1,104 @@
+= Overview =
+
+This page describes the process to enable SSL connection in DS
+using a self-signed DS signing certificate and DS server certificate
+created using link:PKI-CLI[PKI CLI].
+
+This page assumes that a DS instance named `localhost` is already created without any certificate.
+
+= Create DS Signing Certificate =
+
+To generate DS signing CSR:
+
+----
+$ pki \
+    -d /etc/dirsrv/slapd-localhost \
+    -C /etc/dirsrv/slapd-localhost/pwdfile.txt \
+    nss-cert-request \
+    --subject "CN=DS Signing Certificate" \
+    --ext /usr/share/pki/server/certs/ca_signing.conf \
+    --csr ds_signing.csr
+----
+
+To issue DS signing certificate:
+
+----
+$ pki \
+    -d /etc/dirsrv/slapd-localhost \
+    -C /etc/dirsrv/slapd-localhost/pwdfile.txt \
+    nss-cert-issue \
+    --csr ds_signing.csr \
+    --ext /usr/share/pki/server/certs/ca_signing.conf \
+    --cert ds_signing.crt
+----
+
+To import DS signing certificate:
+
+----
+$ pki \
+    -d /etc/dirsrv/slapd-localhost \
+    -C /etc/dirsrv/slapd-localhost/pwdfile.txt \
+    nss-cert-import \
+    --cert ds_signing.crt \
+    --trust CT,C,C \
+    Self-Signed-CA
+----
+
+To verify the DS signing certificate:
+
+----
+$ certutil -L -d /etc/dirsrv/slapd-localhost -n Self-Signed-CA
+----
+
+= Create DS Server Certificate =
+
+To generate DS server CSR:
+
+----
+$ pki \
+    -d /etc/dirsrv/slapd-localhost \
+    -C /etc/dirsrv/slapd-localhost/pwdfile.txt \
+    nss-cert-request \
+    --subject "CN=pki.example.com" \
+    --ext /usr/share/pki/server/certs/sslserver.conf \
+    --csr ds_server.csr
+----
+
+To issue DS server certificate:
+
+----
+$ pki \
+    -d /etc/dirsrv/slapd-localhost \
+    -C /etc/dirsrv/slapd-localhost/pwdfile.txt \
+    nss-cert-issue \
+    --issuer Self-Signed-CA \
+    --csr ds_server.csr \
+    --ext /usr/share/pki/server/certs/sslserver.conf \
+    --cert ds_server.crt
+----
+
+To import DS server certificate:
+
+----
+$ pki \
+    -d /etc/dirsrv/slapd-localhost \
+    -C /etc/dirsrv/slapd-localhost/pwdfile.txt \
+    nss-cert-import \
+    --cert ds_server.crt \
+    Server-Cert
+----
+
+To validate the DS server certificate:
+
+----
+$ certutil -L -d /etc/dirsrv/slapd-localhost -n Server-Cert
+----
+
+= Enabling DS Security =
+
+To enable DS security:
+
+----
+$ dsconf localhost config replace nsslapd-security=on
+$ dsctl localhost restart
+----
