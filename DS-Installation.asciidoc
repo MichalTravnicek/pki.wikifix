@@ -24,8 +24,8 @@ Customize the DS configuration file as follows:
 
 ----
 $ sed -i \
-    -e 's/;root_password = .*/root_password = Secret.123/g' \
-    -e 's/;suffix = .*/suffix = dc=example,dc=com/g' \
+    -e "s/;root_password = .*/root_password = Secret.123/g" \
+    -e "s/;suffix = .*/suffix = dc=example,dc=com/g" \
     -e "s/;instance_name = .*/instance_name = localhost/g" \
     -e "s/;self_sign_cert = .*/self_sign_cert = False/g" \
     ds.inf
