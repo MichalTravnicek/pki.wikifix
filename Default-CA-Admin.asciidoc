@@ -1,0 +1,77 @@
+= Overview =
+
+This document describes the default CA admin user which is created during CA installation.
+
+= Default CA Admin Roles =
+
+The default CA admin user belongs to the following groups:
+
+* Certificate Manager Agents
+* Administrators
+* Security Domain Administrators
+* Enterprise CA Administrators
+* Enterprise KRA Administrators
+* Enterprise OCSP Administrators
+* Enterprise TKS Administrators
+* Enterprise RA Administrators
+* Enterprise TPS Administrators
+
+= Default CA Admin Certificate =
+
+After installation the default CA admin certificate and key will be stored in the following files in `~/.dogtag/pki-tomcat`:
+
+* `ca_admin.cert`: PEM certificate
+* `ca_admin.cert.der`: DER certificate
+* `ca_admin_cert.p12`: PKCS #12 file containing certificate and key
+
+The PKCS #12 file is protected with a password specified in the `pki_client_pkcs12_password` parameter during installation.
+
+To use the certificate, initialize the PKI client and import the certificate and key with the following commands:
+
+----
+$ echo Secret.123 > client_password.txt
+$ echo Secret.123 > pkcs12_password.txt
+
+$ pki -C client_password.txt client-init
+
+$ pki -C client_password.txt client-cert-import \
+  --pkcs12 ~/.dogtag/pki-tomcat/ca_admin_cert.p12 \
+  --pkcs12-password-file pkcs12_password.txt
+----
+
+By default the PKI client will use the NSS database in `~/.dogtag/nssdb` to store the certificate and key.
+
+Then the certificate can be used as follows:
+
+----
+$ pki -C client_password.txt -n caadmin <command>
+----
+
+Alternatively, if the CA was created with `pki_client_database_purge=False` deployment parameter, the CA admin certificate, key, and passwords will be stored in the following folder/files in `~/.dogtag/pki-tomcat/ca`:
+
+* `alias`: NSS database containing the CA admin certificate and key
+* `password.conf`: NSS database password
+* `pkcs12_password.conf`: PKCS #12 password for `ca_admin_cert.p12`
+
+In that case, the CA admin certificate can be used directly from the above NSS database (without executing `pki client-init`) as follows:
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -C ~/.dogtag/pki-tomcat/ca/password.conf -n caadmin <command>
+----
+
+= Using Default CA Admin Certificate =
+
+To use the certificate in Firefox, import the PKCS #12 file (i.e. `ca_admin_cert.p12`) into the browser.
+
+To use the certificate with Python client, export both the certificate and private key into a PEM file:
+
+----
+$ pki -C client_password.txt client-cert-show caadmin --client-cert caadmin.pem
+----
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/CA_Admin_Setup[CA Admin Setup]
+* link:https://www.dogtagpki.org/wiki/CA_Agent_Setup[CA Agent Setup]
+* link:https://www.dogtagpki.org/wiki/KRA_Agent_Setup[KRA Agent Setup]
+* link:Adding-System-User[Adding System User]
