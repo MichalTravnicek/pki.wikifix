@@ -1,6 +1,6 @@
 = Overview =
 
-This page describes the process to enable SSL connection on DS
+This page describes the process to enable SSL connection in DS
 using a self-signed signing certificate and server certificate
 created using link:PKI-NSS-CLI[PKI NSS CLI] commands.
 
@@ -94,9 +94,9 @@ To verify the DS server certificate:
 $ certutil -L -d /etc/dirsrv/slapd-localhost -n Server-Cert
 ----
 
-= Enabling SSL Connection on DS =
+= Enabling SSL Connection =
 
-To enable SSL connection on the DS instance:
+To enable SSL connection in the DS instance:
 
 ----
 $ dsconf localhost config replace nsslapd-security=on
