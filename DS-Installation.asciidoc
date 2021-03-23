@@ -26,18 +26,18 @@ Customize the DS configuration file as follows:
 
 ----
 $ sed -i \
+    -e "s/;instance_name = .*/instance_name = localhost/g" \
     -e "s/;root_password = .*/root_password = Secret.123/g" \
     -e "s/;suffix = .*/suffix = dc=example,dc=com/g" \
-    -e "s/;instance_name = .*/instance_name = localhost/g" \
     -e "s/;self_sign_cert = .*/self_sign_cert = False/g" \
     ds.inf
 ----
 
 where
 
+* *instance_name* specifies the name of the DS instance. In this example it's set to `localhost`.
 * *root_password* specifies the password for DS admin (i.e. `cn=Directory Manager`). In this example it's set to `Secret.123`.
 * *suffix* specifies the namespace for the DS instance. In this example it's set to `dc=example,dc=com`.
-* *instance_name* specifies the name of the DS instance. In this example it's set to `localhost`.
 * *self_sign_cert* specifies whether to create self-signed certificates for SSL connection. In this example it's set to `False`. The SSL connection can be enabled later in link:Enabling-SSL-Connection-on-DS[this document].
 
 For more information see the parameter descriptions in the DS configuration file itself (i.e. `ds.inf`) and in link:https://directory.fedoraproject.org/docs/389ds/design/dsadm-dsconf.html[DS documentation].
