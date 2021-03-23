@@ -12,7 +12,7 @@ This page assumes that a DS instance named `localhost` is already created and ha
 To export DS signing certificate:
 
 ----
-$ certutil -L -d /etc/dirsrv/slapd-localhost -n "Self-Signed-CA" -a > ds_signing.crt
+$ certutil -L -d /etc/dirsrv/slapd-localhost -n Self-Signed-CA -a > ds_signing.crt
 ----
 
 = Exporting DS Server Certificate =
@@ -20,5 +20,5 @@ $ certutil -L -d /etc/dirsrv/slapd-localhost -n "Self-Signed-CA" -a > ds_signing
 To export DS server certificate:
 
 ----
-$ certutil -L -d /etc/dirsrv/slapd-localhost -n "Server-Cert" -a > ds_server.crt
+$ certutil -L -d /etc/dirsrv/slapd-localhost -n Server-Cert -a > ds_server.crt
 ----
