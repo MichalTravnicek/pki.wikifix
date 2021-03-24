@@ -6,7 +6,7 @@ $ echo -e "y\n\ny\n" | \
  -d nssdb \
  -f password.txt \
  -z noise.bin \
- -s "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE" \
+ -s "CN=Certificate Authority,O=EXAMPLE" \
  -o ca_signing.csr.der \
  -k rsa \
  -g 2048 \
@@ -26,9 +26,9 @@ $ echo -e "y\n\ny\n" | \
  -d nssdb \
  -f password.txt \
  -z noise.bin \
- -s "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE" \
+ -s "CN=Certificate Authority,O=EXAMPLE" \
  -o ca_signing.csr.der \
- -k "ca_signing" \
+ -k ca_signing \
  -g 2048 \
  -Z SHA256 \
  -2 \
@@ -43,7 +43,7 @@ $ openssl req -text -noout -in ca_signing.csr
 Certificate Request:
     Data:
         Version: 1 (0x0)
-        Subject: O = EXAMPLE, OU = pki-tomcat, CN = CA Signing Certificate
+        Subject: O = EXAMPLE, CN = Certificate Authority
         Subject Public Key Info:
             Public Key Algorithm: rsaEncryption
                 Public-Key: (2048 bit)
