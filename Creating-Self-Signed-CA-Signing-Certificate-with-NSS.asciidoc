@@ -25,8 +25,8 @@ $ echo -e "y\n\ny\ny\n${CA_SKID}\n\n\n\n${CA_SKID}\n\n2\n7\n${OCSP}\n\n\n\n" | \
     -d nssdb \
     -f password.txt \
     -z noise.bin \
-    -n "CA Signing Certificate" \
-    -s "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE" \
+    -n ca_signing \
+    -s "CN=Certificate Authority,O=EXAMPLE" \
     -t "CT,C,C" \
     -m $RANDOM \
     -k rsa \
@@ -37,7 +37,7 @@ $ echo -e "y\n\ny\ny\n${CA_SKID}\n\n\n\n${CA_SKID}\n\n2\n7\n${OCSP}\n\n\n\n" | \
     --keyUsage critical,certSigning,crlSigning,digitalSignature,nonRepudiation \
     --extAIA \
     --extSKID
-$ certutil -L -d nssdb -n "CA Signing Certificate" -a > ca_signing.crt
+$ certutil -L -d nssdb -n ca_signing -a > ca_signing.crt
 ----
 
 It will generate the certificate in ca_signing.crt.
@@ -55,7 +55,7 @@ $ echo -e "y\n\ny\n" | \
     -d nssdb \
     -f password.txt \
     -z noise.bin \
-    -s "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE" \
+    -s "CN=Certificate Authority,O=EXAMPLE" \
     -o ca_signing.csr.der \
     -k rsa \
     -g 2048 \
@@ -88,7 +88,7 @@ $ echo -e "y\n\ny\ny\n${CA_SKID}\n\n\n\n${CA_SKID}\n\n2\n7\n${OCSP}\n\n\n\n" | \
     --keyUsage critical,certSigning,crlSigning,digitalSignature,nonRepudiation \
     --extAIA \
     --extSKID
-$ certutil -A -d nssdb -n "CA Signing Certificate" -i ca_signing.crt -t "CT,C,C"
+$ certutil -A -d nssdb -n "Certificate Authority" -i ca_signing.crt -t "CT,C,C"
 ----
 
 It will generate the CA signing certificate in ca_signing.crt.
