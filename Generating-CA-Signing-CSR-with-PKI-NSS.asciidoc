@@ -1,6 +1,6 @@
 = Generating CSR =
 
-To create a certificate request, prepare a certificate extension configuration (e.g. ca_signing.conf):
+To create a certificate request, prepare a certificate extension configuration (e.g. link:https://github.com/dogtagpki/pki/blob/master/base/server/certs/ca_signing.conf[/usr/share/pki/server/certs/ca_signing.conf]):
 
 ----
 basicConstraints       = critical, CA:TRUE
@@ -12,8 +12,8 @@ Then execute the following command:
 
 ----
 $ pki nss-cert-request \
-    --subject "CN=CA Signing Certificate" \
-    --ext ca_signing.conf \
+    --subject "CN=Certificate Authority" \
+    --ext /usr/share/pki/server/certs/ca_signing.conf \
     --csr ca_signing.csr
 ----
 
