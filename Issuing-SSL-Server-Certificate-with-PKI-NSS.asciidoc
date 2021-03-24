@@ -1,6 +1,6 @@
 = Issuing a Certificate =
 
-To issue a certificate, prepare a certificate extension configuration in a file (e.g. sslserver.conf):
+To issue a certificate, prepare a certificate extension configuration in a file (e.g. link:https://github.com/dogtagpki/pki/blob/master/base/server/certs/sslserver.conf[/usr/share/pki/server/certs/sslserver.conf]):
 
 ----
 basicConstraints       = critical, CA:FALSE
@@ -20,7 +20,7 @@ To issue a self-signed certificate:
 ----
 $ pki nss-cert-issue \
     --csr sslserver.csr \
-    --ext sslserver.conf \
+    --ext /usr/share/pki/server/certs/sslserver.conf \
     --cert sslserver.crt
 ----
 
