@@ -1,3 +1,30 @@
+= Overview =
+
+This page describes various PKI installation scenarios.
+
+To install a PKI subsystem, execute the following command:
+
+----
+$ pkispawn -f <deployment configuration> -s <subsystem>
+----
+
+By default it will create a PKI server instance called `pki-tomcat` in `/var/lib/pki/pki-tomcat` folder.
+Multiple subsystems can be installed in the same instance.
+
+Sample deployment configuration files can be found in 
+link:https://github.com/dogtagpki/pki/tree/master/base/server/examples/installation[/usr/share/pki/server/examples/installation] folder.
+
+To remove a subsystem, execute the following command:
+
+----
+$ pkidestroy -i <instance> -s <subsystem>
+----
+
+For more information see also:
+
+* link:https://github.com/dogtagpki/pki/blob/master/docs/manuals/man8/pkispawn.8.md[pkispawn manual]
+* link:https://github.com/dogtagpki/pki/blob/master/docs/manuals/man8/pkidestroy.8.md[pkidestroy manual]
+
 = Certificate Authority =
 
 * link:https://github.com/dogtagpki/pki/blob/master/docs/installation/ca/Installing_CA.md[Installing CA]
