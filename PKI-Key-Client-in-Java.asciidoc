@@ -106,6 +106,7 @@ The Java class that implements these operations is `NSSCryptoProvider` located i
 The constructor of `NSSCryptoProvider` will initialize the NSS database at the location specified in the `ClientConfig` object.
 Here is how we pass on the `NSSCryptoProvider` to the `KeyClient`.
 
+[source,java]
 ----        
 ClientConfig config = new ClientConfig();
 config.setServerURI(protocol + "://" + host + ":" + port + "/kra");
@@ -171,6 +172,7 @@ This function takes in some key parameters and returns the `key_id` for the gene
 (and archived) key.  In future, it will also be able to return the generated key at the same
 time.  We will implement that functionality soon.
 
+[source,java]
 ----
 String clientKeyId = "Symmetric Key #1234f " + Calendar.getInstance().getTime().toString();
 List<String> usages = new ArrayList<String>();
@@ -186,6 +188,7 @@ KeyId keyId = genKeyResponse.getKeyId();
 
 Different methods, depending on the type of the secret and how it is passed, are provided by the Java client framework.
 
+[source,java]
 ----
 String passphrase = "Secret.123";
 String clientKeyId = "UUID: 123-45-6789 RKEK " + Calendar.getInstance().getTime().toString();
@@ -208,6 +211,7 @@ For the case where encryption is done externally, the method `archiveEncryptedDa
 A secret can also be archived by creating a `PKIArchiveOptions` object using the secret 
 (passphrase/symmetric key) and transport cert of the DRM. This object can be used to archive the secret.
 
+[source,java]
 ----
 String clientKeyId = "UUID: 123-45-6789 VEK " + Calendar.getInstance().getTime().toString();
 
@@ -226,6 +230,7 @@ or whether the crypto operations are being performed outside of the Dogtag Pytho
 
 This is the case where the crypto operations are done locally (as in section 1 or 2 in Cryptography section).
 
+[source,java]
 ----
 // get active key for a particular client ID
 KeyId keyInfo = keyClient.getActiveKeyInfo(clientKeyId);
@@ -241,6 +246,7 @@ as the attribute "data" since there is no transport key wrapped session key pass
 The following code snippet is an example of encryption done externally, i.e. an application or an intermediate server
 which uses the client API to talk to the DRM.
 
+[source,java]
 ----    
 // get active key for a particular client ID
 KeyId keyInfo = keyClient.getActiveKeyInfo(clientKeyId);
