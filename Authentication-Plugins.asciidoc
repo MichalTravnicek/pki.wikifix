@@ -27,6 +27,7 @@ authentication plugin would need to include a single `package` statement.
 
 For example, if the authentication plugin had been placed in the directory structure `/var/lib/tomcat5/shared/classes/mydir/mysubdir`, the following statement would be required:
 
+[source,java]
 ----
 package mydir.mysubdir;
 ----
@@ -37,6 +38,7 @@ Include any external classes that a particular authentication plugin is dependen
 
 For example, most authentication plugins would typically include the following dependencies:
 
+[source,java]
 ----
 /* cert server imports */
 import com.netscape.certsrv.apps.*;
@@ -72,6 +74,7 @@ Additionally, to provide help features, all authentication plugins should also `
 
 If the authentication plugin requires interaction with the profiles framework:
 
+[source,java]
 ----
 public class <Authentication Plugin Class Name>
 implements IAuthManager, IExtendedPluginInfo, IProfileAuthenticator
@@ -88,6 +91,7 @@ Determine the parameters that would be required by all of a particular authentic
 
 For example, an authentication plugin may wish to keep track of how many times all instances of it have been referenced:
 
+[source,java]
 ----
 private static int reference_count = 0;
 ----
@@ -98,6 +102,7 @@ Determine the parameters that would be required by all of a particular authentic
 
 Most authentication plugins require parameters for the configuration store, the plugin name, and the plugin instance name:
 
+[source,java]
 ----
 /* authentication plugin configuration store */
 private IConfigStore mConfig;
@@ -112,6 +117,7 @@ private String mName = null;
 Additionally, parameters are generally required for any authentication plugin instance's fields and values during instantiation.
 These are used when creating/editing an authentication plugin instance:
 
+[source,java]
 ----
 /* authentication plugin fields */
 protected static final String PROP_FIELD_1 = "field_1";
@@ -133,6 +139,7 @@ private String mValue2 = null;
 
 Additionally, some authentication plugin instances may require certain properties in order to be utilized:
 
+[source,java]
 ----
 /* authentication plugin properties */
 private Properties mProperties = null;
@@ -140,6 +147,7 @@ private Properties mProperties = null;
 
 Finally, most authentication plugin instances require credentials that are passed in from an enrollment form that are used to perform the actual authentication:
 
+[source,java]
 ----
 /* required credentials to authenticate. */
 public static final String CRED_CREDENTIAL_1 = "credential_1";
@@ -155,6 +163,7 @@ Determine the parameters that would be required by all of a particular authentic
 
 Generally, this consists of setting up a `Vector` to store all help messages for a particular authentication plugin:
 
+[source,java]
 ----
 /* Vector of extendedPluginInfo strings */
 protected static Vector mExtendedPluginInfo = null;
@@ -194,6 +203,7 @@ Determine the parameters that would be required by all of a particular authentic
 
 Generally, this is usually just the simple creation of an authentication plugin's logging facility:
 
+[source,java]
 ----
 /* the system's logger */
 private ILogger mLogger = CMS.getLogger();
@@ -205,6 +215,7 @@ Determine all of the default methods that would be required by this particular a
 
 Generally, the only default authentication plugin method is the constructor:
 
+[source,java]
 ----
 /**
  * Default constructor, initialization must follow.
@@ -224,6 +235,7 @@ If this authentication plugin `extends` (or subclasses) a class which implements
 
 This consists of the following methods:
 
+[source,java]
 ----
 /**
  * Initializes the authentication plugin.
@@ -368,6 +380,7 @@ be sure to call `super.<method name>(...)` with the appropriate parameters whene
 
 This consists of the following methods:
 
+[source,java]
 ----
 /**
  * Initializes this default policy.
@@ -488,6 +501,7 @@ Determine all of the `Logger` methods that would be required by this particular 
 
 Generally, the only `Logger` authentication plugin method is the following:
 
+[source,java]
 ----
 /**
  * Logs a message for this class in the system log file.
