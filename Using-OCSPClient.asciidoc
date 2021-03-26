@@ -1,0 +1,35 @@
+= Using OCSPClient against CA's Built-in OCSP Responder =
+
+----
+$ OCSPClient \
+    -d ~/.dogtag/pki-tomcat/ca/alias \
+    -h $HOSTNAME \
+    -p 8080 \
+    -t /ca/ocsp \
+    -c ca_signing \
+    --serial 6
+CertID.serialNumber=6
+CertStatus=Good
+----
+
+See also link:Configuring-Internal-OCSP-Responder[Configuring Internal OCSP Responder].
+
+= Using OCSPClient against OCSP Responder Subsystem ==
+
+Note: Currently the CRL has to be published first from CA to OCSP, otherwise `OCSPClient` will fail.
+
+----
+$ OCSPClient \
+    -d ~/.dogtag/pki-tomcat/ca/alias \
+    -h $HOSTNAME \
+    -p 8080 \
+    -t /ocsp/ee/ocsp \
+    -c ca_signing \
+    --serial 6
+CertID.serialNumber=6
+CertStatus=Good
+----
+
+= See Also =
+
+* link:https://access.redhat.com/documentation/en-US/Red_Hat_Certificate_System/8.1/html/Command-Line_Tools_Guide/OCSP_Request.html[RHCS 8.1 - OCSPClient]
