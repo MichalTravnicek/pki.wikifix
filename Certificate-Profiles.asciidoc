@@ -1,0 +1,24 @@
+= Overview =
+
+The Certificate System uses certificate profiles to configure the content of the certificate, the constraints for issuing the certificate, the enrollment method used, and the input and output forms for that enrollment. A single certificate profile is associated with issuing a particular type of certificate.
+
+A set of certificate profiles is included for the most common certificate types; the profile settings can be modified. Certificate profiles are configured by an administrator, and then sent to the agent services page for agent approval. Once a certificate profile is approved, it is enabled for use. A dynamically-generated HTML form for the certificate profile is used in the end-entities page for certificate enrollment, which calls on the certificate profile. The server verifies that the defaults and constraints set in the certificate profile are met before acting on the request and uses the certificate profile to determine the content of the issued certificate.
+
+= System Certificate Profiles =
+
+The system certificate profiles are used to generate system certificates during installation.
+
+See also:
+
+* link:https://github.com/dogtagpki/pki/wiki/Configuring-System-Certificate-Profiles[System Certificate Profiles]
+
+= CA Certificate Profiles =
+
+The CA certificate Profiles are provided by CA for use by end-entities post installation.
+
+See also:
+
+* link:Certificate-Profile-Constraints[Certificate Profile Constraints]
+* link:Certificate-Profile-Defaults[Certificate Profile Defaults]
+* link:Configuring-Certificate-Profiles[Configuring Certificate Profiles]
+* link:Configuring-Directory-Authenticated-Certificate-Profiles[Configuring Directory-Authenticated Certificate Profiles]
