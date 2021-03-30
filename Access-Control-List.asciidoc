@@ -1,3 +1,48 @@
+= Default ACL =
+
+The default ACL for each PKI subsystem is defined in the following files:
+
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/conf/acl.ldif[/usr/share/pki/ca/conf/acl.ldif]
+* link:https://github.com/dogtagpki/pki/blob/master/base/kra/shared/conf/acl.ldif[/usr/share/pki/kra/conf/acl.ldif]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ocsp/shared/conf/acl.ldif[/usr/share/pki/ocsp/conf/acl.ldif]
+* link:https://github.com/dogtagpki/pki/blob/master/base/tks/shared/conf/acl.ldif[/usr/share/pki/tks/conf/acl.ldif]
+* link:https://github.com/dogtagpki/pki/blob/master/base/tps/shared/conf/acl.ldif[/usr/share/pki/tps/conf/acl.ldif]
+
+When the subsystem is installed, the ACL will be stored in the following LDAP entry:
+
+----
+dn: cn=aclResources,dc=<subsystem>,dc=pki,dc=example,dc=com
+objectClass: top
+objectClass: CertACLS
+cn: aclResources
+resourceACLS: ...
+resourceACLS: ...
+resourceACLS: ...
+...
+----
+
+= Modifying ACL =
+
+To modify the ACL, execute an `ldapmodify` command to remove the old `resourceACLS` attribute and add the new one. For example:
+
+----
+$ ldapmodify -H ldap://$HOSTNAME:389 -x -D "cn=Directory Manager" -w Secret.123 << EOF
+dn: cn=aclResources,dc=tps,dc=pki,dc=example,dc=com
+changetype: modify
+delete: resourceACLS
+resourceACLS: certServer.tps.profile-mappings:read,change-status,add,modify,remo
+ ve:allow (read,change-status,add,modify,remove) group="Administrators" :Only ad
+ mins can access profile mappings.
+-
+add: resourceACLS
+resourceACLS: certServer.tps.profile-mappings:read,change-status,add,modify,remo
+ ve:allow (read,change-status) group="Administrators" || group="TPS Agents";allo
+ w (add,modify,remove) group="Administrators":Admins and agents can read and cha
+ nge status, but only admins can add, modify, and remove.
+-
+EOF
+----
+
 = See Also =
 
 * link:TPS-ACL[TPS ACL]
