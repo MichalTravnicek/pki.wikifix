@@ -6,7 +6,7 @@ This document describes the procedure to enable certificate revocation checking.
 
 The CA subsystem has an internal certificate revocation checking functionality which is enabled by default.
 
-To configure the internal certificate revocation checking, edit /var/lib/pki/pki-tomcat/ca/conf/CS.cfg:
+To configure the internal certificate revocation checking, edit `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg`:
 
 ----
 auths.revocationChecking.enabled=true
@@ -19,7 +19,7 @@ auths.revocationChecking.validityInterval=120
 If necessary (e.g. for testing), the cache can be disabled:
 
 ----
-auths.revocationChecking.validityInterval=1
+auths.revocationChecking.bufferSize=0
 ----
 
 Then restart the server.
@@ -51,7 +51,7 @@ Then restart the server.
 
 = Global Certificate Revocation Checking =
 
-Each PKI instance can be configured to use a global certificate revocation checking. The configuration is located in /var/lib/pki/pki-tomcat/conf/server.xml. See link:https://www.dogtagpki.org/wiki/Tomcat_JSS[Tomcat JSS]. This functionality requires a separate OCSP responder.
+Each PKI instance can be configured to use a global certificate revocation checking. The configuration is located in `/var/lib/pki/pki-tomcat/conf/server.xml`. See link:https://www.dogtagpki.org/wiki/Tomcat_JSS[Tomcat JSS]. This functionality requires a separate OCSP responder.
 
 When the global certificate revocation checking is enabled all certificate validations in the server instance will be performed against the specified OCSP responder. This includes system certificate validations during server startup and client certificate validations on incoming SSL connections.
 
@@ -97,7 +97,7 @@ ocspSigningCert cert-pki-tomcat CA                           C,,
 
 == Enabling global certificate revocation checking ==
 
-To enable global certificate revocation checking, edit /var/lib/pki/pki-tomcat/conf/server.xml and configure the parameters in the "Secure" Connector:
+To enable global certificate revocation checking, edit `/var/lib/pki/pki-tomcat/conf/server.xml` and configure the parameters in the `Secure` Connector:
 
 ----
 <Connector name="Secure"
