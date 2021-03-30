@@ -21,6 +21,15 @@ resourceACLS: ...
 ...
 ----
 
+= Displaying ACL =
+
+To display the current ACL, execute an `ldapsearch` command. For example:
+
+----
+$ ldapsearch -H ldap://$HOSTNAME:389 -x -D "cn=Directory Manager" -w Secret.123 \
+    -b "cn=aclResources,dc=tps,dc=pki,dc=example,dc=com"
+----
+
 = Modifying ACL =
 
 To modify the ACL, execute an `ldapmodify` command to remove the old `resourceACLS` attribute and add the new one. For example:
@@ -42,6 +51,8 @@ resourceACLS: certServer.tps.profile-mappings:read,change-status,add,modify,remo
 -
 EOF
 ----
+
+Then restart the server.
 
 = See Also =
 
