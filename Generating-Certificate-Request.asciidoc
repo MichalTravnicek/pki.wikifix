@@ -9,36 +9,7 @@ Note that the link:PKI-Client-CLI[PKI Client CLI] provides a simplified mechanis
 If key archival is not needed, a PKCS #10 request can be generated with the following methods:
 
 * link:Generating-Certificate-Request-with-PKCS10Client[Generating Certificate Request with PKCS10Client]
-
-== Using certutil ==
-
-Prepare noise file and password file:
-
-----
-$ openssl rand -out noise.bin 2048
-$ echo Secret.123 > password.txt
-----
-
-To generate the request onto the screen:
-
-----
-$ certutil -R \
- -d ~/.dogtag/nssdb \
- -f password.txt \
- -s "uid=testuser,ou=people,dc=example,dc=com" \
- -g 2048 \
- -z noise.bin \
- -o testuser.csr \
- -a
-
-
-Generating key.  This may take a few moments...
-
-----
-
-The CSR is stored in testuser.csr.
-
-See also link:NSS-Database[NSS Database].
+* link:Generating-Certificate-Request-with-certutil[Generating Certificate Request with NSS]
 
 == Using openssl ==
 
