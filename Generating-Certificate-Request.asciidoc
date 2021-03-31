@@ -6,37 +6,9 @@ Note that the link:PKI-Client-CLI[PKI Client CLI] provides a simplified mechanis
 
 = Generating PKCS #10 Request =
 
-If key archival is not needed, generate a PKCS #10 request.
+If key archival is not needed, a PKCS #10 request can be generated with the following methods:
 
-== Using PKCS10Client ==
-
-----
-$ PKCS10Client -d ~/.dogtag/nssdb -p Secret.123 -a rsa -l 1024 -o testuser.csr \
-    -n "uid=testuser,ou=people,dc=example,dc=com"
-PKCS10Client: Debug: got token.
-PKCS10Client: Debug: thread token set.
-PKCS10Client: token Internal Key Storage Token logged in...
-PKCS10Client: key pair generated.
-PKCS10Client: pair.getPublic() called.
-PKCS10Client: CertificationRequestInfo() created.
-PKCS10Client: CertificationRequest created.
-PKCS10Client: calling Utils.b64encode.
-PKCS10Client: b64encode completes.
------BEGIN NEW CERTIFICATE REQUEST-----
-MIIBfTCB5wIBADAaMRgwFgYKCZImiZPyLGQBARMIdGVzdHVzZXIwgZ8wDQYJKoZI
-hvcNAQEBBQADgY0AMIGJAoGBAPEcxFJBu2lNmIS+MNaZKO43h0dIhKZWZ8wEomQc
-tc9guIUGM5eFU+psj6n0XQCPMIVRe7mrzYHF8mlwAp416P5/97g9U6JOKkTXc5ia
-HVE1JRhykHiQ17Lp7Y6xXxfe6xKAXDoLOPJ4fNdadtbVeIGjudWktjgwh5CQBXsA
-GFP5AgMBAAGgJDAiBggrBgEFBQcHFzEWBBTmaclfLv+kkK5z5kTMP54dlnecUDAN
-BgkqhkiG9w0BAQQFAAOBgQAXrm979HwcG63Z64u+aybYrfOgyWxQ4kTtCA+NKYge
-HC6Z/mlb10J/wggOzrHUbE4IFyjbBo2k1FKe8zYcXIB6Ok5Z0TXueR1zKcb8hE35
-o9dkH2sGJsSqMLN8NRyY5QeqOKmtaX8pm1aPhJ0wkvOYou52YqJdq6LF9KXmBGOH
-hA==
------END NEW CERTIFICATE REQUEST-----
-PKCS10Client: done. Request written to file: testuser.csr
-----
-
-The CSR is stored in testuser.csr.
+* link:Generating-Certificate-Request-with-PKCS10Client[Generating Certificate Request with PKCS10Client]
 
 == Using certutil ==
 
