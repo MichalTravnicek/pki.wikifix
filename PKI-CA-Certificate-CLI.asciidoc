@@ -1,39 +1,42 @@
 = Overview =
 
-PKI provides CLI to manage certificates and certificate requests. See also [[Adding System User]].
+PKI provides CLI to manage certificates and certificate requests. See also link:Adding-System-User[Adding System User].
 
-To manage certificate profiles, see [[PKI CA Profile CLI]].
+To manage certificate profiles, see link:PKI-CA-Profile-CLI[PKI CA Profile CLI].
 
-To manage certificate requests, see [[PKI CA Certificate Request CLI]].
+To manage certificate requests, see link:PKI-CA-Certificate-Request-CLI[PKI CA Certificate Request CLI].
 
 = Listing Certificates =
 
 Listing certificates can be executed anonymously.
 
 To list all certificates:
-<pre>
+
+----
 $ pki ca-cert-find
-</pre>
+----
 
 To list certificates with specific status:
-<pre>
+
+----
 $ pki ca-cert-find --status VALID
-</pre>
+----
 
 To list certificates with specific name:
 
-<pre>
-$ pki ca-cert-find -name "Subsystem Certificate"
-</pre>
+----
+$ pki ca-cert-find --name "Subsystem Certificate"
+----
 
 To list certificates with search constraints defined in a file:
-<pre>
+
+----
 $ pki ca-cert-find --input <filename>
-</pre>
+----
 
 where file is in the following format:
 
-<pre>
+----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <CertSearchRequest>
 
@@ -90,20 +93,21 @@ where file is in the following format:
     <certTypeSecureEmail></certTypeSecureEmail>
 
 </CertSearchRequest>
-</pre>
+----
 
 = Displaying a Certificate =
 
 To display a particular certificate:
-<pre>
+
+----
 $ pki ca-cert-show <certificate ID>
-</pre>
+----
 
 = Listing Certificate Request Templates =
 
 To list certificate profiles available to end-entities:
 
-<pre>
+----
 $ pki ca-cert-request-profile-find
 ------------------
 25 entries matched
@@ -117,11 +121,11 @@ $ pki ca-cert-request-profile-find
 -----------------------------
 Number of entries returned 20
 -----------------------------
-</pre>
+----
 
 = Displaying a Certificate Request Template =
 
-<pre>
+----
 $ pki ca-cert-request-profile-show caUserCert
 --------------------------------------------
 Enrollment Template for Profile "caUserCert"
@@ -141,22 +145,22 @@ Enrollment Template for Profile "caUserCert"
     Attribute Syntax: keygen_request
 
 ...
-</pre>
+----
 
 = Downloading a Request Template =
 
 To download a request template for a particular profile, specify the profile name and the output file in the following command:
 
-<pre>
+----
 $ pki ca-cert-request-profile-show caUserCert --output caUserCert.xml
 ----------------------------------------------------------
 Saved enrollment template for caUserCert to caUserCert.xml
 ----------------------------------------------------------
-</pre>
+----
 
 The request template will be stored in XML format:
 
-<pre>
+----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <CertEnrollmentRequest>
     <Attributes/>
@@ -184,13 +188,13 @@ The request template will be stored in XML format:
     </Input>
 ...
 </CertEnrollmentRequest>
-</pre>
+----
 
 = Creating a Certificate Request =
 
-[https://github.com/dogtagpki/pki/wiki/Generating-Certificate-Request Generate a certificate request], for example:
+link:Generating-Certificate-Request[Generate a certificate request], for example:
 
-<pre>
+----
 $ PKCS10Client -d ~/.dogtag/nssdb -p Secret.123 -a rsa -l 1024 -o testuser.csr -n "uid=testuser"
 PKCS10Client: Debug: got token.
 PKCS10Client: Debug: thread token set.
@@ -214,32 +218,32 @@ hA==
 
 -----END NEW CERTIFICATE REQUEST-----
 PKCS10Client: done. Request written to file: testuser.csr
-</pre>
+----
 
 = Submitting a Certificate Request =
 
-See also [https://www.dogtagpki.org/wiki/Certificate_Profiles Certificate Profiles].
+See also link:Certificate-Profiles[Certificate Profiles].
 
 == Basic requests ==
 
-'''Dogtag 10.3 or newer:''' Basic requests can be submitted to the server using the following command:
+*Dogtag 10.3 or newer:* Basic requests can be submitted to the server using the following command:
 
-<pre>
+----
 $ pki ca-cert-request-submit --profile caUserCert \
- --request-type pkcs10 --csr-file testuser.csr --subject uid=testuser
-</pre>
+    --request-type pkcs10 --csr-file testuser.csr --subject uid=testuser
+----
 
 == Advanced requests ==
 
 First obtain the request template for a certificate profile:
 
-<pre>
+----
 $ pki ca-cert-request-profile-show caUserCert --output testuser.xml
-</pre>
+----
 
 Edit the template and fill in the input attributes:
 
-<pre>
+----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <CertEnrollmentRequest>
     ...
@@ -275,21 +279,21 @@ hA==
     </Input>
     ...
 </CertEnrollmentRequest>
-</pre>
+----
 
 Then use the following command to submit the request:
 
-<pre>
+----
 $ pki ca-cert-request-submit testuser.xml
-</pre>
+----
 
 = Retrieving Certificates =
 
 To download a certificate:
 
-<pre>
+----
 $ pki ca-cert-show <certificate ID> --encoded --output <filename>
-</pre>
+----
 
 = Revoking Certificates =
 
@@ -297,21 +301,21 @@ Revoking, holding, or releasing certificates must be executed as an agent.
 
 To revoke a certificate:
 
-<pre>
+----
 $ pki <agent authentication> ca-cert-revoke <certificate ID>
-</pre>
+----
 
 To hold a certificate temporarily:
 
-<pre>
+----
 $ pki <agent authentication> ca-cert-hold <certificate ID>
-</pre>
+----
 
 To release a certificate that has been held:
 
-<pre>
+----
 $ pki <agent authentication> ca-cert-release-hold <certificate ID>
-</pre>
+----
 
 = Checking Certificate Status =
 
@@ -319,22 +323,24 @@ The pki ca-cert-status provides a simpler way to test OCSP request by downloadin
 
 To check certificate status using the CA's internal OCSP responder:
 
-<pre>
+----
 $ pki ca-cert-status <certificate ID>
-</pre>
+----
 
 To check certificate status using other OCSP responder:
 
- $ pki ca-cert-status <certificate ID> --ocsp http://$HOSTNAME:8080/ocsp/ee/ocsp
+----
+$ pki ca-cert-status <certificate ID> --ocsp http://$HOSTNAME:8080/ocsp/ee/ocsp
+----
 
-See also [https://www.dogtagpki.org/wiki/OCSPClient OCSPClient].
+See also link:https://www.dogtagpki.org/wiki/OCSPClient[OCSPClient].
 
-= References =
+= See Also =
 
-* [https://www.dogtagpki.org/wiki/Certificate_Management Certificate Management]
-* [https://github.com/dogtagpki/pki/wiki/PKI-CLI PKI CLI]
-* [[PKI CA CLI]]
-* [[PKI CA Certificate Request CLI]]
-* [[PKI Client CLI]]
-* [[PKI User Certificate CLI]]
-* [[PKI CA Profile CLI]]
+* link:https://www.dogtagpki.org/wiki/Certificate_Management[Certificate Management]
+* link:PKI-CLI[PKI CLI]
+* link:PKI-CA-CLI[PKI CA CLI]
+* link:PKI-CA-Certificate-Request-CLI[PKI CA Certificate Request CLI]
+* link:PKI-Client-CLI[PKI Client CLI]
+* link:PKI-User-Certificate-CLI[PKI User Certificate CLI]
+* link:PKI-CA-Profile-CLI[PKI CA Profile CLI]
