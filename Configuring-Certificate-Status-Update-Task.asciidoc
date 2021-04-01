@@ -1,6 +1,24 @@
 = Overview =
 
-The CA has a task that will periodically update the status of the certificates in the database based on the server time.
+The CA has a task that will periodically update the status of the certificates in the database based on the server's current time.
+
+The certificate status is stored in `certStatus` attribute in the certificate record, for example:
+
+----
+dn: cn=6,ou=certificateRepository,ou=ca,dc=ca,dc=pki,dc=example,dc=com
+...
+notBefore: 20210401173719Z
+notAfter: 20230322173719Z
+...
+certStatus: VALID
+...
+----
+
+The task will execute the following operations:
+
+* update all `INVALID` certificates whose `notBefore >= <current time>` into `VALID`
+* update all `VALID` certificates whose `notAfter >= <current time>` into `EXPIRED`
+* update all `REVOKED` certificates whose `notAfter >= <current time>` into `REVOKED_EXPIRED`
 
 = Configuration =
 
@@ -14,8 +32,14 @@ ca.transitMaxRecords=1000000
 
 where:
 
-* `ca.certStatusUpdateInterval` determines how often the task runs in seconds (default: 600)
-* `ca.transitRecordPageSize` determines the page size of each VLV query (default: 200)
-* `ca.transitMaxRecords` determines the number of certificates to process on each run (default: 1000000)
+* `ca.certStatusUpdateInterval` indicates the update interval in seconds (default: `600`). Value `0` disables the task.
+* `ca.transitRecordPageSize` indicates the VLV page size used in each operation (default: `200`).
+* `ca.transitMaxRecords` indicates the number of certificates to process in each run (default: `1000000`).
+
+*Note:* The task is disabled by default in CA clone:
+
+----
+ca.certStatusUpdateInterval=0
+----
 
 To change the configuration, update the parameters in the `CS.cfg`, then restart the server.
