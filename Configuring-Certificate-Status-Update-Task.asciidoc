@@ -1,0 +1,19 @@
+= Overview =
+
+The CA has a task that will periodically update the status of the certificates in the database based on the server time.
+
+= Configuration =
+
+By default the task is configured as follows:
+
+----
+ca.certStatusUpdateInterval=600
+ca.transitRecordPageSize=200
+ca.transitMaxRecords=1000000
+----
+
+where:
+
+* `ca.certStatusUpdateInterval` determines how often the task runs (in seconds)
+* `ca.transitRecordPageSize` determines the page size of each VLV query
+* `ca.transitMaxRecords` determines the number of certificates to process on each run
