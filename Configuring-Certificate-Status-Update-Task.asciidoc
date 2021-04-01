@@ -4,7 +4,7 @@ The CA has a task that will periodically update the status of the certificates i
 
 = Configuration =
 
-By default the task is configured as follows:
+By default the task is configured as follows in the CA's `CS.cfg`:
 
 ----
 ca.certStatusUpdateInterval=600
@@ -14,6 +14,8 @@ ca.transitMaxRecords=1000000
 
 where:
 
-* `ca.certStatusUpdateInterval` determines how often the task runs (in seconds)
-* `ca.transitRecordPageSize` determines the page size of each VLV query
-* `ca.transitMaxRecords` determines the number of certificates to process on each run
+* `ca.certStatusUpdateInterval` determines how often the task runs in seconds (default: 600)
+* `ca.transitRecordPageSize` determines the page size of each VLV query (default: 200)
+* `ca.transitMaxRecords` determines the number of certificates to process on each run (default: 1000000)
+
+To change the configuration, update the parameters in the `CS.cfg`, then restart the server.
