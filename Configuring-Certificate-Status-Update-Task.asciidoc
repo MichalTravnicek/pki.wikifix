@@ -16,9 +16,9 @@ certStatus: VALID
 
 The task will execute the following operations:
 
-* update all `INVALID` certificates whose `notBefore >= <current time>` into `VALID`
-* update all `VALID` certificates whose `notAfter >= <current time>` into `EXPIRED`
-* update all `REVOKED` certificates whose `notAfter >= <current time>` into `REVOKED_EXPIRED`
+* update all `INVALID` certificates whose `notBefore \<= <current time>` into `VALID`
+* update all `VALID` certificates whose `notAfter \<= <current time>` into `EXPIRED`
+* update all `REVOKED` certificates whose `notAfter \<= <current time>` into `REVOKED_EXPIRED`
 
 = Configuration =
 
