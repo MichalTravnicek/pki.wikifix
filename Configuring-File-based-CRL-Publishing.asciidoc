@@ -1,0 +1,41 @@
+First, prepare a folder for CRL publishing, for example:
+
+----
+$ mkdir /var/lib/pki/pki-tomcat/ca/crl
+$ chown pkiuser.pkiuser /var/lib/pki/pki-tomcat/ca/crl
+----
+
+Then configure the file-based CRL publishing in `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg`:
+
+----
+ca.publish.enable=true
+ca.publish.publisher.instance.FileBasedPublisher.pluginName=FileBasedPublisher
+ca.publish.publisher.instance.FileBasedPublisher.crlLinkExt=bin
+ca.publish.publisher.instance.FileBasedPublisher.directory=/var/lib/pki/pki-tomcat/ca/crl
+ca.publish.publisher.instance.FileBasedPublisher.latestCrlLink=true
+ca.publish.publisher.instance.FileBasedPublisher.timeStamp=LocalTime
+ca.publish.publisher.instance.FileBasedPublisher.zipCRLs=false
+ca.publish.publisher.instance.FileBasedPublisher.zipLevel=9
+ca.publish.publisher.instance.FileBasedPublisher.Filename.b64=false
+ca.publish.publisher.instance.FileBasedPublisher.Filename.der=true
+ca.publish.rule.instance.FileCrlRule.enable=true
+ca.publish.rule.instance.FileCrlRule.mapper=NoMap
+ca.publish.rule.instance.FileCrlRule.pluginName=Rule
+ca.publish.rule.instance.FileCrlRule.predicate=
+ca.publish.rule.instance.FileCrlRule.publisher=FileBasedPublisher
+ca.publish.rule.instance.FileCrlRule.type=crl
+----
+
+By default the CRL is only updated at scheduled times. To update the CRL on each revocation:
+
+----
+ca.crl.MasterCRL.alwaysUpdate=true
+----
+
+Finally, restart the server.
+
+To view the published CRL:
+
+----
+$ openssl crl -inform DER -text -noout -in /var/lib/pki/pki-tomcat/ca/crl/MasterCRL.bin
+----
