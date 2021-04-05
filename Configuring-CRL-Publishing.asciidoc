@@ -70,6 +70,12 @@ ca.publish.rule.instance.LdapCrlRule.publisher=LdapCrlPublisher
 ca.publish.rule.instance.LdapCrlRule.type=crl
 ----
 
+By default the CRL is only updated at scheduled times. To update the CRL on each revocation:
+
+----
+ca.crl.MasterCRL.alwaysUpdate=true
+----
+
 Finally, restart the server.
 
 To retrieve the published CRL:
