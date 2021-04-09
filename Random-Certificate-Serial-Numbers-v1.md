@@ -499,7 +499,7 @@ using following steps:
 >     dbs.beginSerialNumber=20000001
 >     dbs.endSerialNumber=30000001
 
-  - Issue [496](https://fedorahosted.org/pki/ticket/496) - CA's
+  - [Issue #1067](https://github.com/dogtagpki/pki/issues/1067) - CA's
     automatic range management is broken by creating overlapping ranges.
   - Reviewed CRL cache recovery
 
@@ -512,7 +512,7 @@ using following steps:
         100.
   - Random serial numbers require a minimum range of eight serial
     numbers.
-      - [Issue \#2898 - Check for minimum serial number
+      - [Issue #2898 - Check for minimum serial number
         range when using random serial
         numbers](https://github.com/dogtagpki/pki/issues/2898)
 
