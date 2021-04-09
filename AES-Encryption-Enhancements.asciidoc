@@ -1,0 +1,142 @@
+= Introduction =
+
+This is an attempt to provide a high level explanation of this 10.5 feature that would be useful for users/deployers.
+
+The main impetus behind this feature is to ensure the all encryption operations used in key operations (archival, retrieval, generation) in the KRA are done using AES encryption algorithms to meet common criteria requirements (FCS_COP.1.1(1)).
+
+The specific operations that are affected are:
+
+* Archival
+** encryption of a key to be archived in a CRMF package for transport to the KRA
+** encryption of the key for storage in the KRA LDAP database.
+* Recovery
+** Encryption of a user provided session key for transport to the key.
+** Decryption of the secret and re-encryption using the user provided session key OR
+** Creation of a PKCS#12 package
+* Generation
+** Encryption of a generated key for storage.
+
+Up to now, we have primarily used 3DES for these encryption operations.
+We needed to replace them with AES algorithms.
+
+= Client Impact =
+
+From a user point of view, there should be no observable difference.
+Any algorithm changes should be handled by changes made in the Dogtag client software.
+
+Much of the feature work done was to ensure that new servers would continue to work with old clients,
+and that old servers would continue to work with new clients.
+New clients will interrogate the server to determine which encryption algorithms are supported,
+and will encrypt/decrypt appropriately.
+
+= Server Impact =
+
+New servers will use the new AES algorithms by default.
+This should all be transparent to the deployer.
+The only complication to this will be if the backend is an HSM.
+This is because HSMs may not support all the new algorithms.
+Once the KRA is installed, it may be neccesary to change the encryption algorithms to select ones that are supported.
+This is described in a separate section below.
+
+Upgraded servers will have the new encryption parameters added to their CS.cfg by migration scripts.
+To ensure that there is no disruption in service though,
+the server will be configured to use the old encryption algorithms (3DES).
+To take advantage of the new encryption algorithms,
+the deployer will need to enable the new algorithms manually (and restart the server).
+
+Data that had been previously encrypted and stored in the KRA LDAP database
+using a different or the default encryption algorirhm will still be able to be decrypted.
+This is because the information required to decrypt the secret(algorithm, nonce data) will be added to the key record.
+
+Changes were made on the CA as well.
+A new/upgraded CA will interrogate the KRA to determine which algorithms are available.
+This list will be provided to CA clients so that the best algorithm can be selected
+for encrypting the private key for transport in a CRMF request.
+This means that:
+
+* the CA should be restarted after upgrade
+* the CA should be restarted if the default algorithms are modified in the KRA.
+
+= Encryption Algorithm Configuration on the KRA =
+
+The encryption algorithms are configured in the KRA `CS.cfg` in the following stanzas:
+
+----
+kra.storageUnit.wrapping.0.sessionKeyLength=0
+kra.storageUnit.wrapping.0.sessionKeyWrapAlgorithm=RSA
+kra.storageUnit.wrapping.0.payloadEncryptionPadding=PKCS5Padding
+kra.storageUnit.wrapping.0.sessionKeyKeyGenAlgorithm=DES3
+kra.storageUnit.wrapping.0.payloadEncryptionAlgorithm=DES3
+kra.storageUnit.wrapping.0.payloadEncryptionMode=CBC
+kra.storageUnit.wrapping.0.payloadWrapAlgorithm=DES3/CBC/PAD
+kra.storageUnit.wrapping.0.sessionKeyType=DES3
+
+kra.storageUnit.wrapping.1.sessionKeyLength=128
+kra.storageUnit.wrapping.1.sessionKeyWrapAlgorithm=RSA
+kra.storageUnit.wrapping.1.payloadEncryptionPadding=PKCS5Padding
+kra.storageUnit.wrapping.1.sessionKeyKeyGenAlgorithm=AES
+kra.storageUnit.wrapping.1.payloadEncryptionAlgorithm=AES
+kra.storageUnit.wrapping.1.payloadEncryptionMode=CBC
+kra.storageUnit.wrapping.1.payloadWrapAlgorithm=AES KeyWrap/Padding
+kra.storageUnit.wrapping.1.sessionKeyType=AES
+
+kra.storageUnit.wrapping.choice=1
+----
+
+The first stanza defines the old encryption algorithms (3DES), while the second defines the new algorithm set (AES).
+
+The specific parameter set to be used is selected by the `kra.storageUnit.wrapping.choice` parameter,
+which defaults to 1 (AES) for newly installed servers.
+For upgraded servers, the wrapping choice is set by the migration scripts to 0 (3DES).
+
+The advantage of this formulation is that the algorithm set can now be
+updated to use different parameters in future by simply adding new stanzas
+and setting the choice accordingly.
+
+= HSM Considerations =
+
+At this point, both Lunasa and Thales do not support AES KeyWrap,
+which is one of the algorithms in the AES key algorithm set above ie.
+
+----
+kra.storageUnit.wrapping.1.payloadWrapAlgorithm=AES KeyWrap/Padding
+----
+
+The deployer will be able to install and configure the KRA as normal,
+but key archival will be broken unless the algorithm is changed.
+This needs to be done manually through modifications to the KRA `CS.cfg`
+(and the server restarted).
+
+There are two ways to handle this, both of which are supported.
+
+== Solution 1 ==
+
+Put the KRA in encrypt mode.  This is the solution that will be used in Common Criteria testing.
+All keys will be stored using encryption algorithms rather than key wrapping algorithms.
+To do this, set
+
+----
+kra.allowEncDecrypt.archive = true
+kra.allowEncDecrypt.recovery = true
+----
+
+The main disadvantage of using this solution is migration of old records.
+If you have old records (pre-upgrade), and you choose solution 1, and later
+decide to select solution 2 instead, you will need to write and run a
+migration script to add the appropriate metadata (an encrypted: true/false field)
+to the old records.
+
+== Solution 2 ==
+
+Select a different algorithm for the key wrapping.
+The HSMs will support using AES-128-CBC as a key wrapping algorithm.
+
+To do this, you can set this:
+
+----
+kra.storageUnit.wrapping.1.payloadWrapAlgorithm=AES/CBC/PKCS5Padding
+kra.storageUnit.wrapping.1.payloadWrapIVLen=16
+----
+
+If the HSMs later add support for AES KeyWrap,
+the deployer can revert with no issues because the key records will have the relevant information.
