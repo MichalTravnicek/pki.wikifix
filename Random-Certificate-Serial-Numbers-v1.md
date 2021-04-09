@@ -467,7 +467,7 @@ using following steps:
   - Issue [854420](https://bugzilla.redhat.com/show_bug.cgi?id=854420) -
     Agent and EE certificate searches based on time have "fixed" year
     range ending in 2012.
-  - Issue [495](https://fedorahosted.org/pki/ticket/495) - CA's
+  - [Issue #1066](https://github.com/dogtagpki/pki/issues/1066) - CA's
     automatic range management is broken when switching to new range in
     certificate repository.
 
