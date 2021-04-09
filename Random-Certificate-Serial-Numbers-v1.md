@@ -512,9 +512,9 @@ using following steps:
         100.
   - Random serial numbers require a minimum range of eight serial
     numbers.
-      - [dogtagpki Pagure Issue \#2778 - Check for minimum serial number
+      - [Issue \#2898 - Check for minimum serial number
         range when using random serial
-        numbers](https://pagure.io/dogtagpki/issue/2778)
+        numbers](https://github.com/dogtagpki/pki/issues/2898)
 
 # References
 
