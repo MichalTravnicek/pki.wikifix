@@ -4,14 +4,15 @@ This proposal introduces a new mechanism for generating certificate serial numbe
 
 According to link:https://tools.ietf.org/html/rfc5280[RFC 5280] section 4.1.2.2 the serial number field on X.509 certificates are allotted 160 bits (20 bytes) maximum.
 
->   Given the uniqueness requirements above, serial numbers can be
->   expected to contain long integers.  Certificate users MUST be able to
->   handle serialNumber values up to 20 octets.  Conforming CAs MUST NOT
->   use serialNumber values longer than 20 octets.
+>  Given the uniqueness requirements above, serial numbers can be
+>  expected to contain long integers.  Certificate users MUST be able to
+>  handle serialNumber values up to 20 octets.  Conforming CAs MUST NOT
+>  use serialNumber values longer than 20 octets.
 
-Current link:https://cabforum.org/2016/03/31/ballot-164[CA/BF guidelines] place this at 64 bits (8 bytes) of entropy.
+Current link:https://cabforum.org/wp-content/uploads/CA-Browser-Forum-BR-1.7.4.pdf[CA/BF Baseline Requirements] section 7.1 place this at 64 bits (8 bytes) of entropy.
 
-> CAs SHALL generate Certificate serial numbers greater than zero (0) containing at least 64 bits of output from a CSPRNG
+>  CAs SHALL generate non‐sequential Certificate serial numbers greater
+>  than zero (0) containing at least 64 bits of output from a CSPRNG.
 
 Other requirements are at least 20 bits.
 
