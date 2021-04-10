@@ -1,101 +1,101 @@
 = Overview =
 
-PKI server provides a tool to manage [https://www.dogtagpki.org/wiki/Access_Banner Access Banner].
+PKI server provides a tool to manage link:Access-Banner[Access Banner].
 
-By default PKI server does not have any banner installed. To install a banner, create /etc/pki/<font color="red">pki-tomcat</font>/banner.txt and store the banner message in this file, for example:
+By default PKI server does not have any banner installed. To install a banner, create `/etc/pki/pki-tomcat/banner.txt` and store the banner message in this file, for example:
 
-<pre>
+----
 WARNING!
 Access to this service is restricted to those individuals with
 specific permissions. If you are not an authorized user, disconnect
 now. Any attempts to gain unauthorized access will be prosecuted to
 the fullest extent of the law.
-</pre>
+----
 
 The banner message must be UTF-8 encoded.
 
-To uninstall the banner, simply remove /etc/pki/<font color="red">pki-tomcat</font>/banner.txt.
+To uninstall the banner, simply remove `/etc/pki/pki-tomcat/banner.txt`.
 
 = Displaying Banner =
 
 By default the PKI server does not have any banner installed:
 
-<pre>
+----
 $ pki-server banner-show
 ERROR: Banner is not installed
-</pre>
+----
 
 If a banner is installed, it can be displayed with this command:
 
-<pre>
+----
 $ pki-server banner-show
 WARNING!
 Access to this service is restricted to those individuals with
 specific permissions. If you are not an authorized user, disconnect
 now. Any attempts to gain unauthorized access will be prosecuted to
 the fullest extent of the law.
-</pre>
+----
 
 If the banner contains invalid characters or empty, it will be displayed as is:
 
-<pre>
+----
 $ pki-server banner-show
 3▒K~▒▒E▒O▒.涯▒▒~▒▒
-</pre>
+----
 
 = Installing Banner  (Not Yet Implemented) =
 
 To install banner file:
 
-<pre>
+----
 $ pki-server banner-install --file <path>
-</pre>
+----
 
 = Uninstalling Banner (Not Yet Implemented) =
 
 To uninstall banner:
 
-<pre>
+----
 $ pki-server banner-uninstall
-</pre>
+----
 
 = Validating Banner =
 
 To validate banner that has been installed on the server:
 
-<pre>
+----
 $ pki-server banner-validate
 ---------------
 Banner is valid
 ---------------
-</pre>
+----
 
 If the installed banner is invalid:
 
-<pre>
+----
 $ pki-server banner-validate
 ERROR: Banner contains invalid character(s)
-</pre>
+----
 
 If the server does not have any banner installed:
 
-<pre>
+----
 $ pki-server banner-validate
 -----------------------
 Banner is not installed
 -----------------------
-</pre>
+----
 
 To validate banner file that has not been installed:
 
-<pre>
+----
 $ pki-server banner-validate --file <path>
 ---------------
 Banner is valid
 ---------------
-</pre>
+----
 
-= References =
+= See Also =
 
-* [https://github.com/dogtagpki/pki/wiki/PKI-Server-CLI PKI Server CLI]
-* [https://www.dogtagpki.org/wiki/Access_Banner Access Banner]
+* link:PKI-Server-CLI[PKI Server CLI]
+* link:Access-Banner[Access Banner]
