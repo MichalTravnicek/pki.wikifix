@@ -2,7 +2,18 @@
 
 This proposal introduces a new mechanism for generating certificate serial numbers based purely on a random number.
 
-The serial number field on X509 certificates are allotted 160 bits (20 bytes) maximum. Current link:https://cabforum.org/2016/03/31/ballot-164[CA/BF guidelines] place this at 64 bits (8 bytes) of entropy. Other requirements are at least 20.
+According to link:https://tools.ietf.org/html/rfc5280[RFC 5280] section 4.1.2.2 the serial number field on X.509 certificates are allotted 160 bits (20 bytes) maximum.
+
+>   Given the uniqueness requirements above, serial numbers can be
+>   expected to contain long integers.  Certificate users MUST be able to
+>   handle serialNumber values up to 20 octets.  Conforming CAs MUST NOT
+>   use serialNumber values longer than 20 octets.
+
+Current link:https://cabforum.org/2016/03/31/ballot-164[CA/BF guidelines] place this at 64 bits (8 bytes) of entropy.
+
+> CAs SHALL generate Certificate serial numbers greater than zero (0) containing at least 64 bits of output from a CSPRNG
+
+Other requirements are at least 20 bits.
 
 This proposal suggests using 128 bits (16 bytes) of random data from JSS's internal SecureRandom source. This would become the only option supported on PKI 10.11+. The older random serial number ranges would be removed and not supported.
 
