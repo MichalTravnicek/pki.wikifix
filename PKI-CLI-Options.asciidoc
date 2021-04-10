@@ -1,10 +1,8 @@
-= PKI CLI Options =
-
-== Bypassing access banner ==
+= Bypassing Access Banner =
 
 If access banner is enabled on PKI server, the banner will appear before the actual operation is executed, for example:
 
-<pre>
+----
 $ pki cert-show 0x1
 WARNING!
 Access to this service is restricted to those individuals with
@@ -22,34 +20,34 @@ Certificate "0x1"
   Status: VALID
   Not Before: Mon Feb 20 18:21:03 CET 2017
   Not After: Fri Feb 20 18:21:03 CET 2037
-</pre>
+----
 
 To bypass banner (e.g. for automation) specify the --ignore-banner option, for example:
 
-<pre>
+----
 $ pki --ignore-banner cert-show 0x1
-</pre>
+----
 
-See also [https://www.dogtagpki.org/wiki/Access_Banner Access Banner].
+See also link:Access-Banner[Access Banner].
 
-== Configuring message format ==
+= Configuring Message Format =
 
 By default CLI requests and responses are sent in XML format. To use JSON format:
 
-<pre>
+----
 $ pki --message-format json <command> ...
-</pre>
+----
 
-== Storing CLI messages ==
+= Storing CLI Messages =
 
 To store CLI requests and responses into files:
 
-<pre>
+----
 $ pki --output <output folder> <command> ...
-</pre>
+----
 
-The requests will be stored in http-request-&lt;n&gt;.The responses will be stored in http-response-&lt;n&gt;.
+The requests will be stored in `http-request-<n>`. The responses will be stored in `http-response-<n>`.
 
 = See Also =
 
-* [https://github.com/dogtagpki/pki/wiki/PKI-CLI PKI CLI]
+* link:PKI-CLI[PKI CLI]
