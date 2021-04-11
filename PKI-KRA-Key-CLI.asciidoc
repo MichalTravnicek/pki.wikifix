@@ -71,7 +71,7 @@ All key request operations should be executed as KRA agent.
 To list submitted key requests:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin kra-key-request-find
+$ pki -n caadmin kra-key-request-find
 -----------------
 1 entries matched
 -----------------
@@ -89,7 +89,7 @@ Number of entries returned 1
 To display a key request:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin kra-key-request-show 0x1
+$ pki -n caadmin kra-key-request-show 0x1
   Request ID: 0x1
   Key ID: 0x1
   Type: asymkeyGenRequest
@@ -101,8 +101,7 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin kra-key-request-
 To approve a key request:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
-    kra-key-request-review 0x1 --action approve
+$ pki -n caadmin kra-key-request-review 0x1 --action approve
 ------
 Result
 ------
@@ -121,7 +120,7 @@ All key operations should be executed as KRA agent.
 To list archived keys:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin kra-key-find
+$ pki -n caadmin kra-key-find
 ----------------
 1 key(s) matched
 ----------------
@@ -141,8 +140,7 @@ Number of entries returned 1
 To generate a new key on the server:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
-    kra-key-generate test --key-algorithm RSA --key-size 1024
+$ pki -n caadmin kra-key-generate test --key-algorithm RSA --key-size 1024
 ---------------------------
 Key generation request info
 ---------------------------
@@ -163,8 +161,7 @@ The command accepts a `--transport <nickname>` parameter that can be used to spe
 To archive a binary data:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
-    kra-key-archive \
+$ pki -n caadmin kra-key-archive \
     --clientKeyID test \
     --input-data private.key
 ------------------------
@@ -181,8 +178,7 @@ Archival request details
 To archive a passphrase:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
-    kra-key-archive \
+$ pki -n caadmin kra-key-archive \
     --clientKeyID test \
     --passphrase secret
 ------------------------
@@ -235,8 +231,7 @@ To archive a pre-encrypted secret, store the input in a file (e.g. input.json):
 Then execute the following command:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
-    kra-key-archive \
+$ pki -n caadmin kra-key-archive \
     --input input.json \
     --input-format json
 ----
@@ -260,8 +255,7 @@ To recover a key, prepare the request in a file using the recovery template, for
 Then submit the request with the following command:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
-    kra-key-recover --input recoverKey.xml
+$ pki -n caadmin kra-key-recover --input recoverKey.xml
 ----
 
 == Retrieving Key ==
@@ -273,8 +267,7 @@ By default key retrieval will be done with randomly generated security parameter
 To retrieve a key and store it into a file:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
-    kra-key-retrieve --keyID 0x1 --output-data private.key
+$ pki -n caadmin kra-key-retrieve --keyID 0x1 --output-data private.key
 ------------------------
 Retrieve Key Information
 ------------------------
@@ -287,7 +280,7 @@ Retrieve Key Information
 To retrieve a key and display it on the screen:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin kra-key-retrieve --keyID 0x1
+$ pki -n caadmin kra-key-retrieve --keyID 0x1
 ------------------------
 Retrieve Key Information
 ------------------------
@@ -319,7 +312,7 @@ See link:PKI-KRA-Key-Retrieve-Java-API[PKI KRA Key Retrieve Java API].
 To display a key given the key ID:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin kra-key-show 0x1
+$ pki -n caadmin kra-key-show 0x1
   Key ID: 0x1
   Client Key ID: test
   Status: active
@@ -337,7 +330,7 @@ ydfTGLzZvtTVrYbgdQIDAQAB
 To display the active key given the client key ID:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin kra-key-show --clientKeyID test
+$ pki -n caadmin kra-key-show --clientKeyID test
   Key ID: 0x1
   Client Key ID: test
   Status: active
@@ -354,10 +347,28 @@ ydfTGLzZvtTVrYbgdQIDAQAB
 
 == Changing Key Status ==
 
-To activate/inactivate a key:
+To deactivate a key:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin kra-key-mod 0x1 --status active
+$ pki -n caadmin kra-key-mod 0x1 --status inactive
+  Key ID: 0x1
+  Client Key ID: test
+  Status: inactive
+  Algorithm: RSA
+  Size: 1024
+  Owner: kraadmin
+  Public Key: 
+
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC08pXsqW0hkZ2/Pj/wSLQO+Jk3
+S1+HhWPnyhOIa2njleLbPuDPan68vxSZGzKt3aSKbMbjJhnJWxxFECfzHywB4Gsc
+FSxivKghm9CHmNGe6iGxrnEgi3A1aTg5bE76n7Sv0iWZuejg7u8V4QmU+jBc79O4
+ydfTGLzZvtTVrYbgdQIDAQAB
+----
+
+To activate a key:
+
+----
+$ pki -n caadmin kra-key-mod 0x1 --status active
   Key ID: 0x1
   Client Key ID: test
   Status: active
