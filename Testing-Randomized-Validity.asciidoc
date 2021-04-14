@@ -1,0 +1,19 @@
+Test randomized validity using *Manual User Dual-Use Certificate Enrollment* and tailing debug log as shown below:
+
+----
+$ tail -f debug | grep -e RandomizedValidityDefault -e Validity -e validity -e 'From:' -e 'To:'
+...
+[16/May/2013:19:25:45][http-bio-8443-exec-15]: RandomizedValidityDefault: populate start
+[16/May/2013:19:25:45][http-bio-8443-exec-15]: RandomizedValidityDefault randomSecs  numBits=10  secs=67  maxSecs=1023
+[16/May/2013:19:25:45][http-bio-8443-exec-15]: RandomizedValidityDefault populate  notBefore           = Thu May 16 19:25:45 EDT 2013
+[16/May/2013:19:25:45][http-bio-8443-exec-15]: RandomizedValidityDefault populate  notBeforeRandomized = Thu May 16 19:24:38 EDT 2013
+[16/May/2013:19:25:45][http-bio-8443-exec-15]: RandomizedValidityDefault populate  notBeforeMax        = Thu May 16 19:08:42 EDT 2013
+[16/May/2013:19:25:45][http-bio-8443-exec-15]: RandomizedValidityDefault randomSecs  numBits=10  secs=905  maxSecs=1023
+[16/May/2013:19:25:45][http-bio-8443-exec-15]: RandomizedValidityDefault populate  notAfter            = Tue Nov 12 18:25:45 EST 2013
+[16/May/2013:19:25:45][http-bio-8443-exec-15]: RandomizedValidityDefault populate  notAfterRandomized  = Tue Nov 12 18:40:50 EST 2013
+[16/May/2013:19:25:45][http-bio-8443-exec-15]: RandomizedValidityDefault populate  notAfterMax         = Tue Nov 12 18:42:48 EST 2013
+[16/May/2013:19:25:45][http-bio-8443-exec-15]: RandomizedValidityDefault: populate end
+  Validity: [From: Thu May 16 19:24:38 EDT 2013,
+               To: Tue Nov 12 18:40:50 EST 2013]
+...
+----
