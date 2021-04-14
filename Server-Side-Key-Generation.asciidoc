@@ -1,0 +1,21 @@
+= Server Side Key Generation =
+
+Key Recovery Authority (KRA) supports server-side key generation.
+The process of the server-side key generation is as the following:
+ 
+* TPS receives enrollment request and CID (Card Identification) from the client
+* TPS forwards the CID to TKS
+* TKS derives key-encryption-key (KEK) from the CID and generates key-transport-session-key (KTSK)
+* TKS wraps the key-transport-session-key with the key-encryption-key
+* TKS retrieves the server-transport-key (STK) and wrap the key-transport-session-key with the server-transport-key
+* TKS forwards KEK(KTSK) and STK(KTSK) to TPS
+* TPS forwards STK(KTSK) and the server-side key generation key request to KRA
+* KRA generates subject public (SPubK) and private key (SPrivK) pair
+* KRA retrieves storage key and generates a storage session key (SSK)
+* KRA wraps subject private key with storage session key and wraps the storage session key with the storage key and archives SSK(SPrivK) and SK(SSK)
+* KRA decrypts STK(KTSK)
+* KRA wraps subject private key with transport session key: KTSK(SPrivK)
+* KRA forwards KTSK(SPrivK) and SPubk to TPS
+* TPS forwards KTSK(SPrivK) and KEK(KTSK) to Token
+* TPS sends certificate enrollment requests with SPubK information to CA
+* TPS receives certificates from CA and forwards them to token.
