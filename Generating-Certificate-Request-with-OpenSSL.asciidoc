@@ -1,0 +1,22 @@
+To generate a certificate request with a new key:
+
+----
+$ openssl req \
+    -new \
+    -newkey rsa:2048 \
+    -nodes \
+    -keyout testuser.key \
+    -subj "/UID=testuser/DC=example/DC=com" \
+    -out testuser.csr
+----
+
+To generate a certificate request with an existing key:
+
+----
+$ openssl req \
+    -new \
+    -key testuser.key \
+    -nodes \
+    -subj "/UID=testuser/DC=example/DC=com" \
+    -out testuser.csr
+----
