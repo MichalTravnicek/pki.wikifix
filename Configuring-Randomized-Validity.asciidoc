@@ -1,0 +1,151 @@
+= Introduction =
+
+Randomizing validity is one of the methods allowing to add entropy to certificates in order to make it more difficult attacks on cryptographic hashes.
+link:http://tools.ietf.org/html/rfc4270[RFC 4270] (written by P. Hoffman and B. Schneier) provides three suggestions to link:http://tools.ietf.org/html/rfc4270#section-5.1[reduce the likelihood of hash-based attacks]:
+
+* making part of the certificate serial number unpredictable to the attacker
+* adding a randomly chosen component to the identity
+* making the validity dates unpredictable to the attacker by skewing each one forwards or backwards
+
+CA's profile framework is based on plug-ins. One type of the plug-ins is responsible for setting defaults and verifying constraints for in the process of populating validity. Simple replacement of validity plug-in in a profile with new one randomizing validity allows to generate certificates with randomized validity when using enrollment with modified profile.
+
+Process of profile editing in order to replace validity plug-in is described below. 
+
+= Managing Certificate Profiles =
+
+Typical certificate profile configuration includes section configuring ValidityDefault and ValidityConstraint plug-ins.
+
+Sample below shows default configuration included in `caUserCert` profile (link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caUserCert.cfg[/usr/share/pki/ca/profiles/ca/caUserCert.cfg]).
+
+ValidityDefault plug-in configuration in `caUserCert.cfg`:
+
+----
+...
+policyset.userCertSet.2.default.class_id=validityDefaultImpl
+policyset.userCertSet.2.default.name=Validity Default
+policyset.userCertSet.2.default.params.range=180
+policyset.userCertSet.2.default.params.startTime=0
+...
+----
+
+ValidityConstraint plug-in configuration in `caUserCert.cfg`:
+
+----
+...
+policyset.userCertSet.2.constraint.class_id=validityConstraintImpl
+policyset.userCertSet.2.constraint.name=Validity Constraint
+policyset.userCertSet.2.constraint.params.notAfterCheck=false
+policyset.userCertSet.2.constraint.params.notBeforeCheck=false
+policyset.userCertSet.2.constraint.params.notBeforeGracePeriod=0
+policyset.userCertSet.2.constraint.params.range=365
+...
+----
+
+Profile needs to be disabled to initiate profile editing.
+
+Here are sample steps:
+
+* Selecting `caUserCert` profile (Manual User Dual-Use Certificate Enrollment)
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/Disable-profile-1.png[Disabling Profile]
+
+* Disabling `caUserCert` profile (Manual User Dual-Use Certificate Enrollment):
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/Disable-profile-2.png[Disabling Profile]
+
+= Editing Certificate Profiles =
+
+Disabled profile can be edited.
+
+Here are sample steps:
+
+* Selecting `caUserCert` profile for editing
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/Editing-profile-1.png[Editing Profile]
+
+* Editing `caUserCert` profile
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/Editing-profile-2.png[Editing Profile]
+
+= Review Current Validity Configuration =
+
+Review current validity configuration before replacing it with randomized validity plug-in.
+
+Here are sample steps:
+
+* Check current validity defaults
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/Review-validity-1.png[Review Validity]
+
+* Check current validity constraints
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/Review-validity-2.png[Review Validity]
+
+= Delete Validity =
+
+Delete current validity plug-in.
+
+Here are sample steps:
+
+* Select current validity plug-in
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/Delete-validity-1.png[Delete Validity]
+
+* Confirm validity plug-in removal
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/Delete-validity-2.png[Delete Validity]
+
+* Check if validity plug-in was deleted.
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/Delete-validity-3.png[Delete Validity]
+
+= Add Randomized Validity =
+
+Add randomized validity plug-in.
+
+Here are sample steps:
+
+* Press add button in profile editor
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/Add-randomized-validity-1.png[Add Randomized Validity]
+
+* Select "Randomized Validity Default" and "Validity Constraint"
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/Add-randomized-validity-2.png[Add Randomized Validity]
+
+* Enter "Policy ID"
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/Add-randomized-validity-3.png[Add Randomized Validity]
+
+* Update "Validity Default" configuration
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/Add-randomized-validity-4.png[Add Randomized Validity]
+
+* Update "Validity Constraint" configuration and save configuration updates
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/Add-randomized-validity-5.png[Add Randomized Validity]
+
+* Check new randomized validity plug-in
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/Add-randomized-validity-6.png[Add Randomized Validity]
+
+* Select `caUserCert` profile (Manual User Dual-Use Certificate Enrollment) 
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/Disable-profile-1.png[Approve Profile]
+
+* Approve update `caUserCert` profile (Manual User Dual-Use Certificate Enrollment)
+
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/Approve-profile-1.png[Approve Profile]
+
+= New Randomized Validity Plug-in Configuration =
+
+Sample below shows updated `caUserCert` profile configuration including randomized validity plug-in;
+
+----
+policyset.userCertSet.2.default.class_id=randomizedValidityDefaultImpl
+policyset.userCertSet.2.default.name=Randomized Validity Default
+policyset.userCertSet.2.default.params.notBeforeRandomBits=10
+policyset.userCertSet.2.default.params.range=180
+policyset.userCertSet.2.default.params.startTime=0
+policyset.userCertSet.2.default.params.startTimeRandomBits=10
+----
