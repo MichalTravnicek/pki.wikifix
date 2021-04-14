@@ -42,9 +42,9 @@ Also, not mentioned above, there's a risk of colliding with existing serial numb
 
 If existing logic exists for retrying issuance under a different serial number, it should be left in place. However, the likelihood of colliding with an existing certificate is sufficiently low not to warrant adding retry logic, in my opinion.
 
-= Older v3 Proposals =
+= Older Proposals =
 
-Note that these proposals are deprecated in favor of the above. 
+WARNING: This section contains older proposals that will not be implemented.
 
 This proposal introduces a new mechanism for generating random certificate serial number based on UUID or a purely random number.
 UUID is a 128-bit number defined in link:https://www.ietf.org/rfc/rfc4122.txt[RFC 4122].
@@ -79,7 +79,7 @@ UUID version 6 is proposed in link:http://gh.peabody.io/uuidv6[this page].
 
 An alternative to using a UUID library is using a purely unique 128-bit random value. This gives us a full 128-bits of entropy (as would likely be the next target for a CA/BF update) without losing any to UUID format specification. Additionally, we could call JSS's pk11prng directly.
 
-== Other Considerations ==
+== Serial Number Prefix ==
 
 A numeric prefix could be assigned to different serial number versions.
 
