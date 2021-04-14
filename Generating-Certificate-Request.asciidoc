@@ -14,57 +14,7 @@ If key archival is not needed, a PKCS #10 request can be generated with the foll
 
 = Generating CRMF Request =
 
-If key archival is needed, generate a CRMF request.
-
-== Getting KRA Transport Certificate ==
-
-To export KRA transport certificate from the server side:
-
-----
-$ pki-server cert-export kra_transport --cert-file kra_transport.crt
-----
-
-To export KRA transport certificate from the client side:
-
-----
-$ pki kra-cert-transport-export --output-file kra_transport.crt
-----
-
-Alternatively, first find KRA transport certificate's serial number by its subject DN:
-
-----
-$ pki ca-cert-find --name "DRM Transport Certificate"
----------------
-1 entries found
----------------
-  Serial Number: 0x7
-  Subject DN: CN=DRM Transport Certificate,O=EXAMPLE
-  Status: VALID
-  Type: X.509 version 3
-  Key Algorithm: PKCS #1 RSA with 2048-bit key
-  Not Valid Before: Thu Oct 22 18:26:11 CEST 2015
-  Not Valid After: Wed Oct 11 18:26:11 CEST 2017
-  Issued On: Thu Oct 22 18:26:11 CEST 2015
-  Issued By: caadmin
-----------------------------
-Number of entries returned 1
-----------------------------
-----
-
-Then save the certificate into a file:
-
-----
-$ pki ca-cert-show 0x7 --output kra_transport.crt
------------------
-Certificate "0x7"
------------------
-  Serial Number: 0x7
-  Issuer: CN=CA Signing Certificate,O=EXAMPLE
-  Subject: CN=DRM Transport Certificate,O=EXAMPLE
-  Status: VALID
-  Not Before: Thu Oct 22 18:26:11 CEST 2015
-  Not After: Wed Oct 11 18:26:11 CEST 2017
-----
+If key archival is needed, generate a CRMF request with KRA transport certificate (see link:Getting-KRA-Transport-Certificate[Getting KRA Transport Certificate]).
 
 == Using CRMFPopClient ==
 
