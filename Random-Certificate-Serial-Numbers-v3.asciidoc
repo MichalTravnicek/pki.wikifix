@@ -1,6 +1,20 @@
 = Overview =
 
-This proposal introduces a new mechanism for generating certificate serial numbers based purely on a random number.
+This proposal introduces a new mechanism for generating fully random serial numbers for certificates, keys, and requests in PKI. Currently PKI supports the following mechanisms to generate serial numbers:
+
+* range-based sequential serial numbers (this is the default)
+* link:Random-Certificate-Serial-Numbers-v1[range-based random serial number] (a.k.a. v1)
+
+There are also older proposals that were never implemented:
+
+* link:Random-Certificate-Serial-Numbers-v2[hybrid random serial numbers] (a.k.a. v2)
+* link:UUID-based-Random-Certificate-Serial-Numbers[UUID-based random serial numbers] (a.k.a. old v3)
+
+The current proposal (i.e. new v3) is similar to the old v3 proposal except that it will use a full 128 bit (16 bytes) random number from PKCS #11 PRNG instead of UUID.
+
+This proposal will be implemented as a new option, so the existing range-based sequential serial numbers and range-based random serial number should continue to work.
+
+== Standard Compliance ==
 
 According to link:https://tools.ietf.org/html/rfc5280[RFC 5280] section 4.1.2.2 the serial number field on X.509 certificates are allotted 160 bits (20 bytes) maximum.
 
@@ -15,10 +29,6 @@ Current link:https://cabforum.org/wp-content/uploads/CA-Browser-Forum-BR-1.7.4.p
 >  than zero (0) containing at least 64 bits of output from a CSPRNG.
 
 Other requirements are at least 20 bits.
-
-This proposal suggests using 128 bits (16 bytes) of random data from JSS's internal SecureRandom source. This would become the only option supported on PKI 10.11+. The older random serial number ranges would be removed and not supported.
-
-Note that two earlier proposals exist: link:Random-Certificate-Serial-Numbers-v1[v1 which was implemented] and link:Random-Certificate-Serial-Numbers-v2[v2 which was not]. These are provided as justification for random serial numbers in general. 
 
 == Benefits ==
 
