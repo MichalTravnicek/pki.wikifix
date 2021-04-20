@@ -519,4 +519,4 @@ using following steps:
 # References
 
   - [Random Certificate Serial
-    Numbers](Random_Certificate_Serial_Numbers "wikilink")
+    Numbers](Random-Certificate-Serial-Numbers "wikilink")
