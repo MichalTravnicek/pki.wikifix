@@ -2,16 +2,27 @@
 
 The ACME responder is a subsystem that provides an ACME v2 protocol implementation as defined in link:https://tools.ietf.org/html/rfc8555[RFC 8555]. The ACME responder itself is not a CA, but it can be installed in front of the CA.
 
-= Compatibility =
+= Supported Clients =
 
-In general the ACME responder should be compatible with any link:https://tools.ietf.org/html/rfc8555[RFC 8555]-compliant clients, but it has only been tested officially against:
+The ACME responder has officially been tested against:
 
 * link:https://certbot.eff.org[certbot]
 * link:https://httpd.apache.org/docs/trunk/mod/mod_md.html[mod_md]
 
-= Installation =
+However, in general it should be compatible with any link:https://tools.ietf.org/html/rfc8555[RFC 8555]-compliant clients.
 
-The ACME responder can be installed in the following methods:
+= Supported Databases =
+
+The ACME responder uses a database to store the account records, order records, authorization records, and certificate records. The ACME can be configured with the following databases:
+
+* 389 DS / Red Hat Directory Server
+* In-Memory Database (experimental)
+* PostgreSQL Database (experimental)
+* OpenLDAP Database (experimental)
+
+= Deployment =
+
+The ACME responder can be deployed in the following methods:
 
 * as a regular web application running in Tomcat
 * as a container in Podman/Docker
