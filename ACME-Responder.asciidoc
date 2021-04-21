@@ -1,6 +1,13 @@
 = Overview =
 
-The ACME responder is a PKI subsystem that implements an ACME v2 protocol as defined in link:https://tools.ietf.org/html/rfc8555[RFC 8555].
+The ACME responder is a web service that provides automatic certificate enrollment, renewal, and revocation via ACME v2 protocol as defined in link:https://tools.ietf.org/html/rfc8555[RFC 8555].
+
+= Supported Domain Validations =
+
+The ACME responder supports the following domain validation methods:
+
+* HTTP-01
+* DNS-01
 
 = Supported Deployments =
 
@@ -31,7 +38,7 @@ The ACME responder uses a certificate issuer to issue the actual certificates. T
 
 See also link:https://github.com/dogtagpki/pki/blob/master/docs/installation/acme/Configuring_ACME_Issuer.md[Configuring ACME Issuer].
 
-= Supported Realms =
+= Supported Authentication/Authorization Realms =
 
 The ACME responder uses a realm to authenticate and authorize users that manage the ACME responder itself. The responder can be configured with the following realms:
 
