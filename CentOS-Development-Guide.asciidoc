@@ -1,0 +1,98 @@
+= Prerequisites =
+
+----
+$ dnf install centpkg
+----
+
+= Packages =
+
+The dist-git projects for PKI packages are located at:
+
+* https://gitlab.com/redhat/centos-stream/rpms/pki-core
+* https://gitlab.com/redhat/centos-stream/rpms/jss
+* https://gitlab.com/redhat/centos-stream/rpms/tomcatjss
+* https://gitlab.com/redhat/centos-stream/rpms/ldapjdk
+
+= Authentication =
+
+To configure the authentication, login with Fedora FAS account to https://accounts.centos.org,
+then add SSH public key into https://gitlab.com.
+
+= Cloning a Project =
+
+To clone a project into a local repository:
+
+----
+$ centpkg clone <project>
+----
+
+= Forking a Project =
+
+To fork a project, visit the main project page and click the *Fork* button at the top of the page.
+The forked project should appear at `https://gitlab.com/<username>/<project>/`.
+
+*Does not work:* Alternatively, create a personal access token with scope *api* at https://gitlab.com/-/profile/personal_access_tokens.
+Store the token in `~/.config/rpkg/centpkg.conf` as follows:
+
+----
+[centpkg.distgit]
+token = <token>
+----
+
+Then execute:
+
+----
+$ centpkg fork
+----
+
+= Adding Forked Project =
+
+To add the forked package into the local repository, execute:
+
+----
+$ git remote add <username> git@gitlab.com:<username>/<project>.git
+$ git fetch <username>
+----
+
+= Creating a Scratch Build =
+
+To create a scratch build:
+
+----
+$ centpkg scratch-build
+----
+
+The scratch build will be created in https://kojihub.stream.rdu2.redhat.com.
+
+= Creating a Merge Request =
+
+First, commit the changes into a temporary branch, and push the branch into the forked project:
+
+----
+$ git checkout -b <branch>
+$ git commit -m "..."
+$ git push <username> <branch>
+----
+
+Then open the forked project page, click '''Merge requests''',
+select the source and target branches, click '''Compare branches and continue''',
+and click '''Create merge request'''.
+
+After the request is merged, go back to the original branch and pull the changes:
+
+----
+$ git checkout <original branch>
+$ git pull
+----
+
+= Creating an Official Build =
+
+----
+$ centpkg build
+----
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/CentOS[CentOS]
+* link:https://wiki.centos.org/HowTos/CentosPackager[HowTos/CentosPackager]
+* link:https://www.dogtagpki.org/wiki/COPR_Repository_for_CentOS[COPR Repository for CentOS]
