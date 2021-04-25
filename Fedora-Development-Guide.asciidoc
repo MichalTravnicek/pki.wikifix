@@ -1,0 +1,107 @@
+= Prerequisites =
+
+----
+$ dnf install fedpkg
+----
+
+= Authentication =
+
+Obtain a link:https://www.dogtagpki.org/wiki/Kerberos[Kerberos] ticket:
+
+----
+$ kinit <username>@FEDORAPROJECT.ORG
+Password for <username>@FEDORAPROJECT.ORG: ********
+----
+
+Verify with the following command:
+
+----
+$ klist
+Ticket cache: KEYRING:persistent:13079:13079
+Default principal: <username>@FEDORAPROJECT.ORG
+
+Valid starting       Expires              Service principal
+03/15/2018 21:37:11  03/16/2018 21:36:57  krbtgt/FEDORAPROJECT.ORG@FEDORAPROJECT.ORG
+	renew until 03/22/2018 21:36:57
+----
+
+*Note:* If there's no ticket issued, edit `/etc/krb5.conf.d/kcm_default_ccache`, and comment out the following lines:
+
+----
+[libdefaults]
+    default_ccache_name = KCM:
+----
+
+= Packages and Modules =
+
+The dist-git projects for PKI packages are located at:
+
+* https://src.fedoraproject.org/rpms/dogtag-pki
+* https://src.fedoraproject.org/rpms/pki-core
+* https://src.fedoraproject.org/rpms/jss
+* https://src.fedoraproject.org/rpms/tomcatjss
+* https://src.fedoraproject.org/rpms/ldapjdk
+* https://src.fedoraproject.org/rpms/idm-console-framework
+
+*UNUSED:* The dist-git project for PKI module is located at:
+
+* https://src.fedoraproject.org/modules/pki
+
+See also link:https://www.dogtagpki.org/wiki/Fedora_Packages[Fedora Packages] and link:https://www.dogtagpki.org/wiki/Fedora_Modules[Fedora Modules].
+
+= Cloning a Project =
+
+To clone a project into a local repository:
+
+----
+$ fedpkg clone <project>
+----
+
+= Forking a Project =
+
+To fork a project, visit the main project page and click the *Fork* button at the top of the page.
+The forked project should appear under `https://src.fedoraproject.org/fork/<username>/rpms/<project>/`.
+
+= Adding Forked Project =
+
+To add the forked package into the local repository, execute:
+
+----
+$ git remote add <username> https://src.fedoraproject.org/forks/<username>/rpms/<project>.git
+$ git fetch <username>
+----
+
+= Creating a Pull Request =
+
+First, commit the changes into a temporary branch, and push the branch into the forked project:
+
+----
+$ git checkout -b <branch>
+$ git commit -m "..."
+$ git push <username> <branch>
+----
+
+Then open the forked project page, go to the *Commits* page of the branch,
+and click *Create pull request*.
+
+After the request is merged, go back to the original branch and pull the changes:
+
+----
+$ git checkout <original branch>
+$ git pull
+----
+
+= Creating a Scratch Build =
+
+To create a scratch build:
+
+----
+$ fedpkg scratch-build
+----
+
+The scratch build be created in https://koji.fedoraproject.org.
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/Fedora[Fedora]
+* link:https://fedoraproject.org/wiki/Infrastructure/Factory2/Focus/ArbitraryBranching[Infrastructure/Factory2/Focus/ArbitraryBranching]
