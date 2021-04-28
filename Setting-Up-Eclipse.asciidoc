@@ -50,7 +50,9 @@ $ dnf install <package>
 
 Then fix the RPM spec file so that `dnf builddep` will install the complete dependencies.
 
-If the project doesn't have the `.project` and `.classpath` files, it may be necessary to configure the project build path manually before the project can be used. Once these files are created, commit the files into the repository so others can reuse the files.
+It's also possible that some dependencies are no longer needed/available. In that case fix the project build path or fix the `.classpath` manually, then commit the changes into the repository.
+
+If the project doesn't have the `.project` and `.classpath` files, it may be necessary to configure the project build path manually before the project can be used. Once these files are created, commit the files into the repository so others can use the files too.
 
 = Switching Branch =
 
