@@ -78,18 +78,22 @@ Then open the forked project page, click *Merge requests*,
 select the source and target branches, click *Compare branches and continue*,
 and click *Create merge request*.
 
-After the request is merged, go back to the original branch and pull the changes:
+After the request is merged, go back to the main branch and pull the changes:
 
 ----
-$ git checkout <original branch>
+$ git checkout <main branch>
 $ git pull
 ----
 
 = Creating an Official Build =
 
+To create an optional build:
+
 ----
 $ centpkg build
 ----
+
+The official build will be created in https://kojihub.stream.rdu2.redhat.com. It will also trigger gating process.
 
 = See Also =
 
