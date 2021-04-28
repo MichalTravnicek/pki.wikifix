@@ -26,6 +26,9 @@ To clone a project into a local repository:
 $ centpkg clone <project>
 ----
 
+It will clone the project into a new repository folder and checkout the main branch (e.g. *c9s*).
+All subsequent `centpkg` and `git` commands need to be executed in the repository folder.
+
 = Forking a Project =
 
 To fork a project, visit the main project page and click the *Fork* button at the top of the page.
@@ -86,7 +89,11 @@ Then open the forked project page, click *Merge requests*,
 select the source and target branches, click *Compare branches and continue*,
 and click *Create merge request*.
 
-After the request is merged, go back to the main branch and pull the changes:
+= Merging a Merge Request =
+
+Open the merge request page, click *Start merge train*.
+
+After the request is merged, checkout the main branch and pull the changes:
 
 ----
 $ git checkout <main branch>
