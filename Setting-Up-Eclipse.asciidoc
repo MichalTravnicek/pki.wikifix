@@ -6,20 +6,34 @@ To install Eclipse on Fedora:
 $ dnf install eclipse-jdt
 ----
 
-It should add an icon in the desktop's *Favorites*.
+It will add an icon in the desktop's *Favorites*.
 
-= Adding a Project =
+= Starting Eclipse =
 
-First, clone the project into a local repository, for example:
+To start Eclipse, click the *Eclipse* icon in the desktop's Favorites or execute the following command:
+
+----
+$ eclipse
+----
+ 
+It may ask you to select a workspace to store project metadata.
+
+= Adding a Java Project =
+
+To add the Java project into Eclipse, first clone the project into a local repository, for example:
 
 ----
 $ git clone git@github.com:dogtagpki/pki.git
 ----
 
-To add the project into Eclipse:
+Then execute the following steps:
 
 * Click *File* -> *New* -> *Java Project*.
 * Enter the *Project name*, e.g. `pki`.
 * Uncheck *Use default location*.
 * Enter the path to the cloned project repository, e.g. `/home/<username>/Projects/pki`.
 * Click *Finish*.
+
+If the project already has the `.project` and `.classpath` files, the project build path is already set up so Eclipse will build automatically and there should be no errors. The project can be used immediately.
+
+If the project doesn't have the `.project` and `.classpath`, it may be necessary to configure the project build path manually.
