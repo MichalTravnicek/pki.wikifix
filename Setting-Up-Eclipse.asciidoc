@@ -15,7 +15,7 @@ To start Eclipse, click the *Eclipse* icon in the desktop's Favorites or execute
 ----
 $ eclipse
 ----
- 
+
 It may ask you to select a workspace to store project metadata.
 
 = Adding a Java Project =
@@ -43,3 +43,32 @@ Then execute the following steps in Eclipse:
 If the project already has the `.project` and `.classpath` files in the project's main folder, the project build path is already set up so Eclipse can build the code automatically, and there should be no errors. The project can be used immediately.
 
 If the project doesn't have the `.project` and `.classpath` files, it may be necessary to configure the project build path manually before the project can be used.
+
+= Troubleshooting =
+
+== Eclipse Keeps Crashing ==
+
+If Eclipse keeps crashing on start, try removing the `~/.eclipse` folder. It's not necessary to remove the workspace folder.
+
+== Missing JRE System Library ==
+
+The following error message may appear after upgrading Java:
+
+----
+The container 'JRE System Library [...]' references non existing library '...'
+----
+
+To fix the problem, try restarting Eclipse.
+
+If the problem persists, try the following steps:
+
+* Open *Project* -> *Properties* -> *Java Build Path* -> *Libraries*.
+* Select *JRE System Library*.
+* Click *Remove*.
+* Click *Add Library...*.
+* Select *JRE System Library*.
+* Select *Workspace default JRE*.
+* Click *Finish*.
+* Click *Apply and Close*.
+
+
