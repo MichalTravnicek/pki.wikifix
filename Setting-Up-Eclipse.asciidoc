@@ -44,6 +44,16 @@ If the project already has the `.project` and `.classpath` files in the project'
 
 If the project doesn't have the `.project` and `.classpath` files, it may be necessary to configure the project build path manually before the project can be used.
 
+= Switching Branch =
+
+To switch to a different branch, execute the following command:
+
+----
+$ git checkout <branch>
+----
+
+In Eclipse right-click on the project, then select *Refresh*.
+
 = Troubleshooting =
 
 == Eclipse Keeps Crashing ==
@@ -62,7 +72,8 @@ To fix the problem, try restarting Eclipse.
 
 If the problem persists, try the following steps:
 
-* Open *Project* -> *Properties* -> *Java Build Path* -> *Libraries*.
+* Right-click on the project.
+* Select *Properties* -> *Java Build Path* -> *Libraries*.
 * Select *JRE System Library*.
 * Click *Remove*.
 * Click *Add Library...*.
