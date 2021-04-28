@@ -56,10 +56,18 @@ $ git fetch <username>
 
 = Creating a Scratch Build =
 
-To create a scratch build:
+To create a scratch build with changes that have not been merged:
 
 ----
-$ centpkg scratch-build
+$ centpkg srpm
+$ centpkg scratch-build --srpm <path>
+----
+
+If the branch has changed, it might be necessary to specify the main branch:
+
+----
+$ centpkg --release <main branch> srpm
+$ centpkg --release <main branch> scratch-build --srpm <path>
 ----
 
 The scratch build will be created in https://kojihub.stream.rdu2.redhat.com.
