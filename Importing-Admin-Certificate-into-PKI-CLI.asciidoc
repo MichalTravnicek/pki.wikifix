@@ -1,8 +1,8 @@
 = Overview =
 
 This page describes the process to import the admin certificate
-into PKI CLI such that the admin certificate can be used
-from the command line.
+into PKI CLI such that the certificate can be used to execute
+admin operations from the command line.
 
 This document assumes that the admin certificate and the key are stored
 in a PKCS #12 file (e.g. `~/.dogtag/pki-tomcat/ca_admin_cert.p12`) after CA installation,
@@ -23,7 +23,7 @@ $ pki pkcs12-import \
     --pkcs12-password-file pkcs12_password.txt
 ----
 
-Then the certificate can be used by specifying a `-n <nickname>` parameter, for example:
+The certificate can be used by specifying a `-n <nickname>` parameter, for example:
 
 ----
 $ pki -n caadmin ca-user-find
