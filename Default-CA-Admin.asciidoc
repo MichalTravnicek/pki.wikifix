@@ -28,14 +28,14 @@ See link:Importing-Admin-Certificate-into-PKI-CLI[Importing Admin Certificate in
 
 = Using Admin Certificate with Firefox =
 
-To use the certificate with Firefox, import the PKCS #12 file (i.e. `ca_admin_cert.p12`) into the browser.
+See link:Importing-Admin-Certificate-into-Firefox[Importing Admin Certificate into Firefox].
 
 = Using Admin Certificate with Python Clients =
 
 To use the certificate with Python clients, export both the certificate and private key into a PEM file:
 
 ----
-$ pki -C client_password.txt client-cert-show caadmin --client-cert caadmin.pem
+$ pki client-cert-show caadmin --client-cert caadmin.pem
 ----
 
 = See Also =
