@@ -54,38 +54,7 @@ Availability: PKI 10.9
 
 == Creating a request ==
 
-To create a certificate request:
-
-----
-$ pki nss-cert-request \
-    --subject "CN=$HOSTNAME" \
-    --ext sslserver.conf \
-    --csr sslserver.csr
-----
-
-By default it will create a new RSA key.
-
-To create a certificate request with a new EC key:
-
-----
-$ pki nss-cert-request \
-    --key-type EC \
-    --subject "CN=$HOSTNAME" \
-    --ext sslserver.conf \
-    --csr sslserver.csr
-----
-
-To create a certificate request with an existing RSA/EC key:
-
-----
-$ pki nss-cert-request \
-    --key-id <key ID> \
-    --subject "CN=$HOSTNAME" \
-    --ext sslserver.conf \
-    --csr sslserver.csr
-----
-
-Availability: PKI 10.9
+See link:Generating-Certificate-Request-with-PKI-CLI[Generating Certificate Request with PKI CLI].
 
 == Creating a certificate ==
 
