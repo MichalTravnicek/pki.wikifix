@@ -26,7 +26,11 @@ $ setup-ds.pl --silent\
  slapd.RootDNPwd=Secret.123
 ----
 
-To add PKI base entry:
+= Creating PKI Subtree =
+
+When the DS instance is created, it will automatically create the root entry (i.e. `dc=example,dc=com`).
+
+To create PKI subtree:
 
 ----
 $ ldapadd -h $HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 << EOF
@@ -34,6 +38,20 @@ dn: dc=pki,dc=example,dc=com
 objectClass: domain
 dc: pki
 EOF
+----
+
+The subsystem subtrees (e.g. `dc=ca,dc=pki,dc=example,dc=com`) will be created when the corresponding subsystems (e.g. CA) are installed.
+
+When all subsystems are created, the tree will look like the following:
+
+----
+dc=example,dc=com
++ dc=pki
+  + dc=ca
+  + dc=kra
+  + dc=ocsp
+  + dc=tks
+  + dc=tps
 ----
 
 = Removing DS Instance =
