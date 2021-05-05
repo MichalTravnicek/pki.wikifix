@@ -1,0 +1,56 @@
+= Overview =
+
+This page describes the process to prepare a DS 1.3 instance.
+
+Make sure the FQDN has been link:https://github.com/dogtagpki/pki/blob/master/docs/installation/server/FQDN_Configuration.adoc[configured] correctly.
+
+= Installation =
+
+----
+$ yum install -y 389-ds-base
+----
+
+= Installing DS Instance =
+
+To create DS instance:
+
+----
+$ setup-ds.pl --silent\
+ General.FullMachineName=$HOSTNAME\
+ General.SuiteSpotUserID=nobody\
+ General.SuiteSpotGroup=nobody\
+ slapd.ServerPort=389\
+ slapd.ServerIdentifier=localhost\
+ slapd.Suffix=dc=example,dc=com\
+ slapd.RootDN="cn=Directory Manager"\
+ slapd.RootDNPwd=Secret.123
+----
+
+To add PKI base entry:
+
+----
+$ ldapadd -h $HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 << EOF
+dn: dc=pki,dc=example,dc=com
+objectClass: domain
+dc: pki
+EOF
+----
+
+To remove DS instance:
+
+----
+$ remove-ds.pl -f -i slapd-localhost
+----
+
+= Log Files =
+
+DS log files are available in `/var/log/dirsrv/slapd-localhost`:
+
+* access
+* audit
+* errors
+
+= See Also =
+
+* link:DS-Installation[DS Installation]
+* link:https://www.dogtagpki.org/wiki/DS_SSL[DS SSL]
