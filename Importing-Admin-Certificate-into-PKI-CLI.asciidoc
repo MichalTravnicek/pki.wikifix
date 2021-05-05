@@ -4,16 +4,18 @@ This page describes the process to import the admin certificate
 into PKI CLI such that the admin certificate can be used
 from the command line.
 
-This page assumes that the admin certificate and key are stored
+This document assumes that the admin certificate and the key are stored
 in a PKCS #12 file (e.g. `~/.dogtag/pki-tomcat/ca_admin_cert.p12`)
 after CA installation.
+The PKCS #12 file is protected with a password specified in the
+`pki_client_pkcs12_password` parameter during installation.
 
 = Importing Admin Certificate =
 
 By default the PKI CLI uses an NSS database in `~/.dogtag/nssdb`.
 
 To import the PKCS #12 file into this NSS database,
-store the PKCS #12 file's password in a file (e.g. `pkcs12_password.txt`),
+store the password for the PKCS #12 file in a file (e.g. `pkcs12_password.txt`),
 then execute the following command:
 
 ----
