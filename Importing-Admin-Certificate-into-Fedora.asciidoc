@@ -1,0 +1,25 @@
+= Overview =
+
+This page describes the process to import the admin certificate
+into Firefox such that the admin certificate can be used
+from the browser.
+
+This document assumes that the admin certificate and the key are stored
+in a PKCS #12 file (e.g. `~/.dogtag/pki-tomcat/ca_admin_cert.p12`)
+and the password for the PKCS #12 file is stored in a text file
+(e.g. `~/.dogtag/pki-tomcat/ca/pkcs12_password.conf`)
+after CA installation.
+
+= Importing Admin Certificate =
+
+To import the PKCS #12 file into Firefox:
+
+* open *Application Menu* -> *Preferences*
+* click *Privacy & Security*
+* click *View Certificates...*
+* click *Your Certificates*
+* click *Import...*
+* select the PKCS #12 file
+* enter the PKCS #12 password
+
+The certificate should appear in the list.
