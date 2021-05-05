@@ -5,13 +5,13 @@
 
 = Response =
 
-* State: `0` means the server is being installed, `1` means the server is ready
-* Type: the subsystem type
-* Status: `starting` or `running`
-* Version: PKI version
-* Product Version: Product name and version
+* *State:* `0` means the server is being installed, `1` means the server is ready.
+* *Type:* The subsystem type.
+* *Status:* `starting` or `running`.
+* *Version:* PKI package version.
+* *Product Version:* Product name and version (which may not necessarily be the same as PKI package version). If the server theme package (e.g. `dogtag-pki-server-theme`) is not installed, the product name and version will not be returned.
 
-= XML Response =
+= Example =
 
 ----
 $ curl -s http://localhost.localdomain:8080/ca/admin/ca/getStatus | xmllint --format -
@@ -24,5 +24,3 @@ $ curl -s http://localhost.localdomain:8080/ca/admin/ca/getStatus | xmllint --fo
   <ProductVersion>Dogtag Certificate System</ProductVersion>
 </XMLResponse>
 ----
-
-*Note:* If the server theme package (e.g. `dogtag-pki-server-theme`) is not installed, the `<ProductVersion>` will not be returned.
