@@ -54,19 +54,7 @@ $ dscreate from-file ds.inf
 
 = Creating PKI Subtree =
 
-Once the DS instance is created, it's recommended to use a single subtree (e.g. `dc=pki,dc=example,dc=com`)
-for all PKI subsystems such that eventually the subtree will look like the following:
-
-----
-dc=example,dc=com
-+ dc=pki
-  + dc=ca
-  + dc=kra
-  + dc=ocsp
-  + dc=tks
-  + dc=tps
-  + dc=acme
-----
+When the DS instance is created, it does not automatically create the root entry (e.g. `dc=example,dc=com`).
 
 To create the root entry and PKI subtree:
 
@@ -83,6 +71,19 @@ EOF
 ----
 
 The subsystem subtrees (e.g. `dc=ca,dc=pki,dc=example,dc=com`) will be created when the corresponding subsystems (e.g. CA) are installed.
+
+When all subsystems are created, the tree will look like the following:
+
+----
+dc=example,dc=com
++ dc=pki
+  + dc=ca
+  + dc=kra
+  + dc=ocsp
+  + dc=tks
+  + dc=tps
+  + dc=acme
+----
 
 = Enabling SSL Connection =
 
