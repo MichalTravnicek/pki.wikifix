@@ -1,12 +1,28 @@
+= Request =
+
+* Operation: `GET /ca/admin/ca/getStatus`
+* Authentication: None
+
+= Response =
+
+* State: `0` means the server is being installed, `1` means the server is ready
+* Type: the subsystem type
+* Status: `starting` or `running`
+* Version: PKI version
+* Product Version: Product name and version
+
 = XML Response =
 
 ----
+$ curl -s http://localhost.localdomain:8080/ca/admin/ca/getStatus | xmllint --format -
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <XMLResponse>
-    <State>1</State>
-    <Type>CA</Type>
-    <Status>running</Status>
-    <Version>10.6.9-2.el8</Version>
-    <ProductVersion>Red Hat Certificate System 10.0.0</ProductVersion>
+  <State>1</State>
+  <Type>CA</Type>
+  <Status>running</Status>
+  <Version>10.11.0-0.1.alpha1.20210505015634UTC.dd369d75.fc33</Version>
+  <ProductVersion>Dogtag Certificate System</ProductVersion>
 </XMLResponse>
 ----
+
+*Note:* If the server theme package (e.g. `dogtag-pki-server-theme`) is not installed, the `<ProductVersion>` will not be returned.
