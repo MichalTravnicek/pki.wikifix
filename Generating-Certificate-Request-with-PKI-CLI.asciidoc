@@ -1,4 +1,4 @@
-The `pki nss` command can be used to generate a PKCS #10 request.
+The `pki nss` command can be used to generate a PKCS #10 request. The request extensions can be defined in a file (e.g. link:https://github.com/dogtagpki/pki/blob/master/base/server/certs/sslserver.conf[/usr/share/pki/server/certs/sslserver.conf]) and the format is similar to link:https://www.openssl.org/docs/manmaster/man5/x509v3_config.html[OpenSSL x509v3_config].
 
 To create a certificate request:
 
@@ -9,7 +9,7 @@ $ pki nss-cert-request \
     --csr sslserver.csr
 ----
 
-By default it will create a new RSA key.
+The request will be stored in `sslserver.csr`. By default it will create a new RSA key.
 
 To create a certificate request with a new EC key:
 
@@ -32,3 +32,7 @@ $ pki nss-cert-request \
 ----
 
 Availability: PKI 10.9
+
+= See Also =
+
+* link:PKI-NSS-CLI[PKI NSS CLI]
