@@ -1,8 +1,6 @@
 = Overview =
 
-This document describes the default CA admin user which is created during CA installation.
-
-= Default CA Admin Roles =
+This document describes the default admin user which is created during installation.
 
 The default CA admin user belongs to the following groups:
 
@@ -16,9 +14,7 @@ The default CA admin user belongs to the following groups:
 * Enterprise RA Administrators
 * Enterprise TPS Administrators
 
-= Default CA Admin Certificate =
-
-After installation the default CA admin certificate and key will be stored in the following files in `~/.dogtag/pki-tomcat`:
+After installing the CA, the admin certificate and key will be stored in the following files in `~/.dogtag/pki-tomcat`:
 
 * `ca_admin.cert`: PEM certificate
 * `ca_admin.cert.der`: DER certificate
@@ -26,44 +22,17 @@ After installation the default CA admin certificate and key will be stored in th
 
 The PKCS #12 file is protected with a password specified in the `pki_client_pkcs12_password` parameter during installation.
 
-To use the certificate, initialize the PKI client and import the certificate and key with the following commands:
+= Using Admin Certificate with PKI CLI =
 
-----
-$ echo Secret.123 > client_password.txt
-$ echo Secret.123 > pkcs12_password.txt
+See link:Importing-Admin-Certificate-into-PKI-CLI[Importing Admin Certificate into PKI CLI].
 
-$ pki -C client_password.txt client-init
+= Using Admin Certificate with Firefox =
 
-$ pki -C client_password.txt client-cert-import \
-  --pkcs12 ~/.dogtag/pki-tomcat/ca_admin_cert.p12 \
-  --pkcs12-password-file pkcs12_password.txt
-----
+To use the certificate with Firefox, import the PKCS #12 file (i.e. `ca_admin_cert.p12`) into the browser.
 
-By default the PKI client will use the NSS database in `~/.dogtag/nssdb` to store the certificate and key.
+= Using Admin Certificate with Python Clients =
 
-Then the certificate can be used as follows:
-
-----
-$ pki -C client_password.txt -n caadmin <command>
-----
-
-Alternatively, if the CA was created with `pki_client_database_purge=False` deployment parameter, the CA admin certificate, key, and passwords will be stored in the following folder/files in `~/.dogtag/pki-tomcat/ca`:
-
-* `alias`: NSS database containing the CA admin certificate and key
-* `password.conf`: NSS database password
-* `pkcs12_password.conf`: PKCS #12 password for `ca_admin_cert.p12`
-
-In that case, the CA admin certificate can be used directly from the above NSS database (without executing `pki client-init`) as follows:
-
-----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -C ~/.dogtag/pki-tomcat/ca/password.conf -n caadmin <command>
-----
-
-= Using Default CA Admin Certificate =
-
-To use the certificate in Firefox, import the PKCS #12 file (i.e. `ca_admin_cert.p12`) into the browser.
-
-To use the certificate with Python client, export both the certificate and private key into a PEM file:
+To use the certificate with Python clients, export both the certificate and private key into a PEM file:
 
 ----
 $ pki -C client_password.txt client-cert-show caadmin --client-cert caadmin.pem
