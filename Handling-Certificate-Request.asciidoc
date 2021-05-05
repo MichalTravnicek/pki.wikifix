@@ -10,22 +10,22 @@ To review the certificate request:
 $ pki <agent authentication> ca-cert-request-review <request ID> --file <filename>
 ----
 
-It will store the certificate request in the output file and wait for an action. The file should be reviewed manually and may be edited if necessary.
+It will store the certificate request in the specified file and wait for an action. The file should be reviewed manually and may be edited if necessary.
 
 Then enter one of the following actions to complete the review:
 
-* approve
-* reject
-* cancel
-* update
-* validate
-* assign
-* unassign
+* `approve`
+* `reject`
+* `cancel`
+* `update`
+* `validate`
+* `assign`
+* `unassign`
 
 Alternatively, the approval process can be done in a single step:
 
 ----
-$ pki <agent authentication> ca-cert-request-review <request ID> --action approve
+$ pki <agent authentication> ca-cert-request-review <request ID> --action <action>
 ----
 
 or
