@@ -7,10 +7,10 @@ This document describes the process to install a ACME responder on a standalone 
 To create a basic PKI server:
 
 ----
-$ pki-server create tomcat@pki
+$ pki-server create
 ----
 
-This command will create a Tomcat instance in `/var/lib/tomcats/pki` directory.
+This command will create a basic PKI server instance in `/var/lib/pki/pki-tomcat` directory.
 
 See also link:https://github.com/dogtagpki/pki/blob/master/docs/installation/server/Installing_Basic_PKI_Server.md[Installing Basic PKI Server].
 
@@ -19,12 +19,12 @@ See also link:https://github.com/dogtagpki/pki/blob/master/docs/installation/ser
 To enable NSS/JSS on a basic PKI server:
 
 ----
-$ pki-server nss-create -i tomcat@pki --no-password
+$ pki-server nss-create --no-password
 $ pki-server jss-enable -i tomcat@pki
 ----
 
-The above commands create an NSS database in `/var/lib/tomcats/pki/alias` directory
-and configure Tomcat to use the NSS database.
+The above commands create an NSS database in `/var/lib/pki/pki-tomcat/alias` directory
+and configure a `JSSListener` in `/var/lib/pki/pki-tomcat/conf/server.xml`.
 
 By default the NSS database does not trust any root CA certificates.
 To access external services, the root CA certificates for those services may need to be imported into the NSS database.
@@ -39,11 +39,23 @@ To import the above root CA certificates:
 
 ----
 $ wget https://letsencrypt.org/certs/isrgrootx1.pem.txt
-$ certutil -A -d /var/lib/tomcats/pki/alias -i isrgrootx1.pem.txt -n "ISRG Root X1" -t CT,C,C
+$ certutil -A \
+    -d /var/lib/pki/pki-tomcat/alias \
+    -i isrgrootx1.pem.txt \
+    -n "ISRG Root X1" \
+    -t CT,C,C
 $ wget https://letsencrypt.org/certs/trustid-x3-root.pem.txt
-$ certutil -A -d /var/lib/tomcats/pki/alias -i trustid-x3-root.pem.txt -n "DST Root CA X3" -t CT,C,C
+$ certutil -A \
+    -d /var/lib/pki/pki-tomcat/alias \
+    -i trustid-x3-root.pem.txt \
+    -n "DST Root CA X3" \
+    -t CT,C,C
 $ wget https://dl.cacerts.digicert.com/DigiCertGlobalRootCA.crt
-$ certutil -A -d /var/lib/tomcats/pki/alias -i DigiCertGlobalRootCA.crt -n "DigiCert Global Root CA" -t CT,C,C
+$ certutil -A \
+    -d /var/lib/pki/pki-tomcat/alias \
+    -i DigiCertGlobalRootCA.crt \
+    -n "DigiCert Global Root CA" \
+    -t CT,C,C
 ----
 
 = Configuring TLS =
@@ -51,7 +63,7 @@ $ certutil -A -d /var/lib/tomcats/pki/alias -i DigiCertGlobalRootCA.crt -n "Digi
 To configure TLS on a basic PKI server:
 
 ----
-$ pki-server http-connector-add -i tomcat@pki \
+$ pki-server http-connector-add \
     --port 8443 \
     --scheme https \
     --secure true \
@@ -59,7 +71,7 @@ $ pki-server http-connector-add -i tomcat@pki \
     --sslProtocol SSL \
     --sslImpl org.dogtagpki.tomcat.JSSImplementation \
     Secure
-$ pki-server http-connector-cert-add -i tomcat@pki \
+$ pki-server http-connector-cert-add \
     --keyAlias sslserver \
     --keystoreType pkcs11 \
     --keystoreProvider Mozilla-JSS
@@ -70,10 +82,10 @@ $ pki-server http-connector-cert-add -i tomcat@pki \
 To create ACME responder:
 
 ----
-$ pki-server acme-create -i tomcat@pki
+$ pki-server acme-create
 ----
 
-It will store the initial configuration files in `/var/lib/tomcats/pki/conf/acme` folder.
+It will store the initial configuration files in `/var/lib/pki/pki-tomcat/conf/acme` folder.
 
 = Configuring ACME Responder =
 
@@ -88,10 +100,16 @@ To configure ACME responder, see the following documents:
 To deploy ACME responder:
 
 ----
-$ pki-server acme-deploy -i tomcat@pki
+$ pki-server acme-deploy
 ----
 
-It will create a deployment descriptor at `/var/lib/tomcats/pki/conf/Catalina/localhost/acme.xml`.
+It will create a deployment descriptor at `/var/lib/pki/pki-tomcat/conf/Catalina/localhost/acme.xml`.
+
+Then start the server:
+
+----
+$ pki-server start
+----
 
 To verify, open the ACME responder in a browser, for example:
 
@@ -102,7 +120,7 @@ To verify, open the ACME responder in a browser, for example:
 To undeploy ACME responder:
 
 ----
-$ pki-server acme-undeploy -i tomcat@pki
+$ pki-server acme-undeploy
 ----
 
 = Removing ACME Responder =
@@ -110,5 +128,5 @@ $ pki-server acme-undeploy -i tomcat@pki
 To remove ACME responder:
 
 ----
-$ pki-server acme-remove -i tomcat@pki
+$ pki-server acme-remove
 ----
