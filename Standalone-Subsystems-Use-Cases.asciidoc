@@ -1,27 +1,27 @@
-= Case I: Stand-alone DRM =
+= Case I: Stand-alone KRA =
 
-* A PKI deployment should be able to setup a DRM without the need to have a CA.
-* This stand-alone DRM should not be expected to communicate with any other PKI subsystem (with the possible exception of any DRMs that have been cloned from this stand-alone DRM).
-* This stand-alone DRM should host its own security domain.
-* This stand-alone DRM will require five PKI subsystem certificates to be signed and issued by a single External CA:
+* A PKI deployment should be able to setup a KRA without the need to have a CA.
+* This stand-alone KRA should not be expected to communicate with any other PKI subsystem (with the possible exception of any KRAs that have been cloned from this stand-alone KRA).
+* This stand-alone KRA should host its own security domain.
+* This stand-alone KRA will require five PKI subsystem certificates to be signed and issued by a single External CA:
 ** Transport Certificate
 ** Storage Certificate
 ** SSL Server Certificate
 ** Subsystem Certificate
 ** Audit Log Signing Certificate
-* Additionally, for administration purposes, this DRM will require an Administration Certificate to be signed and issued by the same External CA that signed its other five certificates.
-* This stand-alone DRM should be able to be cloned.
-* Each DRM clone will be limited to use the master DRM security domain.
+* Additionally, for administration purposes, this KRA will require an Administration Certificate to be signed and issued by the same External CA that signed its other five certificates.
+* This stand-alone KRA should be able to be cloned.
+* Each KRA clone will be limited to use the master KRA security domain.
 
-= Case II: DRM Cloned from Stand-alone DRM =
+= Case II: KRA Cloned from Stand-alone KRA =
 
-* A PKI deployment should be able to clone a DRM from a fully configured stand-alone DRM.
-* This cloned DRM should not be expected to communicate with any other PKI subsystem other than the master stand-alone DRM from which it was cloned. 
-* This cloned DRM must use the master stand-alone DRM as its security domain.
-* This cloned DRM will require one PKI subsystem certificate to be signed and issued by the same External CA that was utilized by the master stand-alone DRM:
+* A PKI deployment should be able to clone a KRA from a fully configured stand-alone KRA.
+* This cloned KRA should not be expected to communicate with any other PKI subsystem other than the master stand-alone KRA from which it was cloned. 
+* This cloned KRA must use the master stand-alone KRA as its security domain.
+* This cloned KRA will require one PKI subsystem certificate to be signed and issued by the same External CA that was utilized by the master stand-alone KRA:
 ** SSL Server Certificate
 
-NOTE: For administration purposes, this cloned DRM will utilize the Administration Certificate that was signed and issued for the DRM master.
+NOTE: For administration purposes, this cloned KRA will utilize the Administration Certificate that was signed and issued for the KRA master.
 
 = Case III: Stand-alone OCSP =
 
