@@ -1,7 +1,7 @@
 = Enrollment =
 
 |===
-| Workflow | Operation | Client | CA | DRM | OCSP | Notes
+| Workflow | Operation | Client | CA | KRA | OCSP | Notes
 
 | Enrollment
 | Get list of profiles
@@ -31,7 +31,7 @@
 = Manual Enrollment =
 
 |===
-| Workflow | Operation | Client | CA | DRM | OCSP | Notes
+| Workflow | Operation | Client | CA | KRA | OCSP | Notes
 
 | Manual Enrollment
 | Create a request
@@ -77,7 +77,7 @@
 = Automated Enrollment =
 
 |===
-| Workflow | Operation | Client | CA | DRM | OCSP | Notes
+| Workflow | Operation | Client | CA | KRA | OCSP | Notes
 
 
 | Automated Enrollment
@@ -100,20 +100,20 @@
 = Automated Enrollment with Key Archival =
 
 |===
-| Workflow | Operation | Client | CA | DRM | OCSP | Notes
+| Workflow | Operation | Client | CA | KRA | OCSP | Notes
 
 
 | Automated Enrollment with Key Archival
 | Get transport key
 | GET /pki/config/kra/cert/transport
 | 
-| Returns 200 OK. Payload includes DRM transport cert.
+| Returns 200 OK. Payload includes KRA transport cert.
 | 
 | 
 
 | 
 | Create a request
-| POST-a  /pki/request/$profile_id Payload contains all inputs required by the profile.  This includes a client generated session key wrapped in the DRM transport key and the private key wrapped in the session key
+| POST-a  /pki/request/$profile_id Payload contains all inputs required by the profile.  This includes a client generated session key wrapped in the KRA transport key and the private key wrapped in the session key
 | Creates a request. 
 | 
 | 
@@ -139,7 +139,7 @@
 = Revoke Certificate =
 
 |===
-| Workflow | Operation | Client | CA | DRM | OCSP | Notes
+| Workflow | Operation | Client | CA | KRA | OCSP | Notes
 
 | Revoke cert
 | Agent revokes cert
@@ -153,7 +153,7 @@
 = Key Recovery =
 
 |===
-| Workflow | Operation | Client | CA | DRM | OCSP | Notes
+| Workflow | Operation | Client | CA | KRA | OCSP | Notes
 
 | Key recovery
 | Get list of keys/ search for relevant keys
@@ -197,7 +197,7 @@
 
 | 
 | Agent gets key
-| GET /pki/key/$kid - must include approved $rid and be the requestor for that request;  Do $rids expire?  Also include wrapping mechanism (pk12 passwords or client generated symmetric key) wrapped in drm transport key
+| GET /pki/key/$kid - must include approved $rid and be the requestor for that request;  Do $rids expire?  Also include wrapping mechanism (pk12 passwords or client generated symmetric key) wrapped in KRA transport key
 | 
 | Return key wrapped in pk12 package or wrapped in symmetric key;
 | 
@@ -207,19 +207,19 @@
 = Key Storage =
 
 |===
-| Workflow | Operation | Client | CA | DRM | OCSP | Notes
+| Workflow | Operation | Client | CA | KRA | OCSP | Notes
 
 | Key storage
 | Get transport key
 | GET /pki/config/kra/cert/transport
 | 
-| Returns 200 OK. Payload includes DRM transport cert.
+| Returns 200 OK. Payload includes KRA transport cert.
 | 
 | 
 
 | 
 | Agent Requests key archival
-| POST-a /pki/keyrequest/archive with payload including the key wrapped with the DRM transport key
+| POST-a /pki/keyrequest/archive with payload including the key wrapped with the KRA transport key
 | 
 | Return status 201 - Created. Create key request and mark as approved. Create key object (storing private key). Return link to key archival request - /pki/keyrequest/$rid and link to key /pki/key/$kid
 | 
@@ -229,11 +229,11 @@
 = Automated Key Recovery (nAgents=1) =
 
 |===
-| Workflow | Operation | Client | CA | DRM | OCSP | Notes
+| Workflow | Operation | Client | CA | KRA | OCSP | Notes
 
 | Automated  Key recovery (nAgents=1)
 | Agent Requests key recovery
-| POST-a /pki/keyrequest/recovery - payload includes key_id, Also include wrapping secret wrapped in DRM transport key 
+| POST-a /pki/keyrequest/recovery - payload includes key_id, Also include wrapping secret wrapped in KRA transport key 
 | 
 | Return 207 - Other.  Returns link to request created - /pki/keyrequest/$rid, link to the key, and the relevant wrapped key(s)
 | 
@@ -243,11 +243,11 @@
 = Get Generated Key =
 
 |===
-| Workflow | Operation | Client | CA | DRM | OCSP | Notes
+| Workflow | Operation | Client | CA | KRA | OCSP | Notes
 
 | Get generated key
 | Agent requests generated key pair
-| POST-a /pki/keyrequest/generate/token - payload includes identifiers (cuid, userid etc.), archival choice and wrapping mechanism (symmetric key) wrapped in drm transport key
+| POST-a /pki/keyrequest/generate/token - payload includes identifiers (cuid, userid etc.), archival choice and wrapping mechanism (symmetric key) wrapped in KRA transport key
 | 
 | Return 207 - Other. Returns link to request created - /pki/keyrequest/$rid.  Also returns generated key pair (wrapped in symmetric key) and link to key stored if archival selected.
 | 
