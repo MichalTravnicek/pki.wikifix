@@ -1,0 +1,114 @@
+= Overview =
+
+This document describes the process to install a standalone ACME responder (without CA).
+
+= Create a Basic PKI Server =
+
+To create a basic PKI server:
+
+----
+$ pki-server create tomcat@pki
+----
+
+This command will create a Tomcat instance in `/var/lib/tomcats/pki` directory.
+
+See also link:https://github.com/dogtagpki/pki/blob/master/docs/installation/server/Installing_Basic_PKI_Server.md[Installing Basic PKI Server].
+
+= Configuring NSS Database =
+
+To enable NSS/JSS on a basic PKI server:
+
+----
+$ pki-server nss-create -i tomcat@pki --no-password
+$ pki-server jss-enable -i tomcat@pki
+----
+
+The above commands create an NSS database in `/var/lib/tomcats/pki/alias` directory
+and configure Tomcat to use the NSS database.
+
+By default the NSS database does not trust any root CA certificates.
+To access external services, the root CA certificates for those services may need to be imported into the NSS database.
+
+Here are some common root CA certificates:
+
+* link:https://letsencrypt.org/certs/isrgrootx1.pem.txt[ISRG Root X1]
+* link:https://letsencrypt.org/certs/trustid-x3-root.pem.txt[DST Root CA X3]
+* link:https://dl.cacerts.digicert.com/DigiCertGlobalRootCA.crt[DigiCert Global Root CA]
+
+To import the above root CA certificates:
+
+----
+$ wget https://letsencrypt.org/certs/isrgrootx1.pem.txt
+$ certutil -A -d /var/lib/tomcats/pki/alias -i isrgrootx1.pem.txt -n "ISRG Root X1" -t CT,C,C
+$ wget https://letsencrypt.org/certs/trustid-x3-root.pem.txt
+$ certutil -A -d /var/lib/tomcats/pki/alias -i trustid-x3-root.pem.txt -n "DST Root CA X3" -t CT,C,C
+$ wget https://dl.cacerts.digicert.com/DigiCertGlobalRootCA.crt
+$ certutil -A -d /var/lib/tomcats/pki/alias -i DigiCertGlobalRootCA.crt -n "DigiCert Global Root CA" -t CT,C,C
+----
+
+= Configuring TLS =
+
+To configure TLS on a basic PKI server:
+
+----
+$ pki-server http-connector-add -i tomcat@pki \
+    --port 8443 \
+    --scheme https \
+    --secure true \
+    --sslEnabled true \
+    --sslProtocol SSL \
+    --sslImpl org.dogtagpki.tomcat.JSSImplementation \
+    Secure
+$ pki-server http-connector-cert-add -i tomcat@pki \
+    --keyAlias sslserver \
+    --keystoreType pkcs11 \
+    --keystoreProvider Mozilla-JSS
+----
+
+= Creating ACME Responder =
+
+To create ACME responder:
+
+----
+$ pki-server acme-create -i tomcat@pki
+----
+
+It will store the initial configuration files in `/var/lib/tomcats/pki/conf/acme` folder.
+
+= Configuring ACME Responder =
+
+To configure ACME responder, see:
+
+* link:https://github.com/dogtagpki/pki/blob/master/docs/installation/acme/Configuring_ACME_Database.md[Configuring ACME Database]
+* link:https://github.com/dogtagpki/pki/blob/master/docs/installation/acme/Configuring_ACME_Issuer.md[Configuring ACME Issuer]
+* link:https://github.com/dogtagpki/pki/blob/master/docs/installation/acme/Configuring_ACME_Realm.md[Configuring ACME Realm]
+
+= Deploying ACME Responder =
+
+To deploy ACME responder:
+
+----
+$ pki-server acme-deploy -i tomcat@pki
+----
+
+It will create a deployment descriptor at `/var/lib/tomcats/pki/conf/Catalina/localhost/acme.xml`.
+
+To verify, open the ACME responder in a browser, for example:
+
+* https://server.example.com:8443/acme/directory
+
+= Undeploying ACME Responder =
+
+To undeploy ACME responder:
+
+----
+$ pki-server acme-undeploy -i tomcat@pki
+----
+
+= Removing ACME Responder =
+
+To remove ACME responder:
+
+----
+$ pki-server acme-remove -i tomcat@pki
+----
