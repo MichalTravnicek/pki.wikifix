@@ -1,7 +1,7 @@
 = Introduction =
 
-The role and interactions of the DRM has changed.  No longer do we expect the DRM to only support
-privste key escrow and to talk only with the CA and a group of agents, but we expect the DRM to
+The role and interactions of the KRA has changed.  No longer do we expect the KRA to only support
+privste key escrow and to talk only with the CA and a group of agents, but we expect the KRA to
 be accessed by a number of different applications - Barbican, CA, IPA (for the vault), and other services
 such as DNSSEC.
 
@@ -11,12 +11,12 @@ In order to facilitate these interactions, a number of enhancements have been pr
 * Addition of additional authentication mechanisms - and in particular for IPA use cases, GSSAPI.
 * Addition of the ability to define an authentication database, which could be used to define addtional agents.
 
-The basic idea is that we will continue to restrict access to the DRM to "agents" ie. a restricted set of users
+The basic idea is that we will continue to restrict access to the KRA to "agents" ie. a restricted set of users
 each of which will have the ability to store and restrieve a specific set of secrets.
 
 * PKI users will continue to store private keys through interactions with the CA. Their agents will continue to access the web UI through client auth certificates.
-* For the IPA vault case, end users will authenticate to and interact with IPA, which will interact with the DRM through a trusted agent.  This agent can continue to use client auth for authentication, although with the addition of GSSAPI as an authentication method and an authentication database, it may be possible to define a set of IPA users as IPA agents.
-* For the case of services like Barbican or DNSSEC, these services will interact with the DRM directly much in the same mechanism as IPA.  In fact, IPA is pretty much just a service like anything else.
+* For the IPA vault case, end users will authenticate to and interact with IPA, which will interact with the KRA through a trusted agent.  This agent can continue to use client auth for authentication, although with the addition of GSSAPI as an authentication method and an authentication database, it may be possible to define a set of IPA users as IPA agents.
+* For the case of services like Barbican or DNSSEC, these services will interact with the KRA directly much in the same mechanism as IPA.  In fact, IPA is pretty much just a service like anything else.
 
 = Partitioning the secrets and requests =
 
@@ -38,9 +38,9 @@ This could work something like this:
 
 == High Level Design ==
 
-In order to make it easier for applications to use the DRM, it should be possible to define an authentication database just like the case of the TPS.  Users can then be defined within this database along with any relevant credentials.
+In order to make it easier for applications to use the KRA, it should be possible to define an authentication database just like the case of the TPS.  Users can then be defined within this database along with any relevant credentials.
 
-These database settings should be maintained for each application.  If no authentication database is defined, then only the users specified in the DRM internal DB will be searched for authentication.  The config entries could be defined in CS.cfg as follows:
+These database settings should be maintained for each application.  If no authentication database is defined, then only the users specified in the KRA internal DB will be searched for authentication.  The config entries could be defined in CS.cfg as follows:
 
 ----
 application.contexts=pkiuser,barbican,ipa,dnssec,...
@@ -51,10 +51,10 @@ application,ipa.authdb,port=... etc.
 
 If an authentication db is defined, then the authentication db could be used to locate and authenticate the user or to provide authorization info.  The more that I think about this though, I'm not sure what it this buys us - other than the ability to authenticate using ldap.  If we end up implementing GSSAPI this may not matter.
 
-The key point here is that agent groups MUST be defined on the DRM.  Why?  Because otherwise there is no way for the DRM to assure the separation of different contexts.  If the groups are defined in the authentication database, then its easy enough for the admin of that service to define a group that contains the contexts for other
+The key point here is that agent groups MUST be defined on the KRA.  Why?  Because otherwise there is no way for the KRA to assure the separation of different contexts.  If the groups are defined in the authentication database, then its easy enough for the admin of that service to define a group that contains the contexts for other
 contexts.
 
-The service should define use the provided REST admin interfaces to modify the group on the DRM.
+The service should define use the provided REST admin interfaces to modify the group on the KRA.
 
 = Additional Authentication Mechanism =
 
