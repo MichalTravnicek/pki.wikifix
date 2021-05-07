@@ -125,7 +125,7 @@ However, this would not provide any protection between systems.
 It additionally doesn't account for differences between our subsystems.
 The domain would have to be granted the union of all privileges amongst our subsystems, which would grant each subsystem more than it needs.
 
-A better approach is to partition by subsystem: having an entrypoint and domain for CA, OCSP, TKS, DRM, RA, and TPS.
+A better approach is to partition by subsystem: having an entrypoint and domain for CA, OCSP, TKS, KRA, RA, and TPS.
 This means we need to design and maintain 6 different policies, but provides the best protection.
 
 == Number of types ==
