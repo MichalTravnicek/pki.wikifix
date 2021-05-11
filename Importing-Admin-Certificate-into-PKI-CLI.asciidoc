@@ -13,14 +13,12 @@ and the PKCS #12 file is protected with a password specified in the
 
 By default the PKI CLI uses an NSS database at `~/.dogtag/nssdb`.
 
-To import the PKCS #12 file into this NSS database,
-store the password for the PKCS #12 file in a file (e.g. `pkcs12_password.txt`),
-then execute the following command:
+To import the PKCS #12 file into the NSS database, execute the following command:
 
 ----
 $ pki pkcs12-import \
     --pkcs12 ~/.dogtag/pki-tomcat/ca_admin_cert.p12 \
-    --pkcs12-password-file pkcs12_password.txt
+    --pkcs12-password Secret.123
 ----
 
 The certificate can be used by specifying a `-n <nickname>` parameter, for example:
