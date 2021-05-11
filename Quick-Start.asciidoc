@@ -1,6 +1,6 @@
 = Overview =
 
-This document describes the process to install basic PKI subsystems.
+This document describes the process to install a simple PKI system which consist of a DS instance and a CA instance on a single machine.
 
 = Installing Dependencies =
 
@@ -12,7 +12,7 @@ $ dnf install 389-ds-base dogtag-pki
 
 = Creating DS Instance =
 
-See link:DS-Installation[DS Installation].
+To create a DS instance, see link:DS-Installation[DS Installation].
 
 = Creating CA Subsystem =
 
@@ -70,7 +70,7 @@ Storing deployment configuration into /etc/sysconfig/pki/tomcat/pki-tomcat/ca/de
     ==========================================================================
 ----
 
-See also link:https://github.com/dogtagpki/pki/blob/master/docs/installation/ca/Installing_CA.md[Installing CA] and link:Installation-Guide[Installation Guide].
+See also link:Installation-Guide[Installation Guide].
 
 = Accessing PKI Services =
 
@@ -80,7 +80,12 @@ To access PKI services via command-line, use the link:PKI-CLI[PKI CLI]. See link
 
 = Using PKI Services =
 
-See link:End-Entity-Guide[End-Entity Guide].
+The most common PKI services are:
+
+* link:Certificate-Enrollment[Certificate Enrollment]
+* link:Certificate-Renewal[Certificate Renewal]
+
+See also link:End-Entity-Guide[End-Entity Guide].
 
 = Managing PKI Services =
 
