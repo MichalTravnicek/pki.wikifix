@@ -35,13 +35,22 @@ and link:https://github.com/dogtagpki/pki/blob/master/docs/admin/acme/Managing_P
 
 To access the demo with an ACME client, use the following endpoint: https://pki.demo.dogtagpki.org/acme/directory.
 
-To perform certificate enrollment with certbot, execute the following command:
+To perform certificate enrollment with HTTP-01, execute the following command:
 
 ----
 $ certbot certonly \
     --server https://pki.demo.dogtagpki.org/acme/directory \
     --standalone \
     --preferred-challenges http \
+    -d server.example.com
+----
+
+To perform certificate enrollment with DNS-01, execute the following command:
+
+----
+$ certbot certonly --manual \
+    --server https://pki.demo.dogtagpki.org/acme/directory \
+    --preferred-challenges dns \
     -d server.example.com
 ----
 
