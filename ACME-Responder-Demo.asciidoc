@@ -38,9 +38,8 @@ To access the demo with an ACME client, use the following endpoint: https://pki.
 To perform certificate enrollment with HTTP-01, execute the following command:
 
 ----
-$ certbot certonly \
+$ certbot certonly --standalone \
     --server https://pki.demo.dogtagpki.org/acme/directory \
-    --standalone \
     --preferred-challenges http \
     -d server.example.com
 ----
