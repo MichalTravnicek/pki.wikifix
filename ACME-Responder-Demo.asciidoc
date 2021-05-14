@@ -1,0 +1,38 @@
+= Overview =
+
+A demo instance is available at https://pki.demo.dogtagpki.org/acme.
+
+= Web UI =
+
+To access the demo with a Web browser, open https://pki.demo.dogtagpki.org/acme.
+
+To access the admin interface, log in with the following credentials:
+
+* Username: `admin`
+* Password: `Secret.123`
+
+= PKI CLI =
+
+To access the demo with PKI CLI, install the p11-kit-trust module in the NSS database:
+
+----
+$ pki client-init
+$ modutil -dbdir ~/.dogtag/nssdb -add p11-kit-trust -libfile /usr/lib64/pkcs11/p11-kit-trust.so
+$ pki -U https://pki.demo.dogtagpki.org acme-info
+$ pki -U https://pki.demo.dogtagpki.org -u admin -w Secret.123 acme-disable
+$ pki -U https://pki.demo.dogtagpki.org -u admin -w Secret.123 acme-enable
+----
+
+= ACME Client =
+
+To access the demo with an ACME client, use the following endpoint: https://pki.demo.dogtagpki.org/acme/directory.
+
+For example, to perform certificate enrollment with certbot:
+
+----
+$ certbot certonly \
+    --server https://pki.demo.dogtagpki.org/acme/directory \
+    --standalone \
+    --preferred-challenges http \
+    -d server.example.com
+----
