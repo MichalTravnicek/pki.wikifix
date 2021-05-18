@@ -27,6 +27,12 @@ See also link:https://www.dogtagpki.org/wiki/Fedora_Modules[Fedora Modules].
 
 = Authentication =
 
+Make sure the SSH key is set up properly in link:https://accounts.fedoraproject.org[Fedora Account System]. Verify with the following command:
+
+----
+$ ssh -v <username>@fedorapeople.org
+----
+
 Obtain a link:https://www.dogtagpki.org/wiki/Kerberos[Kerberos] ticket for FEDORAPROJECT.ORG:
 
 ----
@@ -59,6 +65,18 @@ To clone a project into a local repository:
 
 ----
 $ fedpkg clone <project>
+----
+
+If there's a problem, try running it in verbose mode:
+
+----
+$ fedpkg -v clone <project>
+----
+
+If the Fedora username is different from the local username, specify it using `--user`:
+
+----
+$ fedpkg --user <username> clone <project>
 ----
 
 = Forking a Project =
