@@ -25,15 +25,23 @@ Number of entries returned 1
 As the system user, submit the renewal request over SSL connection using the client certificate for authentication:
 
 ----
-$ pki -U https://<hostname>:<secure port> -c <client NSS database password> -n <client certificate nickname> \
-    client-cert-request <subject DN> --profile <renewal profile>
+$ pki -U https://<hostname>:<secure port> \
+    -c <client NSS database password> \
+    -n <client certificate nickname> \
+    client-cert-request \
+    --profile <renewal profile> \
+    <subject DN>
 ----
 
 For example:
 
 ----
-$ pki -U https://server.example.com:8443 -c Secret.123 -n testuser \
-    client-cert-request uid=testuser --profile caManualRenewal
+$ pki -U https://server.example.com:8443 \
+    -c Secret.123 \
+    -n testuser \
+    client-cert-request \
+    --profile caManualRenewal \
+    uid=testuser
 ----
 
 See link:Certificate-Profiles[Certificate Profiles].
