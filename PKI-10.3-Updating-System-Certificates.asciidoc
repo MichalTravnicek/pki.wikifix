@@ -1,0 +1,39 @@
+First, shutdown the server:
+
+----
+$ systemctl stop pki-tomcatd@pki-tomcat.service
+----
+
+Delete the old certificates with the following commands:
+
+----
+$ certutil -D -d /var/lib/pki/pki-tomcat/alias -n ca_ocsp_signing
+$ certutil -D -d /var/lib/pki/pki-tomcat/alias -n sslserver
+$ certutil -D -d /var/lib/pki/pki-tomcat/alias -n subsystem
+$ certutil -D -d /var/lib/pki/pki-tomcat/alias -n ca_audit_signing
+----
+
+Then import the renewed certificates:
+
+----
+$ certutil -A -d /var/lib/pki/pki-tomcat/alias -n ca_ocsp_signing -i ca_ocsp_signing.crt -t "u,u,u"
+$ certutil -A -d /var/lib/pki/pki-tomcat/alias -n sslserver -i sslserver.crt -t "u,u,u"
+$ certutil -A -d /var/lib/pki/pki-tomcat/alias -n subsystem -i subsystem.crt -t "u,u,u"
+$ certutil -A -d /var/lib/pki/pki-tomcat/alias -n ca_audit_signing -i ca_audit_signing.crt -t "u,u,Pu"
+----
+
+Also update the following lines in `/var/lib/pki/pki-tomcat/conf/ca/CS.cfg` with the Base64-encoded data of the new certificates (without the header and footer):
+
+----
+ca.audit_signing.cert=...
+ca.ocsp_signing.cert=...
+ca.signing.cert=...
+ca.sslserver.cert=...
+ca.subsystem.cert=...
+----
+
+Finally, restart the server:
+
+----
+$ systemctl start pki-tomcatd@pki-tomcat.service
+----
