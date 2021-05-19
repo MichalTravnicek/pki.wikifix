@@ -1,0 +1,31 @@
+In PKI 10.3 the profile needs to be downloaded first:
+
+----
+$ pki ca-cert-request-profile-show caManualRenewal --output caManualRenewal.xml
+----
+
+Then the serial number of the certificate to renew needs to be inserted into the request file:
+
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<CertEnrollmentRequest>
+    ...
+    <Input id="i1">
+        <ClassID>serialNumRenewInputImpl</ClassID>
+        <Name>Serial Number of Certificate to Renew</Name>
+        <Attribute name="serial_num">
+            <Value>...</Value>
+            <Descriptor>
+                <Syntax>string</Syntax>
+                <Description>Serial Number of Certificate to Renew</Description>
+            </Descriptor>
+        </Attribute>
+    </Input>
+</CertEnrollmentRequest>
+----
+
+Then the request file needs to be submitted with the following command:
+
+----
+$ pki ca-cert-request-submit caManualRenewal.xml
+----
