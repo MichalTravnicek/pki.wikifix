@@ -119,39 +119,9 @@ $ pki ca-cert-request-submit --profile caManualRenewal --serial 0x5  --renewal  
 
 == PKI 10.3 or earlier ==
 
-In PKI 10.3 the profile needs to be downloaded first:
+See link:PKI-10.3-Submitting-Renewal-Requests[PKI 10.3 Submitting Renewal Requests].
 
-----
-$ pki ca-cert-request-profile-show caManualRenewal --output caManualRenewal.xml
-----
-
-Then the `<serial number>` needs to be inserted into the request file:
-
-----
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<CertEnrollmentRequest>
-    ...
-    <Input id="i1">
-        <ClassID>serialNumRenewInputImpl</ClassID>
-        <Name>Serial Number of Certificate to Renew</Name>
-        <Attribute name="serial_num">
-            <Value><serial number></Value>
-            <Descriptor>
-                <Syntax>string</Syntax>
-                <Description>Serial Number of Certificate to Renew</Description>
-            </Descriptor>
-        </Attribute>
-    </Input>
-</CertEnrollmentRequest>
-----
-
-Then the request file needs to be submitted with the following command:
-
-----
-$ pki ca-cert-request-submit caManualRenewal.xml
-----
-
-See also link:https://www.dogtagpki.org/wiki/Certificate_Renewal#Submitting_Renewal_Request[Submitting Renewal Request].
+See also link:Submitting-Certificate-Renewal-Request[Submitting Certificate Renewal Request].
 
 = Approving Renewal Requests =
 
@@ -166,7 +136,7 @@ $ pki -n caadmin -c Secret.123 ca-cert-request-review 10 --action approve
 
 Each approval will generate a new certificate with a new serial number.
 
-See also link:https://www.dogtagpki.org/wiki/Certificate_Renewal#Approving_Renewal_Request[Approving Renewal Request].
+See also link:Handling-Certificate-Request[Handling Certificate Request].
 
 = Retrieving Renewed Certificates =
 
@@ -179,7 +149,7 @@ $ pki ca-cert-show 0x9 --output subsystem.crt
 $ pki ca-cert-show 0xa --output ca_audit_signing.crt
 ----
 
-See also link:https://www.dogtagpki.org/wiki/Certificate_Renewal#Retrieving_Renewed_Certificate[Retrieving Renewed Certificate].
+See also link:Retrieving-Certificate[Retrieving Certificate].
 
 = Updating System Certificates =
 
