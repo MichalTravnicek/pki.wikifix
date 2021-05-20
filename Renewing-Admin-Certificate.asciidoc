@@ -1,6 +1,12 @@
+= Overview =
+
+WARNING: This document is still under construction.
+
+This document describes methods to renew PKI admin certificate.
+
 = Using CMSGateway =
 
-NOTE: This procedure may require Firefox earlier than v69 that still supports `<keygen>`.
+NOTE: This procedure may require using Firefox earlier than version 69 that still supports `<keygen>`.
 
 To renew the admin certificate using CMSGateway, configure the following parameter in `/etc/pki/pki-tomcat/ca/CS.cfg`:
 
@@ -12,12 +18,24 @@ Restart the server, then follow the procedure at https://localhost.localdomain:8
 
 = Using pki-server cert-fix =
 
+NOTE: This procedure may require setting the system clock back to when the admin certificate was still valid .
+
+To renew the admin certificate and system certificates, execute the following commands:
+
 ----
 $ pki-server cert-fix \
-    --ldapi-socket /var/run/slapd-localhost.socket \
+    --ldap-url ldap://localhost.localdomain \
     --agent-uid caadmin \
     --extra-cert <serial number>
-$ pki -n caadmin ca-user-cert-add caadmin --input caadmin.crt
+----
+
+Then assign the new certificate to the admin user with the following command:
+
+----
+$ pki -n caadmin \
+    ca-user-cert-add \
+    --input /etc/pki/pki-tomcat/certs/<serial number>-renewed.crt \
+    caadmin
 ----
 
 = See Also =
