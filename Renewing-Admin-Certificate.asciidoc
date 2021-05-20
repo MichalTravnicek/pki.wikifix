@@ -1,0 +1,20 @@
+= Using CMSGateway =
+
+To renew the admin certificate using CMSGateway, configure the following parameter in `/etc/pki/pki-tomcat/CS.cfg`:
+
+----
+cmsgateway.enableAdminEnroll=true
+----
+
+Restart the server, then go to https://pki.example.com:8443/ca/admin/ca/adminEnroll.html.
+
+= Using pki-server cert-fix =
+
+----
+$ pki-server cert-fix --ldapi-socket /var/run/slapd-localhost.socket --agent-uid caadmin --extra-cert 4
+$ pki -n caadmin ca-user-cert-add caadmin --input caadmin.crt
+----
+
+= See Also =
+
+* link:https://github.com/dogtagpki/pki/blob/master/docs/admin/Offline_System_Certificate_Renewal.md[Offline System Certificate Renewal]
