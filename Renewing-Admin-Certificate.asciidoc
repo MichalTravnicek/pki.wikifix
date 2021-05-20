@@ -1,17 +1,22 @@
 = Using CMSGateway =
 
-To renew the admin certificate using CMSGateway, configure the following parameter in `/etc/pki/pki-tomcat/CS.cfg`:
+NOTE: This procedure may require Firefox earlier than v69 that still supports `<keygen>`.
+
+To renew the admin certificate using CMSGateway, configure the following parameter in `/etc/pki/pki-tomcat/ca/CS.cfg`:
 
 ----
 cmsgateway.enableAdminEnroll=true
 ----
 
-Restart the server, then go to https://pki.example.com:8443/ca/admin/ca/adminEnroll.html.
+Restart the server, then follow the procedure at https://localhost.localdomain:8443/ca/admin/ca/adminEnroll.html.
 
 = Using pki-server cert-fix =
 
 ----
-$ pki-server cert-fix --ldapi-socket /var/run/slapd-localhost.socket --agent-uid caadmin --extra-cert 4
+$ pki-server cert-fix \
+    --ldapi-socket /var/run/slapd-localhost.socket \
+    --agent-uid caadmin \
+    --extra-cert <serial number>
 $ pki -n caadmin ca-user-cert-add caadmin --input caadmin.crt
 ----
 
