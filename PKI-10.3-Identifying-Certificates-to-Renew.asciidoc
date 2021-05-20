@@ -1,0 +1,26 @@
+In PKI 10.3 or earlier the serial numbers and the validity dates of the system certificates can be determined with the following commands:
+
+----
+$ certutil -L -d /var/lib/pki/pki-tomcat/alias
+
+Certificate Nickname                                         Trust Attributes
+                                                             SSL,S/MIME,JAR/XPI
+
+sslserver                                                    u,u,u
+ca_audit_signing                                             u,u,Pu
+ca_signing                                                   CTu,Cu,Cu
+ca_ocsp_signing                                              u,u,u
+subsystem                                                    u,u,u
+
+$ certutil -L -d /var/lib/pki/pki-tomcat/alias -n "ca_signing" | egrep "Serial|Before|After"
+        Serial Number: 1 (0x1)
+            Not Before: Tue Dec 06 12:49:43 2016
+            Not After : Sat Dec 06 12:49:43 2036
+
+$ certutil -L -d /var/lib/pki/pki-tomcat/alias -n "ca_ocsp_signing" | egrep "Serial|Before|After"
+        Serial Number: 7 (0x7)
+            Not Before: Sun Nov 25 23:00:17 2018
+            Not After : Sat Nov 14 23:00:17 2020
+
+...
+----
