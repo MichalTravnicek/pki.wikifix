@@ -20,11 +20,20 @@ Restart the server, then follow the procedure at https://localhost.localdomain:8
 
 NOTE: This procedure may require setting the system clock back to when the admin certificate was still valid .
 
-To renew the admin certificate and system certificates, execute the following commands:
+To renew the admin certificate and system certificates, execute the following command and provide the admin certificate serial number:
 
 ----
 $ pki-server cert-fix \
     --ldap-url ldap://localhost.localdomain \
+    --agent-uid caadmin \
+    --extra-cert <serial number>
+----
+
+If the DS connection was configured to use client certificate authentication, but the certificate has already expired, and the DS server is running locally, the command can be executed with LDAPI instead:
+
+----
+$ pki-server cert-fix \
+    --ldapi-socket /var/run/slapd-localhost.socket \
     --agent-uid caadmin \
     --extra-cert <serial number>
 ----
