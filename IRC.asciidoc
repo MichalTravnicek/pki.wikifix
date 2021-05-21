@@ -9,7 +9,19 @@ See also link:https://libera.chat/guides/connect[Connecting to Libera.Chat].
 To register a nickname:
 
 ----
-/msg NickServ register <password> <email>
+/msg NickServ REGISTER <password> <email>
+----
+
+Confirm the registration using the code sent via email:
+
+----
+/msg NickServ VERIFY REGISTER <nickname> <code>
+----
+
+If there is a problem, drop the registration with this command and start over:
+
+----
+/msg NickServ DROP <nickname>
 ----
 
 See also link:https://libera.chat/guides/registration[Nickname Registration].
@@ -19,20 +31,20 @@ See also link:https://libera.chat/guides/registration[Nickname Registration].
 To authenticate the nickname:
 
 ----
-/msg NickServ identify <password>
+/msg NickServ IDENTIFY <password>
 ----
 
 See also link:https://libera.chat/guides/channels[Using Channels].
 
-= Registering Channel =
+= Joining Dogtag PKI Channel =
 
-To register a channel:
+To join Dogtag PKI channel:
 
 ----
-/msg ChanServ register <channel>
+/join #dogtag-pki
 ----
 
-See also link:https://libera.chat/guides/creatingchannels[Creating Channels].
+See also link:https://libera.chat/guides/channels[Using Channels].
 
 = See Also =
 
