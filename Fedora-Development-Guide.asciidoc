@@ -27,6 +27,8 @@ See also link:https://www.dogtagpki.org/wiki/Fedora_Modules[Fedora Modules].
 
 = Authentication =
 
+== SSH ==
+
 Make sure the SSH key is set up properly in link:https://accounts.fedoraproject.org[Fedora Account System]. Verify by connecting to `fedorapeople.org`:
 
 ----
@@ -34,6 +36,8 @@ $ ssh -v <username>@fedorapeople.org
 ----
 
 Log out from `fedorapeople.org` and continue on the local machine.
+
+== Kerberos ==
 
 Obtain a link:https://www.dogtagpki.org/wiki/Kerberos[Kerberos] ticket for FEDORAPROJECT.ORG:
 
@@ -60,6 +64,8 @@ Valid starting       Expires              Service principal
 [libdefaults]
     default_ccache_name = KCM:
 ----
+
+See also link:https://fedoraproject.org/wiki/Infrastructure/Kerberos[Infrastructure/Kerberos].
 
 = Cloning a Project =
 
