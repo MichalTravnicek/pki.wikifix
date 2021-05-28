@@ -394,7 +394,7 @@ The server will generate the following logs:
 
 == RANDOM_GENERATION ==
 
-Since version 10.5 a `RANDOM_GENERATION` event will be generated for any random number generated on the server (including link:https://www.dogtagpki.org/wiki/Random_Certificate_Serial_Numbers[Random Certificate Serial Numbers]). The event will include the information about the caller of the random number generator and the size of the random number in bytes.
+Since version 10.5 a `RANDOM_GENERATION` event will be generated for any random number generated on the server (including link:Random-Certificate-Serial-Numbers[Random Certificate Serial Numbers]). The event will include the information about the caller of the random number generator and the size of the random number in bytes.
 
 By default only failed events will be logged. To log all events, change the link:https://www.dogtagpki.org/wiki/PKI_Server_Audit_Event_Filter[filter] in CS.cfg as follows:
 
@@ -428,7 +428,7 @@ The Info attribute contains parameters separated by `+`, and each parameter cons
 * `Caller`: `com.netscape.cms.servlet.cert.CertRequestDAO.reviewRequest(CertRequestDAO.java:151)`
 * `Size`: `4`
 
-If link:https://www.dogtagpki.org/wiki/Random_Certificate_Serial_Numbers[Random Certificate Serial Numbers] is enabled, there will be an additional `RANDOM_GENERATION` event:
+If link:Random-Certificate-Serial-Numbers[Random Certificate Serial Numbers] is enabled, there will be an additional `RANDOM_GENERATION` event:
 
 ----
 [AuditEvent=RANDOM_GENERATION][SubjectID=caadmin][Outcome=Success][Info=Caller;;com.netscape.cmscore.dbs.CertificateRepository.getRandomNumber(CertificateRepository.java:192)+Size;;4] Random number generation
