@@ -20,11 +20,7 @@ This document describes the renewal procedure using CLI in PKI 10.x. In PKI 9.x 
 
 = Identifying Certificates to Renew =
 
-First, identify the serial numbers of the certificates that are about to expire.
-
-== PKI 10.4 or later ==
-
-In PKI 10.4 or later the serial numbers and the validity dates of the system certificates can be determined with the following command:
+First, identify the serial numbers of the certificates that are about to expire. This can be done with the following command:
 
 ----
 $ pki-server subsystem-cert-find ca
@@ -77,17 +73,13 @@ $ pki-server subsystem-cert-find ca
   Not valid after: 2018-11-26 12:49:44
 ----
 
-== PKI 10.3 or earlier ==
-
-See link:PKI-10.3-Identifying-Certificates-to-Renew[PKI 10.3 Identifying Certificates to Renew].
+For PKI 10.3 or earlier, see link:PKI-10.3-Identifying-Certificates-to-Renew[PKI 10.3 Identifying Certificates to Renew].
 
 = Submitting Renewal Requests =
 
-For each expiring system certificate, submit a renewal request using the serial number. Each renewal request will generate a request ID.
-
-== PKI 10.4 or later ==
-
-In PKI 10.4 it can be done with the following commands:
+For each expiring system certificate, submit a renewal request using the serial number.
+Each renewal request will generate a request ID.
+This can be done with the following commands:
 
 ----
 $ pki ca-cert-request-submit --profile caManualRenewal --serial 0x2  --renewal  # OCSP signing
@@ -96,9 +88,7 @@ $ pki ca-cert-request-submit --profile caManualRenewal --serial 0x4  --renewal  
 $ pki ca-cert-request-submit --profile caManualRenewal --serial 0x5  --renewal  # audit signing
 ----
 
-== PKI 10.3 or earlier ==
-
-See link:PKI-10.3-Submitting-Renewal-Requests[PKI 10.3 Submitting Renewal Requests].
+For PKI 10.3 or earlier, see link:PKI-10.3-Submitting-Renewal-Requests[PKI 10.3 Submitting Renewal Requests].
 
 See also link:Submitting-Certificate-Renewal-Request[Submitting Certificate Renewal Request].
 
@@ -134,8 +124,6 @@ See also link:Retrieving-Certificate[Retrieving Certificate].
 
 The new certificates need to be imported into the NSS database and the copy of the certificates in the CS.cfg need to be updated as well. While NSS should be able to handle multiple certificates (both old and new) in the NSS database it is recommended that the old one is removed. To prevent NSS database or CS.cfg corruption, shutdown the server before making the changes.
 
-== PKI 10.4 or later ==
-
 First, shutdown the server:
 
 ----
@@ -157,6 +145,4 @@ Finally, restart the server:
 $ systemctl start pki-tomcatd@pki-tomcat.service
 ----
 
-== PKI 10.3 or earlier ==
-
-See link:PKI-10.3-Updating-System-Certificates[PKI 10.3 Updating System Certificates].
+For PKI 10.3 or earlier, see link:PKI-10.3-Updating-System-Certificates[PKI 10.3 Updating System Certificates].
