@@ -1,17 +1,24 @@
-= TPS Operation
+= Legacy TPS Operation =
 
-* op=edit_config_parameter&ptype=Generals
+* `op=edit_config_parameter&ptype=Generals`
 
-= REST Operation
+= Request =
 
-* GET /tps/rest/config
+* Path: `/tps/rest/config`
+* Method: `GET`
 
-= Request
+= Response =
 
-None
+== Success ==
 
-= Response
+* Code: `200`
 
-* HTTP 200 OK
-* Contents
-* ETag
+== Unauthorized ==
+
+* Code: `401`
+
+= Example =
+
+----
+$ curl -k -H "Accept: application/json" -s https://$HOSTNAME:8443/tps/rest/config | python -m json.tool
+----
