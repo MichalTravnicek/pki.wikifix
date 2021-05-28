@@ -396,7 +396,7 @@ The server will generate the following logs:
 
 Since version 10.5 a `RANDOM_GENERATION` event will be generated for any random number generated on the server (including link:Random-Certificate-Serial-Numbers[Random Certificate Serial Numbers]). The event will include the information about the caller of the random number generator and the size of the random number in bytes.
 
-By default only failed events will be logged. To log all events, change the link:https://www.dogtagpki.org/wiki/PKI_Server_Audit_Event_Filter[filter] in CS.cfg as follows:
+By default only failed events will be logged. To log all events, change the link:Signed-Audit-Event-Filters[filter] in CS.cfg as follows:
 
 ----
 log.instance.SignedAudit.filters.RANDOM_GENERATION=(Outcome=*)
@@ -434,7 +434,7 @@ If link:Random-Certificate-Serial-Numbers[Random Certificate Serial Numbers] is 
 [AuditEvent=RANDOM_GENERATION][SubjectID=caadmin][Outcome=Success][Info=Caller;;com.netscape.cmscore.dbs.CertificateRepository.getRandomNumber(CertificateRepository.java:192)+Size;;4] Random number generation
 ----
 
-= References =
+= See Also =
 
-* link:https://www.dogtagpki.org/wiki/PKI_Server_Audit[PKI Server Audit]
-* link:https://www.dogtagpki.org/wiki/PKI_Server_Audit_Event_Filter[PKI Server Audit Event Filter]
+* link:Configuring-Signed-Audit[Configuring Signed Audit]
+* link:Signed-Audit-Event-Filters[Signed Audit Event Filters]
