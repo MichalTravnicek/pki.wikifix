@@ -1,12 +1,42 @@
 = Request
 
-* Operation: GET /ca/rest/admin/users
+* Path: `/ca/rest/admin/users`
+* Method: `GET`
 * Authentication: Client certificate
 * Parameters:
-** filter: string
-** start: integer
-** size: integer
+** `filter`: string
+** `start`: integer
+** `size`: integer
 * Content: None
 
 = Response
 
+== Success ==
+
+* Code: `200`
+
+= Example =
+
+----
+$ curl -k -H "Accept: application/json" --user caadmin:Secret.123 -s https://$HOSTNAME:8443/ca/rest/admin/users | python -m json.tool
+{
+    "total": 3,
+    "entries": [
+        {
+            "id": "CA-localhost.localdomain-8443",
+            "UserID": "CA-localhost.localdomain-8443",
+            "FullName": "CA-localhost.localdomain-8443",
+            "Link": {
+                "rel": "self",
+                "href": "https://localhost.localdomain:8443/ca/rest/admin/users/CA-localhost.localdomain-8443",
+                "type": "application/xml"
+            },
+            "Attributes": {
+                "Attribute": []
+            }
+        },
+        ...
+    ],
+    "Link": []
+}
+----
