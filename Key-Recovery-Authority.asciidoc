@@ -1,7 +1,11 @@
-= Key Recovery Authority =
+= Overview =
 
 Archiving private keys offers protection for users, and for information, if that key is ever lost. Information is encrypted by the public key when it is stored. The corresponding private key must be available to decrypt the information. If the private key is lost, the data cannot be retrieved. A private key can be lost because of a hardware failure or because the key's owner forgets the password or loses the hardware token in which the key is stored. Similarly, encrypted data cannot be retrieved if the owner of the key is unavailable to supply it.
 
 The Key Recovery Authority (KRA) subsystem a.k.a. Data Recovery Manager (DRM) subsystem is the component that provides private encryption key storage and retrieval. It is implemented in Java and it runs on top of tomcat.
 
-In addition to archiving and recovering private keys, the KRA can also serve as a server-side key generator.  If configured, TPS could direct enrollment requests to the KRA to generate a key pair and archive the private key material of the key pair. The generated private key is transmitted securely and injected back into the smartcard. This feature is referred to as link:https://www.dogtagpki.org/wiki/PKI_TechNote_Server_Side_Key_Generation[Server Side Key Generation].
+In addition to archiving and recovering private keys, the KRA can also serve as a server-side key generator.  If configured, TPS could direct enrollment requests to the KRA to generate a key pair and archive the private key material of the key pair. The generated private key is transmitted securely and injected back into the smartcard. This feature is referred to as link:Server-Side-Key-Generation[Server Side Key Generation].
+
+= See Also =
+
+* link:KRA-Administration-Guide[KRA Administration Guide]
