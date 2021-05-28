@@ -19,16 +19,16 @@ The PKI ACME Directory operation will return the ACME directory as defined in ht
 {
     "meta": {
         "caaIdentities": [
-            "dogtagpki.org"
+            ...
         ],
-        "externalAccountRequired": false,
-        "termsOfService": "https://www.dogtagpki.org/wiki/PKI_ACME_Responder",
-        "website": "https://www.dogtagpki.org"
+        "externalAccountRequired": ...,
+        "termsOfService": ...,
+        "website": ...
     },
-    "newAccount": "https://<hostname>:8443/acme/new-account",
-    "newNonce": "https://<hostname>:8443/acme/new-nonce",
-    "newOrder": "https://<hostname>:8443/acme/new-order",
-    "revokeCert": "https://<hostname>:8443/acme/revoke-cert"
+    "newAccount": ...,
+    "newNonce": ...,
+    "newOrder": ...,
+    "revokeCert": ...
 }
 ----
 
@@ -45,7 +45,7 @@ $ curl -s https://pki.demo.dogtagpki.org/acme/directory | python -m json.tool
     "newOrder": "https://pki.demo.dogtagpki.org/acme/new-order",
     "revokeCert": "https://pki.demo.dogtagpki.org/acme/revoke-cert",
     "meta": {
-        "termsOfService": "https://www.dogtagpki.org/wiki/PKI_ACME_Responder",
+        "termsOfService": "https://github.com/dogtagpki/pki/wiki/ACME-Responder-Demo",
         "website": "https://www.dogtagpki.org",
         "caaIdentities": [
             "dogtagpki.org"
