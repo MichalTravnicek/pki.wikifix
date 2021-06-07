@@ -1,18 +1,49 @@
 = Request
 
-* Path: `/ca/rest/admin/users/{userID}`
 * Method: `DELETE`
+* Path: `/ca/rest/admin/users/{userID}`
 * Authentication: client certificate
 * Parameters:
 ** `userID`: string
 * Content: None
 
-= Response
+= Response =
 
 * Content: None
 
 = Example =
 
+== Using curl ==
+
+To delete a user using curl:
+
 ----
-$ curl -k -X "DELETE" --user caadmin:Secret.123 -s https://localhost.localdomain:8443/ca/rest/admin/users/CA-localhost.localdomain-8443
+$ curl -k -X "DELETE" --user caadmin:Secret.123 -s https://localhost.localdomain:8443/ca/rest/admin/users/testuser
 ----
+
+== Using PKI CLI ==
+
+To delete a user using PKI CLI:
+
+----
+$ pki -n caadmin --message-format json --output tmp ca-user-del testuser
+----
+
+The request will be stored in `tmp/http-request-3`:
+
+----
+DELETE /ca/rest/admin/users/testuser HTTP/1.1
+Accept: application/json
+----
+
+The response will be stored in `tmp/http-response-3`:
+
+----
+HTTP/1.1 204 
+Content-Type: application/json
+----
+
+= See Also =
+
+* link:https://github.com/dogtagpki/pki/blob/master/base/common/src/main/java/com/netscape/certsrv/user/UserClient.java#L66[UserClient.removeUser()]
+* link:https://github.com/dogtagpki/pki/blob/master/base/server/src/main/java/org/dogtagpki/server/rest/UserService.java#L620[UserService.removeUser()]
