@@ -1,12 +1,15 @@
 = Request
 
-* Operation: DELETE /ca/rest/admin/users/{userID}/memberships/{groupID}
+* Path: `/ca/rest/admin/users/{userID}/memberships/{groupID}`
+* Method: `DELETE`
 * Authentication: Client certificate
 * Parameters:
-** userID: string
-** groupID: string
+** `userID`: string
+** `groupID`: string
 * Content: None
 
-= Response
+= Example =
 
-* Content: None
+----
+$ curl -k -X "DELETE" --user caadmin:Secret.123 -s https://localhost.localdomain:8443/ca/rest/admin/users/pkidbuser/memberships/Subsystem%20Group
+----
