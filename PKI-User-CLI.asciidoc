@@ -1,0 +1,87 @@
+= Overview =
+
+Each PKI subsystem (i.e. CA, KRA, OCSP, TKS, TKS) provides a CLI to manage the system users. All commands must be executed as an administrator of the corresponding subsystem. However, link:Default-CA-Admin[the default the CA admin certificate] can be used to authenticate as the administrator of each subsystem.
+
+In general the commands follow the following format:
+
+----
+$ pki <admin authentication> <subsystem>-user-<command>
+----
+
+For example, in the command below the CA admin certificate is used to access TPS users:
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin tps-user-find
+----
+
+= Listing Users =
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-user-find
+-----------------
+3 entries matched
+-----------------
+  User ID: CA-server.example.com-8443
+  Full name: CA-server.example.com-8443
+
+  User ID: caadmin
+  Full name: caadmin
+
+  User ID: pkidbuser
+  Full name: pkidbuser
+----------------------------
+Number of entries returned 3
+----------------------------
+----
+
+= Displaying User Details =
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-user-show caadmin
+--------------
+User "caadmin"
+--------------
+  User ID: caadmin
+  Full name: caadmin
+  Email: caadmin@example.com
+  Type: adminType
+  State: 1
+----
+
+= Adding User =
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-user-add testuser --fullName "Test User"
+---------------------
+Added user "testuser"
+---------------------
+  User ID: testuser
+  Full name: Test User
+----
+
+= Modifying User =
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-user-mod testuser --email testuser@example.com
+------------------------
+Modified user "testuser"
+------------------------
+  User ID: testuser
+  Full name: Test User
+  Email: testuser@example.com
+----
+
+= Deleting User =
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-user-del testuser
+-----------------------
+Deleted user "testuser"
+-----------------------
+----
+
+= See Also =
+
+* link:PKI-CLI[PKI CLI]
+* link:PKI-User-Certificate-CLI[PKI User Certificate CLI]
+* link:PKI-User-Membership-CLI[PKI User Membership CLI]
