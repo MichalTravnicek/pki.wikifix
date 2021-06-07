@@ -1,6 +1,6 @@
 = Overview =
 
-Each PKI subsystem (i.e. CA, KRA, OCSP, TKS, TKS) provides a CLI to manage the system users. All commands must be executed as an administrator of the corresponding subsystem. However, link:Default-CA-Admin[the default the CA admin certificate] can be used to authenticate as the administrator of each subsystem.
+Each PKI subsystem (i.e. CA, KRA, OCSP, TKS, TKS) provides a CLI to manage the system users. All commands must be executed as an administrator of the corresponding subsystem. However, the default the admin can authenticate as the administrator of all subsystems. See link:Importing-Admin-Certificate-into-PKI-CLI[Importing Admin Certificate into PKI CLI].
 
 In general the commands follow the following format:
 
@@ -8,16 +8,16 @@ In general the commands follow the following format:
 $ pki <admin authentication> <subsystem>-user-<command>
 ----
 
-For example, in the command below the CA admin certificate is used to access TPS users:
+For example, in the command below the default admin certificate is used to access TPS users:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin tps-user-find
+$ pki -n caadmin tps-user-find
 ----
 
 = Listing Users =
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-user-find
+$ pki -n caadmin ca-user-find
 -----------------
 3 entries matched
 -----------------
@@ -37,7 +37,7 @@ Number of entries returned 3
 = Displaying User Details =
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-user-show caadmin
+$ pki -n caadmin ca-user-show caadmin
 --------------
 User "caadmin"
 --------------
@@ -51,7 +51,7 @@ User "caadmin"
 = Adding User =
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-user-add testuser --fullName "Test User"
+$ pki -n caadmin ca-user-add testuser --fullName "Test User"
 ---------------------
 Added user "testuser"
 ---------------------
@@ -62,7 +62,7 @@ Added user "testuser"
 = Modifying User =
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-user-mod testuser --email testuser@example.com
+$ pki -n caadmin ca-user-mod testuser --email testuser@example.com
 ------------------------
 Modified user "testuser"
 ------------------------
@@ -74,7 +74,7 @@ Modified user "testuser"
 = Deleting User =
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-user-del testuser
+$ pki -n caadmin ca-user-del testuser
 -----------------------
 Deleted user "testuser"
 -----------------------
