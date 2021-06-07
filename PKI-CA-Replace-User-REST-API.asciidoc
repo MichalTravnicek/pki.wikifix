@@ -1,8 +1,25 @@
 = Request
 
-* Operation: PUT /ca/rest/admin/users/{userID}
+* Path: `/ca/rest/admin/users/{userID}`
+* Methoid `PUT`
 * Authentication: Client certificate
 * Parameters:
-** userID: string
+** `userID`: string
 
-= Response
+= Example
+----
+curl -k -X PUT -H "Content-Type:application/json" -H "Accept: application/json" -d '{"id":"asdfg","UserID":"asdfg","Password":"foobarfoobar","FullName":"newFullName","Link":{"rel":"self","href":"https://localhost.localdomain:8443/ca/rest/admin/users/qwerty","type":"application/xml"},"Attributes":{"Attribute":[]}}' --user caadmin:Secret.123 -s https://localhost.localdomain:8443/ca/rest/admin/users/asdfg | python -m json.tool
+{
+    "id": "asdfg",
+    "UserID": "asdfg",
+    "FullName": "newFullName",
+    "Link": {
+        "rel": "self",
+        "href": "https://localhost.localdomain:8443/ca/rest/admin/users/asdfg",
+        "type": "application/xml"
+    },
+    "Attributes": {
+        "Attribute": []
+    }
+}
+----
