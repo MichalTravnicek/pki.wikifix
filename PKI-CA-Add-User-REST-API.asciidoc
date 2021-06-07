@@ -1,6 +1,41 @@
 = Request
 
-* Operation: POST /ca/rest/admin/users
+* Method: `POST`
+* Path: `/ca/rest/admin/users`
 * Authentication: Client certificate
 
 = Response
+
+= Examples =
+
+== Using PKI CLI ==
+
+To add a CA user using PKI CLI:
+
+```
+$ pki -v -n caadmin --message-format json --output tmp ca-user-add testuser --fullName "Test User"
+$ cat tmp/http-request-3
+...
+{
+    "UserID": "testuser",
+    "FullName": "Test User",
+    "Attributes": {
+        "Attribute": []
+    }
+}
+$ cat tmp/http-response-3
+...
+{
+    "id": "testuser",
+    "UserID": "testuser",
+    "FullName": "Test User",
+    "Link": {
+        "rel": "self",
+        "href": "https://localhost.localdomain:8443/ca/rest/admin/users/testuser",
+        "type": "application/xml"
+    },
+    "Attributes": {
+        "Attribute": []
+    }
+}
+```
