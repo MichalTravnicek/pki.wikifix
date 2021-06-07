@@ -1,12 +1,42 @@
 = Request
 
-* Operation: GET /ca/rest/admin/users/{userID}/certs
+* Path: `/ca/rest/admin/users/{userID}/certs`
+* Method `GET`
 * Authentication: Client certificate
 * Parameters:
-** userID: string
-** start: integer
-** size: integer
+** `userID`: string
+** `start`: integer
+** `size`: integer
 * Content: None
 
 = Response
 
+== Success ==
+
+* Code: `200`
+
+= Example =
+
+----
+$ curl -k -H "Accept: application/json" --user caadmin:Secret.123 -s https://localhost.localdomain:8443/ca/rest/admin/users/caadmin/certs | python -m json.tool
+{
+    "total": 1,
+    "Cert": [
+        {
+            "Version": 2,
+            "SerialNumber": "0x6",
+            "IssuerDN": "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE",
+            "SubjectDN": "CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE",
+            "PrettyPrint": null,
+            "Encoded": null,
+            "Link": {
+                "rel": "self",
+                "href": "https://localhost.localdomain:8443/ca/rest/admin/users/caadmin/certs/2%253B6%253BCN%253DCA+Signing+Certificate%252COU%253Dpki-tomcat%252CO%253DEXAMPLE%253BCN%253DPKI+Administrator%252CE%253Dcaadmin%2540example.com%252COU%253Dpki-tomcat%252CO%253DEXAMPLE",
+                "type": "application/json"
+            },
+            "id": "2;6;CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE;CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE"
+        }
+    ],
+    "Link": []
+}
+----
