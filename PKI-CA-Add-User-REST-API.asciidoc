@@ -13,17 +13,16 @@
 To add a CA user using PKI CLI:
 
 ```
-$ pki -v -n caadmin --message-format json --output tmp ca-user-add testuser --fullName "Test User"
-...
-INFO: HTTP request: POST /ca/rest/admin/users HTTP/1.1
-...
-INFO: HTTP response: HTTP/1.1 201 
-...
+$ pki -n caadmin --message-format json --output tmp ca-user-add testuser --fullName "Test User"
 ```
 
 The request will be stored in `tmp/http-request-3`:
 
 ```
+POST /ca/rest/admin/users HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+...
 {
     "UserID": "testuser",
     "FullName": "Test User",
@@ -36,6 +35,10 @@ The request will be stored in `tmp/http-request-3`:
 The response will be stored in `tmp/http-response-3`:
 
 ```
+HTTP/1.1 201 
+Location: https://localhost.localdomain:8443/ca/rest/admin/users/testuser
+Content-Type: application/json
+...
 {
     "id": "testuser",
     "UserID": "testuser",
