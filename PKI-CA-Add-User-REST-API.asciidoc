@@ -8,6 +8,39 @@
 
 = Examples =
 
+== Using `curl` ==
+
+----
+curl -k -X POST -H "Content-Type:application/json" -H "Accept: application/json" -d '{"id":"qwertty","UserID":"asdtfg","FullName":"ctas","Link":{"rel":"self","href":"https://localhost.localdomain:8443/ca/rest/admin/users/qwerty","type":"application/xml"},"Attributes":{"Attribute":[]}}' --user caadmin:Secret.123 -s https://localhost.localdomain:8443/ca/rest/admin/users | python -m json.tool
+{
+    "id": "asdtfg",
+    "UserID": "asdtfg",
+    "FullName": "ctas",
+    "Link": {
+        "rel": "self",
+        "href": "https://localhost.localdomain:8443/ca/rest/admin/users/asdtfg",
+        "type": "application/xml"
+    },
+    "Attributes": {
+        "Attribute": []
+    }
+}
+----
+
+Run a second time and the server rejects the duplicate request:
+
+----
+curl -k -X POST -H "Content-Type:application/json" -H "Accept: application/json" -d '{"id":"qwertty","UserID":"asdtfg","FullName":"ctas","Link":{"rel":"self","href":"https://localhost.localdomain:8443/ca/rest/admin/users/qwerty","type":"application/xml"},"Attributes":{"Attribute":[]}}' --user caadmin:Secret.123 -s https://localhost.localdomain:8443/ca/rest/admin/users | python -m json.tool
+{
+    "Attributes": {
+        "Attribute": []
+    },
+    "ClassName": "com.netscape.certsrv.base.ConflictingOperationException",
+    "Code": 409,
+    "Message": "Entry already exists."
+}
+----
+
 == Using PKI CLI ==
 
 To add a CA user using PKI CLI:
