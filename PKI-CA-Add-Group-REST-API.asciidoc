@@ -1,7 +1,20 @@
 = Request
 
-* Operation: POST /ca/rest/admin/groups
+* Path: `/ca/rest/admin/groups`
+* Method: `POST`
 * Authentication: client certificate
 
-= Response
-
+= Example
+----
+curl -k -X POST -H "Content-Type:application/json" -H "Accept: application/json" -d '{"id": "foo-group","GroupID": "foo-group","Description": "foo people","Link": {"rel": "self","href": "https://localhost.localdomain:8443/ca/rest/admin/groups/foo-group","type": "application/xml"}}' --user caadmin:Secret.123 -s https://localhost.localdomain:8443/ca/rest/admin/groups/ | python -m json.tool
+{
+    "id": "foo-group",
+    "GroupID": "foo-group",
+    "Description": "foo people",
+    "Link": {
+        "rel": "self",
+        "href": "https://localhost.localdomain:8443/ca/rest/admin/groups/foo-group",
+        "type": "application/xml"
+    }
+}
+----
