@@ -1,9 +1,36 @@
 = Request
 
-* Operation: POST /ca/rest/admin/users/{userID}/memberships
+* Path: `/ca/rest/admin/users/{userID}/memberships`
+* Method: `POST`
 * Authentication: Client certificate
 * Parameters:
-** userID: string
+** `userID`: string
 * Input: group ID
 
-= Response
+= Example
+----
+curl -k -X POST -H "Content-Type:application/json" -H "Accept: application/json" -d 'foo-group' --user caadmin:Secret.123 -s https://localhost.localdomain:8443/ca/rest/admin/users/pkidbuser/memberships | python -m json.tool
+{
+    "id": "foo-group",
+    "UserID": "pkidbuser",
+    "Link": {
+        "rel": "self",
+        "href": "https://localhost.localdomain:8443/ca/rest/admin/users/pkidbuser/memberships/foo-group",
+        "type": "application/xml"
+    }
+}
+----
+
+* Second attempt, user is already in group:
+
+----
+curl -k -X POST -H "Content-Type:application/json" -H "Accept: application/json" -d 'foo-group' --user caadmin:Secret.123 -s https://localhost.localdomain:8443/ca/rest/admin/users/pkidbuser/memberships | python -m json.tool
+{
+    "Attributes": {
+        "Attribute": []
+    },
+    "ClassName": "com.netscape.certsrv.base.ConflictingOperationException",
+    "Code": 409,
+    "Message": "Attribute or value exists."
+}
+----
