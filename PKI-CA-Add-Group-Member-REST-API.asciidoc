@@ -1,8 +1,35 @@
 = Request
 
-* Operation: POST /ca/rest/admin/groups/{groupID}/members
+* Path: `/ca/rest/admin/groups/{groupID}/members`
+* Method: `POST`
 * Authentication: Client certificate
 * Parameters:
-** groupID: string
+** `groupID`: string
 
-= Response
+= Example
+----
+curl -k -X POST -H "Content-Type:application/json" -H "Accept: application/json" -d '{"id": "foo","GroupID": "Enterprise RA Administrators","Link": {"rel": "self","href": "https://localhost.localdomain:8443/ca/rest/admin/groups/Enterprise+RA+Administrators/members/foo","type": "application/xml"}}' --user caadmin:Secret.123 -s https://localhost.localdomain:8443/ca/rest/admin/groups/Enterprise%20RA%20Administrators/members | python -m json.tool
+{
+    "id": "foo",
+    "GroupID": "Enterprise RA Administrators",
+    "Link": {
+        "rel": "self",
+        "href": "https://localhost.localdomain:8443/ca/rest/admin/groups/Enterprise+RA+Administrators/members/foo",
+        "type": "application/xml"
+    }
+}
+----
+
+* Second attempt, resource already exists:
+
+----
+curl -k -X POST -H "Content-Type:application/json" -H "Accept: application/json" -d '{"id": "foo","GroupID": "Enterprise RA Administrators","Link": {"rel": "self","href": "https://localhost.localdomain:8443/ca/rest/admin/groups/Enterprise+RA+Administrators/members/foo","type": "application/xml"}}' --user caadmin:Secret.123 -s https://localhost.localdomain:8443/ca/rest/admin/groups/Enterprise%20RA%20Administrators/members | python -m json.tool
+{
+    "Attributes": {
+        "Attribute": []
+    },
+    "ClassName": "com.netscape.certsrv.base.ConflictingOperationException",
+    "Code": 409,
+    "Message": "Attribute or value exists."
+}
+----
