@@ -1,10 +1,25 @@
 = Request
 
-* Operation: GET /ca/rest/admin/groups/{groupID}
+* Path: `/ca/rest/admin/groups/{groupID}`
+* Method: `GET`
 * Authentication: Client certificate
 * Parameters:
-** groupID: string
+** `groupID`: string
 * Content: None
 
-= Response
+= Example
+
+----
+curl -k -H "Accept: application/json" --user caadmin:Secret.123 -s https://localhost.localdomain:8443/ca/rest/admin/groups/Enterprise%20TPS%20Administrators | python -m json.tool
+{
+    "id": "Enterprise TPS Administrators",
+    "GroupID": "Enterprise TPS Administrators",
+    "Description": "People who are the administrators for the security domain for TPS",
+    "Link": {
+        "rel": "self",
+        "href": "https://localhost.localdomain:8443/ca/rest/admin/groups/Enterprise+TPS+Administrators",
+        "type": "application/xml"
+    }
+}
+----
 
