@@ -1,12 +1,31 @@
 = Request
 
-* Operation: GET /ca/rest/admin/groups/{groupID}/members
+* Path: `/ca/rest/admin/groups/{groupID}/members`
+* Method: `GET`
 * Authentication: Client certificate
 * Parameters:
-** groupID: string
-** filter: string
-** start: integer
-** size: integer
+** `groupID`: string
+** `filter`: string
+** `start`: integer
+** `size`: integer
 * Content: None
 
-= Response
+= Example
+----
+curl -k -H "Accept: application/json" --user caadmin:Secret.123 -s https://localhost.localdomain:8443/ca/rest/admin/groups/Enterprise%20RA%20Administrators/members | python -m json.tool
+{
+    "total": 1,
+    "Member": [
+        {
+            "id": "caadmin",
+            "GroupID": "Enterprise RA Administrators",
+            "Link": {
+                "rel": "self",
+                "href": "https://localhost.localdomain:8443/ca/rest/admin/groups/Enterprise+RA+Administrators/members/caadmin",
+                "type": "application/xml"
+            }
+        }
+    ],
+    "Link": []
+}
+----
