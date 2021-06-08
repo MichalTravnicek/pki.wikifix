@@ -1,9 +1,32 @@
 = Request
 
-* Operation: GET /ca/rest/certrequests/profiles
+* Path: `/ca/rest/certrequests/profiles`
+* Method: `GET`
 * Query Parameters:
-** start: integer
-** size: integer
+** `start`: integer
+** `size`: integer
 * Content: None
 
-= Response
+= Example
+----
+curl -k -H "Accept: application/json" --user caadmin:Secret.123 -s https://localhost.localdomain:8443/ca/rest/certrequests/profiles | python -m json.tool
+{
+    "total": 34,
+    "entries": [
+        {
+            "profileURL": "https://localhost.localdomain:8443/ca/rest/profiles/acmeServerCert",
+            "profileId": "acmeServerCert",
+            "profileName": "ACME Server Certificate Enrollment",
+            "profileDescription": "This certificate profile is for enrolling server certificates via ACME protocol."
+        },
+...<snip>...
+    ],
+    "Link": [
+        {
+            "rel": "next",
+            "href": "https://localhost.localdomain:8443/ca/rest/certrequests/profiles?start=20",
+            "type": "application/xml"
+        }
+    ]
+}
+----
