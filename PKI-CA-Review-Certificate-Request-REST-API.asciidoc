@@ -1,9 +1,478 @@
 = Request
 
-* Operation: GET /ca/rest/agent/certrequests/{id}
+* Path: `/ca/rest/agent/certrequests/{id}`
+* Method: `GET`
 * Authentication: client certificate
 * Query Parameters:
-** id: dec/hex request ID
+** `id`: dec/hex request ID
 * Content: None
 
-= Response
+= Example
+----
+curl -k -H "Accept: application/json" --user caadmin:Secret.123 -s https://localhost.localdomain:8443/ca/rest/agent/certrequests/2 | python -m json.tool
+{
+    "nonce": "1848741545571711687",
+    "requestId": "2",
+    "requestType": "enrollment",
+    "requestStatus": "complete",
+    "requestCreationTime": "Tue Jun 08 09:21:02 BST 2021",
+    "requestModificationTime": "Tue Jun 08 09:21:02 BST 2021",
+    "profileApprovedBy": "system",
+    "profileSetId": "ocspCertSet",
+    "profileIsVisible": "true",
+    "profileName": "Manual OCSP Manager Signing Certificate Enrollment",
+    "profileDescription": "This certificate profile is for enrolling OCSP Manager certificates.",
+    "Attributes": {
+        "Attribute": []
+    },
+    "ProfileID": "caOCSPCert",
+    "Renewal": false,
+    "Input": [
+        {
+            "id": null,
+            "ClassID": "CertReqInput",
+            "Name": "Certificate Request Input",
+            "Text": null,
+            "Attribute": [
+                {
+                    "name": "cert_request_type",
+                    "Value": "pkcs10",
+                    "Descriptor": null
+                },
+                {
+                    "name": "cert_request",
+                    "Value": "-----BEGIN CERTIFICATE REQUEST-----\nMIICkjCCAXoCAQAwTTEQMA4GA1UECgwHRVhBTVBMRTETMBEGA1UECwwKcGtpLXRvbWNhdDEkMCIG\nA1UEAwwbQ0EgT0NTUCBTaWduaW5nIENlcnRpZmljYXRlMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A\nMIIBCgKCAQEAt6EZtIIusgnocf5UwOGm8z2INRwi611A2kJCDJYFrgjgpFqjgVqR+VH14TH9LN1v\n8RTgEbCoJ9/yKGJlWluKu3hvvm5fM9DZeYpPSRjE0IasjNU8ZEDBwZtYtSnL8kq/rEDHBcS1WaxB\nJB03w8IL+WpwR5tWREGbNVeSgBvvKXrupLX5j2S89THuiWbTUVjib+vLBNonxacZBi9+hCUVtAB4\nG4gPBgMH57BKGVryRsRh7jiChdJZe/ZIs3K7iqTn8cL84kdfCRlDmIUZyUDjmjD70LRbhYklOK1q\nLC6e81wW3R6+rFelzZmt58IfcRko7VxTpHclbDWpBnVRzqVVXwIDAQABoAAwDQYJKoZIhvcNAQEL\nBQADggEBAAp78CbUDQ8Gyy622QS/talNO75BAHi3OsjXnRtyHxYdP8ffmbQsRIG0OFnrlqDRAZg2\nGZq6IEFypek4S3A/VUi7drKgyR9/AqD1bN6mn47kik7N8A1K+7y+OJYB/YWqG5u19v4rzPlk2JjB\nsP+7GvcOg/8hipVojZvZRAI/XXIQjMu3ImCLbVfDJIuY37dtMKdEb4+nek2g8y1pDVbPk+HgvfIL\n4wGA19rYb3okCU6g3UkxamFDs1+Avoaa/soVWd2zAHR19WaqlqNwqBCq9+Hl2j4iRugsD3XLyTEH\npZsSpHjiSvSEK/4ZU4Yv14mg+LwUWIiLAbGmeFGb3zujoe0=\n-----END CERTIFICATE REQUEST-----",
+                    "Descriptor": null
+                }
+            ],
+            "ConfigAttribute": []
+        },
+        {
+            "id": null,
+            "ClassID": "SubmitterInfoInput",
+            "Name": "Requestor Information",
+            "Text": null,
+            "Attribute": [],
+            "ConfigAttribute": []
+        }
+    ],
+    "ProfilePolicySet": [
+        {
+            "policies": [
+                {
+                    "id": null,
+                    "def": {
+                        "classId": null,
+                        "id": "Subject Name Default",
+                        "description": "This default populates a User-Supplied Certificate Subject Name to the request.",
+                        "policyAttribute": [
+                            {
+                                "name": "name",
+                                "Value": "CN=CA OCSP Signing Certificate,OU=pki-tomcat,O=EXAMPLE",
+                                "Descriptor": {
+                                    "Syntax": "string",
+                                    "Constraint": null,
+                                    "Description": "Subject Name",
+                                    "DefaultValue": null
+                                }
+                            }
+                        ],
+                        "params": []
+                    },
+                    "constraint": {
+                        "classId": "SubjectNameConstraint",
+                        "id": "Subject Name Constraint",
+                        "description": "This constraint accepts the subject name that matches CN=.*",
+                        "constraint": [
+                            {
+                                "descriptor": {
+                                    "Syntax": "string",
+                                    "Constraint": null,
+                                    "Description": "Subject Name Pattern",
+                                    "DefaultValue": null
+                                },
+                                "value": "CN=.*",
+                                "id": "pattern"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id": null,
+                    "def": {
+                        "classId": null,
+                        "id": "Validity Default",
+                        "description": "This default populates a Certificate Validity to the request. The default values are Range=720 in days",
+                        "policyAttribute": [
+                            {
+                                "name": "notBefore",
+                                "Value": "2021-06-08 09:21:02",
+                                "Descriptor": {
+                                    "Syntax": "string",
+                                    "Constraint": null,
+                                    "Description": "Not Before",
+                                    "DefaultValue": null
+                                }
+                            },
+                            {
+                                "name": "notAfter",
+                                "Value": "2023-05-29 09:21:02",
+                                "Descriptor": {
+                                    "Syntax": "string",
+                                    "Constraint": null,
+                                    "Description": "Not After",
+                                    "DefaultValue": null
+                                }
+                            }
+                        ],
+                        "params": []
+                    },
+                    "constraint": {
+                        "classId": "ValidityConstraint",
+                        "id": "Validity Constraint",
+                        "description": "This constraint rejects the validity that is not between 720 days.",
+                        "constraint": [
+                            {
+                                "descriptor": {
+                                    "Syntax": "integer",
+                                    "Constraint": null,
+                                    "Description": "Validity Range",
+                                    "DefaultValue": "365"
+                                },
+                                "value": "720",
+                                "id": "range"
+                            },
+                            {
+                                "descriptor": {
+                                    "Syntax": "string",
+                                    "Constraint": null,
+                                    "Description": "Validity Range Unit: year, month, day (default), hour, minute",
+                                    "DefaultValue": "day"
+                                },
+                                "value": "",
+                                "id": "rangeUnit"
+                            },
+                            {
+                                "descriptor": {
+                                    "Syntax": "integer",
+                                    "Constraint": null,
+                                    "Description": "Grace period for Not Before being set in the future (in seconds).",
+                                    "DefaultValue": "0"
+                                },
+                                "value": "",
+                                "id": "notBeforeGracePeriod"
+                            },
+                            {
+                                "descriptor": {
+                                    "Syntax": "boolean",
+                                    "Constraint": null,
+                                    "Description": "Check Not Before against current time",
+                                    "DefaultValue": "false"
+                                },
+                                "value": "false",
+                                "id": "notBeforeCheck"
+                            },
+                            {
+                                "descriptor": {
+                                    "Syntax": "boolean",
+                                    "Constraint": null,
+                                    "Description": "Check Not After against Not Before",
+                                    "DefaultValue": "false"
+                                },
+                                "value": "false",
+                                "id": "notAfterCheck"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id": null,
+                    "def": {
+                        "classId": null,
+                        "id": "Key Default",
+                        "description": "This default populates a User-Supplied Certificate Key to the request.",
+                        "policyAttribute": [
+                            {
+                                "name": "TYPE",
+                                "Value": "RSA - 1.2.840.113549.1.1.1",
+                                "Descriptor": {
+                                    "Syntax": "string",
+                                    "Constraint": "readonly",
+                                    "Description": "Key Type",
+                                    "DefaultValue": null
+                                }
+                            },
+                            {
+                                "name": "LEN",
+                                "Value": "2048",
+                                "Descriptor": {
+                                    "Syntax": "string",
+                                    "Constraint": "readonly",
+                                    "Description": "Key Length",
+                                    "DefaultValue": null
+                                }
+                            },
+                            {
+                                "name": "KEY",
+                                "Value": "30:82:01:0A:02:82:01:01:00:B7:A1:19:B4:82:2E:B2:\\n09:E8:71:FE:54:C0:E1:A6:F3:3D:88:35:1C:22:EB:5D:\\n40:DA:42:42:0C:96:05:AE:08:E0:A4:5A:A3:81:5A:91:\\nF9:51:F5:E1:31:FD:2C:DD:6F:F1:14:E0:11:B0:A8:27:\\nDF:F2:28:62:65:5A:5B:8A:BB:78:6F:BE:6E:5F:33:D0:\\nD9:79:8A:4F:49:18:C4:D0:86:AC:8C:D5:3C:64:40:C1:\\nC1:9B:58:B5:29:CB:F2:4A:BF:AC:40:C7:05:C4:B5:59:\\nAC:41:24:1D:37:C3:C2:0B:F9:6A:70:47:9B:56:44:41:\\n9B:35:57:92:80:1B:EF:29:7A:EE:A4:B5:F9:8F:64:BC:\\nF5:31:EE:89:66:D3:51:58:E2:6F:EB:CB:04:DA:27:C5:\\nA7:19:06:2F:7E:84:25:15:B4:00:78:1B:88:0F:06:03:\\n07:E7:B0:4A:19:5A:F2:46:C4:61:EE:38:82:85:D2:59:\\n7B:F6:48:B3:72:BB:8A:A4:E7:F1:C2:FC:E2:47:5F:09:\\n19:43:98:85:19:C9:40:E3:9A:30:FB:D0:B4:5B:85:89:\\n25:38:AD:6A:2C:2E:9E:F3:5C:16:DD:1E:BE:AC:57:A5:\\nCD:99:AD:E7:C2:1F:71:19:28:ED:5C:53:A4:77:25:6C:\\n35:A9:06:75:51:CE:A5:55:5F:02:03:01:00:01\\n",
+                                "Descriptor": {
+                                    "Syntax": "string",
+                                    "Constraint": "readonly",
+                                    "Description": "Key",
+                                    "DefaultValue": null
+                                }
+                            }
+                        ],
+                        "params": []
+                    },
+                    "constraint": {
+                        "classId": "KeyConstraint",
+                        "id": "Key Constraint",
+                        "description": "This constraint accepts the key only if Key Type=-, Key Parameters =1024,2048,3072,4096,nistp256,nistp384,nistp521",
+                        "constraint": [
+                            {
+                                "descriptor": {
+                                    "Syntax": "choice",
+                                    "Constraint": "-,RSA,EC",
+                                    "Description": "Key Type",
+                                    "DefaultValue": "RSA"
+                                },
+                                "value": "-",
+                                "id": "keyType"
+                            },
+                            {
+                                "descriptor": {
+                                    "Syntax": "string",
+                                    "Constraint": null,
+                                    "Description": "Key Lengths or Curves. For EC use comma separated list of curves, otherise use list of key sizes. Ex: 1024,2048,4096,8192 or: nistp256,nistp384,nistp521,sect163k1,nistk163 for EC.",
+                                    "DefaultValue": ""
+                                },
+                                "value": "1024,2048,3072,4096,nistp256,nistp384,nistp521",
+                                "id": "keyParameters"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id": null,
+                    "def": {
+                        "classId": null,
+                        "id": "Authority Key Identifier Default",
+                        "description": "This default populates an Authority Key Identifier Extension (2.5.29.35) to the request.",
+                        "policyAttribute": [
+                            {
+                                "name": "critical",
+                                "Value": "false",
+                                "Descriptor": {
+                                    "Syntax": "string",
+                                    "Constraint": "readonly",
+                                    "Description": "Criticality",
+                                    "DefaultValue": null
+                                }
+                            },
+                            {
+                                "name": "keyid",
+                                "Value": "69:77:28:72:1E:0B:32:81:9F:33:07:B4:45:A5:FA:25:\\nB5:F5:88:E3\\n",
+                                "Descriptor": {
+                                    "Syntax": "string",
+                                    "Constraint": "readonly",
+                                    "Description": "Key ID",
+                                    "DefaultValue": null
+                                }
+                            }
+                        ],
+                        "params": []
+                    },
+                    "constraint": {
+                        "classId": "NoConstraint",
+                        "id": "No Constraint",
+                        "description": "No Constraint",
+                        "constraint": []
+                    }
+                },
+                {
+                    "id": null,
+                    "def": {
+                        "classId": null,
+                        "id": "AIA Extension Default",
+                        "description": "This default populates a Authority Info Access Extension (1.3.6.1.5.5.7.1.1) to the request. The default values are Criticality=false, Record #0{Method:1.3.6.1.5.5.7.48.1,Location Type:URIName,Location:,Enable:true}",
+                        "policyAttribute": [
+                            {
+                                "name": "authInfoAccessCritical",
+                                "Value": "false",
+                                "Descriptor": {
+                                    "Syntax": "boolean",
+                                    "Constraint": null,
+                                    "Description": "Criticality",
+                                    "DefaultValue": "false"
+                                }
+                            },
+                            {
+                                "name": "authInfoAccessGeneralNames",
+                                "Value": "Record #0\r\nMethod:1.3.6.1.5.5.7.48.1\r\nLocation Type:URIName\r\nLocation:http://localhost.localdomain:8080/ca/ocsp\r\nEnable:true\r\n\r\n",
+                                "Descriptor": {
+                                    "Syntax": "string_list",
+                                    "Constraint": null,
+                                    "Description": "General Names",
+                                    "DefaultValue": null
+                                }
+                            }
+                        ],
+                        "params": []
+                    },
+                    "constraint": {
+                        "classId": "NoConstraint",
+                        "id": "No Constraint",
+                        "description": "No Constraint",
+                        "constraint": []
+                    }
+                },
+                {
+                    "id": null,
+                    "def": {
+                        "classId": null,
+                        "id": "Extended Key Usage Default",
+                        "description": "This default populates an Extended Key Usage Extension () to the request. The default values are Criticality=false, OIDs=1.3.6.1.5.5.7.3.9",
+                        "policyAttribute": [
+                            {
+                                "name": "exKeyUsageCritical",
+                                "Value": "false",
+                                "Descriptor": {
+                                    "Syntax": "boolean",
+                                    "Constraint": null,
+                                    "Description": "Criticality",
+                                    "DefaultValue": "false"
+                                }
+                            },
+                            {
+                                "name": "exKeyUsageOIDs",
+                                "Value": "1.3.6.1.5.5.7.3.9",
+                                "Descriptor": {
+                                    "Syntax": "string_list",
+                                    "Constraint": null,
+                                    "Description": "Comma-Separated list of Object Identifiers",
+                                    "DefaultValue": null
+                                }
+                            }
+                        ],
+                        "params": []
+                    },
+                    "constraint": {
+                        "classId": "ExtendedKeyUsageExtConstraint",
+                        "id": "Extended Key Usage Extension",
+                        "description": "This constraint accepts the Extended Key Usage extension, if present, only when Criticality=false, OIDs=1.3.6.1.5.5.7.3.9",
+                        "constraint": [
+                            {
+                                "descriptor": {
+                                    "Syntax": "choice",
+                                    "Constraint": "true,false,-",
+                                    "Description": "Criticality",
+                                    "DefaultValue": "-"
+                                },
+                                "value": "false",
+                                "id": "exKeyUsageCritical"
+                            },
+                            {
+                                "descriptor": {
+                                    "Syntax": "string",
+                                    "Constraint": null,
+                                    "Description": "Comma-Separated list of Object Identifiers",
+                                    "DefaultValue": null
+                                },
+                                "value": "1.3.6.1.5.5.7.3.9",
+                                "id": "exKeyUsageOIDs"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id": null,
+                    "def": {
+                        "classId": null,
+                        "id": "OCSP No Check Extension",
+                        "description": "This default populates an OCSP No Check Extension (1.3.6.1.5.5.7.48.1.5) to the request. The default values are Criticality=false",
+                        "policyAttribute": [
+                            {
+                                "name": "ocspNoCheckCritical",
+                                "Value": "false",
+                                "Descriptor": {
+                                    "Syntax": "boolean",
+                                    "Constraint": null,
+                                    "Description": "Criticality",
+                                    "DefaultValue": "false"
+                                }
+                            }
+                        ],
+                        "params": []
+                    },
+                    "constraint": {
+                        "classId": "ExtensionConstraint",
+                        "id": "No Constraint",
+                        "description": "This constraint accepts the extension only when Criticality=false, OID=1.3.6.1.5.5.7.48.1.5",
+                        "constraint": [
+                            {
+                                "descriptor": {
+                                    "Syntax": "choice",
+                                    "Constraint": "true,false,-",
+                                    "Description": "Criticality",
+                                    "DefaultValue": "-"
+                                },
+                                "value": "false",
+                                "id": "extCritical"
+                            },
+                            {
+                                "descriptor": {
+                                    "Syntax": "string",
+                                    "Constraint": null,
+                                    "Description": "Object Identifier",
+                                    "DefaultValue": null
+                                },
+                                "value": "1.3.6.1.5.5.7.48.1.5",
+                                "id": "extOID"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id": null,
+                    "def": {
+                        "classId": null,
+                        "id": "Signing Alg",
+                        "description": "This default populates the Certificate Signing Algorithm. The default values are Algorithm=SHA256withRSA",
+                        "policyAttribute": [
+                            {
+                                "name": "signingAlg",
+                                "Value": "SHA256withRSA",
+                                "Descriptor": {
+                                    "Syntax": "choice",
+                                    "Constraint": "SHA256withRSA,SHA384withRSA,SHA512withRSA,SHA1withRSA,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS",
+                                    "Description": "Signing Algorithm",
+                                    "DefaultValue": null
+                                }
+                            }
+                        ],
+                        "params": []
+                    },
+                    "constraint": {
+                        "classId": "SigningAlgConstraint",
+                        "id": "No Constraint",
+                        "description": "This constraint accepts only the Signing Algorithms of SHA256withRSA,SHA512withRSA,SHA256withEC,SHA384withRSA,SHA384withEC,SHA512withEC,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS",
+                        "constraint": [
+                            {
+                                "descriptor": {
+                                    "Syntax": "string",
+                                    "Constraint": null,
+                                    "Description": "Allowed Signing Algorithms",
+                                    "DefaultValue": "SHA256withRSA,SHA384withRSA,SHA512withRSA,SHA1withRSA,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS,SHA256withEC,SHA384withEC,SHA512withEC,SHA1withEC"
+                                },
+                                "value": "SHA256withRSA,SHA512withRSA,SHA256withEC,SHA384withRSA,SHA384withEC,SHA512withEC,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS",
+                                "id": "signingAlgsAllowed"
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    ]
+}
+----
