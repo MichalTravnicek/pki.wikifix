@@ -8,17 +8,18 @@
 ** `start`: integer
 ** `size`: integer
 * Content: None
+* Success code: `200`
 
-= Response
-
-== Success ==
-
-* Code: `200`
+= Source
 
 = Example =
-
 ----
-$ curl -k -H "Accept: application/json" --user caadmin:Secret.123 -s https://localhost.localdomain:8443/ca/rest/admin/users/caadmin/certs | python -m json.tool
+curl \
+  -k \
+  -s \
+  -H "Accept: application/json" \
+  --user caadmin:Secret.123 \
+  https://localhost.localdomain:8443/ca/rest/admin/users/caadmin/certs | python -m json.tool
 {
     "total": 1,
     "Cert": [
