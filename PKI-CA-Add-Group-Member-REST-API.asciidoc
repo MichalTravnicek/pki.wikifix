@@ -6,9 +6,26 @@
 * Parameters:
 ** `groupID`: string
 
+= Source
+https://github.com/dogtagpki/pki/blob/e3cf3373074fc0ec7e4ecd110c9f4b1c4570e5de/base/server/src/main/java/org/dogtagpki/server/rest/GroupService.java#L384-L410[GroupService.addGroupMember()]
+
 = Example
 ----
-curl -k -X POST -H "Content-Type:application/json" -H "Accept: application/json" -d '{"id": "foo","GroupID": "Enterprise RA Administrators","Link": {"rel": "self","href": "https://localhost.localdomain:8443/ca/rest/admin/groups/Enterprise+RA+Administrators/members/foo","type": "application/xml"}}' --user caadmin:Secret.123 -s https://localhost.localdomain:8443/ca/rest/admin/groups/Enterprise%20RA%20Administrators/members | python -m json.tool
+curl \
+  -k \
+  -s \
+  -X POST \
+  -H "Content-Type:application/json" \
+  -H "Accept: application/json" \
+  -d '{
+  "id": "foo",
+  "GroupID": "Enterprise RA Administrators",
+  "Link": {
+    "rel": "self",
+    "href": "https://localhost.localdomain:8443/ca/rest/admin/groups/Enterprise+RA+Administrators/members/foo",
+    "type": "application/xml"}}' \
+  --user caadmin:Secret.123 \
+  https://localhost.localdomain:8443/ca/rest/admin/groups/Enterprise%20RA%20Administrators/members | python -m json.tool
 {
     "id": "foo",
     "GroupID": "Enterprise RA Administrators",
@@ -23,7 +40,21 @@ curl -k -X POST -H "Content-Type:application/json" -H "Accept: application/json"
 * Second attempt, resource already exists:
 
 ----
-curl -k -X POST -H "Content-Type:application/json" -H "Accept: application/json" -d '{"id": "foo","GroupID": "Enterprise RA Administrators","Link": {"rel": "self","href": "https://localhost.localdomain:8443/ca/rest/admin/groups/Enterprise+RA+Administrators/members/foo","type": "application/xml"}}' --user caadmin:Secret.123 -s https://localhost.localdomain:8443/ca/rest/admin/groups/Enterprise%20RA%20Administrators/members | python -m json.tool
+curl \
+  -k \
+  -s \
+  -X POST \
+  -H "Content-Type:application/json" \
+  -H "Accept: application/json" \
+  -d '{
+  "id": "foo",
+  "GroupID": "Enterprise RA Administrators",
+  "Link": {
+    "rel": "self",
+    "href": "https://localhost.localdomain:8443/ca/rest/admin/groups/Enterprise+RA+Administrators/members/foo",
+    "type": "application/xml"}}' \
+  --user caadmin:Secret.123 \
+  https://localhost.localdomain:8443/ca/rest/admin/groups/Enterprise%20RA%20Administrators/members | python -m json.tool
 {
     "Attributes": {
         "Attribute": []
