@@ -11,7 +11,12 @@ https://github.com/dogtagpki/pki/blob/e3cf3373074fc0ec7e4ecd110c9f4b1c4570e5de/b
 
 = Example
 ----
-curl -k -H "Accept: application/json" --user caadmin:Secret.123 -s https://localhost.localdomain:8443/ca/rest/account/login | python -m json.tool
+curl \
+  -k \
+  -s \
+  -H "Accept: application/json" \
+  --user caadmin:Secret.123 \
+  https://localhost.localdomain:8443/ca/rest/account/login | python -m json.tool
 {
     "Attributes": {
         "Attribute": []
