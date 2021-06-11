@@ -1,31 +1,34 @@
-= Overview
+= Overview =
 
 The PKI ACME Login operation will authenticate the user, establish a session on the server, return the user profile, and return a cookie containing the session ID.
 
-= Request
+= Request =
 
-* *URL:* `/acme/login`
-* *Method:* `POST`
-* *Authentication:* Required
-* *Authorization:* Not required
+* Method: `POST`
+* URL: `/acme/login`
+* Authentication: Required
+* Authorization: Not required
 
-= Response
+= Response =
 
-== Success
-* *Code:* `200`
-* *Content:*
+== Success ==
+
+* Code: `200`
+* Content:
 
 ----
 {
-    "id": "admin",
-    "roles": [
-        "Administrators"
-    ]
+    "id": <user ID>,
+    "FullName": <full name>,
+    "Roles": {
+        "Role": <array of roles>
+    }
 }
 ----
 
-== Unauthenticated
-* *Code:* `401`
+== Unauthenticated ==
+
+* Code: `401`
 
 = Example =
 
@@ -45,6 +48,6 @@ $ curl -s --request POST -u admin:Secret.123 https://pki.demo.dogtagpki.org/acme
 }
 ----
 
-= See Also
+= See Also =
 
 * link:PKI-ACME-REST-API[PKI ACME REST API]
