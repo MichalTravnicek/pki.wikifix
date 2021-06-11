@@ -1,0 +1,80 @@
+= Request
+
+* Path: `/ca/rest/admin/users`
+* Method: `GET`
+* Authentication: Client certificate
+* Parameters:
+** `filter`: string
+** `start`: integer
+** `size`: integer
+* Content: None
+* Success code: `200`
+
+= Source
+https://github.com/dogtagpki/pki/blob/894293a6b00b0151120cc08f9eb508764ed24e34/base/server/src/main/java/org/dogtagpki/server/rest/UserService.java#L110-L174[UserService.findUsers()]
+
+= Examples
+
+.CA example
+[%collapsible]
+====
+----
+$ curl \
+  -k \
+  -s \
+  -H "Accept: application/json" \
+  --user caadmin:Secret.123 \
+  https://localhost.localdomain:8443/ca/rest/admin/users | python -m json.tool
+{
+    "total": 3,
+    "entries": [
+        {
+            "id": "CA-localhost.localdomain-8443",
+            "UserID": "CA-localhost.localdomain-8443",
+            "FullName": "CA-localhost.localdomain-8443",
+            "Link": {
+                "rel": "self",
+                "href": "https://localhost.localdomain:8443/ca/rest/admin/users/CA-localhost.localdomain-8443",
+                "type": "application/xml"
+            },
+            "Attributes": {
+                "Attribute": []
+            }
+        },
+        ...
+    ],
+    "Link": []
+}
+----
+====
+.KRA example
+[%collapsible]
+====
+----
+
+----
+====
+.OCSP example
+[%collapsible]
+====
+----
+
+----
+====
+.TKS example
+[%collapsible]
+====
+----
+
+----
+====
+.TPS example
+[%collapsible]
+====
+----
+
+----
+====
+
+= See also
+The ACME subsystem has a different logout process documented link:PKI-ACME-Logout-REST-API[here].
