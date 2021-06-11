@@ -1,0 +1,71 @@
+= Request
+
+* Method: `GET`
+* Path: `/<subsystem>/rest/account/logout`
+* Authentication: Not required
+* Content: None
+* Success code: `204`
+
+= Source
+https://github.com/dogtagpki/pki/blob/e3cf3373074fc0ec7e4ecd110c9f4b1c4570e5de/base/server/src/main/java/org/dogtagpki/server/rest/AccountService.java#L95-L106[AccountService.logout()]
+
+= Examples
+
+.CA example
+[%collapsible]
+====
+----
+curl \
+  -k \
+  -s \
+  --user caadmin:Secret.123 \
+  https://localhost.localdomain:8443/ca/rest/account/logout
+----
+====
+.KRA example
+[%collapsible]
+====
+----
+curl \
+  -k \
+  -s \
+  --user kraadmin:Secret.123 \
+  https://localhost.localdomain:8443/kra/rest/account/logout
+----
+====
+.OCSP example
+[%collapsible]
+====
+----
+curl \
+  -k \
+  -s \
+  --user ocspadmin:Secret.123 \
+  https://localhost.localdomain:8443/ocsp/rest/account/logout
+----
+====
+.TKS example
+[%collapsible]
+====
+----
+curl \
+  -k \
+  -s \
+  --user tksadmin:Secret.123 \
+  https://localhost.localdomain:8443/tks/rest/account/logout
+----
+====
+.TPS example
+[%collapsible]
+====
+----
+curl \
+  -k \
+  -s \
+  --user tpsadmin:Secret.123 \
+  https://localhost.localdomain:8443/tps/rest/account/logout
+----
+====
+
+= See also
+The ACME subsystem has a different logout process documented link:PKI-ACME-Logout-REST-API[here].
