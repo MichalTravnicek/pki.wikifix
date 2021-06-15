@@ -1,0 +1,25 @@
+= Overview =
+
+By default the CI will perform tests against Fedora 33 and 34. Sometimes it's necessary to test other Fedora versions (e.g. Rawhide) or to limit the tests (e.g. to Fedora 34 only) to shorten the development time. This can be done by configuring the test matrix in a secret called `MATRIX` in the forked project. The value needs to be specified in JSON format, and double quotes needs to be escaped. To reset the test matrix simply remove the secret.
+
+= Configuring Test Matrix =
+
+* Go to *Settings* -> *Secrets*.
+* Click *New repository secret*.
+* Enter `MATRIX` as the secret name.
+* Enter the test matrix as the secret value (see examples below).
+* Click *Add secret*
+
+= Examples =
+
+To test Fedora Rawhide:
+
+----
+{\"os\": [\"rawhide\"]}
+----
+
+To test Fedora 34:
+
+----
+{\"os\": [\"34\"]}
+----
