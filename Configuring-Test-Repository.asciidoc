@@ -1,0 +1,19 @@
+= Overview =
+
+By default the CI will perform tests using link:https://copr.fedorainfracloud.org/coprs/g/pki/master[@pki/master] repository. Sometimes it's necessary to test using a different repository (e.g. to test dependency changes). This can be done by configuring the test repository in a secret called `COPR_REPO` in the forked project. To reset the test repository simply remove the secret.
+
+= Configuring Test Matrix =
+
+* Go to *Settings* -> *Secrets*.
+* Click *New repository secret*.
+* Enter `COPR_REPO` as the secret name.
+* Enter the test repository as the secret value (see examples below).
+* Click *Add secret*
+
+= Examples =
+
+To test using link:https://copr.fedorainfracloud.org/coprs/edewata/pki[edewata/pki] repository:
+
+----
+edewata/pki
+----
