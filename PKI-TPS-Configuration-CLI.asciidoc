@@ -2,8 +2,8 @@
 
 To display the TPS configuration:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-config-show
+----
+$ pki -n caadmin tps-config-show
 -------------
 Configuration
 -------------
@@ -51,20 +51,20 @@ Configuration
     general.search.timelimit.default: 10
     general.search.timelimit.max: 10
     general.verifyProof: 1
-</pre>
+----
 
 To download the TPS configuration into a file:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-config-show --output tps.xml
+----
+$ pki -n caadmin tps-config-show --output tps.xml
 ---------------------------------
 Stored configuration into tps.xml
 ---------------------------------
-</pre>
+----
 
 The configuration will be stored in XML format:
 
-<pre>
+----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Configuration xmlns:ns2="http://www.w3.org/2005/Atom">
     <Link href="https://server.example.com:8443/tps/rest/config" rel="self"/>
@@ -114,18 +114,18 @@ The configuration will be stored in XML format:
         <Property name="general.verifyProof">1</Property>
     </Properties>
 </Configuration>
-</pre>
+----
 
 = Modifying TPS Configuration =
 
-To update the TPS configuration, download the existing configuration into a file using the tps-config-show command above. Edit the file, then execute the following command:
+To update the TPS configuration, download the existing configuration into a file using the `tps-config-show` command above. Edit the file, then execute the following command:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-config-mod --input tps.xml
-</pre>
+----
+$ pki -n caadmin tps-config-mod --input tps.xml
+----
 
-To save the updated configuration into a file, specify the --output parameter.
+To save the updated configuration into a file, specify the `--output` parameter.
 
 = See Also =
 
-* [https://github.com/dogtagpki/pki/wiki/PKI-TPS-CLI PKI TPS CLI]
+* link:PKI-TPS-CLI[PKI TPS CLI]
