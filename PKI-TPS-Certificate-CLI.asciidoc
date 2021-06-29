@@ -2,8 +2,8 @@
 
 To list all certificates:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-cert-find
+----
+$ pki -n caadmin tps-cert-find
 -----------------
 4 entries matched
 -----------------
@@ -55,12 +55,12 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-cert-find
 ----------------------------
 Number of entries returned 4
 ----------------------------
-</pre>
+----
 
 To list certificates belonging to a particular token, specify the token ID:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-cert-find --token F138D19AAF1ADEC1EF56
+----
+$ pki -n caadmin tps-cert-find --token F138D19AAF1ADEC1EF56
 -----------------
 2 entries matched
 -----------------
@@ -90,12 +90,12 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-cert-find -
 ----------------------------
 Number of entries returned 2
 ----------------------------
-</pre>
+----
 
 = Displaying Certificate Details =
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-cert-show c.20160404231946
+----
+$ pki -n caadmin tps-cert-show c.20160404231946
 ------------------------------
 Certificate "c.20160404231946"
 ------------------------------
@@ -110,8 +110,8 @@ Certificate "c.20160404231946"
   Status: revoked_on_hold
   Create Time: Mon Apr 04 23:19:46 CEST 2016
   Modify Time: Wed Apr 06 18:08:19 CEST 2016
-</pre>
+----
 
 = See Also =
 
-* [https://github.com/dogtagpki/pki/wiki/PKI-TPS-CLI PKI TPS CLI]
+* link:https://github.com/dogtagpki/pki/wiki/PKI-TPS-CLI[PKI TPS CLI]
