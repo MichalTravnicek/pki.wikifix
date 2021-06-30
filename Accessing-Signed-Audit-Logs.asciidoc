@@ -1,0 +1,63 @@
+= Overview =
+
+Since 10.4.2 PKI provides CLI to allow auditors to access the audit log files on the server.
+
+= Setting up Auditor User =
+
+In order to access the audit logs, the administrator needs to create a user for the auditor.
+
+First, create a system user account with link:https://www.dogtagpki.org/wiki/User_Certificate[User Certificate] authentication.
+
+Then add the user into the `Auditors` group:
+
+----
+$ pki -n caadmin ca-group-member-add Auditors <user>
+----
+
+The auditor will be able to access the audit logs as follows:
+
+----
+$ pki -n <nickname> ca-audit-file-...
+----
+
+= Listing Audit Log Files =
+
+To list all available audit log files:
+
+----
+$ pki -n auditor ca-audit-file-find
+-----------------
+3 entries matched
+-----------------
+  File name: ca_audit.20170331225716
+  Size: 2883
+
+  File name: ca_audit.20170401001030
+  Size: 189
+
+  File name: ca_audit
+  Size: 6705
+----------------------------
+Number of entries returned 3
+----------------------------
+----
+
+= Retrieving Audit Log File =
+
+To retrieve an audit log file and store it locally:
+
+----
+$ pki -n auditor ca-audit-file-retrieve <filename>
+----
+
+To retrieve an audit log file and store it in a different file:
+
+----
+$ pki -n auditor ca-audit-file-retrieve <filename> --output <new filename>
+----
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/PKI_Server_Audit[PKI Server Audit]
+* link:https://www.dogtagpki.org/wiki/Verifying_Signed_Audit_Logs[Verifying Signed Audit Logs]
+* link:https://www.dogtagpki.org/wiki/PKI_10.4_Audit_Review/Search_Design[PKI 10.4 Audit Review/Search Design]
