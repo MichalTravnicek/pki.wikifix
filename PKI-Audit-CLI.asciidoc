@@ -4,8 +4,8 @@
 
 To display audit configuration:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin tps-audit-show
+----
+$ pki -n caadmin tps-audit-show
 -------------------
 Audit configuration
 -------------------
@@ -50,20 +50,20 @@ Audit configuration
     TOKEN_PIN_RESET_FAILURE: enabled
     TOKEN_PIN_RESET_SUCCESS: enabled
     TOKEN_STATE_CHANGE: enabled
-</pre>
+----
 
 To download audit configuration into a file:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin tps-audit-show --output audit.xml
+----
+$ pki -n caadmin tps-audit-show --output audit.xml
 -----------------------------------------
 Stored audit configuration into audit.xml
 -----------------------------------------
-</pre>
+----
 
 The audit configuration is stored in XML format:
 
-<pre>
+----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Audit xmlns:ns2="http://www.w3.org/2005/Atom">
     <BufferSize>512</BufferSize>
@@ -110,13 +110,14 @@ The audit configuration is stored in XML format:
     <Signed>false</Signed>
     <Status>Enabled</Status>
 </Audit>
-</pre>
+----
 
 == Modifying Audit Configuration ==
 
-To modify the audit configuration, download the current audit configuration into a file using the tps-audit-show command above. Edit the file as needed:
+To modify the audit configuration, download the current audit configuration into a file using the `tps-audit-show` command above.
+Edit the file as needed:
 
-<pre>
+----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Audit xmlns:ns2="http://www.w3.org/2005/Atom">
     <BufferSize>1024</BufferSize>
@@ -132,12 +133,12 @@ To modify the audit configuration, download the current audit configuration into
     <Signed>true</Signed>
     ...
 </Audit>
-</pre>
+----
 
 Then upload the new configuration with the following command:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin tps-audit-mod --input audit.xml
+----
+$ pki -n caadmin tps-audit-mod --input audit.xml
 ----------------------------
 Modified audit configuration
 ----------------------------
@@ -182,9 +183,9 @@ Modified audit configuration
     TOKEN_PIN_RESET_FAILURE: enabled
     TOKEN_PIN_RESET_SUCCESS: enabled
     TOKEN_STATE_CHANGE: enabled
-</pre>
+----
 
-Optionally, the updated configuration can be stored into a file using the --output parameter.
+Optionally, the updated configuration can be stored into a file using the `--output` parameter.
 
 = Audit Log Files =
 
@@ -192,25 +193,25 @@ Since 10.4.2 PKI provides CLI to allow Auditors to access the audit log files on
 
 == Setting up Auditor User ==
 
-To access the log files prepare a system user account with a [https://www.dogtagpki.org/wiki/User_Certificate User Certificate].
+To access the log files prepare a system user account with a link:https://www.dogtagpki.org/wiki/User_Certificate[User Certificate].
 
 To add the user into the Auditors group:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-group-member-add Auditors <user>
-</pre>
+----
+$ pki -n caadmin ca-group-member-add Auditors <user>
+----
 
 The user will be able to access the audit logs with the user certificate:
 
-<pre>
+----
 $ pki -n <nickname> ca-audit-file-...
-</pre>
+----
 
 == Listing Audit Log Files ==
 
 To list all available audit log files:
 
-<pre>
+----
 $ pki -n auditor ca-audit-file-find
 -----------------
 3 entries matched
@@ -226,26 +227,26 @@ $ pki -n auditor ca-audit-file-find
 ----------------------------
 Number of entries returned 3
 ----------------------------
-</pre>
+----
 
 == Retrieving Audit Log File ==
 
 To retrieve an audit log file and store it locally:
 
-<pre>
+----
 $ pki -n auditor ca-audit-file-retrieve <filename>
-</pre>
+----
 
 To retrieve an audit log file and store it in a different file:
 
-<pre>
+----
 $ pki -n auditor ca-audit-file-retrieve <filename> --output <new filename>
-</pre>
+----
 
-= References =
+= See Also =
 
-* [https://github.com/dogtagpki/pki/wiki/PKI-CLI PKI CLI]
-* [https://www.dogtagpki.org/wiki/PKI_Server_Audit PKI Server Audit]
-* [[PKI Server Audit CLI]]
-* [https://www.dogtagpki.org/wiki/Verifying_Signed_Audit_Logs Verifying Signed Audit Logs]
-* [https://www.dogtagpki.org/wiki/PKI_10.4_Audit_Review/Search_Design PKI 10.4 Audit Review/Search Design]
+* link:PKI-CLI[PKI CLI]
+* link:https://www.dogtagpki.org/wiki/PKI_Server_Audit[PKI Server Audit]
+* link:PKI-Server-Audit-CLI[PKI Server Audit CLI]
+* link:https://www.dogtagpki.org/wiki/Verifying_Signed_Audit_Logs[Verifying Signed Audit Logs]
+* link:https://www.dogtagpki.org/wiki/PKI_10.4_Audit_Review/Search_Design[PKI 10.4 Audit Review/Search Design]
