@@ -1,0 +1,21 @@
+= NSS =
+
+To display the content of a certificate in internal token:
+
+----
+$ certutil -L -d <NSS database> -n <nickname>
+----
+
+To display the content of a certificate in HSM:
+
+----
+$ certutil -L -d <NSS database> -h <token> -f <HSM password file> -n <token>:<nickname>
+----
+
+= OpenSSL =
+
+To display the content of a certificate in a PEM file:
+
+----
+$ openssl x509 -text -noout -in <filename>
+----
