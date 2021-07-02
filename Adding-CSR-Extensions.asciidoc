@@ -1,0 +1,12 @@
+CSR extensions can be added into any system certificate's CSR during deployment using the link:https://www.dogtagpki.org/wiki/Two-Step_Installation[Two-Step Installation]. Run the first step, add the following parameters into `CS.cfg`, then run the second step:
+
+----
+preop.cert.<tag>.ext.oid=<OID>
+preop.cert.<tag>.ext.data=<hex-encoded data>
+preop.cert.<tag>.ext.critical=<true|false>
+----
+
+The `<tag>` is the ID of the system certificate whose CSR will contain the specified extension.
+The valid certificate IDs are listed in `<subsystem>.cert.list` in `CS.cfg` which are different for each subsystem.
+For CA the valid certificate IDs are `signing`, `ocsp_signing`, `sslserver`, `subsystem`, `audit_signing`.
+Currently only one extension can be added to each CSR (in addition to the default ones).
