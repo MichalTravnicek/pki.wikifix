@@ -1,3 +1,13 @@
+= Overview =
+
+This page describes how to display certificate and CSR information which includes:
+
+* serial number
+* subject DN
+* issuer DN
+* extensions
+* validity range
+
 = NSS =
 
 To display the content of a certificate in internal token:
@@ -14,14 +24,14 @@ $ certutil -L -d <NSS database> -h <token> -f <HSM password file> -n <token>:<ni
 
 = OpenSSL =
 
-To display the content of a CSR in a PEM file:
-
-----
-$ $ openssl req -text -noout -in <filename>
-----
-
 To display the content of a certificate in a PEM file:
 
 ----
 $ openssl x509 -text -noout -in <filename>
+----
+
+To display the content of a CSR in a PEM file:
+
+----
+$ $ openssl req -text -noout -in <filename>
 ----
