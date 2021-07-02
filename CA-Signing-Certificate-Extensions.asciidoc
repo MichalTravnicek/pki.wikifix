@@ -1,0 +1,30 @@
+By default PKI CA will generate a self-signed CA certificate with the following extensions:
+
+----
+        Signed Extensions:
+            Name: Certificate Authority Key Identifier
+            Key ID:
+                7a:06:c1:67:cf:2a:b2:5f:b2:95:b7:d6:0c:21:74:e2:
+                06:69:47:37
+
+            Name: Certificate Basic Constraints
+            Critical: True
+            Data: Is a CA with no maximum path length.
+
+            Name: Certificate Key Usage
+            Critical: True
+            Usages: Digital Signature
+                    Non-Repudiation
+                    Certificate Signing
+                    CRL Signing
+
+            Name: Certificate Subject Key ID
+            Data:
+                7a:06:c1:67:cf:2a:b2:5f:b2:95:b7:d6:0c:21:74:e2:
+                06:69:47:37
+
+            Name: Authority Information Access
+            Method: PKIX Online Certificate Status Protocol
+            Location:
+                URI: "http://pki.example.com:8080/ca/ocsp"
+----
