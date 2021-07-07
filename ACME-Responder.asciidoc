@@ -29,10 +29,11 @@ See also link:ACME-Installation-Guide[ACME Installation Guide].
 
 The ACME responder uses a database to store the account records, order records, authorization records, and certificate records. The responder can be configured with the following databases:
 
-* link:https://directory.fedoraproject.org[389 DS] / link:https://access.redhat.com/documentation/en-us/red_hat_directory_server[Red Hat Directory Server] database
+* link:https://directory.fedoraproject.org[389 Directory Server] database
+* link:https://access.redhat.com/documentation/en-us/red_hat_directory_server[Red Hat Directory Server] database
 * In-memory database (experimental)
-* PostgreSQL database (experimental)
-* OpenLDAP database (experimental)
+* link:https://www.postgresql.org[PostgreSQL] database (experimental)
+* link:https://www.openldap.org[OpenLDAP] database (experimental)
 
 See also link:https://github.com/dogtagpki/pki/blob/master/docs/installation/acme/Configuring_ACME_Database.md[Configuring ACME Database].
 
@@ -40,7 +41,8 @@ See also link:https://github.com/dogtagpki/pki/blob/master/docs/installation/acm
 
 The ACME responder uses a certificate issuer to issue the actual certificates. The responder can be configured with the following certificate issuers:
 
-* Dogtag PKI CA / Red Hat Certificate System CA
+* link:Certificate-Authority[Dogtag PKI CA]
+* link:https://access.redhat.com/documentation/en-us/red_hat_certificate_system[Red Hat Certificate System CA]
 * Local NSS database (experimental)
 
 See also link:https://github.com/dogtagpki/pki/blob/master/docs/installation/acme/Configuring_ACME_Issuer.md[Configuring ACME Issuer].
@@ -49,9 +51,10 @@ See also link:https://github.com/dogtagpki/pki/blob/master/docs/installation/acm
 
 The ACME responder uses a realm to authenticate and authorize users that manage the ACME responder itself. The responder can be configured with the following realms:
 
-* 389 DS / Red Hat Directory Server realm
+* link:https://directory.fedoraproject.org[389 Directory Server] realm
+* link:https://access.redhat.com/documentation/en-us/red_hat_directory_server[Red Hat Directory Server] realm
 * In-memory realm (experimental)
-* PostgreSQL realm (experimental)
+* link:https://www.postgresql.org[PostgreSQL] realm (experimental)
 
 See also link:https://github.com/dogtagpki/pki/blob/master/docs/installation/acme/Configuring_ACME_Realm.md[Configuring ACME Realm].
 
