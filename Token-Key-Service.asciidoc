@@ -6,4 +6,7 @@ A Token Key Service manages the master and transport keys required to generate a
 
 The Token Key Service (TKS) subsystem provides secure channels for communication between smart card tokens and a TPS subsystem. It creates these channels by using a pre-generated master key to derive secret keys that are specific for each individual token enrolled through the TPS. These secure channels allow the commands and keys sent to the smart card to be encrypted, and the shared secrets between tokens and the TKS help the smart card validate that the privileged commands sent to it are from the appropriate TPS. During server-side key generation, the TKS also generates transport keys which wrap, or encrypt, the user's private keys to secure them during transit.
 
-The TKS subsystem is implemented in Java and it runs on top of Tomcat.
+= Supported Databases =
+
+* link:https://directory.fedoraproject.org[389 Directory Server]
+* link:https://access.redhat.com/documentation/en-us/red_hat_directory_server[Red Hat Directory Server]
