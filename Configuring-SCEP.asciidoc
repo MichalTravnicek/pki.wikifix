@@ -1,0 +1,60 @@
+= Overview =
+
+This page describes the process to configure SCEP in CA.
+
+= SCEP Profile =
+
+The SCEP service uses caRouterCert profile stored in `/var/lib/pki/pki-tomcat/ca/profiles/ca/caRouterCert.cfg`:
+
+----
+auth.instance_id=flatFileAuth
+----
+
+Disable `deferOnFailure` in `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg`:
+
+----
+auths.instance.flatFileAuth.deferOnFailure=false
+----
+
+= SCEP Configuration =
+
+Enable SCEP in `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg`:
+
+----
+ca.scep.enable=true
+----
+
+To test unmodified SSCEP, enable DES and MD5:
+
+----
+ca.scep.allowedEncryptionAlgorithms=DES,DES3
+ca.scep.allowedHashAlgorithms=MD5,SHA1,SHA256,SHA512
+----
+
+Edit `/var/lib/pki/pki-tomcat/ca/conf/flatfile.txt` to enter the client's IP address and password:
+
+----
+UID:<IP address>
+PWD:<password>
+
+UID:<IP address>
+PWD:<password>
+
+...
+----
+
+Then restart the server:
+
+----
+$ systemctl restart pki-tomcatd@pki-tomcat.service
+----
+
+The SCEP service can be accessed at link:http://server.example.com:8080/ca/cgi-bin/pkiclient.exe[http://server.example.com:8080/ca/cgi-bin/pkiclient.exe].
+
+Validate with link:https://www.dogtagpki.org/wiki/SSCEP[SSCEP].
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/SCEP[SCEP]
+* link:https://fedorahosted.org/pki/ticket/1600[Ticket #1600 - Simplify Procedure for doing SCEP on Dogtag]
+* link:https://fedorahosted.org/pki/ticket/444[Ticket #444 - Utilize database rather than plaintext flat files when utilizing SCEP one-time PIN]
