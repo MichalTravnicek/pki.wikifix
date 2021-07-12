@@ -16,7 +16,9 @@ $ dnf install sscep
 To get the CA certificate:
 
 ----
-$ sscep getca -u http://$HOSTNAME:8080/ca/cgi-bin/pkiclient.exe -c ca.crt
+$ sscep getca \
+    -u http://$HOSTNAME:8080/ca/cgi-bin/pkiclient.exe \
+    -c ca.crt
 ----
 
 It will store the CA certificate in `ca.crt`.
@@ -36,7 +38,12 @@ It will generate a `local.key` and a `local.csr`.
 To enroll a certificate:
 
 ----
-$ sscep enroll -u http://$HOSTNAME:8080/ca/cgi-bin/pkiclient.exe -c ca.crt -k local.key -r local.csr -l cert.crt
+$ sscep enroll \
+    -u http://$HOSTNAME:8080/ca/cgi-bin/pkiclient.exe \
+    -c ca.crt \
+    -k local.key \
+    -r local.csr \
+    -l cert.crt
 ----
 
 It will store the certificate in `cert.crt`.
