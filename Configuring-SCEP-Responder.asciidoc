@@ -16,6 +16,18 @@ Disable `deferOnFailure` in `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg`:
 auths.instance.flatFileAuth.deferOnFailure=false
 ----
 
+Edit `/var/lib/pki/pki-tomcat/ca/conf/flatfile.txt` to enter the client's IP address and password:
+
+----
+UID:<IP address>
+PWD:<password>
+
+UID:<IP address>
+PWD:<password>
+
+...
+----
+
 = SCEP Configuration =
 
 Enable SCEP in `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg`:
@@ -29,18 +41,6 @@ To test unmodified SSCEP, enable DES and MD5:
 ----
 ca.scep.allowedEncryptionAlgorithms=DES,DES3
 ca.scep.allowedHashAlgorithms=MD5,SHA1,SHA256,SHA512
-----
-
-Edit `/var/lib/pki/pki-tomcat/ca/conf/flatfile.txt` to enter the client's IP address and password:
-
-----
-UID:<IP address>
-PWD:<password>
-
-UID:<IP address>
-PWD:<password>
-
-...
 ----
 
 Then restart the server:
