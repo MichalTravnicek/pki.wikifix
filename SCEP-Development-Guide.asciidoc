@@ -4,3 +4,16 @@
 * link:https://github.com/dogtagpki/pki/issues/2159[Ticket #2159 - Simplify Procedure for doing SCEP on Dogtag] This involves creating CLI to simplify the SCEP setup procedure and to manage the entries for authentication.
 * link:https://github.com/dogtagpki/pki/issues/1380[Ticket #1380 - RFE SCEP improve debug log]
 * link:https://github.com/dogtagpki/pki/issues/1430[Ticket #1430 - Update Wiki documentation to emphasize CA's use of SCEP rather than RA's use of SCEP]
+
+= Building SSCEP =
+
+----
+$ cd ~/rpmbuild/SOURCES
+$ wget https://github.com/certnanny/sscep/archive/v0.9.0/tags/sscep-0.9.0.tar.gz
+$ cd ~/rpmbuild/SPECS
+$ wget https://raw.githubusercontent.com/certnanny/sscep/master/scripts/sscep.spec
+$ sed -i '/%build/ a ./bootstrap.sh' sscep.spec
+$ rpmbuild -ba sscep.spec
+$ cd ~/rpmbuild/RPMS/x86_64
+$ dnf localinstall sscep-*
+----
