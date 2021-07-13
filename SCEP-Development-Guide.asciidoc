@@ -7,13 +7,4 @@
 
 = Building SSCEP =
 
-----
-$ cd ~/rpmbuild/SOURCES
-$ wget https://github.com/certnanny/sscep/archive/v0.9.0/tags/sscep-0.9.0.tar.gz
-$ cd ~/rpmbuild/SPECS
-$ wget https://raw.githubusercontent.com/certnanny/sscep/master/scripts/sscep.spec
-$ sed -i '/%build/ a ./bootstrap.sh' sscep.spec
-$ rpmbuild -ba sscep.spec
-$ cd ~/rpmbuild/RPMS/x86_64
-$ dnf localinstall sscep-*
-----
+See link:Building-SSCEP[Building SSCEP].
