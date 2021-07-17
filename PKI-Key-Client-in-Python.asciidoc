@@ -1,6 +1,6 @@
 = Overview =
 
-The Python Key Client is a client framework that allows you to easily interact with the DRM to archive, generate and recover secrets
+The Python Key Client is a client framework that allows you to easily interact with the KRA to archive, generate and recover secrets
 over the REST framework.  This all assumes code that is currently in the trunk (master branch) in Dogtag 10.2.
 
 Note that all the Python code is installed under `/usr/lib/python2.7/site-packages/pki`.
@@ -16,7 +16,7 @@ Install CA and KRA as described in the link:https://github.com/dogtagpki/pki/wik
 
 == Authentication ==
 
-The client uses python-requests to interact with the DRM.  All interactions with the DRM require
+The client uses python-requests to interact with the KRA.  All interactions with the KRA require
 client certificate authentication by a trusted agent.  Fortunately, as part of the installation process,
 an admin user who is also a trusted agent was created.  We need to take the cert/private key for this
 user (which is stored in a pkcs12 file) and copy it to a PEM file for use with the python client.
@@ -29,12 +29,12 @@ $ openssl pkcs12 -in ~/.dogtag/pki-tomcat/ca_admin_cert.p12 -out ~/admin_cert.pe
 == Cryptography ==
 
 Some of the functions in the client require some cryptographic operations like generating a symmetric key,
-or wrapping a symmetric key with the DRM transport key.  There are three possible options here.  The method
+or wrapping a symmetric key with the KRA transport key.  There are three possible options here.  The method
 you select will depend on your particular environment.
 
 === Option 1: Use NSS Crypto locally. ===
 
-In this option, an NSS database that contains the DRM transport key is set up locally, and used by the Python client
+In this option, an NSS database that contains the KRA transport key is set up locally, and used by the Python client
 for crypto operations.  This is by far the easiest mechanism to set up, as we have provided NSS crypto functions
 to do all the required operations.  The python class that implements these operations is `NSSCryptoUtil` located in
 `$PYTHON_PATH/pki/cryptoutil.py`.  Here is the python code that would set up the certificate database, populate it with
@@ -47,12 +47,12 @@ import pki.cryptoutil as cryptoutil
 import pki.key as key
 
 def main():
-   # set up the connection to the DRM, including authentication credentials
+   # set up the connection to the KRA, including authentication credentials
     connection = PKIConnection('https', 'localhost', '8443', 'kra')
     connection.set_authentication_cert('/tmp/admin_cert.pem')
 
     # create an NSS DB for crypto operations 
-    certdb_dir = "/tmp/drmtest-certdb"
+    certdb_dir = "/tmp/kratest-certdb"
     certdb_password = "Secret.123"
     cryptoutil.NSSCryptoUtil.setup_database(certdb_dir, certdb_password, over_write=True)
 
@@ -106,11 +106,11 @@ your subclass would be passed into the constructor for `KRAClient` instead of th
 In this option, all cryptographic operations are done outside of the Dogtag python client and the
 relevant encrypted values are passed in when key client calls are made.  This is the case when
 the symmetric keys and wrappings are being done on a separate client server, and this client 
-server does not interface with the DRM directly.
+server does not interface with the KRA directly.
 
 This is most likely the scenario, for example, in the Barbican configuration where keys are generated
 and wrapped on a Barbican client machine and then passed to the Barbican server.  The Barbican
-server then makes calls to the DRM.
+server then makes calls to the KRA.
 
 This case is relatively easy to set up as is shown below, but it does mean that all the crypto
 needs to be done outside of the Dogtag Python client.
@@ -126,7 +126,7 @@ needs to be done outside of the Dogtag Python client.
 = Working with the Key Client = 
 
 As shown in the code samples above, the end result is a `KeyClient` object which is defined in 
-`$PYTHON_PATH/pki/key.py`.  Furthermore, in the source code in `drmtest.py`, there are examples of the invocation
+`$PYTHON_PATH/pki/key.py`.  Furthermore, in the source code in `kratest.py`, there are examples of the invocation
 of the functions.  You should look at that class to see all the relevant methods and more detailed
 description of each method.  We will describe the most common use cases below.
 
@@ -134,7 +134,7 @@ There are a few parameters that are worth mentioning though:
 
 * `client_key_id`: this is a label that is provided by the caller for the stored secret.  It is not guaranteed to be unique, If uniqueness is required, this is the responsibility of the caller.  Secrets can be either active/inactive.  There can be no more than one active secret per `client_key_id`.  Attempting to archive or generate another key with the same `client_key_id` will fail.  If this parameter is in the method definition, then it usually required.  Note that there is currently a restriction that the `client_key_id` should not include "/" characters,
 
-* `key_id`: this is a unique identifier assigned to the secret by the DRM when it is generated or archived.  It is uniquely only to this DRM (and its clones).
+* `key_id`: this is a unique identifier assigned to the secret by the KRA when it is generated or archived.  It is uniquely only to this KRA (and its clones).
 
 * A note about exceptions:  In general, if invalid parameters are detected on the client side, a `TypeError` is thrown.  Exceptions from the server as typically caught and cast as `pki.PKIException` objects.
 
@@ -195,7 +195,7 @@ unwrapped_key = crypto.symmetric_unwrap(key_data.wrappedPrivateData,
 ----
 
 wrapped `session_key` is a 168 bit 3DES symmetric key used as a session key, that has been wrapped by
-the public key in the DRM transport certificate.  This session key will be decoded on the DRM, and will
+the public key in the KRA transport certificate.  This session key will be decoded on the KRA, and will
 be used to wrap the secret.  The wrapped secret will be returned in the `key_data` object. The `unwrapped_key`
 parameter will return `None`.
 
