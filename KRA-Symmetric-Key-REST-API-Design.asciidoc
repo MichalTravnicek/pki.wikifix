@@ -12,7 +12,7 @@ POST /pki/keyrequest/archive
 * input is xml or json containing the following fields:
 ** Envelope is SecurityData
 ** clientID=<string client id> -  client specified string id for this piece of data.  The client may end up searching on this string.
-** transWrappedSessionKey=<url encoded wrapped key> - This client generated session key will be wrapped with the DRM's transport cert.
+** transWrappedSessionKey=<url encoded wrapped key> - This client generated session key will be wrapped with the KRA's transport cert.
 ** wrappedPrivateData=<url encode wrapped key/passphrase> - This is the actual security data encrypted by the created symmetric key.
 ** dataType=<type of data> - String representation of the type of data, "symmetricKey", "passPhrase" or "AsymmetricKey" (for client convenience)
 ** Note: We do not care about ECC at this stage.  Our proposed RSA transport key wrapping scheme should work just fine even if we want to archive an ECC key itself. The scenario that we have to worry about down the road is when we do actual ECC wrapping instead of RSA. The wrap symmetric key with transport public key thing would not be available to us and a different approach would be needed.  But this is not likely to be an issue for a long time. 
@@ -34,7 +34,7 @@ POST /pki/keyrequest/archive
 == Operation ==
 
 * authenticates the agent issuing the request.  Agent must provide a client cert.
-* checks authorization of the request based on an acl for this operation "certServer.kra.archive.request (submit)". Submit allowed for DRM agents. 
+* checks authorization of the request based on an acl for this operation "certServer.kra.archive.request (submit)". Submit allowed for KRA agents. 
 * audit all operations/auth/authz
 * Get the KRA request queue and generate a new Request object.
 ** req = queue.newRequest(IRequest.SECURITY_DATA_ENROLLMENT_REQUEST -> security_data_enrollment)
@@ -87,7 +87,7 @@ POST /pki/keyrequest/recover
 == Operation ==
 
 * authenticates the agent issuing the request.  Agent must provide a client cert.
-* checks authorization of the request based on an acl for this operation "certServer.kra.recover.request (submit)". Submit allowed for DRM agents. 
+* checks authorization of the request based on an acl for this operation "certServer.kra.recover.request (submit)". Submit allowed for KRA agents. 
 * Get the KRA request queue and generate a new Recovery Request object.
 ** req = queue.newRequest(IRequest.SECURITY_DATA_RECOVERY -> security_data_recovery)  
 ** using req.setExtData(): set the fields as follows:
@@ -116,7 +116,7 @@ GET /pki/key/$key_id
 
 * Input will be xml or json
 * requestID=<value> - ID of recovery request
-* transWrappedSessionKey=<url encoded wrapped key> - This client generated session key wrapped with the DRM's transport cert.
+* transWrappedSessionKey=<url encoded wrapped key> - This client generated session key wrapped with the KRA's transport cert.
 
 == Output ==
 
@@ -139,7 +139,7 @@ GET /pki/key/$key_id
 == Operation ==
 
 * authenticates the agent issuing the request.  Agent must provide a client cert.
-* checks authorization of the request based on an acl for this operation "certServer.kra.recover.key (read)". Read allowed for DRM agents. 
+* checks authorization of the request based on an acl for this operation "certServer.kra.recover.key (read)". Read allowed for KRA agents. 
 * Get the KRA request and confirm that the request exists and that the originator = agent
 * Confirm that request is in approved state.
 * Get keyID from request.
@@ -179,7 +179,7 @@ GET /pki/keys/
 == Operation ==
 
 * authenticates the agent issuing the request.  Agent must provide a client cert.
-* checks authorization of the request based on an acl for this operation "certServer.kra.list.key (read)?". Read allowed for DRM agents.
+* checks authorization of the request based on an acl for this operation "certServer.kra.list.key (read)?". Read allowed for KRA agents.
 * search the database for relevant keys, based on search criteria.  Get clientID and status.
 * Generate urls for response.
 
@@ -210,5 +210,5 @@ PUT /pki/key/$id/status
 == Operation ==
 
 * authenticates the agent issuing the request.  Agent must provide a client cert.
-* checks authorization of the request based on an acl for this operation "certServer.kra.status.key (update)?". Read allowed for DRM agents.
+* checks authorization of the request based on an acl for this operation "certServer.kra.status.key (update)?". Read allowed for KRA agents.
 * modify the relevant key's status.
