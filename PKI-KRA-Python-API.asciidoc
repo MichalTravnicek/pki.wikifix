@@ -99,7 +99,7 @@ class KeyInfoCollection(object):
                 self.key_infos.append(key_info)
 ----
 
-This class represents data returned when searching the DRM archived secrets.  Essentially, its a list of KeyInfo objects.
+This class represents data returned when searching the KRA archived secrets.  Essentially, its a list of KeyInfo objects.
 
 == KeyRequestInfo Class ==
 
@@ -132,7 +132,7 @@ class KeyRequestInfo(object):
         return None
 ----
 
-This class represents data about key requests (archival, recovery, key generation etc.) in the DRM.
+This class represents data about key requests (archival, recovery, key generation etc.) in the KRA.
 
 == KeyRequestInfoCollection Class ==
 
@@ -155,7 +155,7 @@ class KeyRequestInfoCollection(object):
                 self.key_requests.append(key_request_info)
 ----
 
-This class represents the data returned when searching the key requests in the DRM.
+This class represents the data returned when searching the key requests in the KRA.
 Essentially, its a list of KeyRequestInfo objects.
 
 == KeyRequestResponse Class ==
@@ -233,7 +233,7 @@ class KeyArchivalRequest(ResourceMessage):
         self.add_attribute("keySize", key_size)
 ----
 
-Class representing the object sent to the DRM when archiving a secret
+Class representing the object sent to the KRA when archiving a secret
 
 == KeyRecoveryRequest Class ==
 
@@ -255,7 +255,7 @@ class KeyRecoveryRequest(ResourceMessage):
         self.add_attribute("keyId", key_id)
 ----
 
-Class representing the data sent to the DRM when either creating a request for the recovery of a secret, or, once the request is approved, retrieving the secret.
+Class representing the data sent to the KRA when either creating a request for the recovery of a secret, or, once the request is approved, retrieving the secret.
 
 == SymKeyGenerationRequest Class ==
 
@@ -279,7 +279,7 @@ class SymKeyGenerationRequest(ResourceMessage):
         self.add_attribute("keyUsage", key_usage)
 ----
 
-Class representing the data sent to the DRM when generating and archiving a symmetric key on the DRM.
+Class representing the data sent to the KRA when generating and archiving a symmetric key on the KRA.
 
 = KRAClient Class =
 
