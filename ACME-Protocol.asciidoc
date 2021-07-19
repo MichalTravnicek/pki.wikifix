@@ -1,0 +1,21 @@
+= Domain Validation =
+
+* Client generates agent keypair and sends authentication request to server
+* Server generates authentication challenges and nonce and sends the response to client
+* Client generates authentication response and signs nonce and notifies server
+* Server verifies signed nonce
+* Server verifies authentication response
+** with DNS record: `_acme-challenge.<domain>.`
+** with well-known URI: `http://<domain>/.well-known/acme-challenge/ <filename>`
+
+= Certificate Issuance and Revocation =
+
+* Client generates a CSR and sends a signed request to server
+* Server validates CSR signature and agent signature
+* Server generates a certificate and send it to client
+
+= Certificate Revocation =
+
+* Client sends a signed request to server
+* Server validates the request
+* Server generates CRL
