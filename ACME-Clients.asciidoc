@@ -1,0 +1,78 @@
+= curl =
+
+To get ACME directory:
+
+----
+$ curl -s https://pki.demo.dogtagpki.org/acme/directory | python -m json.tool
+{
+    "newNonce": "https://pki.demo.dogtagpki.org/acme/new-nonce",
+    "newAccount": "https://pki.demo.dogtagpki.org/acme/new-account",
+    "newOrder": "https://pki.demo.dogtagpki.org/acme/new-order",
+    "newAuthz": "https://pki.demo.dogtagpki.org/acme/new-authz",
+    "revokeCert": "https://pki.demo.dogtagpki.org/acme/revoke-cert",
+    "keyChange": "https://pki.demo.dogtagpki.org/acme/key-change",
+    "meta": {
+        "termsOfService": "https://www.dogtagpki.org/wiki/PKI_ACME_Responder",
+        "website": "https://www.dogtagpki.org",
+        "caaIdentities": [
+            "dogtagpki.org"
+        ],
+        "externalAccountRequired": false
+    }
+}
+----
+
+To get new nonce:
+
+----
+$ curl -v https://pki.demo.dogtagpki.org/acme/new-nonce
+...
+< Replay-Nonce: <nonce>
+...
+----
+
+To get account orders:
+
+----
+$ curl -s -X POST https://pki.demo.dogtagpki.org/acme/acct/<account>/orders | python -m json.tool
+{
+    "orders": [
+        "https://pki.demo.dogtagpki.org/acme/order/<order>",
+        ...
+        "https://pki.demo.dogtagpki.org/acme/order/<order>"
+    ]
+}
+----
+
+= certbot =
+
+See link:https://www.dogtagpki.org/wiki/Certbot[certbot].
+
+= acme.sh =
+
+== Installation ==
+
+----
+$ git clone https://github.com/Neilpang/acme.sh.git
+$ cd acme.sh
+$ ./acme.sh --install
+----
+
+== Requesting a Certificate ==
+
+----
+$ acme.sh --issue -d example.com -d www.example.com -w /home/wwwroot/example.com
+----
+
+= See Also =
+
+* link:https://letsencrypt.org/docs/client-options/[ACME Client Implementations]
+* link:https://certbot.eff.org/[certbot]
+* link:https://github.com/porunov/acme_client[Porunov Java ACME Client (PJAC)]
+* link:https://github.com/shred/acme4j[ACME Java Client]
+* https://medium.com/@raupach/how-to-install-lets-encrypt-with-tomcat-3db8a469e3d2[How to install Let’s Encrypt with Tomcat]
+* link:https://www.dogtagpki.org/wiki/OpenShift_ACME[OpenShift ACME]
+* link:https://www.dogtagpki.org/wiki/OpenShift_cert-manager[OpenShift cert-manager]
+* link:https://github.com/openshift/certman-operator[OpenShift certman-operator]
+* link:https://www.dogtagpki.org/wiki/Mod_md[mod_md]
+* link:https://www.dogtagpki.org/wiki/Open_Liberty[Open Liberty]
