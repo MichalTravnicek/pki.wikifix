@@ -19,3 +19,15 @@
 * Client sends a signed request to server
 * Server validates the request
 * Server generates CRL
+
+= Proxies =
+
+== Public Proxy ==
+
+* Public proxy will accept requests from ACME client and pass them to ACME server.
+* ACME server will perform validation directly against ACME clients.
+
+== Private Proxy ==
+
+* Public proxy will accept requests from ACME client and pass them to ACME server.
+* ACME server will perform validation against the ACME proxy and pass the result to ACME clients.
