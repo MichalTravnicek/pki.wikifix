@@ -1,10 +1,13 @@
 = Building RPM Packages =
 
 ----
+$ dnf install -y rpm-build
+$ mkdir -p ~/rpmbuild/SOURCES
 $ cd ~/rpmbuild/SOURCES
-$ wget https://github.com/certnanny/sscep/archive/v0.9.0/tags/sscep-0.9.0.tar.gz
+$ curl -O -J - https://github.com/certnanny/sscep/archive/v0.9.0/tags/sscep-0.9.0.tar.gz
+$ mkdir -p ~/rpmbuild/SPECS
 $ cd ~/rpmbuild/SPECS
-$ wget https://raw.githubusercontent.com/certnanny/sscep/v0.9.0/scripts/sscep.spec
+$ curl -O -J https://raw.githubusercontent.com/certnanny/sscep/v0.9.0/scripts/sscep.spec
 $ sed -i '/%build/ a ./bootstrap.sh' sscep.spec
 $ rpmbuild -ba sscep.spec
 ----
@@ -13,7 +16,7 @@ $ rpmbuild -ba sscep.spec
 
 ----
 $ cd ~/rpmbuild/RPMS/x86_64
-$ dnf localinstall sscep-*
+$ dnf localinstall -y sscep-*
 ----
 
 = See Also =
