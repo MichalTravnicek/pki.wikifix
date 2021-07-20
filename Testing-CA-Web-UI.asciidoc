@@ -1,0 +1,33 @@
+= Importing CA Admin Certificate =
+
+* Create a new Firefox browser profile
+* Fetch `/root/.dogtag/pki-tomcat/ca_admin_cert.p12` from the CA and place a world readable copy of this under `/tmp`
+* Launch a new Firefox browser profile
+* Open https://pki.example.com:8443/ca/services
+* Open https://pki.example.com:8443/ca/ee/ca
+* Select the **Retrieval** Tab
+* Select **Import CA Certificate Chain**
+* Select **Import the CA certificate chain into your browser** radio button and press **Submit**
+* Mark all three trust check boxes in the pop-up dialog
+* Select the **Enrollment / Renewal** Tab
+* Select the **Browser Menu**
+* Select the **Preferences** Icon
+* Select **Advanced | Certificates | View Certificates | Your Certificates | Import...**
+* Load `/tmp/ca_admin_cert.p12`, and authenticate it to load it into the browser
+* Remove `/tmp/ca_admin_cert.p12`
+
+= Submitting Certificate Request =
+
+* Open https://pki.example.com:8443/ca/ee/ca
+* Select the **Enrollment / Renewal** Tab
+* Select the **Manual User Dual-Use Certificate Enrollment** profile
+* In the **UID** field type **testuser** and press the **Submit** button
+
+= Approving Certificate Request =
+
+* Open https://pki.example.com:8443/ca/agent/ca
+* Select the newly imported Administration Certificate
+* Select **List Requests** and press **Find**
+* Select the newly submitted request ID and press the **submit** button
+* Select **List Certificates** and press **Find**
+* Click on the certificate with the **Subject Name** of **UID=testuser**
