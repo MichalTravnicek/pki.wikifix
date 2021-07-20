@@ -1,9 +1,9 @@
 = Building RPM Packages =
 
 ----
+$ dnf install -y autoconf automake libtool rpm-build
 $ curl -JLOSs https://github.com/certnanny/sscep/archive/v0.9.0/tags/sscep-0.9.0.tar.gz
 $ curl -JLOSs https://raw.githubusercontent.com/certnanny/sscep/v0.9.0/scripts/sscep.spec
-$ dnf install -y rpm-build
 $ mkdir -p ~/rpmbuild/SOURCES
 $ mv sscep-0.9.0.tar.gz ~/rpmbuild/SOURCES
 $ sed -i '/%build/ a ./bootstrap.sh' sscep.spec
