@@ -1,0 +1,30 @@
+= Overview =
+
+* link:https://copr.fedorainfracloud.org/coprs/g/pki/master[@pki/master]
+* link:https://copr.fedorainfracloud.org/coprs/g/pki/10.11[@pki/10.11]
+* link:https://copr.fedorainfracloud.org/coprs/g/pki/10.10[@pki/10.10]
+* link:https://copr.fedorainfracloud.org/coprs/g/pki/10.5[@pki/10.5]
+
+= Automating COPR Builds =
+
+In the source repository create a `.copr/Makefile` to generate an SRPM:
+
+----
+srpm:
+	dnf install -y git
+	./build.sh --with-timestamp --with-commit-id srpm
+	if [[ "${outdir}" != "" ]]; then \
+	    mv ${HOME}/build/pki/SRPMS/* ${outdir}; \
+	fi
+----
+
+In the COPR project create a package as follows:
+
+* Source Type: `Build from an SCM repository`
+* SCM type: `git`
+* Clone URL: `<repo URL>`
+* Committish: `<branch>`
+* Build SRPM with: `make_srpm`
+* Auto-rebuild: `True`
+
+To configure the webhook, go to **Settings** -> **Integrations** in the COPR project and follow the instruction.
