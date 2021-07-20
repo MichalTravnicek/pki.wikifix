@@ -1,8 +1,8 @@
 = Building RPM Packages =
 
 ----
-$ curl -O -J -L https://github.com/certnanny/sscep/archive/v0.9.0/tags/sscep-0.9.0.tar.gz
-$ curl -O -J -L https://raw.githubusercontent.com/certnanny/sscep/v0.9.0/scripts/sscep.spec
+$ curl -JLOSs https://github.com/certnanny/sscep/archive/v0.9.0/tags/sscep-0.9.0.tar.gz
+$ curl -JLOSs https://raw.githubusercontent.com/certnanny/sscep/v0.9.0/scripts/sscep.spec
 $ dnf install -y rpm-build
 $ mkdir -p ~/rpmbuild/SOURCES
 $ mv sscep-0.9.0.tar.gz ~/rpmbuild/SOURCES
