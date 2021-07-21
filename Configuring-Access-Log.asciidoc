@@ -1,0 +1,26 @@
+= Overview =
+
+PKI server access log can be configured during installation using the link:https://www.dogtagpki.org/wiki/Two-Step_Installation[Two-Step Installation] process.
+
+== Configuration Process ==
+
+Run installation step 1.
+
+Edit the `AccessLogValve` configuration in `/var/lib/pki/pki-tomcat/conf/server.xml`:
+
+----
+<Server>
+    ...
+    <Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs"
+           prefix="localhost_access_log" suffix=".txt"
+           pattern="common" resolveHosts="false"/>
+
+    ...
+</Server>
+----
+
+Finally, run installation step 2.
+
+= See Also =
+
+* link:https://tomcat.apache.org/tomcat-9.0-doc/config/valve.html#Access_Log_Valve[Access Log Valve]
