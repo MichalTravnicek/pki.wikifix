@@ -8,7 +8,7 @@ For older versions see:
 
 = SCEP Profile =
 
-The SCEP service uses caRouterCert profile stored in `/var/lib/pki/pki-tomcat/ca/profiles/ca/caRouterCert.cfg`:
+The SCEP responder uses caRouterCert profile stored in `/var/lib/pki/pki-tomcat/ca/profiles/ca/caRouterCert.cfg`:
 
 ----
 auth.instance_id=flatFileAuth
@@ -34,17 +34,21 @@ PWD:<password>
 
 = SCEP Configuration =
 
-Enable SCEP in `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg`:
+The SCEP configuration is stored in `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg`:
+
+----
+ca.scep.enable=false
+ca.scep.hashAlgorithm=SHA256
+ca.scep.allowedHashAlgorithms=SHA256,SHA512
+ca.scep.encryptionAlgorithm=DES3
+ca.scep.allowedEncryptionAlgorithms=DES3
+ca.scep.nonceSizeLimit=16
+----
+
+To enable the SCEP responder:
 
 ----
 ca.scep.enable=true
-----
-
-To test unmodified SSCEP, enable DES and MD5:
-
-----
-ca.scep.allowedEncryptionAlgorithms=DES,DES3
-ca.scep.allowedHashAlgorithms=MD5,SHA1,SHA256,SHA512
 ----
 
 Then restart the server:
@@ -53,7 +57,7 @@ Then restart the server:
 $ systemctl restart pki-tomcatd@pki-tomcat.service
 ----
 
-The SCEP service can be accessed at link:http://server.example.com:8080/ca/cgi-bin/pkiclient.exe[http://server.example.com:8080/ca/cgi-bin/pkiclient.exe].
+The SCEP service can be accessed at http://pki.example.com:8080/ca/cgi-bin/pkiclient.exe.
 
 = See Also =
 
