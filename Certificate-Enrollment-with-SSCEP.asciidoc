@@ -12,7 +12,7 @@ To get the CA certificate:
 
 ----
 $ sscep getca \
-    -u http://$HOSTNAME:8080/ca/cgi-bin/pkiclient.exe \
+    -u http://server.example.com:8080/ca/cgi-bin/pkiclient.exe \
     -c ca.crt
 ----
 
@@ -36,11 +36,13 @@ To enroll a certificate:
 
 ----
 $ sscep enroll \
-    -u http://$HOSTNAME:8080/ca/cgi-bin/pkiclient.exe \
+    -u http://server.example.com:8080/ca/cgi-bin/pkiclient.exe \
     -c ca.crt \
     -k local.key \
     -r local.csr \
-    -l local.crt
+    -l local.crt \
+    -E 3des \
+    -S sha256
 ----
 
 It will store the certificate in `local.crt`.
