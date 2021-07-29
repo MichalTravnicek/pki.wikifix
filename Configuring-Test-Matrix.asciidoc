@@ -1,10 +1,10 @@
 = Overview =
 
-By default the CI will test against the latest Fedora version and its previous version. Sometimes it's necessary to test against specific versions. This can be done by configuring a test matrix in a GitHub secret. To reset the test matrix back to the default simply remove the secret.
+By default the CI will perform tests using latest Fedora version and its previous version (e.g. Fedora 33 and 34). Sometimes it's necessary to test against specific Fedora versions. This can be done by creating a GitHub secred called `BASE64_MATRIX` to store the base64-encoded value of the test matrix. To reset the test matrix simply remove the secret.
 
 = Configuring Test Matrix =
 
-Define a test matrix in JSON format. For example, to test against Fedora 34 and 35:
+For example, to test against Fedora 34 and 35, prepare the test matrix as follows:
 
 ```
 {
@@ -19,7 +19,7 @@ $ echo "{\"os\": [\"34\", \"35\"]}" | base64
 eyJvcyI6IFsiMzQiLCAiMzUiXX0K
 ```
 
-To create the secret:
+Then create the secret:
 
 * Go to *Settings* -> *Secrets*.
 * Click *New repository secret*.
@@ -29,7 +29,7 @@ To create the secret:
 
 = Resetting Test Matrix =
 
-To remove the secret:
+To reset the test matrix, remove the secret:
 
 * Go to *Settings* -> *Secrets*.
 * Click *Remove* next to `BASE64_MATRIX`.
