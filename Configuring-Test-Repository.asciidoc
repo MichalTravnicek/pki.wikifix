@@ -1,21 +1,28 @@
 = Overview =
 
-WARNING: This functionality has not been implemented.
+By default the CI will perform the tests using link:https://copr.fedorainfracloud.org/coprs/g/pki/master[@pki/master] repository. Sometimes it's necessary to perform the tests using a different repository (e.g. to test dependency changes). This can be done by creating a GitHub secret called `BASE64_REPO` to store the base64-encoded value of the test repository name. To reset the test repository simply remove the secret.
 
-By default the CI will perform tests using link:https://copr.fedorainfracloud.org/coprs/g/pki/master[@pki/master] repository. Sometimes it's necessary to test using a different repository (e.g. to test dependency changes). This can be done by configuring the test repository in a secret called `COPR_REPO` in the forked project. To reset the test repository simply remove the secret.
+= Configuring Test Repository =
 
-= Configuring Test Matrix =
+For example, to test using link:https://copr.fedorainfracloud.org/coprs/edewata/pki[edewata/pki] repository:
+
+----
+$ echo "edewata/pki" | base64
+ZWRld2F0YS9wa2kK
+----
+
+Then create the secret:
 
 * Go to *Settings* -> *Secrets*.
 * Click *New repository secret*.
-* Enter `COPR_REPO` as the secret name.
-* Enter the test repository as the secret value (see examples below).
+* Enter `BASE64_REPO` as the secret name.
+* Enter the base64-encoded value as the secret value.
 * Click *Add secret*
 
-= Examples =
+= Resetting Test Repository =
 
-To test using link:https://copr.fedorainfracloud.org/coprs/edewata/pki[edewata/pki] repository:
+To reset the test repository, remove the secret:
 
-----
-edewata/pki
-----
+* Go to *Settings* -> *Secrets*.
+* Click *Remove* next to `BASE64_REPO`.
+* Click *Yes, remove this secret*.
