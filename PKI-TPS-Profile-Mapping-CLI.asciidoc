@@ -1,7 +1,7 @@
 = Listing Profile Mappings =
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-mapping-find
+----
+$ pki -n caadmin tps-profile-mapping-find
 -----------------
 3 entries matched
 -----------------
@@ -16,14 +16,14 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-map
 ----------------------------
 Number of entries returned 3
 ----------------------------
-</pre>
+----
 
 = Displaying Profile Mapping Info =
 
 To display profile mapping configuration:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-mapping-show formatProfileMappingResolver
+----
+$ pki -n caadmin tps-profile-mapping-show formatProfileMappingResolver
 ---------------------------------------------
 ProfileMapping "formatProfileMappingResolver"
 ---------------------------------------------
@@ -79,20 +79,20 @@ ProfileMapping "formatProfileMappingResolver"
     mappingResolver.formatProfileMappingResolver.mapping.6.filter.tokenCUID.start:
     mappingResolver.formatProfileMappingResolver.mapping.6.target.tokenType: tokenKey
     mappingResolver.formatProfileMappingResolver.mapping.order: 0,1,2,3,4,5,6
-</pre>
+----
 
 To download profile mapping configuration into a file:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-mapping-show formatProfileMappingResolver --output formatProfileMappingResolver.xml
+----
+$ pki -n caadmin tps-profile-mapping-show formatProfileMappingResolver --output formatProfileMappingResolver.xml
 -------------------------------------------------------------------------------------------
 Stored profile mapping "formatProfileMappingResolver" into formatProfileMappingResolver.xml
 -------------------------------------------------------------------------------------------
-</pre>
+----
 
 The configuration will be stored in XML format:
 
-<pre>
+----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ProfileMapping id="formatProfileMappingResolver" xmlns:ns2="http://www.w3.org/2005/Atom">
     <Link href="https://server.example.com:8443/tps/rest/profile-mappings/formatProfileMappingResolver" rel="self"/>
@@ -149,13 +149,13 @@ The configuration will be stored in XML format:
     </Properties>
     <Status>Enabled</Status>
 </ProfileMapping>
-</pre>
+----
 
 = Adding Profile Mapping =
 
 To add a new profile mapping, download an existing profile mapping configuration into a file, change the profile mapping ID and make the necessary changes:
 
-<pre>
+----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ProfileMapping id="test" xmlns:ns2="http://www.w3.org/2005/Atom">
     <Link href="https://server.example.com:8443/tps/rest/profile-mappings/test" rel="self"/>
@@ -212,36 +212,36 @@ To add a new profile mapping, download an existing profile mapping configuration
     </Properties>
     <Status>Enabled</Status>
 </ProfileMapping>
-</pre>
+----
 
 Then add the new profile mapping:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-mapping-add --input test.xml
+----
+$ pki -n caadmin tps-profile-mapping-add --input test.xml
 ----------------------------
 Added profile mapping "test"
 ----------------------------
-</pre>
+----
 
 = Enabling Profile Mapping =
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-mapping-mod test --action enable
-</pre>
+----
+$ pki -n caadmin tps-profile-mapping-mod test --action enable
+----
 
 = Disabling Profile Mapping =
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-mapping-mod test --action disable
-</pre>
+----
+$ pki -n caadmin tps-profile-mapping-mod test --action disable
+----
 
 = Modifying Profile Mapping =
 
 To update profile mapping configuration, make sure the profile mapping is disabled. Download the current profile mapping configuration into a file using tps-profile-mapping-show command, make the changes, then upload the updated configuration:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-mapping-mod test --input test.xml
-</pre>
+----
+$ pki -n caadmin tps-profile-mapping-mod test --input test.xml
+----
 
 Finally, re-enable the profile mapping configuration.
 
@@ -249,14 +249,14 @@ Finally, re-enable the profile mapping configuration.
 
 To delete a profile mapping, make sure it is disabled, then execute the following command:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-mapping-del test
+----
+$ pki -n caadmin tps-profile-mapping-del test
 ------------------------------
 Deleted profile mapping "test"
 ------------------------------
-</pre>
+----
 
-= References =
+= See Also =
 
-* [https://github.com/dogtagpki/pki/wiki/PKI-TPS-CLI PKI TPS CLI]
-* [[PKI TPS Profile CLI]]
+* link:PKI-TPS-CLI[PKI TPS CLI]
+* link:PKI-TPS-Profile-CLI[PKI TPS Profile CLI]
