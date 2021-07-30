@@ -2,8 +2,8 @@
 
 To list activities:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin tps-activity-find
+----
+$ pki -n caadmin tps-activity-find
 ------------------
 10 entries matched
 ------------------
@@ -28,7 +28,7 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin tps-activity-fin
 -----------------------------
 Number of entries returned 10
 -----------------------------
-</pre>
+----
 
 To page the results, specify the index of the first entry to return with --start parameter and the number of entries to return with --size parameter.
 
@@ -36,8 +36,8 @@ To page the results, specify the index of the first entry to return with --start
 
 To display activity details, execute the following command with the activity ID:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin tps-activity-show 20160404231834670000.a8
+----
+$ pki -n caadmin tps-activity-show 20160404231834670000.a8
 ----------------------------------
 Activity "20160404231834670000.a8"
 ----------------------------------
@@ -49,8 +49,8 @@ Activity "20160404231834670000.a8"
   Result: success
   Date: Mon Apr 04 23:18:34 CEST 2016
   Message: format operation succeeded
-</pre>
+----
 
 = See Also =
 
-* [https://github.com/dogtagpki/pki/wiki/PKI-TPS-CLI PKI TPS CLI]
+* link:PKI-TPS-CLI[PKI TPS CLI]
