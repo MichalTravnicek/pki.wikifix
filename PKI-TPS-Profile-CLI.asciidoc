@@ -1,7 +1,7 @@
 = Listing Profiles =
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-find
+----
+$ pki -n caadmin tps-profile-find
 -----------------
 7 entries matched
 -----------------
@@ -28,13 +28,14 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-fin
 ----------------------------
 Number of entries returned 7
 ----------------------------
-</pre>
+----
 
 = Displaying Profile Details =
 
 To display a profile:
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-show userKey
+
+----
+$ pki -n caadmin tps-profile-show userKey
 -----------------
 Profile "userKey"
 -----------------
@@ -44,20 +45,20 @@ Profile "userKey"
     op.enroll.userKey.auth.enable: true
     op.enroll.userKey.auth.id: ldap1
     ...
-</pre>
+----
 
 To save a profile into a file:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-show userKey --output userKey.xml
+----
+$ pki -n caadmin tps-profile-show userKey --output userKey.xml
 -----------------------------------------
 Stored profile "userKey" into userKey.xml
 -----------------------------------------
-</pre>
+----
 
 The profile will be stored in XML format:
 
-<pre>
+----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Profile id="userKey" xmlns:ns2="http://www.w3.org/2005/Atom">
     <Link href="https://server.example.com:8443/tps/rest/profiles/userKey" rel="self"/>
@@ -68,13 +69,13 @@ The profile will be stored in XML format:
     </Properties>
     <Status>Enabled</Status>
 </Profile>
-</pre>
+----
 
 = Adding a Profile =
 
 Prepare a profile in a file (or copy from an existing profile):
 
-<pre>
+----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Profile id="test" xmlns:ns2="http://www.w3.org/2005/Atom">
     <Link href="https://server.example.com:8443/tps/rest/profiles/test" rel="self"/>
@@ -85,46 +86,46 @@ Prepare a profile in a file (or copy from an existing profile):
     </Properties>
     <Status>Enabled</Status>
 </Profile>
-</pre>
+----
 
 Add the profile with the following command.
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-add --input test.xml
-</pre>
+----
+$ pki -n caadmin tps-profile-add --input test.xml
+----
 
 = Modify a Profile =
 
 To disable a profile:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-mod test --action disable
-</pre>
+----
+$ pki -n caadmin tps-profile-mod test --action disable
+----
 
 To enable a profile:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-mod test --action enable
-</pre>
+----
+$ pki -n caadmin tps-profile-mod test --action enable
+----
 
 To update a profile, download the existing profile into a file using the tps-profile-show command, make the modifications in the file, then reupload the file with the following command:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-mod test --input test.xml
-</pre>
+----
+$ pki -n caadmin tps-profile-mod test --input test.xml
+----
 
 = Deleting a Profile =
 
 To delete a profile, make sure it is disabled, then execute the following command:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-profile-del test
+----
+$ pki -n caadmin tps-profile-del test
 ----------------------
 Deleted profile "test"
 ----------------------
-</pre>
+----
 
-= References =
+= See Also =
 
-* [https://github.com/dogtagpki/pki/wiki/PKI-TPS-CLI PKI TPS CLI]
-* [[PKI TPS Profile Mapping CLI]]
+* link:PKI-TPS-CLI[PKI TPS CLI]
+* link:PKI-TPS-Profile-Mapping-CLI[PKI TPS Profile Mapping CLI]
