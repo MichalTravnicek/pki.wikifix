@@ -1,14 +1,13 @@
 = Overview =
 
-This document describes the process to add a system user and issue a client certificate for authentication. The document assumes that the CA has been installed and the administrator and the user are using separate Linux accounts.
+This document describes the process to add a new system user and issue a client certificate for authentication. The document assumes that the CA has been installed and the administrator and the user are using separate Linux accounts.
 
 = Preparing the User =
 
-As the admin of the subsystem, create a new user:
+As the admin of the subsystem, create a new system user (e.g. `testuser`):
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
-    ca-user-add testuser --fullName "Test User"
+$ pki -n caadmin ca-user-add testuser --fullName "Test User"
 ---------------------
 Added user "testuser"
 ---------------------
@@ -16,18 +15,17 @@ Added user "testuser"
   Full name: Test User
 ----
 
-If necessary, add the user to the appropriate groups:
+If necessary, add the new system user to the appropriate groups:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
-    ca-group-member-add "Certificate Manager Agents" testuser
+$ pki -n caadmin ca-group-member-add "Certificate Manager Agents" testuser
 -----------------------------
 Added group member "testuser"
 -----------------------------
   User: testuser
 ----
 
-As the user, prepare a private NSS database:
+As the new system user, prepare a private NSS database:
 
 ----
 $ pki -c Secret.123 client-init
@@ -58,8 +56,6 @@ Submitted certificate request
 See link:Generating-Certificate-Request[Generating Certificate Request].
 
 == CRMF Request ==
-
-CRMF enrollment via CLI is supported since 10.2.2.
 
 If key archival is needed, first obtain KRA transport certificate (see link:Getting-KRA-Transport-Certificate[Getting KRA Transport Certificate]).
 
@@ -174,8 +170,7 @@ As a CA agent, approve the request. Then as an admin of the subsystem assign the
 To approve the request:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
-    ca-cert-request-review 28 --action approve
+$ pki -n caadmin ca-cert-request-review 28 --action approve
 -------------------------------
 Approved certificate request 28
 -------------------------------
@@ -189,8 +184,7 @@ Approved certificate request 28
 To assign the certificate to the user:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
-    ca-user-cert-add testuser --serial 0x1c
+$ pki -n caadmin ca-user-cert-add testuser --serial 0x1c
 ----
 
 == Manual Steps ==
@@ -198,8 +192,7 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
 To approve the request:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
-    ca-cert-request-review 28 --action approve
+$ pki -n caadmin ca-cert-request-review 28 --action approve
 -------------------------------
 Approved certificate request 28
 -------------------------------
@@ -228,8 +221,7 @@ Certificate "0x1c"
 To assign the certificate to the user:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
-    ca-user-cert-add testuser --input testuser.crt
+$ pki -n caadmin ca-user-cert-add testuser --input testuser.crt
 -------------------------------------------------------------------------
 Added certificate "2;28;CN=CA Signing Certificate,O=EXAMPLE;UID=testuser"
 -------------------------------------------------------------------------
@@ -297,15 +289,18 @@ $ pki -c Secret.123 client-cert-show "CA Signing Certificate" --cert ca.pem
 
 = Example =
 
-User's perspective:
+From user's perspective, first initialize NSS database:
 
 ----
-$ # initializing security database
 $ pki -c Secret.123 client-init
 ------------------
 Client initialized
 ------------------
-$ # requesting a certificate
+----
+
+Then request a certificate:
+
+----
 $ pki -c Secret.123 client-cert-request uid=testuser
 -----------------------------
 Submitted certificate request
@@ -314,23 +309,29 @@ Submitted certificate request
   Type: enrollment
   Request Status: pending
   Operation Result: success
-$ # waiting for approval
-$ # retrieving certificate
+----
+
+Wait for approval, then retrieve the certificate:
+
+----
 $ pki -c Secret.123 client-cert-import testuser --serial 0x1c
 ----
 
-Admin's perspective:
+From admin's perspective, first create the user account:
 
 ----
-$ # creating user account
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-user-add testuser --fullName "Test User"
+$ pki -n caadmin ca-user-add testuser --fullName "Test User"
 ---------------------
 Added user "testuser"
 ---------------------
   User ID: testuser
   Full name: Test User
-$ # approving request
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-cert-request-review 28 --action approve
+----
+
+Then approve the request:
+
+----
+$ pki -n caadmin ca-cert-request-review 28 --action approve
 -------------------------------
 Approved certificate request 28
 -------------------------------
@@ -339,8 +340,12 @@ Approved certificate request 28
   Request Status: complete
   Operation Result: success
   Certificate ID: 0x1c
-$ # assigning certificate to user
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-user-cert-add testuser --serial 0x1c
+----
+
+Finally assign the certificate to the user:
+
+----
+$ pki -n caadmin ca-user-cert-add testuser --serial 0x1c
 ----
 
 = See Also =
