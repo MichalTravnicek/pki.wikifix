@@ -1,0 +1,36 @@
+= Overview =
+
+The PKI repository on Azure DevOps is located at https://dev.azure.com/dogtagpki/pki.
+
+= Accessing Azure DevOps Repository =
+
+Add your RSA SSH public key to link:https://dev.azure.com/dogtagpki/_usersSettings/keys[dogtagpki organization] (not your personal account).
+
+Configure SSH to use RSA key in `~/.ssh/config` (make sure the permission is `600`):
+
+----
+Host ssh.dev.azure.com
+  PubkeyAcceptedKeyTypes=ssh-rsa
+----
+
+Add a remote in the local PKI repository:
+
+----
+$ git remote add azure git@ssh.dev.azure.com:v3/dogtagpki/pki/pki
+----
+
+Fetch the repository:
+
+----
+$ git fetch azure
+----
+
+If there is a problem, try:
+
+----
+$ GIT_SSH_COMMAND="ssh -v" git fetch azure
+----
+
+= See Also =
+
+* link:https://developercommunity.visualstudio.com/t/support-non-rsa-keys-for-ssh-authentication/365980[Developer Community: Support non-RSA keys for SSH authentication]
