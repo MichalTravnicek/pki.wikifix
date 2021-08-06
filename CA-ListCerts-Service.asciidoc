@@ -1,0 +1,173 @@
+= Request =
+
+* Operation: `GET /ca/ee/ca/listCerts`
+* Authentication: None
+
+= Response =
+
+The response is a dynamically generated HTML page that contains JavaScript code that defines the certificate records and render them in an HTML table.
+
+= Example =
+
+To call the service using `curl`:
+
+----
+$ curl -s http://localhost.localdomain:8080/ca/ee/ca/listCerts
+...
+<SCRIPT LANGUAGE="JavaScript">
+var header = new Object();
+var fixed = new Object();
+var recordSet = new Array;
+var result = new Object();
+var httpParamsCount = 0;
+var httpHeadersCount = 0;
+var authTokenCount = 0;
+var serverAttrsCount = 0;
+header.HTTP_PARAMS = new Array;
+header.HTTP_HEADERS = new Array;
+header.AUTH_TOKEN = new Array;
+header.SERVER_ATTRS = new Array;
+header.skipRevoked = null;
+header.issuerName = "CN=Certificate Authority,O=EXAMPLE";
+header.skipNonValid = null;
+header.maxCount = 1000;
+header.caSerialNumber = "1";
+header.querySentinelDown = null;
+header.serviceURL = "\/ca\/ee\/ca\/listCerts";
+header.totalRecordCount = 6;
+header.op = null;
+header.queryCertFilter = "(certStatus=*)";
+header.queryFilter = "(certStatus=*)";
+header.currentRecordCount = 6;
+header.querySentinelUp = "1";
+header.templateName = "queryCert";
+fixed.maxCount = 1000;
+var recordCount = 0;
+var record;
+record = new Object;
+record.HTTP_PARAMS = new Array;
+record.HTTP_HEADERS = new Array;
+record.AUTH_TOKEN = new Array;
+record.SERVER_ATTRS = new Array;
+record.revokedOn=null;
+record.revokedBy=null;
+record.signatureAlgorithm="1.2.840.113549.1.1.11";
+record.serialNumber="1";
+record.serialNumberDecimal="1";
+record.subjectPublicKeyLength=2048;
+record.version=2;
+record.type="X.509";
+record.subject="CN=Certificate Authority,O=EXAMPLE";
+record.issuedOn="1628262924";
+record.validNotBefore="1628262924";
+record.issuedBy="system";
+record.validNotAfter="2259414924";
+record.subjectPublicKeyAlgorithm="1.2.840.113549.1.1.1";
+recordSet[recordCount++] = record;
+record = new Object;
+record.HTTP_PARAMS = new Array;
+record.HTTP_HEADERS = new Array;
+record.AUTH_TOKEN = new Array;
+record.SERVER_ATTRS = new Array;
+record.revokedOn=null;
+record.revokedBy=null;
+record.signatureAlgorithm="1.2.840.113549.1.1.11";
+record.serialNumber="2";
+record.serialNumberDecimal="2";
+record.subjectPublicKeyLength=2048;
+record.version=2;
+record.type="X.509";
+record.subject="CN=CA OCSP Signing Certificate,OU=pki-tomcat,O=EXAMPLE";
+record.issuedOn="1628262926";
+record.validNotBefore="1628262926";
+record.issuedBy="system";
+record.validNotAfter="1690470926";
+record.subjectPublicKeyAlgorithm="1.2.840.113549.1.1.1";
+recordSet[recordCount++] = record;
+record = new Object;
+record.HTTP_PARAMS = new Array;
+record.HTTP_HEADERS = new Array;
+record.AUTH_TOKEN = new Array;
+record.SERVER_ATTRS = new Array;
+record.revokedOn=null;
+record.revokedBy=null;
+record.signatureAlgorithm="1.2.840.113549.1.1.11";
+record.serialNumber="3";
+record.serialNumberDecimal="3";
+record.subjectPublicKeyLength=2048;
+record.version=2;
+record.type="X.509";
+record.subject="CN=localhost.localdomain,OU=pki-tomcat,O=EXAMPLE";
+record.issuedOn="1628262926";
+record.validNotBefore="1628262926";
+record.issuedBy="system";
+record.validNotAfter="1690470926";
+record.subjectPublicKeyAlgorithm="1.2.840.113549.1.1.1";
+recordSet[recordCount++] = record;
+record = new Object;
+record.HTTP_PARAMS = new Array;
+record.HTTP_HEADERS = new Array;
+record.AUTH_TOKEN = new Array;
+record.SERVER_ATTRS = new Array;
+record.revokedOn=null;
+record.revokedBy=null;
+record.signatureAlgorithm="1.2.840.113549.1.1.11";
+record.serialNumber="4";
+record.serialNumberDecimal="4";
+record.subjectPublicKeyLength=2048;
+record.version=2;
+record.type="X.509";
+record.subject="CN=Subsystem Certificate,OU=pki-tomcat,O=EXAMPLE";
+record.issuedOn="1628262928";
+record.validNotBefore="1628262927";
+record.issuedBy="system";
+record.validNotAfter="1690470927";
+record.subjectPublicKeyAlgorithm="1.2.840.113549.1.1.1";
+recordSet[recordCount++] = record;
+record = new Object;
+record.HTTP_PARAMS = new Array;
+record.HTTP_HEADERS = new Array;
+record.AUTH_TOKEN = new Array;
+record.SERVER_ATTRS = new Array;
+record.revokedOn=null;
+record.revokedBy=null;
+record.signatureAlgorithm="1.2.840.113549.1.1.11";
+record.serialNumber="5";
+record.serialNumberDecimal="5";
+record.subjectPublicKeyLength=2048;
+record.version=2;
+record.type="X.509";
+record.subject="CN=CA Audit Signing Certificate,OU=pki-tomcat,O=EXAMPLE";
+record.issuedOn="1628262929";
+record.validNotBefore="1628262929";
+record.issuedBy="system";
+record.validNotAfter="1690470929";
+record.subjectPublicKeyAlgorithm="1.2.840.113549.1.1.1";
+recordSet[recordCount++] = record;
+record = new Object;
+record.HTTP_PARAMS = new Array;
+record.HTTP_HEADERS = new Array;
+record.AUTH_TOKEN = new Array;
+record.SERVER_ATTRS = new Array;
+record.revokedOn=null;
+record.revokedBy=null;
+record.signatureAlgorithm="1.2.840.113549.1.1.11";
+record.serialNumber="6";
+record.serialNumberDecimal="6";
+record.subjectPublicKeyLength=2048;
+record.version=2;
+record.type="X.509";
+record.subject="CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE";
+record.issuedOn="1628262934";
+record.validNotBefore="1628262934";
+record.issuedBy="system";
+record.validNotAfter="1690470934";
+record.subjectPublicKeyAlgorithm="1.2.840.113549.1.1.1";
+recordSet[recordCount++] = record;
+record.recordSet = recordSet;
+result.header = header;
+result.fixed = fixed;
+result.recordSet = recordSet;
+</SCRIPT>
+...
+----
