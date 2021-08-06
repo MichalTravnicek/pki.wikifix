@@ -7,6 +7,41 @@
 
 The response is a dynamically generated HTML page that contains JavaScript code that defines the certificate records and render them in an HTML table.
 
+The service is defined in CA's link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/webapps/ca/WEB-INF/web.xml[web.xml]:
+
+----
+   <servlet>
+      <servlet-name>  caListCerts  </servlet-name>
+      <servlet-class> com.netscape.cms.servlet.cert.ListCerts  </servlet-class>
+             <init-param><param-name>  GetClientCert  </param-name>
+                         <param-value> false       </param-value> </init-param>
+             <init-param><param-name>  AuthzMgr    </param-name>
+                         <param-value> BasicAclAuthz </param-value> </init-param>
+             <init-param><param-name>  authority   </param-name>
+                         <param-value> ca          </param-value> </init-param>
+             <init-param><param-name>  templatePath   </param-name>
+                         <param-value> /ee/ca/queryCert.template   </param-value> </init-param>
+             <init-param><param-name>  ID          </param-name>
+                         <param-value> caListCerts </param-value> </init-param>
+             <init-param><param-name>  resourceID  </param-name>
+                         <param-value> certServer.ee.certificates </param-value> </init-param>
+             <init-param><param-name>  interface   </param-name>
+                         <param-value> ee          </param-value> </init-param>
+             <init-param><param-name>  maxResults  </param-name>
+                         <param-value> 1000 </param-value> </init-param>
+   </servlet>
+
+   <servlet-mapping>  
+      <servlet-name>  caListCerts  </servlet-name>
+      <url-pattern>   /ee/ca/listCerts  </url-pattern>
+   </servlet-mapping>
+----
+
+
+The servlet is defined in link:https://github.com/dogtagpki/pki/blob/master/base/ca/src/main/java/com/netscape/cms/servlet/cert/ListCerts.java[ListCerts.java].
+
+The page template is defined in link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/webapps/ca/ee/ca/queryCert.template[queryCert.template].
+
 = Example =
 
 To call the service using `curl`:
