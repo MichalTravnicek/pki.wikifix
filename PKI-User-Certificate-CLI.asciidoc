@@ -13,7 +13,7 @@ $ pki <admin authentication> <subsystem>-user-find-cert <user ID>
 For example:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-user-cert-find caadmin
+$ pki -n caadmin ca-user-cert-find caadmin
 -----------------
 1 entries matched
 -----------------
@@ -35,7 +35,7 @@ $ pki <admin authentication> <subsystem>-user-cert-show <user ID> <certificate I
 For example:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-user-cert-show caadmin "2;6;CN=CA Signing Certificate,O=EXAMPLE;CN=PKI Administrator,E=caadmin@example.com,O=EXAMPLE"
+$ pki -n caadmin ca-user-cert-show caadmin "2;6;CN=CA Signing Certificate,O=EXAMPLE;CN=PKI Administrator,E=caadmin@example.com,O=EXAMPLE"
 ----------------------------------------------------------------------------------------------------------
 Certificate "2;6;CN=CA Signing Certificate,O=EXAMPLE;CN=PKI Administrator,E=caadmin@example.com,O=EXAMPLE"
 ----------------------------------------------------------------------------------------------------------
@@ -84,7 +84,7 @@ A8YlxDzydJhZY92zl6IlBV5oIMvhrVgCDuf/XVEUJ/YE1YZYy0BEnPnZtk/1t3rs
 Then execute the following command:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-user-cert-add caadmin --input caadmin.crt
+$ pki -n caadmin ca-user-cert-add caadmin --input caadmin.crt
 ------------------------------------------------------------------------
 Added certificate "2;11;CN=CA Signing Certificate,O=EXAMPLE;UID=caadmin"
 ------------------------------------------------------------------------
@@ -104,7 +104,7 @@ $ pki <admin authentication> <subsystem>-user-cert-add <user ID> --serial <seria
 For example:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-user-cert-add caadmin --serial 0x7
+$ pki -n caadmin ca-user-cert-add caadmin --serial 0x7
 ----
 
 == Deleting a user certificate ==
@@ -116,7 +116,7 @@ $ pki <admin authentication> <subsystem>-user-cert-del <user ID> <cert ID>
 For example:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-user-cert-del caadmin "2;11;CN=CA Signing Certificate,O=EXAMPLE;UID=caadmin"
+$ pki -n caadmin ca-user-cert-del caadmin "2;11;CN=CA Signing Certificate,O=EXAMPLE;UID=caadmin"
 --------------------------------------------------------------------------
 Deleted certificate "2;11;CN=CA Signing Certificate,O=EXAMPLE;UID=caadmin"
 --------------------------------------------------------------------------
