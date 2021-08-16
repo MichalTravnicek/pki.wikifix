@@ -18,6 +18,8 @@
 
 = Example =
 
+== JSON format ==
+
 ----
 $ curl -k -H "Accept: application/json" -s https://$HOSTNAME:8443/ca/rest/certs | python -m json.tool
 {
@@ -48,6 +50,52 @@ $ curl -k -H "Accept: application/json" -s https://$HOSTNAME:8443/ca/rest/certs 
     ],
     "Link": []
 }
+----
+
+== XML format ==
+
+----
+$ curl -k -H "Accept: application/xml" -s https://$HOSTNAME:8443/ca/rest/certs | xmllint --format -
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<CertDataInfos>
+  <entries xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="certDataInfo" id="0x1">
+    <IssuedBy>system</IssuedBy>
+    <IssuedOn>1629122842000</IssuedOn>
+    <IssuerDN>CN=Certificate Authority,O=EXAMPLE</IssuerDN>
+    <KeyAlgorithmOID>1.2.840.113549.1.1.1</KeyAlgorithmOID>
+    <KeyLength>2048</KeyLength>
+    <Link>
+      <href>https://localhost.localdomain:8443/ca/rest/certs/0x1</href>
+      <relationship>self</relationship>
+    </Link>
+    <NotValidAfter>2260274841000</NotValidAfter>
+    <NotValidBefore>1629122841000</NotValidBefore>
+    <Status>VALID</Status>
+    <SubjectDN>CN=Certificate Authority,O=EXAMPLE</SubjectDN>
+    <Type>X.509</Type>
+    <Version>2</Version>
+  </entries>
+  ...
+  <total>6</total>
+  <CertDataInfo id="0x1">
+    <IssuedBy>system</IssuedBy>
+    <IssuedOn>1629122842000</IssuedOn>
+    <IssuerDN>CN=Certificate Authority,O=EXAMPLE</IssuerDN>
+    <KeyAlgorithmOID>1.2.840.113549.1.1.1</KeyAlgorithmOID>
+    <KeyLength>2048</KeyLength>
+    <Link>
+      <href>https://localhost.localdomain:8443/ca/rest/certs/0x1</href>
+      <relationship>self</relationship>
+    </Link>
+    <NotValidAfter>2260274841000</NotValidAfter>
+    <NotValidBefore>1629122841000</NotValidBefore>
+    <Status>VALID</Status>
+    <SubjectDN>CN=Certificate Authority,O=EXAMPLE</SubjectDN>
+    <Type>X.509</Type>
+    <Version>2</Version>
+  </CertDataInfo>
+  ...
+</CertDataInfos>
 
 ----
 
