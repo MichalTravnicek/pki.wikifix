@@ -1,0 +1,65 @@
+= Request =
+
+* Method: `GET`
+* Path: `/ca/rest/config/cert/transport`
+
+= Example =
+
+.JSON
+[%collapsible]
+====
+----
+$ curl \
+    -k \
+    -s \
+    -H "Accept: application/json" \
+    https://localhost.localdomain:8443/ca/rest/config/cert/transport | python -m json.tool
+{
+    "serialNumber": "0x1",
+    "issuerDN": "CN=Certificate Authority,O=EXAMPLE",
+    "subjectDN": "CN=Certificate Authority,O=EXAMPLE",
+    "prettyPrint": "...",
+    "encoded": "...",
+    "pkcs7CertChain": "...",
+    "notBefore": "Tue Jun 08 09:21:09 BST 2021",
+    "notAfter": "Mon May 29 09:21:09 BST 2023",
+    "status": "VALID",
+    "revokedOn": null,
+    "revokedBy": null,
+    "revocationReason": null,
+    "nonce": null,
+    "link": {
+        "rel": "self",
+        "href": "https://localhost.localdomain:8443/ca/rest/config/cert/transport",
+        "type": "application/json"
+    }
+}
+----
+====
+
+.XML
+[%collapsible]
+====
+----
+$ curl \
+    -k \
+    -s \
+    -H "Accept: application/xml" \
+    https://localhost.localdomain:8443/ca/rest/config/cert/transport | xmllint --format -
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<CertData id="0x1">
+  <IssuerDN>CN=Certificate Authority,O=EXAMPLE</IssuerDN>
+  <SubjectDN>CN=Certificate Authority,O=EXAMPLE</SubjectDN>
+  <PrettyPrint>...</PrettyPrint>
+  <Encoded>...</Encoded>
+  <PKCS7CertChain>...</PKCS7CertChain>
+  <NotBefore>Tue Aug 17 15:15:45 CDT 2021</NotBefore>
+  <NotAfter>Mon Aug 07 15:15:45 CDT 2023</NotAfter>
+  <Status>VALID</Status>
+  <Link>
+    <relationship>self</relationship>
+    <href>https://localhost.localdomain:8443/ca/rest/config/cert/transport</href>
+  </Link>
+</CertData>
+----
+====
