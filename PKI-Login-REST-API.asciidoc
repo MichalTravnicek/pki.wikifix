@@ -11,7 +11,8 @@ https://github.com/dogtagpki/pki/blob/e3cf3373074fc0ec7e4ecd110c9f4b1c4570e5de/b
 
 = Examples
 
-.CA example
+== CA ==
+.JSON
 [%collapsible]
 ====
 ----
@@ -45,7 +46,39 @@ $ curl \
 ----
 ====
 
-.KRA example
+.XML
+[%collapsible]
+====
+----
+$ curl \
+  -k \
+  -s \
+  -H "Accept: application/xml" \
+  --user caadmin:Secret.123 \
+  https://localhost.localdomain:8443/ca/rest/account/login | xmllint --format -
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Account id="caadmin">
+  <Attributes/>
+  <FullName>caadmin</FullName>
+  <Email>caadmin@example.com</Email>
+  <Roles>
+    <Role>Administrators</Role>
+    <Role>Certificate Manager Agents</Role>
+    <Role>Enterprise CA Administrators</Role>
+    <Role>Enterprise KRA Administrators</Role>
+    <Role>Enterprise OCSP Administrators</Role>
+    <Role>Enterprise RA Administrators</Role>
+    <Role>Enterprise TKS Administrators</Role>
+    <Role>Enterprise TPS Administrators</Role>
+    <Role>Security Domain Administrators</Role>
+  </Roles>
+</Account>
+----
+====
+
+== KRA ==
+
+.JSON
 [%collapsible]
 ====
 ----
@@ -71,7 +104,10 @@ $ curl \
 }
 ----
 ====
-.OCSP example
+
+== OCSP ==
+
+.JSON
 [%collapsible]
 ====
 ----
@@ -97,7 +133,10 @@ $ curl \
 }
 ----
 ====
-.TKS example
+
+== TKS ==
+
+.JSON
 [%collapsible]
 ====
 ----
@@ -123,7 +162,10 @@ $ curl \
 }
 ----
 ====
-.TPS example
+
+== TPS ==
+
+.JSON
 [%collapsible]
 ====
 ----
