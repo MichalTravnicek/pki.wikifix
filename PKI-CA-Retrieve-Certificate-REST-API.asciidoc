@@ -1,26 +1,28 @@
-= Request
+= Request =
 
-* Path: `/ca/rest/certs/{id}`
 * Method: `GET`
+* Path: `/ca/rest/certs/{id}`
 * Query Parameters:
 ** `id`: dec/hex serial number
 
-= Example
+= Example =
+
+.JSON
+[%collapsible]
+====
 ----
-curl -k -H "Accept: application/json" --user caadmin:Secret.123 -s https://localhost.localdomain:8443/ca/rest/certs/6 | python -m json.tool
+$ curl \
+    -k \
+    -s \
+    -H "Accept: application/json" \
+    https://localhost.localdomain:8443/ca/rest/certs/6 | python -m json.tool
 {
     "id": "0x6",
     "IssuerDN": "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE",
     "SubjectDN": "CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE",
-    "PrettyPrint": "    Certificate: \n        Data: \n            Version:  v3\n            Serial Number: 0x6\n            Signature Algorithm: SHA256withRSA - 1.2.840.113549.1.1.11\n            Issuer: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE\n            Validity: \n                Not Before: Tuesday, 8 
-...<snip>...
-              EC:C5:F1:E2:45:CF:FC:7D:80:8E:99:98:A7:EA:9F:5E:\n                24:1A:9E:E9:9B:B3:DD:02:F0:C0:2B:1E:AD:0C:19:32\n",
-    "Encoded": "-----BEGIN CERTIFICATE-----\nMIIDxTCCAq2gAwIBAgIB
-...<snip>...
-J6jwQGKejKC1TnJ7RaxEQTBX4hKMOKHowEcONsV3/Mom/ru/oRKAYag+mB7kkoNzEU+6jt7lCYw4\r\nbLwjjY3HTOOaPPdvJzcvPbP9lOSNRbbb4WYifWi7prEKL1N5MIcVVcuAKX+Is+gXgfiGBmm8vjyV\r\n-----END CERTIFICATE-----\n",
-    "PKCS7CertChain": "MIIHswYJKoZIhvcNAQcCoIIHpDCCB6ACAQExADAPBgkqhkiG9w0BBwGgAgQAoIIHhDCCA8UwggKt\r\noAMCAQICAQYwDQYJKoZIhvcNAQ
-...<snip>...
-NFx8kRvUG3iWhuAOgKdmlbdS6hrTTyA5Qk0p58Ta+LDzx\r\nHAITcn09DLV/V9cXB4EcfYFI5dAHY4bdQm50ZYx4oyvdIiWFZUfxt9b/emnOVy7NkoomB+iHUboq\r\n84/loUkSXCP+/JekQBvQovtGNRL+6ud9zNrPiRhZDcITvc0xAA==\r\n",
+    "PrettyPrint": "...",
+    "Encoded": "...",
+    "PKCS7CertChain": "...",
     "NotBefore": "Tue Jun 08 09:21:09 BST 2021",
     "NotAfter": "Mon May 29 09:21:09 BST 2023",
     "Status": "VALID",
@@ -34,6 +36,32 @@ NFx8kRvUG3iWhuAOgKdmlbdS6hrTTyA5Qk0p58Ta+LDzx\r\nHAITcn09DLV/V9cXB4EcfYFI5dAHY4b
         "type": "application/xml"
     }
 }
-
 ----
+====
 
+.XML
+[%collapsible]
+====
+----
+$ curl \
+    -k \
+    -s \
+    -H "Accept: application/xml" \
+    https://localhost.localdomain:8443/ca/rest/certs/6 | xmllint --format -
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<CertData id="0x6">
+  <IssuerDN>CN=Certificate Authority,O=EXAMPLE</IssuerDN>
+  <SubjectDN>CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE</SubjectDN>
+  <PrettyPrint>...</PrettyPrint>
+  <Encoded>...</Encoded>
+  <PKCS7CertChain>...</PKCS7CertChain>
+  <NotBefore>Tue Aug 17 15:15:45 CDT 2021</NotBefore>
+  <NotAfter>Mon Aug 07 15:15:45 CDT 2023</NotAfter>
+  <Status>VALID</Status>
+  <Link>
+    <relationship>self</relationship>
+    <href>https://localhost.localdomain:8443/ca/rest/certs/0x6</href>
+  </Link>
+</CertData>
+----
+====
