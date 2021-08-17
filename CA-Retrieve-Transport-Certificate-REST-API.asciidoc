@@ -15,9 +15,9 @@ $ curl \
     -H "Accept: application/json" \
     https://localhost.localdomain:8443/ca/rest/config/cert/transport | python -m json.tool
 {
-    "serialNumber": "0x1",
+    "serialNumber": "0x7",
     "issuerDN": "CN=Certificate Authority,O=EXAMPLE",
-    "subjectDN": "CN=Certificate Authority,O=EXAMPLE",
+    "subjectDN": "CN=DRM Transport Certificate,O=EXAMPLE",
     "prettyPrint": "...",
     "encoded": "...",
     "pkcs7CertChain": "...",
@@ -47,9 +47,9 @@ $ curl \
     -H "Accept: application/xml" \
     https://localhost.localdomain:8443/ca/rest/config/cert/transport | xmllint --format -
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<CertData id="0x1">
+<CertData id="0x7">
   <IssuerDN>CN=Certificate Authority,O=EXAMPLE</IssuerDN>
-  <SubjectDN>CN=Certificate Authority,O=EXAMPLE</SubjectDN>
+  <SubjectDN>CN=DRM Transport Certificate,O=EXAMPLE</SubjectDN>
   <PrettyPrint>...</PrettyPrint>
   <Encoded>...</Encoded>
   <PKCS7CertChain>...</PKCS7CertChain>
