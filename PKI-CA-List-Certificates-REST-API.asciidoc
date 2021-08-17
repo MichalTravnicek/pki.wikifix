@@ -18,8 +18,9 @@
 
 = Example =
 
-== JSON format ==
-
+.JSON
+[%collapsible]
+====
 ----
 $ curl -k -H "Accept: application/json" -s https://$HOSTNAME:8443/ca/rest/certs | python -m json.tool
 {
@@ -51,9 +52,11 @@ $ curl -k -H "Accept: application/json" -s https://$HOSTNAME:8443/ca/rest/certs 
     "Link": []
 }
 ----
+====
 
-== XML format ==
-
+.XML
+[%collapsible]
+====
 ----
 $ curl -k -H "Accept: application/xml" -s https://$HOSTNAME:8443/ca/rest/certs | xmllint --format -
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -96,8 +99,8 @@ $ curl -k -H "Accept: application/xml" -s https://$HOSTNAME:8443/ca/rest/certs |
   </CertDataInfo>
   ...
 </CertDataInfos>
-
 ----
+====
 
 = See Also =
 
