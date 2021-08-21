@@ -1,0 +1,58 @@
+= Request =
+
+* Method: `POST`
+* Path: `/kra/rest/agent/keyrequests`
+
+= Examples =
+
+.JSON
+[%collapsible]
+====
+----
+$ curl \
+    -k \
+    -s \
+    --user kraadmin:Secret.123
+    -X POST \
+    -d @- \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    https://localhost.localdomain:8443/kra/rest/agent/keyrequests << EOF | python -m json.tool
+{
+    "Attributes": {
+        "Attribute": [
+            {
+                "name": "clientKeyID",
+                "value": "test"
+            },
+            {
+                "name": "keyAlgorithm",
+                "value": "RSA"
+            },
+            {
+                "name": "keySize",
+                "value": "1024"
+            },
+            {
+                "name": "keyUsage",
+                "value": null
+            }
+        ]
+    },
+    "ClassName": "com.netscape.certsrv.key.AsymKeyGenerationRequest"
+}
+EOF
+{
+    "requestInfo": {
+        "requestType": "asymkeyGenRequest",
+        "requestStatus": "complete",
+        "requestURL": "https://localhost.localdomain:8443/kra/rest/agent/keyrequests/1",
+        "keyURL": "https://localhost.localdomain:8443/kra/rest/agent/keys/1",
+        "keyId": 1,
+        "requestId": "0x1"
+    },
+    "keyId": 1,
+    "requestId": "0x1"
+}
+----
+====
