@@ -1,60 +1,23 @@
+= Request =
+
+* Method: `POST`
+* Path: `/kra/rest/agent/keyrequests`
+
 = Examples =
 
-.Archiving Key with DES
+.JSON
 [%collapsible]
 ====
 Request:
 ----
-{
-    "Attributes": {
-        "Attribute": [
-            {
-                "name": "algorithmOID",
-                "value": "{1 2 840 113549 3 7}"
-            },
-            {
-                "name": "clientKeyID",
-                "value": <client key ID>
-            },
-            {
-                "name": "dataType",
-                "value": "passPhrase"
-            },
-            {
-                "name": "symmetricAlgorithmParams",
-                "value": <base64-encoded data>
-            },
-            {
-                "name": "transWrappedSessionKey",
-                "value": <base64-encoded data>
-            },
-            {
-                "name": "wrappedPrivateData",
-                "value": <base64-encoded data>
-            }
-        ]
-    },
-    "ClassName": "com.netscape.certsrv.key.KeyArchivalRequest"
-}
-----
-Response:
-----
-{
-    "RequestInfo": {
-        "keyURL": "https://localhost:8443/kra/rest/agent/keys/<key ID>",
-        "requestStatus": "begin",
-        "requestType": "securityDataEnrollment",
-        "requestURL": "https://localhost:8443/kra/rest/agent/keyrequests/<request ID>"
-    }
-}
-----
-====
-
-.Archiving Key with AES
-[%collapsible]
-====
-Request:
-----
+$ curl \
+    -k \
+    -s \
+    --user kraadmin:Secret.123 \
+    -d @- \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    https://localhost.localdomain:8443/kra/rest/agent/keyrequests << EOF | python -m json.tool
 {
     "Attributes": {
         "Attribute": [
@@ -90,16 +53,18 @@ Request:
     },
     "ClassName": "com.netscape.certsrv.key.KeyArchivalRequest"
 }
-----
-Response:
-----
+EOF
 {
-    "RequestInfo": {
-        "keyURL": "https://localhost:8443/kra/rest/agent/keys/<key ID>",
-        "requestStatus": "complete",
+    "requestInfo": {
         "requestType": "securityDataEnrollment",
-        "requestURL": "https://localhost:8443/kra/rest/agent/keyrequests/<request ID>"
-    }
+        "requestStatus": "complete",
+        "requestURL": "https://localhost.localdomain:8443/kra/rest/agent/keyrequests/1",
+        "keyURL": "https://localhost.localdomain:8443/kra/rest/agent/keys/1",
+        "keyId": 1,
+        "requestId": "0x1"
+    },
+    "keyId": 1,
+    "requestId": "0x1"
 }
 ----
 ====
