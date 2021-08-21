@@ -30,19 +30,19 @@ EOF
     "entries": [
         {
             "id": "0x1",
-            "subjectDN": "CN=Certificate Authority,O=EXAMPLE",
-            "issuerDN": "CN=Certificate Authority,O=EXAMPLE",
-            "status": "VALID",
-            "type": "X.509",
-            "version": 2,
-            "keyAlgorithmOID": "1.2.840.113549.1.1.1",
-            "keyLength": 2048,
-            "notValidBefore": 1629326630000,
-            "notValidAfter": 2260478630000,
-            "issuedOn": 1629326630000,
-            "issuedBy": "system",
-            "link": {
-                "relationship": "self",
+            "SubjectDN": "CN=Certificate Authority,O=EXAMPLE",
+            "IssuerDN": "CN=Certificate Authority,O=EXAMPLE",
+            "Status": "VALID",
+            "Type": "X.509",
+            "Version": 2,
+            "KeyAlgorithmOID": "1.2.840.113549.1.1.1",
+            "KeyLength": 2048,
+            "NotValidBefore": 1629326630000,
+            "NotValidAfter": 2260478630000,
+            "IssuedOn": 1629326630000,
+            "IssuedBy": "system",
+            "Link": {
+                "rel": "self",
                 "href": "https://localhost.localdomain:8443/ca/rest/certs/0x1"
             }
         }
@@ -83,10 +83,7 @@ EOF
     <NotValidAfter>2260478630000</NotValidAfter>
     <IssuedOn>1629326630000</IssuedOn>
     <IssuedBy>system</IssuedBy>
-    <Link>
-      <relationship>self</relationship>
-      <href>https://localhost.localdomain:8443/ca/rest/certs/0x1</href>
-    </Link>
+    <Link href="https://localhost.localdomain:8443/ca/rest/certs/0x1" rel="self"/>
   </CertDataInfo>
 </CertDataInfos>
 ----
