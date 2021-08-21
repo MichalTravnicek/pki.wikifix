@@ -1,0 +1,51 @@
+= Request =
+
+* Method: `GET`
+* Path: `/kra/rest/agent/keyrequests`
+* Authentication: Required
+* Authorization: Must be a member of `Data Recovery Manager Agents` group.
+* Query Parameters:
+** `requestState`: string
+** `requestType`: string
+** `start`: dec/hex request ID
+** `pageSize`: integer
+** `maxResults`: integer
+** `maxTime`: integer
+* Content: None
+
+= Examples =
+
+.JSON
+[%collapsible]
+====
+----
+$ curl \
+    -k \
+    -s \
+    -H "Accept: application/json" \
+    --user kraadmin:Secret.123 \
+    https://localhost.localdomain:8443/kra/rest/agent/keyrequests | python -m json.tool
+{
+    "total": 0,
+    "entries": [],
+    "Link": []
+}
+----
+====
+
+.XML
+[%collapsible]
+====
+----
+$ curl \
+    -k \
+    -s \
+    -H "Accept: application/xml" \
+    --user kraadmin:Secret.123 \
+    https://localhost.localdomain:8443/kra/rest/agent/keyrequests | xmllint --format -
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<KeyRequestInfoCollection>
+    <total>0</total>
+</KeyRequestInfoCollection>
+----
+====
