@@ -1,0 +1,53 @@
+= Overview =
+
+PKI Get Info operation will return information about the PKI server.
+
+= Request =
+
+* Method: `GET`
+* Path: `/pki/rest/info`
+* Authentication: Not required
+* Content: None
+* Success code: `200`
+
+= Examples =
+
+.JSON
+[%collapsible]
+====
+----
+$ curl \
+    -k \
+    -s \
+    -H "Accept: application/json" \
+    https://localhost.localdomain:8443/pki/rest/info | python -m json.tool
+{
+    "Attributes": {
+        "Attribute": []
+    },
+    "Name": "Dogtag Certificate System",
+    "Version": "11.0.0"
+}
+----
+====
+
+.XML
+[%collapsible]
+====
+----
+$ curl \
+    -k \
+    -s \
+    -H "Accept: application/xml" \
+    https://localhost.localdomain:8443/pki/rest/info | xmllint --format -
+<Info>
+  <Attributes/>
+  <Name>Dogtag Certificate System</Name>
+  <Version>11.0.0</Version>
+</Info>
+----
+====
+
+= Sources =
+
+* https://github.com/dogtagpki/pki/blob/master/base/server/src/main/java/org/dogtagpki/server/rest/InfoService.java[InfoService.getInfo()]
