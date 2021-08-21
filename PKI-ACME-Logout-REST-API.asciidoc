@@ -1,28 +1,36 @@
-= Overview
+= Overview =
 
 The PKI ACME Logout operation will read the session ID provided via cookie, then invalidate the session on the server.
 
-= Request
+= Request =
 
 * *URL:* `/acme/logout`
 * *Method:* `POST`
 * *Authentication:* Required
 * *Authorization:* Not required
 
-= Response
+= Response =
 
-== Success
+== Success ==
 * *Code:* `200`
 
-== Unauthenticated
+== Unauthenticated ==
 * *Code:* `401`
 
-= Example =
+= Examples =
 
+.JSON
+[%collapsible]
+====
 ----
-$ curl -s --request POST -u admin:Secret.123 https://pki.demo.dogtagpki.org/acme/logout
+$ curl \
+    -s \
+    --request POST \
+    -u admin:Secret.123 \
+    https://pki.demo.dogtagpki.org/acme/logout
 ----
+====
 
-= See Also
+= See Also =
 
-* link:PKI-ACME-REST-API[PKI ACME REST API]
+* link:ACME-REST-API[ACME REST API]
