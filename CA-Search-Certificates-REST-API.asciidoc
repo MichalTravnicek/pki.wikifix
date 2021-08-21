@@ -1,8 +1,49 @@
 = Request =
 
-* Operation: POST /ca/rest/certs/search
+* Method: `POST`
+* Path: `/ca/rest/certs/search`
 * Query Parameters:
-** start: integer
-** size: integer
+** `start`: integer
+** `size`: integer
 
-= Response =
+= Examples =
+
+.XML
+[%collapsible]
+====
+----
+$ curl \
+    -k \
+    -s \
+    -X POST \
+    -d @- \
+    -H "Content-Type: application/xml" \
+    https://localhost.localdomain:8443/ca/rest/certs/search << EOF | xmllint --format -
+<CertSearchRequest>
+  <subjectInUse>true</subjectInUse>
+  <commonName>Certificate Authority</commonName>
+</CertSearchRequest>
+EOF
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<CertDataInfos>
+  <total>1</total>
+  <CertDataInfo id="0x1">
+    <SubjectDN>CN=Certificate Authority,O=EXAMPLE</SubjectDN>
+    <IssuerDN>CN=Certificate Authority,O=EXAMPLE</IssuerDN>
+    <Status>VALID</Status>
+    <Type>X.509</Type>
+    <Version>2</Version>
+    <KeyAlgorithmOID>1.2.840.113549.1.1.1</KeyAlgorithmOID>
+    <KeyLength>2048</KeyLength>
+    <NotValidBefore>1629326630000</NotValidBefore>
+    <NotValidAfter>2260478630000</NotValidAfter>
+    <IssuedOn>1629326630000</IssuedOn>
+    <IssuedBy>system</IssuedBy>
+    <Link>
+      <relationship>self</relationship>
+      <href>https://localhost.localdomain:8443/ca/rest/certs/0x1</href>
+    </Link>
+  </CertDataInfo>
+</CertDataInfos>
+----
+====
