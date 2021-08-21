@@ -1,17 +1,18 @@
-= Overview
+= Overview =
 
 The PKI ACME Directory operation will return the ACME directory as defined in https://tools.ietf.org/html/rfc8555[RFC 8555].
 
-= Request
+= Request =
 
 * *URL:* `/acme/directory`
 * *Method:* `GET`
 * *Authentication:* Not required
 * *Authorization:* Not required
 
-= Response
+= Response =
 
-== Success
+== Success ==
+
 * *Code:* `200`
 * *Content*:
 
@@ -32,13 +33,19 @@ The PKI ACME Directory operation will return the ACME directory as defined in ht
 }
 ----
 
-== Unavailable
+== Unavailable ==
+
 * *Code:* `503`
 
-= Example =
+= Examples =
 
+.JSON
+[%collapsible]
+====
 ----
-$ curl -s https://pki.demo.dogtagpki.org/acme/directory | python -m json.tool
+$ curl \
+    -s \
+    https://pki.demo.dogtagpki.org/acme/directory | python -m json.tool
 {
     "newNonce": "https://pki.demo.dogtagpki.org/acme/new-nonce",
     "newAccount": "https://pki.demo.dogtagpki.org/acme/new-account",
@@ -54,7 +61,8 @@ $ curl -s https://pki.demo.dogtagpki.org/acme/directory | python -m json.tool
     }
 }
 ----
+====
 
-= See Also
+= See Also =
 
-* link:PKI-ACME-REST-API[PKI ACME REST API]
+* link:ACME-REST-API[ACME REST API]
