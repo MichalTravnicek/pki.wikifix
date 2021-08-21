@@ -8,6 +8,50 @@
 
 = Examples =
 
+.JSON
+[%collapsible]
+====
+----
+$ curl \
+    -k \
+    -s \
+    -X POST \
+    -d @- \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    https://localhost.localdomain:8443/ca/rest/certs/search << EOF | python -m json.tool
+{
+    "subjectInUse": true,
+    "commonName": "Certificate Authority"
+}
+EOF
+{
+    "total": 1,
+    "entries": [
+        {
+            "id": "0x1",
+            "subjectDN": "CN=Certificate Authority,O=EXAMPLE",
+            "issuerDN": "CN=Certificate Authority,O=EXAMPLE",
+            "status": "VALID",
+            "type": "X.509",
+            "version": 2,
+            "keyAlgorithmOID": "1.2.840.113549.1.1.1",
+            "keyLength": 2048,
+            "notValidBefore": 1629326630000,
+            "notValidAfter": 2260478630000,
+            "issuedOn": 1629326630000,
+            "issuedBy": "system",
+            "link": {
+                "relationship": "self",
+                "href": "https://localhost.localdomain:8443/ca/rest/certs/0x1"
+            }
+        }
+    ],
+    "Link": []
+}
+----
+====
+
 .XML
 [%collapsible]
 ====
