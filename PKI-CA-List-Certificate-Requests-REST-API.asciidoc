@@ -42,3 +42,29 @@ $ curl \
 }
 ----
 ====
+
+.XML
+[%collapsible]
+====
+----
+$ curl \
+    -k \
+    -s \
+    -H "Accept: application/xml" \
+    --user caadmin:Secret.123 \
+    https://localhost.localdomain:8443/ca/rest/agent/certrequests | xmllint --format -
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<CertDataInfos>
+    <total>6</total>
+    <CertDataInfo id="0x1">
+        <requestType>enrollment</requestType>
+        <requestStatus>complete</requestStatus>
+        <requestURL>https://localhost.localdomain:8443/ca/rest/certrequests/1</requestURL>
+        <certURL>https://localhost.localdomain:8443/ca/rest/certs/1</certURL>
+        <certRequestType>pkcs10</certRequestType>
+        <operationResult>success</operationResult>
+    </CertDataInfo>
+    ...
+</CertDataInfos>
+----
+====
