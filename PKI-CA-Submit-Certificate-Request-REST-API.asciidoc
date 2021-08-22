@@ -19,12 +19,99 @@ The `issuer-id` and `issuer-dn` are optional and mutually-exclusive parameters t
 $ curl \
     -k \
     -s \
-    --user caadmin:Secret.123 \
     -X POST \
     -d @- \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
-    https://localhost.localdomain:8443/ca/rest/carequests << EOF | python -m json.tool
+    https://localhost.localdomain:8443/ca/rest/certrequests << EOF | python -m json.tool
+{
+    "Attributes": {
+        "Attribute": []
+    },
+    "ProfileID": "caServerCert",
+    "Renewal": false,
+    "RemoteHost": "",
+    "RemoteAddress": "",
+    "Input": [
+        {
+            "id": "i1",
+            "ClassID": "certReqInputImpl",
+            "Name": "Certificate Request Input",
+            "Attribute": [
+                {
+                    "name": "cert_request_type",
+                    "Value": "pkcs10",
+                    "Descriptor": {
+                        "mSyntax": "cert_request_type",
+                        "mDescription": "Certificate Request Type",
+                        "syntax": "cert_request_type"
+                    }
+                },
+                {
+                    "name": "cert_request",
+                    "Value": "-----BEGIN CERTIFICATE REQUEST-----\nMIICszCCAZsCAQAwIDEeMBwGA1UEAxMVbG9jYWxob3N0LmxvY2FsZG9tYWluMIIBIjANBgkqhkiG\r\n9w0BAQEFAAOCAQ8AMIIBCgKCAQEAr37VjjANeDisZWwJcJ9aTM58d0r6Zc4HuSMo7s0y/Jnycstd\r\nGrg14emg6qfp0vzPTLczzHKC75IwTrFCKsEQKWFlF6MSq8d3KmZ1cpfp6bQw7uWQC42hDTEGj+WJ\r\ngD8CXATD5HAIqhwI/xlTpE5zyxeoWVT2RBKzu4SJWabFgJrER6W+wz6/ryY9bNLZ/rWIMwJ81srx\r\n/GTzDnBsrptfg4XW28yGBrVxkBAVAGl2V+1tSuM+vRhWenGIKQvxYcCNXe+546bLqULE9RL4t5/+\r\nwxxWzxse6XNsg+3rBhYsGcAU2ZOquVzH2CGAEbuHavYuAdNZwjQw3KrKF0jN1In3cwIDAQABoE4w\r\nTAYJKoZIhvcNAQkOMT8wPTAMBgNVHRMBAf8EAjAAMB0GA1UdJQQWMBQGCCsGAQUFBwMBBggrBgEF\r\nBQcDAjAOBgNVHQ8BAf8EBAMCBaAwDQYJKoZIhvcNAQELBQADggEBAJta14SHIRRJoahJXxAtuwAE\r\niL2hIP7oAeFw17AwwcsS2JIdyMVzIIlHo62Ww8ySjgewG3CTX7AU4vN4uoz0tbO/4Ff0bRMofsih\r\n75WGrzmjtXQgDNlCZ3gVLweumHKHwn64sIJRSRMLoNQyCeETAjZ6lY1yXyrWEUrqBY1Sc0zl45OV\r\nQMVQnQDxdz2YPivb3Lt73hEGLBW1gkoQo5QQrXdEVsLiPw+i6ilXByUMmbvRXfU2nMuoePnS4Xja\r\n/xBlz+nkkfWU9khsxKvikJxL5U1UVj3XavyAiYEDmjxTVXzuOW96rqGRFF3NGoXuQ278YzMqYNQg\r\nzLxMb6JmUdmpPQU=\r\n-----END CERTIFICATE REQUEST-----\n",
+                    "Descriptor": {
+                        "mSyntax": "cert_request",
+                        "mDescription": "Certificate Request",
+                        "syntax": "cert_request"
+                    }
+                }
+            ],
+            "ConfigAttribute": []
+        },
+        {
+            "id": "i2",
+            "ClassID": "submitterInfoInputImpl",
+            "Name": "Requestor Information",
+            "Attribute": [
+                {
+                    "name": "requestor_name",
+                    "Value": "",
+                    "Descriptor": {
+                        "mSyntax": "string",
+                        "mDescription": "Requestor Name",
+                        "syntax": "string"
+                    }
+                },
+                {
+                    "name": "requestor_email",
+                    "Value": "",
+                    "Descriptor": {
+                        "mSyntax": "string",
+                        "mDescription": "Requestor Email",
+                        "syntax": "string"
+                    }
+                },
+                {
+                    "name": "requestor_phone",
+                    "Value": "",
+                    "Descriptor": {
+                        "mSyntax": "string",
+                        "mDescription": "Requestor Phone",
+                        "syntax": "string"
+                    }
+                }
+            ],
+            "ConfigAttribute": []
+        }
+    ],
+    "Output": []
+}
+EOF
+{
+    "total": 1,
+    "entries": [
+        {
+            "requestType": "enrollment",
+            "requestStatus": "pending",
+            "requestURL": "https://localhost.localdomain:8443/ca/rest/certrequests/1",
+            "certRequestType": "pkcs10",
+            "operationResult": "success",
+            "requestId": "0x1"
+        }
+    ],
+    "Link": []
+}
 ----
 ====
 
