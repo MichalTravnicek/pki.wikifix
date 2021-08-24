@@ -27,7 +27,7 @@ $ curl \
             "profileName": "ACME Server Certificate Enrollment",
             "profileDescription": "This certificate profile is for enrolling server certificates via ACME protocol."
         },
-...<snip>...
+        ...
     ],
     "Link": [
         {
@@ -37,5 +37,36 @@ $ curl \
         }
     ]
 }
+----
+====
+
+.XML
+[%collapsible]
+====
+----
+$ curl \
+    -k \
+    -s \
+    -H "Accept: application/xml" \
+    https://localhost.localdomain:8443/ca/rest/certrequests/profiles | xmllint --format -
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ProfileDataInfos>
+  <entries xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="profileDataInfo">
+    <profileURL>https://localhost.localdomain:8443/ca/rest/profiles/acmeServerCert</profileURL>
+    <profileId>acmeServerCert</profileId>
+    <profileName>ACME Server Certificate Enrollment</profileName>
+    <profileDescription>This certificate profile is for enrolling server certificates via ACME protocol.</profileDescription>
+  </entries>
+  ...
+  <Link href="https://localhost.localdomain:8443/ca/rest/certrequests/profiles?start=20" rel="next" type="application/xml"/>
+  <total>34</total>
+  <ProfileDataInfo>
+    <profileURL>https://localhost.localdomain:8443/ca/rest/profiles/caStorageCert</profileURL>
+    <profileId>caStorageCert</profileId>
+    <profileName>Manual Data Recovery Manager Storage Certificate Enrollment</profileName>
+    <profileDescription>This certificate profile is for enrolling Data Recovery Manager storage certificates.</profileDescription>
+  </ProfileDataInfo>
+  ...
+</ProfileDataInfos>
 ----
 ====
