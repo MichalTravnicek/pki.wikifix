@@ -1,0 +1,29 @@
+= Generating Symmetric Key =
+
+To generate a symmetric key on the server:
+
+----
+$ pki -n caadmin kra-key-generate testkey1 --key-algorithm AES --key-size 256 --usages sign
+---------------------------
+Key generation request info
+---------------------------
+  Request ID: 0x1
+  Key ID: 0x1
+  Type: symkeyGenRequest
+  Status: complete
+----
+
+= Generating Asymmetric Key =
+
+To generate an asymmetric key on the server:
+
+----
+$ pki -n caadmin kra-key-generate testkey --key-algorithm RSA --key-size 1024
+---------------------------
+Key generation request info
+---------------------------
+  Request ID: 0x1
+  Key ID: 0x1
+  Type: asymkeyGenRequest
+  Status: complete
+----
