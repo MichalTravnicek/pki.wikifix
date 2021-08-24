@@ -1,6 +1,6 @@
 = Overview =
 
-This page describes the process to get KRA transport certificate.
+This page describes the process to get KRA transport certificate from PKI server and import it into the client's NSS database (default is `~/.dogtag/nssdb`).
 
 For older versions see:
 
@@ -8,7 +8,7 @@ For older versions see:
 
 = Getting KRA Transport Certificate from the Server Side =
 
-To display KRA transport certificate:
+A user with direct access to the server can display the KRA transport certificate in the server's NSS database:
 
 ----
 $ pki-server cert-show kra_transport
@@ -23,15 +23,17 @@ $ pki-server cert-show kra_transport
   NSSDB Trust flag: u,u,u
 ----
 
-To export KRA transport certificate:
+To export KRA transport certificate into a file:
 
 ----
 $ pki-server cert-export kra_transport --cert-file kra_transport.crt
 ----
 
+The file needs to be transferred to the client.
+
 = Getting KRA Transport Certificate from the Client Side =
 
-To display KRA transport certificate:
+A user without direct access to the server can display KRA transport certificate with the following command:
 
 ----
 $ pki kra-cert-transport-show
@@ -42,7 +44,7 @@ $ pki kra-cert-transport-show
   Not Valid After: Sun Nov 27 18:48:30 CST 2022
 ----
 
-To download KRA transport certificate:
+To export KRA transport certificate:
 
 ----
 $ pki kra-cert-transport-export
@@ -73,7 +75,7 @@ To download the transport certificate into a file:
 $ pki kra-cert-transport-export --output-file kra_transport.crt
 ----
 
-To download KRA transport certificate chain:
+To export KRA transport certificate chain:
 
 ----
 $ pki kra-cert-transport-export --pkcs7
@@ -117,7 +119,7 @@ iD9sEa5pcKyMlS98e9l0SvbBN8LX8Uk+eFK2YRv5IWb+kNkIGysEfiCB/FIaF6oaZ51cU/oXMQA=
 
 = Importing KRA Transport Certificate =
 
-To import KRA transport certificate into the user's NSS database (default is `~/.dogtag/nssdb`):
+To import KRA transport certificate into the user's NSS database:
 
 ----
 $ pki client-cert-import transport --cert kra_transport.crt
