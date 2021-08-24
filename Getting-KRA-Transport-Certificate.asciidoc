@@ -70,7 +70,7 @@ mcJJ5Ef11WyzBLUT3rwylH8CRQ==
 To download the transport certificate into a file:
 
 ----
-$ pki kra-cert-transport-export --output-file transport.crt
+$ pki kra-cert-transport-export --output-file kra_transport.crt
 ----
 
 To download KRA transport certificate chain:
@@ -120,5 +120,5 @@ iD9sEa5pcKyMlS98e9l0SvbBN8LX8Uk+eFK2YRv5IWb+kNkIGysEfiCB/FIaF6oaZ51cU/oXMQA=
 To import KRA transport certificate into the user's NSS database (default is `~/.dogtag/nssdb`):
 
 ----
-$ pki client-cert-import transport --cert transport.crt
+$ pki client-cert-import transport --cert kra_transport.crt
 ----
