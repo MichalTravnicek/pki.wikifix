@@ -8,3 +8,18 @@
 
 = Examples =
 
+.JSON
+[%collapsible]
+====
+----
+$ curl \
+    -k \
+    -s \
+    --user caadmin:Secret.123 \
+    -X POST \
+    -d @CertReviewResponse.json \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    https://localhost.localdomain:8443/ca/rest/agent/certrequests/20/approve
+----
+====
