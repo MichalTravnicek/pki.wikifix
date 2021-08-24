@@ -1,0 +1,48 @@
+= Overview =
+
+All key request operations should be executed as KRA agent.
+
+= Listing Key Requests =
+
+To list submitted key requests:
+
+----
+$ pki -n caadmin kra-key-request-find
+-----------------
+1 entries matched
+-----------------
+  Request ID: 0x1
+  Key ID: 0x1
+  Type: asymkeyGenRequest
+  Status: complete
+----------------------------
+Number of entries returned 1
+----------------------------
+----
+
+= Displaying Key Request =
+
+To display a key request:
+
+----
+$ pki -n caadmin kra-key-request-show 0x1
+  Request ID: 0x1
+  Key ID: 0x1
+  Type: asymkeyGenRequest
+  Status: complete
+----
+
+= Reviewing Key Request =
+
+To approve a key request:
+
+----
+$ pki -n caadmin kra-key-request-review 0x1 --action approve
+------
+Result
+------
+  Request ID: 0x1
+  Key ID: 0x1
+  Type: asymkeyGenRequest
+  Status: complete
+----
