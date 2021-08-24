@@ -21,6 +21,14 @@ $ pki pkcs12-import \
     --pkcs12-password Secret.123
 ----
 
+*Note:* If that command doesn't work, use this command instead:
+
+----
+$ pki client-cert-import \
+ --pkcs12 ~/.dogtag/pki-tomcat/ca_admin_cert.p12 \
+ --pkcs12-password Secret.123
+----
+
 The certificate can be used by specifying a `-n <nickname>` parameter, for example:
 
 ----
