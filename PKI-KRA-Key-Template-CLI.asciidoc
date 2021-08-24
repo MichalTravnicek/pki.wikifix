@@ -1,0 +1,38 @@
+= Listing Key Request Templates =
+
+To list available key request templates:
+
+----
+$ pki kra-key-template-find
+-----------------
+3 entries matched
+-----------------
+
+  Template ID: retrieveKey
+  Description: Template for submitting a key retrieval or key recovery request.
+
+  Template ID: archiveKey
+  Description: Template for submitting a key archival request
+
+  Template ID: generateKey
+  Description: Template for submitting a request for generating a symmetric key.
+
+----------------------------
+Number of entries returned 3
+----------------------------
+----
+
+= Displaying Key Request Template =
+
+To display a key request template:
+
+----
+$ pki kra-key-template-show retrieveKey
+----
+
+To store a key request template into a file:
+
+----
+$ pki kra-key-template-show retrieveKey --output retrieveKey.xml
+----
+
