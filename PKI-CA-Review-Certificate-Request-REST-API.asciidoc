@@ -1,15 +1,24 @@
-= Request
+= Request =
 
-* Path: `/ca/rest/agent/certrequests/{id}`
 * Method: `GET`
+* Path: `/ca/rest/agent/certrequests/{id}`
 * Authentication: client certificate
 * Query Parameters:
 ** `id`: dec/hex request ID
 * Content: None
 
-= Example
+= Examples =
+
+.JSON
+[%collapsible]
+====
 ----
-curl -k -H "Accept: application/json" --user caadmin:Secret.123 -s https://localhost.localdomain:8443/ca/rest/agent/certrequests/2 | python -m json.tool
+$ curl \
+    -k \
+    -s \
+    -H "Accept: application/json" \
+    --user caadmin:Secret.123 \
+    https://localhost.localdomain:8443/ca/rest/agent/certrequests/2 | python -m json.tool
 {
     "nonce": "1848741545571711687",
     "requestId": "2",
@@ -476,3 +485,539 @@ curl -k -H "Accept: application/json" --user caadmin:Secret.123 -s https://local
     ]
 }
 ----
+====
+
+.XML
+[%collapsible]
+====
+----
+$ curl \
+    -k \
+    -s \
+    -H "Accept: application/xml" \
+    --user caadmin:Secret.123 \
+    https://localhost.localdomain:8443/ca/rest/agent/certrequests/20 | xmllint --format -
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<certReviewResponse>
+  <Attributes/>
+  <ProfileID>caUserCert</ProfileID>
+  <Renewal>false</Renewal>
+  <Input>
+    <ClassID>KeyGenInput</ClassID>
+    <Name>Key Generation</Name>
+    <Attribute name="cert_request_type">
+      <Value>pkcs10</Value>
+    </Attribute>
+    <Attribute name="cert_request">
+      <Value>-----BEGIN CERTIFICATE REQUEST-----
+MIICXzCCAUcCAQAwGjEYMBYGCgmSJomT8ixkAQETCHRlc3R1c2VyMIIBIjANBgkqhkiG9w0BAQEF&#13;
+AAOCAQ8AMIIBCgKCAQEA8VfCbrwYhBqds9Q1GvE/KQioT+WgeIt6vyKkBIJKFfAWgoiAy8oKMVIc&#13;
+j8ajwqtmV5/e/kv1ahzf1gIq5ARYVDvjm0gOyqz//0YPL4X6K9euMcV3rDU+y73/v0Z8CSPaF0RC&#13;
+sYox1B/VVukgxpWfRL0m1Vjtp9qRR9wBcSV4Io5rCTCXgTkVTNuuQwXuilkvcfKOi19NhqiEeTtj&#13;
+f3UyXl1cECUM/Zk4kNj/CCOf4UVNh4BhDygu7nGrN0BUaBOurbMgq65BWn11olDuwaoHzklmJ8gO&#13;
+SwL7pwQhe3Yn4zXO5nqi2T85sGlItzDj78dUgEaJlhX9n7jCTlABdtfvzQIDAQABoAAwDQYJKoZI&#13;
+hvcNAQELBQADggEBAE1GBhjNVBYF3oOLsq9NMnklxkTIWTVjby+Kkrapnp39csWlt6V+NVSI6cvW&#13;
+pRDES7WlV2f0gBQiH/qtRz9GPR/hisLkpX1bvGgTW/oi5nah5L3o0W2KRHk7Di4nLnDXteSSAPnI&#13;
+Ja80li+bgNGqhkCOn4dnej9CeuKCRpNfx6dW4TWktE3Z8FuuNKzB2Qji8XOT2KZyNHlOLgY13tX/&#13;
+1EpsBDbUP7GvkXqj3ZR62jOOUhHcmlgyABiN3I7NyOMJrrSe3uTLmMtAbGdFxC27azXMOeNl57DV&#13;
+osikU4aC15xi78BUrYnnpHGxTjueZgrmjyYA2ihcy6tLsWVpp1OHMmQ=&#13;
+-----END CERTIFICATE REQUEST-----</Value>
+    </Attribute>
+  </Input>
+  <Input>
+    <ClassID>SubjectNameInput</ClassID>
+    <Name>Subject Name</Name>
+    <Attribute name="sn_uid">
+      <Value>testuser</Value>
+    </Attribute>
+  </Input>
+  <Input>
+    <ClassID>SubmitterInfoInput</ClassID>
+    <Name>Requestor Information</Name>
+  </Input>
+  <ProfilePolicySet>
+    <policies>
+      <def id="Subject Name Default">
+        <description>This default populates a User-Supplied Certificate Subject Name to the request.</description>
+        <policyAttribute name="name">
+          <Value>UID=testuser</Value>
+          <Descriptor>
+            <Syntax>string</Syntax>
+            <Description>Subject Name</Description>
+          </Descriptor>
+        </policyAttribute>
+      </def>
+      <constraint id="Subject Name Constraint">
+        <description>This constraint accepts the subject name that matches UID=.*</description>
+        <classId>SubjectNameConstraint</classId>
+        <constraint id="pattern">
+          <descriptor>
+            <Syntax>string</Syntax>
+            <Description>Subject Name Pattern</Description>
+          </descriptor>
+          <value>UID=.*</value>
+        </constraint>
+      </constraint>
+    </policies>
+    <policies>
+      <def id="No Default">
+        <description>No Default</description>
+      </def>
+      <constraint id="Renewal Grace Period Constraint">
+        <description>This constraint rejects the validity that is not between 30 days before and 30 days after original cert expiration date days.</description>
+        <classId>RenewGracePeriodConstraint</classId>
+        <constraint id="renewal.graceBefore">
+          <descriptor>
+            <Syntax>integer</Syntax>
+            <Description>Renewal Grace Period Before</Description>
+            <DefaultValue>30</DefaultValue>
+          </descriptor>
+          <value>30</value>
+        </constraint>
+        <constraint id="renewal.graceAfter">
+          <descriptor>
+            <Syntax>integer</Syntax>
+            <Description>Renewal Grace Period After</Description>
+            <DefaultValue>30</DefaultValue>
+          </descriptor>
+          <value>30</value>
+        </constraint>
+      </constraint>
+    </policies>
+    <policies>
+      <def id="Validity Default">
+        <description>This default populates a Certificate Validity to the request. The default values are Range=180 in days</description>
+        <policyAttribute name="notBefore">
+          <Value>2021-08-23 22:21:49</Value>
+          <Descriptor>
+            <Syntax>string</Syntax>
+            <Description>Not Before</Description>
+          </Descriptor>
+        </policyAttribute>
+        <policyAttribute name="notAfter">
+          <Value>2022-02-19 22:21:49</Value>
+          <Descriptor>
+            <Syntax>string</Syntax>
+            <Description>Not After</Description>
+          </Descriptor>
+        </policyAttribute>
+      </def>
+      <constraint id="Validity Constraint">
+        <description>This constraint rejects the validity that is not between 365 days.</description>
+        <classId>ValidityConstraint</classId>
+        <constraint id="range">
+          <descriptor>
+            <Syntax>integer</Syntax>
+            <Description>Validity Range</Description>
+            <DefaultValue>365</DefaultValue>
+          </descriptor>
+          <value>365</value>
+        </constraint>
+        <constraint id="rangeUnit">
+          <descriptor>
+            <Syntax>string</Syntax>
+            <Description>Validity Range Unit: year, month, day (default), hour, minute</Description>
+            <DefaultValue>day</DefaultValue>
+          </descriptor>
+          <value/>
+        </constraint>
+        <constraint id="notBeforeGracePeriod">
+          <descriptor>
+            <Syntax>integer</Syntax>
+            <Description>Grace period for Not Before being set in the future (in seconds).</Description>
+            <DefaultValue>0</DefaultValue>
+          </descriptor>
+          <value/>
+        </constraint>
+        <constraint id="notBeforeCheck">
+          <descriptor>
+            <Syntax>boolean</Syntax>
+            <Description>Check Not Before against current time</Description>
+            <DefaultValue>false</DefaultValue>
+          </descriptor>
+          <value>false</value>
+        </constraint>
+        <constraint id="notAfterCheck">
+          <descriptor>
+            <Syntax>boolean</Syntax>
+            <Description>Check Not After against Not Before</Description>
+            <DefaultValue>false</DefaultValue>
+          </descriptor>
+          <value>false</value>
+        </constraint>
+      </constraint>
+    </policies>
+    <policies>
+      <def id="Key Default">
+        <description>This default populates a User-Supplied Certificate Key to the request.</description>
+        <policyAttribute name="TYPE">
+          <Value>RSA - 1.2.840.113549.1.1.1</Value>
+          <Descriptor>
+            <Syntax>string</Syntax>
+            <Constraint>readonly</Constraint>
+            <Description>Key Type</Description>
+          </Descriptor>
+        </policyAttribute>
+        <policyAttribute name="LEN">
+          <Value>2048</Value>
+          <Descriptor>
+            <Syntax>string</Syntax>
+            <Constraint>readonly</Constraint>
+            <Description>Key Length</Description>
+          </Descriptor>
+        </policyAttribute>
+        <policyAttribute name="KEY">
+          <Value>30:82:01:0A:02:82:01:01:00:F1:57:C2:6E:BC:18:84:\n1A:9D:B3:D4:35:1A:F1:3F:29:08:A8:4F:E5:A0:78:8B:\n7A:BF:22:A4:04:82:4A:15:F0:16:82:88:80:CB:CA:0A:\n31:52:1C:8F:C6:A3:C2:AB:66:57:9F:DE:FE:4B:F5:6A:\n1C:DF:D6:02:2A:E4:04:58:54:3B:E3:9B:48:0E:CA:AC:\nFF:FF:46:0F:2F:85:FA:2B:D7:AE:31:C5:77:AC:35:3E:\nCB:BD:FF:BF:46:7C:09:23:DA:17:44:42:B1:8A:31:D4:\n1F:D5:56:E9:20:C6:95:9F:44:BD:26:D5:58:ED:A7:DA:\n91:47:DC:01:71:25:78:22:8E:6B:09:30:97:81:39:15:\n4C:DB:AE:43:05:EE:8A:59:2F:71:F2:8E:8B:5F:4D:86:\nA8:84:79:3B:63:7F:75:32:5E:5D:5C:10:25:0C:FD:99:\n38:90:D8:FF:08:23:9F:E1:45:4D:87:80:61:0F:28:2E:\nEE:71:AB:37:40:54:68:13:AE:AD:B3:20:AB:AE:41:5A:\n7D:75:A2:50:EE:C1:AA:07:CE:49:66:27:C8:0E:4B:02:\nFB:A7:04:21:7B:76:27:E3:35:CE:E6:7A:A2:D9:3F:39:\nB0:69:48:B7:30:E3:EF:C7:54:80:46:89:96:15:FD:9F:\nB8:C2:4E:50:01:76:D7:EF:CD:02:03:01:00:01\n</Value>
+          <Descriptor>
+            <Syntax>string</Syntax>
+            <Constraint>readonly</Constraint>
+            <Description>Key</Description>
+          </Descriptor>
+        </policyAttribute>
+      </def>
+      <constraint id="Key Constraint">
+        <description>This constraint accepts the key only if Key Type=RSA, Key Parameters =1024,2048,3072,4096</description>
+        <classId>KeyConstraint</classId>
+        <constraint id="keyType">
+          <descriptor>
+            <Syntax>choice</Syntax>
+            <Constraint>-,RSA,EC</Constraint>
+            <Description>Key Type</Description>
+            <DefaultValue>RSA</DefaultValue>
+          </descriptor>
+          <value>RSA</value>
+        </constraint>
+        <constraint id="keyParameters">
+          <descriptor>
+            <Syntax>string</Syntax>
+            <Description>Key Lengths or Curves. For EC use comma separated list of curves, otherise use list of key sizes. Ex: 1024,2048,4096,8192 or: nistp256,nistp384,nistp521,sect163k1,nistk163 for EC.</Description>
+            <DefaultValue/>
+          </descriptor>
+          <value>1024,2048,3072,4096</value>
+        </constraint>
+      </constraint>
+    </policies>
+    <policies>
+      <def id="Authority Key Identifier Default">
+        <description>This default populates an Authority Key Identifier Extension (2.5.29.35) to the request.</description>
+        <policyAttribute name="critical">
+          <Value>false</Value>
+          <Descriptor>
+            <Syntax>string</Syntax>
+            <Constraint>readonly</Constraint>
+            <Description>Criticality</Description>
+          </Descriptor>
+        </policyAttribute>
+        <policyAttribute name="keyid">
+          <Value>2B:A7:3C:0B:0C:66:5F:68:CE:A4:66:A8:34:D4:1C:89:\n5C:58:64:44\n</Value>
+          <Descriptor>
+            <Syntax>string</Syntax>
+            <Constraint>readonly</Constraint>
+            <Description>Key ID</Description>
+          </Descriptor>
+        </policyAttribute>
+      </def>
+      <constraint id="No Constraint">
+        <description>No Constraint</description>
+        <classId>NoConstraint</classId>
+      </constraint>
+    </policies>
+    <policies>
+      <def id="AIA Extension Default">
+        <description>This default populates a Authority Info Access Extension (1.3.6.1.5.5.7.1.1) to the request. The default values are Criticality=false, Record #0{Method:1.3.6.1.5.5.7.48.1,Location Type:URIName,Location:,Enable:true}</description>
+        <policyAttribute name="authInfoAccessCritical">
+          <Value>false</Value>
+          <Descriptor>
+            <Syntax>boolean</Syntax>
+            <Description>Criticality</Description>
+            <DefaultValue>false</DefaultValue>
+          </Descriptor>
+        </policyAttribute>
+        <policyAttribute name="authInfoAccessGeneralNames">
+          <Value>Record #0&#13;
+Method:1.3.6.1.5.5.7.48.1&#13;
+Location Type:URIName&#13;
+Location:http://localhost.localdomain:8080/ca/ocsp&#13;
+Enable:true&#13;
+&#13;
+</Value>
+          <Descriptor>
+            <Syntax>string_list</Syntax>
+            <Description>General Names</Description>
+          </Descriptor>
+        </policyAttribute>
+      </def>
+      <constraint id="No Constraint">
+        <description>No Constraint</description>
+        <classId>NoConstraint</classId>
+      </constraint>
+    </policies>
+    <policies>
+      <def id="Key Usage Default">
+        <description>This default populates a Key Usage Extension (2.5.29.15) to the request. The default values are Criticality=true, Digital Signature=true, Non-Repudiation=true, Key Encipherment=true, Data Encipherment=false, Key Agreement=false, Key Certificate Sign=false, Key CRL Sign=false, Encipher Only=false, Decipher Only=false</description>
+        <policyAttribute name="keyUsageCritical">
+          <Value>true</Value>
+          <Descriptor>
+            <Syntax>boolean</Syntax>
+            <Description>Criticality</Description>
+            <DefaultValue>false</DefaultValue>
+          </Descriptor>
+        </policyAttribute>
+        <policyAttribute name="keyUsageDigitalSignature">
+          <Value>true</Value>
+          <Descriptor>
+            <Syntax>boolean</Syntax>
+            <Description>Digital Signature</Description>
+            <DefaultValue>false</DefaultValue>
+          </Descriptor>
+        </policyAttribute>
+        <policyAttribute name="keyUsageNonRepudiation">
+          <Value>true</Value>
+          <Descriptor>
+            <Syntax>boolean</Syntax>
+            <Description>Non-Repudiation</Description>
+            <DefaultValue>false</DefaultValue>
+          </Descriptor>
+        </policyAttribute>
+        <policyAttribute name="keyUsageKeyEncipherment">
+          <Value>true</Value>
+          <Descriptor>
+            <Syntax>boolean</Syntax>
+            <Description>Key Encipherment</Description>
+            <DefaultValue>false</DefaultValue>
+          </Descriptor>
+        </policyAttribute>
+        <policyAttribute name="keyUsageDataEncipherment">
+          <Value>false</Value>
+          <Descriptor>
+            <Syntax>boolean</Syntax>
+            <Description>Data Encipherment</Description>
+            <DefaultValue>false</DefaultValue>
+          </Descriptor>
+        </policyAttribute>
+        <policyAttribute name="keyUsageKeyAgreement">
+          <Value>false</Value>
+          <Descriptor>
+            <Syntax>boolean</Syntax>
+            <Description>Key Agreement</Description>
+            <DefaultValue>false</DefaultValue>
+          </Descriptor>
+        </policyAttribute>
+        <policyAttribute name="keyUsageKeyCertSign">
+          <Value>false</Value>
+          <Descriptor>
+            <Syntax>boolean</Syntax>
+            <Description>Key CertSign</Description>
+            <DefaultValue>false</DefaultValue>
+          </Descriptor>
+        </policyAttribute>
+        <policyAttribute name="keyUsageCrlSign">
+          <Value>false</Value>
+          <Descriptor>
+            <Syntax>boolean</Syntax>
+            <Description>CRL Sign</Description>
+            <DefaultValue>false</DefaultValue>
+          </Descriptor>
+        </policyAttribute>
+        <policyAttribute name="keyUsageEncipherOnly">
+          <Value>false</Value>
+          <Descriptor>
+            <Syntax>boolean</Syntax>
+            <Description>Encipher Only</Description>
+            <DefaultValue>false</DefaultValue>
+          </Descriptor>
+        </policyAttribute>
+        <policyAttribute name="keyUsageDecipherOnly">
+          <Value>false</Value>
+          <Descriptor>
+            <Syntax>boolean</Syntax>
+            <Description>Decipher Only</Description>
+            <DefaultValue>false</DefaultValue>
+          </Descriptor>
+        </policyAttribute>
+      </def>
+      <constraint id="Key Usage Extension Constraint">
+        <description>This constraint accepts the Key Usage extension, if present, only when Criticality=true, Digital Signature=true, Non-Repudiation=true, Key Encipherment=true, Data Encipherment=false, Key Agreement=false, Key Certificate Sign=false, Key CRL Sign=false, Encipher Only=false, Decipher Only=false</description>
+        <classId>KeyUsageExtConstraint</classId>
+        <constraint id="keyUsageCritical">
+          <descriptor>
+            <Syntax>choice</Syntax>
+            <Constraint>true,false,-</Constraint>
+            <Description>Criticality</Description>
+            <DefaultValue>-</DefaultValue>
+          </descriptor>
+          <value>true</value>
+        </constraint>
+        <constraint id="keyUsageDigitalSignature">
+          <descriptor>
+            <Syntax>choice</Syntax>
+            <Constraint>true,false,-</Constraint>
+            <Description>Digital Signature</Description>
+            <DefaultValue>-</DefaultValue>
+          </descriptor>
+          <value>true</value>
+        </constraint>
+        <constraint id="keyUsageNonRepudiation">
+          <descriptor>
+            <Syntax>choice</Syntax>
+            <Constraint>true,false,-</Constraint>
+            <Description>Non-Repudiation</Description>
+            <DefaultValue>-</DefaultValue>
+          </descriptor>
+          <value>true</value>
+        </constraint>
+        <constraint id="keyUsageKeyEncipherment">
+          <descriptor>
+            <Syntax>choice</Syntax>
+            <Constraint>true,false,-</Constraint>
+            <Description>Key Encipherment</Description>
+            <DefaultValue>-</DefaultValue>
+          </descriptor>
+          <value>true</value>
+        </constraint>
+        <constraint id="keyUsageDataEncipherment">
+          <descriptor>
+            <Syntax>choice</Syntax>
+            <Constraint>true,false,-</Constraint>
+            <Description>Data Encipherment</Description>
+            <DefaultValue>-</DefaultValue>
+          </descriptor>
+          <value>false</value>
+        </constraint>
+        <constraint id="keyUsageKeyAgreement">
+          <descriptor>
+            <Syntax>choice</Syntax>
+            <Constraint>true,false,-</Constraint>
+            <Description>Key Agreement</Description>
+            <DefaultValue>-</DefaultValue>
+          </descriptor>
+          <value>false</value>
+        </constraint>
+        <constraint id="keyUsageKeyCertSign">
+          <descriptor>
+            <Syntax>choice</Syntax>
+            <Constraint>true,false,-</Constraint>
+            <Description>Key CertSign</Description>
+            <DefaultValue>-</DefaultValue>
+          </descriptor>
+          <value>false</value>
+        </constraint>
+        <constraint id="keyUsageCrlSign">
+          <descriptor>
+            <Syntax>choice</Syntax>
+            <Constraint>true,false,-</Constraint>
+            <Description>CRL Sign</Description>
+            <DefaultValue>-</DefaultValue>
+          </descriptor>
+          <value>false</value>
+        </constraint>
+        <constraint id="keyUsageEncipherOnly">
+          <descriptor>
+            <Syntax>choice</Syntax>
+            <Constraint>true,false,-</Constraint>
+            <Description>Encipher Only</Description>
+            <DefaultValue>-</DefaultValue>
+          </descriptor>
+          <value>false</value>
+        </constraint>
+        <constraint id="keyUsageDecipherOnly">
+          <descriptor>
+            <Syntax>choice</Syntax>
+            <Constraint>true,false,-</Constraint>
+            <Description>Decipher Only</Description>
+            <DefaultValue>-</DefaultValue>
+          </descriptor>
+          <value>false</value>
+        </constraint>
+      </constraint>
+    </policies>
+    <policies>
+      <def id="Extended Key Usage Extension Default">
+        <description>This default populates an Extended Key Usage Extension () to the request. The default values are Criticality=false, OIDs=1.3.6.1.5.5.7.3.2,1.3.6.1.5.5.7.3.4</description>
+        <policyAttribute name="exKeyUsageCritical">
+          <Value>false</Value>
+          <Descriptor>
+            <Syntax>boolean</Syntax>
+            <Description>Criticality</Description>
+            <DefaultValue>false</DefaultValue>
+          </Descriptor>
+        </policyAttribute>
+        <policyAttribute name="exKeyUsageOIDs">
+          <Value>1.3.6.1.5.5.7.3.2,1.3.6.1.5.5.7.3.4</Value>
+          <Descriptor>
+            <Syntax>string_list</Syntax>
+            <Description>Comma-Separated list of Object Identifiers</Description>
+          </Descriptor>
+        </policyAttribute>
+      </def>
+      <constraint id="No Constraint">
+        <description>No Constraint</description>
+        <classId>NoConstraint</classId>
+      </constraint>
+    </policies>
+    <policies>
+      <def id="Subject Alt Name Constraint">
+        <description>This default populates a Subject Alternative Name Extension (2.5.29.17) to the request. The default values are Criticality=false, Record #0{Pattern:$request.requestor_email$,Pattern Type:RFC822Name,Enable:true}</description>
+        <policyAttribute name="subjAltNameExtCritical">
+          <Descriptor>
+            <Syntax>boolean</Syntax>
+            <Description>Criticality</Description>
+            <DefaultValue>false</DefaultValue>
+          </Descriptor>
+        </policyAttribute>
+        <policyAttribute name="subjAltNames">
+          <Descriptor>
+            <Syntax>string_list</Syntax>
+            <Description>General Names</Description>
+          </Descriptor>
+        </policyAttribute>
+      </def>
+      <constraint id="No Constraint">
+        <description>No Constraint</description>
+        <classId>NoConstraint</classId>
+      </constraint>
+    </policies>
+    <policies>
+      <def id="Signing Alg">
+        <description>This default populates the Certificate Signing Algorithm. The default values are Algorithm=SHA256withRSA</description>
+        <policyAttribute name="signingAlg">
+          <Value>SHA256withRSA</Value>
+          <Descriptor>
+            <Syntax>choice</Syntax>
+            <Constraint>SHA256withRSA,SHA384withRSA,SHA512withRSA,SHA1withRSA,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS</Constraint>
+            <Description>Signing Algorithm</Description>
+          </Descriptor>
+        </policyAttribute>
+      </def>
+      <constraint id="No Constraint">
+        <description>This constraint accepts only the Signing Algorithms of SHA1withRSA,SHA256withRSA,SHA512withRSA,SHA1withEC,SHA256withEC,SHA384withRSA,SHA384withEC,SHA512withEC,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS</description>
+        <classId>SigningAlgConstraint</classId>
+        <constraint id="signingAlgsAllowed">
+          <descriptor>
+            <Syntax>string</Syntax>
+            <Description>Allowed Signing Algorithms</Description>
+            <DefaultValue>SHA256withRSA,SHA384withRSA,SHA512withRSA,SHA1withRSA,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS,SHA256withEC,SHA384withEC,SHA512withEC,SHA1withEC</DefaultValue>
+          </descriptor>
+          <value>SHA1withRSA,SHA256withRSA,SHA512withRSA,SHA1withEC,SHA256withEC,SHA384withRSA,SHA384withEC,SHA512withEC,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS</value>
+        </constraint>
+      </constraint>
+    </policies>
+  </ProfilePolicySet>
+  <nonce>-6869883827433549091</nonce>
+  <requestId>20</requestId>
+  <requestType>enrollment</requestType>
+  <requestStatus>pending</requestStatus>
+  <requestOwner/>
+  <requestCreationTime>Mon Aug 23 22:21:49 CDT 2021</requestCreationTime>
+  <requestModificationTime>Mon Aug 23 22:21:49 CDT 2021</requestModificationTime>
+  <requestNotes/>
+  <profileApprovedBy>admin</profileApprovedBy>
+  <profileSetId>userCertSet</profileSetId>
+  <profileIsVisible>true</profileIsVisible>
+  <profileName>Manual User Dual-Use Certificate Enrollment</profileName>
+  <profileDescription>This certificate profile is for enrolling user certificates.</profileDescription>
+  <profileRemoteHost>127.0.0.1</profileRemoteHost>
+  <profileRemoteAddr>127.0.0.1</profileRemoteAddr>
+</certReviewResponse>
+----
+====
