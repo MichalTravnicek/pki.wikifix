@@ -1,0 +1,85 @@
+= Overview =
+
+The `pki kra-key-archive` command can be used to archive a binary data, a passphrase, or a pre-encrypted secret into KRA.
+ 
+The command accepts a `--transport <nickname>` parameter that can be used to specify the nickname of the transport certificate already in the client's NSS database. If not specified, the command will retrieve the transport certificate from KRA and store it in the client's NSS database.
+
+= Archiving Binary Data =
+
+To archive a binary data:
+
+----
+$ pki -n caadmin kra-key-archive \
+    --clientKeyID test \
+    --input-data private.key
+------------------------
+Archival request details
+------------------------
+  Request ID: 0x1
+  Key ID: 0x1
+  Type: securityDataEnrollment
+  Status: complete
+----
+
+= Archiving Passphrase =
+
+To archive a passphrase:
+
+----
+$ pki -n caadmin kra-key-archive \
+    --clientKeyID test \
+    --passphrase secret
+------------------------
+Archival request details
+------------------------
+  Request ID: 0x1
+  Key ID: 0x1
+  Type: securityDataEnrollment
+  Status: complete
+----
+
+= Archiving Pre-encrypted Secret =
+
+To archive a pre-encrypted secret, store the input in a file (e.g. input.json):
+
+----
+{
+    "Attributes": {
+        "Attribute": [
+            {
+                "name": "clientKeyID",
+                "value": "test"
+            },
+            {
+                "name": "dataType",
+                "value":"symmetricKey"
+            },
+            {
+                "name": "wrappedPrivateData",
+                "value": "..."
+            },
+            {
+                "name": "keyAlgorithm",
+                "value": "AES"
+            },
+            {
+                "name": "realm",
+                "value": "example"
+            },
+            {
+                "name": "keySize",
+                "value": "128"
+            }
+        ]
+    },
+    "ClassName": "com.netscape.certsrv.key.KeyArchivalRequest"
+}
+----
+
+Then execute the following command:
+
+----
+$ pki -n caadmin kra-key-archive \
+    --input input.json \
+    --input-format json
+----
