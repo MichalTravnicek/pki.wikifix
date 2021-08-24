@@ -28,32 +28,33 @@ $ curl \
     "Attributes": {
         "Attribute": []
     },
-    "ProfileID": "caServerCert",
+    "ProfileID": "caUserCert",
     "Renewal": false,
-    "RemoteHost": "",
-    "RemoteAddress": "",
     "Input": [
         {
             "id": "i1",
-            "ClassID": "certReqInputImpl",
-            "Name": "Certificate Request Input",
+            "ClassID": "keyGenInputImpl",
+            "Name": "Key Generation",
+            "Text": null,
             "Attribute": [
                 {
                     "name": "cert_request_type",
                     "Value": "pkcs10",
                     "Descriptor": {
-                        "mSyntax": "cert_request_type",
-                        "mDescription": "Certificate Request Type",
-                        "syntax": "cert_request_type"
+                        "Syntax": "keygen_request_type",
+                        "Constraint": null,
+                        "Description": "Key Generation Request Type",
+                        "DefaultValue": null
                     }
                 },
                 {
                     "name": "cert_request",
-                    "Value": "-----BEGIN CERTIFICATE REQUEST-----\nMIICszCCAZsCAQAwIDEeMBwGA1UEAxMVbG9jYWxob3N0LmxvY2FsZG9tYWluMIIBIjANBgkqhkiG\r\n9w0BAQEFAAOCAQ8AMIIBCgKCAQEAr37VjjANeDisZWwJcJ9aTM58d0r6Zc4HuSMo7s0y/Jnycstd\r\nGrg14emg6qfp0vzPTLczzHKC75IwTrFCKsEQKWFlF6MSq8d3KmZ1cpfp6bQw7uWQC42hDTEGj+WJ\r\ngD8CXATD5HAIqhwI/xlTpE5zyxeoWVT2RBKzu4SJWabFgJrER6W+wz6/ryY9bNLZ/rWIMwJ81srx\r\n/GTzDnBsrptfg4XW28yGBrVxkBAVAGl2V+1tSuM+vRhWenGIKQvxYcCNXe+546bLqULE9RL4t5/+\r\nwxxWzxse6XNsg+3rBhYsGcAU2ZOquVzH2CGAEbuHavYuAdNZwjQw3KrKF0jN1In3cwIDAQABoE4w\r\nTAYJKoZIhvcNAQkOMT8wPTAMBgNVHRMBAf8EAjAAMB0GA1UdJQQWMBQGCCsGAQUFBwMBBggrBgEF\r\nBQcDAjAOBgNVHQ8BAf8EBAMCBaAwDQYJKoZIhvcNAQELBQADggEBAJta14SHIRRJoahJXxAtuwAE\r\niL2hIP7oAeFw17AwwcsS2JIdyMVzIIlHo62Ww8ySjgewG3CTX7AU4vN4uoz0tbO/4Ff0bRMofsih\r\n75WGrzmjtXQgDNlCZ3gVLweumHKHwn64sIJRSRMLoNQyCeETAjZ6lY1yXyrWEUrqBY1Sc0zl45OV\r\nQMVQnQDxdz2YPivb3Lt73hEGLBW1gkoQo5QQrXdEVsLiPw+i6ilXByUMmbvRXfU2nMuoePnS4Xja\r\n/xBlz+nkkfWU9khsxKvikJxL5U1UVj3XavyAiYEDmjxTVXzuOW96rqGRFF3NGoXuQ278YzMqYNQg\r\nzLxMb6JmUdmpPQU=\r\n-----END CERTIFICATE REQUEST-----\n",
+                    "Value": "-----BEGIN CERTIFICATE REQUEST-----\nMIICXzCCAUcCAQAwGjEYMBYGCgmSJomT8ixkAQETCHRlc3R1c2VyMIIBIjANBgkqhkiG9w0BAQEF\r\nAAOCAQ8AMIIBCgKCAQEA4I4U5blOTh/fKjWvTEIvyJlnG40KPnmXIskbtkmhIqB79/1a0SnZkfFm\r\nft1j4+yTMFPFHWRV25P9saOangwxLt1inQ2ohgmLOcIDark8rhNXzBZo28kp6wH6a8lct0WnF4Kj\r\nOD8sZNIgG/+Yk4Sg/t/z7++x3nAJ5+6HOmXWnQS+UwZ/zP+VXqysRphVbaOx7Sd7X0M8YDf5zTp4\r\nIjU9g/dbqJhavnNDXwaolG666gYGO2qbQx+lkOCq0XbrF/cMy8+hebZeOy2HtfqxPeSII0BcOQ9m\r\nY3f2x/JUP+o2d89Fa+3S8B15L2IijMBhumPYNBybYG/F8Of+jVhUU7LAwQIDAQABoAAwDQYJKoZI\r\nhvcNAQELBQADggEBANdx6ioIP2+uMFl4A5nCDRBXK+6T5qvuj1ifN+9/n4hvG7+pajd5DNXplm3h\r\nOOADOlPb3I+GpGZEIYKm87xcUYhqnSyv0My2wVZHx4+xNUQkNVocumwwdSvspQ3FTor8SR+Jb2Gn\r\nYizRgPqBemBtbA1cUEAPITwuuHotAPQgXFVJPVWd5M8vAB7b/uSeB2ZOXi5L/j26KRgG1FkxbhwZ\r\nM3TKPJRmR/c7qFHIhpJ5Kgizss4xRC7mRVWVLsdSFoGibDrO5lS5Vix0R9Vu7ztHyB3a5ZvlT5kj\r\nywTDbVu0Sdc9oqCY8o4O2pwB6DRnbiMGhB9bSxeeG6iRnwdz1waID3k=\r\n-----END CERTIFICATE REQUEST-----\n",
                     "Descriptor": {
-                        "mSyntax": "cert_request",
-                        "mDescription": "Certificate Request",
-                        "syntax": "cert_request"
+                        "Syntax": "keygen_request",
+                        "Constraint": null,
+                        "Description": "Key Generation Request",
+                        "DefaultValue": null
                     }
                 }
             ],
@@ -61,41 +62,143 @@ $ curl \
         },
         {
             "id": "i2",
+            "ClassID": "subjectNameInputImpl",
+            "Name": "Subject Name",
+            "Text": null,
+            "Attribute": [
+                {
+                    "name": "sn_uid",
+                    "Value": "testuser",
+                    "Descriptor": {
+                        "Syntax": "string",
+                        "Constraint": null,
+                        "Description": "UID",
+                        "DefaultValue": null
+                    }
+                },
+                {
+                    "name": "sn_e",
+                    "Value": "",
+                    "Descriptor": {
+                        "Syntax": "string",
+                        "Constraint": null,
+                        "Description": "Email",
+                        "DefaultValue": null
+                    }
+                },
+                {
+                    "name": "sn_cn",
+                    "Value": "",
+                    "Descriptor": {
+                        "Syntax": "string",
+                        "Constraint": null,
+                        "Description": "Common Name",
+                        "DefaultValue": null
+                    }
+                },
+                {
+                    "name": "sn_ou3",
+                    "Value": "",
+                    "Descriptor": {
+                        "Syntax": "string",
+                        "Constraint": null,
+                        "Description": "Organizational Unit 3",
+                        "DefaultValue": null
+                    }
+                },
+                {
+                    "name": "sn_ou2",
+                    "Value": "",
+                    "Descriptor": {
+                        "Syntax": "string",
+                        "Constraint": null,
+                        "Description": "Organizational Unit 2",
+                        "DefaultValue": null
+                    }
+                },
+                {
+                    "name": "sn_ou1",
+                    "Value": "",
+                    "Descriptor": {
+                        "Syntax": "string",
+                        "Constraint": null,
+                        "Description": "Organizational Unit 1",
+                        "DefaultValue": null
+                    }
+                },
+                {
+                    "name": "sn_ou",
+                    "Value": "",
+                    "Descriptor": {
+                        "Syntax": "string",
+                        "Constraint": null,
+                        "Description": "Organizational Unit",
+                        "DefaultValue": null
+                    }
+                },
+                {
+                    "name": "sn_o",
+                    "Value": "",
+                    "Descriptor": {
+                        "Syntax": "string",
+                        "Constraint": null,
+                        "Description": "Organization",
+                        "DefaultValue": null
+                    }
+                },
+                {
+                    "name": "sn_c",
+                    "Value": "",
+                    "Descriptor": {
+                        "Syntax": "string",
+                        "Constraint": null,
+                        "Description": "Country",
+                        "DefaultValue": null
+                    }
+                }
+            ],
+            "ConfigAttribute": []
+        },
+        {
+            "id": "i3",
             "ClassID": "submitterInfoInputImpl",
             "Name": "Requestor Information",
+            "Text": null,
             "Attribute": [
                 {
                     "name": "requestor_name",
                     "Value": "",
                     "Descriptor": {
-                        "mSyntax": "string",
-                        "mDescription": "Requestor Name",
-                        "syntax": "string"
+                        "Syntax": "string",
+                        "Constraint": null,
+                        "Description": "Requestor Name",
+                        "DefaultValue": null
                     }
                 },
                 {
                     "name": "requestor_email",
                     "Value": "",
                     "Descriptor": {
-                        "mSyntax": "string",
-                        "mDescription": "Requestor Email",
-                        "syntax": "string"
+                        "Syntax": "string",
+                        "Constraint": null,
+                        "Description": "Requestor Email",
+                        "DefaultValue": null
                     }
                 },
                 {
                     "name": "requestor_phone",
                     "Value": "",
                     "Descriptor": {
-                        "mSyntax": "string",
-                        "mDescription": "Requestor Phone",
-                        "syntax": "string"
+                        "Syntax": "string",
+                        "Constraint": null,
+                        "Description": "Requestor Phone",
+                        "DefaultValue": null
                     }
                 }
             ],
             "ConfigAttribute": []
         }
-    ],
-    "Output": []
+    ]
 }
 EOF
 {
@@ -104,14 +207,178 @@ EOF
         {
             "requestType": "enrollment",
             "requestStatus": "pending",
-            "requestURL": "https://localhost.localdomain:8443/ca/rest/certrequests/1",
+            "requestURL": "https://localhost.localdomain:8443/ca/rest/certrequests/23",
             "certRequestType": "pkcs10",
-            "operationResult": "success",
-            "requestId": "0x1"
+            "operationResult": "success"
         }
     ],
     "Link": []
 }
+----
+====
+
+.XML
+[%collapsible]
+====
+----
+$ curl \
+    -k \
+    -s \
+    -X POST \
+    -d @- \
+    -H "Content-Type: application/xml" \
+    -H "Accept: application/xml" \
+    https://localhost.localdomain:8443/ca/rest/certrequests << EOF | xmllint --format -
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<CertEnrollmentRequest>
+  <Attributes/>
+  <ProfileID>caUserCert</ProfileID>
+  <Renewal>false</Renewal>
+  <RemoteHost/>
+  <RemoteAddress/>
+  <Input id="i1">
+    <ClassID>keyGenInputImpl</ClassID>
+    <Name>Key Generation</Name>
+    <Attribute name="cert_request_type">
+      <Value>pkcs10</Value>
+      <Descriptor>
+        <Syntax>keygen_request_type</Syntax>
+        <Description>Key Generation Request Type</Description>
+      </Descriptor>
+    </Attribute>
+    <Attribute name="cert_request">
+      <Value>-----BEGIN CERTIFICATE REQUEST-----
+MIICXzCCAUcCAQAwGjEYMBYGCgmSJomT8ixkAQETCHRlc3R1c2VyMIIBIjANBgkqhkiG9w0BAQEF&#13;
+AAOCAQ8AMIIBCgKCAQEA8VfCbrwYhBqds9Q1GvE/KQioT+WgeIt6vyKkBIJKFfAWgoiAy8oKMVIc&#13;
+j8ajwqtmV5/e/kv1ahzf1gIq5ARYVDvjm0gOyqz//0YPL4X6K9euMcV3rDU+y73/v0Z8CSPaF0RC&#13;
+sYox1B/VVukgxpWfRL0m1Vjtp9qRR9wBcSV4Io5rCTCXgTkVTNuuQwXuilkvcfKOi19NhqiEeTtj&#13;
+f3UyXl1cECUM/Zk4kNj/CCOf4UVNh4BhDygu7nGrN0BUaBOurbMgq65BWn11olDuwaoHzklmJ8gO&#13;
+SwL7pwQhe3Yn4zXO5nqi2T85sGlItzDj78dUgEaJlhX9n7jCTlABdtfvzQIDAQABoAAwDQYJKoZI&#13;
+hvcNAQELBQADggEBAE1GBhjNVBYF3oOLsq9NMnklxkTIWTVjby+Kkrapnp39csWlt6V+NVSI6cvW&#13;
+pRDES7WlV2f0gBQiH/qtRz9GPR/hisLkpX1bvGgTW/oi5nah5L3o0W2KRHk7Di4nLnDXteSSAPnI&#13;
+Ja80li+bgNGqhkCOn4dnej9CeuKCRpNfx6dW4TWktE3Z8FuuNKzB2Qji8XOT2KZyNHlOLgY13tX/&#13;
+1EpsBDbUP7GvkXqj3ZR62jOOUhHcmlgyABiN3I7NyOMJrrSe3uTLmMtAbGdFxC27azXMOeNl57DV&#13;
+osikU4aC15xi78BUrYnnpHGxTjueZgrmjyYA2ihcy6tLsWVpp1OHMmQ=&#13;
+-----END CERTIFICATE REQUEST-----
+</Value>
+      <Descriptor>
+        <Syntax>keygen_request</Syntax>
+        <Description>Key Generation Request</Description>
+      </Descriptor>
+    </Attribute>
+  </Input>
+  <Input id="i2">
+    <ClassID>subjectNameInputImpl</ClassID>
+    <Name>Subject Name</Name>
+    <Attribute name="sn_uid">
+      <Value>testuser</Value>
+      <Descriptor>
+        <Syntax>string</Syntax>
+        <Description>UID</Description>
+      </Descriptor>
+    </Attribute>
+    <Attribute name="sn_e">
+      <Value/>
+      <Descriptor>
+        <Syntax>string</Syntax>
+        <Description>Email</Description>
+      </Descriptor>
+    </Attribute>
+    <Attribute name="sn_cn">
+      <Value/>
+      <Descriptor>
+        <Syntax>string</Syntax>
+        <Description>Common Name</Description>
+      </Descriptor>
+    </Attribute>
+    <Attribute name="sn_ou3">
+      <Value/>
+      <Descriptor>
+        <Syntax>string</Syntax>
+        <Description>Organizational Unit 3</Description>
+      </Descriptor>
+    </Attribute>
+    <Attribute name="sn_ou2">
+      <Value/>
+      <Descriptor>
+        <Syntax>string</Syntax>
+        <Description>Organizational Unit 2</Description>
+      </Descriptor>
+    </Attribute>
+    <Attribute name="sn_ou1">
+      <Value/>
+      <Descriptor>
+        <Syntax>string</Syntax>
+        <Description>Organizational Unit 1</Description>
+      </Descriptor>
+    </Attribute>
+    <Attribute name="sn_ou">
+      <Value/>
+      <Descriptor>
+        <Syntax>string</Syntax>
+        <Description>Organizational Unit</Description>
+      </Descriptor>
+    </Attribute>
+    <Attribute name="sn_o">
+      <Value/>
+      <Descriptor>
+        <Syntax>string</Syntax>
+        <Description>Organization</Description>
+      </Descriptor>
+    </Attribute>
+    <Attribute name="sn_c">
+      <Value/>
+      <Descriptor>
+        <Syntax>string</Syntax>
+        <Description>Country</Description>
+      </Descriptor>
+    </Attribute>
+  </Input>
+  <Input id="i3">
+    <ClassID>submitterInfoInputImpl</ClassID>
+    <Name>Requestor Information</Name>
+    <Attribute name="requestor_name">
+      <Value/>
+      <Descriptor>
+        <Syntax>string</Syntax>
+        <Description>Requestor Name</Description>
+      </Descriptor>
+    </Attribute>
+    <Attribute name="requestor_email">
+      <Value/>
+      <Descriptor>
+        <Syntax>string</Syntax>
+        <Description>Requestor Email</Description>
+      </Descriptor>
+    </Attribute>
+    <Attribute name="requestor_phone">
+      <Value/>
+      <Descriptor>
+        <Syntax>string</Syntax>
+        <Description>Requestor Phone</Description>
+      </Descriptor>
+    </Attribute>
+  </Input>
+</CertEnrollmentRequest>
+EOF
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<CertRequestInfos>
+  <entries xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="certRequestInfo">
+    <requestType>enrollment</requestType>
+    <requestStatus>pending</requestStatus>
+    <requestURL>https://localhost.localdomain:8443/ca/rest/certrequests/21</requestURL>
+    <certRequestType>pkcs10</certRequestType>
+    <operationResult>success</operationResult>
+  </entries>
+  <total>1</total>
+  <CertRequestInfo>
+    <requestType>enrollment</requestType>
+    <requestStatus>pending</requestStatus>
+    <requestURL>https://localhost.localdomain:8443/ca/rest/certrequests/21</requestURL>
+    <certRequestType>pkcs10</certRequestType>
+    <operationResult>success</operationResult>
+  </CertRequestInfo>
+</CertRequestInfos>
 ----
 ====
 
