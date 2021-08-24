@@ -2,6 +2,10 @@
 
 This page describes the process to get KRA transport certificate.
 
+For older versions see:
+
+* link:Getting-KRA-Transport-Certificate[Getting KRA Transport Certificate on PKI 10.5]
+
 = Getting KRA Transport Certificate from the Server Side =
 
 To display KRA transport certificate:
@@ -103,42 +107,4 @@ fKLVxsF2UlRXcpn63WX71y+iF0ybbFJfvJHkt3BcXqDIZfjfWAvHdx6BPnNWxZoZsCGOFP/32Z/X
 t8NBIEblEztG9th4ezcoplJOYgo4PiC99gvrsPCBdJHmaqxyGwfDH0prnwQOHSmGw/nTS1wc7Hwy
 iD9sEa5pcKyMlS98e9l0SvbBN8LX8Uk+eFK2YRv5IWb+kNkIGysEfiCB/FIaF6oaZ51cU/oXMQA=
 -----END PKCS7-----
-----
-
-= PKI 10.5 or Older =
-
-In PKI 10.5 or older it's necessary to find the transport certificate by its CN attribute:
-
-----
-$ pki ca-cert-find --name "DRM Transport Certificate"
----------------
-1 entries found
----------------
-  Serial Number: 0x7
-  Subject DN: CN=DRM Transport Certificate,O=EXAMPLE
-  Status: VALID
-  Type: X.509 version 3
-  Key Algorithm: PKCS #1 RSA with 2048-bit key
-  Not Valid Before: Thu Oct 22 18:26:11 CEST 2015
-  Not Valid After: Wed Oct 11 18:26:11 CEST 2017
-  Issued On: Thu Oct 22 18:26:11 CEST 2015
-  Issued By: caadmin
-----------------------------
-Number of entries returned 1
-----------------------------
-----
-
-Then use the serial number to download the certificate into a file:
-
-----
-$ pki ca-cert-show 0x7 --output transport.pem
------------------
-Certificate "0x7"
------------------
-  Serial Number: 0x7
-  Issuer: CN=CA Signing Certificate,O=EXAMPLE
-  Subject: CN=DRM Transport Certificate,O=EXAMPLE
-  Status: VALID
-  Not Before: Thu Oct 22 18:26:11 CEST 2015
-  Not After: Wed Oct 11 18:26:11 CEST 2017
 ----
