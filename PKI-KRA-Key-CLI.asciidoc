@@ -48,23 +48,7 @@ All key operations should be executed as KRA agent.
 
 == Recovering Key ==
 
-To recover a key, prepare the request in a file using the recovery template, for example:
-
-----
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<KeyRecoveryRequest>
-    <Attributes>
-        <Attribute name="keyId">1</Attribute>
-    </Attributes>
-    <ClassName>com.netscape.certsrv.key.KeyRecoveryRequest</ClassName>
-</KeyRecoveryRequest>
-----
-
-Then submit the request with the following command:
-
-----
-$ pki -n caadmin kra-key-recover --input recoverKey.xml
-----
+* link:Recovering-Key-in-KRA[Recovering Key in KRA]
 
 == Retrieving Key ==
 
