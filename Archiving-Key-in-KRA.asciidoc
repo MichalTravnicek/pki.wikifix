@@ -10,7 +10,7 @@ To archive a binary data:
 
 ----
 $ pki -n caadmin kra-key-archive \
-    --clientKeyID test \
+    --clientKeyID testkey \
     --input-data private.key
 ------------------------
 Archival request details
@@ -27,7 +27,7 @@ To archive a passphrase:
 
 ----
 $ pki -n caadmin kra-key-archive \
-    --clientKeyID test \
+    --clientKeyID testkey \
     --passphrase secret
 ------------------------
 Archival request details
@@ -48,7 +48,7 @@ To archive a pre-encrypted secret, store the input in a file (e.g. input.json):
         "Attribute": [
             {
                 "name": "clientKeyID",
-                "value": "test"
+                "value": "testkey"
             },
             {
                 "name": "dataType",
