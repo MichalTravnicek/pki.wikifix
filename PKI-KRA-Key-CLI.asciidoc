@@ -52,52 +52,7 @@ All key operations should be executed as KRA agent.
 
 == Retrieving Key ==
 
-=== Retrieving key with default security parameters ===
-
-By default key retrieval will be done with randomly generated security parameters.
-
-To retrieve a key and store it into a file:
-
-----
-$ pki -n caadmin kra-key-retrieve --keyID 0x1 --output-data private.key
-------------------------
-Retrieve Key Information
-------------------------
-  Key Algorithm: RSA
-  Key Size: 1024
-  Nonce data: rYkeh4Rb+MI=
-  Output: private.key
-----
-
-To retrieve a key and display it on the screen:
-
-----
-$ pki -n caadmin kra-key-retrieve --keyID 0x1
-------------------------
-Retrieve Key Information
-------------------------
-  Key Algorithm: RSA
-  Key Size: 1024
-  Nonce data: rYkeh4Rb+MI=
-  Actual archived data: MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBALTyleypbSGRnb8+
-P/BItA74mTdLX4eFY+fKE4hraeOV4ts+4M9qfry/FJkbMq3dpIpsxuMmGclbHEUQ
-J/MfLAHgaxwVLGK8qCGb0IeY0Z7qIbGucSCLcDVpODlsTvqftK/SJZm56ODu7xXh
-CZT6MFzv07jJ19MYvNm+1NWthuB1AgMBAAECgYEAgCj5i2ANDaOniRa8DqJP9fKa
-ApH+HWya8EcuQodhvnIg9Yy5ie8xyNnF6xNad87uhaS50ZTg2r8PbNMemJJRhenP
-xCCF4nht7C7YfeMS9dohAmi15IFga5rRJ2p9TYZXaHBDbg7SUGk4l0/w6kDTXxfI
-t9X8h7rc46YfEI2BEoECQQDbVXp/OWbGCtHQMvCX6SeoDbi7j/fF6RkC02fNhlNt
-t0yhFPXu+TOifB6wLgoyAPP5aFCBDSkli+4VhsSLQoBRAkEA0zJX2OQywnj5jpfA
-NvwHQF0T4tQz/kuNrzM0JNztMeV7EBXdycPWC/jWE0Ml0u5BSqWxa/cHZrT+Ts8p
-JLqY5QJAdRTkFxXlLsKHzcPjerQTXzoz6quncBZGK6P+PU//KQo39aTiw3ZzgcEQ
-AKwS9S5dDj4I+1qzJD/WD9epA020gQJAO8w5S1Pxe1a9cj5NUkQx2WuBQexLfGjw
-CPc6gGV9U29iVL+cOJCWfnVKR9HvV7XWDsizX5pmIhKFHtNRFvEucQJBANS4zipX
-m09uLdioohLoKrfp0gdqyiEnCXWX08PwenuU+VsQOVx80nw5S1M+nnFHK4KO+Zsi
-xc8DHiXQl0lyXD0=
-----
-
-=== Retrieving key with custom security parameters ===
-
-See link:PKI-KRA-Key-Retrieve-Java-API[PKI KRA Key Retrieve Java API].
+* link:Retrieving-Key-in-KRA[Retrieving Key in KRA]
 
 == Displaying Key Info ==
 
