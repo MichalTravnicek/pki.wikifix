@@ -2,12 +2,12 @@
 
 This document describes the CLI to manage certificate profiles in CA. The commands can only be executed by CA admin.
 
-To submit certificate requests using these profiles, see [[PKI CA Certificate CLI]].
+To submit certificate requests using these profiles, see link:PKI-CA-Certificate-CLI[PKI CA Certificate CLI].
 
 = Listing Certificate Profiles =
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-profile-find
+----
+$ pki -n caadmin ca-profile-find
 ------------------
 59 entries matched
 ------------------
@@ -20,14 +20,14 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-profile-find
 -----------------------------
 Number of entries returned 20
 -----------------------------
-</pre>
+----
 
 = Displaying Certificate Profile Details =
 
 To display a specific certificate profile:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-profile-show caUserCert
+----
+$ pki -n caadmin ca-profile-show caUserCert
 --------------------
 Profile "caUserCert"
 --------------------
@@ -58,12 +58,12 @@ Profile "caUserCert"
     Attribute Name: b64_cert
     Attribute Description: Certificate Base-64 Encoded
     Attribute Syntax: pretty_print
-</pre>
+----
 
 To display a specific certificate profile in raw format:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-profile-show caUserCert --raw
+----
+$ pki -n caadmin ca-profile-show caUserCert --raw
 #Tue Jul 10 01:59:22 CEST 2018
 policyset.userCertSet.6.constraint.params.keyUsageNonRepudiation=true
 policyset.userCertSet.7.constraint.class_id=noConstraintImpl
@@ -74,7 +74,7 @@ policyset.userCertSet.7.default.params.exKeyUsageCritical=false
 policyset.userCertSet.10.constraint.params.renewal.graceBefore=30
 output.o1.class_id=certOutputImpl
 ...
-</pre>
+----
 
 = Downloading Certificate Profile =
 
@@ -82,18 +82,19 @@ output.o1.class_id=certOutputImpl
 
 To download the profile configuration in XML format:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-profile-show caUserCert --output caUserCert.xml
+----
+$ pki -n caadmin ca-profile-show caUserCert --output caUserCert.xml
 --------------------
 Profile "caUserCert"
 --------------------
 ------------------------------------------
 Saved profile caUserCert to caUserCert.xml
 ------------------------------------------
-</pre>
+----
+
 The output file will look like the following:
 
-<pre>
+----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Profile xmlns:ns2="http://www.w3.org/2005/Atom" id="caUserCert">
 
@@ -177,20 +178,22 @@ The output file will look like the following:
     <link href="https://server.example.com:8443/ca/rest/profiles/caUserCert" rel="self"/>
 
 </Profile>
-</pre>
+----
 
 == Downloading Certificate Profile in Raw Format ==
 
 To download the profile configuration in Raw format:
 
- $ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-profile-show caUserCert --output caUserCert.cfg --raw
- ------------------------------------------
- Saved profile caUserCert to caUserCert.cfg
- ------------------------------------------
+----
+$ pki -n caadmin ca-profile-show caUserCert --output caUserCert.cfg --raw
+------------------------------------------
+Saved profile caUserCert to caUserCert.cfg
+------------------------------------------
+----
 
 The output file will look like the following:
 
-<pre>
+----
 #Tue Jul 10 00:58:57 CEST 2018
 policyset.userCertSet.6.constraint.params.keyUsageNonRepudiation=true
 policyset.userCertSet.7.constraint.class_id=noConstraintImpl
@@ -202,7 +205,7 @@ policyset.userCertSet.10.constraint.params.renewal.graceBefore=30
 output.o1.class_id=certOutputImpl
 policyset.userCertSet.3.default.name=Key Default
 ...
-</pre>
+----
 
 = Creating Certificate Profile =
 
@@ -214,68 +217,88 @@ Then submit the new configuration to the server with pki ca-profile-add command.
 
 In XML format, the new profile ID must be specified as follows:
 
- <Profile ... id="newProfile">
-     ...
- </Profile>
+----
+<Profile ... id="newProfile">
+    ...
+</Profile>
+----
 
 To create the new profile:
 
- $ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-profile-add newProfile.xml
+----
+$ pki -n caadmin ca-profile-add newProfile.xml
+----
 
 == Creating Certificate Profile in Raw Format ==
 
 In raw format, the new profile ID must be specified as follows:
 
- profileId=newProfile
+----
+profileId=newProfile
+----
 
 To create the new profile:
 
- $ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-profile-add newProfile.cfg --raw
+----
+$ pki -n caadmin ca-profile-add newProfile.cfg --raw
+----
 
 = Modifying Certificate Profile =
 
-'''Note:''' A certificate profile must be disabled before it can be modified. Once the modification is complete, the profile can be reenabled.
+*Note:* A certificate profile must be disabled before it can be modified. Once the modification is complete, the profile can be reenabled.
 
 To modify a certificate profile, download the current profile configuration, edit the file as needed, then upload the changes with pki ca-profile-mod command.
 
 To upload an updated profile configuration in XML format:
 
- $ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-profile-mod caUserCert.xml
+----
+$ pki -n caadmin ca-profile-mod caUserCert.xml
+----
 
 To upload an updated profile configuration in raw format:
 
- $ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-profile-mod caUserCert.cfg --raw
+----
+$ pki -n caadmin ca-profile-mod caUserCert.cfg --raw
+----
 
 = Editing Certificate Profile =
 
-'''Note:''' A certificate profile must be disabled before it can be modified. Once the modification is complete, the profile can be reenabled.
+*Note:* A certificate profile must be disabled before it can be modified. Once the modification is complete, the profile can be reenabled.
 
 For convenience, a certificate profile can be visually edited in raw format (without downloading the configuration file manually) with the following command:
 
- $ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin> ca-profile-edit caUserCert
+----
+$ pki -n caadmin> ca-profile-edit caUserCert
+----
 
 This command will automatically download the profile configuration in raw format and open it with a vi text editor. When the editor is closed, the edited profile configuration will be used to update the profile on the server.
 
 = Deleting Certificate Profile =
 
-'''Note:''' A certificate profile must be disabled before it can be deleted.
+*Note:* A certificate profile must be disabled before it can be deleted.
 
 To delete a certificate profile, execute the following command:
 
- $ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-profile-del caUserCert
+----
+$ pki -n caadmin ca-profile-del caUserCert
+----
 
 = Enabling/Disabling Certificate Profile =
 
 To enable a certificate profile:
 
- $ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-profile-enable caUserCert
+----
+$ pki -n caadmin ca-profile-enable caUserCert
+----
 
 To disable a certificate profile:
 
- $ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-profile-disable caUserCert
+----
+$ pki -n caadmin ca-profile-disable caUserCert
+----
 
-= References =
+= See Also =
 
-* [https://www.dogtagpki.org/wiki/CLI CLI]
-* [[PKI CA Certificate CLI]]
-* [https://www.dogtagpki.org/wiki/LDAP_Profile_Storage LDAP Profile Storage]
+* link:https://www.dogtagpki.org/wiki/CLI[CLI]
+* link:PKI-CA-Certificate-CLI[PKI CA Certificate CLI]
+* link:https://www.dogtagpki.org/wiki/LDAP_Profile_Storage[LDAP Profile Storage]
