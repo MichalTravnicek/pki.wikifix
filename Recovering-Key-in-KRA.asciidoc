@@ -1,0 +1,30 @@
+To recover a key:
+
+----
+$ pki -n caadmin kra-key-recover --keyID 1
+--------------------------------
+Key Recovery Request Information
+--------------------------------
+  Request ID: 0x15
+  Key ID: 0x1
+  Type: securityDataRecovery
+  Status: svc_pending
+----
+
+Alternatively, prepare the request in a file using the recovery template, for example:
+
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<KeyRecoveryRequest>
+    <Attributes>
+        <Attribute name="keyId">1</Attribute>
+    </Attributes>
+    <ClassName>com.netscape.certsrv.key.KeyRecoveryRequest</ClassName>
+</KeyRecoveryRequest>
+----
+
+Then submit the request with the following command:
+
+----
+$ pki -n caadmin kra-key-recover --input recoverKey.xml
+----
