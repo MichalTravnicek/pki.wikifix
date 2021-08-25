@@ -1,0 +1,28 @@
+= Reviewing Key Request =
+
+To review a key request:
+
+----
+$ pki <agent authentication> kra-key-request-review <request ID> --action <action>
+----
+
+Available actions:
+
+* `approve`
+* `reject`
+* `cancel`
+
+= Approving Key Request =
+
+To approve a key request:
+
+----
+$ pki -n caadmin kra-key-request-review 0x1 --action approve
+------
+Result
+------
+  Request ID: 0x1
+  Key ID: 0x1
+  Type: asymkeyGenRequest
+  Status: complete
+----
