@@ -1,0 +1,64 @@
+= Request
+
+* Path: `/<subsystem>/rest/admin/users/{userID}`
+* Method: `DELETE`
+* Authentication: Client certificate
+* Parameters: None
+* Content: None
+* Success code: `200`
+
+= Source
+https://github.com/dogtagpki/pki/blob/894293a6b00b0151120cc08f9eb508764ed24e34/base/server/src/main/java/org/dogtagpki/server/rest/UserService.java#L619-L655[UserService.removeUser()]
+
+= Examples
+
+.CA Example
+[%collapsible]
+====
+----
+$ curl \
+  -k \
+  -X "DELETE" \
+  --user caadmin:Secret.123 \
+  -s https://localhost.localdomain:8443/ca/rest/admin/users/asdtfg
+----
+====
+
+.KRA Example
+[%collapsible]
+====
+----
+$ curl \
+  -k \
+  -X "DELETE" \
+  --user kraadmin:Secret.123 \
+  -s https://localhost.localdomain:8443/kra/rest/admin/users/kradmin
+----
+====
+
+.OCSP Example
+[%collapsible]
+====
+----
+$ curl \
+  -k \
+  -X "DELETE" \
+  --user ocspadmin:Secret.123 \
+  -s https://localhost.localdomain:8443/ocsp/rest/admin/users/ocspadmin
+----
+====
+
+.TKS Example
+[%collapsible]
+====
+----
+$ curl \
+  -k \
+  -X "DELETE" \
+  --user tksadmin:Secret.123 \
+  -s https://localhost.localdomain:8443/tks/rest/admin/users/tksadmin
+----
+====
+
+= See also
+The TPS subsystem has a different remove user process documented link:PKI-TPS-remove-User-REST-API[here].
