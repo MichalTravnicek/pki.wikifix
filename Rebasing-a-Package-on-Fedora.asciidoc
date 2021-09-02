@@ -138,12 +138,25 @@ Add the new entry (newest log at the top), for example:
 
 = Testing Dist-Git Changes =
 
-Next, make sure the changes do not break anything.
+The following steps can optionally be executed to verify the changes before starting the official build.
 
-Run the following command in the local dist-git repository:
+Verify that the source tarball and the patches (if any) are valid:
 
 ```
 $ fedpkg prep
+```
+
+Verify that the spec changes are valid:
+
+```
+$ fedpkg lint
+```
+
+Create an SRPM file, then create a scratch build:
+
+```
+$ fedpkg srpm
+$ fedpkg scratch-build --srpm <SRPM file>
 ```
 
 = Committing Dist-Git Changes =
@@ -169,9 +182,9 @@ Push the changes to dist-git repository:
 $ git push origin f35
 ```
 
-= Starting the Build =
+= Creating the Build =
 
-Before starting the build, create a BuildRoot override for all dependencies that have been built but not yet released. For example, if the new PKI 11.0.0-beta1 depends on JSS 5.0.0-beta1, then execute the following commands:
+Before creating the build, create a BuildRoot override for all dependencies that have been built but not yet released. For example, if the new PKI 11.0.0-beta1 depends on JSS 5.0.0-beta1, then execute the following commands:
 
 ```
 $ bodhi overrides save jss-5.0.0-0.4.beta1.fc35
