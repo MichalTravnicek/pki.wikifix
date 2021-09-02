@@ -1,19 +1,19 @@
 = Overview =
 
-This page describes the process to rebase (as opposed to patching) a package on Fedora.
+This page describes the process for rebasing (as opposed to patching) a package on Fedora.
 
 As an example, we'll try to rebase the `dogtag-pki` package on Fedora 35 to upstream PKI 11.0.0-beta1.
 
 = Prerequisites =
 
-Get the following information from link:Fedora-Packages[Fedora Packages] (i.e. link:Fedora-35-Packages[Fedora 35 Packages]) page:
+First, gather the following information from link:Fedora-Packages[Fedora Packages] (i.e. link:Fedora-35-Packages[Fedora 35 Packages]) page:
 
 * Upstream project repository and branch/tag (i.e. link:https://github.com/dogtagpki/pki/tree/master[pki/master])
 * Package dist-git repository and branch (i.e. link:https://src.fedoraproject.org/rpms/dogtag-pki/tree/f35[dogtag-pki/f35])
 
 = Authentication =
 
-Make sure you have a Kerberos ticket:
+Make sure you have the authorization to update the upstream project repository (if necessary) and the dist-git repository, for example:
 
 ```
 $ kinit <username>@FEDORAPROJECT.ORG
@@ -21,7 +21,7 @@ $ kinit <username>@FEDORAPROJECT.ORG
 
 = Getting the Sources =
 
-Clone the above repositories into the local machine:
+Next, clone the above repositories into the local machine:
 
 * Upstream project repository (i.e. `git clone https://github.com/dogtagpki/pki.git`)
 * Package dist-git repository (i.e. `fedpkg clone dogtag-pki Fedora/dogtag-pki`)
@@ -30,11 +30,10 @@ You can reuse existing repositories on your local machine if they are already ch
 
 = Updating Upstream Version Number =
 
-First, make sure the upstream project branch has a new version number to rebase to.
+Make sure the upstream project branch has a new version number to rebase to.
+If not, update the version number in the upstream project branch.
 
-According to the link:Fedora-35-Packages[Fedora 35 Packages] page the upstream source for `dogtag-pki` package can be obtained from link:https://github.com/dogtagpki/jss/tree/master[master] branch in upstream `pki` project repository.
-
-In the local upstream repository check out the upstream branch/tag (i.e. `master`):
+In the local upstream project repository check out the upstream branch/tag (i.e. `master`):
 
 ```
 $ git checkout master
@@ -48,7 +47,7 @@ Version:          11.0.0
 Release:          0.4.beta1%{?_timestamp}%{?_commit_id}%{?dist}
 ```
 
-Commit the change:
+Commit the changes upstream:
 
 ```
 $ git commit -a -m "Update version number to 11.0.0-beta1"
@@ -78,9 +77,7 @@ In this case the source tarball will be stored in `pki-11.0.0-beta1.tar.gz`.
 
 = Adding the Source Tarball =
 
-According to the link:Fedora-35-Packages[Fedora 35 Packages] page the packaging source for `pki` package can be obtained from the link:https://src.fedoraproject.org/rpms/dogtag-pki/tree/f35[f35] branch in `dogtag-pki` package dist-git repository.
-
-In the local dist-git repository check out the dist-git branch:
+In the local dist-git repository check out the dist-git branch (i.e. link:https://src.fedoraproject.org/rpms/dogtag-pki/tree/f35[f35]):
 
 ```
 $ git checkout f35
@@ -124,7 +121,7 @@ $ git rm <filename>
 
 = Adding a Change Log =
 
-Add a change log entry to describe the bug being fixed.
+Add a change log entry to describe the changes.
 
 Find the following line in the spec file:
 
@@ -132,7 +129,7 @@ Find the following line in the spec file:
 %changelog
 ```
 
-Add the new entry (newest log at the top):
+Add the new entry (newest log at the top), for example:
 
 ```
 * Fri Sep 03 2021 Dogtag PKI Team <devel@lists.dogtagpki.org> - 11.0.0-0.4.beta1
@@ -174,12 +171,14 @@ $ git push origin f35
 
 = Starting the Build =
 
-Before starting the build, make sure any dependencies that have been built but not yet released are added into the BuildRoot, for example:
+Before starting the build, create a BuildRoot override for all dependencies that have been built but not yet released. For example, if the new PKI 11.0.0-beta1 depends on JSS 5.0.0-beta1, then execute the following commands:
 
 ```
-$ bodhi overrides save jss-5.0.0-1.fc35
-$ koji wait-repo f35-build --build=jss-5.0.0-1.fc35
+$ bodhi overrides save jss-5.0.0-0.4.beta1.fc35
+$ koji wait-repo f35-build --build=jss-5.0.0-0.4.beta1.fc35
 ```
+
+*Note:* The BuildRoot override is not required for Rawhide.
 
 Then start the build with the following command:
 
@@ -199,19 +198,21 @@ $ git push origin v11.0.0-beta1
 
 = Creating Bodhi Update =
 
-To actually release the build in Fedora, create a Bodhi update so the package will be included in Fedora testing repository, for example:
+Finally, create a Bodhi update which includes the new build and the dependencies (if any), for example:
 
 ```
 $ bodhi updates new \
    --request=testing \
    --type=enhancement \
    --notes="Update to PKI 11.0.0-0.4.beta1" \
-dogtag-pki-11.0.0-0.4.beta1.fc35
+dogtag-pki-11.0.0-0.4.beta1.fc35 \
+jss-5.0.0-0.4.beta1.fc35
 ```
 
-Once the update receives enough Karma points, it will be released into Fedora stable repository.
+The builds then will be added into Fedora updates testing repository.
+Once the update receives enough Karma points, the builds will be released into Fedora stable repository.
 
-*Note:* This is required for all Fedora versions except Rawhide.
+*Note:* The Bodhi update is not required for Rawhide.
 
 = See Also =
 
