@@ -1,0 +1,59 @@
+= Overview =
+
+This page describes the process to rebase (as opposed to patching) a package on Fedora.
+
+As an example, we are rebasing `dogtag-pki` package on Fedora 35 from version `11.0.0-alpha2` to `11.0.0-beta1`.
+
+= Prerequisites =
+
+Get the following information from link:Fedora-Packages[Fedora Packages] page:
+
+* Upstream project repository and branch
+* Package dist-git repository and branch
+
+For this example see link:Fedora-35-Packages[Fedora 35 Packages].
+
+Check out the following repositories into the local machine:
+
+* Upstream project repository
+  * e.g. `git clone https://github.com/dogtagpki/pki.git`
+* Package dist-git repository
+  * e.g. `fedpkg clone rpms/dogtag-pki rpms/dogtag-pki`
+
+You can reuse existing repositories on your local machine if they are already checked out. It's not necessary to delete them after the build.
+
+= Updating Upstream Version Number =
+
+First update the upstream version number in the upstream project branch.
+
+According to the link:Fedora-35-Packages[Fedora 35 Packages] page the upstream source for `pki-core` package can be obtained from [master](https://github.com/dogtagpki/jss/tree/master) branch in upstream `pki` project repository.
+
+Go to the local `master` project repository and checkout the branch:
+
+```
+$ git checkout master
+```
+
+Change the `Release` field in `pki.spec`:
+
+```
+Version:          11.0.0
+Release:          0.3.alpha2%{?_timestamp}%{?_commit_id}%{?dist}
+```
+
+to
+
+```
+Version:          11.0.0
+Release:          0.4.beta1%{?_timestamp}%{?_commit_id}%{?dist}
+```
+
+Make sure the release number is bigger than the latest release number for link:https://koji.fedoraproject.org/koji/packageinfo?packageID=9999[dogtag-pki in Koji].
+
+Commit the change, then create a tag with the new version number:
+
+```
+$ git tag v11.0.0-beta1
+```
+
+*Note:* Do not include the release number since this is an upstream tag.
