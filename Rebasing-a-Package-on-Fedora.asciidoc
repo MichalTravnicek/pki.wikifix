@@ -139,7 +139,7 @@ Add the new entry (newest log at the top):
 - Rebase to PKI 11.0.0-beta1
 ```
 
-= Testing the Changes =
+= Testing Dist-Git Changes =
 
 Next, make sure the changes do not break anything.
 
@@ -149,7 +149,7 @@ Run the following command in the local dist-git repository:
 $ fedpkg prep
 ```
 
-= Commit the Changes =
+= Committing Dist-Git Changes =
 
 Commit the changes to dist-git repository with the following commands:
 
@@ -164,7 +164,7 @@ Enter a short (i.e. one line) summary:
 Rebase to PKI 11.0.0-beta1
 ```
 
-= Push the Changes =
+= Pushing Dist-Git Changes =
 
 Push the changes to dist-git repository:
 
@@ -174,7 +174,14 @@ $ git push origin f35
 
 = Starting the Build =
 
-While in the local dist-git repository, start the build with the following command:
+Before starting the build, make sure any dependencies that have been built but not yet released are added into the BuildRoot, for example:
+
+```
+$ bodhi overrides save jss-5.0.0-1.fc35
+$ koji wait-repo f35-build --build=jss-5.0.0-1.fc35
+```
+
+Then start the build with the following command:
 
 ```
 $ fedpkg build
@@ -182,13 +189,29 @@ $ fedpkg build
 
 If there's a problem with the build, fix it in the upstream branch and start over, or add a patch.
 
-= Pushing the Upstream Tag =
+= Pushing Upstream Tag =
 
 If everything went well, push the upstream tag to origin:
 
 ```
 $ git push origin v11.0.0-beta1
 ```
+
+= Creating Bodhi Update =
+
+To actually release the build in Fedora, create a Bodhi update so the package will be included in Fedora testing repository, for example:
+
+```
+$ bodhi updates new \
+   --request=testing \
+   --type=enhancement \
+   --notes="Update to PKI 11.0.0-0.4.beta1" \
+dogtag-pki-11.0.0-0.4.beta1.fc35
+```
+
+Once the update receives enough Karma points, it will be released into Fedora stable repository.
+
+*Note:* This is required for all Fedora versions except Rawhide.
 
 = See Also =
 
