@@ -2,58 +2,182 @@
 
 This page describes the process to rebase (as opposed to patching) a package on Fedora.
 
-As an example, we are rebasing `dogtag-pki` package on Fedora 35 from version `11.0.0-alpha2` to `11.0.0-beta1`.
+As an example, we'll try to rebase the `dogtag-pki` package on Fedora 35 to upstream PKI 11.0.0-beta1.
 
 = Prerequisites =
 
-Get the following information from link:Fedora-Packages[Fedora Packages] page:
+Get the following information from link:Fedora-Packages[Fedora Packages] (i.e. link:Fedora-35-Packages[Fedora 35 Packages]) page:
 
-* Upstream project repository and branch
-* Package dist-git repository and branch
+* Upstream project repository and branch/tag (i.e. link:https://github.com/dogtagpki/pki/tree/master[pki/master])
+* Package dist-git repository and branch (i.e. link:https://src.fedoraproject.org/rpms/dogtag-pki/tree/f35[dogtag-pki/f35])
 
-For this example see link:Fedora-35-Packages[Fedora 35 Packages].
+= Authentication =
 
-Check out the following repositories into the local machine:
+Make sure you have a Kerberos ticket:
 
-* Upstream project repository
-  * e.g. `git clone https://github.com/dogtagpki/pki.git`
-* Package dist-git repository
-  * e.g. `fedpkg clone rpms/dogtag-pki rpms/dogtag-pki`
+```
+$ kinit <username>@FEDORAPROJECT.ORG
+```
 
-You can reuse existing repositories on your local machine if they are already checked out. It's not necessary to delete them after the build.
+= Getting the Sources =
+
+Clone the above repositories into the local machine:
+
+* Upstream project repository (i.e. `git clone https://github.com/dogtagpki/pki.git`)
+* Package dist-git repository (i.e. `fedpkg clone dogtag-pki dogtag-pki`)
+
+You can reuse existing repositories on your local machine if they are already checked out. It's not necessary to clone new ones every time.
 
 = Updating Upstream Version Number =
 
-First update the upstream version number in the upstream project branch.
+First, make sure the upstream project branch has a new version number to rebase to.
 
-According to the link:Fedora-35-Packages[Fedora 35 Packages] page the upstream source for `pki-core` package can be obtained from [master](https://github.com/dogtagpki/jss/tree/master) branch in upstream `pki` project repository.
+According to the link:Fedora-35-Packages[Fedora 35 Packages] page the upstream source for `dogtag-pki` package can be obtained from link:https://github.com/dogtagpki/jss/tree/master[master] branch in upstream `pki` project repository.
 
-Go to the local `master` project repository and checkout the branch:
+In the local upstream repository check out the upstream branch/tag (i.e. `master`):
 
 ```
 $ git checkout master
+$ git pull
 ```
 
-Change the `Release` field in `pki.spec`:
-
-```
-Version:          11.0.0
-Release:          0.3.alpha2%{?_timestamp}%{?_commit_id}%{?dist}
-```
-
-to
+Make sure the version/release number in the spec file (i.e. `pki.spec`) is higher than the latest one in link:https://koji.fedoraproject.org/koji/packageinfo?packageID=9999[Koji], for example:
 
 ```
 Version:          11.0.0
 Release:          0.4.beta1%{?_timestamp}%{?_commit_id}%{?dist}
 ```
 
-Make sure the release number is bigger than the latest release number for link:https://koji.fedoraproject.org/koji/packageinfo?packageID=9999[dogtag-pki in Koji].
+Commit the change:
 
-Commit the change, then create a tag with the new version number:
+```
+$ git commit -a -m "Update version number to 11.0.0-beta1"
+$ git push origin master
+```
+
+Then create a tag with the new version number:
 
 ```
 $ git tag v11.0.0-beta1
 ```
 
-*Note:* Do not include the release number since this is an upstream tag.
+*Notes:*
+
+* Do not include the release number since this is an upstream tag.
+* Do not push the tag to origin just yet in case it needs to be redone.
+
+# Creating a Source Tarball
+
+Create a source tarball with the new tag:
+
+```
+$ ./build.sh --source-tag=v11.0.0-beta1 src
+```
+
+In this case the source tarball will be stored in `pki-11.0.0-beta1.tar.gz`.
+
+= Adding the Source Tarball =
+
+According to the link:Fedora-35-Packages[Fedora 35 Packages] page the packaging source for `pki` package can be obtained from the link:https://src.fedoraproject.org/rpms/dogtag-pki/tree/f35[f35] branch in `dogtag-pki` package dist-git repository.
+
+In the local dist-git repository check out the dist-git branch:
+
+```
+$ git checkout f35
+$ git pull
+```
+
+Import the tarball into dist-git with this command:
+
+```
+$ fedpkg new-sources <path to>/pki-11.0.0-beta1.tar.gz
+```
+
+= Merge the Spec Files =
+
+Next, merge the upstream spec file into the dist-git spec file.
+
+Use a merging tool such as `meld` to merge the files, for example:
+
+```
+$ meld <upstream>/pki.spec <dist-git>/dogtag-pki.spec
+```
+
+In general most changes in upstream spec file should be merged into dist-git spec file,
+and most changes in dist-git spec file should be removed.
+If there are dist-git changes that cannot be removed, try to merge and commit it upstream if possible.
+Ideally the files should become identical except for platform specific macros, patch files, and change logs.
+
+= Remove Unused Patch Files =
+
+Next, remove any patch files that are already included in the upstream branch from dist-git spec file:
+
+```
+Patch1: <filename>
+```
+
+Also remove the patch files from dist-git:
+
+```
+$ git rm <filename>
+```
+
+= Adding a Change Log =
+
+Add a change log entry to describe the bug being fixed.
+
+Find the following line in the spec file:
+
+```
+%changelog
+```
+
+Add the new entry (newest log at the top):
+
+```
+* Fri Sep 03 2021 Dogtag PKI Team <devel@lists.dogtagpki.org> - 11.0.0-0.4.beta1
+- Rebase to PKI 11.0.0-beta1
+```
+
+= Testing the Changes =
+
+Next, make sure the changes do not break anything.
+
+Run the following command in the local dist-git repository:
+
+```
+$ fedpkg prep
+```
+
+= Commit the Changes =
+
+Commit the changes to dist-git repository with the following commands:
+
+```
+$ git add dogtag-pki.spec
+$ git commit
+```
+
+Enter a short (i.e. one line) summary:
+
+```
+Rebase to PKI 11.0.0-beta1
+```
+
+= Push the Changes =
+
+Push the changes to dist-git repository:
+
+```
+$ git push origin f35
+```
+
+= Starting the Build =
+
+While in the local dist-git repository, start the build with the following command:
+
+```
+$ fedpkg build
+```
+
+If there's a problem with the build, fix it in the upstream branch and start over, or add a patch.
