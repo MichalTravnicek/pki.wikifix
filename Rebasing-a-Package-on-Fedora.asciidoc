@@ -40,11 +40,12 @@ $ git checkout master
 $ git pull
 ```
 
-Make sure the version/release number in the spec file (i.e. `pki.spec`) is higher than the latest one in link:https://koji.fedoraproject.org/koji/packageinfo?packageID=9999[Koji], for example:
+Make sure the version/release number and `_phase` in the spec file (i.e. `pki.spec`) is higher than the latest one in link:https://koji.fedoraproject.org/koji/packageinfo?packageID=9999[Koji], for example:
 
 ```
 Version:          11.0.0
 Release:          0.4.beta1%{?_timestamp}%{?_commit_id}%{?dist}
+%global           _phase -beta1
 ```
 
 Commit the changes upstream:
