@@ -1,0 +1,50 @@
+= Overview =
+
+This page describes the process to configure TLS cipher list when installing a PKI subsystem using the link:https://www.dogtagpki.org/wiki/Two-Step_Installation[Two-Step Installation].
+
+= Customizing TLS Server Cipher List =
+
+Run step 1, then edit the cipher list in /var/lib/pki/pki-tomcat/conf/server.xml as needed (see link:https://www.dogtagpki.org/wiki/Tomcat_JSS_Configuration[Tomcat JSS Configuration]):
+
+----
+<Server>
+    ...
+    <Connector
+           ...
+           tlsCiphers="-TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA,-TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA,+T
+LS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA,+TLS_ECDH_RSA_WITH_AES_128_CBC_SHA,+TLS_ECDH_RSA_WITH_AES_256_CBC_
+SHA,-TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA,+TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,+TLS_RSA_WITH_3DES_ED
+E_CBC_SHA,+TLS_RSA_WITH_AES_128_CBC_SHA,+TLS_RSA_WITH_AES_256_CBC_SHA,+TLS_ECDHE_ECDSA_WITH_3DES_EDE
+_CBC_SHA,+TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,-TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,-TLS_ECDHE_RSA_W
+ITH_AES_128_CBC_SHA,-TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,+TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA,+TLS_DHE_
+DSS_WITH_AES_128_CBC_SHA,+TLS_DHE_DSS_WITH_AES_256_CBC_SHA,+TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA,+TLS_D
+HE_RSA_WITH_AES_128_CBC_SHA,+TLS_DHE_RSA_WITH_AES_256_CBC_SHA"
+            ...
+            />
+    ...
+</Server>
+----
+
+Then run step 2 (after making all changes needed).
+
+= Customizing TLS Client Cipher List =
+
+Note, this procedure is only for CS subsystem to CS subsystem communication when acting as a client, it is not for CA subsystem to the LDAP server.
+
+Run step 1. 
+
+For CA => KRA, edit `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg` and update the `clientCiphers` parameter, e.g.:
+
+----
+ca.connector.KRA.clientCiphers=TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_256_CBC_SHA
+----
+
+Similarly, for TPS => [CA | KRA | TKS], edit `/var/lib/pki/pki-tomcat/tps/conf/CS.cfg` and update the `clientCiphers` parameter:
+
+----
+tps.connector.ca id.clientCiphers=your selected cipher list
+tps.connector.kra id.clientCiphers=your selected cipher list
+tps.connector.tks id.clientCiphers=your selected cipher list
+----
+
+Then run step 2 (after making all changes needed).
