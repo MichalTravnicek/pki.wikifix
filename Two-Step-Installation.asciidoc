@@ -1,0 +1,101 @@
+= Overview =
+
+The pkispawn provides a number of deployment parameters to customize PKI installation.
+However, there are quite a few things that cannot be customized using pkispawn parameters.
+Some of these customizations can be done after the whole installation is complete (e.g. customizing standard certificate profiles),
+but there are some others that have to be done during the installation process (e.g. customizing system certificate profiles).
+
+To customize configuration files during installation, the installation needs be done in two steps:
+
+* step 1: installation
+* step 2: configuration
+
+In the installation step the configuration, files will be copied from the shared folder (i.e. `/usr/share/pki`) into the instance folder (i.e. `/var/lib/pki/<instance>`) and customized based on the parameters specified in the deployment configuration.
+
+In the configuration step the installation will continue using the configuration files that are already customized in the instance folder (i.e. `/var/lib/pki/<instance>`).
+
+Between these two steps additional customization can be done manually as needed to the files stored in the instance folder (i.e. `/var/lib/pki/<instance>`).
+
+== Step 1: Installation ==
+
+To run the installation step, prepare the deployment configuration as usual (e.g. `ca.cfg`), then add the following parameter:
+
+----
+pki_skip_configuration=True
+----
+
+Start the installation step, for example:
+
+----
+$ pkispawn -f ca.cfg -s CA
+----
+
+Since PKI 10.4.x the `pki_skip_configuration` parameter can be set using `--skip-configuration` CLI option, for example:
+
+----
+$ pkispawn -f ca.cfg -s CA --skip-configuration
+----
+
+== Step 2: Configuration ==
+
+To run the configuration step, remove the `pki_skip_configuration` parameter and add the following parameter;
+
+----
+pki_skip_installation=True
+----
+
+Then re-run pkispawn to run the configuration step, for example:
+
+----
+$ pkispawn -f ca.cfg -s CA
+----
+
+Since PKI 10.4.x the `pki_skip_installation` parameter can be set using `--skip-installation` CLI option, for example:
+
+----
+$ pkispawn -f ca.cfg -s CA --skip-installation
+----
+
+= Use Cases =
+
+== Configuring Session Timeout ==
+
+See link:Configuring-Session-Timeout[Configuring Session Timeout].
+
+== Configuring Subsystem Debug Level ==
+
+See link:Configuring-Subsystem-Debug-Level[Configuring Subsystem Debug Level].
+
+== Adding System Certificate Request Extensions ==
+
+See link:Adding-System-Certificate-Request-Extensions[Adding System Certificate Request Extensions].
+
+== Configuring System Certificate Profiles ==
+
+See link:Configuring-System-Certificate-Profiles[Configuring System Certificate Profiles].
+
+== Customizing CA Certificate Profiles ==
+
+Run step 1.
+
+Configure the profile as described in link:Configuring-Certificate-Profiles[Configuring Certificate Profiles].
+
+Then run step 2 (after making all changes needed).
+
+== Customizing Certificate Serial Number Range ==
+
+Run step 1. Edit the serial number configuration in `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg` as needed (see link:https://www.dogtagpki.org/wiki/CA_Configuration[CA Configuration]):
+
+----
+dbs.beginSerialNumber=1
+----
+
+Then run step 2 (after making all changes needed).
+
+== Customizing TLS Cipher List ==
+
+See link:Configuring-TLS-Cipher-List[Configuring TLS Cipher List].
+
+== Customizing Tomcat Access Log ==
+
+See link:Configuring-Access-Log[Configuring Access Log].
