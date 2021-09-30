@@ -1,0 +1,35 @@
+= Overview =
+
+This page describes the process to deploy openshift-acme to issue certificates for applications on OpenShift automatically using a PKI ACME responder.
+
+= Deploying openshift-acme =
+
+See link:https://github.com/dogtagpki/pki/blob/master/docs/installation/openshift/Deploying_openshift-acme_on_OpenShift.md[Deploying openshift-acme on OpenShift].
+
+= Removing Sample Application =
+
+----
+$ oc delete route/gohellouniverse
+$ oc delete service/gohellouniverse
+$ oc delete deployment/gohellouniverse
+----
+
+= Removing openshift-acme =
+
+----
+$ oc delete rolebinding/openshift-acme
+$ oc delete serviceaccount/openshift-acme
+$ oc delete role.rbac.authorization.k8s.io/openshift-acme
+$ oc delete configmap/acme-controller-locks
+$ oc delete configmap/letsencrypt-live
+$ oc delete secret/letsencrypt-live
+$ oc delete deployment/openshift-acme
+----
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/OpenShift[OpenShift]
+* link:https://github.com/tnozicka/openshift-acme[tnozicka/openshift-acme]
+* link:https://github.com/tnozicka/openshift-acme/issues/104[ACME v1 has yesterday been turned off]
+* link:https://jira.coreos.com/browse/WRKLDS-86[Migrate openshift-acme to v2]
+* link:https://www.dogtagpki.org/wiki/Minishift[Minishift]
