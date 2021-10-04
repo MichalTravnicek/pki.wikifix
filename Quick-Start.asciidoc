@@ -14,61 +14,11 @@ $ dnf install -y dogtag-pki
 
 To create a DS instance, see link:DS-Installation[DS Installation].
 
-= Creating CA Subsystem =
+= Creating PKI Subsystems =
 
-To create CA subsystem in interactive mode, run `pkispawn` :
+To install CA subsystem, see link:Installing-CA-Interactively[Installing CA Interactively].
 
-----
-$ pkispawn
-Subsystem (CA/KRA/OCSP/TKS/TPS) [CA]:
-
-Tomcat:
-  Instance [pki-tomcat]:
-  HTTP port [8080]:
-  Secure HTTP port [8443]:
-  AJP port [8009]:
-  Management port [8005]:
-
-Administrator:
-  Username [caadmin]:
-  Password: Secret.123
-  Verify password: Secret.123
-  Import certificate (Yes/No) [N]?
-  Export certificate to [/root/.dogtag/pki-tomcat/ca_admin.cert]:
-
-Directory Server:
-  Hostname [server.example.com]:
-  Port [389]:
-  Bind DN [cn=Directory Manager]:
-  Password: Secret.123
-  Base DN [o=pki-tomcat-CA]:
-
-Security Domain:
-  Name [example.com Security Domain]:
-
-Begin installation (Yes/No/Quit)? Y
-
-Installing CA into /var/lib/pki/pki-tomcat.
-Storing deployment configuration into /etc/sysconfig/pki/tomcat/pki-tomcat/ca/deployment.cfg.
-
-    ==========================================================================
-                                INSTALLATION SUMMARY
-    ==========================================================================
-
-      Administrator's username:             caadmin
-      Administrator's PKCS #12 file:
-            /root/.dogtag/pki-tomcat/ca_admin_cert.p12
-
-      To check the status of the subsystem:
-            systemctl status pki-tomcatd@pki-tomcat.service
-
-      To restart the subsystem:
-            systemctl restart pki-tomcatd@pki-tomcat.service
-      The URL for the subsystem is:
-            https://server.example.com:8443/ca
-
-    ==========================================================================
-----
+To install KRA subsystem, see link:Installing-KRA-Interactively[Installing KRA Interactively].
 
 See also link:Installation-Guide[Installation Guide].
 
