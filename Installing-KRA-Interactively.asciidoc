@@ -1,0 +1,80 @@
+= Overview =
+
+This page describes the process to install a KRA subsystem.
+
+= Installation Procedure =
+
+To start the installation execute the following command:
+
+----
+$ pkispawn
+
+IMPORTANT:
+
+    Interactive installation currently only exists for very basic deployments!
+
+    For example, deployments intent upon using advanced features such as:
+
+        * Cloning,
+        * Elliptic Curve Cryptography (ECC),
+        * External CA,
+        * Hardware Security Module (HSM),
+        * Subordinate CA,
+        * etc.,
+
+    must provide the necessary override parameters in a separate
+    configuration file.
+
+    Run 'man pkispawn' for details.
+
+Subsystem (CA/KRA/OCSP/TKS/TPS) [CA]: KRA
+
+Tomcat:
+  Instance [pki-tomcat]: 
+
+Administrator:
+  Username [kraadmin]: 
+  Password: Secret.123
+  Verify password: Secret.123
+  Import certificate (Yes/No) [Y]? 
+  Import certificate from [/root/.dogtag/pki-tomcat/ca_admin.cert]: 
+
+Directory Server:
+  Hostname [server.example.com]: 
+  Use a secure LDAPS connection (Yes/No/Quit) [N]? 
+  LDAP Port [389]: 
+  Bind DN [cn=Directory Manager]: 
+  Password: Secret.123
+  Base DN [o=pki-tomcat-KRA]: 
+
+Security Domain:
+  Hostname [server.example.com]: 
+  Secure HTTP port [8443]: 
+  Name: example.com Security Domain
+  Username [caadmin]: 
+  Password: Secret.123
+
+Begin installation (Yes/No/Quit)? Y
+
+Installation log: /var/log/pki/pki-kra-spawn.20211004145029.log
+Installing KRA into /var/lib/pki/pki-tomcat.
+
+    ==========================================================================
+                                INSTALLATION SUMMARY
+    ==========================================================================
+
+      Administrator's username:             kraadmin
+
+      To check the status of the subsystem:
+            systemctl status pki-tomcatd@pki-tomcat.service
+
+      To restart the subsystem:
+            systemctl restart pki-tomcatd@pki-tomcat.service
+
+      The URL for the subsystem is:
+            https://server.example.com:8443/kra
+
+      PKI instances will be enabled upon system boot
+
+    ==========================================================================
+----
