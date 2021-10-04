@@ -1,0 +1,88 @@
+= Overview =
+
+This page describes the process to install a CA subsystem with a self-signed CA signing certificate.
+
+Before beginning with the installation, please ensure that you have configured the directory
+server and added base entries.
+The step is described link:DS-Installation[here].
+
+Additionally, make sure the FQDN has been link:https://github.com/dogtagpki/pki/blob/master/docs/installation/server/FQDN_Configuration.adoc[configured] correctly.
+
+= Installation Procedure =
+
+To start the installation execute the following command:
+
+----
+$ pkispawn
+
+IMPORTANT:
+
+    Interactive installation currently only exists for very basic deployments!
+
+    For example, deployments intent upon using advanced features such as:
+
+        * Cloning,
+        * Elliptic Curve Cryptography (ECC),
+        * External CA,
+        * Hardware Security Module (HSM),
+        * Subordinate CA,
+        * etc.,
+
+    must provide the necessary override parameters in a separate
+    configuration file.
+
+    Run 'man pkispawn' for details.
+
+Subsystem (CA/KRA/OCSP/TKS/TPS) [CA]: 
+
+Tomcat:
+  Instance [pki-tomcat]: 
+  HTTP port [8080]: 
+  Secure HTTP port [8443]: 
+  AJP port [8009]: 
+  Management port [8005]: 
+
+Administrator:
+  Username [caadmin]: 
+  Password: Secret.123
+  Verify password: Secret.123
+  Import certificate (Yes/No) [N]? 
+  Export certificate to [/root/.dogtag/pki-tomcat/ca_admin.cert]: 
+
+Directory Server:
+  Hostname [server.example.com]: 
+  Use a secure LDAPS connection (Yes/No/Quit) [N]? 
+  LDAP Port [389]: 
+  Bind DN [cn=Directory Manager]: 
+  Password: Secret.123
+  Base DN [o=pki-tomcat-CA]: 
+
+Security Domain:
+  Name [example.com Security Domain]: 
+
+Begin installation (Yes/No/Quit)? Y
+
+Installation log: /var/log/pki/pki-ca-spawn.20211004143017.log
+Installing CA into /var/lib/pki/pki-tomcat.
+
+    ==========================================================================
+                                INSTALLATION SUMMARY
+    ==========================================================================
+
+      Administrator's username:             caadmin
+      Administrator's PKCS #12 file:
+            /root/.dogtag/pki-tomcat/ca_admin_cert.p12
+
+      To check the status of the subsystem:
+            systemctl status pki-tomcatd@pki-tomcat.service
+
+      To restart the subsystem:
+            systemctl restart pki-tomcatd@pki-tomcat.service
+
+      The URL for the subsystem is:
+            https://server.example.com:8443/ca
+
+      PKI instances will be enabled upon system boot
+
+    ==========================================================================
+----
