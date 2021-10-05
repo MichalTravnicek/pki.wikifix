@@ -1,0 +1,25 @@
+= Token Lifecycle =
+
+* Removed `UNINITIALIZED` to `FOUND` transition.
+* Removed `UNINITIALIZED` to `TEMP_LOST_PERM_LOST` transition.
+* Merged `TEMP_LOST_PERM_LOST` into `PERM_LOST`.
+* Removed `DISABLED`.
+* Renamed `FOUND` to `ACTIVE`.
+* Added customizable token state and transition labels.
+* Renamed `TEMP_LOST` to `SUSPENDED`.
+* Renamed `UNINITIALIZED` to `FORMATTED`.
+* Fixed `tps.operations.allowedTransitions` description to list only `UNFORMATTED`, `FORMATTED`, and `ACTIVE`.
+* Added `UNFORMATTED` state as initial state.
+* Added `TERMINATED` to `UNFORMATTED` UI transition.
+* Added `UNFORMATTED` to `FORMATTED` operation transition.
+* Added warning in the UI before `TERMINATED` -> `UNFORMATTED` transition: "When reusing a token that was previously enrolled, out of security concerns, make sure the certificate and key objects are removed from the token."
+
+= Tickets =
+
+* link:https://pagure.io/dogtagpki/issue/1289[Ticket #1289 - Transition TEMP_LOST to TEMP_LOST_TOKEN_FOUND does not exist]
+* link:https://pagure.io/dogtagpki/issue/1290[Ticket #1290 - Enrollment of a temporarily lost token is successful, with transition 3:4]
+* link:https://pagure.io/dogtagpki/issue/1291[Ticket #1291 - Change state of a token from TEMP_LOST to TEMP_LOST_PERM_LOST not possible from the UI]
+* link:https://pagure.io/dogtagpki/issue/1808[Ticket #1808 - Illegal token state transition via TEMP_LOST]
+* link:https://pagure.io/dogtagpki/issue/2286[Ticket #2286 - Renaming TEMP_LOST token state to SUSPENDED]
+* link:https://pagure.io/dogtagpki/issue/2287[Ticket #2287 - Adding token UNFORMATTED state]
+* link:https://pagure.io/dogtagpki/issue/2288[Ticket #2288 - Renaming UNINITIALIZED token state to FORMATTED]
