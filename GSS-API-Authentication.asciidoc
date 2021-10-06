@@ -35,6 +35,8 @@ For certificate profile processing, a new profile constraint implementation will
 
 The following diagram shows an overview of request processing, including new components (or new component instances):
 
+image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/pki-gssapi.png[PKI GSSAPI]
+
 == Apache frontend performs SPNEGO authentication ==
 
 Use Apache's `mod_auth_gssapi` to perform the GSS-API (SPNEGO) authentication. It is assumed that a service principal for Dogtag exists in the Kerberos database, and that a local keytab file is available.
