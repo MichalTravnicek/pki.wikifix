@@ -26,8 +26,8 @@ Barbican agent or service users should be able to access only Barbican secrets. 
 
 For regular requests, changes include:
 
-1. Apache performs SPNEGO authentication (`mod_auth_gssapi`) and mod_lookup_identity adds the principal's groups and permissions to the request.
-2. `ExternalAuthenticationValve` reads groups out of the request environment and adds them to the Principal .
+1. Apache performs SPNEGO authentication (`mod_auth_gssapi`) and `mod_lookup_identity` adds the principal's groups and permissions to the request.
+2. `ExternalAuthenticationValve` reads groups out of the request environment and adds them to the `Principal`.
 3. `AuthMethodInterceptor` updated to recognise external authentication method(s).
 4. `ACLInterceptor` updated to consult the `AuthzSubsystem` differently, depending on whether the principal is externally authenticated or not.
 
@@ -168,3 +168,95 @@ The main advantage of this approach is that it allows Dogtag to enforce access c
 === Profile Authorization ===
 
 See link:GSS-API-Authentication---Profile-Authorization[Profile Authorization].
+
+
+== KRA Authorization ==
+
+The FreeIPA KRA backend currently uses `pki.kra.KRAClient`, therefore we can use SPNEGO authentication for CA operations whilst continuing to use the KRA agent certificate to authenticate KRA operations; no special treatment of the KRA is required.
+
+Eventually we may want to change the KRA client to use GSS-API proxy authentication. This work would be tackled in a separate design.
+
+== Data model impact ==
+
+A new LDAP entry or entries containing ACLs for an external realm will be required in most external authentication use cases.
+
+Some new configuration is needed; in particular:
+
+* Addition and instantiation of `SessionAuthentication` profile authenticator in `CS.cfg`.
+* Addition and instantiation of `ExternalProcessConstraint` profile constraint in `registry.cfg`.
+
+== REST API impact ==
+
+It must be possible to log into the REST API (`GET /ca/rest/account/login`) using SPNEGO. It is possible to offer SPNEGO login at a separate path or guarded by a query parameter if it is not possible to offer a single login resource that can handle SPNEGO, TLS client certificate or BASIC authentication.
+
+Some parts of the API must be accessible by unauthenticated principals (e.g. OCSP responder). The authenticating proxy must be configured to not require SPNEGO authentication (or any other authentication) at these resources.
+
+Some parts of the REST API are intended to be used with a cookie-based session, subsequent to prior authentication at the `/ca/rest/account/login` resource. The login resource shall support SPNEGO authentication.
+
+== Security impact ==
+
+Dogtag (or Apache on behalf of Dogtag, or `gssproxy` on behalf of both) must have access to the keytab for the Dogtag service principal. The keytab, being secret key material, must be appropriately secured.
+
+The connection between Apache and Tomcat must be secure from external access because it carries identity assertions that are trusted by Dogtag. External hosts or processes other than Apache must not be able to send data to Tomcat that contains forged identity assertions.
+
+== Notifications &amp; Audit Impact ==
+
+None known.
+
+== Command Line Client Impact ==
+
+We may wish to enhance the `pki` CLI to be able to perform SPNEGO authentication, using standard credential caches available to the client program. (This is not an initial requirement for the FreeIPA use case).
+
+Depending on the Dogtag principal name (`HTTP/<hostname>` versus `dogtag/<hostname>`) standard SPNEGO implementations may not be appropriate or may require enhancement, because the standard behaviour is to acquire a ticket for `HTTP/<hostname>`.
+
+== Other end user impact ==
+
+None known.
+
+== Performance Impact ==
+
+A client may need to contact the KDC to acquire a service ticket for Dogtag. Tickets should be cached.
+
+SPNEGO typically requires two round trips to the HTTP server, increasing latency and server load. Mitigations include:
+
+1. Use SPNEGO to authenticate to a login resource that issues a session cookie. Present the cookie in subsequent requests, avoiding the need for SPNEGO authentication.
+2. If the client knows that it will be required to perform SPNEGO, it can acquire a service ticket and send the `Authorization: Negotiate ...` header in the first request, avoiding the initial 401 response that would otherwise occur.
+
+== Cloning Impact ==
+
+If using GSS-API authentication, Apache must be set up in front of clones. This could (eventually) be done by `pkispawn`. If initial use cases already require Apache (this is the case for FreeIPA), this work can be deferred.
+
+If clones are accessed via different hostnames, each clone must have its own service principal in the Kerberos database, and Apache must use that principal's keytab. If clones are accessed via a single hostname (e.g. load balanced or multiple DNS records) a shared keytab must be used. See link:https://ssimo.org/blog/id_019.html[Simo's blog post] for more detail about load balancing and Kerberos.
+
+== Other deployer impact ==
+
+When deployed with FreeIPA, in addition to configuring Apache, constrained delegation support must be set up. The FreeIPA framework shall use S4U2Proxy to acquire a ticket for Dogtag, on behalf of the authenticated principal.
+
+`pkispawn` shall learn a new configuration option for deploying `pki-tomcatd` with the AJP connector configured with `tomcatAuthentication="false"`. The default behaviour shall be to deploy without this setting.
+
+`pkispawn` shall learn a new configuration option for deploying `pki-tomcatd` with the AJP connector configured with a `requiredSecret`. The default behaviour shall be to not set this option.
+
+== Developer impact ==
+
+Developers cannot assume that the class of an authenticated `Principal` is `PKIPrincipal`.
+
+= Implementation =
+
+== Assignee(s) ==
+
+* Primary assignee: ftweedal
+* Other contributors: alee
+
+== Work Items ==
+
+= Dependencies =
+
+* Apache, `mod_auth_gssapi`, `mod_lookup_identity`
+
+= Testing =
+
+= Documentation Impact =
+
+What is the impact on the docs of this change? Specifically, which docs and man pages need to be modified?
+
+= References =
