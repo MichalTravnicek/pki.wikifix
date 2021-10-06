@@ -1,0 +1,133 @@
+= Overview =
+
+This document outlines a design for GSS-API / SPNEGO authentication of external identities to Dogtag and handling authorisation for those principals.
+
+= Problem Description =
+
+When Dogtag is running in a Kerberised environment it is desirable to support GSS-API (Kerberos mechanism) authentication.
+
+Additionally, it is desirable to be able to support external identities, i.e. identities that are defined not in Dogtag's own database but in an external identity store, avoiding identity silos and reducing administrative overhead. A mechanism of mapping external groups/roles to Dogtag roles is required, or alternatively, conditional substitution of Dogtag's built in ACL evaluator for an alternative access evaluator that can evaluate an authenticated principal's authorisation to perform Dogtag operations using data or facilities provided by the external identity store.
+
+Dogtag provides an HTTP interface, so link:https://tools.ietf.org/html/rfc4559[SPNEGO over HTTP (RFC 4559)] will be the protocol used.
+
+== Use case: FreeIPA ==
+
+The FreeIPA framework current uses a privileged **RA Agent** account to perform CA operations, in violation of the principle that the framework should only ever operate with the permissions of the currently-authenticated user (a kind of privilege separation). The FreeIPA framework possesses a certificate for the RA Agent account, and TLS client certificate authentication is used. The lack of privilege separation means that the IPA framework must make authorisation decisions about whether an operator has permission to commandeer the RA Agent certificate to perform the requested operation. Unfortunately, several security issues have occurred as a result of failure to correctly authorise such operations. Allowing the framework to authenticate to Dogtag with user credentials avoids the need to for the IPA framework to perform these authorisation checks.
+
+In contrast, when the FreeIPA framework needs to perform LDAP operations, it uses link:http://k5wiki.kerberos.org/wiki/Projects/Services4User[S4U2Proxy] (also known as **constrained delegation**) to acquire a ticket for the LDAP server on behalf of the user. We wish for the same to occur when FreeIPA talks to Dogtag to e.g. issue a certificate or create a new profile.
+
+== Use case: Barbican ==
+
+Barbican agent or service users should be able to access only Barbican secrets. Initially we expect those users/groups to exist in the Dogtag database. Eventually these could become IPA users/groups.
+
+= Proposed Changes =
+
+== Overview ==
+
+For regular requests, changes include:
+
+1. Apache performs SPNEGO authentication (`mod_auth_gssapi`) and mod_lookup_identity adds the principal's groups and permissions to the request.
+2. `ExternalAuthenticationValve` reads groups out of the request environment and adds them to the Principal .
+3. `AuthMethodInterceptor` updated to recognise external authentication method(s).
+4. `ACLInterceptor` updated to consult the `AuthzSubsystem` differently, depending on whether the principal is externally authenticated or not.
+
+For certificate profile processing, a new profile constraint implementation will allow an external process to be invoked to perform additional authorisation and/or validation, according to the needs of the external system. The constraint can be added to profiles as appropriate.
+
+The following diagram shows an overview of request processing, including new components (or new component instances):
+
+== Apache frontend performs SPNEGO authentication ==
+
+Use Apache's `mod_auth_gssapi` to perform the GSS-API (SPNEGO) authentication. It is assumed that a service principal for Dogtag exists in the Kerberos database, and that a local keytab file is available.
+
+Use Apache's `mod_lookup_identity` to look up user groups/roles and populate the request environment. Components in Tomcat or Dogtag will construct a principal from information in the request environment. Assuming AJP is used to connect Apache to Tomcat (this is the case for FreeIPA), this means that mod_lookup_identity must prefix the variables it wishes to convey to Dogtag with `AJP_`. These are made available via `ServletRequest.getAttribute(String name)` where `name` has been stripped of the `AJP_` prefix.
+
+=== Kerberos principal ===
+
+The choice of Kerberos principal(s) to use for Dogtag needs to be decided. Several possibilities exist:
+
+* **Standalone Dogtag deployment**: each Dogtag clone must have its own principal of the form `HTTP/<hostname>`, permitting access using standard HTTP clients supporting SPNEGO (including web browsers).
+* **IPA CA deployment (`ipa-ca.<ipadomain>`)**: instances of the IPA CA can be accessed at `ipa-ca.<ipadomain>`. Access using this domain name implies the principal name `HTTP/ipa-ca.<ipadomain>`. This principal's key would have to be be shared among Dogtag clones. Standard HTTP clients can be used.
+* **IPA CA deployment (keytab shared with IPA framework)**: on each IPA server, both the IPA framework and Dogtag HTTP could use the keytab of the `HTTP/<hostname>` principal for GSS-API authentication. This approach is not ideal because from the KDC's point of view, there is no distinction between the IPA web interface and Dogtag on a single server. In this scenario, the IPA framework would still use S4U2Proxy to acquire a ticket for communicating with Dogtag. Standard HTTP clients including web browsers can be used.
+* **IPA CA deployment (different domain names)**: each Dogtag instance would be accessed using a unique domain name and a corresponding `HTTP/<hostname>` service principal for authentication. Standard HTTP clients including web browsers will work. Additional DNS records and CA domain name bookkeeping is required, which more or less rules out this approach.
+* **IPA CA deployment (`dogtag` service type)**: Dogtag would be accessed using the hostname of the IPA service, but the service principal is `dogtag/<hostname>`. There are no new DNS requirements, but HTTP clients that do not allow full control over which principal to acquire a service ticket for cannot be used for GSS-API authentication. The advantage of this approach is that fine-grained S4U2Proxy delegation authorisation rules can be expressed.
+
+=== Example SSSD and Apache configuration ===
+
+The following `sssd.conf` snippet will make all group memberships (including indirect membership) available to mod_lookup_identity as the `roles` attribute. The `memberOf` attribute includes permissions that are inherited through FreeIPA's RBAC rules. These are cached under a different attribute name because it appears that `memberOf` is treated specially, and the D-Bus `org.freedesktop.sssd.infopipe.GetUserGroups` method only returns direct memberships.
+
+----
+[domain/EXAMPLE.COM]
+...
+ldap_user_extra_attrs = roles:memberOf
+
+[ifp]
+allowed_uids = apache
+user_attributes = +roles
+----
+
+The following is an example `httpd.conf` snippet showing how `mod_auth_gssapi` and `mod_lookup_identity` can be configured to perform SPNEGO authentication and provide AJP attributes containing user groups, conditional on the request query string containing an attribute called `gssapi`:
+
+----
+<If "%{QUERY_STRING} =~ /\bgssapi=/">
+  AuthType GSSAPI
+  AuthName &quot;Kerberos Login&quot;
+  GssapiCredStore keytab:/etc/httpd/conf/ipa.keytab
+  GssapiCredStore client_keytab:/etc/httpd/conf/ipa.keytab
+  GssapiDelegCcacheDir /var/run/httpd/ipa/clientcaches
+  GssapiUseS4U2Proxy on
+  GssapiAllowedMech krb5
+  Require valid-user
+  LookupUserAttrIter roles +AJP_REMOTE_USER_GROUP
+</If>
+----
+
+Systems using SELinux must be configured to allow Apache to communicate with SSSD over D-Bus:
+
+----
+% sudo setsebool -P httpd_dbus_sssd 1
+----
+
+=== Alternative approaches considered ===
+
+1. An alternative approach is to leverage Tomcat's `SpnegoAuthenticator` and use `JDNIRealm` to read the groups/roles of the authenticated principal. However, the Tomcat `Authenticator` interface does not support "stacking" or "chaining" of authenticators, nor is it possible to configure different authenticators for different paths in the application; only one authenticator is supported per `Context`. Therefore it would have been necessary to run multiple instances of the application; one using SPNEGO authentication and the other using the existing authenticator (`SSLAuthenticatorWithFallback`).
+
+2. A variation of (1) this approach would be to modify `SSLAuthenticatorWithFallback`, which currently authenticates the client certificate (if present) otherwise falls back to BASIC authentication, to **also** support SPNEGO authentication. The existing pattern of using `HttpServletRequestWrapper` to attempt authentication and falling back to another method if authentication fails should apply, with some modifications, to using `SpnegoAuthenticator` alongside `SSLAuthenticator` and `BasicAuthenticator`. This approach would support the existing deployment layout but retains the drawbacks of using `JNDIRealm` or additional behaviour in `PKIRealm` to look up group membership. Realms, unlike Authenticators, can be composed using `CombinedRealm`.
+
+== Handling externally authenticated principals ==
+
+Tomcat must provide a `java.security.Principal` object representing the remote user. The principal can be retrieved via `HTTPServletRequest.getUserPrincipal()`.
+
+Currently, each PKI instance defines a single AJP 1.3 Connector (port 8009 by default), with the `tomcatAuthentication` attribute not specified (defaulting to `true`). If an AJP request carries remote user information, it is not propagated from the AJP request to the Catalina `Request`. In order to propagate remote user information from an AJP request to the `HTTPServletRequest`, it suffices to configure the connector with `tomcatAuthentication="false"`.
+
+When `tomcatAuthentication="false"`, Tomcat Authenticators are still invoked, but all Authenticator classes shipped with Tomcat short-circuit if they observe that the `HTTPServletRequest` already bears a `Principal`. Dogtag's `SSLAuthenticatorWithFallback` exhibits the same behaviour, because it merely invokes Tomcat Authenticator instances.
+
+=== Setting roles of the `Principal` ===
+
+Per the link:https://tomcat.apache.org/tomcat-8.0-doc/config/ajp.html[AJP Connector documentation], an externally authenticated `Principal` does not have any roles associated with it. Group or role membership information provided in the request environment (by `mod_lookup_identity`) must be added to the `Principal`.
+
+The class of the `Principal` in the request is `CoyotePrincipal`, which does not have any roles, nor any method to add roles.
+
+A `Valve` called `ExternalAuthenticationValve` shall be implemented, which reads `REMOTE_USER_GROUP_*` request attributes provided by `mod_lookup_identity` and constructs a new principal value, copying data from the original `Principal` and adding the roles and request attributes. It then calls `org.apache.catalina.connector.Request.setUserPrincipal()` to replace the principal in the `Request`. Due to the CMS dependencies of the `PKIPrincipal` class, the new principal shall have the type `ExternalPrincipal`, which is a new class that extends `org.apache.catalina.realm.GenericPrincipal` with an attribute that stores the Coyote request attributes (so that the `KRB5CCNAME` attribute that gets set by `mod_auth_gssapi` can be propagated through the system).
+
+=== Caching external principal in the HTTP session ===
+
+The `ExternalAuthenticationValve` shall cache the externally authenticated principal (if any) in the session.
+
+=== Assumptions about the class of the `Principal` ===
+
+Many parts of Dogtag assume or require that the principal is an instance of `PKIPrincipal` (which has an `IAuthToken`) or, roughly equivalently, that an `IAuthToken` and `IUser` are available in the `SessionContext`.
+
+Due to external authentication this assumption or requirement no longer holds; the externally authenticated principal will not be an instance of `PKIPrincipal` and consequently will not provide an `IAuthToken`.
+
+It is proposed to provide a new implementation of `IAuthToken` called `ExternalAuthToken` that wraps a `GenericPrincipal` and provides reasonable values for particular attribute keys where possible. Code that currently calls `PKIPrincipal.getAuthToken()` will be updated to acquire or construct an `IAuthToken` value according to the type of the principal.
+
+=== `AuthMethodInterceptor` changes ===
+
+The `AuthMethodInterceptor` is used to restrict access to resources based on the authentication method (specifically, the name of the `IAuthManager` instance) that was used to authenticate a `PKIPrincipal`.
+
+Because an externally authenticated `GenericPrincipal` does not have an associated `IAuthManager`, `AuthMethodInterceptor` shall be enhanced to handle externally authenticated principals. Two approaches to deal with this are possible:
+
+* If it is satisfactory to treat all external authentication methods homogeneously, infer that any principal that is not a `PKIPrincipal` was externally authenticated and set the the `authManager` name to `external`.
+* If fine-grained access control based on different external authentication methods is needed, extend `GenericPrincipal` with a property to store the authentication type, and update `AuthMethodInterceptor` to read it (similarly to how it reads the `TOKEN_AUTHMGR_INST_NAME` from the `IAuthToken` of a `PKIPrincipal`.)
+
+In either case, the default `auth-method.properties` file shall be updated to allow SPNEGO authentiction at all API endpoints.
