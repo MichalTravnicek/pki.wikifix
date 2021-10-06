@@ -1,0 +1,76 @@
+= Profile Authorization =
+
+Immediate issuance of a certificate is authenticated (and authorised) via the `IProfileAuthentication` plugin configured for a profile. The authenticator instance for a profile is configured via the `auth.instance_id` profile configuration parameter. If no profile authenticator is configured for a given profile, requests are enqueued as *pending*, even if the requestor is currently authenticated.
+
+Certificate issuance authorisation for FreeIPA-managed certificate profiles is currently accomplished via the `raCertAuth` authenticator; an instance of the `AgentCertAuthentication` plugin that authenticates a principal using TLS certificate authentication and checks that they are a member of the `Registration Manager Agents` internal group. In other words, if the RA Agent certificate is used, immediate certificate issuance is authorised. The use of the RA Agent certificate is subject to authorisation checks in the FreeIPA framework, including:
+
+1. The operator must have the `Request Certificate` permission or it must be a self-service request.
+2. CA ACLs, which encode which combinations of subject, CA and profile are valid, are checked.
+
+When operator (proxy) credentials are used for issuing certificate requests, Dogtag itself well have to perform these (or equivalent) authorisation checks. New request authorisation and validation behaviour is needed to do this, and it must be able to use the CA name, profile name and CSR in determining whether certificate issuance should proceed. This is detailed in the subsections that follow.
+
+Because the operator is now authenticated directly to Dogtag, a new profile authenticator called `SessionAuthentication` shall be used to authorise immediate issuance. This plugin shall merely return the `IAuthToken` from the session context, if present.
+
+== How certificate requests are processed ==
+
+It is helpful to note how requests are processed, and when particular data are populated into the CMS request object. The procedure (starting in `EnrollmentProcessor.processEnrollment()`) is outlined below. Non-relevant steps have been omitted. Steps of particular importance are highlighted in boldface.
+
+1. If there is no `IAuthToken`, `CAProcessor.authenticate()` is invoked, which, if the profile has an `IProfileAuthenticator` configured, invokes its `authenticate()` method.
+2. Call `EnrollProfile.createRequests()`
+  - Create request object
+  - **Set the requested CA's authority ID in the request**
+3. Call `CertProcessor.populateRequests()`
+  - **Profile inputs are added to the request (`setInputsIntoRequest()`)**
+  - **Data from the `IAuthToken` are serialised into the request**
+  - **Set the profile ID in the request**
+  - If there is an `IAuthToken`, `IProfileAuthenticator.populate()` is called (this is a no-op for `AgentCertAuthentication`)
+  - `profile.populateInput()` and `profile.populate()` are called
+4. Call `CertProcessor.submitRequests()`, which calls `EnrollProfile.submit()` for each request
+5. Call `EnrollProfile.validate()`, which validates the request against all constraint policies.
+
+== Proposed solution: `ExternalProcessConstraint` ==
+
+A new `IPolicyConstraint` implementation shall be added. It shall execute as a subprocess a program (whose path is given by the `executable` configuration parameter) that can authorise and verify the request. The process timeout, in seconds, is given by the optional `timeout` parameter, defaulting to 10 seconds.
+
+Dogtag shall execute the program with no command line arguments. The program **should** ignore command line arguments.
+
+The program shall be provided the following data via environment variables:
+
+* `DOGTAG_AUTHORITY_ID`: Authority ID (UUID) of target CA
+* `DOGTAG_CERT_REQUEST`: Certificate request value, e.g. a PEM-encoded PKCS #10 CSR
+* `DOGTAG_PROFILE_ID`: Name of certificate profile
+* `DOGTAG_USER`: Operator principal name (i.e. who is submitting the request)
+* `DOGTAG_USER_DATA` (optional): User-supplied data, if any (see following section)
+
+An `ExternalProcessConstraint` instance can be configured to read additional request attributes from the `IRequest` into the subprocess environment, via the `env` configuration sub-store, whose keys are environment variable names and whoes values are `IRequest` `extData` keys. Keys that are not found in the `IRequest` are ignored (nothing gets added to the subprocess environment).
+
+Example configuration:
+
+----
+policyset.serverCertSet.12.default.class_id=noDefaultImpl
+policyset.serverCertSet.12.default.name=No Default
+policyset.serverCertSet.12.constraint.class_id=externalProcessConstraintImpl
+policyset.serverCertSet.12.constraint.name=IPA policy enforcement
+policyset.serverCertSet.12.constraint.params.executable=/usr/libexec/ipa/ipa-pki-validate-cert-request
+policyset.serverCertSet.12.constraint.params.timeout=5
+policyset.serverCertSet.12.constraint.params.env.KRB5CCNAME=auth_token.PRINCIPAL.KRB5CCNAME
+----
+
+The program can use the data available in its environment to authorise and/or validate the request. The outcome is conveyed in the exit status and in standard output:
+
+* If the request is permitted, the exit status SHALL be zero.
+* If the request is not permitted for any reason (FreeIPA example: issuance not permitted by CA ACLs), the exit status SHALL be nonzero, and a description of the failure SHOULD be provided on standard output. (Standard error is case out-of-band data is output on standard error, e.g. logging).
+
+A nonzero exit status shall cause `ERejectException` to be thrown, with the standard output from the executable as its argument. This value gets persisted in the request entry (LDAP ext data, key `IRequest.ERROR`) and propagated to the client in the `errorMessage` field of the response (this is existing behaviour, and is sufficient).
+
+== Propagating arbitrary data to `ExternalProcessConstraint` ==
+
+Some use cases may require aribitrary data supplied by the requestor to be observed by the profile policies, e.g. in the FreeIPA use case, the operator must indicate the subject principal name, and this must be propagated to the request validation program via `ExternalProcessConstraint`.
+
+To support this, a new, optional **user data** parameter will be recognised by the enrolment processor. Specifically, if the HTTP request parameter `user-data` occurs, its value will be recorded in the `IRequest`, and the `ExternalProcessConstraint` will expose it in the subprocess environment (see above).
+
+== Propagating principal attributes to `ExternalProcessConstraint` ==
+
+Some use cases may require attributes about an externally authenticated principal that have been made available in the HTTP request environment (e.g. attributes from `mod_lookup_identity` or `mod_auth_gssapi`) to be made available to profile policies, e.g. the `KRB5CCNAME` variable.
+
+If the authenticated principal is an `ExternalPrincipal`, all of the values from the principal's attribute map shall be added to the `IRequest` as `extData`, under the key `auth_token.PRINCIPAL.<attr-key>`. The `ExternalProcessConstraint` can then be configured to add variables of interest to the subprocess environment.
