@@ -131,3 +131,40 @@ Because an externally authenticated `GenericPrincipal` does not have an associat
 * If fine-grained access control based on different external authentication methods is needed, extend `GenericPrincipal` with a property to store the authentication type, and update `AuthMethodInterceptor` to read it (similarly to how it reads the `TOKEN_AUTHMGR_INST_NAME` from the `IAuthToken` of a `PKIPrincipal`.)
 
 In either case, the default `auth-method.properties` file shall be updated to allow SPNEGO authentiction at all API endpoints.
+
+== Authorisation for external identities ==
+
+=== General authorisation ===
+
+Authorization is currently performed by asking the `AuthzSubsystem` to use a named `IAuthzManager` to evaluate whether a principal (represented by an `IAuthToken` object) is allowed to perform a particular operation against a particular kind of *resource*.
+
+When an operation needs to be authorised, if the principal is a `PKIPrincipal`, whatever `IAuthzManager` is currently used shall continue to be used. `PKIPrincipal.getAuthToken()` provides the `IAuthToken` object.
+
+If the principal is an `ExternalPrincipal`, the name of the `IAuthzManager` to query shall be looked up via the `AuthzSubsystem.getAuthzManagerNameByRealm` method. The realm is the part of the principal name after the `@` symbol. Accordingly, `IAuthzManager` plugin instances that will be used for external principals must have the realm configuration set in `CS.cfg`, e.g to define an authorisation plugin instance for authenticating principals in the `EXAMPLE.COM` realm:
+
+----
+authz.instance.IPAAuthz.pluginName=DirAclAuthz
+authz.instance.IPAAuthz.realm=EXAMPLE.COM
+authz.instance.IPAAuthz.ldap=internaldb
+authz.instance.IPAAuthz.searchBase=cn=IPA.LOCAL,cn=aclResources
+----
+
+The `IAuthToken` created for externally authenticated principals shall be an instance of `ExternalAuthToken`.
+
+To support multiple `DirAclAuthz` instances sharing a single `ldap` connection whilst loading different sets of ACLs for different realms, `DirAclAuthz` shall learn the `searchBase` configuration parameter, which allows an alternative base DN to be specified.
+
+==== Alternative approaches ====
+
+1. `AuthzSubsystem.checkRealm()` can check authorisation for an operation in a particular realm. The `IAuthzSubsystem` lookup by realm is performed internally (the caller must still provide the realm name). The realm name gets prepended to the *resource**, then `IAuthzManager.authorize()` is invoked. The advantage of this approach is that no additional authz managers are required. The disadvantage is that all ACLs for all realms live alongside each other (in the case of `DirAclAuthz`, in a single LDAP entry, though they are distinguished by resource prefix).
+
+=== Authorising FreeIPA principals ===
+
+For authorising FreeIPA principals to perform Dogtag administrative operations (e.g. managing certificate profiles or lightweight CAs), an additional instance of the `DirAclAuthz` plugin can be defined in `CS.cfg` and configured to load ACLs from a different entry (or entries).
+
+The ACLs themselves shall be managed by FreeIPA and can contain references to FreeIPA users, groups and permissions, e.g. `cn=admins,cn=groups,cn=accounts,dc=example,dc=com` or `cn=System: Add CA,cn=permissions,cn=pbac,dc=example,dc=com`.
+
+The main advantage of this approach is that it allows Dogtag to enforce access controls defined in the external IdP. A specific `IAuthzManager` plugin is configured for each IdP. To authorise an operation, the plugin's `authorize` method is invoked with an `IAuthToken` (which contains the principal's name and groups), resource and operation, and it evaluates access. It is possible for the plugin to communicate with other systems.
+
+=== Profile Authorization ===
+
+See link:GSS-API-Authentication---Profile-Authorization[Profile Authorization].
