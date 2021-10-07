@@ -1,12 +1,10 @@
 = Overview =
 
-PKI server access log can be configured during installation using the link:Two-Step-Installation[Two-Step Installation] process.
+PKI server access log can be configured during installation (see link:Two-Step-Installation[Two-Step Installation]) or after installation.
 
-== Configuration Process ==
+= Configuration =
 
-Run installation step 1.
-
-Edit the `AccessLogValve` configuration in `/var/lib/pki/pki-tomcat/conf/server.xml`:
+To configure the access log, edit the `AccessLogValve` configuration in `/var/lib/pki/pki-tomcat/conf/server.xml`:
 
 ----
 <Server>
@@ -18,8 +16,6 @@ Edit the `AccessLogValve` configuration in `/var/lib/pki/pki-tomcat/conf/server.
     ...
 </Server>
 ----
-
-Finally, run installation step 2.
 
 = See Also =
 
