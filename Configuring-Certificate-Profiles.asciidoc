@@ -1,6 +1,8 @@
 = Overview =
 
-Certificate profile templates are stored in link:https://github.com/dogtagpki/pki/tree/master/base/ca/shared/profiles/ca[/usr/share/pki/ca/profiles/ca]. During CA installation, the certificate profiles will be copied into `/var/lib/pki/<instance>/ca/profiles/ca`. During IPA installation, the profiles will be imported into the database as well.
+Certificate profile templates are stored in link:https://github.com/dogtagpki/pki/tree/master/base/ca/shared/profiles/ca[/usr/share/pki/ca/profiles/ca]. During CA installation, the certificate profiles will be copied into `/var/lib/pki/<instance>/ca/profiles/ca`. The profiles can be configured during installation (see link:Two-Step-Installation[Two-Step Installation]) or after installation.
+
+For IPA, the profiles will be imported into the database as well.
 
 To manage CA certificate profiles, use link:https://github.com/dogtagpki/pki/wiki/PKI-CA-Profile-CLI[PKI CA Profile CLI] to ensure the profiles are updated properly regardless of storage location.
 
@@ -8,7 +10,7 @@ See also link:Configuring-System-Certificate-Profiles[Configuring System Certifi
 
 = Configuration =
 
-Profile configuration consists of the following parameters:
+To configure the certificate profile, edit the profile configuration file in `/var/lib/pki/<instance>/ca/profiles/ca` (not in `/usr/share/pki/ca/profiles/ca`):
 
 ----
 desc=...
@@ -33,7 +35,7 @@ policyset.<policy>.<number>.default.params.<name>=...
 
 = Enabling/Disabling Profile =
 
-To enable or disable a profile, set the `enable` to *true* to *false*:
+To enable or disable a profile, set the `enable` to `true` to `false`:
 
 ----
 enable=<true|false>
@@ -41,7 +43,7 @@ enable=<true|false>
 
 = Profile Visibility =
 
-To show or hide a profile, set the `visible` to *true* to *false*:
+To show or hide a profile, set the `visible` to `true` to `false`:
 
 ----
 visible=<true|false>
@@ -52,14 +54,14 @@ visible=<true|false>
 Profile authentication is configured using the `auth.instance_id` parameter. Supported authentications are:
 
 * No authentication (blank)
-* AgentCertAuth
-* CMCAuth
-* flatFileAuth
-* PinDirEnrollment
-* raCertAuth
-* SSLclientCertAuth
-* TokenAuth
-* UserDirEnrollment
+* `AgentCertAuth`
+* `CMCAuth`
+* `flatFileAuth`
+* `PinDirEnrollment`
+* `raCertAuth`
+* `SSLclientCertAuth`
+* `TokenAuth`
+* `UserDirEnrollment`
 
 = SAN Extension =
 
