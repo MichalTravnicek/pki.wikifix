@@ -1,12 +1,10 @@
 = Overview =
 
-CSR extensions can be added into any system certificate's CSR during deployment using the link:Two-Step-Installation[Two-Step Installation] process.
+CSR extensions can be added into any system certificate's CSR during installation (see link:Two-Step-Installation[Two-Step Installation]). The extensions cannot be added after installation.
 
-= Configuration Process =
+= Configuration =
 
-Run installation step 1.
-
-Add the following parameters into `/var/lib/pki-tomcat/<subsystem>/conf/CS.cfg`:
+To add CSR extensions, edd the following parameters into `/var/lib/pki-tomcat/<subsystem>/conf/CS.cfg`:
 
 ----
 preop.cert.<tag>.ext.oid=<OID>
@@ -18,8 +16,6 @@ The `<tag>` is the ID of the system certificate whose CSR will contain the speci
 The valid certificate IDs are listed in `<subsystem>.cert.list` in `CS.cfg` which are different for each subsystem.
 For CA the valid certificate IDs are `signing`, `ocsp_signing`, `sslserver`, `subsystem`, `audit_signing`.
 Currently only one extension can be added to each CSR (in addition to the default ones).
-
-Finally, run installation step 2.
 
 = See Also =
 
