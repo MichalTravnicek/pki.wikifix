@@ -1,12 +1,12 @@
 = Overview =
 
-The link:https://github.com/dogtagpki/pki/wiki/PKI-Console#session-timeout[Session Timeout] configuration affects how long an idle PKI Console will remain connected to the server. For some, the default 5 minutes timeout might be too short. It's possible to configure it at install time with the link:Two-Step-Installation[Two-Step Installation].
+The link:https://github.com/dogtagpki/pki/wiki/PKI-Console#session-timeout[Session Timeout] configuration affects how long an idle PKI Console will remain connected to the server. For some, the default 5 minutes timeout might be too short.
 
-= Configuration Process =
+The session timeout can be configured during installation (see link:Two-Step-Installation[Two-Step Installation]) or after installation.
 
-First, run installation step 1.
+= Configuration =
 
-Edit the `keepAliveTimeout` parameter in `/etc/pki/pki-tomcat/server.xml`:
+To configure the session timeout, edit the `keepAliveTimeout` parameter in `/etc/pki/pki-tomcat/server.xml`:
 
 ----
 <Server>
@@ -21,8 +21,6 @@ Edit the `keepAliveTimeout` parameter in `/etc/pki/pki-tomcat/server.xml`:
     </Service>
 </Server>
 ----
-
-Finally, run installation step 2.
 
 = See Also =
 
