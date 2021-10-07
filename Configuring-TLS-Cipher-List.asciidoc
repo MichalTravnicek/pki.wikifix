@@ -1,10 +1,10 @@
 = Overview =
 
-This page describes the process to configure TLS cipher list when installing a PKI subsystem using the link:Two-Step-Installation[Two-Step Installation].
+This page describes the process to configure TLS cipher list during installation (see link:Two-Step-Installation[Two-Step Installation]) or after installation.
 
-= Customizing TLS Server Cipher List =
+= Configuring TLS Server Cipher List =
 
-Run step 1, then edit the cipher list in /var/lib/pki/pki-tomcat/conf/server.xml as needed (see link:https://www.dogtagpki.org/wiki/Tomcat_JSS_Configuration[Tomcat JSS Configuration]):
+To configure the TLS server cipher list, edit the cipher list in `/var/lib/pki/pki-tomcat/conf/server.xml` as needed (see link:https://www.dogtagpki.org/wiki/Tomcat_JSS_Configuration[Tomcat JSS Configuration]):
 
 ----
 <Server>
@@ -25,26 +25,20 @@ HE_RSA_WITH_AES_128_CBC_SHA,+TLS_DHE_RSA_WITH_AES_256_CBC_SHA"
 </Server>
 ----
 
-Then run step 2 (after making all changes needed).
+= Configuring TLS Client Cipher List =
 
-= Customizing TLS Client Cipher List =
+**Note:** This procedure is only for CS subsystem to CS subsystem communication when acting as a client, it is not for CA subsystem to the LDAP server.
 
-Note, this procedure is only for CS subsystem to CS subsystem communication when acting as a client, it is not for CA subsystem to the LDAP server.
-
-Run step 1. 
-
-For CA => KRA, edit `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg` and update the `clientCiphers` parameter, e.g.:
+To configure TLS client cipher list for CA when communicating with KRA, edit `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg` and update the `clientCiphers` parameter, e.g.:
 
 ----
 ca.connector.KRA.clientCiphers=TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_256_CBC_SHA
 ----
 
-Similarly, for TPS => [CA | KRA | TKS], edit `/var/lib/pki/pki-tomcat/tps/conf/CS.cfg` and update the `clientCiphers` parameter:
+To configure TLS client cipher list for TPS when communicating with CA, KRA, and TKS, edit `/var/lib/pki/pki-tomcat/tps/conf/CS.cfg` and update the parameters below:
 
 ----
-tps.connector.ca id.clientCiphers=your selected cipher list
-tps.connector.kra id.clientCiphers=your selected cipher list
-tps.connector.tks id.clientCiphers=your selected cipher list
+tps.connector.ca id.clientCiphers=...
+tps.connector.kra id.clientCiphers=...
+tps.connector.tks id.clientCiphers=...
 ----
-
-Then run step 2 (after making all changes needed).
