@@ -1,0 +1,11 @@
+= Overview =
+
+The serial number range can be configured to avoid conflicts (e.g. during migration). The range can be configured during installation (see link:Two-Step-Installation[Two-Step Installation]). It cannot be configured after installation.
+
+= Configuration =
+
+To configure serial number range, edit the serial number configuration in `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg` as needed (see link:https://www.dogtagpki.org/wiki/CA_Configuration[CA Configuration]):
+
+----
+dbs.beginSerialNumber=1
+----
