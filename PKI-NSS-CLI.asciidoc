@@ -127,17 +127,29 @@ To delete a key in HSM:
 $ pki --token HSM -c Secret.123 nss-key-del e47e4cbd15fadbdd17eb865ce55031122c7c1b6
 ----
 
-== Importing a key ==
-
-----
-$ pki nss-key-import test --wrapper transport
-----
-
 == Exporting a key ==
 
+To export a shared secret to the standard output:
+
 ----
-$ pki nss-key-export test --wrapper transport
+$ pki nss-key-export "TPS-localhost.localdomain-8443 sharedSecret" --wrapper kra_transport
+{
+  "wrappedPrivateData" : "s1mlQNrOsttJgBxJWURqM+j/nc9yPFlCnipH/AGvFo64evmqbZTtqbViQLK0i9jh5hFDhWYW4JuMdw6X2BIYuHadJ+QN4BHpxiWCZygyjJsj3t96zSMzTH+YVEsaktzP39nQKtkaA4iOYU3Rvy0Cfokvn01V1x+GbUXOgpblTOIeXySKa3PJ/LPJREz8MmYMT21GsnEyXsJ5Xq4t9lUYaK4hzE69IXFZeInude/3sdJFFl5SIjMlE1U59YDdkcKAFfD/dyESUwOEGw7k5PgQAJO3BSks0S83NHR9jfutxOpX3UeFXcqq90/HgJj8g18mzVttQYtQfY+6NO5pXoXcsA==",
+  "additionalWrappedPrivateData" : "o7E/mZb8w/i7dLCaJ2OjsGtZCuP8uoXl"
+}
 ----
+
+The output can be stored into a file with a `--output <path>` option.
+
+== Importing a key ==
+
+To import a shared secret from the standard input:
+
+----
+$ pki nss-key-import "TPS-localhost.localdomain-8443 sharedSecret" --wrapper kra_transport
+----
+
+The input can be loaded from a file with a `--input <path>` option.
 
 = See Also =
 
