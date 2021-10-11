@@ -1,108 +1,99 @@
-== General ==
+= General =
 
-=== What is a certificate system? ===
+== What is a certificate system? ==
+
 A certificate has a long life cycle, from the initial request to when it's revoked or expired.  There are different operations for validating a request, issuing and revoking the certificate, and checking its status; it's also possible to use smart cards or to recover lost keys. Dogtag Certificate System combines these functions to centralize control for your public key infrastructure – validating requests, issuing certificates, storing keys, processing OCSP requests, and managing tokens. 
-<br><Br>
-Each function is performed through a separate, highly-configurable subsystem so that the PKI design is more flexible. Dogtag has six subsystems and a separate client: 
+
+Each function is performed through a separate, highly-configurable subsystem so that the PKI design is more flexible. Dogtag has six subsystems and a separate client:
+
 * The Certificate Manager is a certificate authority (CA). It  issues, renews, and publishes certificates. The Certificate Manager also creates and publishes certificate revocation lists (CRLs). 
 * The Registration Authority (RA) subsystem is a front-end to the CA. It performs local authentication, gathers information from the requester, and validates the certificate request. The RA forwards valid requests to the CA for signing. 
 * The Online Certificate Status Manager is an optional subsystem that provides online certificate service protocol (OCSP) responder services. An OCSP responder stores CRLs so that clients can use the OCSP responder to verify certificate status, which takes the load off CAs. 
-* The Data Recovery Manager (DRM) is an optional subsystem that archives and retrieves private encryption keys. 
+* The Key Recovery Authority (KRA) is an optional subsystem that archives and retrieves private encryption keys. 
 * The Token Key Service (TKS) manages master keys required to set up secure channels directly to the token management system. Privileged operations, such as key generation, can only be requested on the tokens through a secure channel. 
 * The Token Processing System (TPS) is the registration authority for tokens and establishes secure channels between the Enterprise Security Client and the backend subsystems. 
 * The Enterprise Security Client is an easy-to-use interface for users to enroll and format their smart cards (tokens) and receive their private keys from the token management system.
 
-The subsystems are closely integrated with each other, depending on the deployment scenario and how they are used. OCSP and CA instances work together to publish CRLs and verify certificates. CA and DRM instances work together to archive and recover keys. Smart card tokens, processed through the Enterprise Security Client, are managed by the TPS. The TPS, however, is configured to work with at least two essential subsystem instances: a TKS to generate keys and a CA to process token operations. A TPS can also be configured to use a DRM for server-side key generation and key archival and recovery.
+The subsystems are closely integrated with each other, depending on the deployment scenario and how they are used. OCSP and CA instances work together to publish CRLs and verify certificates. CA and KRA instances work together to archive and recover keys. Smart card tokens, processed through the Enterprise Security Client, are managed by the TPS. The TPS, however, is configured to work with at least two essential subsystem instances: a TKS to generate keys and a CA to process token operations. A TPS can also be configured to use a KRA for server-side key generation and key archival and recovery.
 
-== Dogtag Certificate System ==
+= Dogtag Certificate System =
 
-=== What do I get with Dogtag Certificate System? ===
+== What do I get with Dogtag Certificate System? ==
 
-You get all subsystems: the CA, RA, OCSP, DRM, TKS, and TPS.
+You get all subsystems: the CA, RA, OCSP, KRA, TKS, and TPS.
 
-=== What are the main features? ===
+== What are the main features? ==
 
-See the [https://github.com/dogtagpki/pki/wiki/Features Features] page.
+See the link:Features[Features] page.
 
-=== What are the system requirements? ===
-
-* CPU  	 Intel — 2.0 GHz Pentium 4 or faster
-* RAM 	1 GB (required)
-* Hard disk storage space 	
-** Total is approximately 5 GB
-** Total transient space required during installation: 1 GB
-** Hard disk storage space required for installation:
-*** Space required to set up, configure, and run the server: approximately 2 GB
-*** Additional space for database growth in pilot deployment: approximately 1 GB
-*** Total disk storage space for installation: approximately 1 GB
-
-=== Is this a commercial product? ===
+== Is this a commercial product? ==
 
 This is not a commercial product, but rather a development project.
 
-=== What is the update/bugfix/support/errata policy for Dogtag Certificate System? ===
-In general, we follow the [http://fedoraproject.org/about/faq/ guidelines] of the [http://fedoraproject.org Fedora Project].  When reading the Fedora Project FAQ, substitute ''Dogtag Certificate System'' for ''Fedora Project'' and ''Red Hat Certificate System'' for ''Red Hat'' or ''Red Hat Enterprise Linux'' in most sections.
+== What is the update/bugfix/support/errata policy for Dogtag Certificate System? ==
 
-=== How can I help? ===
+In general, we follow the link:http://fedoraproject.org/about/faq/[guidelines] of the link:http://fedoraproject.org[Fedora Project].  When reading the Fedora Project FAQ, substitute **Dogtag Certificate System** for **Fedora Project** and **Red Hat Certificate System** for **Red Hat** or **Red Hat Enterprise Linux** in most sections.
 
-You can [[PKI_How_to_contribute|assist]] in any number of ways:
+== How can I help? ==
+
+You can link:https://www.dogtagpki.org/wiki/PKI_How_to_contribute[assist] in any number of ways:
 
 * Testing
-* Participate in [https://github.com/dogtagpki/pki/wiki/Mailing-Lists mailing lists]
-* Write [https://github.com/dogtagpki/pki/wiki documentation]
-* [[PKI_Bugs|Report]] bugs
+* Participate in link:Mailing-Lists[mailing lists]
+* Write link:https://github.com/dogtagpki/pki/wiki[documentation]
+* link:https://www.dogtagpki.org/wiki/PKI_Bugs[Report] bugs
 * Fix bugs
 
-See [https://github.com/dogtagpki/pki/wiki/Development-Guide Development Guide].
+See link:Development-Guide[Development Guide].
 
-=== What crypto engine does the Certificate System use? ===
+== What crypto engine does the Certificate System use? ==
 
-Both Dogtag Certificate System and Fedora Directory Server use the Network Security Services (NSS) library available from the [http://www.mozilla.org/projects/security/pki/ Mozilla Project]. NSS supports cross-platform development of security-enabled client and server applications. Applications built with NSS can support PKCS #5, PKCS #7, PKCS #11, PKCS #12, S/MIME, TLS, SSL v2 and v3, X.509 v3 certificates, and other security standards.  The NSS tools binary package includes all of the NSS command line tools like certutil and modutil for key, certificate, and crypto module management.
+Both Dogtag Certificate System and Fedora Directory Server use the Network Security Services (NSS) library available from the link:http://www.mozilla.org/projects/security/pki/[Mozilla Project]. NSS supports cross-platform development of security-enabled client and server applications. Applications built with NSS can support PKCS #5, PKCS #7, PKCS #11, PKCS #12, S/MIME, TLS, SSL v2 and v3, X.509 v3 certificates, and other security standards.  The NSS tools binary package includes all of the NSS command line tools like certutil and modutil for key, certificate, and crypto module management.
 
-== Open Source ==
+= Open Source =
 
-=== What parts are open source? ===
+== What parts are open source? ==
 
 Everything is now open source - the core certificate system, the console, the setup program, everything.  The Dogtag Certificate System 1.0.0 release is the first release to have completely open source components.  We made good on our promise to the open source community to make available all of the desirable enterprise features.
 
-=== What license does Certificate System use? ===
+== What license does Certificate System use? ==
 
-The core Certificate System and some components are covered by the GPL; other components, including the Apache modules, are covered under different licenses. See the [[PKI_Licensing|License]] page for more details.
+The core Certificate System and some components are covered by the GPL; other components, including the Apache modules, are covered under different licenses. See the link:https://www.dogtagpki.org/wiki/PKI_Licensing[License] page for more details.
 
-=== What are my rights to redistribute? ===
+== What are my rights to redistribute? ==
 
-As long as you stick with the restrictions of the [[PKI_Licensing|license]], there's no reason you can't redistribute this software.  There are a few common modes of redistribution that we list here.
+As long as you stick with the restrictions of the link:https://www.dogtagpki.org/wiki/PKI_Licensing[license], there's no reason you can't redistribute this software.  There are a few common modes of redistribution that we list here.
 
-====Distribution of the Certificate System====
+=== Distribution of the Certificate System ===
 
 You should be able to do this as long as your changes are also made under the GPL.
 
-====Bundling with GPL software====
+=== Bundling with GPL software ===
 
 This is also possible because the Certificate System is GPL.  The two Apache modules are licensed under the Apache Public License version 2.0 and can be bundled with the rest of the certificate system package for distribution.  Even though the APL is considered generally incompatible with the GPL, it is ok in this specific case.
 
-====Bundling with Non-GPL software====
+=== Bundling with Non-GPL software ===
 
-If you make changes to the Certificate System before you distribute it with your application, then you must make sure that you make those changes available under the GPL, as is required under the [[PKI_Licensing|license]].
+If you make changes to the Certificate System before you distribute it with your application, then you must make sure that you make those changes available under the GPL, as is required under the link:https://www.dogtagpki.org/wiki/PKI_Licensing[license].
 
-====Bundling with extra Certificate System plugins====
+=== Bundling with extra Certificate System plugins ===
 
-The Certificate System has a pretty powerful plugin API that can allow you to extend the server in interesting ways.  It was our intention that people would be allowed to build plugins under any licensing they chose and to distribute linked copies of the two, as long as they stayed within the limits of the [[PKI_Licensing|licensing]].
+The Certificate System has a pretty powerful plugin API that can allow you to extend the server in interesting ways.  It was our intention that people would be allowed to build plugins under any licensing they chose and to distribute linked copies of the two, as long as they stayed within the limits of the link:https://www.dogtagpki.org/wiki/PKI_Licensing[licensing].
 
-=== What are my rights to rebrand? ===
+== What are my rights to rebrand? ==
 
-You can certainly rebrand the software to fit your needs.  The [[PKI_Licensing|licensing]] allows this.
+You can certainly rebrand the software to fit your needs.  The link:https://www.dogtagpki.org/wiki/PKI_Licensing[licensing] allows this.
 
-=== Who maintains this project? ===
+== Who maintains this project? ==
 
-Along with [[PKI_How_to_contribute|contributors]] from the community, this project is maintained by Red Hat for the Fedora project.
+Along with link:https://www.dogtagpki.org/wiki/PKI_How_to_contribute[contributors] from the community, this project is maintained by Red Hat for the Fedora project.
 
-=== What are the goals of this project in the future? ===
+== What are the goals of this project in the future? ==
 
-See our [[PKI_Roadmap|roadmap]].
+See our link:https://www.dogtagpki.org/wiki/PKI_Roadmap[roadmap].
 
-== Contributions ==
+= Contributions =
 
-=== How do I contribute to the code base? ===
+== How do I contribute to the code base? ==
 
-[http://pki.fedoraproject.org/wiki/PKI_Contributing Submitting Changes to PKI Source Code]
+See link:http://pki.fedoraproject.org/wiki/PKI_Contributing[Submitting Changes to PKI Source Code].
