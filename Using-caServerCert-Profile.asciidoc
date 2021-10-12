@@ -1,4 +1,24 @@
-= Manual Server Certificate Enrollment =
+= Overview =
+
+The CA provides a profile for issuing a server certificate. The profile is located at link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caServerCert.cfg[/usr/share/pki/ca/profiles/ca/caServerCert.cfg].
+
+----
+desc=This certificate profile is for enrolling server certificates.
+visible=true
+enable=true
+enableBy=admin
+auth.class_id=
+name=Manual Server Certificate Enrollment
+input.list=i1,i2
+input.i1.class_id=certReqInputImpl
+input.i2.class_id=submitterInfoInputImpl
+output.list=o1
+output.o1.class_id=certOutputImpl
+policyset.list=serverCertSet
+policyset.serverCertSet.list=...
+----
+
+= Usage =
 
 This certificate profile is for enrolling server certificates.
 
