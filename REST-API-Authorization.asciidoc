@@ -1,8 +1,8 @@
 = Overview =
 
-PKI relies on Tomcat framework and RESTEasy framework to implement authorization mechanisms.
+PKI uses Tomcat and RESTEasy to provide REST API authorization.
 
-= Authorization =
+= Interceptor =
 
 PKI executes several pre-process interceptors before executing a REST method to verify whether the user has the required authorization:
 
@@ -11,7 +11,7 @@ PKI executes several pre-process interceptors before executing a REST method to 
 
 See also link:http://docs.jboss.org/resteasy/docs/2.3.5.Final/userguide/html_single/index.html#PreProcessInterceptors[PreProcessInterceptor].
 
-== Authentication method verification ==
+= Authentication Method Mapping =
 
 The `@AuthMethodMapping` annotation is used to map a REST method to a list of allowed authentication methods.
 
@@ -41,7 +41,7 @@ securityDomain.installToken = passwdUserDBAuthMgr
 
 The `AuthMethodInterceptor` will validate the actual authentication method used by the user against the list.
 
-== ACL verification ==
+= ACL Verification =
 
 The `@ACLMapping` annotation is used to map a REST method to a list of ACL's. The list is stored in `WEB-INF/auth.properties`, for example:
 
