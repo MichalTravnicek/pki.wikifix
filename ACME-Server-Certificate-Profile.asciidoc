@@ -21,7 +21,7 @@ policyset.list=serverCertSet
 policyset.serverCertSet.list=...
 ----
 
-= Key Usage Extension Constraint and Default =
+= Key Usage Extension =
 
 This policy creates a critical key usage extension with the following values:
 
@@ -55,7 +55,7 @@ This policy creates a critical key usage extension with the following values:
 <prefix>.default.params.keyUsageDecipherOnly=false
 ----
 
-= Extended Key Usage Extension Default =
+= Extended Key Usage Extension =
 
 This policy creates an extended key usage extension with the following values:
 
@@ -71,7 +71,7 @@ This policy creates an extended key usage extension with the following values:
 <prefix>.default.params.exKeyUsageOIDs=1.3.6.1.5.5.7.3.1,1.3.6.1.5.5.7.3.2
 ----
 
-= Basic Constraints Extension Constraint and Default =
+= Basic Constraints Extension =
 
 This policy adds a critical basic constraints extension with the following parameters:
 
@@ -91,7 +91,7 @@ This policy adds a critical basic constraints extension with the following param
 <prefix>.default.params.basicConstraintsPathLen=-1
 ----
 
-= Authority Key Identifier Default =
+= Authority Key Identifier Extension =
 
 ----
 <prefix>.constraint.class_id=noConstraintImpl
@@ -100,7 +100,7 @@ This policy adds a critical basic constraints extension with the following param
 <prefix>.default.name=Authority Key Identifier Default
 ----
 
-= AIA Extension Default =
+= Authority Information Access Extension =
 
 This policy generates an Authority Information Access extension with the following values:
 
@@ -124,7 +124,7 @@ This policy generates an Authority Information Access extension with the followi
 <prefix>.default.params.authInfoAccessNumADs=2
 ----
 
-= User Supplied Extension in CSR Default =
+= User Supplied Extension in CSR =
 
 ----
 <prefix>.constraint.class_id=noConstraintImpl
@@ -161,7 +161,7 @@ This policy generates a certificate with a 90-day validity.
 <prefix>.default.name=Key Default
 ----
 
-= Signing Algorithm Default =
+= Signing Algorithm =
 
 ----
 <prefix>.constraint.class_id=signingAlgConstraintImpl
@@ -172,7 +172,7 @@ This policy generates a certificate with a 90-day validity.
 <prefix>.default.params.signingAlg=-
 ----
 
-= SAN to CN Default =
+= SAN to CN =
 
 This policy sets the certificate subject DN to CN=<hostname> with the first DNS name in the SAN extension.
 
@@ -184,7 +184,7 @@ This policy sets the certificate subject DN to CN=<hostname> with the first DNS 
 <prefix>.default.params.name=
 ----
 
-= Certificate Policies Extension Default =
+= Certificate Policies Extension =
 
 This policy generates a Certificate Policies extension with the following values:
 
@@ -207,7 +207,7 @@ This policy generates a Certificate Policies extension with the following values
 <prefix>.default.params.PoliciesExt.certPolicy1.PolicyQualifiers0.CPSURI.value=http://cps.example.com
 ----
 
-= Subject Key Identifier Extension Default =
+= Subject Key Identifier Extension =
 
 ----
 <prefix>.constraint.class_id=noConstraintImpl
