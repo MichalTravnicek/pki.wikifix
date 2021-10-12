@@ -1,0 +1,48 @@
+= Overview =
+
+The CA plugin registry is located at link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/conf/registry.cfg[/usr/share/pki/ca/conf/registry.cfg]:
+
+----
+types=profile,defaultPolicy,constraintPolicy,profileInput,profileOutput,profileUpdater
+----
+
+= Profiles =
+
+----
+profile.ids=caEnrollImpl,caCACertEnrollImpl,caServerCertEnrollImpl,caUserCertEnrollImpl
+----
+
+= Default Policies =
+
+----
+defaultPolicy.ids=noDefaultImpl,genericExtDefaultImpl,autoAssignDefaultImpl,subjectNameDefaultImpl,validityDefaultImpl,randomizedValidityDefaultImpl,caValidityDefaultImpl,subjectKeyIdentifierExtDefaultImpl,authorityKeyIdentifierExtDefaultImpl,basicConstraintsExtDefaultImpl,keyUsageExtDefaultImpl,nsCertTypeExtDefaultImpl,extendedKeyUsageExtDefaultImpl,ocspNoCheckExtDefaultImpl,issuerAltNameExtDefaultImpl,subjectAltNameExtDefaultImpl,userSubjectNameDefaultImpl,cmcUserSignedSubjectNameDefaultImpl,signingAlgDefaultImpl,userKeyDefaultImpl,userValidityDefaultImpl,userExtensionDefaultImpl,userSigningAlgDefaultImpl,authTokenSubjectNameDefaultImpl,subjectInfoAccessExtDefaultImpl,authInfoAccessExtDefaultImpl,nscCommentExtDefaultImpl,freshestCRLExtDefaultImpl,crlDistributionPointsExtDefaultImpl,policyConstraintsExtDefaultImpl,policyMappingsExtDefaultImpl,nameConstraintsExtDefaultImpl,certificateVersionDefaultImpl,certificatePoliciesExtDefaultImpl,subjectDirAttributesExtDefaultImpl,privateKeyPeriodExtDefaultImpl,inhibitAnyPolicyExtDefaultImpl,imageDefaultImpl,nsTokenDeviceKeySubjectNameDefaultImpl,nsTokenUserKeySubjectNameDefaultImpl,authzRealmDefaultImpl,commonNameToSANDefaultImpl
+----
+
+= Constraint Policies =
+
+----
+constraintPolicy.ids=noConstraintImpl,subjectNameConstraintImpl,uniqueSubjectNameConstraintImpl,userSubjectNameConstraintImpl,validityConstraintImpl,keyUsageExtConstraintImpl,nsCertTypeExtConstraintImpl,extendedKeyUsageExtConstraintImpl,keyConstraintImpl,basicConstraintsExtConstraintImpl,extensionConstraintImpl,signingAlgConstraintImpl,uniqueKeyConstraintImpl,renewGracePeriodConstraintImpl
+...
+constraintPolicy.validityConstraintImpl.class=com.netscape.cms.profile.constraint.ValidityConstraint
+constraintPolicy.validityConstraintImpl.desc=Validity Constraint
+constraintPolicy.validityConstraintImpl.name=Validity Constraint
+...
+----
+
+= Profile Inputs =
+
+----
+profileInput.ids=cmcCertReqInputImpl,certReqInputImpl,keyGenInputImpl,encKeyGenInputImpl,signKeyGenInputImpl,dualKeyGenInputImpl,subjectNameInputImpl,submitterInfoInputImpl,genericInputImpl,fileSigningInputImpl,imageInputImpl,subjectDNInputImpl,nsNKeyCertReqInputImpl,nsHKeyCertReqInputImpl,serialNumRenewInputImpl,subjectAltNameExtInputImpl
+----
+
+= Profile Outputs =
+
+----
+profileOutput.ids=certOutputImpl,cmmfOutputImpl,pkcs7OutputImpl,nsNKeyOutputImpl
+----
+
+= Profile Updater =
+
+----
+profileUpdater.ids=subsystemGroupUpdaterImpl
+----
