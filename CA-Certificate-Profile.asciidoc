@@ -1,0 +1,215 @@
+= Overview =
+
+The CA provides a profile for issuing a CA certificate. The profile located at link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caCACert.cfg[/usr/share/pki/ca/profiles/ca/caCACert.cfg].
+
+----
+desc=This certificate profile is for enrolling Certificate Authority certificates.
+visible=true
+enable=true
+enableBy=admin
+auth.class_id=
+name=Manual Certificate Manager Signing Certificate Enrollment
+input.list=i1,i2
+input.i1.class_id=certReqInputImpl
+input.i2.class_id=submitterInfoInputImpl
+output.list=o1
+output.o1.class_id=certOutputImpl
+policyset.list=caCertSet
+policyset.caCertSet.list=...
+----
+
+= Certificate Subject Name =
+
+----
+<prefix>.constraint.class_id=subjectNameConstraintImpl
+<prefix>.constraint.name=Subject Name Constraint
+<prefix>.constraint.params.pattern=CN=.*
+<prefix>.constraint.params.accept=true
+
+<prefix>.default.class_id=userSubjectNameDefaultImpl
+<prefix>.default.name=Subject Name Default
+<prefix>.default.params.name=
+----
+
+= Certificate Validity =
+
+----
+<prefix>.constraint.class_id=validityConstraintImpl
+<prefix>.constraint.name=Validity Constraint
+<prefix>.constraint.params.range=7305
+<prefix>.constraint.params.notBeforeCheck=false
+<prefix>.constraint.params.notAfterCheck=false
+
+<prefix>.default.class_id=caValidityDefaultImpl
+<prefix>.default.name=CA Certificate Validity Default
+<prefix>.default.params.range=7305
+<prefix>.default.params.startTime=0
+----
+
+The range unit can be changed with the following property:
+
+----
+<prefix>.constraint.params.rangeUnit=<unit>
+<prefix>.default.params.rangeUnit=<unit>
+----
+
+Valid values are:
+* year
+* month
+* day (default)
+* hour
+* minute
+
+= Certificate Key =
+
+----
+<prefix>.constraint.class_id=keyConstraintImpl
+<prefix>.constraint.name=Key Constraint
+<prefix>.constraint.params.keyType=-
+<prefix>.constraint.params.keyParameters=1024,2048,3072,4096,nistp256,nistp384,nistp521
+
+<prefix>.default.class_id=userKeyDefaultImpl
+<prefix>.default.name=Key Default
+----
+
+= Authority Key Identifier Extension =
+
+----
+<prefix>.constraint.class_id=noConstraintImpl
+<prefix>.constraint.name=No Constraint
+<prefix>.default.class_id=authorityKeyIdentifierExtDefaultImpl
+<prefix>.default.name=Authority Key Identifier Default
+----
+
+= Basic Constraint Extension =
+
+----
+<prefix>.constraint.class_id=basicConstraintsExtConstraintImpl
+<prefix>.constraint.name=Basic Constraint Extension Constraint
+<prefix>.constraint.params.basicConstraintsCritical=true
+<prefix>.constraint.params.basicConstraintsIsCA=true
+<prefix>.constraint.params.basicConstraintsMinPathLen=-1
+<prefix>.constraint.params.basicConstraintsMaxPathLen=-1
+
+<prefix>.default.class_id=basicConstraintsExtDefaultImpl
+<prefix>.default.name=Basic Constraints Extension Default
+<prefix>.default.params.basicConstraintsCritical=true
+<prefix>.default.params.basicConstraintsIsCA=true
+<prefix>.default.params.basicConstraintsPathLen=-1
+----
+
+= Key Usage Extension =
+
+----
+<prefix>.constraint.class_id=keyUsageExtConstraintImpl
+<prefix>.constraint.name=Key Usage Extension Constraint
+<prefix>.constraint.params.keyUsageCritical=true
+<prefix>.constraint.params.keyUsageDigitalSignature=true
+<prefix>.constraint.params.keyUsageNonRepudiation=true
+<prefix>.constraint.params.keyUsageDataEncipherment=false
+<prefix>.constraint.params.keyUsageKeyEncipherment=false
+<prefix>.constraint.params.keyUsageKeyAgreement=false
+<prefix>.constraint.params.keyUsageKeyCertSign=true
+<prefix>.constraint.params.keyUsageCrlSign=true
+<prefix>.constraint.params.keyUsageEncipherOnly=false
+<prefix>.constraint.params.keyUsageDecipherOnly=false
+
+<prefix>.default.class_id=keyUsageExtDefaultImpl
+<prefix>.default.name=Key Usage Default
+<prefix>.default.params.keyUsageCritical=true
+<prefix>.default.params.keyUsageDigitalSignature=true
+<prefix>.default.params.keyUsageNonRepudiation=true
+<prefix>.default.params.keyUsageDataEncipherment=false
+<prefix>.default.params.keyUsageKeyEncipherment=false
+<prefix>.default.params.keyUsageKeyAgreement=false
+<prefix>.default.params.keyUsageKeyCertSign=true
+<prefix>.default.params.keyUsageCrlSign=true
+<prefix>.default.params.keyUsageEncipherOnly=false
+<prefix>.default.params.keyUsageDecipherOnly=false
+----
+
+= Subject Key Identifier Extension =
+
+----
+<prefix>.constraint.class_id=noConstraintImpl
+<prefix>.constraint.name=No Constraint
+<prefix>.default.class_id=subjectKeyIdentifierExtDefaultImpl
+<prefix>.default.name=Subject Key Identifier Extension Default
+<prefix>.default.params.critical=false
+----
+
+= Certificate Signing Algorithm =
+
+----
+<prefix>.constraint.class_id=signingAlgConstraintImpl
+<prefix>.constraint.name=No Constraint
+<prefix>.constraint.params.signingAlgsAllowed=SHA1withRSA,SHA256withRSA,SHA512withRSA,MD5withRSA,MD2withRSA,SHA1withDSA,SHA1withEC,SHA256withEC,SHA384withRSA,SHA384withEC,SHA512withEC
+
+<prefix>.default.class_id=signingAlgDefaultImpl
+<prefix>.default.name=Signing Alg
+<prefix>.default.params.signingAlg=-
+----
+
+= Authority Information Access Extension =
+
+----
+<prefix>.constraint.class_id=noConstraintImpl
+<prefix>.constraint.name=No Constraint
+
+<prefix>.default.class_id=authInfoAccessExtDefaultImpl
+<prefix>.default.name=AIA Extension Default
+<prefix>.default.params.authInfoAccessADEnable_0=true
+<prefix>.default.params.authInfoAccessADLocationType_0=URIName
+<prefix>.default.params.authInfoAccessADLocation_0=
+<prefix>.default.params.authInfoAccessADMethod_0=1.3.6.1.5.5.7.48.1
+<prefix>.default.params.authInfoAccessCritical=false
+<prefix>.default.params.authInfoAccessNumADs=1
+----
+
+= Subject Alternative Name Extension =
+
+== Allowing Multiple SANs from CSR ==
+
+To allow multiple SANs, add the following constraints to the profile (e.g. `caServerCert`):
+
+----
+<prefix>.constraint.class_id=noConstraintImpl
+<prefix>.constraint.name=No Constraint
+
+<prefix>.default.class_id=userExtensionDefaultImpl
+<prefix>.default.name=User supplied extension in CSR
+<prefix>.default.params.userExtOID=2.5.29.17
+----
+
+Example on generating CSR with multiple SAN:
+
+----
+$ certutil -R \
+   -k ec \
+   -q nistp256 \
+   -d . \
+   -s "cn=multiple san test" \
+   --extSAN dns:www.example.com,dns:www.example.org \
+   -a \
+   -o request.csr.p10
+----
+
+= Usage =
+
+To request a new CA certificate:
+
+----
+$ pki client-cert-request \
+    "cn=Signing Certificate" \
+    --profile caCACert
+----
+
+To renew a CA certificate:
+
+----
+$ pki ca-cert-request-submit \
+    --profile caCACert \
+    --csr-file ca_signing.csr \
+    --renewal \
+    --serial 0x1
+----
