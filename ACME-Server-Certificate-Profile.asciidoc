@@ -134,7 +134,7 @@ This policy generates an Authority Information Access extension with the followi
 <prefix>.default.params.userExtOID=2.5.29.17
 ----
 
-= Validity Constraint and Default =
+= Certificate Validity =
 
 This policy generates a certificate with a 90-day validity.
 
@@ -150,7 +150,7 @@ This policy generates a certificate with a 90-day validity.
 <prefix>.default.params.startTime=0
 ----
 
-= Key Constraint and Default =
+= Certificate Key =
 
 ----
 <prefix>.constraint.class_id=keyConstraintImpl
@@ -161,7 +161,7 @@ This policy generates a certificate with a 90-day validity.
 <prefix>.default.name=Key Default
 ----
 
-= Signing Algorithm =
+= Certificate Signing Algorithm =
 
 ----
 <prefix>.constraint.class_id=signingAlgConstraintImpl
@@ -172,7 +172,7 @@ This policy generates a certificate with a 90-day validity.
 <prefix>.default.params.signingAlg=-
 ----
 
-= SAN to CN =
+= SAN Extension to CN =
 
 This policy sets the certificate subject DN to CN=<hostname> with the first DNS name in the SAN extension.
 
