@@ -65,7 +65,18 @@ Then restart the server:
 $ systemctl restart pki-tomcatd@pki-tomcat.service
 ----
 
-The SCEP service can be accessed at http://pki.example.com:8080/ca/cgi-bin/pkiclient.exe.
+The SCEP responder can be accessed at http://pki.example.com:8080/ca/cgi-bin/pkiclient.exe.
+
+= Dynamic SCEP Profile =
+
+In PKI 10.11 or later the SCEP client can specify the profile to be used for issuing the certificate.
+The profile must be listed in the following parameter in `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg`:
+
+----
+ca.scep.allowedDynamicProfileIds=<comma-separated list of profiles>
+----
+
+The SCEP responder can be accessed at http://pki.example.com:8080/ca/scep/<profile>/pkiclient.exe.
 
 = See Also =
 
