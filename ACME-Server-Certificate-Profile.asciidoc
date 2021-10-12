@@ -1,12 +1,17 @@
 = Overview =
 
+The ACME server certificate profile is located at link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/acmeServerCert.cfg[/usr/share/pki/ca/profiles/ca/acmeServerCert.cfg].
+
 ----
-desc=This certificate profile is for enrolling server certificates.
+profileId=acmeServerCert
+classId=caEnrollImpl
+desc=This certificate profile is for enrolling server certificates via ACME protocol.
 visible=true
 enable=true
 enableBy=admin
-auth.class_id=
-name=Manual Server Certificate Enrollment
+auth.instance_id=SessionAuthentication
+authz.acl=group=Certificate Manager Agents
+name=ACME Server Certificate Enrollment
 input.list=i1,i2
 input.i1.class_id=certReqInputImpl
 input.i2.class_id=submitterInfoInputImpl
