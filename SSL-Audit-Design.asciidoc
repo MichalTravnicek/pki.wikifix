@@ -1,0 +1,72 @@
+= Overview =
+
+This page describes the SSL/TLS audit functionality added in PKI 10.4.
+
+Previously if an SSL socket is terminated NSS does not provide information about the cause of the termination (i.e. error code) to the application using NSS. This information is necessary to generate the proper audit log in PKI.
+
+The solution is to generate the proper error code in NSS and pass it to JSS, Tomcat JSS, and eventually PKI such that it can be used to generate the proper audit log.
+
+Below are the required changes.
+
+= NSS Enhancements =
+
+The NSS library needs to be enhanced to support callback functions for alerts received and sent by SSL socket such that the SSL error code can be passed on to the SSL socket listener in JSS.
+
+This is documented in link:https://www.dogtagpki.org/wiki/NSS_SSL_Alert_Callback[NSS SSL Alert Callback].
+
+= JSS Enhancements =
+
+The JSS library needs to be enhanced to support SSL socket listener using the SSL alert callback provided by NSS. This allows Tomcat JSS to register a listener and obtain the SSL error code for all SSL server sockets created by Tomcat JSS.
+
+This is documented in link:https://www.dogtagpki.org/wiki/JSS_SSL_Socket_Listener[JSS SSL Socket Listener].
+
+= Tomcat JSS Enhancements =
+
+Tomcat JSS needs to be enhanced to support server socket listener using JSS socket listener. This allows PKI server to register a listener and obtain the SSL error code for all server sockets created by the server.
+
+This is documented in link:https://www.dogtagpki.org/wiki/Tomcat_JSS_Socket_Listener[Tomcat JSS Socket Listener].
+
+= PKI Server Enhancements =
+
+PKI server needs to register a server socket listener to Tomcat JSS and generate the audit logs for all SSL/TLS sessions using the SSL error code provided by NSS.
+
+Since SSL/TLS sessions represent connections to the entire PKI server, not a particular PKI subsystem, ideally there should be only one audit log file for the entire server. However, due to resource constraints to simplify the implementation initially each PKI subsystem will have its own Tomcat JSS event listener which will log the session events in the subsystem’s audit log. This means that if a PKI server has multiple subsystems, the events will be logged multiple times, which could affect the performance. In the future the implementation may be improved to generate only one audit log file.
+
+In general the audit log should follow this format:
+
+----
+[AuditEvent=ACCESS_SESSION_*][ClientIP=*][ServerIP=*][SubjectID=*][Outcome=Success/Failure][Info=*]
+----
+
+If the session failed to establish, the following log should be generated:
+
+----
+[AuditEvent=ACCESS_SESSION_ESTABLISH_FAILURE][ClientIP=*][ServerIP=*][AttemptedID=<client cert subje
+ct DN>][Outcome=][Info=<reason>]
+----
+
+If the session was established successfully, the following log should be generated:
+
+----
+[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=*][SubjectID=<client cert subject DN>][Server
+IP=*][Outcome=][Info=]
+----
+
+When the established session is terminated, the following log should be generated:
+
+----
+[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=*][ServerIP=*][SubjectID=<client cert subject DN>][O
+utcome=][Info=<reason>]
+----
+
+This is documented in link:Configuring-Signed-Audit[Configuring Signed Audit].
+
+= PKI Client Enhancements =
+
+In order to validate PKI server enhancements, the PKI client needs to support various SSL configuration including ciphers and SSL/TLS version ranges.
+
+This is documented in link:PKI-Environment-Variables[PKI Environment Variables].
+
+= See Also =
+
+* link:https://bugzilla.redhat.com/show_bug.cgi?id=1404080[Bug #1404080 - audit event: various SSL/TLS failures]
