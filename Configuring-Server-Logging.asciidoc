@@ -4,14 +4,7 @@ PKI server provides logging service using link:https://docs.oracle.com/en/java/j
 
 The configuration is located at `/var/lib/pki/pki-tomcat/conf/logging.properties` which by default is a link to link:https://github.com/dogtagpki/pki/blob/master/base/server/share/conf/logging.properties[/usr/share/pki/server/conf/logging.properties].
 
-By default the server will generate the following files in `/var/lib/pki/pki-tomcat/logs`:
-
-* `catalina.YYYY-MM-DD.log`
-* `host-manager.YYYY-MM-DD.log`
-* `localhost.YYYY-MM-DD.log`
-* `manager.YYYY-MM-DD.log`
-
-By default the server will only log WARNING or SEVERE messages only:
+By default the server will only log WARNING or SEVERE messages:
 
 ----
 .level = WARNING
@@ -21,6 +14,16 @@ org.dogtagpki.level = WARNING
 com.netscape.level = WARNING
 netscape.level = WARNING
 ----
+
+If the server is running as a systemd service, the messages will be logged in systemd journal.
+If the server is being run using the `pki-server run` command, the messages will be logged on the console.
+
+Note: The server may generate the following files in `/var/lib/pki/pki-tomcat/logs` but they are not actually used:
+
+* `catalina.YYYY-MM-DD.log`
+* `host-manager.YYYY-MM-DD.log`
+* `localhost.YYYY-MM-DD.log`
+* `manager.YYYY-MM-DD.log`
 
 = Configuring Server Logging =
 
