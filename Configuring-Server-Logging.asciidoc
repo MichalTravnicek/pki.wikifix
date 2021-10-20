@@ -1,0 +1,22 @@
+= Overview =
+
+The server logging configuration is located at `/var/lib/pki/pki-tomcat/conf/logging.properties`.
+
+By default it is a link to link:https://github.com/dogtagpki/pki/blob/master/base/server/share/conf/logging.properties[/usr/share/pki/server/conf/logging.properties] which will generate the following log files:
+
+* `/var/lib/pki/pki-tomcat/logs/catalina.YYYY-MM-DD.log`
+* `/var/lib/pki/pki-tomcat/logs/localhost.YYYY-MM-DD.log`
+* `/var/lib/pki/pki-tomcat/logs/host-manager.YYYY-MM-DD.log`
+* `/var/lib/pki/pki-tomcat/logs/manager.YYYY-MM-DD.log`
+
+= Configuring Server Logging =
+
+To change the server logging configuration, replace the link with a copy of the default configuration:
+
+----
+$ rm -f /var/lib/pki/pki-tomcat/conf/logging.properties
+$ cp /usr/share/pki/server/conf/logging.properties /var/lib/pki/pki-tomcat/conf
+$ chown pkiuser.pkiuser /var/lib/pki/pki-tomcat/conf/logging.properties
+----
+
+Edit the file as needed, then restart the server.
