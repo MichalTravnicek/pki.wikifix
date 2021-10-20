@@ -1,18 +1,21 @@
 = Overview =
 
-The server logging configuration is located at `/var/lib/pki/pki-tomcat/conf/logging.properties` which by default is a link to link:https://github.com/dogtagpki/pki/blob/master/base/server/share/conf/logging.properties[/usr/share/pki/server/conf/logging.properties].
+PKI server provides logging service using link:https://docs.oracle.com/en/java/javase/11/docs/api/java.logging/java/util/logging/package-summary.html[java.util.logging] (JUL) framework.
 
-The default configuration  will generate the following files in `/var/lib/pki/pki-tomcat/logs`:
+The configuration is located at `/var/lib/pki/pki-tomcat/conf/logging.properties` which by default is a link to link:https://github.com/dogtagpki/pki/blob/master/base/server/share/conf/logging.properties[/usr/share/pki/server/conf/logging.properties].
+
+By default the server will generate the following files in `/var/lib/pki/pki-tomcat/logs`:
 
 * `catalina.YYYY-MM-DD.log`
 * `host-manager.YYYY-MM-DD.log`
 * `localhost.YYYY-MM-DD.log`
 * `manager.YYYY-MM-DD.log`
 
-By default the server will only log warnings or more severe messages:
+By default the server will only log WARNING or SEVERE messages only:
 
 ----
 .level = WARNING
+
 org.mozilla.jss.level = WARNING
 org.dogtagpki.level = WARNING
 com.netscape.level = WARNING
@@ -29,7 +32,16 @@ $ cp /usr/share/pki/server/conf/logging.properties /var/lib/pki/pki-tomcat/conf
 $ chown pkiuser.pkiuser /var/lib/pki/pki-tomcat/conf/logging.properties
 ----
 
-Edit the `logging.properties` copy as needed, then restart the server.
+Edit the `logging.properties` copy as needed, for example:
+
+----
+org.mozilla.jss.level = INFO
+org.dogtagpki.level = INFO
+com.netscape.level = INFO
+netscape.level = INFO
+----
+
+Finally, restart the server.
 
 = See Also =
 
