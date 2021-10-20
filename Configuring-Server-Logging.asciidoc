@@ -1,13 +1,23 @@
 = Overview =
 
-The server logging configuration is located at `/var/lib/pki/pki-tomcat/conf/logging.properties`.
+The server logging configuration is located at `/var/lib/pki/pki-tomcat/conf/logging.properties` which by default is a link to link:https://github.com/dogtagpki/pki/blob/master/base/server/share/conf/logging.properties[/usr/share/pki/server/conf/logging.properties].
 
-By default it is a link to link:https://github.com/dogtagpki/pki/blob/master/base/server/share/conf/logging.properties[/usr/share/pki/server/conf/logging.properties] which will generate the following log files:
+The default configuration  will generate the following files in `/var/lib/pki/pki-tomcat/logs`:
 
-* `/var/lib/pki/pki-tomcat/logs/catalina.YYYY-MM-DD.log`
-* `/var/lib/pki/pki-tomcat/logs/localhost.YYYY-MM-DD.log`
-* `/var/lib/pki/pki-tomcat/logs/host-manager.YYYY-MM-DD.log`
-* `/var/lib/pki/pki-tomcat/logs/manager.YYYY-MM-DD.log`
+* `catalina.YYYY-MM-DD.log`
+* `host-manager.YYYY-MM-DD.log`
+* `localhost.YYYY-MM-DD.log`
+* `manager.YYYY-MM-DD.log`
+
+By default the server will only log warnings or more severe messages:
+
+----
+.level = WARNING
+org.mozilla.jss.level = WARNING
+org.dogtagpki.level = WARNING
+com.netscape.level = WARNING
+netscape.level = WARNING
+----
 
 = Configuring Server Logging =
 
@@ -20,3 +30,7 @@ $ chown pkiuser.pkiuser /var/lib/pki/pki-tomcat/conf/logging.properties
 ----
 
 Edit the file as needed, then restart the server.
+
+= See Also =
+
+* link:http://tomcat.apache.org/tomcat-9.0-doc/logging.html[Apache Tomcat 9 Logging]
