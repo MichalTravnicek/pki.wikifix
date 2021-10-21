@@ -15,10 +15,16 @@ com.netscape.level = WARNING
 netscape.level = WARNING
 ----
 
-If the server is running as a systemd service, the messages will be logged into systemd journal.
-If the server is being run using the `pki-server run` command, the messages will be logged on the console.
+If the server is running on the background as a systemd service, the messages will be logged into the systemd journal.
+To view the systemd journal:
 
-Note: The server may generate the following files in `/var/lib/pki/pki-tomcat/logs` but they are not actually used:
+----
+$ journalctl -fu pki-tomcatd@pki-tomcat.service
+----
+
+If the server is being run on the foreground using the `pki-server run` command, the messages will appear on the console.
+
+Note: The server may also generate the following files in `/var/lib/pki/pki-tomcat/logs` but they are not actually used:
 
 * `catalina.YYYY-MM-DD.log`
 * `host-manager.YYYY-MM-DD.log`
@@ -35,7 +41,7 @@ $ cp /usr/share/pki/server/conf/logging.properties /var/lib/pki/pki-tomcat/conf
 $ chown pkiuser.pkiuser /var/lib/pki/pki-tomcat/conf/logging.properties
 ----
 
-Edit the `logging.properties` copy as needed, for example:
+Edit the `logging.properties` copy as needed. For example, to log `INFO` messages:
 
 ----
 org.mozilla.jss.level = INFO
