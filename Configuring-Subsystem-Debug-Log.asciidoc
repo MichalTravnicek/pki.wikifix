@@ -26,9 +26,17 @@ The `debug.level` parameter is stored in:
 * link:https://github.com/dogtagpki/pki/blob/master/base/tks/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/tks/conf/CS.cfg]
 * link:https://github.com/dogtagpki/pki/blob/master/base/tps/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/tps/conf/CS.cfg]
 
+Note: There is no `CS.cfg` for ACME, so the debug level has to be changed in `logging.properties`. This will be addressed in the future.
+
 By default the subsystem will log `INFO` messages or higher:
 
 ----
+# in logging.properties
+org.dogtagpki.level = INFO
+com.netscape.level = INFO
+netscape.level = INFO
+
+# in CS.cfg
 debug.level=10
 ----
 
@@ -62,19 +70,23 @@ The subsystem will store the messages in `/var/log/pki/pki-tomcat/<subsystem>/de
 
 = Displaying Current Debug Level =
 
-To show the current debug level, execute the following command:
+To show the current debug level in subsystems other than ACME, execute the following command:
 
 ----
 $ pki-server ca-config-show debug.level
 10
 ----
 
+For ACME, see the `*.level` properties in `/usr/share/pki/acme/webapps/acme/WEB-INF/classes/logging.properties`.
+
 = Changing Debug Level =
 
-To change the debug level (e.g. to log `FINE` messages or higher), execute the following command:
+To change the debug level (e.g. to log `FINE` messages or higher) in subsystems other than ACME, execute the following command:
 
 ----
 $ pki-server ca-config-set debug.level 5
 ----
+
+For ACME, change the `*.level` properties in `/usr/share/pki/acme/webapps/acme/WEB-INF/classes/logging.properties`.
 
 Then restart the server.
