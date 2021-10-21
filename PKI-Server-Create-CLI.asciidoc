@@ -1,0 +1,40 @@
+= Overview =
+
+The `pki-server create` command provides a mechanism to create basic PKI server without any PKI subsystems. This command can be used to troubleshoot general Tomcat issues (e.g. SSL) or to incrementally build the PKI server.
+
+The command supports several server types:
+
+* `pki-tomcatd`: This type indicates that the server will have a layout similar to a PKI server created by `pkispawn`.
+* `tomcat`: This type indicates that the server will have a layout similar to a regular Tomcat instance.
+
+The command can be used as follows:
+
+----
+$ pki-server create [<type>@]<name>
+----
+
+The **type** indicates the server type. If not specified, the default type is `pki-tomcatd`.
+
+The **name** indicates the name of the instance.
+
+= Creating PKI Tomcat Server =
+
+To create a PKI Tomcat server, execute the following command:
+
+----
+$ pki-server create pki-tomcatd@<name>
+----
+
+or simply:
+
+----
+$ pki-server create <name>
+----
+
+= Creating Regular Tomcat Server =
+
+To create a regular Tomcat server:
+
+----
+$ pki-server create tomcat@<name>
+----
