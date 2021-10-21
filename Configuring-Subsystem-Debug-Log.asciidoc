@@ -1,0 +1,109 @@
+= Overview =
+
+Since PKI 10.7 the subsystem debug log has been fully implemented using java.util.logging (JUL) framework,
+but the debug level can still be configured using the legacy parameters as in link:https://www.dogtagpki.org/wiki/PKI_10.5_Server_Debug_Log[PKI 10.5 Server Debug Log].
+
+= Displaying Debug Level =
+
+----
+$ pki-server ca-config-show debug.level
+0
+----
+
+= Setting Debug Level =
+
+To change the debug level, execute the following command:
+
+----
+$ pki-server ca-config-set debug.level 5
+----
+
+Then restart the server.
+
+= Configuration =
+
+The JUL configuration is stored in the following files:
+
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/webapps/ca/WEB-INF/classes/logging.properties[/usr/share/pki/ca/webapps/ca/WEB-INF/classes/logging.properties]
+* link:https://github.com/dogtagpki/pki/blob/master/base/kra/shared/webapps/kra/WEB-INF/classes/logging.properties[/usr/share/pki/kra/webapps/kra/WEB-INF/classes/logging.properties]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ocsp/shared/webapps/ocsp/WEB-INF/classes/logging.properties[/usr/share/pki/ocsp/webapps/ocsp/WEB-INF/classes/logging.properties]
+* link:https://github.com/dogtagpki/pki/blob/master/base/tks/shared/webapps/tks/WEB-INF/classes/logging.properties[/usr/share/pki/tks/webapps/tks/WEB-INF/classes/logging.properties]
+* link:https://github.com/dogtagpki/pki/blob/master/base/tps/shared/webapps/tps/WEB-INF/classes/logging.properties[/usr/share/pki/tps/webapps/tps/WEB-INF/classes/logging.properties]
+
+By default they are configured as follows:
+
+----
+handlers = org.apache.juli.FileHandler
+
+org.apache.juli.FileHandler.directory = ${catalina.base}/logs/${classloader.webappName}
+org.apache.juli.FileHandler.prefix = debug.
+org.apache.juli.FileHandler.maxDays = 7
+org.apache.juli.FileHandler.formatter = org.dogtagpki.util.logging.PKIFormatter
+
+.level = WARNING
+.handler = org.apache.juli.FileHandler
+
+org.dogtagpki.level = WARNING
+com.netscape.level = WARNING
+netscape.level = WARNING
+----
+
+The legacy configuration is stored in the following files:
+
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/ca/conf/CS.cfg]
+* link:https://github.com/dogtagpki/pki/blob/master/base/kra/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/kra/conf/CS.cfg]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ocsp/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/ocsp/conf/CS.cfg]
+* link:https://github.com/dogtagpki/pki/blob/master/base/tks/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/tks/conf/CS.cfg]
+* link:https://github.com/dogtagpki/pki/blob/master/base/tps/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/tps/conf/CS.cfg]
+
+By default they are configured as follows:
+
+----
+debug.level=10
+----
+
+== Log Files ==
+
+By default log messages will be stored in `/var/log/pki/pki-tomcat/<subsystem>/debug.YYYY-MM-DD.log` which will be rotated daily.
+
+By default it will only keep log messages from the last 7 days.
+
+== Log Format ==
+
+The messages will be formatted by link:https://github.com/dogtagpki/pki/blob/master/base/util/src/org/dogtagpki/util/logging/PKIFormatter.java[org.dogtagpki.util.logging.PKIFormatter].
+
+== Log Level ==
+
+The legacy log levels are mapped into JUL log levels as follows:
+
+|===
+| PKI Log Level | SLF4J Log Level | JUL Log Level
+
+| 0-1 (OBNOXIOUS)
+| TRACE
+| FINEST
+
+| 2-5 (VERBOSE)
+| DEBUG
+| FINE
+
+| 6-10 (INFORM)
+| INFO
+| INFO
+
+| 11-15
+| WARN
+| WARNING
+
+| >15
+| ERROR
+| SEVERE
+|===
+
+= Pre-Installation =
+
+To change the debug level prior to running the installation, change the `CS.cfg` template in `/usr/share/pki/<subsystem>/conf`.
+
+= Post-Installation =
+
+To change the debug level after the installation is complete, change the `CS.cfg` in `/var/lib/pki/pki-tomcat/<subsystem>/conf`.
