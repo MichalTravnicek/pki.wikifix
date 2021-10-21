@@ -9,7 +9,7 @@ For older PKI versions see also:
 
 = Configuration =
 
-The configuration located at:
+The logging configuration is located at:
 
 * link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/webapps/ca/WEB-INF/classes/logging.properties[/usr/share/pki/ca/webapps/ca/WEB-INF/classes/logging.properties]
 * link:https://github.com/dogtagpki/pki/blob/master/base/kra/shared/webapps/kra/WEB-INF/classes/logging.properties[/usr/share/pki/kra/webapps/kra/WEB-INF/classes/logging.properties]
@@ -17,25 +17,7 @@ The configuration located at:
 * link:https://github.com/dogtagpki/pki/blob/master/base/tks/shared/webapps/tks/WEB-INF/classes/logging.properties[/usr/share/pki/tks/webapps/tks/WEB-INF/classes/logging.properties]
 * link:https://github.com/dogtagpki/pki/blob/master/base/tps/shared/webapps/tps/WEB-INF/classes/logging.properties[/usr/share/pki/tps/webapps/tps/WEB-INF/classes/logging.properties]
 
-By default they are configured as follows:
-
-----
-handlers = org.apache.juli.FileHandler
-
-org.apache.juli.FileHandler.directory = ${catalina.base}/logs/${classloader.webappName}
-org.apache.juli.FileHandler.prefix = debug.
-org.apache.juli.FileHandler.maxDays = 7
-org.apache.juli.FileHandler.formatter = org.dogtagpki.util.logging.PKIFormatter
-
-.level = WARNING
-.handler = org.apache.juli.FileHandler
-
-org.dogtagpki.level = WARNING
-com.netscape.level = WARNING
-netscape.level = WARNING
-----
-
-The `debug.level` parameter is stored in the following files:
+The `debug.level` parameter is stored in:
 
 * link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/ca/conf/CS.cfg]
 * link:https://github.com/dogtagpki/pki/blob/master/base/kra/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/kra/conf/CS.cfg]
@@ -43,23 +25,11 @@ The `debug.level` parameter is stored in the following files:
 * link:https://github.com/dogtagpki/pki/blob/master/base/tks/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/tks/conf/CS.cfg]
 * link:https://github.com/dogtagpki/pki/blob/master/base/tps/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/tps/conf/CS.cfg]
 
-By default they are configured as follows:
+By default the subsystem will log `INFO` messages or higher:
 
 ----
 debug.level=10
 ----
-
-== Log Files ==
-
-By default log messages will be stored in `/var/log/pki/pki-tomcat/<subsystem>/debug.YYYY-MM-DD.log` which will be rotated daily.
-
-By default it will only keep log messages from the last 7 days.
-
-== Log Format ==
-
-The messages will be formatted by link:https://github.com/dogtagpki/pki/blob/master/base/util/src/org/dogtagpki/util/logging/PKIFormatter.java[org.dogtagpki.util.logging.PKIFormatter].
-
-== Log Level ==
 
 The `debug.level` is mapped into JUL log level as follows:
 
@@ -86,6 +56,8 @@ The `debug.level` is mapped into JUL log level as follows:
 | ERROR
 | SEVERE
 |===
+
+The subsystem will store the messages in `/var/log/pki/pki-tomcat/<subsystem>/debug.YYYY-MM-DD.log` which will be rotated daily and purged after 7 days.
 
 = Displaying Current Debug Level =
 
