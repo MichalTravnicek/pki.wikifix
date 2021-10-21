@@ -1,24 +1,7 @@
 = Overview =
 
-Since PKI 10.7 the subsystem debug log has been fully implemented using java.util.logging (JUL) framework,
-but the debug level can still be configured using the legacy parameters as in link:https://www.dogtagpki.org/wiki/PKI_10.5_Server_Debug_Log[PKI 10.5 Server Debug Log].
-
-= Displaying Debug Level =
-
-----
-$ pki-server ca-config-show debug.level
-0
-----
-
-= Setting Debug Level =
-
-To change the debug level, execute the following command:
-
-----
-$ pki-server ca-config-set debug.level 5
-----
-
-Then restart the server.
+Since PKI 10.7 the subsystem debug log has been fully reimplemented using java.util.logging (JUL) framework,
+but the debug level can still be configured using the `debug.level` parameter in `CS.cfg`.
 
 = Configuration =
 
@@ -48,7 +31,7 @@ com.netscape.level = WARNING
 netscape.level = WARNING
 ----
 
-The legacy configuration is stored in the following files:
+The `debug.level` parameter is stored in the following files:
 
 * link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/ca/conf/CS.cfg]
 * link:https://github.com/dogtagpki/pki/blob/master/base/kra/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/kra/conf/CS.cfg]
@@ -100,10 +83,21 @@ The legacy log levels are mapped into JUL log levels as follows:
 | SEVERE
 |===
 
-= Pre-Installation =
+= Displaying Debug Level =
 
-To change the debug level prior to running the installation, change the `CS.cfg` template in `/usr/share/pki/<subsystem>/conf`.
+To show the current debug level, execute the following command:
 
-= Post-Installation =
+----
+$ pki-server ca-config-show debug.level
+0
+----
 
-To change the debug level after the installation is complete, change the `CS.cfg` in `/var/lib/pki/pki-tomcat/<subsystem>/conf`.
+= Changing Debug Level =
+
+To change the debug level, execute the following command:
+
+----
+$ pki-server ca-config-set debug.level 5
+----
+
+Then restart the server.
