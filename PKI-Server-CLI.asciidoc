@@ -1,0 +1,88 @@
+= Overview =
+
+The `pki-server` command is a tool for managing PKI servers on the local machine. The command does not require an authentication, but it can only be run by the system administrator.
+
+= Server Management Commands =
+
+* link:PKI-Server-Create-CLI[PKI Server Create CLI]
+* link:PKI-Server-Remove-CLI[PKI Server Remove CLI]
+* link:PKI-Server-Run-CLI[PKI Server Run CLI]
+* link:PKI-Server-Start-CLI[PKI Server Start CLI]
+* link:PKI-Server-Stop-CLI[PKI Server Stop CLI]
+* link:PKI-Server-Restart-CLI[PKI Server Restart CLI]
+* link:PKI-Server-Enable-CLI[PKI Server Enable CLI]
+* link:PKI-Server-Disable-CLI[PKI Server Disable CLI]
+* link:PKI-Server-Status-CLI[PKI Server Status CLI]
+* link:PKI-Server-Instance-CLI[PKI Server Instance CLI]
+* link:PKI-Server-HTTP-Connector-CLI[PKI Server HTTP Connector CLI]
+* link:PKI-Server-Webapp-CLI[PKI Server Webapp CLI]
+
+= NSS Management Commands =
+
+* link:PKI-Server-Password-CLI[PKI Server Password CLI]
+* link:PKI-Server-NSS-CLI[PKI Server NSS CLI]
+* link:PKI-Server-JSS-CLI[PKI Server JSS CLI]
+* link:PKI-Server-Certificate-CLI[PKI Server Certificate CLI]
+* link:PKI-Server-Nuxwdog-CLI[PKI Server Nuxwdog CLI]
+
+= Subsystem Management Commands =
+
+* link:PKI-Server-ACME-CLI[PKI Server ACME CLI]
+* link:PKI-Server-CA-CLI[PKI Server CA CLI]
+* link:PKI-Server-KRA-CLI[PKI Server KRA CLI]
+* link:PKI-Server-OCSP-CLI[PKI Server OCSP CLI]
+* link:PKI-Server-TKS-CLI[PKI Server TKS CLI]
+* link:PKI-Server-TPS-CLI[PKI Server TPS CLI]
+* link:PKI-Server-Subsystem-CLI[PKI Server Subsystem CLI]
+
+= Other Commands =
+
+* link:PKI-Server-Banner-CLI[PKI Server Banner CLI]
+* link:PKI-Server-Migration-CLI[PKI Server Migration CLI]
+* link:PKI-Server-Database-CLI[PKI Server Database CLI]
+* link:PKI-Server-Range-CLI[PKI Server Range CLI]
+
+= Issues =
+
+Due to link:https://fedoraproject.org/wiki/OpenLDAP-and-MozNSS-Compatibility-Layer[OpenLDAP changes in Fedora 29] Python is no longer able to use NSS database to establish an SSL LDAP connection. This issue might be affecting the following commands:
+
+* `pki-server ca-cert-request-find`
+* `pki-server ca-cert-request-show`
+* `pki-server subsystem-cert-request-find`
+* `pki-server db-upgrade`
+* `pki-server kra-db-vlv-find`
+* `pki-server kra-db-vlv-add`
+* `pki-server kra-db-vlv-del`
+* `pki-server kra-db-vlv-reindex`
+* `pki-server tps-db-vlv-find`
+* `pki-server tps-db-vlv-add`
+* `pki-server tps-db-vlv-del`
+* `pki-server tps-db-vlv-reindex`
+* `pki-server cert-update`
+* `pki-server cert-fix`
+* `pki-server cert-create`
+
+See also:
+
+* link:https://fedoraproject.org/wiki/OpenLDAP-and-MozNSS-Compatibility-Layer[OpenLDAP and MozNSS Compatibility Layer]
+* link:https://fedoraproject.org/wiki/Changes/OpenLDAPwithOpenSSL[OpenLDAP: Drop MozNSS Compatibility Layer]
+* link:https://bugzilla.redhat.com/show_bug.cgi?id=1557967[Bug 1557967 - OpenLDAP: Drop MozNSS Compatibility Layer]
+* link:https://bugzilla.redhat.com/show_bug.cgi?id=1739124[Bug 1739124 - pki-server failed with self-signed certificates error]
+
+== Workaround #1: Export CA Certificate Chain ==
+
+Prior to executing the above commands export the CA signing certificate chain from the NSS database into individual certificate files, for example:
+
+----
+$ certutil -L -d /etc/pki/pki-tomcat/alias -n ca_signing -a > /etc/pki/pki-tomcat/alias/ca_signing.crt
+----
+
+Then execute the following command to generate the hash files for the certificate files:
+
+----
+$ openssl rehash /etc/pki/pki-tomcat/alias
+----
+
+== Workaround #2: Disable SSL LDAP Connection ==
+
+Prior to executing the above commands, disable the SSL LDAP connection first, then it can be reenabled again later.
