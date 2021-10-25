@@ -1,16 +1,17 @@
 = Overview =
 
 This document describes the process to install TPS connecting to CA, KRA, and TKS running on a the same instance. It assumes a DS instance has been installed. The KRA is needed only if key archival is requred. See the following pages:
-* [[DS Installation]]
-* [https://www.dogtagpki.org/wiki/Installing_CA Installing CA]
-* [https://www.dogtagpki.org/wiki/Installing_TKS Installing TKS]
-* [https://www.dogtagpki.org/wiki/Installing_KRA Installing KRA]
+
+* link:DS-Installation[DS Installation]
+* link:PKI-10.5-Installing-CA[Installing CA]
+* link:PKI-10.5-Installing-KRA[Installing KRA]
+* link:PKI-10.5-Installing-TKS[Installing TKS]
 
 = Installing TPS =
 
 Prepare a deployment configuration file:
 
-<pre>
+----
 [TPS]
 pki_admin_cert_file=/root/.dogtag/pki-tomcat/ca_admin.cert
 pki_admin_email=tpsadmin@example.com
@@ -39,19 +40,19 @@ pki_token_password=Secret.123
 pki_authdb_basedn=dc=example,dc=com
 pki_authdb_port=389
 pki_enable_server_side_keygen=True
-</pre>
+----
 
 To begin the installation, execute the following command: 
 
-<pre>
+----
 $ pkispawn -v -f tps.cfg -s TPS
-</pre>
+----
 
 = Accessing TPS Services =
 
 == TPS UI ==
 
-Import the CA admin certificate from /root/.dogtag/pki-tomcat/ca_admin_cert.p12 into Firefox, then open [https://localhost:8443/tps/ https://localhost:8443/tps/].
+Import the CA admin certificate from `/root/.dogtag/pki-tomcat/ca_admin_cert.p12` into Firefox, then open https://localhost:8443/tps/.
 
 == TPS CLI ==
 
@@ -61,37 +62,33 @@ To set up a new TPS user:
 
 * As TPS admin:
 
-<pre>
+----
 $ pki tps-user-add <username> --fullName <full name>
 $ pki tps-user-membership-add <username> <groupname>
-</pre>
+----
 
 * As TPS user:
 
-<pre>
+----
 $ pki -c <password> client-init
 $ pki -c <password> client-cert-request uid=<username>
-</pre>
+----
 
 * As CA admin:
 
-<pre>
+----
 $ pki ca-cert-request-review <request ID> --action approve
-</pre>
+----
 
 * As TPS admin:
 
-<pre>
+----
 $ pki tps-user-cert-add <username> --serial <certificate ID>
-</pre>
+----
 
 * As TPS user:
 
-<pre>
+----
 $ pki -c <password> client-cert-import <nickname> --serial <certificate ID>
 $ pki -c <password> -n <nickname> tps-...
-</pre>
-
-= See Also =
-
-* [https://www.dogtagpki.org/wiki/Installing_TPS Installing TPS]
+----
