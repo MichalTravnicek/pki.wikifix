@@ -1,12 +1,12 @@
 = Overview =
 
-This document describes the process to install KRA subsystem. This assumes the CA subsystem has already been installed and the CA admin certificate has been exported to /root/.dogtag/pki-tomcat/ca_admin.cert.
+This document describes the process to install KRA subsystem. This assumes the CA subsystem has already been installed and the CA admin certificate has been exported to `/root/.dogtag/pki-tomcat/ca_admin.cert`.
 
 = Installing KRA =
 
 Prepare a deployment configuration file:
 
-<pre>
+----
 [KRA]
 pki_admin_cert_file=/root/.dogtag/pki-tomcat/ca_admin.cert
 pki_admin_email=kraadmin@example.com
@@ -25,25 +25,25 @@ pki_ds_password=Secret.123
 pki_security_domain_name=EXAMPLE
 pki_security_domain_user=caadmin
 pki_security_domain_password=Secret.123
-</pre>
+----
 
 Optionally, the certificate nicknames can be specified in the following parameters:
 
-<pre>
+----
 pki_storage_nickname=kra_storage
 pki_transport_nickname=kra_transport
 pki_audit_signing_nickname=kra_audit_signing
 pki_ssl_server_nickname=sslserver
 pki_subsystem_nickname=subsystem
-</pre>
+----
 
-'''Note:''' If you have specified nicknames for <font color="blue">sslserver</font> and <font color="blue">subsystem</font> system certificates previously, you need to specify same nicknames. Otherwise, all other subsystems will <font color="RED">FAIL!!!</font>
+**Note:** If you have specified nicknames for **sslserver** and **subsystem** system certificates previously, you need to specify same nicknames.
 
 To begin the installation, execute the following command:
 
-<pre>
+----
 $ pkispawn -v -f kra.cfg -s KRA
-</pre>
+----
 
 = Verification =
 
@@ -51,7 +51,7 @@ $ pkispawn -v -f kra.cfg -s KRA
 
 Verify KRA is running with the following command:
 
-<pre>
+----
 $ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin kra-user-find
 -----------------
 2 entries matched
@@ -64,13 +64,13 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin kra-user-find
 ----------------------------
 Number of entries returned 2
 ----------------------------
-</pre>
+----
 
 == KRA connector ==
 
 Verify the CS.cfg in the issuing CA has the following parameters:
 
-<pre>
+----
 ca.connector.KRA.enable=true
 ca.connector.KRA.host=server.example.com
 ca.connector.KRA.local=false
@@ -79,8 +79,4 @@ ca.connector.KRA.port=8443
 ca.connector.KRA.timeout=30
 ca.connector.KRA.transportCert=<base-64 encoded data>
 ca.connector.KRA.uri=/kra/agent/kra/connector
-</pre>
-
-= See Also =
-
-* [https://www.dogtagpki.org/wiki/Installing_KRA Installing KRA]
+----
