@@ -65,7 +65,7 @@ kra.storageUnit.wrapping.choice=1
 * A deployer (like IPA) can choose to set `kra.storage.wrapping.choice=0` to keep the existing behavior.  This can be kept this way until all servers in a replication topology are upgraded to avoid having old (un-upgraded) servers attempting to decode key records created on new servers.
 * A migration script will be created to add the missing entries above.  By default, this would enable using of AES when the server is restarted.
 * If the parameter `kra.storage.wrapping.choice` does not exist (for some reason, if the migration script has not run), then we will default the old 3DES3 parameters.
-* When keys are encrypted and stored in the KRA database, the mechanism used to encrypt/wrap them will be stored in the `KeyRecord` as `metaInfo` entries,  An example record is shown below:
+* When keys are encrypted and stored in the KRA database, the mechanism used to encrypt/wrap them will be stored in the `KeyRecord` as `metaInfo` entries.  An example record is shown below:
 
 ----
 dn: cn=41,ou=keyRepository,ou=kra,o=pki-tomcat-KRA
@@ -317,12 +317,12 @@ Server parameters are:
 
 * Server version
 * encrypt/keywrap for keys
-* Keyset parameter in CS.cfg (for storage Unit)
+* Keyset parameter in `CS.cfg` (for storage Unit)
 
 Client parameters are:
 
 * Client version
-* Keyset parameter in pki.conf
+* Keyset parameter in `pki.conf`
 * For python client, the crypto backend.
 
 Tests to be performed for each client are provided. 
