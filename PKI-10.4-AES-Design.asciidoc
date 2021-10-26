@@ -1,0 +1,332 @@
+= Requirements =
+
+The requirements that need to be met are specified in the link:https://www.niap-ccevs.org/pp/pp_ca_v2.0.pdf[Protection Profile for Certification Authorities Version 2.0]. 
+
+Specifically,
+
+----
+FCS_COP.1.1(1) - The TSF shall perform [encryption and decryption] in accordance with a specified cryptographic algorithm:
+[selection:
+    AES-CBC (as defined in NIST SP 800-38A) mode
+    AES-CCM (as defined in NIST SP 800-38C) mode,
+    AES-GCM (as defined in NIST SP 800-38D) mode,
+    AES-XTS (as defined in NIST SP 800-38E) mode,
+    AES Key Wrap (KW) (as defined in NIST SP 800-38F) mode
+    AES Key Wrap with Padding (KWP) (as defined in NIST SP 800-38F) mode
+]
+and cryptographic key size [selection: 128-bit, 256-bit].
+----
+
+In addition, this is a good opportunity to beef up our crypto to use more modern and secure algorithms, specifically:
+
+* It is important to use authenticated encryption to prevent forgery - either by using AES in CTR mode with an HMAC, or by using an authenticated encryption mode such as AES-GCM.
+* We should OAEP padding instead of PKCS#1 (v1.5), to protect against known ciphertext attacks.
+
+= Overall Design Goals =
+
+To satisfy the above requirements, we have specified the following goals:
+
+* Encryption should be done using AES-GCM using 256-bit AES keys to allow for authenticated encryption.  Authentication is especially important for interactions with external clients.
+* Key wrapping will be done using AES KeyWrap with Padding using AES 256 bit keys.
+* OAEP padding should be used in RSA wrapping, instead of PKCS#1 (1.5).  Note that this requirement is optional from the point of view of common criteria.  Using OAEP is a good idea but, based on the schedule, will likely be deferred until later in the cycle.  I will add more to this design doc as needed when this feature is added.
+* A clear (and hopefully seamless) migration path from old to new KRAs will be available
+
+= Design =
+
+There will need to be changes in both the Storage Unit (where the key is encrypted/wrapped and stored in the LDAP backend, and the Transport Unit (where the key is unwrapped using the transport key).
+
+== Storage Unit ==
+
+New parameters will be added to `CS.cfg` to specify the encryption/wrapping mechanisms to be used when storing keys.  These will look something like:
+
+----
+kra.storageUnit.wrapping.0.sessionKeyLength=0
+kra.storageUnit.wrapping.0.sessionKeyWrapAlgorithm=RSA
+kra.storageUnit.wrapping.0.payloadEncryptionPadding=PKCS5Padding
+kra.storageUnit.wrapping.0.sessionKeyKeyGenAlgorithm=DES3
+kra.storageUnit.wrapping.0.payloadEncryptionAlgorithm=DES3
+kra.storageUnit.wrapping.0.payloadEncryptionMode=CBC
+kra.storageUnit.wrapping.0.payloadWrapAlgorithm=DES3/CBC/PAD
+kra.storageUnit.wrapping.0.sessionKeyType=DES3
+
+kra.storageUnit.wrapping.1.sessionKeyLength=128
+kra.storageUnit.wrapping.1.sessionKeyWrapAlgorithm=RSA
+kra.storageUnit.wrapping.1.payloadEncryptionPadding=PKCS5Padding
+kra.storageUnit.wrapping.1.sessionKeyKeyGenAlgorithm=AES
+kra.storageUnit.wrapping.1.payloadEncryptionAlgorithm=AES
+kra.storageUnit.wrapping.1.payloadEncryptionMode=CBC
+kra.storageUnit.wrapping.1.payloadWrapAlgorithm=AES KeyWrap/Padding
+kra.storageUnit.wrapping.1.sessionKeyType=AES
+
+kra.storageUnit.wrapping.choice=1
+----
+
+* By default, new servers will have `kra.storage.wrapping.choice=1`, which would mean that the parameters `kra.storage.wrapping.1` (AES) would be selected when archiving keys.
+* A deployer (like IPA) can choose to set `kra.storage.wrapping.choice=0` to keep the existing behavior.  This can be kept this way until all servers in a replication topology are upgraded to avoid having old (un-upgraded) servers attempting to decode key records created on new servers.
+* A migration script will be created to add the missing entries above.  By default, this would enable using of AES when the server is restarted.
+* If the parameter `kra.storage.wrapping.choice` does not exist (for some reason, if the migration script has not run), then we will default the old 3DES3 parameters.
+* When keys are encrypted and stored in the KRA database, the mechanism used to encrypt/wrap them will be stored in the `KeyRecord` as `metaInfo` entries,  An example record is shown below:
+
+----
+dn: cn=41,ou=keyRepository,ou=kra,o=pki-tomcat-KRA
+objectClass: top
+objectClass: keyRecord
+keyState: VALID
+serialno: 0241
+...
+metaInfo: sessionKeyLength:256
+metaInfo: sessionKeyWrapAlgorithm:RSA
+metaInfo: payloadEncryptionPadding:PKCS5Padding
+metaInfo: sessionKeyKeyGenAlgorithm:AES
+metaInfo: payloadEncryptionAlgorithm:AES
+metaInfo: payloadEncryptionIV:AQEBAQEBAQEBAQEBAQEBAQ==
+metaInfo: payloadEncryptionMode:CBC
+metaInfo: payloadWrapAlgorithm:AES KeyWrap/Padding
+metaInfo: sessionKeyType:AES
+metaInfo: payloadEncrypted:false
+----
+
+* When keys are recovered, the `metaInfo` in the key record is used to decrypt and rewrap the key.  If no entries exist, then we assume the old (3DES) mechanism.  This allows keys that were previously stored to be extracted without issues.  Note that there is a field (`payloadEncrypted: true/false`) which indicates whether or not the data has been encrypted or keywrapped.
+
+== Transport Unit ==
+
+The `PKIArchiveOptions` and REST `KeyRequest` objects contain a field that contains the OID of the encryption mechanism.  On the server side, the code will be fixed to actually look at this OID to determine the encryption mechanism, and use that mechanism to extract the key.  Right now, the OID is ignored and the mechanism is assumed to be 3DES.
+As an update to this, the server has been modified to support the following OIDs and corresponding algorithms:
+
+----
+KW_AES_KEY_WRAP_PAD ("2.16.840.1.101.3.4.1.8")
+KW_AES_CBC_PAD ("2.16.840.1.101.3.4.1.2)
+KW_DES_CBC_PAD ("1.2.840.113549.3.7")
+----
+
+The algorithms above will be used to unwrap the key to be archived.
+
+This means of course that new servers will still be able to support old clients, because the clients will send an OID corresponding to 3DES.
+New clients will use the recently added `InfoService` to query the version of the server.  If the server is 10.4 or greater, then the client will use AES-CBC using 128 bit keys.   If the server is less than 10.4, the old 3DES mechanism will be used.  This allows old servers to work transparently with new clients.
+
+Clients here include:
+
+* Java `KeyClient`, which is used by the `pki` CLI.
+* Python Key Client. which is used by IPA Vault and Barbican.  As a subtask to complete this work, it likely makes sense to switch to using python-cryptography rather than python-nss, rather than expend the effort to add any missing functionality to `python-nss`.
+* `CRMFPopClient`
+* CMC - to be handled by Christina as part of her work.
+
+Clients that will not be included in this design:
+
+* CA - The generation of CRMF through the browser is no longer supported.  As a result, the `pki` CLI or `CRMFPopClient` must be used to generate encrypted bundles to archive keys.  We will therefore not concern ourselves with any javascript in the CA to create CRMF.
+* TPS - The TMS environment uses/generates 3DES keys right now.  While any keys that are generated and stored in the KRA should be stored with whatever mechanism is designated in the Storage Unit, transport etc. will continue to use 3DES.  If we want to change this, then that will be written up (and probably done by Jack) in a separate document.
+
+== Notes about HSMs ==
+
+At this point, the Thales and Lunasa HSMs do not support AES KeyWrap.  There are two ways to handle this.  Both of these will be supported.
+
+* Put the KRA in encrypt mode.  This will cause all the keys to be archived using encryption rather than key wrapping using whatever is defined as the encryption algorithm.  By default, this is AES-128-CBC.  Clients will communicate with the KRA using AES-CBC-128 as the keywrap or encryption mechanism.  The main issue here is migration ie. making sure that older key records are accessible.  Most likely, this will need to be resolved by running a migration script that can adds the needed metadata to each of the old key records.  The reason one would want to use this configuration is for common criteria qualification, because the NIST guideline indicates that AES-CBC should be used for encryption only.  
+* Leave the KRA in key wrapping mode, but use AES-128-CBC instead as the key wrapping method.  This may be the best option for the customer to use if they do not wish to run a migration script.  When the HSM supports AES KeyWrap, they can simply update their CS,cfg to use this mechanism, without having to change the encryption mechanism.  You can configure this as follows:
+
+----
+kra.storageUnit.wrapping.1.payloadWrapAlgorithm=AES/CBC/PKCS5Padding
+kra.storageUnit.wrapping.1.payloadWrapIVLen=16
+----
+
+== Notes about CAInfo/KRAInfo ==
+
+To advertise the capabilities of the KRA, two new resources have been added.  On the KRA, the `KRAInfoResource` resides at `/kra/rest/info`.  It contains details on which algorithms/mechanisms are supported for archival and recovery as follows:
+
+----
+<KRAInfo>
+    <Attributes/>
+    <ArchivalMechanism>keywrap</ArchivalMechanism>
+    <EncryptAlgorithm>AES/CBC/PKCS5Padding</EncryptAlgorithm>
+    <RecoveryMechanism>keywrap</RecoveryMechanism>
+    <WrapAlgorithm>AES KeyWrap/Padding</WrapAlgorithm>
+</KRAInfo>
+----
+
+On the CA, a resource has been added for CA information.  This now also includes information from the KRA which it reads the first time the resource is accessed.  That means that if a change in implemented on the KRA for these parameters, the CA must be restarted to update and reflect that change.
+
+----
+<CAInfo>
+    <Attributes/>
+    <ArchivalMechanism>keywrap</ArchivalMechanism>
+    <EncryptAlgorithm>AES/CBC/PKCS5Padding</EncryptAlgorithm>
+    <WrapAlgorithm>AES KeyWrap/Padding</WrapAlgorithm>
+</CAInfo>
+----
+
+== Updated Flows for Archival ==
+
+To help conceptualize the changes indicated above, here are some notes on updated flows for archival for various clients.
+
+The key complication though is that clients need to know which algorithms a server will support.  There are three possible scenarios currently:
+
+* Server is pre 10.4, and therefore expects 3DES-CBC.
+* Server is post 10.4, and supports AES KeyWrap
+* Server is post 10.4 and uses encryption for keys (AES/128/CBC)
+* Server is post 10.4, uses key wrapping, but uses AES/128/CBC.
+
+=== CRMFPopClient ===
+
+`CRMFPopClient` is used to generate CRMF requests for archival, either in an offline mode or in a mode where the the requests is automatically submitted to a CA for approval.
+In offline mode, the user is responsible for knowing which algorithms a server will support.  If the client uses an algorithm that is unsupported by the server, it is expected that the enrollment will fail when archival is attempted.
+The following mechanisms are provided to the CRMFPopClient to determine the key wrapping algorithm to use (in order):
+
+* A flag (`-w`) to specify the key wrapping algorithm.  The possible options are: "AES KeyWrap/Padding”; "AES/CBC/PKCS5Padding”; "DES3/CBC/Pad".  These correspond to the names of the key wrap algorithms in JSS.
+* An environment variable `KEY_ARCHIVAL_KEYWRAP_ALGORITHM` which is set in `pki.conf`.
+* AES KeyWrap/Padding (default)
+
+In the case where `CRMFPopClient` is provided the host/port for the CA, the client should contact the server directly via the `CAInfoResource` and determine the correct keywrap algorithm irrespective of the settings defined by environment variables or command line settings.  It will basically use the WrapAlgorithm provided, unless the `CAInfoResource` is not available (as for an old < 10.4 server), and then defaults to DES3/CBC/Pad.
+
+Note that the instructions for generating a CMC request require you to first create a CRMF request offline using `CRMFPopClient`.  This means you need to be sure to use the correct key wrapping algorithm!
+
+=== Java Cert Client ===
+
+This uses the same code as the `CRMFPopClient`, but in this case, there is no offline option.  This is the equivalent of the `CRMFPopClient` case where the request is automatically sent to the server.
+
+That means that the client contacts the CA and retrieves the `CAInfoResource`, and uses whatever is defined by the WrapAlgorithm attribute, or DES3/CBC/Pad is the `CAInfoResource` is unavailable.
+
+=== Java Key Client ===
+
+The Java KeyClient contacts the KRA directly.
+
+While there are many methods in the KeyClient to archive symmetric keys, these are not exposed via the Key CLI.  All that is exposed via the CLI is storage using a passphrase.  Symmetric and asymmetric keys can be stored using this mechanism.
+
+The CLI also exposes mechanism to store pre-generated `PKIArchiveOptions` objects.  (which potentially could be used to encrypt all kinds of data).  To be honest, this mechanism is somewhat cumbersome and probably unlikely to be used by anyone.  It is also irrelevant from the point of view of the transport mechanisms because the algorithms have already determined in the `PKIArchiveOptions` structure read in.
+
+For the above reasons, the only archival mechanism that has been tested is the storage of passphrases.  This is significant because passphrases are always wrapped using an encryption mechanism.  There is no need to determine if the server supports key wrapping.
+
+There are also key generation mechanisms for both symmetric and asymmetric keys which will do server side keygen and return references to the generated keys.  These are exposed through the CLI.  From a  transport point of view though, there is nothing to do here.  Nothing is passed from the client to the server to be archived.
+
+The client checks the version of the KRA.  If the KRA is >= 10.4, we assume AES, otherwise we assume 3DES-CBC and encrypt accordingly.
+Originally, there was a thought that the client could check the `KEY_WRAP_PARAMETER_SET` environment variable to see if we wanted to use 3DES instead (and in fact we do this on the Python side).  It is not clear what benefit this would provide, and is currently unimplemented.
+
+=== Python Cert Client ===
+
+There is no current support for CRMF requests using the Python client, so no work has been done here.
+
+=== Python Key Client ===
+
+* The python key client talks to the KRA directly. 
+* The python key client determines the algorithm keyset (1=AES, 0=3DES) by checking the sources below and selecting the lowest supported keyset.
+* The client checks the server version by looking at the InfoService.  If the version is >= 10.4, then keyset=1 is returned.
+* The client checks an environment variable set in `pki.conf` (`KEY_WRAP_PARAMETER_SET`)
+* The client checks the backend crypto provider.  If we are using the python-cryptography backend, then we use keyset=1, otherwise for the NSS Crypto backend, NSS = 0
+* There has been no mechanism in the Python client to use key wrapping for symmetric keys or asymmetric keys, which basically means that everything has been stored using encryption (like a passphrase).  This is in fact what is happening got the Barbican client.  So, right now, there is no need to check the encrypt/keywrap mechanism.
+
+* So, based on keyset, the secret is encrypted as follows:
+
+----
+keyset = 0, 3DES-CBC with PKCS 1.5 padding
+keyset = 1, AES 128 bit CBC with PKCS 1.5 padding
+----
+
+== Updated Flows for Retrieval ==
+
+To help conceptualize the changes indicated above, here are some notes on updated flows for retrieval for various clients.  The most commonly used client for retrieval will be the Web UI, which extracts a private key and wraps it in a pkcs#12 package.  This of course must continue to work, but there are other clients to retrieve secrets (keys and passphrases) now too.
+
+For these clients, the mechanism is as follows:
+
+* The client generates a symmetric key to wrap the returned secret.  This symmetric key (the session key) is wrapped with the KRA transport key.
+* For clients >= 10.4, the client sends parameters:
+
+----
+payloadEncryptionOID: algorithm supported for encryption
+payloadWrappingName: algorithm supported for key wrapping
+----
+
+* The server retrieves the relevant key and wraps it with the provided session key using either encryption or key wrapping depending on the secret type (passphrases use encryption always, symmetric keys and asymmetric keys use key wrapping), and server encrypt/keywrap setting. 
+* If `payloadEncryptionOID` or `payloadWrappingName` is provided in the client recovery request, the server uses the relevant algorithm.  If not, we assume that we are talking to an old client - and 3DES-CBC-Padding is used.
+* The server populates either `encryptAlgorithmOID` or `wrapAlgorithm` in its response, depending on whether the secret was encrypted or key wrapped.
+* Based on which attribute was populated, the client un-encrypts/unwraps the secret and provides it to the user.
+* There is a mechanism to wrap keys with a passphrase instead of a symmetric key.  That mechanism has yet to be looked at. 
+
+=== Python Key Client ===
+
+* The supported algorithm keyset will be determined using the mechanism detailed in the Archival description above.  Based on this keyset, we set the following in the retrieval request:
+
+----
+keyset = 0 (NSS or python-cryptography):
+payloadEncryptionOID: 3DES-CBC-Pad
+payloadWrappingName: 3DES-CBC-Pad
+
+keyset = 1 (python-cryptography):
+payloadEncryptionOID: AES-128-CBC-Pad
+payloadWrappingName: AES-128-CBC-Pad
+----
+
+* Note on the above.  We use  AES-128-CBC-Pad rather than AES_KEY_Wrap/Padding because AES KeyWrap/Padding is not yet implemented in `python-cryptography`.  AES KeyWrap is implemented, but not with padding.  It would be nice to implement this upstream.
+
+* Symmetric keys and passphrases appear to work just fine.  We need to look at private keys retrieval and figure out if we broke something from the Barbican point of view.  I have been unable to convert into PEM.  I have been able to retrieve the public key just fine. 
+
+=== Java Key Client ===
+
+* The supported algorithm keyset will be determined using the mechanism detailed in the Archival description above.  Basically, it comes down to checking if the server version is >= 10.4.  If so, then we use AES; otherwise, we use 3DES.
+* Based on this keyset, we set the following in the retrieval request:
+
+----
+3DES:
+payloadEncryptionOID: 3DES-CBC-Pad
+payloadWrappingName: 3DES-CBC-Pad
+
+AES:
+payloadEncryptionOID: AES-128-CBC-Pad
+payloadWrappingName: AES-Keywrap-Pad
+----
+
+* Passphrases and symmetric keys have been tested and appear to work just fine.
+* Asymmetric keys are retrieved, but extracting the private key into say, for instance, a PEM file does not currently work.  This is because calling encode() on a `PrivateKey` object does not return any data.  Not sure how to fix this - or for that matter, if this ever worked.  There is a separate mechanism to return the key as a PKCS12 file. 
+
+== Migration Considerations ==
+
+=== Server Side ===
+
+The following migration scripts need to be written:
+
+* Script to add the `kra.storageUnit.wrapping.*` parameters as indicated in the storage unit section above.
+* In order to avoid breakage, we set the parameter set choice to 0 to continue using 3DES.
+* The CA also contains parameters that depend on the KRA, which is exposed through the `CAInfo` resource.  This cannot be added through a migration script, because it depends on  whether the CA is connected to a KRA, if that KRA is updated etc.   One thought is to add code to the `CAInfo` service to query the KRA to retrieve the correct values.  There is a question though on how often to retrieve the values.  To freshly retrieve on each access would likely be overkill, while retrieving only if the parameters do not exist in `CS.cfg`, leaves a manual step required by the administrator.  (Leaving this for Fraser to sort out and implement.)
+
+=== Client Side ===
+
+* All client side apps should continue to work without modification.  
+* Some clients, like the Java client and `CRMFPopClient` will immediately start taking advantage of the new algorithms in wrapping their payloads for transport.  The Python client, though, requires changes to use the new algorithms.
+* Client needs to be changed to use the `python-cryptography` crypto provider.
+* Agent and transport certs need to be in PEM files.  The agent cert is already in a PEM file for python-requests.  We just need to add the transport cert. 
+
+== Implementation Steps ==
+
+* Refactor code to centralize crypto functions in `CryptoUtil`. (DONE)
+* Add `CS.cfg` entries to specify the wrapping parameters used by the storage unit (DONE)
+* Switch storage unit to use AES in GCM node, AES Key Wrapping.
+** Partially complete.  Switched to use AES/CBC/Pad internally and AES KeyWrapPad. (DONE)
+** AES-GCM is not working yet in JSS (in progress, deferred to 10.5?).
+* Need to switch to using 128 bit AES (DONE).
+* Make sure transport unit looks at the OID coming in to decrypt archive packets. (DONE)
+* Modify KeyClient to use AES/GCM rather than DES (done with AES-CBC, deferred for GCM).
+* Modify python-client to use AES/GCM
+** Uses AES_CBC (Done, defer AES-GCM to 10.5?)
+* Modify `CRMFPopClient` to use AES/GCM (CBC Done, defer GCM to 10.5) 
+* Modify all to use OAEP padding (defer to 10.5?)
+
+== More details ==
+
+I put together a testing matrix to show the scenarios and behavior expected as I see it.
+
+https://docs.google.com/spreadsheets/d/10K_VNvXx1yc7_34bMYpPhCpBY_ZtmN-a6W5IVFmSOCc/edit#gid=1708520908
+
+Server parameters are:
+
+* Server version
+* encrypt/keywrap for keys
+* Keyset parameter in CS.cfg (for storage Unit)
+
+Client parameters are:
+
+* Client version
+* Keyset parameter in pki.conf
+* For python client, the crypto backend.
+
+Tests to be performed for each client are provided. 
+
+The green shaded configurations are what would be expected to be tested for common criteria.
+The yellow shaded configurations are those which should already have been tested as part of CS 9.1 testing.  
+In case of time crunch (and when isn’t there), we could de-emphasize testing of cases where client keyset=0.
