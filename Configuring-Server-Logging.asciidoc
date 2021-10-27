@@ -1,6 +1,6 @@
 = Overview =
 
-PKI server provides a logging service using link:https://docs.oracle.com/en/java/javase/11/docs/api/java.logging/java/util/logging/package-summary.html[java.util.logging] (JUL) framework. The logging service which can be used to troubleshoot issues on the server (e.g. authentication, authorization) that might be shared by all PKI subsystems.
+PKI uses link:https://docs.oracle.com/en/java/javase/11/docs/api/java.logging/java/util/logging/package-summary.html[java.util.logging] (JUL) framework for server logging. The logging framework can be used to troubleshoot server code that is shared by all PKI subsystems (e.g. authentication, authorization).
 
 The configuration is located at `/var/lib/pki/pki-tomcat/conf/logging.properties` which by default is a link to link:https://github.com/dogtagpki/pki/blob/master/base/server/share/conf/logging.properties[/usr/share/pki/server/conf/logging.properties].
 
@@ -15,7 +15,7 @@ com.netscape.level = WARNING
 netscape.level = WARNING
 ----
 
-If the server is running on the background as a systemd service, the messages will be logged into the systemd journal.
+If the server is running in the background as a systemd service, the messages will be logged into the systemd journal.
 To view the systemd journal:
 
 ----
