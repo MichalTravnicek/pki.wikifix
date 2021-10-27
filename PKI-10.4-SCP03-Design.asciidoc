@@ -1,0 +1,101 @@
+= Background =
+
+We currently support versions 01 and 02 of the Secure Channel Protocol, which use 3DES/TDEA to protect the transport when personalizing a smart card.  As stronger keys become more commonplace on smart cards, the key used to protect the communication with the card while we transfer the keys that are being provisioned need to keep up.  As a rule, you should never use a weaker key to protect the transport than the key that is being provisioned onto the card.
+
+Secure Channel Protocol 03 uses AES for securing the transport.  This can ultimately allow for RSA up to 15360, AES-256 and ECC with f=512+ keys to be securely transported when using AES-256 to secure the transport.
+
+To keep up with crypto recommendations, we would like to start using tokens that support SCP03. (Update: the current release supports the G&D Smart Cafe 6.0 and 7.0 cards as tested by QE)
+
+== What does the Secure Channel Protocol involve? ==
+
+* When we talk about Secure Channel Protocol, it all revolves around the methods required to create a secure communications channel between the host entity (TPS) and the token itself.
+* During the course of a token operation such as an enrollment or formatting, the host entity needs to have sensitive access to the certificates and keys that reside on the token, contained within the resident coolkey applet. In order to make these kinds of changes to the token, the host must establish a secure channel to the token. When all of the operations have been done, the secure channel will then go away. It is common for multiple secure channels be established to the token during a token operation. One such scenario would happen when upgrading the key set of the token. One secure channel would be needed to start talking to the token with the old keyset and then after upgrade, the host will want to create a new channel involving the new upgraded key set.
+* At a high level, a secure channel is created when both the host and the token can prove to each other they possess the exact same "session keys". Session keys are short lived keys that are derived from the master key associated with a batch of tokens. The master key is maintained by the Token Key Service subsystem. Usually in the SCP world, we have a set of 3 keys that perform different functions, KEK, ENC, and MAC. The KEK is used for encrypting other keys, like when we inject the encryption private key onto the token. The ENC key is used to encrypt data APDU's sent back and forth between the host and the token. Finally the MAC key is used to calculate message authentication codes needed for secure communications.
+* A secure channel consists of an involved handshake whereby the token and host both generate "challenges" and "cryptograms" to be verified. The whole sequence ends when both the host and the token can prove they have the same 3 session keys as the other. This proof is done by having each side recreate the cryptogram sent by the other side of the equation. The only way this verification would be successful is if each side has used the exact same keys to create the data. Any inconsistency is dealt with harshly and the secure channel attempt fails.
+
+= SCP03 Info =
+
+The following will talk about, at a fairly high level, what has been worked and what needs to be done to add scp03 support to our TMS system. (Now that we are mostly done, updates will be provided to some of the items to come.)
+
+Things done previously several months back before starting full blown development: (Update: Of course now development has completed for this release)
+
+* SCP03 is a specification from Global Platform that is based upon secure channel creation based upon AES symmetric keys. The exact spec can be found by searching the Global Platform web site. https://www.globalplatform.org/
+** The title is : Secure Channel Protocol '03' Card Specification v2.2 – Amendment D. The reason why it can't be linked directly is because the site requires you run through a couple of hoops to get the various documents.
+* Obtained some test scp03 cards. (G&D Smart Cafe 6.0)
+* Was able to generate a scp03 based secure channel using the 3rd party tool Global Platform Pro.
+* Began working on some preliminary code for TMS:
+** Completed the detection code such that can automatically recognize a scp03 enabled card.
+** Began work on the AES-CMAC algorithm, which is used all over the place in scp03. This algorithm is specified in:
+*** NIST SP 800-38B [10]. This algorithm is heavily involved in creating MACS or message authentication codes. (update, this algorithm was successfully implemented in Java code, using JSS functionality).
+* Although the spec call for AES session keys of various sizes, we have decided to begin by supporting the most common size of 128 bit AES keys for the secure channel session keys.
+
+= Remaining Work for scp03 =
+
+* Complete the AES-CMAC algorithm implementation using Java only JSS code. (Update completed)
+** This will require a simple bug fix to JSS to allow using AES keys for sym key operations. Right now a legal AES key is being misidentified as RC2 by JSS. (Update JSS fixed to allow AES sym key operations)
+* Decide upon an implementation (i) to support for scp03: (update, decided on and implemented mutual auth, MAC, and ENC on the apdu's. This is the standard implementation for secure processing).
+** We will probably want at a minimum mutual authentication, message integrity (MACing) and, message confidentiality (encryption).
+** The one thing that is optional is the use of the R-MAC scheme which does a  mac upon return apdu's. This requires one more type of session key to be generated other than the 3 standard enc, mac, and dek keys. ***This will be the S-RMAC session key. Code will be needed in TKS to generate this key. Also the RMAC operation will have to be implemented in code to act upon the desired message data.(update, RMAC was not yet implemented in the first version.)
+* From here it is just a matter of implementing the various MACing and encryption  methods upon the apdu commands going back and forth. The end result will be a secure channel upon which to communicate with the token. (Update: completed)
+* This will require generating the various session (AES) keys required to perform these operations. It will also require processing the various host and card challenges needed to provide mutual authentication. The code will be similar but different than previous versions of the SCP we have already implemented based upon the what is stated in the  spec and the fact we are using AES keys now in scp03.(Update, completed)
+* This work will require work to both TPS and TKS subsystems. In CS 9.1, we made it possible to perform a bunch of sym key manipulations in pure Java / Jss code, so this work should not require resorting to native JNI code this round. (Update: Entire implementation of SCP03 was completed entirely using pure Java code while making use of JSS for the cyrpto functions.)
+* Also, the scp03 spec calls for use of the KDF nist sp800, which we did a version of for CS 9.x. This may have to be enhanced since in scp03, since the spec calls for the use of the CMAC hashing (discussed earlier) , where in scp02 and scp01, we used the HMAC for this hash. (Update: This was completed.)
+* Once we have a secure channel to a card we must do the following major things:
+* Do what is required to perform an end to end format operation, which will leave us with an instantiated applet residing on the token. We can try this out with the current gp211 applet to just see if we can get an applet written, to the card, before worrying about GP221. (Update: It turns out that the current GP211 applet we shipped with SCP02 works for SCP03)
+* Do what is required to perform a full enrollment on the token. We can try this with token side keygen of the encryption private key to factor out (temporarily) the server side keygen and and  subsequent private key injection into the token complications. (Update: both token side and server side keygen completed)
+* Do what is required to use the server side keygen scheme for the encryption private key and have it injected onto the token. Note that the enrollment steps may require the full gp221 applet support, if needed, as described below. (Update: current gp211 applet worked fine)
+* The end result will be a token with the required certificates and keys.
+* Perform some testing where we use the token to perform real cryptographic operations using Firefox and supported email clients for smime.
+* Figure out if we need a new applet to go along with scp03, which is an amendment to the GP 2.2.1 specification. (Update no new applet needed)
+* Applet work will also probably contain work to be able to inject the private key onto the token based on the AES key encryption key we will be using. Right now this is done with RSA. (Update: It turned out that no mod to the applet was needed to inject the private key. The KEK key is AES now, but the token knows how to handle it, so it worked fine.)
+* Perform tasks needed to support legitimate symmetric key changeover
+** Changes to the command line tool `tkstool` required to create AES based master keys on the soft token or hsm. (Update: We have a bug for this problem. Not yet completed. It turns out that the G&D SC 6.0 card actually needs a DES based master key. The SC 7.0, which we also provided support for, needs an AES master key. The plan for now, is to generate this key with 3rd party tools, like those available on the various HSM models. For master keys in the NSS software token, we have an unsupported but still working NSS tool called `/usr/lib64/nss/unsupported-tools/symkeyutil`, which can be used to generate software AES master keys until we fix the official `tkstool` application to be able to handle AES master keys.)
+* Do what is needed in TMS code to support symmetric key changeover. This will most probably require some new code, since the key upgrade procedure is known to change slightly from version to version. The 3 new static keys to go on the token need to be wrapped up and protected before being sent to the token. This scheme will most probably differ here. (Update: minor changes were needed and it was implemented successfully)
+
+= Sample TKS Configuration for SCP03 Supported Cards =
+
+* SCP03 cards, and previous versions are detected automatically at this point and acted upon, by TPS.
+* This code snippet of the TKS config file shows config for the two supported tokens, the G&D 6.0 and 7.0
+** What we have there is a way to specify the "key diversification" method of a given class of token. This refers to the first
+step that takes place when ultimately leading up to a finished session key. There are multiple types of diversification available:
+There is the older visa2, which is not used here or the emv method. Also one token prefers no diversification step. Also note that the
+configuration allows us to specify a diversification method for the ver1 or "developer" keyset and the method for all subsequently upgraded versions of the token's keyset.
+** Also note that for each token we can specify what type of key represents the master key, DES3 or AES.
+
+----
+tks.defKeySet._000=##
+tks.defKeySet._001=## Axalto default key set:
+tks.defKeySet._002=##
+tks.defKeySet._003=## tks.defKeySet.mk_mappings.#02#01=<tokenname>:<nickname>
+tks.defKeySet._004=##
+tks.defKeySet._005=## tks.prot3   , protocol 3 specific settings
+tks.defKeySet._006=## divers= emv,visa2 : Values for the master key case, or > version one.
+tks.defKeySet._007=## diversVer1 = emv,visa2, or none. This is for developer or version one keyset
+tks.defKeySet._008=## devKeyType = DES3or AES. This is for the key type of developer or version one keys.
+tks.defKeySet._009=## masterKeyType = DES3 or AES. This is for the type of key for the master key.
+tks.defKeySet._010=##
+tks.defKeySet._011=## Only supports two tokens now: G&D Smart Cafe 6 and Smart Cafe 7, use these exact settings
+tks.defKeySet._013=## Smart Cafe 6 settings:
+tks.defKeySet._014=##    tks.defKeySet.prot3.divers=emv
+tks.defKeySet._015=##    tks.defKeySet.prot3.diversVer1Keys=emv
+tks.defKeySet._016=##    tks.defKeySet.prot3.devKeyType=DES3
+tks.defKeySet._017=##    tks.defKeySet.prot3.masterKeyType=DES3
+tks.defKeySet._018=##Smart Cafe 7 settings:
+tks.defKeySet._019=##    tks.defKeySet.prot3.divers=none
+tks.defKeySet._020=##    tks.defKeySet.prot3.diversVer1Keys=none
+tks.defKeySet._021=##    tks.defKeySet.prot3.devKeyType=AES
+tks.defKeySet._022=##    tks.defKeySet.prot3.masterKeyType=AES
+tks.defKeySet._023=##
+tks.defKeySet._024=##
+tks.defKeySet.auth_key=#40#41#42#43#44#45#46#47#48#49#4a#4b#4c#4d#4e#4f
+tks.defKeySet.kek_key=#40#41#42#43#44#45#46#47#48#49#4a#4b#4c#4d#4e#4f
+tks.defKeySet.mac_key=#40#41#42#43#44#45#46#47#48#49#4a#4b#4c#4d#4e#4f
+tks.defKeySet.nistSP800-108KdfOnKeyVersion=00
+tks.defKeySet.nistSP800-108KdfUseCuidAsKdd=false
+tks.defKeySet.prot3.devKeyType=DES3
+tks.defKeySet.prot3.divers=emv
+tks.defKeySet.prot3.diversVer1Keys=emv
+tks.defKeySet.prot3.masterKeyType=DES3
+tks.defaultSlot=Internal Key Storage Token
+tks.drm_transport_cert_nickname=transportCert cert-pki-tomcat KRA
+----
