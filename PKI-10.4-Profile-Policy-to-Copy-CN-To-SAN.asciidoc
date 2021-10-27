@@ -1,0 +1,69 @@
+= Overview =
+
+The use of the Common Name (CN) attribute of the Subject DN for domain name validation was
+deprecated by link:https://datatracker.ietf.org/doc/html/rfc2818[RFC 2818] in May 2000.
+As of early 2017 support has been removed from some client
+programs and libraries (most notably Google Chrome) and others are sure to follow.
+
+Many client certificate request tools still do not make it easy to include a `dNSName` SAN value
+in a certificate request.  Accordingly, it is common to process CSRs for service certificates
+that do not contain a Subject Alt Name extension, even though the resulting certificates will
+be rejected by some (and some day most or all) programs.
+
+Therefore we want to be able to configure relevant profiles to automatically "promote" CN
+values into a SAN extension.
+
+= Proposed solution =
+
+Add a new profile policy default, `CommonNameToSANDefault`.  When used on a profile
+this component looks at the *most specific* CN value in the Subject DN, and if it looks like
+a DNS name it gets copied to the SAN extension (creating the SAN extension if necessary).
+Note the following caveats:
+
+* Names containing wildcards are not recognised as DNS names. The rationale is twofold; wildcard DNS names, although currently recognised by most programs, are technically a violation of the X.509 specification (link:https://datatracker.ietf.org/doc/html/rfc5280[RFC 5280]), and they are discouraged by link:https://datatracker.ietf.org/doc/html/rfc6125[RFC 6125]. Therefore if the CN contains a wildcard DNS name, `CommonNameToSANDefault` will not copy it to the SAN extension.
+* Single-label DNS names are not copied. It is unlikely that people will use Dogtag to issue certificates for top-level domains. If `CommonNameToSANDefault` encounters a single-label DNS name, it will assume it is actually not a DNS name at all, and will not copy it to the SAN extension.
+* The `CommonNameToSANDefault` policy index must come after `UserExtensionDefault`, `SubjectAltNameExtDefault`, or any other component that adds the SAN extension, otherwise an error may occur because the older components do not gracefully handle the situation where the SAN extension is already present.
+
+== Upgrade ==
+
+The component has not been added to any profiles by default, but an upgrade script was added
+to instantiate the component as `commonNameToSANDefaultImpl`.
+
+== Profile configuration ==
+
+There is no special configuration for the `CommonNameToSANDefault` component.
+Example profile configuration:
+
+----
+policyset.serverCertSet.12.constraint.class_id=noConstraintImpl
+policyset.serverCertSet.12.constraint.name=No Constraint
+policyset.serverCertSet.12.default.class_id=commonNameToSANDefaultImpl
+policyset.serverCertSet.12.default.name=Copy Common Name to Subject
+----
+
+where the `12` is an unused index in the profile configuration.  And be sure
+to add this new index to the policyset list directive too:
+
+----
+policyset.serverCertSet.list=1,2,3,4,5,6,7,8,9,10,11,12
+----
+
+= How do we know when it's working? =
+
+First configure a profile, adding the `CommonNameToSANDefault` component.
+Choose a profile that already has some way of adding a SAN extension, and ensure that
+`CommonNameToSANDefault` gets executed **after** the first component that
+populates the SAN extension.
+
+Next test certificate issuance.  The profile should behave per the following:
+
+* There is a single CN in CSR, and it does not look like DNS name
+** SAN extension already present -> no changes
+** No SAN extension present -> no SAN extension gets created
+* There is a single CN in CSR and it looks like a DNS name:
+** SAN extension already present:
+*** SAN already has a `dNSName` equal (case insensitive) to CN -> no changes to SAN (i.e. a duplicate should not be added)
+*** Otherwise -> add CN as a `dNSName` to existing SAN extension
+** SAN extension not already present -> add SAN extension with CN as a `dNSName`
+* There are multiple CNs that look like DNS name in CSR:
+** The **most-specific** CN is copied to SAN, creating it if necessary
