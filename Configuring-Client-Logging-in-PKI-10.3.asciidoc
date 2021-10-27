@@ -1,0 +1,41 @@
+= Overview =
+
+PKI 10.3 uses link:https://docs.oracle.com/en/java/javase/11/docs/api/java.logging/java/util/logging/package-summary.html[java.util.logging] (JUL) framework for client logging.
+
+The default logging configuration is located at link:https://github.com/dogtagpki/pki/blob/master/base/common/share/etc/logging.properties[/usr/share/pki/etc/logging.properties].
+
+By default the client will only log `WARNING` messages or higher (see link:https://docs.oracle.com/en/java/javase/11/docs/api/java.logging/java/util/logging/Level.html[Level]) on the console:
+
+----
+.level = WARNING
+----
+
+= Configuring Client Logging =
+
+To change the client logging configuration, copy the default logging configuration file into `/etc/pki/logging.properties`:
+
+----
+$ cp /usr/share/pki/etc/logging.properties /etc/pki/logging.properties
+----
+
+Edit the `logging.properties` as needed. For example, to log `INFO` messages or higher:
+
+----
+org.mozilla.jss.level = INFO
+org.dogtagpki.level = INFO
+com.netscape.level = INFO
+netscape.level = INFO
+----
+
+Then specify the location of the logging configuration in `/etc/pki/pki.conf`:
+
+----
+LOGGING_CONFIG=/etc/pki/logging.properties
+----
+
+= See Also =
+
+* link:https://docs.oracle.com/javase/8/docs/api/java/util/logging/ConsoleHandler.html[ConsoleHandler]
+* link:https://docs.oracle.com/javase/8/docs/api/java/util/logging/Level.html[Level]
+* link:https://docs.oracle.com/javase/8/docs/api/java/util/logging/SimpleFormatter.html[SimpleFormatter]
+* link:https://docs.oracle.com/javase/8/docs/api/java/util/Formatter.html[Formatter]
