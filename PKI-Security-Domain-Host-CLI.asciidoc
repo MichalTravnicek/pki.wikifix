@@ -25,6 +25,8 @@ $ pki securitydomain-host-find
 
 = Displaying Security Domain Host Info =
 
+To display the info of a host in the security domain:
+
 ----
 $ pki securitydomain-host-show "CA ca.example.com 8443"
   Host ID: CA ca.example.com 8443
@@ -33,4 +35,20 @@ $ pki securitydomain-host-show "CA ca.example.com 8443"
   Secure Port: 8443
   Domain Manager: TRUE
   Clone: FALSE
+----
+
+= Adding Security Domain Info =
+
+If necessary, the administrator can add a host manually into the security domain:
+
+----
+$ pki -n caadmin securitydomain-host-add "OCSP ocsp.example.com 8443"
+----
+
+= Removing Security Domain Info =
+
+If necessary, the administrator can remove a host manually from the security domain:
+
+----
+$ pki -n caadmin securitydomain-host-del "OCSP ocsp.example.com 8443"
 ----
