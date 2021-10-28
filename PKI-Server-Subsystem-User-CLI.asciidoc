@@ -1,5 +1,7 @@
 = Listing Subsystem Users =
 
+To list the users in the subsystem:
+
 ----
 $ pki-server <subsystem>-user-find
   User ID: CA-localhost.localdomain-8443
@@ -19,7 +21,9 @@ $ pki-server <subsystem>-user-find
   State: 1 
 ----
 
-= Displaying Subsystem User =
+= Displaying Subsystem User Info =
+
+To display the subsystem user info:
 
 ----
 $ pki-server <subsystem>-user-show pkidbuser
@@ -31,17 +35,33 @@ $ pki-server <subsystem>-user-show pkidbuser
 
 = Adding Subsystem User =
 
+To add a subsystem user, specify the user ID, the full name, and the type:
+
 ----
 $ pki-server <subsystem>-user-add testuser --full-name "Test User" --type adminType
 ----
 
 = Modifying Subsystem User =
 
+To modify a subsystem user, specify the user ID and the attributes to change:
+
 ----
 $ pki-server <subsystem>-user-mod testuser --add-see-also uid=testuser
 ----
 
+= Removing Subsystem User =
+
+To remove a subsystem user, specify the user ID:
+
+----
+$ pki-server <subsystem>-user-del testuser
+----
+
+**Availability:** Since PKI 11.1
+
 = Adding Subsystem User Certificate =
+
+To add a subsystem user certificate, specify the user ID and the certificate file:
 
 ----
 $ pki-server <subsystem>-user-cert-add testuser --cert testuser.crt
