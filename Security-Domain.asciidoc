@@ -32,7 +32,7 @@ The following groups are created in the CA that hosts the security domain:
 ** have permission to get Server Certificate issued by a CA within the Security Domain
 ** have permission to get a Subsystem Certificate via the security domain
 ** have permission to register its information to the security domain
-** have permission to push the DRM transport certificate to TKS for server side key generation 
+** have permission to push the KRA transport certificate to TKS for server-side key generation 
 
 The administrator of the CA that own the security domain will be added its user ID into all the above groups by the configuration.
 
@@ -50,10 +50,10 @@ To obtain an authentication token, the credential information such as uid, and p
 
 When the configuration wizard needs to get a certificate from a Certificate, it will submit the certificate request along with the cookie and supporting information such as IP address to the CA's profile. The profile's authentication manager instance will then send a request to the validation servlet in the security domain to check if the cookie can perform the requested operation.
 
-So imagine, CA has a Enterprise KRA profile which only issues certificate to user who is a member of the Enterprise KRA Administrators group. The authentication manager in this profile needs to send
+So imagine, CA has a Enterprise KRA profile which only issues certificate to user who is a member of the `Enterprise KRA Administrators` group. The authentication manager in this profile needs to send
 
 * authentication token + IP address of the client
-* a question such as 'Is the given token currently owned by a Domain user who is in the Enterprise KRA Administrators group?'
+* a question such as 'Is the given token currently owned by a Domain user who is in the `Enterprise KRA Administrators` group?'
 
 The security domain may answer 'yes'. If that case, the CA can safely issue the certificate to the requester.
 
@@ -71,27 +71,27 @@ The authentication token is just a session id that maps to an entry in the sessi
 
 It will be nice if we create a audit log for every login access. For the first release, the session table can be just all memory-based.
 
-= Scenario - Setting up a Sub CA =
+= Setting up a Subordinate CA =
 
-If you are the administrator who is assigned to setup a Sub CA within your enterprise, you must ask the Security Domain Administrator to add your user id into the Enterprise CA Administrators group. Once this is done, you can then start the configuration.
+If you are the administrator who is assigned to setup a subordinate CA within your enterprise, you must ask the Security Domain Administrator to add your user ID into the `Enterprise CA Administrators` group. Once this is done, you can then start the configuration.
 
-During configuration, you will be asked to join a security domain, user id, and password. You need to your Enterprise user id, and password that exist in the Security Domain.
+During configuration, you will be asked to join a security domain, user ID, and password. You need to your Enterprise user ID, and password that exist in the Security Domain.
 
 Throughout the configuration, the Sub CA will need to interface with the Root CA and the Security Domain for the following operations:
 
-* Getting Sub CA certificates (CA Signing, Server ...etc) from the Root CA
+* Getting subordinate CA certificates (CA Signing, Server ...etc) from the Root CA
 * Getting Subsystem certificate from the Security Domain/Root CA
 * Registering its subsystem information to the Security Domain's database (i.e. domain.xml) 
 
-Each of the operation may require different authentication. Take the first operation as example. Sub CA will submit its certificate requests to the CA's profile which should return the certificate immediately if the provided credential is authenticated and authorized. To achieve this, the CA need to have special profile setup for Sub CA, and the profile's authentication should authenticate the credential (userid and password) against the "Enterprise CA Administrators" group.
+Each of the operation may require different authentication. Take the first operation as example. Sub CA will submit its certificate requests to the CA's profile which should return the certificate immediately if the provided credential is authenticated and authorized. To achieve this, the CA need to have special profile setup for Sub CA, and the profile's authentication should authenticate the credential (userid and password) against the "`Enterprise CA Administrators` group.
 
 At the end of the configuration, the configuration wizard will create a new local admin user who will belong to the Sub CA's Administrators group.
 
-= Scenario - Setting up a KRA =
+= Setting up a KRA =
 
 To setup a KRA, you, as the KRA administrator, need to interact with the security domain and a CA that will issue KRA's certificate. Please note that the security domain's CA could be different from the CA that issue KRA's certificate.
 
-Similar to the previous scenario, the KRA Administrator needs to ask the Security Domain Administrator to add himself/herself to the "Enterprise KRA Administrators" group in the security domain.
+Similar to the previous scenario, the KRA Administrator needs to ask the Security Domain Administrator to add himself/herself to the `Enterprise KRA Administrators` group in the security domain.
 
 KRA configuration will use this Enterprise credential, which is provided by the KRA Administrator, to perform:
 
