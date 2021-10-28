@@ -6,8 +6,8 @@ PKI provides CLI to manage security domain sessions. All commands need to be exe
 
 To list all sessions:
 
-<pre>
-$ pki -U https://$HOSTNAME:8443 -d ~/.dogtag/pki-tomcat/ca/alias -u caadmin -w Secret.123 securitydomain-session-find
+----
+$ pki -u caadmin -w Secret.123 securitydomain-session-find
 -----------------
 2 entries matched
 -----------------
@@ -25,47 +25,47 @@ $ pki -U https://$HOSTNAME:8443 -d ~/.dogtag/pki-tomcat/ca/alias -u caadmin -w S
 ----------------------------
 Number of entries returned 2
 ----------------------------
-</pre>
+----
 
 To list sessions on certain host:
 
-<pre>
-$ pki -U https://$HOSTNAME:8443 -d ~/.dogtag/pki-tomcat/ca/alias -u caadmin -w Secret.123 securitydomain-session-find --host <host>
-</pre>
+----
+$ pki -u caadmin -w Secret.123 securitydomain-session-find --host <host>
+----
 
 To list sessions created by certain user:
 
-<pre>
-$ pki -U https://$HOSTNAME:8443 -d ~/.dogtag/pki-tomcat/ca/alias -u caadmin -w Secret.123 securitydomain-session-find --user <user>
-</pre>
+----
+$ pki -u caadmin -w Secret.123 securitydomain-session-find --user <user>
+----
 
 To list sessions for certain subsystem:
 
-<pre>
-$ pki -U https://$HOSTNAME:8443 -d ~/.dogtag/pki-tomcat/ca/alias -u caadmin -w Secret.123 securitydomain-session-find --subsystem <subsystem>
-</pre>
+----
+$ pki -u caadmin -w Secret.123 securitydomain-session-find --subsystem <subsystem>
+----
 
 To list sessions within certain time range:
 
-<pre>
-$ pki -U https://$HOSTNAME:8443 -d ~/.dogtag/pki-tomcat/ca/alias -u caadmin -w Secret.123 securitydomain-session-find --created-after <time> --created-before <time>
-</pre>
+----
+$ pki -u caadmin -w Secret.123 securitydomain-session-find --created-after <time> --created-before <time>
+----
 
 = Displaying Session Details =
 
-<pre>
-$ pki -U https://$HOSTNAME:8443 -d ~/.dogtag/pki-tomcat/ca/alias -u caadmin -w Secret.123 securitydomain-session-show 2831833886976797444
+----
+$ pki -u caadmin -w Secret.123 securitydomain-session-show 2831833886976797444
   Session ID: 2831833886976797444
   Host: 127.0.0.1
   User: caadmin
   Subsystem: KRA
   Create Timestamp: 2015-10-06 06:12:39
-</pre>
+----
 
 = Creating a Session =
 
-<pre>
-$ pki -U https://$HOSTNAME:8443 -d ~/.dogtag/pki-tomcat/ca/alias -u caadmin -w Secret.123 securitydomain-session-add --host $HOSTNAME --subsystem TKS
+----
+$ pki -u caadmin -w Secret.123 securitydomain-session-add --host $HOSTNAME --subsystem TKS
 -------------------------------------
 Created session "6164029697285997150"
 -------------------------------------
@@ -74,17 +74,13 @@ Created session "6164029697285997150"
   User: caadmin
   Subsystem: TKS
   Create Timestamp: 2015-10-06 19:42:34
-</pre>
+----
 
 = Deleting a Session =
 
-<pre>
-$ pki -U https://$HOSTNAME:8443 -d ~/.dogtag/pki-tomcat/ca/alias -u caadmin -w Secret.123 securitydomain-session-del 6164029697285997150
+----
+$ pki -u caadmin -w Secret.123 securitydomain-session-del 6164029697285997150
 -------------------------------------
 Removed session "6164029697285997150"
 -------------------------------------
-</pre>
-
-= References =
-
-* [[PKI Security Domain CLI]]
+----
