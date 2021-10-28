@@ -1,0 +1,45 @@
+= Overview =
+
+The default DN encoding is defined in link:https://github.com/dogtagpki/jss/blob/master/src/main/java/org/mozilla/jss/netscape/security/x509/DirStrConverter.java#L73-L79[DirStrConverter] in JSS:
+
+----
+private static byte[] DefEncodingOrder =
+        new byte[] {
+                DerValue.tag_UTF8String,
+                DerValue.tag_PrintableString,
+                DerValue.tag_T61String,
+                DerValue.tag_UniversalString
+};
+----
+
+The DN encoding can be changed using the link:Two-Step-Installation[Two-Step Installation].
+
+= Configuring DN Encoding =
+
+To configure the DN encoding, specify the `X500Name.directoryStringEncodingOrder` parameter in the `CS.cfg`. For example:
+
+----
+X500Name.directoryStringEncodingOrder=PrintableString,UTF8String,T61String,BMPString,UniversalString
+----
+
+= Verification =
+
+To verify the DN encoding, first export the certificate, for example:
+
+----
+$ pki-server subsystem-cert-export ca signing --cert-file ca_signing.crt
+----
+
+Then execute the following command:
+
+----
+$ openssl x509 -in ca_signing.crt -issuer -subject -nameopt multiline,show_type -noout
+issuer=
+    organizationName          = PRINTABLESTRING:EXAMPLE
+    organizationalUnitName    = PRINTABLESTRING:pki-tomcat
+    commonName                = PRINTABLESTRING:CA Signing Certificate
+subject=
+    organizationName          = PRINTABLESTRING:EXAMPLE
+    organizationalUnitName    = PRINTABLESTRING:pki-tomcat
+    commonName                = PRINTABLESTRING:CA Signing Certificate
+----
