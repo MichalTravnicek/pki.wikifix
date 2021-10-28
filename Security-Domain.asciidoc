@@ -1,34 +1,34 @@
 = Overview =
 
-A security domain is a service within a Certificate Authority to manage PKI service registration. You can elect to create a new security domain along with your self-signed Root CA. And each subsystem including Subordinate CA, TKS, OCSP, DRM, TPS must join a security domain within your enterprise. By jointing a security domain, the subsystem information such as services, host, and port will be made public to other subsystem. Each subsystem will also be issued a subsystem certificate which is signed by the security domain. Communications between the subsystem and the security domain will be done in client certificate authentication.
+A security domain is a service within a Certificate Authority to manage PKI service registration. You can elect to create a new security domain along with your self-signed Root CA. And each subsystem including subordinate CA, KRA, OCSP, TKS, TPS must join a security domain within your enterprise. By joining a security domain, the subsystem information such as services, host, and port will be made public to other subsystem. Each subsystem will also be issued a subsystem certificate which is signed by the security domain. Communications between the subsystem and the security domain will be done in client certificate authentication.
 
-The security domain will be responsible for handling centralized security policies such as trusted CAs list (Which CAs to trust for client authentication for example).
+The security domain will be responsible for handling centralized security policies such as trusted CAs list (which CAs to trust for client authentication for example).
 
-= Roles =
+= Security Domain Roles =
 
-There will be 6 new groups created in the CA that hosts the security domain. They are as follows:
+The following groups are created in the CA that hosts the security domain:
 
-* Security Domain Administrators
-** is responsible for managing user in the security domain 
-* Enterprise CA Administrators
+* `Security Domain Administrators`
+** responsible for managing user in the security domain 
+* `Enterprise CA Administrators`
 ** have permission to get CA Signing Certificate, OCSP Signing Certificate, Server Certificate issued by a CA within the Security Domain
 ** have permission to get a subsystem Certificate via the security domain
 ** have permission to register its information to the security domain 
-* Enterprise DRM Administrators
+* `Enterprise DRM Administrators`
 ** have permission to get Transport Certificate, Storage Certificate issued by a CA within the Security Domain
 ** have permission to get a Subsystem Certificate via the security domain
 ** have permission to push the Transport Certificate, connector information to the selected CA
 ** have permission to register its information to the security domain 
-* Enterprise OCSP Administrators
+* `Enterprise OCSP Administrators`
 ** have permission to get OCSP Signing Certificate, Server Certificate issued by a CA within the Security Domain
 ** have permission to get a Subsystem Certificate via the security domain
 ** have permission to push connection information to the selected CA so that CRL can be published into the OCSP server directly
 ** have permission to register its information to the security domain 
-* Enterprise TKS Administrators
+* `Enterprise TKS Administrators`
 ** have permission to get Server Certificate issued by a CA within the Security Domain
 ** have permission to get a Subsystem Certificate via the security domain
 ** have permission to register its information to the security domain 
-* Enterprise TPS Administrators
+* `Enterprise TPS Administrators`
 ** have permission to get Server Certificate issued by a CA within the Security Domain
 ** have permission to get a Subsystem Certificate via the security domain
 ** have permission to register its information to the security domain
