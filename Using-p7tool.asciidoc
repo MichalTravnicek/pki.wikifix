@@ -1,0 +1,176 @@
+= Displaying PKCS #7 Content =
+
+To display the content of a PKCS #7 file:
+
+----
+$ p7tool -d ~/.dogtag/nssdb -i sslserver.p7b -a
+Pretty Print of PKCS#7 content:
+PKCS #7 Content Info:
+    PKCS #7 Signed Data:
+        Version: 1 (0x1)
+        Digest Algorithm List:
+        Content Information:
+            PKCS #7 Data:
+                <no content>
+        Certificate List:
+            Certificate (1):
+                Data:
+                    Version: 3 (0x2)
+                    Serial Number: 1 (0x1)
+                    Signature Algorithm: PKCS #1 SHA-256 With RSA Encryption
+                    Issuer: "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPL
+                        E"
+                    Validity:
+                        Not Before: Fri Nov 05 20:10:31 2021
+                        Not After : Tue Nov 05 21:10:31 2041
+                    Subject: "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMP
+                        LE"
+                    Subject Public Key Info:
+                        Public Key Algorithm: PKCS #1 RSA Encryption
+                        RSA Public Key:
+                            Modulus:
+                                f4:13:e4:bd:1f:45:ce:6f:44:f5:c3:c5:86:86:75:
+                                84:71:fc:dd:56:b3:a3:ae:e5:cc:44:5f:a1:b7:0f:
+                                70:1c:67:83:00:45:11:77:34:5d:31:e0:1c:2b:26:
+                                bf:a7:09:2b:19:9e:dc:33:2b:e7:99:5d:02:e4:ed:
+                                45:72:6e:47:e0:44:ce:ef:bf:90:02:74:dd:08:81:
+                                5f:15:d7:ea:d4:c5:32:56:7e:da:0c:82:78:41:2f:
+                                43:1f:21:7a:18:35:74:d8:36:d4:42:af:81:c3:82:
+                                80:32:35:e3:2e:ce:9d:17:be:c6:33:a1:26:59:36:
+                                87:b3:76:78:a9:98:4b:97:ca:84:5b:83:e8:89:6f:
+                                f4:27:83:4a:08:00:c4:2f:35:ca:20:d9:de:6d:e0:
+                                9c:4e:c1:23:c7:ba:a6:da:30:30:7d:70:01:e8:15:
+                                b9:14:09:82:46:a9:f5:b7:e1:0a:94:4c:1b:9c:76:
+                                e1:77:ac:20:c9:06:f3:98:47:71:58:ab:90:0d:90:
+                                e4:64:0f:9d:bc:4f:9d:f0:0c:1e:3a:4b:8e:7c:87:
+                                1e:70:c2:85:59:06:e5:c0:56:d9:39:b8:c8:98:76:
+                                42:f1:18:e1:59:d0:d0:d5:1e:67:c2:6d:a8:34:7c:
+                                8a:bf:89:a5:3a:0f:81:91:ff:14:2b:21:ee:2f:ca:
+                                c9
+                            Exponent: 65537 (0x10001)
+                    Signed Extensions:
+                        Name: Certificate Authority Key Identifier
+                        Key ID:
+                            5a:bb:b5:c8:bd:e3:5a:b4:04:7e:9a:d3:0a:2b:88:67:
+                            27:68:07:6c
+
+                        Name: Certificate Basic Constraints
+                        Critical: True
+                        Data: Is a CA with no maximum path length.
+
+                        Name: Certificate Key Usage
+                        Critical: True
+                        Usages: Digital Signature
+                                Non-Repudiation
+                                Certificate Signing
+                                CRL Signing
+
+                        Name: Certificate Subject Key ID
+                        Data:
+                            5a:bb:b5:c8:bd:e3:5a:b4:04:7e:9a:d3:0a:2b:88:67:
+                            27:68:07:6c
+
+                        Name: Authority Information Access
+                        Method: PKIX Online Certificate Status Protocol
+                        Location: 
+                            URI: "http://fedora:8080/ca/ocsp"
+
+                Signature Algorithm: PKCS #1 SHA-256 With RSA Encryption
+                Signature:
+                    a6:34:bf:7b:e7:65:ab:6a:3a:d0:aa:91:1e:e1:f1:44:
+                    b9:c1:7b:4c:da:a5:42:80:ce:07:7e:30:ec:b6:34:57:
+                    06:34:de:1a:0a:b6:bd:83:15:ee:d9:44:a2:2b:d1:7c:
+                    06:4f:23:a3:4a:10:cd:27:52:e8:d9:07:9a:da:f7:b6:
+                    08:6d:c5:72:bd:05:20:cc:b0:a8:5e:24:b9:79:b0:fa:
+                    40:06:c5:a3:94:31:45:c5:6f:83:ab:6c:65:fe:5c:ec:
+                    60:2f:62:c2:40:14:ea:7b:57:4e:b4:9c:70:c8:cc:2f:
+                    82:82:15:cf:44:91:a3:bc:c2:76:64:5e:5c:52:9c:25:
+                    60:fb:88:45:b5:f0:3a:7f:ef:1b:b5:28:7c:4b:e9:d3:
+                    29:d1:d9:4c:a2:26:d5:c4:74:f1:fe:6a:3c:0a:4b:80:
+                    3f:95:45:0b:51:5f:fe:3e:bb:e6:42:97:a7:f0:ec:d6:
+                    6f:6a:8c:f5:36:56:6a:e7:a1:31:4c:71:7f:a5:83:52:
+                    1e:35:00:27:cb:62:70:71:e7:c3:eb:74:7c:6f:6e:05:
+                    e1:81:37:3d:d0:af:7e:57:1d:49:4c:b5:d1:aa:54:f3:
+                    36:f0:d4:5f:d4:6a:d2:36:7d:ce:5f:cf:4c:79:b4:b8:
+                    c8:11:54:2a:68:9b:a1:c7:38:38:64:32:42:5e:ce:cb
+                Fingerprint (MD5):
+                    BD:77:3E:E9:7A:C4:C5:64:4C:67:FF:CC:92:84:FC:03
+
+            Certificate (2):
+                Data:
+                    Version: 3 (0x2)
+                    Serial Number: 3 (0x3)
+                    Signature Algorithm: PKCS #1 SHA-256 With RSA Encryption
+                    Issuer: "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPL
+                        E"
+                    Validity:
+                        Not Before: Fri Nov 05 20:10:33 2021
+                        Not After : Thu Oct 26 20:10:33 2023
+                    Subject: "CN=fedora,OU=pki-tomcat,O=EXAMPLE"
+                    Subject Public Key Info:
+                        Public Key Algorithm: PKCS #1 RSA Encryption
+                        RSA Public Key:
+                            Modulus:
+                                ca:53:ea:85:19:7d:2a:9e:53:59:7f:45:5e:21:a0:
+                                0d:91:ab:2f:05:7a:e0:26:2f:ba:f5:5f:90:46:67:
+                                92:ea:2f:60:95:80:d4:de:84:da:74:ea:86:e2:e8:
+                                db:6d:88:30:9b:4d:3f:30:74:ec:51:08:d7:31:3c:
+                                b5:77:26:fe:18:73:d0:2f:9b:93:13:bb:61:b3:22:
+                                6c:0c:7c:4b:03:76:0f:e7:66:89:bb:21:ac:32:89:
+                                27:59:3d:2b:74:99:18:db:27:d6:18:9e:7b:7c:6f:
+                                4c:70:90:27:c0:e4:9e:6e:bd:e3:64:aa:56:48:11:
+                                62:ea:79:47:8c:b2:6b:e0:1e:84:19:25:5f:4e:0b:
+                                56:f2:8d:54:92:34:a3:c5:64:b4:e7:40:c7:21:58:
+                                bb:8d:91:e4:82:33:d5:69:43:c3:f3:ba:cb:45:77:
+                                3e:7e:29:2d:79:ed:36:6f:03:3f:e4:5a:24:37:28:
+                                3f:e3:8d:1d:f6:ce:35:90:61:2e:67:23:d1:88:d7:
+                                f1:09:d3:d8:e9:a0:27:da:b8:89:e5:68:04:73:24:
+                                f2:e9:2e:21:ac:d2:e7:21:bc:94:fd:44:10:7e:b1:
+                                6a:2b:07:96:3c:3b:31:0a:cd:76:a6:12:d8:f3:44:
+                                15:8e:05:79:e1:37:33:88:b1:bd:0a:b7:59:99:ff:
+                                05
+                            Exponent: 65537 (0x10001)
+                    Signed Extensions:
+                        Name: Certificate Authority Key Identifier
+                        Key ID:
+                            5a:bb:b5:c8:bd:e3:5a:b4:04:7e:9a:d3:0a:2b:88:67:
+                            27:68:07:6c
+
+                        Name: Authority Information Access
+                        Method: PKIX Online Certificate Status Protocol
+                        Location: 
+                            URI: "http://fedora:8080/ca/ocsp"
+
+                        Name: Certificate Key Usage
+                        Critical: True
+                        Usages: Digital Signature
+                                Key Encipherment
+                                Data Encipherment
+
+                        Name: Extended Key Usage
+                            TLS Web Server Authentication Certificate
+
+                Signature Algorithm: PKCS #1 SHA-256 With RSA Encryption
+                Signature:
+                    d1:e7:59:68:ad:0f:de:aa:eb:d4:eb:ba:c9:0d:f5:72:
+                    2d:e8:4b:6e:dc:d1:e9:4d:35:5c:0e:50:26:6d:1c:47:
+                    91:c7:c4:98:c2:16:a0:ce:50:fb:eb:1e:f4:ac:1d:1e:
+                    4c:af:0a:bf:b9:61:8e:25:4b:b8:10:72:b7:46:e9:96:
+                    d4:8e:7a:88:ea:14:d1:10:30:1d:c2:51:08:72:60:0c:
+                    30:b9:8b:08:b1:43:0a:6c:ed:71:c3:44:f9:07:da:8f:
+                    91:46:4d:24:48:54:5e:1f:fa:25:58:e4:48:6b:a7:4f:
+                    74:c9:62:3d:5e:f7:c3:48:7e:6c:08:c4:1d:96:eb:ca:
+                    40:63:b0:78:6b:50:c3:5f:4d:e4:0d:82:1b:a3:b4:f3:
+                    49:c0:6b:db:b3:08:8b:86:fd:06:30:cc:10:78:e5:b7:
+                    4c:b4:80:5c:d3:42:09:15:41:16:23:74:29:37:60:97:
+                    31:6b:34:c1:c5:b5:ac:93:49:fe:f1:38:cc:59:a5:04:
+                    b2:22:44:37:aa:3a:24:ac:f6:aa:bd:ce:2a:51:32:e2:
+                    b6:eb:75:c0:38:4b:0f:93:fb:43:00:81:03:69:91:a1:
+                    98:2d:3b:37:f2:a2:ce:a7:f7:5f:08:fe:48:0d:c6:e0:
+                    94:62:13:dd:4d:54:c2:a5:cd:d7:3a:94:c1:ea:93:7c
+                Fingerprint (MD5):
+                    E1:8D:25:4A:7F:41:63:68:33:88:D5:6B:DC:B4:28:94
+
+        Signed Revocation Lists:
+        Signer Information List:
+----
