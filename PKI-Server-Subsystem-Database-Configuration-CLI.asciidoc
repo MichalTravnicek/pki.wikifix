@@ -1,6 +1,6 @@
 = Overview =
 
-= Displaying Database Configuration Info =
+= Displaying Database Configuration =
 
 ----
 $ pki-server <subsystem>-db-config-show
@@ -32,10 +32,7 @@ $ pki-server <subsystem>-db-config-mod --port 636 --secure true
 = Switching to LDAPI Connection (NOT IMPLEMENTED) =
 
 ----
-$ pki-server subsystem-db-connection-mod ca --protocol ldapi --socket /var/run/slapd-pki-tomcat.socket
------------------------------------------------
-Modified database connection for "ca" subsystem
------------------------------------------------
+$ pki-server <subsystem>-db-config-mod --protocol ldapi --socket /var/run/slapd-pki-tomcat.socket
   Protocol: ldapi
   Socket: /var/run/slapd-pki-tomcat.socket
   Base DN: dc=ca,dc=example,dc=com
@@ -46,10 +43,7 @@ Modified database connection for "ca" subsystem
 = Switching to Basic Authentication (NOT IMPLEMENTED) =
 
 ----
-$ pki-server subsystem-db-connection-mod ca --auth basic --bind-dn "cn=Directory Manager" --bind-password Secret.123
------------------------------------------------
-Modified database connection for "ca" subsystem
------------------------------------------------
+$ pki-server <subsystem>-db-config-mod --auth basic --bind-dn "cn=Directory Manager" --bind-password Secret.123
   Protocol: ldap
   Hostname: server.example.com
   Port: 389
@@ -62,10 +56,7 @@ Modified database connection for "ca" subsystem
 = Switching to Client Certificate Authentication (NOT IMPLEMENTED) =
 
 ----
-$ pki-server subsystem-db-connection-mod ca --auth client-cert --nickname "subsystemCert cert-pki-ca"
------------------------------------------------
-Modified database connection for "ca" subsystem
------------------------------------------------
+$ pki-server <subsystem>-db-config-mod --auth client-cert --nickname "subsystemCert cert-pki-ca"
   Protocol: ldaps
   Hostname: server.example.com
   Port: 636
@@ -78,10 +69,7 @@ Modified database connection for "ca" subsystem
 = Switching to No Authentication / Auto Bind (NOT IMPLEMENTED) =
 
 ----
-$ pki-server subsystem-db-connection-mod ca --auth none
------------------------------------------------
-Modified database connection for "ca" subsystem
------------------------------------------------
+$ pki-server <subsystem>-db-config-mod --auth none
   Protocol: ldapi
   Socket: /var/run/slapd-pki-tomcat.socket
   Base DN: dc=ca,dc=example,dc=com
