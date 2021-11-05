@@ -1,0 +1,99 @@
+= Displaying Certificates and Keys =
+
+To display the certificates and keys in a PKCS #12 file:
+
+----
+$ p12tool -l admin.p12 -W Secret.123
+Certificate(has private key):
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 6 (0x6)
+        Signature Algorithm: PKCS #1 SHA-256 With RSA Encryption
+        Issuer: "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE"
+        Validity:
+            Not Before: Fri Nov 05 20:10:40 2021
+            Not After : Thu Oct 26 20:10:40 2023
+        Subject: "CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=
+            EXAMPLE"
+        Subject Public Key Info:
+            Public Key Algorithm: PKCS #1 RSA Encryption
+            RSA Public Key:
+                Modulus:
+                    e4:25:52:99:1a:1e:81:7c:55:c5:e7:04:50:43:7a:7c:
+                    1e:cd:a9:7c:a2:ca:85:66:b2:16:af:70:f6:35:5f:ae:
+                    b0:8f:55:ce:f8:c5:30:14:fa:fc:bc:5f:7b:7d:80:f8:
+                    99:0a:1b:64:4e:21:ae:10:f8:64:fc:f5:76:28:84:3b:
+                    b5:b4:e2:aa:40:4a:f5:f9:0e:53:d8:b4:20:9c:30:5b:
+                    68:26:27:5c:38:4e:b6:cf:36:e4:26:2e:8d:1e:84:ad:
+                    a5:39:72:98:43:84:1b:1f:e4:15:b8:97:cd:f7:88:d0:
+                    02:d7:e0:b1:1a:20:10:0d:04:e1:cf:58:2d:81:f3:39:
+                    09:74:6f:45:51:ab:aa:44:86:b6:f6:76:b8:f5:c2:78:
+                    ce:03:f2:91:dc:34:11:fd:51:b3:2d:86:0f:2a:f5:77:
+                    a8:57:47:5e:2d:6a:3f:fc:8c:a6:cd:ee:27:d8:78:37:
+                    ae:6f:9b:40:62:76:8b:97:ae:96:18:fc:ab:ee:17:2b:
+                    74:86:60:a9:cc:cc:19:17:e1:07:17:69:9a:b8:1b:b9:
+                    8a:ff:23:54:bb:0b:15:db:6c:d5:a7:ef:0f:4c:46:48:
+                    0c:47:7a:6b:c3:01:f3:e7:9f:62:3d:f5:59:7d:87:57:
+                    84:1e:00:aa:2d:49:49:ec:99:ef:a4:1a:17:19:38:0b
+                Exponent: 65537 (0x10001)
+        Signed Extensions:
+            Name: Certificate Authority Key Identifier
+            Key ID:
+                5a:bb:b5:c8:bd:e3:5a:b4:04:7e:9a:d3:0a:2b:88:67:
+                27:68:07:6c
+
+            Name: Authority Information Access
+            Method: PKIX Online Certificate Status Protocol
+            Location: 
+                URI: "http://fedora:8080/ca/ocsp"
+
+            Name: Certificate Key Usage
+            Critical: True
+            Usages: Digital Signature
+                    Non-Repudiation
+                    Key Encipherment
+
+            Name: Extended Key Usage
+                TLS Web Client Authentication Certificate
+                E-Mail Protection Certificate
+
+    Signature Algorithm: PKCS #1 SHA-256 With RSA Encryption
+    Signature:
+        8e:8e:1a:66:8a:76:bf:e2:eb:0f:86:84:b2:fd:26:29:
+        92:0e:22:88:7f:40:5c:f9:81:4e:c0:b6:79:56:5f:ba:
+        3e:06:c0:1f:a1:98:99:ae:6e:23:e2:ab:34:bf:48:ec:
+        9c:26:fb:3f:f2:f3:8c:e2:08:66:e1:af:b0:18:ba:c2:
+        d7:f0:f9:66:7b:18:21:bb:d2:ff:06:2d:6e:31:6a:e5:
+        4e:88:ed:fa:e8:b8:5e:14:77:4b:69:78:27:2c:fc:3f:
+        21:85:48:aa:b9:ea:3b:8d:3c:0b:91:3e:ba:da:fd:78:
+        97:75:67:93:5c:9f:5e:16:a6:39:e4:23:0c:52:91:0e:
+        62:f1:b5:2c:0a:f7:94:38:0b:39:ea:ce:af:1a:2d:da:
+        58:6e:c5:38:68:0a:42:81:d3:24:85:28:d4:21:0a:4a:
+        4a:b2:73:49:5a:99:1c:58:12:92:f2:b2:cc:3c:b1:5c:
+        6c:dc:75:81:35:90:df:18:ab:4f:45:66:03:b2:75:87:
+        45:c7:a4:4b:f2:90:3f:10:7c:bb:9e:ca:b6:5b:d6:89:
+        64:d8:f1:57:a4:09:20:9d:9a:2d:eb:2e:83:0d:d3:a5:
+        1a:9d:f9:c7:88:e3:db:68:e4:32:be:6e:5e:eb:61:60:
+        30:4a:52:3c:31:aa:db:9b:12:39:2a:5c:70:b6:8e:ca
+    Fingerprint (SHA-256):
+        23:66:62:B6:41:78:7D:61:7A:E1:51:11:C3:C0:E9:E0:80:89:12:E2:4C:86:E5:99:C7:D4:29:2C:11:C0:DF:68
+
+    Friendly Name: caadmin
+
+Key(shrouded):
+    Friendly Name: caadmin
+
+    Encryption algorithm: PKCS #5 Password Based Encryption v2 
+        Encryption:
+            KDF: PKCS #5 Password Based Key Dervive Function v2 
+                Parameters:
+                    Salt:
+                        1d:dc:20:e5:25:89:4a:cc:a4:b8:01:b7:a0:00:8b:17
+                    Iteration Count: 600000 (0x927c0)
+                    Key Length: 16 (0x10)
+                    KDF algorithm: HMAC SHA-256
+            Cipher: AES-128-CBC
+                Args:
+                    04:10:97:11:f5:e9:fb:9b:fb:fb:2f:34:86:87:8d:1c:
+                    6a:2b
+----
