@@ -1,26 +1,50 @@
 = Overview =
 
-The `pki-server <subsystem>-db-vlv` can be used to manage subsystem's database VLVs.
+The `pki-server <subsystem>-db-vlv` can be used to manage subsystem's database VLV indexes.
 
 = Listing Database VLVs =
 
+To list VLV indexes in the database:
+
 ----
-$ pki-server ca-db-vlv-find
+$ pki-server <subsystem>-db-vlv-find
 ----
 
 = Adding Database VLVs =
+
+To import VLV indexes into the database:
 
 ----
 $ pki-server <subsystem>-db-vlv-add
 ----
 
+It will import VLV indexes from these files:
+
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/conf/vlv.ldif[/usr/share/pki/ca/conf/vlv.ldif]
+* link:https://github.com/dogtagpki/pki/blob/master/base/kra/shared/conf/vlv.ldif[/usr/share/pki/kra/conf/vlv.ldif]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ocsp/shared/conf/vlv.ldif[/usr/share/pki/ocsp/conf/vlv.ldif]
+* link:https://github.com/dogtagpki/pki/blob/master/base/tks/shared/conf/vlv.ldif[/usr/share/pki/tks/conf/vlv.ldif]
+* link:https://github.com/dogtagpki/pki/blob/master/base/tps/shared/conf/vlv.ldif[/usr/share/pki/tps/conf/vlv.ldif]
+
 = Reindexing Database VLVs =
+
+To rebuild VLV indexes in the database:
 
 ----
 $ pki-server <subsystem>-db-vlv-reindex
 ----
 
+It will start VLV indexing task defined in these files:
+
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/conf/vlvtasks.ldif[/usr/share/pki/ca/conf/vlvtasks.ldif]
+* link:https://github.com/dogtagpki/pki/blob/master/base/kra/shared/conf/vlvtasks.ldif[/usr/share/pki/kra/conf/vlvtasks.ldif]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ocsp/shared/conf/vlvtasks.ldif[/usr/share/pki/ocsp/conf/vlvtasks.ldif]
+* link:https://github.com/dogtagpki/pki/blob/master/base/tks/shared/conf/vlvtasks.ldif[/usr/share/pki/tks/conf/vlvtasks.ldif]
+* link:https://github.com/dogtagpki/pki/blob/master/base/tps/shared/conf/vlvtasks.ldif[/usr/share/pki/tps/conf/vlvtasks.ldif]
+
 = Removing Database VLVs =
+
+To remove VLV indexes from the database:
 
 ----
 $ pki-server <subsystem>-db-vlv-del
