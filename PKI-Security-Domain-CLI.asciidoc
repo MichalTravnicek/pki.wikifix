@@ -30,6 +30,8 @@ $ pki securitydomain-show
 
 = Joining Security Domain =
 
+To join a security domain, obtain an installation token, then execute the following command:
+
 ----
 $ pki \
     -d /etc/pki/pki-tomcat/alias \
@@ -43,6 +45,8 @@ $ pki \
 
 = Leaving Security Domain =
 
+To leave a security domain, execute the following command with subsystem certificate for authentication:
+
 ----
 $ pki \
     -d /etc/pki/pki-tomcat/alias \
@@ -53,6 +57,8 @@ $ pki \
     --type KRA \
     --hostname pki.example.com
 ----
+
+**Availability:** Since PKI 11.1.
 
 = See Also =
 
