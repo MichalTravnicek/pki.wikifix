@@ -12,20 +12,46 @@ $ pki securitydomain-show
 
   CA Subsystem:
 
-    Host ID: CA ca.example.com 8443
-    Hostname: ca.example.com
+    Host ID: CA pki.example.com 8443
+    Hostname: pki.example.com
     Port: 8080
     Secure Port: 8443
     Domain Manager: TRUE
 
   KRA Subsystem:
 
-    Host ID: KRA ca.example.com 8443
-    Hostname: ca.example.com
+    Host ID: KRA pki.example.com 8443
+    Hostname: pki.example.com
     Port: 8080
     Secure Port: 8443
     Domain Manager: FALSE
 
+----
+
+= Joining Security Domain =
+
+----
+$ pki \
+    -d /etc/pki/pki-tomcat/alias \
+    -f /etc/pki/pki-tomcat/password.conf \
+    securitydomain-join \
+    "KRA pki.example.com 8443" \
+    --install-token <token> \
+    --type KRA \
+    --hostname pki.example.com
+----
+
+= Leaving Security Domain =
+
+----
+$ pki \
+    -d /etc/pki/pki-tomcat/alias \
+    -f /etc/pki/pki-tomcat/password.conf \
+    -n subsystem \
+    securitydomain-leave \
+    "KRA pki.example.com 8443" \
+    --type KRA \
+    --hostname pki.example.com
 ----
 
 = See Also =
