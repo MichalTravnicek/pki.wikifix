@@ -1,10 +1,25 @@
 = Overview =
 
-The `pki nss` command can be used to generate a PKCS #10 request. The request extensions can be defined in a file (e.g. link:https://github.com/dogtagpki/pki/blob/master/base/server/certs/sslserver.conf[/usr/share/pki/server/certs/sslserver.conf]) and the format is similar to link:https://www.openssl.org/docs/manmaster/man5/x509v3_config.html[OpenSSL x509v3_config].
+The `pki nss` command can be used to generate a PKCS #10 request. The request extensions can be defined in a file (e.g. link:https://github.com/dogtagpki/pki/blob/master/base/server/certs/sslserver.conf[/usr/share/pki/server/certs/sslserver.conf]).
+
+----
+basicConstraints       = critical, CA:FALSE
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid:always
+authorityInfoAccess    = OCSP;URI:http://ocsp.example.com, caIssuers;URI:http://cert.example.com
+keyUsage               = critical, digitalSignature, keyEncipherment
+extendedKeyUsage       = serverAuth, clientAuth
+certificatePolicies    = 2.23.140.1.2.1, @cps_policy
+
+cps_policy.id          = 1.3.6.1.4.1.44947.1.1.1
+cps_policy.CPS.1       = http://cps.example.com
+----
+
+The format is similar to link:https://www.openssl.org/docs/manmaster/man5/x509v3_config.html[OpenSSL x509v3_config].
 
 = Creating Certificate Request with RSA Key =
 
-To create a certificate request:
+To create a certificate request with a new RSA key:
 
 ----
 $ pki nss-cert-request \
@@ -13,7 +28,9 @@ $ pki nss-cert-request \
     --csr sslserver.csr
 ----
 
-The request will be stored in `sslserver.csr`. By default it will create a new RSA key.
+The request will be stored in `sslserver.csr`.
+
+**Availability:** Since PKI 10.9.
 
 = Creating Certificate Request with EC Key =
 
@@ -27,6 +44,10 @@ $ pki nss-cert-request \
     --csr sslserver.csr
 ----
 
+The request will be stored in `sslserver.csr`.
+
+**Availability:** Since PKI 10.9.
+
 = Creating Certificate Request with Existing Key =
 
 To create a certificate request with an existing RSA/EC key:
@@ -39,7 +60,9 @@ $ pki nss-cert-request \
     --csr sslserver.csr
 ----
 
-Availability: PKI 10.9
+The request will be stored in `sslserver.csr`.
+
+**Availability:** Since PKI 10.9.
 
 = See Also =
 
