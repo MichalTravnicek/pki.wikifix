@@ -1,6 +1,6 @@
 = Overview =
 
-PKI NSS CLI is a collection of tools to access an NSS database and its contents.
+The `pki nss` commands can be used to manage an NSS database and its contents.
 
 = Creating NSS Database =
 
@@ -14,73 +14,13 @@ By default it will create the NSS database in `~/.dogtag/nssdb`.
 
 = Removing NSS Database =
 
-To remove the NSS database:
+To remove an existing NSS database:
 
 ----
 $ pki nss-remove
 ----
 
-= Certificate Management =
-
-== Certificate extensions ==
-
-PKI NSS CLI can be used to create certificates and certificate requests with extensions.
-The extensions can be defined in a file (e.g. link:https://github.com/dogtagpki/pki/blob/master/base/server/certs/sslserver.conf[/usr/share/pki/server/certs/sslserver.conf]):
-
-----
-basicConstraints       = critical, CA:FALSE
-subjectKeyIdentifier   = hash
-authorityKeyIdentifier = keyid:always
-authorityInfoAccess    = OCSP;URI:http://ocsp.example.com, caIssuers;URI:http://cert.example.com
-keyUsage               = critical, digitalSignature, keyEncipherment
-extendedKeyUsage       = serverAuth, clientAuth
-certificatePolicies    = 2.23.140.1.2.1, @cps_policy
-
-cps_policy.id          = 1.3.6.1.4.1.44947.1.1.1
-cps_policy.CPS.1       = http://cps.example.com
-----
-
-The format is similar to link:https://www.openssl.org/docs/manmaster/man5/x509v3_config.html[OpenSSL x509v3_config].
-
-== Importing a certificate ==
-
-----
-$ pki nss-cert-import [nickname] \
-    --cert <filename> \
-    --trust <attributes>
-----
-
-Availability: PKI 10.9
-
-== Creating a request ==
-
-See link:Generating-Certificate-Request-with-PKI-CLI[Generating Certificate Request with PKI CLI].
-
-== Creating a certificate ==
-
-To issue a self-signed certificate:
-
-----
-$ pki nss-cert-issue \
-    --csr sslserver.csr \
-    --ext sslserver.conf \
-    --cert sslserver.crt
-----
-
-To issue a certificate signed by another certificate:
-
-----
-$ pki nss-cert-issue \
-    --issuer ca_signing \
-    --csr sslserver.csr \
-    --ext sslserver.conf \
-    --cert sslserver.crt
-----
-
-Availability: PKI 10.9
-
 = See Also =
 
-* link:PKI-CLI[PKI CLI]
+* link:PKI-NSS-Certificate-CLI[PKI NSS Certificate CLI]
 * link:PKI-NSS-Key-CLI[PKI NSS Key CLI]
-* link:PKI-PKCS11-CLI[PKI PKCS11 CLI]
