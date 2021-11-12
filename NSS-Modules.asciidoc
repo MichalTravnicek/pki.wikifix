@@ -2,7 +2,7 @@
 
 To list modules in an NSS database:
 
-<pre>
+----
 $ modutil -dbdir nssdb -list
 Listing of PKCS #11 Modules
 -----------------------------------------------------------
@@ -44,65 +44,65 @@ Listing of PKCS #11 Modules
          slot: Luna UHD Slot
         token:
 -----------------------------------------------------------
-</pre>
+----
 
 = Adding NSS Module =
 
-To add p11-kit-trust module into an NSS database:
+To add `p11-kit-trust` module into an NSS database:
 
-<pre>
+----
 $ modutil -dbdir nssdb -add p11-kit-trust -libfile /usr/lib64/pkcs11/p11-kit-trust.so
-</pre>
+----
 
 Verify with this command:
 
-<pre>
+----
 $ certutil -L -d nssdb -h p11-kit-trust
-</pre>
+----
 
 To install nFast module into an NSS database:
 
-<pre>
+----
 $ modutil -dbdir nssdb -add nfast -libfile /opt/nfast/toolkits/pkcs11/libcknfast.so -force
-</pre>
+----
 
 To install Luna SA module into an NSS database:
 
-<pre>
+----
 $ modutil -dbdir nssdb -add lunasa -libfile /usr/safenet/lunaclient/lib/libCryptoki2_64.so -force
-</pre>
+----
 
 To install SoftHSM module into an NSS database:
 
-<pre>
+----
 $ modutil -dbdir nssdb -add softhsm -libfile /usr/lib64/pkcs11/libsofthsm2.so -force
-</pre>
+----
 
 = Removing NSS Module =
 
 To delete a module from an NSS database:
 
-<pre>
+----
 $ modutil -dbdir nssdb -delete <module> -force
-</pre>
+----
 
 = FIPS =
 
 To enable FIPS in an NSS database:
 
-<pre>
+----
 $ modutil -dbdir nssdb -fips true
-</pre>
+----
 
 To check FIPS status in an NSS database:
 
-<pre>
+----
 $ modutil -dbdir nssdb -chkfips true
 FIPS mode enabled.
-</pre>
+----
 
 = See Also =
 
-* [https://www.dogtagpki.org/wiki/NSS NSS]
-* [https://github.com/dogtagpki/pki/wiki/NSS-Database NSS Database]
-* [https://www.dogtagpki.org/wiki/PKCS11 PKCS11]
+* link:https://www.dogtagpki.org/wiki/NSS[NSS]
+* link:NSS-Database[NSS Database]
+* link:https://www.dogtagpki.org/wiki/PKCS11[PKCS11]
