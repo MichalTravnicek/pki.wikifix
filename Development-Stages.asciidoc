@@ -1,0 +1,38 @@
+= Overview =
+
+This page describes the development stages in PKI projects.
+
+= Alpha Stage =
+
+Alpha is the stage where a new `<x>.<y>` version is started and the code will undergo major changes, for example to add new features, to redesign existing code, or to clean up the code).
+
+If `<x>.<y>` is the latest version, the development should be done in the `master` branch. If `<x>.<y>` is an enhancement for the previous major version, the development should be done either in the `v<x>` branch, or in a new `v<x>.<y>` branch created from the previous `v<x>.<y-1>` branch.
+
+In this stage the version number should be called `<x>.<y>.0-alpha<n>` where `n` represents milestones within the Alpha stage starting from `1`, for example `10.12.0-alpha1`.
+
+= Beta Stage =
+
+Beta is the stage where the code is being stabilized, for example to cover corner cases, to improve the performance, or to fix issues. There might still be major changes happening in the code, but it should be minimized. New features that could not be completed in the Alpha stage should be deferred to the next version.
+
+In this stage the version number should be called `<x>.<y>.0-beta<n>` suffix where `n` represents milestones within the Beta stage starting from `1`, for example `10.12.0-beta1`.
+
+= Release Candidate (RC) Stage =
+
+RC is the stage where the development is considered complete and a build will be created for final testing. If there are major issues, the code should be fixed and rebuilt until the issues are fixed. No other changes should be made to the code.
+
+In the RC stage the version number should be `<x>.<y>.<z>` where `z` represents the number of rebuilds starting from `0`.
+
+= General Availability (GA) Stage =
+
+GA is the stage where the final RC build is released to public.
+
+= Maintenance Stage =
+
+Maintenance is the stage where the code is updated to fix issues found after GA. The update should contain bug fixes only. New features should be added in the next version.
+
+In the Maintenance stage the version number should be `<x>.<y>.<z>` where `z` represents the updates after GA.
+
+= See Also =
+
+* link:https://semver.org/[Semantic Versioning 2.0.0]
+* link:https://en.wikipedia.org/wiki/Software_release_life_cycle[Software release life cycle]
