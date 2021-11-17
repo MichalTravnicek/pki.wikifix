@@ -30,8 +30,7 @@ You can reuse existing repositories on your local machine if they are already ch
 
 = Updating Upstream Version Number =
 
-Make sure the upstream project branch has a new version number to rebase to.
-If not, update the version number in the upstream project branch.
+Check the commit history in the upstream project branch. If the latest commit has been tagged, there is nothing to change upstream. If it has not been tagged, find the latest tag in the branch, then make sure the branch has a newer version number than the latest tag, then create a new tag with the new version number.
 
 In the local upstream project repository check out the upstream branch/tag (i.e. `master`):
 
@@ -40,7 +39,9 @@ $ git checkout master
 $ git pull
 ```
 
-Make sure the version/release number and `_phase` in the spec file (i.e. `pki.spec`) is higher than the latest one in link:https://koji.fedoraproject.org/koji/packageinfo?packageID=9999[Koji], for example:
+Suppose the latest tag in the branch is `v11.0.0-alpha1`, the version number should be updated to `11.0.0-alpha2` or `11.0.0-beta1` or `11.0.0` depending on the development stage.
+
+To change the version number, edit the following fields in `pki.spec`:
 
 ```
 Version:          11.0.0
