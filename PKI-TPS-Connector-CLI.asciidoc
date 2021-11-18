@@ -1,7 +1,7 @@
 = Listing Connectors =
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-connector-find
+----
+$ pki -n caadmin tps-connector-find
 -----------------
 3 entries matched
 -----------------
@@ -16,14 +16,14 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-connector-f
 ----------------------------
 Number of entries returned 3
 ----------------------------
-</pre>
+----
 
 = Displaying Connector Info =
 
 To display connector configuration:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-connector-show ca1
+----
+$ pki -n caadmin tps-connector-show ca1
 ---------------
 Connector "ca1"
 ---------------
@@ -42,20 +42,20 @@ Connector "ca1"
     tps.connector.ca1.uri.renewal: /ca/ee/ca/profileSubmitSSLClient
     tps.connector.ca1.uri.revoke: /ca/ee/subsystem/ca/doRevoke
     tps.connector.ca1.uri.unrevoke: /ca/ee/subsystem/ca/doUnrevoke
-</pre>
+----
 
 To download connector configuration into a file:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-connector-show ca1 --output ca1.xml
+----
+$ pki -n caadmin tps-connector-show ca1 --output ca1.xml
 -----------------------------------
 Stored connector "ca1" into ca1.xml
 -----------------------------------
-</pre>
+----
 
 The configuration will be stored in XML format:
 
-<pre>
+----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Connector id="ca1" xmlns:ns2="http://www.w3.org/2005/Atom">
     <Link href="https://server.example.com:8443/tps/rest/connectors/ca1" rel="self"/>
@@ -75,13 +75,13 @@ The configuration will be stored in XML format:
     </Properties>
     <Status>Enabled</Status>
 </Connector>
-</pre>
+----
 
 = Adding Connector =
 
 To add a new connector, download the configuration of an existing connector into a file. Change the connector ID and make the necessary changes:
 
-<pre>
+----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Connector id="ca2" xmlns:ns2="http://www.w3.org/2005/Atom">
     <Link href="https://server.example.com:8443/tps/rest/connectors/test" rel="self"/>
@@ -101,36 +101,36 @@ To add a new connector, download the configuration of an existing connector into
     </Properties>
     <Status>Enabledk</Status>
 </Connector>
-</pre>
+----
 
 Then upload the new configuration:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-connector-add --input test.xml
+----
+$ pki -n caadmin tps-connector-add --input test.xml
 ----------------------
 Added connector "test"
 ----------------------
-</pre>
+----
 
 = Enabling Connector =
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-connector-mod test --action enable
-</pre>
+----
+$ pki -n caadmin tps-connector-mod test --action enable
+----
 
 = Disabling Connector =
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-connector-mod test --action disable
-</pre>
+----
+$ pki -n caadmin tps-connector-mod test --action disable
+----
 
 = Modifying Connector =
 
-To modify a connector, make sure the connector is disabled. Download the current configuration using the tps-connector-show command, edit the file, then update the new configuration:
+To modify a connector, make sure the connector is disabled. Download the current configuration using the `pki tps-connector-show` command, edit the file, then update the new configuration:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-connector-mod test --input test.xml
-</pre>
+----
+$ pki -n caadmin tps-connector-mod test --input test.xml
+----
 
 Finally, re-enable the connector.
 
@@ -138,13 +138,9 @@ Finally, re-enable the connector.
 
 To delete a connector, make sure the connector is disabled, then execute the following command:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-connector-del test
+----
+$ pki -n caadmin tps-connector-del test
 ------------------------
 Deleted connector "test"
 ------------------------
-</pre>
-
-= See Also =
-
-* [https://github.com/dogtagpki/pki/wiki/PKI-TPS-CLI PKI TPS CLI]
+----
