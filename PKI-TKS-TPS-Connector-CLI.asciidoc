@@ -1,10 +1,10 @@
 = Overview =
 
-PKI provides CLI to manage TPS connector configuration in TKS. All TPS connector commands should be executed as a TKS administrator. 
+The `pki tks-tpsconnector` commands can be used to manage TPS connector configuration in TKS. All TPS connector commands should be executed as a TKS administrator. 
 
 = Listing TPS Connectors =
 
-<pre>
+----
 $ pki -n caadmin tks-tpsconnector-find
 -----------------
 1 entries matched
@@ -17,11 +17,11 @@ $ pki -n caadmin tks-tpsconnector-find
 ----------------------------
 Number of entries returned 1
 ----------------------------
-</pre>
+----
 
 = Displaying TPS Connector Info =
 
-<pre>
+----
 $ pki -n tksadmin tks-tpsconnector-show --host server.example.com --port 8443
 ---------------------------------------
 TPS Connector "server.example.com:8443"
@@ -31,20 +31,20 @@ TPS Connector "server.example.com:8443"
   Port: 8443
   User ID: TPS-server.example.com-8443
   Nickname: TPS-server.example.com-8443 sharedSecret
-</pre>
+----
 
 = Adding TPS Connector =
 
-<pre>
+----
 $ pki -n tksadmin tks-tpsconnector-add --host server.example.com --port 8443
 ---------------------------------------------
 Added TPS connector "server.example.com:8443"
 ---------------------------------------------
-</pre>
+----
 
 = Modifying TPS Connector =
 
-<pre>
+----
 $ pki -n tksadmin tks-tpsconnector-mod 0 --host tps.example.com
 --------------------------
 Modified TPS connector "0"
@@ -53,17 +53,13 @@ Modified TPS connector "0"
   Host: tps.example.com
   User ID: TPS-server.example.com-8443
   Nickname: TPS-server.example.com-8443 sharedSecret
-</pre>
+----
 
 = Deleting TPS Connector =
 
-<pre>
+----
 $ pki -n tksadmin tks-tpsconnector-del --host server.example.com --port 8443
 -----------------------------------------------
 Removed TPS connector "server.example.com:8443"
 -----------------------------------------------
-</pre>
-
-= See Also =
-
-* [https://github.com/dogtagpki/pki/wiki/PKI-TKS-CLI PKI TKS CLI]
+----
