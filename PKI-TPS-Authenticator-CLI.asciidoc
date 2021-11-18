@@ -2,8 +2,8 @@
 
 To list authenticators:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-authenticator-find
+----
+$ pki -n caadmin tps-authenticator-find
 -----------------
 1 entries matched
 -----------------
@@ -12,16 +12,16 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-authenticat
 ----------------------------
 Number of entries returned 1
 ----------------------------
-</pre>
+----
 
-To page the results, specify the index of the first entry to return with --start parameter and the number of entries to return with --size parameter.
+To page the results, specify the index of the first entry to return with `--start` parameter and the number of entries to return with `--size` parameter.
 
 = Displaying Authenticator Configuration =
 
 To display the authenticator configuration:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-authenticator-show ldap1
+----
+$ pki -n caadmin tps-authenticator-show ldap1
 ---------------------
 Authenticator "ldap1"
 ---------------------
@@ -67,20 +67,20 @@ Authenticator "ldap1"
     auths.instance.ldap1.ui.id.UID.name.en: LDAP User ID
     auths.instance.ldap1.ui.retries: 3
     auths.instance.ldap1.ui.title.en: LDAP Authentication
-</pre>
+----
 
 To download the authenticator configuration into a file:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-authenticator-show ldap1 --output ldap1.xml
+----
+$ pki -n caadmin tps-authenticator-show ldap1 --output ldap1.xml
 -------------------------------------------
 Stored authenticator "ldap1" into ldap1.xml
 -------------------------------------------
-</pre>
+----
 
 The configuration is stored in XML format:
 
-<pre>
+----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Authenticator id="ldap1" xmlns:ns2="http://www.w3.org/2005/Atom">
     <Link href="https://server.example.com:8443/tps/rest/authenticators/ldap1" rel="self"/>
@@ -127,35 +127,35 @@ The configuration is stored in XML format:
     </Properties>
     <Status>Enabled</Status>
 </Authenticator>
-</pre>
+----
 
 = Disabling Authenticator =
 
 To disable an authenticator, execute the following command:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-authenticator-mod ldap1 --action disable
+----
+$ pki -n caadmin tps-authenticator-mod ldap1 --action disable
 ------------------------------
 Modified authenticator "ldap1"
 ------------------------------
-</pre>
+----
 
 = Enabling Authenticator =
 
 To enable an authenticator, execute the following command:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-authenticator-mod ldap1 --action enable
+----
+$ pki -n caadmin tps-authenticator-mod ldap1 --action enable
 ------------------------------
 Modified authenticator "ldap1"
 ------------------------------
-</pre>
+----
 
 = Modifying Authenticator Configuration =
 
-To modify an authenticator configuration, make sure the authenticator is disabled. Download the current configuration into a file using the tps-authenticator-show command above, then edit the file:
+To modify an authenticator configuration, make sure the authenticator is disabled. Download the current configuration into a file using the `pki tps-authenticator-show` command above, then edit the file:
 
-<pre>
+----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Authenticator id="ldap1" xmlns:ns2="http://www.w3.org/2005/Atom">
     <Link href="https://server.example.com:8443/tps/rest/authenticators/ldap1" rel="self"/>
@@ -167,31 +167,31 @@ To modify an authenticator configuration, make sure the authenticator is disable
     </Properties>
     <Status>Disabled</Status>
 </Authenticator>
-</pre>
+----
 
 Then upload the new configuration with the following command:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-authenticator-mod ldap1 --input ldap1.xml
+----
+$ pki -n caadmin tps-authenticator-mod ldap1 --input ldap1.xml
 ------------------------------
 Modified authenticator "ldap1"
 ------------------------------
-</pre>
+----
 
 Finally, make sure the authenticator is enabled again.
 
 = Adding New Authenticator =
 
-To create a new authenticator, download an existing authenticator configuration into a file using the tps-authenticator-show command above. Edit the file, replace the old authenticator ID with the new one, and make the necessary changes.
+To create a new authenticator, download an existing authenticator configuration into a file using the `pki tps-authenticator-show` command above. Edit the file, replace the old authenticator ID with the new one, and make the necessary changes.
 
 Then create the new authenticator with the following command:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-authenticator-add --input ldap2.xml
+----
+$ pki -n caadmin tps-authenticator-add --input ldap2.xml
 ---------------------------
 Added authenticator "ldap2"
 ---------------------------
-</pre>
+----
 
 Make sure the new authenticator is enabled.
 
@@ -199,13 +199,9 @@ Make sure the new authenticator is enabled.
 
 To delete an authenticator, make sure the authenticator is disabled, then execute the following command:
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-authenticator-del ldap2
+----
+$ pki -n caadmin tps-authenticator-del ldap2
 -----------------------------
 Deleted authenticator "ldap2"
 -----------------------------
-</pre>
-
-= See Also =
-
-* [https://github.com/dogtagpki/pki/wiki/PKI-TPS-CLI PKI TPS CLI]
+----
