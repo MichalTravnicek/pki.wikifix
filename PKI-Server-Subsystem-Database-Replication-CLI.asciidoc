@@ -14,11 +14,28 @@ $ pki-server <subsystem>-db-repl-setup \
 = Adding Replication Manager =
 
 ----
-$ pki-server <subsystem>-db-repl-enable-add <name> --password <password>
+$ pki-server <subsystem>-db-repl-manager-add <name> --password <password>
 ----
 
 = Removing Replication Manager =
 
 ----
 $ pki-server <subsystem>-db-repl-manager-del <name>
+----
+
+= Adding Replication Agreement =
+
+----
+$ pki-server <subsystem>-db-repl-agreement-add <name> \
+    --hostname <hostname> \
+    --port <port> \
+    --security <security> \
+    --user <user> \
+    --password <password>
+----
+
+= Removing Replication Agreement =
+
+----
+$ pki-server <subsystem>-db-repl-agreement-del <name>
 ----
