@@ -1,18 +1,24 @@
-= Overview =
+= Overview (Not Implemented) =
 
-The `pki-server <subsystem>-db-replication-setup` can be used to set up the replication for the subsystem database.
+The `pki-server <subsystem>-db-repl` commands can be used to manage subsystem database replication.
 
-= Setting Up Replication (Not Implemented) =
+= Setting Up Replication =
 
 ----
-$ pki-server <subsystem>-db-replication-setup \
+$ pki-server <subsystem>-db-repl-setup \
     --master-replication-port <port> \
     --replica-replication-port <port> \
     --replication-security <security>
 ----
 
-= Removing Replication (Not Implemented) =
+= Adding Replication Manager =
 
 ----
-$ pki-server <subsystem>-db-replication-remove
+$ pki-server <subsystem>-db-repl-enable-add <name> --password <password>
+----
+
+= Removing Replication Manager =
+
+----
+$ pki-server <subsystem>-db-repl-manager-del <name>
 ----
