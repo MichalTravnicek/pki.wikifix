@@ -50,38 +50,29 @@ To create the instance:
 $ dscreate from-file ds.inf
 ----
 
-= Creating PKI Subtree =
+= Creating PKI LDAP Tree =
 
 When the DS instance is created, it does not automatically create the root entry (e.g. `dc=example,dc=com`).
 
-To create the root entry and PKI subtree:
+To create the root entry:
 
 ----
 $ ldapadd -h $HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: dc=example,dc=com
 objectClass: domain
 dc: example
+----
 
+To create PKI base entry:
+
+----
 dn: dc=pki,dc=example,dc=com
 objectClass: domain
 dc: pki
 EOF
 ----
 
-The subsystem subtrees (e.g. `dc=ca,dc=pki,dc=example,dc=com`) will be created when the corresponding subsystems (e.g. CA) are installed.
-
-When all subsystems are created, the tree will look like the following:
-
-----
-dc=example,dc=com
-+ dc=pki
-  + dc=ca
-  + dc=kra
-  + dc=ocsp
-  + dc=tks
-  + dc=tps
-  + dc=acme
-----
+The subtree for each PKI subsystem will be created when the subsystem is installed. See link:PKI-LDAP-Tree[PKI LDAP Tree].
 
 = Enabling SSL Connection =
 
