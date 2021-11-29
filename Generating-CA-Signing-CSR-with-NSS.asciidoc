@@ -1,5 +1,7 @@
 = Generating CSR =
 
+To generate a CSR in DER format, execute the following command:
+
 ----
 $ echo -e "y\n\ny\n" | \
  certutil -R \
@@ -13,7 +15,28 @@ $ echo -e "y\n\ny\n" | \
  -Z SHA256 \
  -2 \
  --keyUsage critical,certSigning,crlSigning,digitalSignature,nonRepudiation
+----
+
+To convert the CSR into PEM format:
+
+----
 $ openssl req -inform der -in ca_signing.csr.der -out ca_signing.csr
+----
+
+== Adding Generic Extension ==
+
+If necessary, a generic extension can be added to the CA signing CSR.
+
+First, store the DER value in a file, for example:
+
+----
+$ printf "$(echo 1E0A00530075006200430041 | sed -e 's/../\\x&/g')" > extension.bin
+----
+
+Then add the `--extGeneric` parameter to the `certutil` command, for example:
+
+----
+ --extGeneric 1.3.6.1.4.1.311.20.2:critical:extension.bin
 ----
 
 = Restoring CSR =
