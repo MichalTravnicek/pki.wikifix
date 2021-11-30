@@ -1,0 +1,279 @@
+= Overview =
+
+The PKI server 10.5 will provide a mechanism to filter the audit events that will be logged in the audit file based on the event attributes.
+
+When an audit event is generated, the information associated with the event is stored as event attributes, for example:
+
+----
+[AuditEvent=PROFILE_CERT_REQUEST][SubjectID=$NonRoleUser$][Outcome=Success][ReqID=7][ProfileID=caUserCert][CertSubject=UID=testuser] certificate request made with certificate profiles
+[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Success][ReqID=7][CertSerialNum=7] certificate request succeeded
+[AuditEvent=PROFILE_CERT_REQUEST][SubjectID=$NonRoleUser$][Outcome=Success][ReqID=8][ProfileID=caUserCert][CertSubject=UID=testuser] certificate request made with certificate profiles
+[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Failure][ReqID=8][InfoName=rejectReason][InfoValue=<null>] certificate request processed
+[AuditEvent=PROFILE_CERT_REQUEST][SubjectID=$NonRoleUser$][Outcome=Success][ReqID=9][ProfileID=caUserCert][CertSubject=UID=testuser] certificate request made with certificate profiles
+[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Failure][ReqID=9][InfoName=cancelReason][InfoValue=<null>] certificate request processed
+[AuditEvent=PROFILE_CERT_REQUEST][SubjectID=$NonRoleUser$][Outcome=Success][ReqID=10][ProfileID=caServerCert][CertSubject=UID=testuser] certificate request made with certificate profiles
+[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=$NonRoleUser$][Outcome=Failure][ReqID=10][InfoName=rejectReason][InfoValue=Request 10 Rejected - Subject Name Not Matched UID=testuser] certificate request processed
+----
+
+In some cases the admin may want to limit the event logging to specific events only. This can be done by specifying filters on each event type, for example:
+
+* `PROFILE_CERT_REQUEST`: `(Outcome=Failure)`
+* `CERT_REQUEST_PROCESSED`: `(|(InfoName=rejectReason)(InfoName=cancelReason))`
+
+Based on the filters, only `PROFILE_CERT_REQUEST` failure events will be logged into the audit file while `PROFILE_CERT_REQUEST` success events will be discarded. Also, only `CERT_REQUEST_PROCESSED` rejection or cancellation events will be logged.
+
+Had the filters been in place before the above events occurred, the audit file would only have the following log entries (the filter does not apply retroactively):
+
+----
+[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Failure][ReqID=8][InfoName=rejectReason][InfoValue=<null>] certificate request processed
+[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Failure][ReqID=9][InfoName=cancelReason][InfoValue=<null>] certificate request processed
+[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=$NonRoleUser$][Outcome=Failure][ReqID=10][InfoName=rejectReason][InfoValue=Request 10 Rejected - Subject Name Not Matched UID=testuser] certificate request processed
+----
+
+= Triggering Audit Events =
+
+Currently PKI uses two coding styles to trigger audit events:
+
+* old style: using log messages
+* new style: using event objects
+
+The old style code is being converted into the new style, but due to the amount of work this conversion is not yet complete, so the two styles need to be supported.
+
+== Old style ==
+
+In the old style the log message template is defined in the `LogMessages.properties`, for example:
+
+----
+LOGGING_SIGNED_AUDIT_CERT_STATUS_CHANGE_REQUEST_5=<type=CERT_STATUS_CHANGE_REQUEST>:[AuditEvent=CERT_STATUS_CHANGE_REQUEST][SubjectID={0}][Outcome={1}][ReqID={2}][CertSerialNum={3}][RequestType={4}] certificate revocation/unrevocation request made
+----
+
+When an event is triggered, a log message is generated from the template using the `CMS.getLogMessage()`, for example:
+
+----
+String message = CMS.getLogMessage(
+        "LOGGING_SIGNED_AUDIT_CERT_STATUS_CHANGE_REQUEST_5",
+        getSubjectID(),
+        status,
+        requestID == null ? ILogger.UNIDENTIFIED : requestID.toString(),
+        serialNumber == null ? ILogger.SIGNED_AUDIT_EMPTY_VALUE : serialNumber.toHexString(),
+        requestType);
+----
+
+The log message is then sent to the logger, for example:
+
+----
+Logger signedAuditLogger = SignedAuditLogger.getLogger();
+signedAuditLogger.log(message);
+----
+
+The logger will create an event object with this message.
+
+In order to support filter, the attributes will need to be parsed from the log message, then stored in an attribute list in the event object.
+
+== New style ==
+
+In the new style the events are defined as separate classes. Each class may provide factory methods to create different variations of the events, for example:
+
+----
+public class CertRequestProcessedEvent extends SignedAuditEvent {
+
+    // factory for CERT_REQUEST_PROCESSED success
+    public static CertRequestProcessedEvent createSuccessEvent(
+            String subjectID,
+            String requesterID,
+            String infoName,
+            X509CertImpl x509cert) {
+
+        CertRequestProcessedEvent event = new CertRequestProcessedEvent();
+
+        event.setAttribute("SubjectID", subjectID);
+        event.setAttribute("Outcome", ILogger.SUCCESS);
+        event.setAttribute("ReqID", requesterID);
+        event.setAttribute("CertSerialNum", x509cert.getSerialNumber());
+
+        return event;
+    }
+
+    // factory for CERT_REQUEST_PROCESSED failure
+    public static CertRequestProcessedEvent createFailureEvent(
+            String subjectID,
+            String requesterID,
+            String infoName,
+            String infoValue) {
+
+        CertRequestProcessedEvent event = new CertRequestProcessedEvent();
+
+        event.setAttribute("SubjectID", subjectID);
+        event.setAttribute("Outcome", ILogger.FAILURE);
+        event.setAttribute("ReqID", requesterID);
+        event.setAttribute("InfoName", infoName);
+        event.setAttribute("InfoValue", infoValue);
+
+        return event;
+    }
+}
+----
+
+The `LogMessages.properties` will only define the event description (for translation):
+
+----
+LOGGING_SIGNED_AUDIT_CERT_REQUEST_PROCESSED=certificate request processed
+----
+
+When an event is triggered, an event object is created using one of the factory methods, for example:
+
+----
+CertRequestProcessedEvent event = CertRequestProcessedEvent.createSuccessEvent(
+        auditSubjectID,
+        auditRequesterID,
+        ILogger.SIGNED_AUDIT_ACCEPTANCE,
+        x509cert);
+----
+
+The event object is then sent to the logger, for example:
+
+----
+Logger signedAuditLogger = SignedAuditLogger.getLogger();
+signedAuditLogger.log(event);
+----
+
+As shown in the event class above, the attributes are already stored in an attribute list in the event object, so there is no additional parsing required.
+
+= Filter Configuration =
+
+The filters can be specified in the `CS.cfg` as follows:
+
+----
+log.instance.SignedAudit.filters.PROFILE_CERT_REQUEST=(Outcome=Failure)
+log.instance.SignedAudit.filters.CERT_REQUEST_PROCESSED=(|(InfoName=rejectReason)(InfoName=cancelReason))
+----
+
+When the server is started, the filters will be parsed into `JDAPFilter` objects:
+
+----
+public class LogFile {
+
+    Map<String, JDAPFilter> filters = new HashMap<String, JDAPFilter>();
+
+    public void init(ISubsystem owner, IConfigStore config) throws EBaseException {
+
+        IConfigStore filterStore = config.getSubStore("filters");
+
+        // read filters under log.instance.SignedAudit.filters
+        for (Enumeration<String> e = filterStore.getPropertyNames(); e.hasMoreElements(); ) {
+
+            String eventType = e.nextElement();
+            String strFilter = filterStore.get(eventType);
+
+            // parse string filter into JDAPFilter object
+            JDAPFilter filter = JDAPFilter.getFilter(strFilter);
+            filters.put(eventType, filter);
+        }
+    }
+}
+----
+
+See also link:https://hg.mozilla.org/projects/ldap-sdks/file/tip/java-sdk/ietfldap/org/ietf/ldap/client/[JDAPFilter API].
+
+= Filter Evaluation =
+
+When an event is triggered, the event object will be sent to `LogFile`. At this point the corresponding filter object will be evaluated against the attributes in the event object. If the filter matches the event will be logged into the audit file. Otherwise, it will be discarded.
+
+----
+public class LogFile {
+
+    public void log(SignedAuditEvent event) {
+
+        // get filter for the event type
+        String eventType = event.getEventType();
+        JDAPFilter filter = filters.get(eventType);
+
+        // evaluate filter
+        boolean result = evalFilter(ev, filter);
+
+        if (!result) {
+            // skip event
+            return;
+        }
+
+        // log event
+        String entry = logEvt2String(ev);
+        log(entry);
+    }
+}
+----
+
+= Default Filters =
+
+== Default CA Filters ==
+
+----
+log.instance.SignedAudit.filters.CMC_SIGNED_REQUEST_SIG_VERIFY=(Outcome=Failure)
+log.instance.SignedAudit.filters.CMC_USER_SIGNED_REQUEST_SIG_VERIFY=(Outcome=Failure)
+log.instance.SignedAudit.filters.DELTA_CRL_GENERATION=(Outcome=Failure)
+log.instance.SignedAudit.filters.FULL_CRL_GENERATION=(Outcome=Failure)
+log.instance.SignedAudit.filters.OCSP_GENERATION=(Outcome=Failure)
+log.instance.SignedAudit.filters.RANDOM_GENERATION=(Outcome=Failure)
+log.instance.SignedAudit.filters.SELFTESTS_EXECUTION=(Outcome=Failure)
+----
+
+= Scenarios =
+
+== No filter ==
+
+== Simple filter ==
+
+== Complex filter ==
+
+Add the following filter into `CS.cfg`:
+
+----
+log.instance.SignedAudit.filters.CERT_REQUEST_PROCESSED=(|(InfoName=rejectReason)(InfoName=cancelReason))
+----
+
+Restart the server.
+
+Submit and reject a certificate request with the following commands:
+
+----
+$ pki -c Secret.123 client-cert-request uid=testuser
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-cert-request-review 7 --action reject
+----
+
+The server will generate the following audit log:
+
+----
+[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Failure][ReqID=7][InfoName=rejectReason][InfoValue=<null>] certificate request processed
+----
+
+Submit and cancel a certificate request with the following commands:
+
+----
+$ pki -c Secret.123 client-cert-request uid=testuser
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-cert-request-review 8 --action cancel
+----
+
+The server will generate the following audit log:
+
+----
+[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Failure][ReqID=8][InfoName=cancelReason][InfoValue=<null>] certificate request processed
+----
+
+Submit and approve a certificate request with the following commands:
+
+----
+$ pki -c Secret.123 client-cert-request uid=testuser
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-cert-request-review 9 --action approve
+----
+
+It will generate no `CERT_REQUEST_PROCESSED` event.
+
+= Upgrade =
+
+See link:https://www.dogtagpki.org/wiki/Configuration_Upgrade_for_PKI_10.5.x[Configuration Upgrade for PKI 10.5.x].
+
+= See Also =
+
+* link:Signed-Audit-Event-Filters[Signed Audit Event Filters]
+* link:https://github.com/dogtagpki/pki/issues/2809[PKI Ticket #2809 - Audit event filter]
+* link:https://bugzilla.mozilla.org/show_bug.cgi?id=1376300[Mozilla Bug #1376300 - Missing getter methods in JDAPFilter classes]
