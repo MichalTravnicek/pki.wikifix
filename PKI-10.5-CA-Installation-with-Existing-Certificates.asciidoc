@@ -1,0 +1,15 @@
+= Overview =
+
+This page describes the new functionality for installing CA with existing certificates in PKI 10.5.
+
+Previously PKI supported installing CA with existing CA signing certificate only. Other system certificates would be generated during installation with new keys. This means signature generated using the old certificates (e.g. audit signatures) cannot be verified using the new certificates.
+
+To avoid these issues, in PKI 10.5 the installation tool will be modified to support installing CA with all existing certificates.
+
+= Installation Process =
+
+First, export all certificates and their keys from the existing CA. If the keys can be exported, the certificates and keys can be exported into a PKCS #12 file. If the keys cannot be exported (e.g. keys are stored in HSM), the certificates can be exported into individual certificate files.
+
+Then prepare a deployment configuration file that points to the PKCS #12 file or certificate files. Run pkispawn, the new CA will be installed with the existing certificates from the old CA.
+
+If the old CA and the new CA are on the same machine, it will use the existing SSL server certificate. If they are on different machines, the new CA will generate a new SSL server certificate.
