@@ -4,7 +4,7 @@ PKI 10.6 provides a CLI to manage the secure and unsecure HTTP connectors.
 
 = Listing HTTP Connectors =
 
-<pre>
+----
 $ pki-server http-connector-find
 -----------------
 2 entries matched
@@ -25,48 +25,52 @@ $ pki-server http-connector-find
   Connector ID: Unsecure
   Port: 8080
   Protocol: HTTP/1.1
-</pre>
+----
 
 = Displaying HTTP Connector Details =
 
-<pre>
+----
 $ pki-server http-connector-show Unsecure
   Connector ID: Unsecure
   Port: 8080
   Protocol: HTTP/1.1
-</pre>
+----
 
 = Adding HTTP Connector =
 
 Available since: PKI 10.7
 
-<pre>
+----
 $ pki-server http-connector-add Secure \
     --port 8443 \
     --scheme https \
     --secure true \
     --sslEnabled true
-</pre>
+----
 
 = Removing HTTP Connector =
 
 Available since: PKI 10.7
 
-<pre>
+----
 $ pki-server http-connector-del Secure
-</pre>
+----
 
 = Modiying HTTP Connector =
 
 To change connector type or implementation, specify the following parameters:
 
- $ pki-server http-connector-mod <Connector ID> --type <type>
+----
+$ pki-server http-connector-mod <Connector ID> --type <type>
+----
 
 Valid types are JSS and JSSE.
 
 To modify a connector attribute, specify the parameter corresponding to the attribute to change:
 
- $ pki-server http-connector-mod <Connector ID> [<param> <value>...]
+----
+$ pki-server http-connector-mod <Connector ID> [<param> <value>...]
+----
 
 If the value is non-empty, the attribute will be overwritten.
 If the value is an empty string, the attribute will be removed.
@@ -76,7 +80,7 @@ Other attributes will not be changed.
 
 To configure JSS Connector:
 
-<pre>
+----
 $ pki-server http-connector-mod Secure --type JSS
 -----------------
 Updated connector
@@ -93,7 +97,7 @@ Updated connector
   NSS Password Class: org.apache.tomcat.util.net.jss.PlainPasswordFile
   NSS Password File: /var/lib/pki/pki-tomcat/conf/password.conf
   Server Cert Nickname File: /var/lib/pki/pki-tomcat/conf/serverCertNick.conf
-</pre>
+----
 
 == Switching to JSSE Connector ==
 
@@ -101,17 +105,17 @@ Updated connector
 
 Store the password for the PKCS #12 files into a file:
 
-<pre>
+----
 $ echo Secret.123 > /etc/pki/pki-tomcat/keystore.pwd
 $ chown pkiuser.pkiuser /etc/pki/pki-tomcat/keystore.pwd
 $ chmod 0660 /etc/pki/pki-tomcat/keystore.pwd
-</pre>
+----
 
 === Exporting SSL server certificate ===
 
 Export the SSL server certificate with the following command:
 
-<pre>
+----
 $ pki-server cert-export \
     sslserver \
     --instance "pki-tomcat" \
@@ -119,31 +123,31 @@ $ pki-server cert-export \
     --pkcs12-password-file /etc/pki/pki-tomcat/keystore.pwd \
     --cert-encryption "PBE/SHA1/RC2-40" \
     --key-encryption "PBE/SHA1/DES3/CBC"
-</pre>
+----
 
 Alternatively, the SSL server certificate can be exported with the following command:
 
-<pre>
+----
 $ pk12util \
     -n sslserver \
     -d /var/lib/pki/pki-tomcat/alias \
     -k Secret.123 \
     -o /etc/pki/pki-tomcat/keystore.p12 \
     -w /etc/pki/pki-tomcat/keystore.pwd
-</pre>
+----
 
 Then configure the file permission as follows:
 
-<pre>
+----
 $ chown pkiuser.pkiuser /etc/pki/pki-tomcat/keystore.p12
 $ chmod 0660 /etc/pki/pki-tomcat/keystore.p12
-</pre>
+----
 
 === Configuring JSSE connector ===
 
 To configure JSSE connector:
 
-<pre>
+----
 $ pki-server http-connector-mod Secure \
     --type JSSE \
     --keystore-file /etc/pki/pki-tomcat/keystore.p12 \
@@ -164,14 +168,13 @@ Updated connector
   Server Cert Nickname File: /var/lib/pki/pki-tomcat/conf/serverCertNick.conf
   Keystore File: /etc/pki/pki-tomcat/keystore.p12
   Keystore Password File: /etc/pki/pki-tomcat/keystore.pwd
-</pre>
+----
 
-= References =
+= See Also =
 
-* [https://github.com/dogtagpki/pki/wiki/PKI-Server-CLI PKI Server CLI]
-* [[PKI Server HTTP Connector Host CLI]]
-* [[PKI Server HTTP Connector Cert CLI]]
-* [https://www.dogtagpki.org/wiki/Tomcat_SSL Tomcat SSL]
-* [https://www.dogtagpki.org/wiki/SSL SSL]
-* [https://www.dogtagpki.org/wiki/PKCS12 PKCS12]
-* [https://tomcat.apache.org/tomcat-8.5-doc/config/http.html The HTTP Connector]
+* link:PKI-Server-HTTP-Connector-Host-CLI[PKI Server HTTP Connector Host CLI]
+* link:PKI-Server-HTTP-Connector-Cert-CLI[PKI Server HTTP Connector Cert CLI]
+* link:https://www.dogtagpki.org/wiki/Tomcat_SSL[Tomcat SSL]
+* link:https://www.dogtagpki.org/wiki/SSL[SSL]
+* link:PKCS12[PKCS12]
+* link:https://tomcat.apache.org/tomcat-8.5-doc/config/http.html[The HTTP Connector]
