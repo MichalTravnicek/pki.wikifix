@@ -2,7 +2,7 @@
 
 To display server status:
 
-<pre>
+----
 $ pki-server status
   Instance ID: pki-tomcat
   Active: True
@@ -54,16 +54,16 @@ $ pki-server status
     Unsecure PHONE HOME: http://localhost:8080/tps/phoneHome
     Secure URL:          https://localhost:8443/tps
     Secure PHONE HOME:   https://localhost:8443/tps/phoneHome
-</pre>
+----
 
 = Active =
 
-If '''Active''' is True, the server is running and accepting connections at the specified ports.
-If it is False, the server is not running.
+If **Active** is `True`, the server is running and accepting connections at the specified ports.
+If it is `False`, the server is not running.
 
 = Subsystem Type =
 
-Possible values of '''Type''':
+Possible values of **Type**:
 
 * Root CA
 * Root CA (Security Domain)
@@ -83,12 +83,8 @@ Possible values of '''Type''':
 
 = Subsystem Security Domain Registration URL =
 
-The '''SD Registration URL''' indicates the security domain to which the subsystem is registered.
+The **SD Registration URL** indicates the security domain to which the subsystem is registered.
 
 = Subsystem Enabled =
 
-If '''Enabled''' is True, the subsystem is running and accepting requests at the specified URLs provided that the server is running too. If it is False, the subsystem is not running regardless whether the server itself is running.
-
-= See Also =
-
-* [https://github.com/dogtagpki/pki/wiki/PKI-Server-CLI PKI Server CLI]
+If **Enabled** is `True`, the subsystem is running and accepting requests at the specified URLs provided that the server is running too. If it is `False`, the subsystem is not running regardless whether the server itself is running.
