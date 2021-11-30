@@ -4,7 +4,7 @@ PKI 10.7 provides a CLI to manage webapps on PKI server.
 
 = Listing Webapps =
 
-<pre>
+----
 $ pki-server webapp-find
   Webapp ID: ROOT
   Path: /
@@ -20,32 +20,28 @@ $ pki-server webapp-find
   Path: /pki
   Descriptor: /etc/pki/pki-tomcat/Catalina/localhost/pki.xml
   Document Base: /usr/share/pki/server/webapps/pki
-</pre>
+----
 
 = Deploying Webapp =
 
 To deploy the ROOT webapp:
 
-<pre>
+----
 $ pki-server webapp-deploy \
     --descriptor /etc/pki/pki-tomcat/Catalina/localhost/ROOT.xml \
     ROOT
-</pre>
+----
 
 To deploy the non-ROOT webapp:
 
-<pre>
+----
 $ pki-server webapp-deploy \
     --descriptor /usr/share/pki/server/conf/Catalina/localhost/pki.xml \
     pki
-</pre>
+----
 
 = Undeploying Webapp =
 
-<pre>
+----
 $ pki-server webapp-undeploy pki
-</pre>
-
-= See Also =
-
-* [https://github.com/dogtagpki/pki/wiki/PKI-Server-CLI PKI Server CLI]
+----
