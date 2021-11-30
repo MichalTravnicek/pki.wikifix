@@ -1,22 +1,22 @@
 = Overview =
 
-Each PKI subsystem (i.e. CA, KRA, OCSP, TKS, TKS) provides a CLI to manage the system groups. All commands must be executed as an administrator of the corresponding subsystem. However, [https://www.dogtagpki.org/wiki/Default_CA_Admin the default the CA admin certificate] can be used to authenticate as the administrator of each subsystem.
+Each PKI subsystem (i.e. CA, KRA, OCSP, TKS, TKS) provides a CLI to manage the system groups. All commands must be executed as an administrator of the corresponding subsystem. However, link:https://www.dogtagpki.org/wiki/Default_CA_Admin[the default the CA admin certificate] can be used to authenticate as the administrator of each subsystem.
 
 In general the commands follow the following format:
 
-<pre>
+----
 $ pki <admin authentication> <subsystem>-group-<command>
-</pre>
+----
 
 For example, in the command below the CA admin certificate is used to access TPS groups:
 
-<pre>
+----
 $ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-group-find
-</pre>
+----
 
 = Listing groups =
 
-<pre>
+----
 $ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-group-find
 ------------------
 14 entries matched
@@ -65,50 +65,49 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-group-find
 -----------------------------
 Number of entries returned 14
 -----------------------------
-</pre>
+----
 
 = Displaying Group Details =
 
-<pre>
+----
 $ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-group-show "Certificate Manager Agents"
 ----------------------------------
 Group "Certificate Manager Agents"
 ----------------------------------
   Group ID: Certificate Manager Agents
   Description: Agents for Certificate Manager
-</pre>
+----
 
 = Adding Group =
 
-<pre>
+----
 $ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-group-add testgroup
 -----------------------
 Added group "testgroup"
 -----------------------
   Group ID: testgroup
-</pre>
+----
 
 = Modifying Group =
 
-<pre>
+----
 $ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-group-mod testgroup --description "Test Group"
 --------------------------
 Modified group "testgroup"
 --------------------------
   Group ID: testgroup
   Description: Test Group
-</pre>
+----
 
 = Deleting Group =
 
-<pre>
+----
 $ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-group-del testgroup
 -------------------------
 Deleted group "testgroup"
 -------------------------
-</pre>
+----
 
-= References =
+= See Also =
 
-* [https://github.com/dogtagpki/pki/wiki/PKI-CLI PKI CLI]
-* [[PKI Group Member CLI]]
+* link:PKI-Group-Member-CLI[PKI Group Member CLI]
