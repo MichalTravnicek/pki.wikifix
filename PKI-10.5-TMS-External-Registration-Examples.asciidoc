@@ -1,0 +1,402 @@
+= PKI 10.5 TMS External Registration Examples =
+
+This page shows my developer's example test scenarios that I have used for testing the following ticket:
+https://pagure.io/dogtagpki/issue/2772 TPS incorrectly assigns "tokenOrigin" and "tokenType" certificate attribute for recovered certificates.
+
+**Note that my example test scenarios are mostly dependent on them being executed in the order presented on this page.**
+
+Since the fix touched areas in the External Registration in a way that might affect related operations (for the better, I hope!), I tried to cover as many scenarios as possible to ensure no breakage.
+
+For ease of presenting the test procedures, I have created a new TPS enrollment profile called externalRegISEtoken.  It is very much like the default userKey profile where three certificates are to be generated: Authentication, Signing, and Encryption.  At the time of this writing, it has been checked in and should be in the next build.
+
+**Note:** when I wrote the following examples, I forgot that the keyID (3rd element in the 4-tupple) can be replaced
+with a "0" as by default the key search is now by certificate not by key.  The configuration of the certsToAdd 
+attribute should be more simplified.
+
+== Test Preparation ==
+
+During TPS installation, make sure the following is set in the pkispawn [TPS] section:
+
+----
+pki_enable_server_side_keygen=True
+pki_authdb_basedn=dc=example,dc=com
+----
+
+Once installed, make sure the following in the TPS CS.cfg are set:
+
+----
+externalReg.enable=true
+externalReg.delegation.enable=true
+auths.instance.ldap1.ldapStringAttributes=mail,cn,uid,edipi,pcc,firstname,lastname,exec-edipi,exec-pcc,exec-mail,certsToAdd,tokenCUID,tokenType
+----
+
+I created two users: user1a and user1b, where each user initially has the following attributes in their corresponding ldap record:
+
+=== user1a ===
+
+----
+dn: uid=user1a,ou=People,dc=example,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetorgperson
+objectClass: top
+objectClass: extensibleobject
+cn: user1a
+sn: user1a
+uid: user1a
+givenName: user1a
+mail: user1a@example.org
+firstname: user1a
+edipi: 123456789
+pcc: AA
+exec-edipi: 999999999
+exec-pcc: BB
+exec-mail: user1b@EXAMPLE.com
+tokenType: externalRegISEtoken
+----
+
+=== user1b ===
+
+----
+dn: uid=user1b,ou=People,dc=example,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetorgperson
+objectClass: top
+objectClass: extensibleobject
+cn: user1b
+sn: user1b
+uid: user1b
+givenName: user1b
+mail: user1b@example.com
+firstname: user1b
+edipi: 999999999
+pcc: BB
+tokenType: externalRegISEtoken
+----
+
+Prepare two tokens, one for each user.
+
+== Test Scenario: enroll via externalRegISEtoken ==
+
+This test is simply testing the externalRegISEtoken straight out of the default profile for user1a;
+
+=== Enroll user1a's token ===
+
+* Use ESC to format user1a's token
+* Use ESC to enroll user1a's token
+
+The expected result should be 3 fresh certificates; Check various places):
+
+* Check the smart card: click on "View Certificates" on the ESC;  In my example, I see:
+** cert with serial F9
+** cert with serial FA
+** cert with serial FB (decimal 251) - is an encryption cert, so it should have its key archived.
+* Check TPS admin UI: 
+** Click "tokens", then "Show Certificates";  You should see the matching three certificates;  Now the serial numbers should match those on the token
+* Check DRM to see the archived cert:
+** Find the encryption cert on CA (in my case, it's FB), copy the Base64
+** Go on DRM agent, click "Search for Keys"; select and enter the Base64 cert into the certificate box and click "Show Key"
+** if the key is found, then the archival is successful
+** This extra step is for next test scenario: While you are there, click on "Details" then hover over the "Key" display to see the decimal key id; Mark that down.
+
+== Test scenario: enroll via externalRegISEtoken; add one cert (and its key) ==
+
+This test demonstrates that an externalReg "recovery" can accompany an enrollment via the externalRegISEtoken profile.
+
+=== Setup user1b's ldap entry ===
+
+Perform the following to setup user1b's ldap entry in preparation for the said enrollment and "recovery":
+
+==== create an ldif file (e.g. mod1b.ldif): ====
+
+----
+dn: uid=user1b,ou=People,dc=example,dc=com
+changetype: modify
+add: certsToAdd
+certstoadd: 251,ca1,89,kra1
+----
+
+==== run ldapmodify ====
+
+----
+$ ldapmodify -x -D "cn=Directory Manager" -w yourPassWord -h host.example.com -f mod1b.ldif
+----
+
+==== check user1b entry ====
+
+----
+$ ldapsearch -x -LLL -b "ou=People,dc=example,dc=com" -h host.example.com uid=user1b
+dn: uid=user1b,ou=People,dc=example,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetorgperson
+objectClass: top
+objectClass: extensibleobject
+cn: user1b
+sn: user1b
+uid: user1b
+givenName: user1b
+mail: user1b@example.com
+firstname: user1b
+edipi: 999999999
+pcc: BB
+tokenType: externalRegISEtoken
+certstoadd: 251,ca1,89,kra1
+----
+
+=== Enroll user1b's token ===
+
+* Use ESC to format user1b's token
+* Use ESC to enroll user1b's token
+
+The expected result should be a total of 4 certificates: 3 fresh certificates plus one "recovered" certificate; Check various places):
+
+* Check the smart card: click on "View Certificates" on the ESC;  In my example, I see:
+** cert with serial FC
+** cert with serial FD
+** cert with serial FE
+** cert with serial FB (This is the "recovered" cert)
+* Check TPS admin UI: 
+** Click "tokens", then "Show Certificates";  You should see the four certificates matching what's on the token;  Note: *** the serial numbers should match
+*** the keyTypes should be correct
+*** status should show "active" for all certs
+** Click on the certificate ID of the "recovered" cert (in my case, it's 0xfb):
+*** Note the Origin is different from user1b's tokenID; Check that against user1a's tokenID, it should match, as that's where the cert was originally created for.
+
+== Test scenario: enroll use1b again via externalRegISEtoken; retain one cert (and its key) ==
+
+This test demonstrates that an externalReg "deletion" and "retention" can accompany an enrollment via the externalRegISEtoken profile.
+
+Note the following "certsToAdd" attrbute syntax:
+
+* To retain a cert on the token, make sure ONLY the serial # and CA id is present in the certsToAdd attribute. e.g.
+** certstoadd: 251,ca1
+* If an existing certificate is not listed in certstoadd, then it will be deleted
+
+In this scenario, we are going to re-generate all three certs and retain the cert that was "recovered" from user1a -- ert serial 215 (0xFB).
+
+=== Setup user1b's ldap entry ===
+
+Perform the following to setup user1b's ldap entry in preparation for the said enrollment, "deletion", and "retention":
+
+==== create an ldif file (e.g. mod1b.ldif): ====
+
+----
+dn: uid=user1b,ou=People,dc=example,dc=com
+changetype: modify
+delete: certsToAdd
+certstoadd: 251,ca1,89,kra1
+-
+add: certsToAdd
+certstoadd: 251,ca1
+----
+
+==== run ldapmodify ====
+
+----
+$ ldapmodify -x -D "cn=Directory Manager" -w yourPassWord -h host.example.com -f mod1b.ldif
+----
+
+==== check user1b entry ====
+
+----
+$ ldapsearch -x -LLL -b "ou=People,dc=example,dc=com" -h host.example.com uid=user1b
+dn: uid=user1b,ou=People,dc=example,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetorgperson
+objectClass: top
+objectClass: extensibleobject
+cn: user1b
+sn: user1b
+uid: user1b
+givenName: user1b
+mail: user1b@example.com
+firstname: user1b
+edipi: 999999999
+pcc: BB
+tokenType: externalRegISEtoken
+certstoadd: 251,ca1
+----
+
+=== Enroll user1b's token ===
+
+* DO NOT Format!!!
+* Use ESC to enroll user1b's token
+The expected result should be a total of 4 certificates: 3 fresh certificates plus one "retained" certificate; Check various places):
+* Check the smart card: click on "View Certificates" on the ESC;  In my example, I see:
+** cert with serial 0xFF
+** cert with serial 0x100
+** cert with serial 0x101
+** cert with serial 0xFB (This is the "retained" cert)
+* Also note that the previously enrolled three certificates are no longer on the token (deleted)
+* Check TPS admin UI: 
+** Click "tokens", then "Show Certificates";  You should see the four certificates matching what's on the token;  Note:
+*** the serial numbers should match
+*** the keyTypes should be correct
+*** status should show "active" for all certs
+** Click on the certificate ID of the "retained" cert (in my case, it's 0xfb):
+*** Note the Origin is different from user1b's tokenID; Check that against user1a's tokenID, it should match, as that's where the cert was originally created for.
+
+== Test scenario: Token Termination ==
+
+This test demonstrates how when a token (user1a's token) is terminated, the shared certificate is not revoked until the last token holding the same cert is also terminated.
+
+=== Terminate user1a's token ===
+
+* Go to TPS Admin UI
+* Click on user1a's token
+* Click on "Change Status"
+* Select "this token has been terminated"; "Save"
+* Check the following:
+** Click on "Show Certificates"; Note the status of all certificates of user1a's token
+*** Note how the "shared" certificate (from previous exercises) remains "active" while others are now "revoked"
+** Go back to Tokens and select user1b's token
+** Click on "Show Certificates"; Note the status of all certificates
+*** Note how all the certificates are still "active", including the "shared certificate (in my case, 0xfb)
+** Now check on the CA to be sure the shared certificate is still active
+
+=== terminate user1b's token ===
+
+Now we are going to demonstrate that when the last holder of the "shared certificate" terminates, the shared certificate will be revoked.
+
+* Click on user1b's token
+* Click on "Change Status"
+* Select "this token has been terminated"; "Save"
+* Check the following:
+** Click on "Show Certificates"; Note the status of all certificates of user1b's token
+*** Note how the "shared" certificate is now "revoked"
+** Go back to Tokens and select user1b's token
+** Click on "Show Certificates"; Note the status of all certificates
+*** Note how all the certificates are now "revoked", including the "shared certificate (in my case, 0xfb)
+** Now check on the CA to be sure the all certificates on both tokens are revoked
+
+== Test Scenario: recover, and retain ==
+
+This test demonstrates the scenario that a "recovery" could occur with "retention".
+
+=== Reset the test tokens ===
+
+At the last exercise, we have terminated both tokens.  Let's reset them by first marking the tokens to be "reused", then format them.
+
+==== Reusing a terminated token ====
+
+Note that if you don't do the following, any actions against the terminated token (e.g. format, enroll) would not be allowed.  (Try it!).
+Here is how to "reuse" a terminated token:
+
+* Go to TPS admin UI; click Tokens
+* For each token
+** Select the token, click "Change Status"
+** Select "Reuse this token"; click "Save"
+** Format the token from ESC
+
+=== Enroll user1a's token using externalRegISEtoken again ===
+
+See the matching instruction from above.  You shall have 3 fresh certificates at the end of the enrollment.
+
+Since user1a's ldap entry did not change from later exercises, it can be used as is to enroll via externalRegISEtoken.
+
+=== Enroll user1b's token using externalRegISEtoken ===
+
+Enroll user1b's token using the same instruction.
+
+Since user1b's ldap entry was last modified to do retention, we need to remove that certsToAdd attribute.
+
+First, let me show you what I have now on user1b's entry:
+
+----
+dn: uid=user1b,ou=People,dc=example,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetorgperson
+objectClass: top
+objectClass: extensibleobject
+cn: user1b
+sn: user1b
+uid: user1b
+givenName: user1b
+mail: user1b@example.com
+firstname: user1b
+edipi: 999999999
+pcc: BB
+tokenType: externalRegISEtoken
+certstoadd: 251,ca1
+----
+
+To remove the certstoadd, I crafted the following mod1b.ldif file:
+
+----
+dn: uid=user1b,ou=People,dc=example,dc=com
+changetype: modify
+delete: certsToAdd
+certstoadd: 251,ca1
+----
+
+Run ldapmodify against it, and ldapsearch to display:
+
+----
+dn: uid=user1b,ou=People,dc=example,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetorgperson
+objectClass: top
+objectClass: extensibleobject
+cn: user1b
+sn: user1b
+uid: user1b
+givenName: user1b
+mail: user1b@example.com
+firstname: user1b
+edipi: 999999999
+pcc: BB
+tokenType: externalRegISEtoken
+----
+
+Now just enroll user1b's token from ESC.  You should find 3 fresh certificates.
+In my case, I have the following certs:
+
+* 0x14c
+* 0x14d
+* 0x14e
+
+=== Enroll user1b's token using externalRegAddToToken to demonstrate retention, and recovery in one shot ===
+
+==== Gather information ====
+
+* In this test scenario, I'd like to "recover" user1a's encryption cert onto user1b's
+** the serial number of the cert is 0x107 (decimal 263)
+** the key id of the key on drm is 0x5d (decimal 93)
+* In this test scenario, I'd like to "retain" user1b's Auth and ID certs
+** The serial numbers of these certs are 0x14c (decimal 332) and 0x14d (decimal 333)
+
+==== Update user1b's ldap entry ====
+
+Now we are going to update user1b's ldap entry so that it will retain certs 332 and 333, and "recover" 263.
+
+I am updating user1b's entry to look like the following (I'm leaving that as an exercise for you on how to get there:
+
+----
+tokenType: externalRegAddToToken
+certstoadd: 263,ca1,93,kra1
+certstoadd: 332,ca1
+certstoadd: 323,ca1
+----
+
+=== Enroll user1b's token using externalRegAddToToken ===
+
+Now just enroll user1b's token from ESC.  You should find 3 certificates on the token, two "retained" and one "recovered".
+
+== Test Scenario: retain ==
+
+A follow up test scenario is to just retain a couple certs from last enrollment.  in my case, I'd like to retain 332 and 263, so I changed usre1b's ldap record to contain the following:
+
+----
+tokenType: externalRegAddToToken
+certstoadd: 332,ca1
+certstoadd: 263,ca1
+----
+
+=== Enroll user1b's token using externalRegAddToToken ===
+
+Now ust enroll user1b's token from ESC.  You should find 2 certificates on the token, both are retained from last enrollment, though one of them was "recovered" from previous exercise.
