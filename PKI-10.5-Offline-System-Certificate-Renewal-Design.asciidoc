@@ -1,0 +1,292 @@
+= Overview =
+
+This page describes the procedure to renew system certificates used by PKI server offline.
+
+Depending on the subsystems installed, PKI server uses several system certificates. For example, CA Subsystem has:
+
+* CA signing certificate
+* OCSP signing certificate
+* SSL server certificate
+* Subsystem certificate
+* Audit signing certificate  
+
+In order for the server to operate properly all of these certificates must be valid. Sometimes, system certificates do not get renewed in time which render the server unusable. System certificates are renewed online while the PKI server is running. The CA signing certificate usually has the longest validity range (default is 20 years). The other certificates usually have shorter validity range (e.g. 2 years). To proceed with the offline certificate renewal process, the **CA certificate must be valid**.
+
+= Renewal Process =
+
+**Note:** The offline renewal procedure proposed in this document assumes that the **CA signing certificate is still valid** (since by default it has longer validity range) and you have a valide `caadmin` certificate. In the future this procedure could be enhanced to support offline renewal of the CA signing certificate as well.
+
+== Temporary SSL Certificate ==
+
+Creates a temporary SSL server certificate and import into NSS db and update corresponding CS.cfg so that your server can start normally
+
+----
+$ pki-server cert-create sslserver --temp
+$ pki-server cert-import sslserver 
+----
+
+=== Under the hood : cert-create --temp ===
+
+# Get the CSR of sslserver cert from CS.cfg
+# Create a certificate signed by CA
+
+**Note:** Temporary serial numbers are used for the certificates generated. The serial number for temp certificate can be manually provided using the option `--serial`
+
+After the temporary certificate has been created and imported, you can start your server. 
+
+----
+$ systemctl start pki-tomcatd@pki-tomcat.service
+----
+
+== Permanent System Certificates == 
+
+To create permanent certificates
+
+----
+$ pki-server cert-create <cert ID>
+----
+
+`<cert ID>` takes the value in the form of 
+
+* `<TAG>` = if certificate is instance specific
+* `<SUBSYSTEM>_<TAG>` = if certificate is subsystem specific 
+
+See also link:PKI-Server-Certificate-CLI[PKI Server Certificate CLI].
+
+=== Under the hood : cert-create ===
+
+# Get the serial number of specified `<cert ID>` from NSS db
+# Submit online renewal request
+# Approve the request using admin cert
+# Retrieve the new renewed certificate and store in the specified location
+
+After the permanent certificates are generated, we need to import these certificates into the NSS database. 
+
+Stop the server before proceeding.
+
+----
+$ systemctl stop pki-tomcatd@pki-tomcat.service
+----
+
+Now, you need to replace the old expired certs with the generated permanent certificates in the NSS database and update the corresponding `CS.cfg`. Use the following command
+
+----
+$ pki-server cert-import <cert ID> 
+----
+
+All the permanent system certificates have been imported into the NSS database. Finally, start the server 
+
+----
+$ systemctl start pki-tomcatd@pki-tomcat.service
+----
+
+See also link:PKI-Server-Certificate-CLI[PKI Server Certificate CLI].
+
+= Manual Renewal Process =
+
+== Setting Up Environment ==
+
+=== Stop the PKI server ===
+
+Stop the running PKI server instance to avoid unintended crash of the server.
+
+----
+$ systemctl stop pki-tomcatd@pki-tomcat
+----
+
+=== Disable self tests ===
+
+You need to disable self tests so that the expired system checks are skipped and the server can startup. Remove the following line from `/etc/pki/pki-tomcat/ca/CS.cfg`
+
+----
+selftests.container.order.startup=CAPresence:critical, SystemCertsVerification:critical
+----
+
+== Temp SSL Certificate Creation ==
+
+=== Get the CSR for SSL certificate === 
+
+The original Certificate Signing Request (CSR) for the SSL certificate can be obtained from the following command and is exported to `ssl_server.csr` file
+
+----
+$ pki-server subsystem-cert-export ca sslserver --csr-file ssl_server.csr
+----
+
+=== Extracting Subject Key Identifier ===
+
+We need to extract Subject Key Identifier of CA to create a temporary SSL certificate signed by CA. 
+
+Extract the CA certificate using one of the following commands:
+
+----
+$ pki-server subsystem-cert-export ca signing --cert-file ca_certificate.crt
+----
+
+OR
+
+----
+$ certutil -L -d /var/lib/pki/pki-tomcat/ca/alias/ -n "ca_signing" -a -o ca_certificate.crt
+----
+
+Now, extract the Subject Key Identifier (SKI) from the exported CA certificate:
+
+----
+$ openssl x509 -in ca_certificate.crt -noout -text | grep -A1 "Subject Key Identifier"
+----
+
+=== Generate a temp SSL Certificate signed by CA ===  
+
+The following command generates a CA-signed temp SSL certificate using a RANDOM serial number, the original CSR and the Authority Key Identifier (AKI) of the CA: 
+
+----
+$ echo y\n0x<SKI of CA>\n0\n\n\n2\n7\nhttp://<host>:8080/ca/ocsp\n0\n\n\n<NSS DB Password>\n
+| certutil -C -d /var/lib/pki/pki-tomcat/ca/alias/ \
+-m $RANDOM -a -i ssl_server.csr \
+-o ssl_temp_signed.crt \
+-c "ca_signing" -3 \
+--keyUsage digitalSignature,nonRepudiation,keyEncipherment,dataEncipherment,critical \
+--extKeyUsage serverAuth \
+--extAIA
+----
+
+=== Import temp SSL certificate into NSS DB ===
+
+You need to replace the old expired SSL certificate with the new generated temp SSL certificate to start the server normally. The following command replaces the existing SSL certificate in the NSS db with the specified ssl temp certificate:
+
+----
+$ pki-server subsystem-cert-update ca sslserver --cert ssl_temp_signed.crt
+----
+
+=== Verify ===
+
+Now, the server can be started with the new SSL certificate using the following command:
+
+----
+$ systemctl start pki-tomcatd@pki-tomcat.service
+----
+
+You can verify whether the NSS db has been updated with the new temp SSL certificate using the following command:
+
+----
+$ certutil -L -d /var/lib/pki/pki-tomcat/ca/alias/ -n "sslserver" | egrep "Serial|Before|After"
+----
+
+If everything looks as expected, you must now be able to do SSL related operations.
+
+You can force the CLI to use ssl as follows:
+
+----
+$ pki -U https://<host>:8443 ca-cert-find
+----
+
+Operations that require client cert auth will automatically be redirected to ssl. You can do this:
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c pwd -n caadmin ca-user-find
+----
+
+== Permanent Certificate Creation ==
+
+=== Start the PKI Server ===
+
+The server needs to start up with new SSL certificate for proceeding with renewal. Use the following command:
+
+----
+$ systemctl start pki-tomcatd@pki-tomcat.service
+----
+
+=== Submit Renewal Requests ===
+
+For each expiring system certificate, submit a renewal request using the serial number. Each renewal request will generate a **request ID**. 
+
+----
+$ pki ca-cert-request-submit --profile caManualRenewal --serial 0x2  # OCSP signing
+$ pki ca-cert-request-submit --profile caManualRenewal --serial 0x3  # SSL server
+$ pki ca-cert-request-submit --profile caManualRenewal --serial 0x4  # subsystem
+$ pki ca-cert-request-submit --profile caManualRenewal --serial 0x5  # audit signing
+----
+
+See also link:Renewing-System-Certificates#Submitting_Renewal_Requests[Submitting System Certificate Renewal Request].
+
+=== Approving Renewal Requests ===
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin \
+   ca-cert-request-review 28 --action approve
+-------------------------------
+Approved certificate request 28
+-------------------------------
+ Request ID: 28
+ Type: enrollment
+ Request Status: complete
+ Operation Result: success
+ Certificate ID: 0x1c
+----
+
+See also link:Renewing-System-Certificates#Approving_Renewal_Requests[Approving System Certificate Renewal Requests].
+
+== Retrieving Generated Certs ==
+
+The generated certs need to be downloaded using the new Serial Numbers
+
+----
+$ pki ca-cert-show 0x7 --output ca_ocsp_signing.crt
+$ pki ca-cert-show 0x8 --output sslserver.crt
+$ pki ca-cert-show 0x9 --output subsystem.crt
+$ pki ca-cert-show 0xa --output ca_audit_signing.crt
+----
+
+See also link:Renewing-System-Certificates#Retrieving_Renewed_Certificates[Retrieving Renewed System Certificates]
+
+== Updating System Certificates ==
+
+=== Delete temp SSL certificate ===
+
+The temp SSL cert used must be removed before importing the renewed permanent certificates. Stop the server before you proceed to avoid db corruption.
+
+----
+$ systemctl stop pki-tomcatd@pki-tomcat
+----
+
+Remove temp SSL cert from NSS DB:
+
+----
+$ certutil -D -d /var/lib/pki/pki-tomcat/ca/alias -n sslserver
+----
+
+Remove the temp SSL cert file:
+
+----
+$ rm ssl_temp_signed.crt
+----
+
+=== Replacing Expired System Certificates ===
+
+The new certificates needs to be imported into the NSS database and also update certificates in the `CS.cfg` file. While NSS should be able to handle multiple certificates (both old and new) in the NSS database it is recommended that the old one is removed. To prevent NSS database or `CS.cfg` corruption, shutdown the server before making the changes. 
+
+Replace the existing certificates with the new generated certificates:
+
+----
+$ pki-server subsystem-cert-update ca ocsp_signing --cert ca_ocsp_signing.crt
+$ pki-server subsystem-cert-update ca sslserver --cert sslserver.crt
+$ pki-server subsystem-cert-update ca subsystem --cert subsystem.crt
+$ pki-server subsystem-cert-update ca audit_signing --cert ca_audit_signing.crt
+----
+
+See also link:Renewing-System-Certificates#Updating_System_Certificates[Updating System Certificates].
+
+== Enable self tests ==
+
+Now, enable self test for normal functioning of the server. Add back the following line to `/etc/pki/pki-tomcat/ca/CS.cfg`
+
+----
+selftests.container.order.startup=CAPresence:critical, SystemCertsVerification:critical
+----
+
+== Start the server ==
+
+The server with renewed permanent system certificates can now be started. Start the server.
+
+----
+$ systemctl start pki-tomcatd@pki-tomcat
+----
