@@ -27,8 +27,8 @@ $ pki-server cert-import sslserver
 
 === Under the hood : cert-create --temp ===
 
-# Get the CSR of sslserver cert from CS.cfg
-# Create a certificate signed by CA
+1. Get the CSR of sslserver cert from CS.cfg
+2. Create a certificate signed by CA
 
 **Note:** Temporary serial numbers are used for the certificates generated. The serial number for temp certificate can be manually provided using the option `--serial`
 
@@ -55,10 +55,10 @@ See also link:PKI-Server-Certificate-CLI[PKI Server Certificate CLI].
 
 === Under the hood : cert-create ===
 
-# Get the serial number of specified `<cert ID>` from NSS db
-# Submit online renewal request
-# Approve the request using admin cert
-# Retrieve the new renewed certificate and store in the specified location
+1. Get the serial number of specified `<cert ID>` from NSS db
+2. Submit online renewal request
+3. Approve the request using admin cert
+4. Retrieve the new renewed certificate and store in the specified location
 
 After the permanent certificates are generated, we need to import these certificates into the NSS database. 
 
