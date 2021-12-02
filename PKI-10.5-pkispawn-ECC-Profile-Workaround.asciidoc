@@ -1,0 +1,99 @@
+= Overview =
+
+**Note:** This workaround is no longer needed starting 10.6 due to the fix from link:https://github.com/dogtagpki/pki/issues/3077[Ticket 3077 - Address ECC profile overrides]
+
+= Problem =
+
+Currently, the man page for `pkispawn` has a section entitled **Installing a root CA using ECC**, and the documented values will produce incorrect ECC certificates for the Admin, Server, and and Subsystem certificates because the RSA profiles are used to produce them.
+
+Additionally, in the `/etc/pki/default.cfg` file, the following section exists under the `[CA]` section:
+
+----
+# Paths
+# These are used in the processing of pkispawn and are not supposed
+# to be overwritten by user configuration files.
+#
+pki_source_emails=/usr/share/pki/ca/emails
+pki_source_flatfile_txt=%(pki_source_conf_path)s/flatfile.txt
+pki_source_profiles=/usr/share/pki/ca/profiles
+pki_source_proxy_conf=%(pki_source_conf_path)s/proxy.conf
+pki_source_registry_cfg=%(pki_source_conf_path)s/registry.cfg
+pki_source_admincert_profile=%(pki_source_conf_path)s/adminCert.profile
+pki_source_caauditsigningcert_profile=%(pki_source_conf_path)s/caAuditSigningCert.profile
+pki_source_cacert_profile=%(pki_source_conf_path)s/caCert.profile
+pki_source_caocspcert_profile=%(pki_source_conf_path)s/caOCSPCert.profile
+pki_source_servercert_profile=%(pki_source_conf_path)s/serverCert.profile
+pki_source_subsystemcert_profile=%(pki_source_conf_path)s/subsystemCert.profile
+pki_subsystem_emails_path=%(pki_subsystem_path)s/emails
+pki_subsystem_profiles_path=%(pki_subsystem_path)s/profiles
+----
+
+which states that the following three name=value pairs should not be overwritten by a user configuration file:
+
+----
+pki_source_admincert_profile=%(pki_source_conf_path)s/adminCert.profile
+pki_source_servercert_profile=%(pki_source_conf_path)s/serverCert.profile
+pki_source_subsystemcert_profile=%(pki_source_conf_path)s/subsystemCert.profile
+----
+
+= Workaround =
+
+It turns out that the statement in the `/etc/pki/default.cfg` is not entirely correct, as a work-around exists for this problem by explicitly overriding these three name=value pairs in the user configuration file.
+
+For example, when something like the following is used as a user configuration override file:
+
+----
+[DEFAULT]
+pki_admin_password=<password>
+pki_client_pkcs12_password=<password>
+pki_ds_password=<password>
+
+# Override default RSA Admin parameters with ECC parameters
+pki_admin_key_algorithm=SHA256withEC
+pki_admin_key_size=nistp256
+pki_admin_key_type=ecc
+
+# Override default RSA SSL Server parameters with ECC parameters
+pki_sslserver_key_algorithm=SHA256withEC
+pki_sslserver_key_size=nistp256
+pki_sslserver_key_type=ecc
+
+# Override default RSA Subsystem parameters with ECC parameters
+pki_subsystem_key_algorithm=SHA256withEC
+pki_subsystem_key_size=nistp256
+pki_subsystem_key_type=ecc
+
+[CA]
+# Override default RSA CA Signing parameters with ECC parameters
+pki_ca_signing_key_algorithm=SHA256withEC
+pki_ca_signing_key_size=nistp256
+pki_ca_signing_key_type=ecc
+pki_ca_signing_signing_algorithm=SHA256withEC
+
+# Override default RSA CA OCSP Signing parameters with ECC parameters
+pki_ocsp_signing_key_algorithm=SHA256withEC
+pki_ocsp_signing_key_size=nistp256
+pki_ocsp_signing_key_type=ecc
+pki_ocsp_signing_signing_algorithm=SHA256withEC
+
+# Attempt to override RSA profiles with ECC profiles
+pki_source_admincert_profile=/usr/share/pki/ca/conf/ECadminCert.profile
+pki_source_servercert_profile=/usr/share/pki/ca/conf/ECserverCert.profile
+pki_source_subsystemcert_profile=/usr/share/pki/ca/conf/ECsubsystemCert.profile
+----
+
+which will result in correct ECC certificates for Admin, Server, and Subsystem with the following anomolous behavior:
+
+The PKI ECC system profiles will be re-named to their RSA equivalent names in the PKI instance location:
+
+* `/usr/share/pki/ca/conf/ECadminCert.profile` => `/etc/pki/<instance>/ca/adminCert.profile`
+* `/usr/share/pki/ca/conf/ECserverCert.profile` => `/etc/pki/<instance>/ca/serverCert.profile`
+* `/usr/share/pki/ca/conf/ECsubsystemCert.profile` => `/etc/pki/<instance>/ca/subsystemCert.profile`
+
+Both the overriding names as well as the instance destination names will appear in the log files leading to potential confusion on whether or not the proper ECC profiles were utilized rather than their RSA profile counterparts.
+
+= Solution =
+
+The following ticket has been created to eliminate the need for the workaround:
+
+* link:https://github.com/dogtagpki/pki/issues/3077[Ticket 3077 - Address ECC profile overrides]
