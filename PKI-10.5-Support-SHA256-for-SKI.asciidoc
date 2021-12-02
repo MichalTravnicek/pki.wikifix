@@ -1,0 +1,89 @@
+= Configurable hash algorithm for Subject Key Identifier generation =
+
+== Overview ==
+
+In the current Dogtag system, all certificate profiles that handle the following extension:
+
+----
+SubjectKeyIdentifier Extension Link: https://tools.ietf.org/html/rfc5280#section-4.2.1.2
+----
+
+A portion of creating this extension is the act of hashing a piece of the public key to form an identifier:
+
+----
+   For CA certificates, subject key identifiers SHOULD be derived from
+   the public key or a method that generates unique values.  Two common
+   methods for generating key identifiers from the public key are:
+
+      (1) The keyIdentifier is composed of the 160-bit SHA-1 hash of the
+           value of the BIT STRING subjectPublicKey (excluding the tag,
+           length, and number of unused bits).
+
+      (2) The keyIdentifier is composed of a four-bit type field with
+           the value 0100 followed by the least significant 60 bits of
+           the SHA-1 hash of the value of the BIT STRING
+           subjectPublicKey (excluding the tag, length, and number of
+           unused bits).
+----
+
+Although the spec suggests SHA-1 for performing the hash, there has been interest
+in being able to use stronger hash ALGs for this purpose, such as SHA-256
+
+== Proposed Solution ==
+
+In order to satisfy this requirement, we must put some internal support within Dogtag
+that gives the admin the ability to specify what algorithm to use when this particular
+extension is included within a particular Dogtag Certificate Profile.
+
+We want to make this configurable on a per profile basis for flexibility purposes.
+
+Profiles in Dogtag are edited / created by two methods:
+
+* Using the Dogtag Console application
+* Manually editing specific profile config files
+
+We propose the support this feature using both listed methods.
+
+* Configuration through the console
+** The user will bring up a particular profile such as "caUserCert" for the purpose of adding the SubjectKeyIdentifier extension to the profile.
+** The user when filing out the "defaults" section will notice a simple drop down list that contains the major algorithms such as SHA-1, SHA-256, SHA-384, and SHA-512.
+** The user will select one of the given algorithms and eventually save off the profile.
+** The result of selecting "SHA-256" will cause the "caUserCert.cfg" to have the following config values:
+
+----
+policyset.userCertSet.11.constraint.class_id=noConstraintImpl
+policyset.userCertSet.11.constraint.name=No Constraint
+policyset.userCertSet.11.default.class_id=subjectKeyIdentifierExtDefaultImpl
+policyset.userCertSet.11.default.name=Subject Key Identifier Default
+policyset.userCertSet.11.default.params.messageDigest=SHA-256
+----
+
+* Configuration through the console, final notes
+** Note the final item in the list is messageDigest=SHA-256
+** The system will be able to use this setting even if this entry is entered manually through a text editor
+
+* Further general notes
+** The system will always default to SHA-1, since this is suggested by the RFC and many CAs use SHA-1.
+** Existing profiles that don't have this new setting will simply default to SHA-1.
+** When the code executes to actually use the profile to create this extension, the code will consult the configured algorithm, and proceed to use that algorithm to calculate the has.
+** There should be no need for migration because this is an on demand feature and should only be done if the admin really wants to do so, for a given profile. All existing profiles without this setting will operate in the default fashion. If the admin wishes to change the Alg for a given profile, they will be required to edit that profile either through manual text editing or using the Dogtag console.
+** This fix will be put together through a combination of a CS 8.x patch provided by msauton, and some new cod written by cfu that allows one to specify the hash alg when generating the key ID hash.
+** There is another extension we support called AuthorityKeyIdentifier, which contains a SKI when generated.
+*** There are two ways it calculates the SKI. 1) It checks for a property called localKey and generates a new SKI, which does not adhere to this feature, or 2) It simply takes the SKI from the key, which we have possibly calculated with this feature. Since none of the out of the box profiles use "localKey", this code is safe to use. Any standard customer is likely to get the full SHA-256 SKI for the AuthorityKeyIdentifier extension. We could file a future ticket to clean up this possible corner case. Also, it's possible that the profile that generates the original CA signing cert will have to be modified to do a SHA-256 hash as well.
+
+== How do we know when it's working? ==
+
+The following is what one would see in the pretty print of a cert where the Subject Key Identifier Extension calls for a SHA-256 hash:
+
+----
+Identifier: Subject Key Identifier - 2.5.29.14
+                    Critical: no 
+                    Key Identifier: 
+                        DD:A4:7E:45:EC:D7:18:50:9B:B0:C2:A9:D9:53:80:87:
+                        B7:04:CE:B9:67:2A:20:CB:47:51:C4:15:64:5E:D0:2D
+----
+
+Note the length is 32 bytes, which is what a SHA-256 hash generates.
+
+The standard SHA-1 hash will generate one of 20 bytes.
+The hash sizes of the other supported algs can be compared as well to the actual output.
