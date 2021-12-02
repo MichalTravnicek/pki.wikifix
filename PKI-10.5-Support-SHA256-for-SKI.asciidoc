@@ -1,6 +1,4 @@
-= Configurable hash algorithm for Subject Key Identifier generation =
-
-== Overview ==
+= Overview =
 
 In the current Dogtag system, all certificate profiles that handle the following extension:
 
@@ -29,7 +27,7 @@ A portion of creating this extension is the act of hashing a piece of the public
 Although the spec suggests SHA-1 for performing the hash, there has been interest
 in being able to use stronger hash ALGs for this purpose, such as SHA-256
 
-== Proposed Solution ==
+= Proposed Solution =
 
 In order to satisfy this requirement, we must put some internal support within Dogtag
 that gives the admin the ability to specify what algorithm to use when this particular
@@ -71,7 +69,7 @@ policyset.userCertSet.11.default.params.messageDigest=SHA-256
 ** There is another extension we support called AuthorityKeyIdentifier, which contains a SKI when generated.
 *** There are two ways it calculates the SKI. 1) It checks for a property called localKey and generates a new SKI, which does not adhere to this feature, or 2) It simply takes the SKI from the key, which we have possibly calculated with this feature. Since none of the out of the box profiles use "localKey", this code is safe to use. Any standard customer is likely to get the full SHA-256 SKI for the AuthorityKeyIdentifier extension. We could file a future ticket to clean up this possible corner case. Also, it's possible that the profile that generates the original CA signing cert will have to be modified to do a SHA-256 hash as well.
 
-== How do we know when it's working? ==
+= How do we know when it's working? =
 
 The following is what one would see in the pretty print of a cert where the Subject Key Identifier Extension calls for a SHA-256 hash:
 
