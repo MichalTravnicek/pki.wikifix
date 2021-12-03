@@ -44,7 +44,7 @@ where
 
 For more information see the parameter descriptions in the DS configuration file itself (i.e. `ds.inf`) and in link:https://directory.fedoraproject.org/docs/389ds/design/dsadm-dsconf.html[DS documentation].
 
-To create the instance:
+Finally, create the instance:
 
 ----
 $ dscreate from-file ds.inf
@@ -52,20 +52,14 @@ $ dscreate from-file ds.inf
 
 = Creating PKI LDAP Tree =
 
-When the DS instance is created, it does not automatically create the root entry (e.g. `dc=example,dc=com`).
-
-To create the root entry:
+Initially the DS instance is empty. To add a root entry and PKI base entry:
 
 ----
 $ ldapadd -h $HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: dc=example,dc=com
 objectClass: domain
 dc: example
-----
 
-To create PKI base entry:
-
-----
 dn: dc=pki,dc=example,dc=com
 objectClass: domain
 dc: pki
