@@ -1,0 +1,21 @@
+= Token Lifecycle =
+
+For completeness, the following transitions should be added into the default token state transitions defined in link:https://github.com/dogtagpki/pki/blob/master/base/tps/shared/conf/CS.cfg#L2451[TPS CS.cfg] and link:https://github.com/dogtagpki/pki/blob/master/base/tps/shared/conf/token-states.properties[token-states.properties]:
+
+----
+DAMAGED.PERM_LOST        = This token has been permanently lost.
+
+SUSPENDED.DAMAGED        = This suspended (temporarily lost) has been physically damaged.
+
+TERMINATED.DAMAGED       = This token has been physically damaged.
+TERMINATED.PERM_LOST     = This token has been permanently lost.
+
+UNFORMATTED.DAMAGED      = This token has been physically damaged.
+UNFORMATTED.PERM_LOST    = This token has been permanently lost.
+----
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/TPS_Token_Lifecycle[TPS Token Lifecycle]
+* link:https://bugzilla.redhat.com/show_bug.cgi?id=1470407[Bug 1470407 - Moving token to "unformatted" token becomes unable to be formatted again]
+* link:https://pagure.io/dogtagpki/issue/3042[Ticket #3042 - Additional TPS token state transitions]
