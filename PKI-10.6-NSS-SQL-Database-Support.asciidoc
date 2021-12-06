@@ -1,0 +1,24 @@
+= Overview =
+
+In Fedora 28 PKI will use NSS SQL database instead of DBM database. Existing instances will be upgraded automatically when the server is restarted.
+
+DBM database consists of the following files:
+
+* `cert8.db`
+* `key3.db`
+* `secmod.db`
+
+SQL database consists of the following files:
+
+* `cert9.db`
+* `key4.db`
+* `pkcs11.txt`
+
+= Creating SQL Database =
+
+ $ certutil -L -d sql:<directory>
+
+= See Also =
+
+* link:https://fedoraproject.org/wiki/Changes/NSSDefaultFileFormatSql[Changes/NSSDefaultFileFormatSql]
+* link:https://github.com/dogtagpki/pki/issues/739[Ticket #739: Update Dogtag 10 to utilize the shared NSS database model]
