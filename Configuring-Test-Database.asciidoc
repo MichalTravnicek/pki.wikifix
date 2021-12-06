@@ -1,0 +1,36 @@
+= Overview =
+
+By default the CI will perform the tests using locally installed DS service. Sometimes it's necessary to perform the tests using a different database configuration (e.g. DS container). This can be done by creating a GitHub secret called `BASE64_DB_CONFIG` to store the base64-encoded value of the test database configuration. To reset the test database configuration simply remove the secret.
+
+= Configuring Test Database =
+
+For example, to test using DS container:
+
+----
+{
+    "type": "container"
+}
+----
+
+Convert the value into a single line, escape the double quotes, then base64-encode the value:
+
+----
+$ echo "{\"type\": \"container\"}" | base64
+eyJ0eXBlIjoiY29udGFpbmVyIn0K
+----
+
+Then create the secret:
+
+* Go to *Settings* -> *Secrets*.
+* Click *New repository secret*.
+* Enter `BASE64_DB_CONFIG` as the secret name.
+* Enter the base64-encoded value as the secret value.
+* Click *Add secret*
+
+= Resetting Test Repository =
+
+To reset the test repository, remove the secret:
+
+* Go to *Settings* -> *Secrets*.
+* Click *Remove* next to `BASE64_DB_CONFIG`.
+* Click *Yes, remove this secret*.
