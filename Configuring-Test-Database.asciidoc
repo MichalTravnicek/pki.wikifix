@@ -7,16 +7,12 @@ By default the CI will perform the tests using a DS server installed from RPM pa
 For example, to test using DS container:
 
 ----
+$ base64 << EOF
 {
-    "type": "container"
+    "image": "quay.io/389ds/dirsrv"
 }
-----
-
-Convert the value into a single line, escape the double quotes, then base64-encode the value:
-
-----
-$ echo "{\"type\": \"container\"}" | base64
-eyJ0eXBlIjogImNvbnRhaW5lciJ9Cg==
+EOF
+ewogICAgImltYWdlIjogInF1YXkuaW8vMzg5ZHMvZGlyc3J2Igp9Cg==
 ----
 
 Then create the secret:
