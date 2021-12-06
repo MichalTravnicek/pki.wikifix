@@ -1,0 +1,53 @@
+= Overview =
+
+In PKI 10.6 the internal logging framework has been replaced with link:https://tomcat.apache.org/tomcat-8.5-doc/logging.html[Tomcat's JULI] which is based on link:https://docs.oracle.com/javase/8/docs/api/java/util/logging/package-summary.html[java.util.logging].
+
+For backward compatibility, the code using the internal logging framework should continue to work. The logging configuration in the `CS.cfg` should continue to work as well.
+
+For code portability, new logging code should be written using SLF4J API, and existing logging code should incrementally be converted to SLF4J API.
+
+= Logging Configuration =
+
+PKI server will use separate logging configuration for each subsystem:
+
+* Global link:https://github.com/dogtagpki/pki/blob/master/base/server/share/conf/logging.properties[logging.properties]
+* CA link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/webapps/ca/WEB-INF/classes/logging.properties[logging.properties]
+* KRA link:https://github.com/dogtagpki/pki/blob/master/base/kra/shared/webapps/kra/WEB-INF/classes/logging.properties[logging.properties]
+* OCSP link:https://github.com/dogtagpki/pki/blob/master/base/ocsp/shared/webapps/ocsp/WEB-INF/classes/logging.properties[logging.properties]
+* TKS link:https://github.com/dogtagpki/pki/blob/master/base/tks/shared/webapps/tks/WEB-INF/classes/logging.properties[logging.properties]
+* TPS link:https://github.com/dogtagpki/pki/blob/master/base/tps/shared/webapps/tps/WEB-INF/classes/logging.properties[logging.properties]
+
+This will be documented in link:https://www.dogtagpki.org/wiki/PKI_10.6_Server_Logging[PKI 10.6 Server Logging].
+
+= Logging API =
+
+The logging framework can be used as follows:
+
+----
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.netscape.certsrv.apps.CMS;
+
+public class MyProgram {
+
+    final static Logger logger = LoggerFactory.getLogger(MyProgram.class);
+
+    public static void main(String[] args) {
+
+        // using SLF4J API
+        logger.info("Log message");
+
+        // using PKI logging API
+        CMS.debug("Log message");
+    }
+}
+----
+
+See also link:https://www.slf4j.org[SLF4J].
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/Logging_Frameworks[Logging Frameworks]
+* link:https://pagure.io/dogtagpki/issue/195[Ticket #195 - Outdated logging service]
+* link:https://pagure.io/dogtagpki/issue/814[Ticket #814 - Provide log rotation for PKI debug logs]
