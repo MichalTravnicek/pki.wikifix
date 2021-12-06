@@ -1,0 +1,73 @@
+= Status =
+
+**FINISHED** Dogtag 10.6 on Fedora 28 will use Python 3 by default
+
+= Motivation =
+
+The change is motivation by link:https://fedoraproject.org/wiki/FinalizingFedoraSwitchtoPython3[Fedora's Switch to Python 3] and link:https://fedoraproject.org/wiki/Packaging:Python[Fedora's packaging guidelines for Python]. Fedora is slowly deprecating Python 2 support in favor of Python 3. FreeIPA is also turning a Python 3-only package. For 4.7-dev, all Python 2 dependencies have been removed -- except for Dogtag. Only Dogtag pulls in Python 2.7 for pkispawn, pkidestroy, upgrade script and pki client command.
+
+= Python dependency =
+
+* `pki-base`
+** provides `/usr/sbin/pki-upgrade` and `/etc/pki/pki.conf`
+* `pki-base-python2` (virtual package in Dogtag 10.5)
+** provides `pki` client package for Python 2
+* `pki-base-python3`
+** provides `pki` client package for Python 3
+* `pki-server`
+** provides `/usr/sbin/pkispawn`, `/usr/sbin/pkidestroy` and `pki.server` package (currently Python 2)
+
+== Fedora 27 ==
+
+For Fedora 27 and Dogtag 10.5, it **should** be possible to build Dogtag packages with Python 3 as default for all commands. At the moment, pki-base-10.5.1 depends on Python 2.7. This would help freeIPA to test Python 3-only supporting with a custom build of Dogtag 10.5.
+
+Although Python 3 support has seen some testing already, it might be too risky to change the default packages in Fedora 27 to Python 3.
+
+== Fedora 28 ==
+
+Starting with Fedora 28, freeIPA **must** not depend on Python 2 at all. This means `pki-base` and all Dogtag commands like `pkispawn` must use Python 3. The Python 2 client package `pki`, provided by package name `pki-base-python2`, must still be available for legacy support.
+
+* `pki-base`
+** changed to Python 3 / `pki-base-python3`
+* `pki-base-python2`
+** optional
+* `pki-server`
+** changed to Python 3
+
+== Fedora 29+ ==
+
+For Fedora 29 and later, it should be possible to build Dogtag without Python 2 in build root. The cmake build system and RPM spec file should no longer assume that `python` or `python2` commands are available.
+
+The `pki-base-python2` package should still be available and packaged for Fedora 29 when the build root contains Python 2.
+
+= Packaging guideline violations =
+
+Dogtag's Python package names violate the Fedora packaging guidelines. During the RPM spec file update, we should also update the package names.
+
+* `pki-base-python2` -> `python2-pki`
+** rename Package to `python2-pki` that provides a virtual package `pki-base-python2`
+** requires: `pki-base`
+* `pki-base-python3` -> `python3-pki`
+** rename Package to `python3-pki` that provides a virtual package `pki-base-python3`
+** requires: `pki-base`
+* `pki-base`
+** contains only scripts and configs
+** requires either `python2-pki` or `python3-pki` depending on `WITH_PYTHON3_DEFAULT`
+
+We should also look into using macros like `%{?python_provide:%python_provide python3-%{srcname}}`
+
+= Patches =
+
+* https://review.gerrithub.io/399238
+** Replaces hard-coded `python` with dynamic cmake variable `@PYTHON_EXECUTABLE@` in scripts `pkispawn`, `pkidestroy`, `pki-server-upgrade`, `pki`, and `pki-upgrade`
+** Commit in master: https://github.com/dogtagpki/pki/commit/56a9bbb25d445470085311e762ce377b506fee4c
+* https://review.gerrithub.io/399223
+** Add flags `WITH_PYTHON2`, `WITH_PYTHON3`, and `WITH_PYTHON3_DEFAULT`. The last flags switches all commands and pki.server to Python 3.
+** Commit in master: https://github.com/dogtagpki/pki/commit/b3af944fee9c38648643fdfc5f8c746dfad2dadf
+* https://review.gerrithub.io/399571
+** [PoC] Add Python 3 default to pki-core.spec
+** Commit in master: https://github.com/dogtagpki/pki/commit/a73eb66d119fa239f675752daccadb56a7c09891
+
+= See Also =
+
+* link:https://github.com/dogtagpki/pki/issues/2039[Ticket #2039 - Port Dogtag to Python 3]
