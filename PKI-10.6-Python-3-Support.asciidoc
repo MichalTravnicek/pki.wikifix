@@ -19,7 +19,7 @@ The change is motivation by link:https://fedoraproject.org/wiki/FinalizingFedora
 
 == Fedora 27 ==
 
-For Fedora 27 and Dogtag 10.5, it **should** be possible to build Dogtag packages with Python 3 as default for all commands. At the moment, pki-base-10.5.1 depends on Python 2.7. This would help freeIPA to test Python 3-only supporting with a custom build of Dogtag 10.5.
+For Fedora 27 and Dogtag 10.5, it **should** be possible to build Dogtag packages with Python 3 as default for all commands. At the moment, `pki-base-10.5.1` depends on Python 2.7. This would help freeIPA to test Python 3-only supporting with a custom build of Dogtag 10.5.
 
 Although Python 3 support has seen some testing already, it might be too risky to change the default packages in Fedora 27 to Python 3.
 
@@ -65,7 +65,7 @@ We should also look into using macros like `%{?python_provide:%python_provide py
 ** Add flags `WITH_PYTHON2`, `WITH_PYTHON3`, and `WITH_PYTHON3_DEFAULT`. The last flags switches all commands and pki.server to Python 3.
 ** Commit in master: https://github.com/dogtagpki/pki/commit/b3af944fee9c38648643fdfc5f8c746dfad2dadf
 * https://review.gerrithub.io/399571
-** [PoC] Add Python 3 default to pki-core.spec
+** [PoC] Add Python 3 default to `pki-core.spec`
 ** Commit in master: https://github.com/dogtagpki/pki/commit/a73eb66d119fa239f675752daccadb56a7c09891
 
 = See Also =
