@@ -1,0 +1,109 @@
+= Overview =
+
+In version 10.5 PKI relies on JSS to handle HTTPS connection. The problem is, the current JSS only works with blocking I/O (BIO) connector which is only available until Tomcat 8.0. In Tomcat 8.5 the BIO connector is no longer available, so it is necessary to switch to the non-blocking I/O (NIO) connector, which is available in Tomcat 8.0 and 8.5.
+
+There are two ways to support NIO connector:
+
+* switch to JSSE NIO connector
+* implement JSS NIO connector
+
+= Switching to JSSE NIO Connector =
+
+Tomcat provides a built-in JSSE NIO connector that can be used by PKI server, but it has some limitations. Due to its relative simplicity, this will be used as an initial solution for PKI 10.6.
+
+== Configuration ==
+
+To use JSSE NIO connector, the SSL connector element in server.xml needs to configured as follows:
+
+----
+<Connector name="Secure"
+       port="8443"
+       protocol="org.dogtagpki.tomcat.Http11NioProtocol"
+       SSLEnabled="true"
+       sslProtocol="SSL"
+       ...
+       keystoreType="pkcs12"
+       keystoreFile="/etc/pki/pki-tomcat/keystore.p12"
+       keystorePassFile="/etc/pki/pki-tomcat/keystore.pwd"
+       keyAlias="sslserver"
+       trustManagerClassName="org.dogtagpki.tomcat.PKITrustManager"
+       />
+----
+
+The `protocol="org.apache.coyote.http11.Http11Protocol"` should be replaced with `protocol="org.dogtagpki.tomcat.Http11NioProtocol"`
+
+The `sslImplementationName="org.apache.tomcat.util.net.jss.JSSImplementation"` should no longer be specified, so the connector will use JSSE instead of JSS.
+
+Since this element still contains JSS configuration attributes (e.g. `ocspResponderURL`, `sslRangeCiphers`, `certdbDir`), the connector will use link:https://github.com/dogtagpki/tomcatjss/blob/master/tomcat-8.0/src/org/dogtagpki/tomcat/Http11Protocol.java[org.dogtagpki.tomcat.Http11NioProtocol] to pass these attributes to JSS.
+
+Since the connector does not support JSS, the SSL server certificate and key needs to be provided to the connector via a PKCS #12 keystore instead of NSS database.
+
+To validate SSL client certificates, the connector will use link:https://github.com/dogtagpki/pki/blob/master/base/server/tomcat/src/org/dogtagpki/tomcat/PKITrustManager.java[org.dogtagpki.tomcat.PKITrustManager] to validate the client certificate against the CA certificates in the NSS database.
+
+This configuration change will be done automatically by the `pki-server migrate` tool when the server is restarted.
+
+== New Installation ==
+
+For normal installation, the SSL server certificate and key will be automatically exported into a PKCS #12 keystore on each server startup. There are no additional steps required.
+
+For installation with HSM, if the HSM supports key export, the SSL server certificate and key will be automatically exported into PKCS #12 keystore as well. However, if the HSM does not support key export, the SSL server certificate and key must be created in the internal token so it can be exported into PKCS #12 keystore. pkispawn will need to support installation with certificates stored in different tokens. This can be done by specifying the following pkispawn parameter:
+
+----
+pki_sslserver_token=internal
+----
+
+== Enabling Nuxwdog ==
+
+If Nuxwdog is enabled on the server, the server will no longer have the NSS database password to export the SSL server certificate and key. So, the admin will need to exported it manually before starting the server with the following commands:
+
+* Create a password file for PKCS #12 keystore
+
+----
+$ pki password-generate > "/etc/pki/pki-tomcat/keystore.pwd"
+$ chown pkiuser.pkiuser "/etc/pki/pki-tomcat/keystore.pwd"
+$ chmod 0660 "/etc/pki/pki-tomcat/keystore.pwd"
+----
+
+* Export SSL server certificate and key into PKCS #12 keystore
+
+----
+$ pki-server cert-export \
+    sslserver \
+    --instance "pki-tomcat" \
+    --pkcs12-file "/etc/pki/pki-tomcat/keystore.p12" \
+    --pkcs12-password-file "/etc/pki/pki-tomcat/keystore.pwd" \
+    --friendly-name "sslserver" \
+    --cert-encryption "PBE/SHA1/RC2-40" \
+    --key-encryption "PBE/SHA1/DES3/CBC"
+$ chown pkiuser.pkiuser "/etc/pki/pki-tomcat/keystore.p12"
+$ chmod 0660 "/etc/pki/pki-tomcat/keystore.p12"
+----
+
+This will only need to be done once, unless the certificate is renewed or rekeyed in the NSS database.
+
+== Upgrading Existing Server ==
+
+The upgrade procedure is documented in link:https://www.dogtagpki.org/wiki/Upgrading_PKI_10.5_to_PKI_10.6[this page].
+
+= HSM Support =
+
+== Providing PKCS #11 Key Store ==
+
+JSS may be able to provide a PKCS #11 keystore for the NIO connector. See also link:https://www.dogtagpki.org/wiki/JSS_KeyStore[JSS KeyStore].
+
+== Implementing JSS NIO Connector ==
+
+In order to work with NIO connector, TomcatJSS/JSS needs to implement the following classes:
+
+* link:https://tomcat.apache.org/tomcat-8.5-doc/api/org/apache/tomcat/util/net/SSLImplementation.html[org.apache.tomcat.util.net.SSLImplementation]
+* link:https://tomcat.apache.org/tomcat-8.5-doc/api/org/apache/tomcat/util/net/SSLSupport.html[org.apache.tomcat.util.net.SSLSupport]
+* link:https://tomcat.apache.org/tomcat-8.5-doc/api/org/apache/tomcat/util/net/SSLUtil.html[org.apache.tomcat.util.net.SSLUtil]
+* link:https://tomcat.apache.org/tomcat-8.5-doc/api/org/apache/tomcat/util/net/SSLContext.html[org.apache.tomcat.util.net.SSLContext]
+* link:https://docs.oracle.com/javase/8/docs/api/javax/net/ssl/SSLEngine.html[javax.net.ssl.SSLEngine]
+
+Due to its complexity, this will be implemented in a later stage of PKI 10.6.
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/PKI_10.6_Tomcat_8.5_Support[PKI 10.6 Tomcat 8.5 Support]
+* link:https://pagure.io/dogtagpki/issue/203[Ticket #203: Support for NIO connector]
