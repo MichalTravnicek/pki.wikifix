@@ -6,18 +6,18 @@ By default the CI will perform tests using latest Fedora version. Sometimes it's
 
 For example, to test against Fedora 34 and 35, prepare the test matrix as follows:
 
-```
+----
 {
     "os": ["34", "35"]
 }
-```
+----
 
 Convert the value into a single line, escape the double quotes, then base64-encode the value:
 
-```
+----
 $ echo "{\"os\": [\"34\", \"35\"]}" | base64
 eyJvcyI6IFsiMzQiLCAiMzUiXX0K
-```
+----
 
 Then create the secret:
 
