@@ -1,0 +1,11 @@
+= ACME Server Cert Profile =
+
+A new ACME Server Cert profile will be added into the CA at `/var/lib/pki/pki-tomcat/ca/profiles/ca/acmeServerCert.cfg`.
+
+The `/etc/pki/pki-tomcat/ca/CS.cfg` will be updated as follows:
+
+----
+profile.list=...,acmeServerCert
+profile.acmeServerCert.class_id=caEnrollImpl
+profile.acmeServerCert.config=/var/lib/pki/pki-tomcat/ca/profiles/ca/acmeServerCert.cfg
+----
