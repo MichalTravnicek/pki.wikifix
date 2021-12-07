@@ -1,0 +1,56 @@
+= Changes in DomainInfo =
+
+* The `systems` has been replaced with `subsystems`.
+
+= Changes in PKIConnection =
+
+Previously the `PKIConnection` object had to be created for a specific subsystem, limiting its use to that subsystem only.
+Also, the `get()`, `post()`, `put()`, `delete()` had to be used with relative paths except when `use_root_uri=True`.
+
+For example:
+
+----
+ca_connection = PKIConnection(hostname='localhost', port='8080', subsystem='ca')
+kra_connection = PKIConnection(hostname='localhost', port='8080', subsystem='kra')
+
+ca_login_client = AccountClient(ca_connection)
+kra_login_client = AccountClient(kra_connection)
+
+cert_client = CertClient(ca_connection)
+key_client = KeyClient(kra_connection)
+
+info = ca_connection.get('/pki/rest/info', use_root_uri=True)
+certs = ca_connection.get('/rest/certs')
+keys = kra_connection.get('/rest/agent/keys')
+----
+
+Since PKI 10.8 the `PKIConnection` object no longer needs to be created for a specific subsystem,
+allowing a single connection to be used with multiple subsystems.
+Instead, the subsystem should be specified when creating client objects.
+Some client objects only work with specific subsystems only so the subsystem does not need to be specified.
+The `get()`, `post()`, `put()`, `delete()` should be used with absolute paths in all cases.
+
+For example:
+
+----
+connection = PKIConnection(hostname='localhost', port='8080')
+
+ca_login_client = AccountClient(connection, subsystem='ca')
+kra_login_client = AccountClient(connection, subsystem='kra')
+
+cert_client = CertClient(connection)  # only works with CA
+key_client = KeyClient(connection)    # only works with KRA
+
+info = connection.get('/pki/rest/info')
+certs = connection.get('/ca/rest/certs')
+keys = connection.get('/kra/rest/agent/keys')
+----
+
+Existing code should continue to work, but the following parameters have been deprecated and may be removed in the future:
+
+* `subsystem` in `PKIConnection.__init__()`
+* `use_root_uri` in `PKIConnection.get()`, `post()`, `put()`, and `delete()`
+
+= Changes in SecurityDomainClient =
+
+* The `get_security_domain_info()` has been replaced with `get_domain_info()`.
