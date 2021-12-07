@@ -1,0 +1,209 @@
+= General PKI CLI Changes =
+
+== New Info Command ==
+
+PKI 10.8 provides a new command to show information about the server:
+
+----
+$ pki info
+  Server: https://localhost.localdomain:8443
+  Version: 10.8.0
+----
+
+== New Default Protocol and Port ==
+
+Previously the PKI CLI communicated with PKI server using HTTP over port 8080 by default.
+In version 10.8 PKI CLI will use HTTPS over port 8443 by default.
+
+As before, the user can override the connection protocol and port using the `-P <protocol>` and `-p <port>` options, respectively,
+or specify the server URL using the `-U <URL>` option.
+
+== New Handling of Untrusted Certificate Issuer ==
+
+Previously if the PKI CLI received an SSL server certificate issued by an untrusted CA it would ask the user whether to trust the CA certificate.
+In version 10.8 PKI CLI will ask the user whether to trust the SSL server certificate itself.
+
+If the user chooses not to trust the certificate, the operation will fail:
+
+----
+$ pki ca-cert-find
+WARNING: UNTRUSTED ISSUER encountered on 'CN=server.example.com' indicates a non-trusted CA cert 'CN=CA Signing Certificate,O=EXAMPLE'
+Trust this certificate (y/N)?
+IOException: SocketException cannot write on socket
+----
+
+If the user chooses to trust the certificate, the certificate will be imported into the client's NSS database (default is `~/.dogtag/nssdb`) and be assigned a `P,,` trust flags:
+
+----
+$ pki ca-cert-find
+WARNING: UNTRUSTED ISSUER encountered on 'CN=server.example.com' indicates a non-trusted CA cert 'CN=CA Signing Certificate,O=EXAMPLE'
+Trust this certificate (y/N)? y
+...
+
+$ certutil -L -d ~/.dogtag/nssdb
+
+Certificate Nickname                                         Trust Attributes
+                                                             SSL,S/MIME,JAR/XPI
+
+CN=server.example.com                                        P,,
+----
+
+Once the certificate is trusted, the CLI will no longer generate the above warning if it receives the same certificate again.
+
+= PKI CA CLI Changes =
+
+== New Certificate Request Review Process ==
+
+Previously, to review a certificate request using PKI CLI the CA agent needed to use one of the two processes below:
+
+* The agent could execute `pki cert-request-review <request ID> --file <filename>` command which would retrieve the certificate request and store it into a file. Then the CLI will wait for the agent to review and possibly update the request in the file, and also wait for the agent to specify an action to be taken against the request. While waiting, the CLI maintained an open connection to the server, so the review had to be completed before the connection timed out.
+* Alternatively, the agent could execute `pki cert-request-review <request ID> --action <action>` command which would retrieve the certificate request, then perform an action against the request directly without a chance to review or update the request.
+
+To improve the usability, PKI 10.8 will use a two-step process. Initially, the agent can execute the following command to retrieve the certificate request and store it into a file:
+
+----
+$ pki ca-cert-request-review <request ID> --output-file <filename>
+----
+
+Here the CLI will terminate immediately. Then the agent can review the request and possibly update the request in the file. There is no time limitation.
+
+Finally, the agent can execute the following command to take an action against the request:
+
+----
+$ pki ca-cert-request-<action> <request ID> --input-file <filename>.
+----
+Notes:
+
+* The old and new review processes utilize nonces to protect against Cross-Site Request Forgery (CSRF).
+* The old process is still available but it will generate a deprecation warning.
+
+== New CA Signing Certificate Commands ==
+
+New commands have been added to simplify accessing the CA signing certificate.
+
+To show the CA signing certificate information, execute the following command:
+
+----
+$ pki ca-cert-signing-show
+  Serial Number: 0x1
+  Subject DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Not Valid Before: Thu Oct 10 10:42:40 CDT 2019
+  Not Valid After: Mon Oct 10 10:42:40 CDT 2039
+----
+
+To export the CA signing certificate, execute the following command:
+
+----
+$ pki ca-cert-signing-export
+-----BEGIN CERTIFICATE-----
+MIIDtzCCAp+gAwIBAgIBATANBgkqhkiG9w0BAQsFADBIMRAwDgYDVQQKDAdFWEFN
+UExFMRMwEQYDVQQLDApwa2ktdG9tY2F0MR8wHQYDVQQDDBZDQSBTaWduaW5nIENl
+cnRpZmljYXRlMB4XDTE5MTAxMDE1NDI0MFoXDTM5MTAxMDE1NDI0MFowSDEQMA4G
+A1UECgwHRVhBTVBMRTETMBEGA1UECwwKcGtpLXRvbWNhdDEfMB0GA1UEAwwWQ0Eg
+U2lnbmluZyBDZXJ0aWZpY2F0ZTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoC
+ggEBAM5p3iIkVurM9wbTkZDaDq6PZOiBVHRezymU01RJQ/x+lsEAsAaBGwIAbpuZ
+lappG0Gs2EsFeJ4OhC33olyGxs0MxaIchRROt0T5RRDbO5RUAX0VyJNIYsPf6z8o
+brgGn4czV0oVNXar9ptMIRWEHiqqjUQ6upUKF23yZpsYk2oMziiauq/xFhX4+bCV
+ML19/tbVBztNnNmKDODYgclgym1Icdfe31Yr+ZhjfC/YwYJfrDeWhjSgVpbjt1VD
+TMbPNZOmdLI62GGovhh8FLO4I0HLCAM3tIB3ad8aCUwn/bSHtl6+00xMfOCnh4Kp
+Xsayj4XXhl/5c0C25N6d32VNi9sCAwEAAaOBqzCBqDAfBgNVHSMEGDAWgBQNSbtd
+Jj8oeyXV4HrDKqxBCMrlhDAPBgNVHRMBAf8EBTADAQH/MA4GA1UdDwEB/wQEAwIB
+xjAdBgNVHQ4EFgQUDUm7XSY/KHsl1eB6wyqsQQjK5YQwRQYIKwYBBQUHAQEEOTA3
+MDUGCCsGAQUFBzABhilodHRwOi8vbG9jYWxob3N0LmxvY2FsZG9tYWluOjgwODAv
+Y2Evb2NzcDANBgkqhkiG9w0BAQsFAAOCAQEALmu47gf3QdTDC+z0smHDUllsJBoe
+02h5PH8bPZMTLK/aqePp83nG6rpQ9ci9eMMtQJNgZR18W5PxgJSG4ehK6FvqMKR+
+UgARpXKRcU2Mvw1RJQ8ytu6nATOhVCIb0emmTO8Ys9D0rEsk/8vm8lcBSeX/V4GE
+xvyQrBure5IP15YypEY8o2zhBZsIaQvMBOjygdZug6VQnN524IjQDUeK0sFRERJX
+m4sna685Xrd9c63Dg8JOPbXHd984dbk9M6LtaYfseY7Ic6O3qGznVoEGBN9+hULa
+26YSLOms+7S8nddw3/dAFfCmCEL/fO0DxV7bpZNLpcKOSf/8NlmRpaSaTQ==
+-----END CERTIFICATE-----
+----
+
+== New CA Transport Certificate Commands ==
+
+New commands have been added to simplify accessing the CA transport certificate.
+
+To show the CA transport certificate information, execute the following command:
+
+----
+$ pki ca-cert-transport-show
+  Serial Number: 0x7
+  Subject DN: CN=DRM Transport Certificate,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Not Valid Before: Thu Oct 10 10:49:36 CDT 2019
+  Not Valid After: Wed Sep 29 10:49:36 CDT 2021
+----
+
+To export the CA transport certificate, execute the following command:
+
+----
+$ pki ca-cert-transport-export
+-----BEGIN CERTIFICATE-----
+MIIDnzCCAoegAwIBAgIBBzANBgkqhkiG9w0BAQsFADBIMRAwDgYDVQQKDAdFWEFN
+UExFMRMwEQYDVQQLDApwa2ktdG9tY2F0MR8wHQYDVQQDDBZDQSBTaWduaW5nIENl
+cnRpZmljYXRlMB4XDTE5MTAxMDE1NDkzNloXDTIxMDkyOTE1NDkzNlowSzEQMA4G
+A1UECgwHRVhBTVBMRTETMBEGA1UECwwKcGtpLXRvbWNhdDEiMCAGA1UEAwwZRFJN
+IFRyYW5zcG9ydCBDZXJ0aWZpY2F0ZTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCC
+AQoCggEBANADntzTfpQ+/uq3ZnMC+LYq32R9wgpfjV+EkxPqyWE9YoIp3xKRt1zR
+v28EHBzWbcOUNk4u//9hWPT9Z9YSKT99vZM2M1myg2fxoJyKUxlK9hUI0N+B1mBJ
+sLldqEc74KCb2cz4HlZrZ4jTL1g6v+x7jjY4UAUisUdyrmqGEqGzwToAOwzeYGOM
+drPaOmss0JitBVdwI8BCqBHeTqEKKG2H2GCrvJCrBUG8QStgXmm868bVGweJ1CRV
+YnuT5G7yk9EmSSG7lQb8Yy6bjCSMAtyYKxypot8V0nA0zQXI+Koa6smcOL28Rtri
+y6d7sLGC7seJuGPrQBMFOxzhUNsRyrkCAwEAAaOBkDCBjTAfBgNVHSMEGDAWgBQN
+SbtdJj8oeyXV4HrDKqxBCMrlhDBFBggrBgEFBQcBAQQ5MDcwNQYIKwYBBQUHMAGG
+KWh0dHA6Ly9sb2NhbGhvc3QubG9jYWxkb21haW46ODA4MC9jYS9vY3NwMA4GA1Ud
+DwEB/wQEAwIE8DATBgNVHSUEDDAKBggrBgEFBQcDAjANBgkqhkiG9w0BAQsFAAOC
+AQEAVBjWDnXLx/rakbebJ+rD14n9yfSdNT/4oA9RQyFY1SLOBdat4bjoHzFY71de
+wqc2bAzglzPbhqtnPfpJJ/tAgW/kfCZqQzYWhOwEXzqCoMI9rhkuTYU+q+emPKIt
+BQNxNIi4seub+C8GWMei2BNdvfWBL13gH3/5MZYNAxZ9F3f+vVdq8Sse4+IyzGCB
+8aiRGluQiA4/y+fnITNjBMYnK16N+9a3lRLs0WI1zHtol23IkKd6zqs0r/aefqiA
+pntqCGYOQ+WaWNspWzELOKFBAQ7rReLiRsvKZJrEM7j+ZSXJM4yv4iEmyv2YnfVx
+CJMrVofFXV3bWTT+it6Jos/Dmw==
+-----END CERTIFICATE-----
+----
+
+= PKI KRA CLI Changes =
+
+== New KRA Transport Certificate Commands ==
+
+New commands have been added to simplify accessing the KRA transport certificate.
+
+To show the KRA transport certificate information, execute the following command:
+
+----
+$ pki kra-cert-transport-show
+  Serial Number: 0x7
+  Subject DN: CN=DRM Transport Certificate,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Not Valid Before: Thu Oct 10 10:49:36 CDT 2019
+  Not Valid After: Wed Sep 29 10:49:36 CDT 2021
+----
+
+To export the KRA transport certificate, execute the following command:
+
+----
+$ pki kra-cert-transport-export
+-----BEGIN CERTIFICATE-----
+MIIDnzCCAoegAwIBAgIBBzANBgkqhkiG9w0BAQsFADBIMRAwDgYDVQQKDAdFWEFN
+UExFMRMwEQYDVQQLDApwa2ktdG9tY2F0MR8wHQYDVQQDDBZDQSBTaWduaW5nIENl
+cnRpZmljYXRlMB4XDTE5MTAxMDE1NDkzNloXDTIxMDkyOTE1NDkzNlowSzEQMA4G
+A1UECgwHRVhBTVBMRTETMBEGA1UECwwKcGtpLXRvbWNhdDEiMCAGA1UEAwwZRFJN
+IFRyYW5zcG9ydCBDZXJ0aWZpY2F0ZTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCC
+AQoCggEBANADntzTfpQ+/uq3ZnMC+LYq32R9wgpfjV+EkxPqyWE9YoIp3xKRt1zR
+v28EHBzWbcOUNk4u//9hWPT9Z9YSKT99vZM2M1myg2fxoJyKUxlK9hUI0N+B1mBJ
+sLldqEc74KCb2cz4HlZrZ4jTL1g6v+x7jjY4UAUisUdyrmqGEqGzwToAOwzeYGOM
+drPaOmss0JitBVdwI8BCqBHeTqEKKG2H2GCrvJCrBUG8QStgXmm868bVGweJ1CRV
+YnuT5G7yk9EmSSG7lQb8Yy6bjCSMAtyYKxypot8V0nA0zQXI+Koa6smcOL28Rtri
+y6d7sLGC7seJuGPrQBMFOxzhUNsRyrkCAwEAAaOBkDCBjTAfBgNVHSMEGDAWgBQN
+SbtdJj8oeyXV4HrDKqxBCMrlhDBFBggrBgEFBQcBAQQ5MDcwNQYIKwYBBQUHMAGG
+KWh0dHA6Ly9sb2NhbGhvc3QubG9jYWxkb21haW46ODA4MC9jYS9vY3NwMA4GA1Ud
+DwEB/wQEAwIE8DATBgNVHSUEDDAKBggrBgEFBQcDAjANBgkqhkiG9w0BAQsFAAOC
+AQEAVBjWDnXLx/rakbebJ+rD14n9yfSdNT/4oA9RQyFY1SLOBdat4bjoHzFY71de
+wqc2bAzglzPbhqtnPfpJJ/tAgW/kfCZqQzYWhOwEXzqCoMI9rhkuTYU+q+emPKIt
+BQNxNIi4seub+C8GWMei2BNdvfWBL13gH3/5MZYNAxZ9F3f+vVdq8Sse4+IyzGCB
+8aiRGluQiA4/y+fnITNjBMYnK16N+9a3lRLs0WI1zHtol23IkKd6zqs0r/aefqiA
+pntqCGYOQ+WaWNspWzELOKFBAQ7rReLiRsvKZJrEM7j+ZSXJM4yv4iEmyv2YnfVx
+CJMrVofFXV3bWTT+it6Jos/Dmw==
+-----END CERTIFICATE-----
+----
