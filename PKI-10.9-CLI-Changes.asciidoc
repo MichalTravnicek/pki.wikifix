@@ -1,0 +1,64 @@
+= pkispawn/pkidestroy Changes =
+
+* A `--verbose` option has been added as an alias for a single `-v` option.
+* A `--debug` option has been added to replace the multiple `-v` options.
+
+= PKI CLI Changes =
+
+== New Range Management Commands ==
+
+To request a new range:
+
+----
+$ pki -U <URL> ca-range-request <type> --session <ID>
+  Begin: 1
+  End: 10000000
+----
+
+To show range configuration:
+
+----
+$ pki-server ca-range-show
+  Begin request ID: 1
+  End request ID: 10000000
+  Begin serial number: 1
+  End serial number: 10000000
+  Begin replica ID: 1
+  End replica ID: 100
+  Enable serial management: false
+----
+
+To update range configuration:
+
+----
+$ pki-server ca-range-update --master <URL> --session <ID>
+----
+
+== Deprecated pki client-cert-import --cert Command ==
+
+The following command has been deprecated:
+
+----
+$ pki client-cert-import <nickname> --cert <filename>
+----
+
+Use the following command instead:
+
+----
+$ pki nss-cert-import <nickname> --cert <filename>
+----
+
+== Deprecated pki client-cert-import --ca-cert Command ==
+
+The following command has been deprecated:
+
+----
+$ pki client-cert-import [nickname] --ca-cert <filename>
+----
+
+Use the following command instead:
+
+----
+$ pki nss-cert-import [nickname] --cert <filename> --trust CT,C,C
+----
+
