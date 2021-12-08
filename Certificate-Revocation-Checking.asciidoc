@@ -155,7 +155,7 @@ Number of entries returned 4
 As the default CA admin revoke the test user's certificate using its serial number:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-cert-hold 0x1a --force
+$ pki -n caadmin ca-cert-hold 0x1a --force
 ---------------------------------
 Placed certificate "0x1a" on-hold
 ---------------------------------
@@ -179,7 +179,7 @@ PKIException: Unauthorized
 Unrevoke the test user's certificate:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-cert-release-hold 0x1a --force
+$ pki -n caadmin ca-cert-release-hold 0x1a --force
 ----------------------------------
 Placed certificate "0x1a" off-hold
 ----------------------------------
@@ -222,7 +222,7 @@ Number of entries returned 3
 On the CA revoke the client certificate using its serial number:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-cert-hold 0x18 --force
+$ pki -n caadmin ca-cert-hold 0x18 --force
 ---------------------------------
 Placed certificate "0x18" on-hold
 ---------------------------------
@@ -246,7 +246,7 @@ IOException: SocketException cannot write on socket
 Unrevoke the client certificate on the CA:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-cert-release-hold 0x18 --force
+$ pki -n caadmin ca-cert-release-hold 0x18 --force
 ----------------------------------
 Placed certificate "0x18" off-hold
 ----------------------------------
