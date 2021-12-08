@@ -6,7 +6,7 @@ Available since: PKI 10.7.
 
 = Listing SSL Certificates =
 
-<pre>
+----
 $ pki-server http-connector-cert-find Secure _default_
 -----------------
 1 entries matched
@@ -15,55 +15,55 @@ $ pki-server http-connector-cert-find Secure _default_
   Key Alias: sslserver
   Keystore Type: pkcs11
   Keystore Provider: Mozilla-JSS
-</pre>
+----
 
 = Adding SSL Certificate =
 
 To configure SSL certificate with PEM files:
 
-<pre>
+----
 $ pki-server http-connector-cert-add Secure _default_ UNDEFINED \
     --certFile conf/sslserver.crt \
     --keyFile conf/sslserver.key
-</pre>
+----
 
 To configure SSL certificate with JKS keystore:
 
-<pre>
+----
 $ pki-server http-connector-cert-add Secure _default_ UNDEFINED \
     --keyAlias sslserver \
     --keystoreType pkcs12 \
     --keystoreFile conf/sslserver.p12 \
     --keystorePassword Secret.123
-</pre>
+----
 
 To configure SSL certificate with PKCS #12 keystore:
 
-<pre>
+----
 $ pki-server http-connector-cert-add Secure _default_ UNDEFINED \
     --keyAlias sslserver \
     --keystoreType pkcs12 \
     --keystoreFile conf/sslserver.p12 \
     --keystorePassword Secret.123
-</pre>
+----
 
 To configure SSL certificate with PKCS #11 keystore:
 
-<pre>
+----
 $ pki-server http-connector-cert-add Secure _default_ UNDEFINED \
     --keyAlias sslserver \
     --keystoreType pkcs11 \
     --keystoreProvider Mozilla-JSS
-</pre>
+----
 
 = Deleting SSL Certificate =
 
-<pre>
+----
 $ pki-server http-connector-cert-del Secure _default_ UNDEFINED
-</pre>
+----
 
 = See Also =
 
-* [[PKI Server HTTP Connector CLI]]
-* [[PKI Server HTTP Connector Host CLI]]
-* [https://tomcat.apache.org/tomcat-8.5-doc/config/http.html The HTTP Connector]
+* link:PKI-Server-HTTP-Connector-CLI[PKI Server HTTP Connector CLI]
+* link:PKI-Server-HTTP-Connector-Host-CLI[PKI Server HTTP Connector Host CLI]
+* link:https://tomcat.apache.org/tomcat-8.5-doc/config/http.html[The HTTP Connector]
