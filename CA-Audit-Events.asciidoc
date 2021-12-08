@@ -113,7 +113,7 @@ Properties:
 Use PKI CLI to approve a certificate request:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-cert-request-review 7 --action approve
+$ pki -n caadmin ca-cert-request-review 7 --action approve
 ----
 
 In PKI 10.4.5 or later the server will generate a log with the certificate serial number:
@@ -139,7 +139,7 @@ See also:
 Use PKI CLI to reject a certificate request:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-cert-request-review 7 --action reject
+$ pki -n caadmin ca-cert-request-review 7 --action reject
 ----
 
 In PKI 10.4.5 or later the server will generate a log with [Outcome=Failure]:
@@ -161,7 +161,7 @@ Prior to PKI 10.4.5 the server will generate a log with [Outcome=Success]:
 Use PKI CLI to cancel a certificate request:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-cert-request-review 7 --action cancel
+$ pki -n caadmin ca-cert-request-review 7 --action cancel
 ----
 
 In PKI 10.4.5 or later the server will generate a log with [Outcome=Failure]:
@@ -203,7 +203,7 @@ tched UID=testuser] certificate request processed
 For example, execute the following command to put a certificate on-hold:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-cert-hold 0x4 --force
+$ pki -n caadmin ca-cert-hold 0x4 --force
 ----
 
 The server will generate the following logs:
