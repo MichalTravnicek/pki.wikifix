@@ -1,6 +1,6 @@
 = Overview =
 
-This page describes audit events that are common in all PKI subsystems. The complete list of events, the message format, and the event description are stored in link:https://github.com/edewata/pki/blob/dev/base/server/cmsbundle/src/audit-events.properties[audit-events.properties].
+This page describes audit events that are common in all PKI subsystems. The complete list of events, the message format, and the event description are stored in link:https://github.com/dogtagpki/pki/blob/master/base/server/cmsbundle/src/audit-events.properties[audit-events.properties].
 
 Subsystem-specific audit events are described in the following pages:
 
@@ -26,7 +26,7 @@ Properties:
 For example, use CLI to authenticate as admin user:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-user-find
+$ pki -n caadmin ca-user-find
 ----
 
 The server will generate the following logs:
@@ -90,7 +90,7 @@ Properties:
 For example, use CLI to authenticate as admin user:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-user-find
+$ pki -n caadmin ca-user-find
 ----
 
 The server will generate the following logs:
@@ -123,7 +123,7 @@ Properties:
 For example, execute the following command:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-audit-file-find
+$ pki -n caadmin ca-audit-file-find
 ----
 
 The server will generate the following logs:
@@ -186,7 +186,7 @@ Properties:
 For example, use CLI to add a member to a group:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-group-member-add Administrators testuser
+$ pki -n caadmin ca-group-member-add Administrators testuser
 ----
 
 The server will generate the following logs:
@@ -214,7 +214,7 @@ This event is triggered when configuring signedAudit.
 For example, use CLI to disable audit:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-audit-mod --action disable
+$ pki -n caadmin ca-audit-mod --action disable
 ----
 
 The server will generate the following logs:
@@ -294,7 +294,7 @@ Properties:
 For example, use CLI to authenticate as admin user:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-user-find
+$ pki -n caadmin ca-user-find
 ----
 
 The server will generate the following logs:
@@ -337,7 +337,7 @@ SSL_DEFAULT_CIPHERS="false"
 Then execute a CLI command that uses SSL:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-user-find
+$ pki -n caadmin ca-user-find
 ----
 
 The operation will fail and the server will generate the following log:
@@ -366,7 +366,7 @@ Properties:
 For example, use CLI to authenticate as admin user:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-user-find
+$ pki -n caadmin ca-user-find
 ----
 
 The server will generate the following logs:
@@ -413,7 +413,7 @@ $ pki -c Secret.123 client-cert-request uid=testuser
 Then approve the request with this command:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-cert-request-review 7 --action approve
+$ pki -n caadmin ca-cert-request-review 7 --action approve
 ----
 
 During the approval process the server will generate an 8-byte nonce, which generated from two 4-byte random numbers, so there will be two `RANDOM_GENERATION` events:
