@@ -11,13 +11,13 @@ $ pki <admin authentication> <subsystem>-group-<command>
 For example, in the command below the CA admin certificate is used to access TPS groups:
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin tps-group-find
+$ pki -n caadmin tps-group-find
 ----
 
 = Listing groups =
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-group-find
+$ pki -n caadmin ca-group-find
 ------------------
 14 entries matched
 ------------------
@@ -70,7 +70,7 @@ Number of entries returned 14
 = Displaying Group Details =
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-group-show "Certificate Manager Agents"
+$ pki -n caadmin ca-group-show "Certificate Manager Agents"
 ----------------------------------
 Group "Certificate Manager Agents"
 ----------------------------------
@@ -81,7 +81,7 @@ Group "Certificate Manager Agents"
 = Adding Group =
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-group-add testgroup
+$ pki -n caadmin ca-group-add testgroup
 -----------------------
 Added group "testgroup"
 -----------------------
@@ -91,7 +91,7 @@ Added group "testgroup"
 = Modifying Group =
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-group-mod testgroup --description "Test Group"
+$ pki -n caadmin ca-group-mod testgroup --description "Test Group"
 --------------------------
 Modified group "testgroup"
 --------------------------
@@ -102,7 +102,7 @@ Modified group "testgroup"
 = Deleting Group =
 
 ----
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-group-del testgroup
+$ pki -n caadmin ca-group-del testgroup
 -------------------------
 Deleted group "testgroup"
 -------------------------
