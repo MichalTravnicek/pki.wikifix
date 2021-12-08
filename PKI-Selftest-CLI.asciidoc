@@ -1,7 +1,7 @@
 = Listing Selftests =
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-selftest-find
+----
+$ pki -n caadmin ca-selftest-find
 -----------------
 3 entries matched
 -----------------
@@ -24,23 +24,23 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-selftest-fin
 ----------------------------
 Number of entries returned 3
 ----------------------------
-</pre>
+----
 
 = Displaying Selftest Details =
 
-<pre>
-$ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-selftest-show SystemCertsVerification
+----
+$ pki -n caadmin ca-selftest-show SystemCertsVerification
 ----------------------------------
 SelfTest "SystemCertsVerification"
 ----------------------------------
   SelfTest ID: SystemCertsVerification
   Enabled at startup: false
   Enabled on demand: false
-</pre>
+----
 
 = Running Selftests =
 
-<pre>
+----
 $ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-selftest-run
   Selftest ID: CAPresence
   Status: PASSED
@@ -53,8 +53,4 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin ca-selftest-run
 -------------------
 Selftests completed
 -------------------
-</pre>
-
-= References =
-
-* [https://github.com/dogtagpki/pki/wiki/PKI-CLI PKI CLI]
+----
