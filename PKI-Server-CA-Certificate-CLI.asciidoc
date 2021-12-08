@@ -2,50 +2,47 @@
 
 To export certificate chain to install additional subsystems:
 
-<pre>
+----
 $ pki-server ca-cert-chain-export --pkcs12-file cert-chain.p12 --pkcs12-password-file password.txt
-</pre>
+----
 
 = Finding Certificate Requests =
 
 To find the certificate request for a certificate:
 
-<pre>
+----
 $ pki-server ca-cert-request-find --cert-file <cert file>
-</pre>
+----
 
 As of PKI 10.4 the content of the certificate has to be formatted as follows:
+
 * The certificate must be base-64 encoded.
 * Each line must be 64 bytes long terminated with CRLF.
 * There is no BEGIN/END CERTIFICATE header/footer.
 
 For example:
 
-<pre>
+----
 MIIDnTCCAoWgAwIBAgIBBTANBgkqhkiG9w0BAQsFADBIMRAwDgYDVQQKDAdFWEFN<CRLF>
 UExFMRMwEQYDVQQLDApwa2ktdG9tY2F0MR8wHQYDVQQDDBZDQSBTaWduaW5nIENl<CRLF>
 ...
 EzgqNUFrj/ATV31qVzEb6aka+93bd437Iga68OTz+8fhif8TbILWfJG87rU3w00D<CRLF>
 DMK8f1ILzfnK1kUEkBQ9zoiDlQyiUsl6TDJKXFc8Woqi0VTgK2AJ7cVdrwtOiE++<CRLF>
 6jk3lUH/goACLP5fIuZWqlM=<CRLF>
-</pre>
+----
 
 Note: The certificate format may change in the future.
 
 = Displaying Certificate Request =
 
-<pre>
+----
 $ pki-server ca-cert-request-show <request ID>
-</pre>
+----
 
 = Exporting System Certificates =
 
 To export system certificates to clone CA:
 
-<pre>
+----
 $ pki-server ca-clone-prepare --pkcs12-file ca-clone.p12 --pkcs12-password-file password.txt
-</pre>
-
-= See Also =
-
-* [[PKI Server CA CLI]]
+----
