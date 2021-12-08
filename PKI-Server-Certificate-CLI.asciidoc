@@ -6,7 +6,7 @@ The pki-server CLI provides interface to manage system certificates.
 
 To list all certificates:
 
-<pre>
+----
 $ pki-server cert-find
   Cert ID: ca_signing
   Nickname: caSigningCert cert-pki-tomcat CA
@@ -52,13 +52,13 @@ $ pki-server cert-find
   Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
   Not Valid Before: Tue Apr 03 23:15:45 2018
   Not Valid After: Mon Mar 23 23:15:45 2020
-</pre>
+----
 
 = Displaying System Certificate Info =
 
 To display basic certificate info:
 
-<pre>
+----
 $ pki-server cert-show ca_signing
   Cert ID: ca_signing
   Nickname: caSigningCert cert-pki-tomcat CA
@@ -68,11 +68,11 @@ $ pki-server cert-show ca_signing
   Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
   Not Valid Before: Tue Apr 03 23:15:43 2018
   Not Valid After: Sat Apr 03 23:15:43 2038
-</pre>
+----
 
 To pretty print the certificate:
 
-<pre>
+----
 $ pki-server cert-show ca_signing --pretty-print
   Cert ID: ca_signing
   Nickname: caSigningCert cert-pki-tomcat CA
@@ -94,59 +94,59 @@ Certificate:
             Not After : Sat Apr 03 23:15:43 2038
         Subject: "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE"
 ...
-</pre>
+----
 
 = Creating System Certificate =
 
 To create temporary certificate:
 
-<pre>
+----
 $ pki-server cert-create <cert ID> --temp
-</pre>
+----
 
 To create temporary certificate with specific serial number:
 
-<pre>
+----
 $ pki-server cert-create <cert ID> --temp --serial <serial>
-</pre>
+----
 
 To rekey permanent certificate (not supported yet):
 
-<pre>
+----
 $ pki-server cert-create <cert ID>
-</pre>
+----
 
 To renew permanent certificate:
 
-<pre>
+----
 $ pki-server cert-create <cert ID> --renew
-</pre>
+----
 
-By default the new certificate will be stored in /etc/pki/&lt;instance&gt;/certs/&lt;cert ID&gt;.crt. An optional --output &lt;file&gt; parameter can be added to specify a different output file.
+By default the new certificate will be stored in `/etc/pki/<instance>/certs/<cert ID>.crt`. An optional `--output <file>` parameter can be added to specify a different output file.
 
 = Importing System Certificate =
 
-The following command can be used to import new certificate into the NSS database and update the copy of the certificate in the CS.cfg in all subsystems in the instance:
+The following command can be used to import new certificate into the NSS database and update the copy of the certificate in the `CS.cfg` in all subsystems in the instance:
 
-<pre>
+----
 $ pki-server cert-import <cert ID>
-</pre>
+----
 
-By default it will import the certificate from /etc/pki/&lt;instance&gt;/certs/&lt;cert ID&gt;.crt. An optional --input &lt;file&gt; parameter can be used to specify a different input file.
+By default it will import the certificate from `/etc/pki/<instance>/certs/<cert ID>.crt`. An optional `--input <file>` parameter can be used to specify a different input file.
 
 = Exporting System Certificate =
 
 To export a system certificate and key into a PKCS #12 file, execute the following command:
 
-<pre>
+----
 $ pki-server cert-export ca_signing --pkcs12-file ca_signing.p12 --pkcs12-password Secret.123
-</pre>
+----
 
-By default it will overwrite the output file. To append the certificate and key into an existing file specify the --append parameter.
+By default it will overwrite the output file. To append the certificate and key into an existing file specify the `--append` parameter.
 
 To export a certificate into a PEM file, execute the following command:
 
-<pre>
+----
 $ pki-server cert-export ca_signing --cert-file ca_signing.crt
 $ cat ca_signing.crt
 -----BEGIN CERTIFICATE-----
@@ -171,11 +171,11 @@ QE7W81pcFV2ph5xyuA/GE9G1njvLzsbxkPvLRhG2u2JBNkpisgN0mtRvF3hyeQ24
 FG/mYlVFpH5vqCWas2XngcQrZ18/neH4XXoeENdbzA/1ShsswY1l+TsLZ6va3YT4
 UM+xLngEa2wh7PzeJpkchWA=
 -----END CERTIFICATE-----
-</pre>
+----
 
-To export the CSR, specify the --csr-file parameter:
+To export the CSR, specify the `--csr-file` parameter:
 
-<pre>
+----
 $ pki-server cert-export ca_signing --csr-file ca_signing.csr
 $ cat ca_signing.csr
 -----BEGIN NEW CERTIFICATE REQUEST-----
@@ -195,24 +195,23 @@ MzyL8DkIlndhwWj0pd1NICBUioZqd2tB+PfFMQwmdkZyinsYjxRBZDhXopfWjsIW
 HGcgNGD1Ys8pMIKNQTLYBzRpqOzzXoK2zvc7Xy80P2UB8Sd/fFnr1NPoT/r6vJXs
 5b/HYhvgXT9glL9hARA=
 -----END NEW CERTIFICATE REQUEST-----
-</pre>
+----
 
 = Removing System Certificate =
 
 To remove a system certificate while retaining its key:
 
-<pre>
+----
 $ pki-server cert-del <cert ID>
-</pre>
+----
 
 To remove a system certificate and its key:
 
-<pre>
+----
 $ pki-server cert-del <cert ID> --remove-key
-</pre>
+----
 
-= References =
+= See Also =
 
-* [[PKI Server CLI]]
-* [[PKI Server Subsystem Certificate CLI]]
-* [https://www.dogtagpki.org/wiki/Offline_System_Certificate_Renewal Offline System Certificate Renewal]
+* link:PKI-Server-Subsystem-Certificate-CLI[PKI Server Subsystem Certificate CLI]
+* link:https://www.dogtagpki.org/wiki/Offline_System_Certificate_Renewal[Offline System Certificate Renewal]
