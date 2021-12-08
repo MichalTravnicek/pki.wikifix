@@ -1,12 +1,12 @@
 = Overview =
 
-The pki-server provides commands to manage system certificates. See also [https://github.com/dogtagpki/pki/blob/master/base/server/python/pki/server/cli/subsystem.py subsystem.py].
+The pki-server provides commands to manage system certificates. See also link:https://github.com/dogtagpki/pki/blob/master/base/server/python/pki/server/cli/subsystem.py[subsystem.py].
 
 = Listing Subsystem Certificates =
 
 To list all subsystem certificates:
 
-<pre>
+----
 $ pki-server subsystem-cert-find ca
 -----------------
 5 entries matched
@@ -30,22 +30,22 @@ $ pki-server subsystem-cert-find ca
   Cert ID: audit_signing
   Nickname: auditSigningCert cert-pki-tomcat CA
   Token: Internal Key Storage Token
-</pre>
+----
 
 = Displaying Subsystem Certificate Info =
 
 To show basic certificate info:
 
-<pre>
+----
 $ pki-server subsystem-cert-show ca signing
   Cert ID: signing
   Nickname: caSigningCert cert-pki-tomcat CA
   Token: Internal Key Storage Token
-</pre>
+----
 
 To show all certificate info:
 
-<pre>
+----
 $ pki-server subsystem-cert-show ca signing --show-all
   Cert ID: signing
   Nickname: caSigningCert cert-pki-tomcat CA
@@ -78,56 +78,59 @@ ZtFB/fMou2rBnz29DnWsBPBpQl6Iz3yiYpXaZUNHJ3vgpYPyGkUnwsJwGhuAw8/VyDYcheKSju0BtvPf
 7V9E6VE94MrPJfA42RCAgPFPapBmsc+lgthviW3QNlNzW/rumA02eRAV5eFMzyL8DkIlndhwWj0pd1NI
 CBUioZqd2tB+PfFMQwmdkZyinsYjxRBZDhXopfWjsIWHGcgNGD1Ys8pMIKNQTLYBzRpqOzzXoK2zvc7X
 y80P2UB8Sd/fFnr1NPoT/r6vJXs5b/HYhvgXT9glL9hARA=
-</pre>
+----
 
 = Updating Subsystem Certificate =
 
-The CS.cfg of each subsystem stores a copy of the system certificate data and requests in the following properties:
-* &lt;subsystem&gt;.&lt;cert&gt;.cert
-* &lt;subsystem&gt;.&lt;cert&gt;.certreq
+The `CS.cfg` of each subsystem stores a copy of the system certificate data and requests in the following properties:
+
+* `<subsystem>.<cert>.cert`
+* `<subsystem>.<cert>.certreq`
 
 In case the above properties are missing or outdated, it can be refreshed with the following command:
 
-<pre>
+----
 $ pki-server subsystem-cert-update ca signing
 ---------------------------------------
 Updated "signing" subsystem certificate
 ---------------------------------------
-</pre>
+----
 
 = Validating Subsystem Certificate =
 
 To validate a system certificate, specify the subsystem name and the certificate ID:
 
- $ pki-server subsystem-cert-validate ca signing
-   Cert ID: signing
-   Nickname: caSigningCert cert-pki-tomcat CA
-   Usage: SSLCA
-   Token: Internal Key Storage Token
-   Status: VALID
- --------------------
- Validation succeeded
- --------------------
+----
+$ pki-server subsystem-cert-validate ca signing
+  Cert ID: signing
+  Nickname: caSigningCert cert-pki-tomcat CA
+  Usage: SSLCA
+  Token: Internal Key Storage Token
+  Status: VALID
+--------------------
+Validation succeeded
+--------------------
+----
 
 = Exporting Subsystem Certificates =
 
 To export all subsystem certificates and keys into a PKCS #12 file, execute the following command:
 
-<pre>
+----
 $ pki-server subsystem-cert-export ca --pkcs12-file ca.p12 --pkcs12-password Secret.123
-</pre>
+----
 
 To export a particular subsystem certificate and key into a PKCS #12 file, execute the following command:
 
-<pre>
+----
 $ pki-server subsystem-cert-export ca signing --pkcs12-file ca.p12 --pkcs12-password Secret.123
-</pre>
+----
 
-By default it will overwrite the output file. To append the certificates and keys into an existing file specify the --append parameter.
+By default it will overwrite the output file. To append the certificates and keys into an existing file specify the `--append` parameter.
 
 To export a certificate into a PEM file, execute the following command:
 
-<pre>
+----
 $ pki-server subsystem-cert-export ca signing --cert-file ca_signing.crt
 $ cat ca_signing.crt
 -----BEGIN CERTIFICATE-----
@@ -152,11 +155,11 @@ QE7W81pcFV2ph5xyuA/GE9G1njvLzsbxkPvLRhG2u2JBNkpisgN0mtRvF3hyeQ24
 FG/mYlVFpH5vqCWas2XngcQrZ18/neH4XXoeENdbzA/1ShsswY1l+TsLZ6va3YT4
 UM+xLngEa2wh7PzeJpkchWA=
 -----END CERTIFICATE-----
-</pre>
+----
 
-To export the CSR, specify the --csr-file parameter:
+To export the CSR, specify the `--csr-file` parameter:
 
-<pre>
+----
 $ pki-server subsystem-cert-export ca signing --csr-file ca_signing.csr
 $ cat ca_signing.csr
 -----BEGIN NEW CERTIFICATE REQUEST-----
@@ -176,9 +179,9 @@ MzyL8DkIlndhwWj0pd1NICBUioZqd2tB+PfFMQwmdkZyinsYjxRBZDhXopfWjsIW
 HGcgNGD1Ys8pMIKNQTLYBzRpqOzzXoK2zvc7Xy80P2UB8Sd/fFnr1NPoT/r6vJXs
 5b/HYhvgXT9glL9hARA=
 -----END NEW CERTIFICATE REQUEST-----
-</pre>
+----
 
-= References =
+= See Also =
 
-* [[PKI Server Subsystem CLI]]
-* [[PKI Server Certificate CLI]]
+* link:PKI-Server-Subsystem-CLI[PKI Server Subsystem CLI]
+* link:PKI-Server-Certificate-CLI[PKI Server Certificate CLI]
