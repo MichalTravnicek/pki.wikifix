@@ -1,0 +1,55 @@
+= Overview =
+
+Currently TPS revocation is tied to the TPS profile from which the certificate was issued from.
+An example CA definition in the TPS `CS.cfg`:
+
+----
+conn.ca1.clientNickname=subsystemCert cert-pki-tps-final
+conn.ca1.hostadminport=example.redhat.com:9972
+conn.ca1.hostagentport=example.redhat.com:9970
+conn.ca1.hostport=eample.redhat.com:9971
+conn.ca1.keepAlive=true
+conn.ca1.retryConnect=3
+conn.ca1.servlet.enrollment=/ca/ee/ca/profileSubmitSSLClient
+conn.ca1.servlet.renewal=/ca/ee/ca/profileSubmitSSLClient
+conn.ca1.servlet.revoke=/ca/ee/subsystem/ca/doRevoke
+conn.ca1.servlet.unrevoke=/ca/ee/subsystem/ca/doUnrevoke
+conn.ca1.timeout=100
+----
+
+An example of TPS profile pointing to a pre-defined ca connection:
+
+----
+op.enroll.userKey.renewal.encryption.ca.conn=ca1
+----
+
+During revocation, TPS looks up the profile (by `tokenType`) where the certificate is issued from and sends revocation request to the ca listed in the profile (e.g. `tokenType =="userKey"`).
+
+It has a few issues:
+
+1. if the TPS enrollment profile has needs to point to a different CA for issuance (e.g. in cases of a CA retiring to "revocation only"), then during revocation of the initial certificate, it loses it's tie with the retired CA in TPS's `CS.cfg`.
+2. the TPS has no knowledge of a cloned CA so cannot handle failover.
+
+= Design =
+
+A new parameter can be added to TPS's `CS.cfg`, e.g.:
+
+----
+conn.ca.list=ca1,ca2,...
+----
+
+where the list contains a list of ca's that can be used for revocation (which may be extended for other use at later time).
+
+During revocation, TPS now will first try to match the signing ca's Subject Key Identifier with the revoking certificate's Authority Key Identifier, if it is a match, it will then contact the issuing ca (as before) for revocation; If it is not a match, then the list of ca connectors are traversed and like comparison is done between the revoking certificate and each ca on the list.
+
+To do that, each ca's nickname is added to each connector information.  e.g.
+
+----
+conn.ca1.caNickname=xxx
+...
+conn.ca2.caNickname=yyy 
+----
+
+In case when a revocation failed on the traversed list, it will continue to look for the next matching ca, and thereby take care of the cloned ca environment.
+
+Another slightly improved design is to instead of figuring out the AKI every time revocation or unrevocation happens, the AKI is stored in the `CS.cfg` the first time it is figured out.
