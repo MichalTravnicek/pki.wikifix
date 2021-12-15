@@ -1,0 +1,146 @@
+= Overview =
+
+If the existing CA uses internal NSS token or HSM, the migration can be done by transporting the NSS database files. With internal NSS token the CA signing certificate and key are stored in the NSS database files. With HSM only the CA signing certificate is stored in NSS database files, the key is stored in HSM.
+
+**Note:** Certain HSMs require synchronization (e.g. `rfs-sync`). Make sure the HSM is synchronized before migrating an existing CA with HSM.
+
+= Exporting Existing Certificates =
+
+Export the NSS database password of the existing CA instance into a file:
+
+----
+$ grep internal= /var/lib/pki/pki-tomcat/conf/password.conf | awk -F= '{print $2;}' > internal.txt
+----
+
+Then create a tarball of the NSS database:
+
+----
+$ tar chzvf nssdb.tar.gz -C /var/lib/pki/pki-tomcat/alias .
+----
+
+If the CSR is available in the `ca.signing.certreq` property in `CS.cfg`, export it with the following command: 
+
+----
+$ echo "-----BEGIN NEW CERTIFICATE REQUEST-----" > ca_signing.csr
+$ sed -n "/^ca.signing.certreq=/ s/^[^=]*=// p" < /var/lib/pki/pki-tomcat/ca/conf/CS.cfg >> ca_signing.csr
+$ echo "-----END NEW CERTIFICATE REQUEST-----" >> ca_signing.csr
+----
+
+If the existing CA has certificate chain, export it into a file (see link:NSS-Database#Exporting_Certificate_Chain[Exporting Certificate Chain]):
+
+----
+$ certutil -L -d /var/lib/pki/pki-tomcat/alias -n "external" -a > external.crt
+----
+
+Transfer the tarball, the CSR, and the certificate chain to the host where the new CA will be installed.
+
+= Installing New CA Instance =
+
+Prepare a deployment configuration file for CA instance, then specify the the following properties to execute the first step of the installation:
+
+----
+pki_external=True
+pki_external_step_two=False
+----
+
+Optionally, specify the link:https://www.dogtagpki.org/wiki/Deployment_Configuration#HSM[HSM parameters]:
+
+----
+pki_hsm_enable=True
+pki_hsm_libfile=/opt/nfast/toolkits/pkcs11/libcknfast.so
+pki_hsm_modulename=nfast
+pki_token_name=HSM
+pki_token_password=Secret.123
+----
+
+Then execute:
+
+----
+$ pkispawn -f ca-existing-step1.cfg -s CA
+----
+
+It will create the instance directory for the new CA in `/var/lib/pki/pki-tomcat` and a new NSS database in `/var/lib/pki/pki-tomcat/alias`.
+
+Change the deployment configuration to execute the second step of the installation:
+
+----
+pki_external=True
+pki_external_step_two=True
+
+pki_ca_signing_nickname=ca_signing
+pki_ca_signing_csr_path=ca_signing.csr
+----
+
+If the existing CA has certificate chain, specify it with the following property:
+
+----
+pki_cert_chain_nickname=external
+pki_cert_chain_path=external.crt
+----
+
+Extract the tarball into the new CA:
+
+----
+$ tar xvf nssdb.tar.gz -C /var/lib/pki/pki-tomcat/alias
+----
+
+Put the existing NSS database password into a file (i.e. `internal.txt`), then store it in the new CA:
+
+----
+$ sed -i "s/internal=.*/internal=`cat internal.txt`/" /var/lib/pki/pki-tomcat/conf/password.conf
+----
+
+Verify that it contains the CA signing certificate:
+
+----
+$ certutil -L -d /var/lib/pki/pki-tomcat/alias
+...
+ca_signing                                                   CTu,Cu,Cu
+...
+----
+
+If the existing CA uses internal NSS token, remove the other system certificates and keys with the following commands:
+
+----
+$ certutil -F -d /var/lib/pki/pki-tomcat/alias -f internal.txt -n "ca_ocsp_signing"
+$ certutil -F -d /var/lib/pki/pki-tomcat/alias -f internal.txt -n "ca_audit_signing"
+$ certutil -F -d /var/lib/pki/pki-tomcat/alias -f internal.txt -n "subsystem"
+$ certutil -F -d /var/lib/pki/pki-tomcat/alias -f internal.txt -n "sslserver"
+$ certutil -F -d /var/lib/pki/pki-tomcat/alias -f internal.txt -n "external"
+----
+
+If the existing CA uses HSM, to prevent conflicts with existing certificates in HSM specify new nicknames:
+
+----
+pki_ocsp_signing_nickname=...
+pki_audit_signing_nickname=...
+pki_ssl_server_nickname=...
+pki_subsystem_nickname=...
+----
+
+Also to prevent conflicts with existing certificates in HSM (or existing certificates/requests in migrated database), specify new starting serial/request numbers that are larger than the latest serial/request numbers in the existing CA:
+
+----
+pki_serial_number_range_start=...
+pki_request_number_range_start=...
+----
+
+Then execute:
+
+----
+$ pkispawn -f ca-existing-step2.cfg -s CA
+----
+
+= Verification =
+
+Verify that the CA signing key ID is the same in the existing CA new CA instances. For example:
+
+----
+$ grep internal= /var/lib/pki/pki-tomcat/conf/password.conf | awk -F= '{print $2;}' > internal.txt
+$ certutil -K -d /var/lib/pki/pki-tomcat/alias -f internal.txt
+...
+< 2> rsa      7bd4dc662670ebe08a35086b054175559608ac20   ca_signing
+...
+----
+
+For HSM see link:NSS-Database#Listing_Keys[this page].
