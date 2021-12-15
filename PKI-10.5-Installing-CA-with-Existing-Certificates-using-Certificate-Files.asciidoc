@@ -102,111 +102,7 @@ pki_sslserver_cert_path=sslserver.crt
 If the existing CA has certificate chain, specify it with the following parameters:
 
 ----
-pki_cert_chain_nickname=external= Overview =
-
-The CA installation with existing certificates using certificate files is part of link:https://www.dogtagpki.org/wiki/Migrating_a_CA_with_HSM_using_existing_CA_mechanism[CA migration procedure with HSM]. In this process the existing certificates will be migrated using certificate files. The keys will remain in the HSM.
-
-PKI 10.4 or older supports migrating the CA signing certificate only. The other system certificates will be reissued in the new CA. In PKI 10.5 or later all CA's system certificates can be migrated.
-
-**Note:** Certain HSMs require synchronization (e.g. `rfs-sync`). Make sure the HSM is synchronized before migrating an existing CA with HSM.
-
-= Exporting Existing Certificates =
-
-Export the CA signing certificate with the following command:
-
-----
-$ certutil -L -d /var/lib/pki/pki-tomcat/alias -n "ca_signing" -a > ca_signing.crt
-----
-
-In PKI 10.5 or later, the other system certificates can optionally be exported as well:
-
-----
-$ certutil -L -d /var/lib/pki/pki-tomcat/alias -n "ca_ocsp_signing" -a > ca_ocsp_signing.crt
-$ certutil -L -d /var/lib/pki/pki-tomcat/alias -n "ca_audit_signing" -a > ca_audit_signing.crt
-$ certutil -L -d /var/lib/pki/pki-tomcat/alias -n "subsystem" -a > subsystem.crt
-$ certutil -L -d /var/lib/pki/pki-tomcat/alias -n "sslserver" -a > sslserver.crt
-----
-
-= Exporting Existing CSRs =
-
-Export the CA signing CSR with the following command:
-
-----
-$ echo "-----BEGIN NEW CERTIFICATE REQUEST-----" > ca_signing.csr
-$ sed -n "/^ca.signing.certreq=/ s/^[^=]*=// p" < /var/lib/pki/<font color="red">pki-tomcat</font>/ca/conf/CS.cfg >> ca_signing.csr
-$ echo "-----END NEW CERTIFICATE REQUEST-----" >> ca_signing.csr
-----
-
-In PKI 10.5 or later, the CSRs for the other system certificates can optionally be exported as well:
-
-----
-$ echo "-----BEGIN NEW CERTIFICATE REQUEST-----" > ca_ocsp_signing.csr
-$ sed -n "/^ca.ocsp_signing.certreq=/ s/^[^=]*=// p" < /var/lib/pki/<font color="red">pki-tomcat</font>/ca/conf/CS.cfg >> ca_ocsp_signing.csr
-$ echo "-----END NEW CERTIFICATE REQUEST-----" >> ca_ocsp_signing.csr
-----
-
----- 
-$ echo "-----BEGIN NEW CERTIFICATE REQUEST-----" > ca_audit_signing.csr
-$ sed -n "/^ca.audit_signing.certreq=/ s/^[^=]*=// p" < /var/lib/pki/<font color="red">pki-tomcat</font>/ca/conf/CS.cfg >> ca_audit_signing.csr
-$ echo "-----END NEW CERTIFICATE REQUEST-----" >> ca_audit_signing.csr
-----
-
----- 
-$ echo "-----BEGIN NEW CERTIFICATE REQUEST-----" > sslserver.csr
-$ sed -n "/^ca.sslserver.certreq=/ s/^[^=]*=// p" < /var/lib/pki/<font color="red">pki-tomcat</font>/ca/conf/CS.cfg >> sslserver.csr
-$ echo "-----END NEW CERTIFICATE REQUEST-----" >> sslserver.csr
-----
- 
-----
-$ echo "-----BEGIN NEW CERTIFICATE REQUEST-----" > subsystem.csr
-$ sed -n "/^ca.subsystem.certreq=/ s/^[^=]*=// p" < /var/lib/pki/<font color="red">pki-tomcat</font>/ca/conf/CS.cfg >> subsystem.csr
-$ echo "-----END NEW CERTIFICATE REQUEST-----" >> subsystem.csr
-----
-
-If the existing CA has certificate chain, export it into a file (see [https://github.com/dogtagpki/pki/wiki/NSS-Database#Exporting_Certificate_Chain Exporting Certificate Chain]):
-
-----
-$ certutil -L -d /var/lib/pki/<font color="red">pki-tomcat</font>/alias -n "<font color="red">external</font>" -a > external.crt
-----
-
-Transfer the certificates, the CSRs, and the certificate chain to the host where the new CA will be installed.
-
-= Installing New CA Instance =
-
-Prepare a deployment configuration file for CA instance, then specify the CA signing certificate and the CSR in the following properties:
-
-----
-pki_existing=True
-
-pki_ca_signing_nickname=<font color="red">ca_signing</font>
-pki_ca_signing_csr_path=ca_signing.csr
-pki_ca_signing_cert_path=ca_signing.crt
-----
-
-In PKI 10.5 or later, the other system certificates and CSRs can optionally be specified as well:
-
-----
-pki_ocsp_signing_nickname=<font color="red">ca_ocsp_signing</font>
-pki_ocsp_signing_csr_path=ca_ocsp_signing.csr
-pki_ocsp_signing_cert_path=ca_ocsp_signing.crt
-
-pki_audit_signing_nickname=<font color="red">ca_audit_signing</font>
-pki_audit_signing_csr_path=ca_audit_signing.csr
-pki_audit_signing_cert_path=ca_audit_signing.crt
-
-pki_subsystem_nickname=<font color="red">subsystem</font>
-pki_subsystem_csr_path=subsystem.csr
-pki_subsystem_cert_path=subsystem.crt
- 
-pki_sslserver_nickname=<font color="red">sslserver</font>
-pki_sslserver_csr_path=sslserver.csr
-pki_sslserver_cert_path=sslserver.crt
-----
-
-If the existing CA has certificate chain, specify it with the following parameters:
-
-----
-pki_cert_chain_nickname=<font color="red">external</font>
+pki_cert_chain_nickname=external
 pki_cert_chain_path=external.crt
 ----
 
@@ -223,10 +119,10 @@ pki_token_password=Secret.123
 In PKI 10.4 or older, either remove the other system certificates in HSM (if no longer needed), or assign new nicknames for the other system certificates to prevent conflicts. For example:
 
 ----
-pki_ocsp_signing_nickname=<font color="red">ca_ocsp_signing1</font>
-pki_audit_signing_nickname=<font color="red">ca_audit_signing1</font>
-pki_subsystem_nickname=<font color="red">subsystem1</font>
-pki_ssl_server_nickname=<font color="red">sslserver1</font>
+pki_ocsp_signing_nickname=ca_ocsp_signing1
+pki_audit_signing_nickname=ca_audit_signing1
+pki_subsystem_nickname=subsystem1
+pki_ssl_server_nickname=sslserver1
 ----
 
 In PKI 10.5 or later, the same nicknames can be reused.
@@ -249,65 +145,10 @@ $ pkispawn -f ca.cfg -s CA
 Verify that the CA signing key ID is the same in the existing and new CA instances. For example:
 
 ----
-$ grep internal= /var/lib/pki/<font color="red">pki-tomcat</font>/conf/password.conf | awk -F= '{print $2;}' > internal.txt
-$ certutil -K -d /var/lib/pki/<font color="red">pki-tomcat</font>/alias -f internal.txt
+$ grep internal= /var/lib/pki/pki-tomcat/conf/password.conf | awk -F= '{print $2;}' > internal.txt
+$ certutil -K -d /var/lib/pki/pki-tomcat/alias -f internal.txt
 ...
-< 2> rsa      7bd4dc662670ebe08a35086b054175559608ac20   <font color="red">ca_signing</font>
-...
-----
-
-In PKI 10.4 or earlier, the CA signing key IDs should be the same.
-
-In PKI 10.5 or later, all key IDs should be the same (except for SSL server key IDs if they are installed on different hosts).
-
-For HSM see also link:NSS-Database#Listing_Keys[this page].
-</font>
-pki_cert_chain_path=external.crt
-----
-
-Specify the HSM configuration in the following properties:
-
-----
-pki_hsm_enable=True
-pki_hsm_libfile=/opt/nfast/toolkits/pkcs11/libcknfast.so
-pki_hsm_modulename=nfast
-pki_token_name=HSM
-pki_token_password=Secret.123
-----
-
-In PKI 10.4 or older, either remove the other system certificates in HSM (if no longer needed), or assign new nicknames for the other system certificates to prevent conflicts. For example:
-
-----
-pki_ocsp_signing_nickname=<font color="red">ca_ocsp_signing1</font>
-pki_audit_signing_nickname=<font color="red">ca_audit_signing1</font>
-pki_subsystem_nickname=<font color="red">subsystem1</font>
-pki_ssl_server_nickname=<font color="red">sslserver1</font>
-----
-
-In PKI 10.5 or later, the same nicknames can be reused.
-
-Also to prevent conflicts with existing certificates in HSM (or existing certificates/requests in migrated database), specify new starting serial/request numbers that are larger than the latest serial/request numbers in the existing CA:
-
-----
-pki_serial_number_range_start=...
-pki_request_number_range_start=...
-----
-
-Then execute:
-
-----
-$ pkispawn -f ca.cfg -s CA
-----
-
-= Verification =
-
-Verify that the CA signing key ID is the same in the existing and new CA instances. For example:
-
-----
-$ grep internal= /var/lib/pki/<font color="red">pki-tomcat</font>/conf/password.conf | awk -F= '{print $2;}' > internal.txt
-$ certutil -K -d /var/lib/pki/<font color="red">pki-tomcat</font>/alias -f internal.txt
-...
-< 2> rsa      7bd4dc662670ebe08a35086b054175559608ac20   <font color="red">ca_signing</font>
+< 2> rsa      7bd4dc662670ebe08a35086b054175559608ac20   ca_signing
 ...
 ----
 
