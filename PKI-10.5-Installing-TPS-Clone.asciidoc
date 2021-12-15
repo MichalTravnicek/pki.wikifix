@@ -1,0 +1,102 @@
+= Overview (UNDER CONSTRUCTION) =
+
+This document describes the process to clone TPS.
+
+= Creating DS Instance =
+
+Use setup-ds.pl to create a DS instance:
+
+----
+$ setup-ds.pl --silent\
+ General.FullMachineName=`hostname`\
+ General.SuiteSpotUserID=nobody\
+ General.SuiteSpotGroup=nobody\
+ slapd.ServerPort=10389\
+ slapd.ServerIdentifier=pki-clone\
+ slapd.Suffix=dc=example,dc=com\
+ slapd.RootDN="cn=Directory Manager"\
+ slapd.RootDNPwd=Secret.123
+Your new DS instance 'pki-clone' was successfully created.
+Exiting . . .
+Log file is '/tmp/setup7m5RoN.log'
+----
+
+= Exporting TPS System Certificates =
+
+The TPS system certificates can be exported using the following commands.
+
+=== Dogtag 10.2 or older ===
+
+Copy the NSS database password into a file:
+
+----
+$ grep "internal=" /var/lib/pki/pki-tomcat/conf/password.conf | awk -F= '{print $2}' > internal.txt
+----
+
+Export all system certificates (including TPS system certificates) into a PKCS #12 file:
+
+----
+$ PKCS12Export -debug \
+    -d /var/lib/pki/pki-tomcat/alias \
+    -p internal.txt \
+    -o tps_backup_keys.p12 \
+    -w ~/.dogtag/pki-tomcat/ca/pkcs12_password.conf
+----
+
+Transfer the file to the clone. The clone will import only the certificates and keys needed by the clone.
+
+=== Dogtag 10.3 or newer ===
+
+Export TPS system certificates with the following command:
+
+----
+$ pki-server tps-clone-prepare --pkcs12-file pki-server.p12 --pkcs12-password Secret.123
+----
+
+= Installing TPS Clone =
+
+Currently the TPS clone can only be installed using a deployment configuration file:
+
+----
+[TPS]
+pki_admin_email=tpsadmin@example.com
+pki_admin_name=tpsadmin
+pki_admin_nickname=tpsadmin
+pki_admin_password=Secret.123
+pki_admin_uid=tpsadmin
+
+pki_client_database_password=Secret.123
+pki_client_database_purge=False
+pki_client_pkcs12_password=Secret.123
+
+pki_ds_base_dn=dc=tps,dc=example,dc=com
+pki_ds_database=tps
+pki_ds_password=Secret.123
+
+pki_security_domain_hostname=master.example.com
+pki_security_domain_https_port=8443
+pki_security_domain_user=caadmin
+pki_security_domain_password=Secret.123
+
+pki_clone=True
+pki_clone_replicate_schema=True
+pki_clone_uri=https://master.example.com:8443
+
+# Dogtag 10.2 only
+pki_clone_pkcs12_path=/tmp/tps_backup_keys.p12
+pki_clone_pkcs12_password=Secret.123
+
+# Dogtag 10.3 only
+pki_server_pkcs12_path=pki-server.p12
+pki_server_pkcs12_password=Secret.123
+
+pki_authdb_basedn=dc=example,dc=com
+pki_authdb_port=389
+pki_enable_server_side_keygen=True
+----
+
+Begin the installation: 
+
+----
+$ pkispawn -v -f tpsclone.cfg -s TPS
+----
