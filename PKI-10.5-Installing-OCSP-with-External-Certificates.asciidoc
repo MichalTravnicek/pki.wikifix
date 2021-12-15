@@ -1,0 +1,181 @@
+= Overview =
+
+This page describes the process to install OCSP with external certificates in PKI 10.5. In this scenario, the OCSP uses an external CA to issue the OCSP system certificates. The OCSP will join the CA's security domain.
+
+The installation process consists multiple steps:
+
+* Initializing installation
+** Creating initial configuration files
+** Creating empty NSS database
+** Generating keys and CSRs (optional)
+* Generating certificates
+** Generating keys and CSRs (optional)
+** Obtaining certificates from external CA
+* Finalizing installation
+
+See also link:Installing-Standalone-OCSP[Installing Standalone OCSP].
+
+= Preparing for Installation =
+
+Prepare a deployment configuration file for step 1 (e.g. `ocsp-step1.cfg`):
+
+----
+[OCSP]
+pki_admin_email=ocspadmin@example.com
+pki_admin_name=ocspadmin
+pki_admin_nickname=ocspadmin
+pki_admin_password=Secret.123
+pki_admin_uid=ocspadmin
+
+pki_client_database_password=Secret.123
+pki_client_database_purge=False
+pki_client_pkcs12_password=Secret.123
+
+pki_ds_base_dn=dc=ocsp,dc=example,dc=com
+pki_ds_database=ocsp
+pki_ds_password=Secret.123
+
+pki_security_domain_name=EXAMPLE
+pki_security_domain_user=caadmin
+pki_security_domain_password=Secret.123
+
+pki_token_password=Secret.123
+
+pki_external=True
+pki_external_step_two=False
+
+pki_ocsp_signing_nickname=ocsp_signing
+pki_subsystem_nickname=subsystem
+pki_sslserver_nickname=sslserver
+pki_audit_signing_nickname=ocsp_audit_signing
+----
+
+Optionally, specify the paths to store the CSR files:
+
+----
+pki_ocsp_signing_csr_path=ocsp_signing.csr
+pki_subsystem_csr_path=subsystem.csr
+pki_sslserver_csr_path=sslserver.csr
+pki_audit_signing_csr_path=ocsp_audit_signing.csr
+pki_admin_csr_path=ocsp_admin.csr
+----
+
+If it's not specified pkispawn will not generate the key and the CSR so they can be generated with a different mechanism.
+
+Optionally, specify the HSM parameters:
+
+----
+pki_hsm_enable=True
+pki_hsm_libfile=/opt/nfast/toolkits/pkcs11/libcknfast.so
+pki_hsm_modulename=nfast
+----
+
+Then execute the following command:
+
+----
+$ pkispawn -f ocsp-step1.cfg -s OCSP
+----
+
+It will create an NSS database in `/etc/pki/pki-tomcat/alias` and generate CSRs in the specified paths.
+
+= Generating Certificates =
+
+Use an external CA to issue the certificates:
+
+* link:https://www.dogtagpki.org/wiki/Issuing_OCSP_Certificates_with_NSS[Issuing OCSP Certificates with NSS]
+* link:https://www.dogtagpki.org/wiki/Issuing_OCSP_Certificates_with_PKI_CA[Issuing OCSP Certificates with PKI CA]
+* link:https://www.dogtagpki.org/wiki/Issuing_OCSP_Certificates_with_CMC[Issuing OCSP Certificates with CMC]
+
+Place the issued certificates in the location indicated in the next section.
+
+= Completing Installation =
+
+Prepare a deployment configuration for step 2 (e.g. `ocsp-step2.cfg`) by copying it from step 1 (i.e. `ocsp-step1.cfg`) and make the following changes.
+
+Specify step 2 with the following parameter:
+
+----
+pki_external_step_two=True
+----
+
+If pkispawn did not generate the CSRs, specify the paths in the following parameters:
+
+----
+pki_ocsp_signing_csr_path=ocsp_signing.csr
+pki_subsystem_csr_path=subsystem.csr
+pki_sslserver_csr_path=sslserver.csr
+pki_audit_signing_csr_path=ocsp_audit_signing.csr
+pki_admin_csr_path=ocsp_admin.csr
+----
+
+Specify the certificate files with the following parameters:
+
+----
+pki_ocsp_signing_cert_path=ocsp_signing.crt
+pki_subsystem_cert_path=subsystem.crt
+pki_sslserver_cert_path=sslserver.crt
+pki_audit_signing_cert_path=ocsp_audit_signing.crt
+pki_admin_cert_path=ocsp_admin.crt
+----
+
+Each certificate file can contain either a single PEM certificate or a PKCS #7 certificate chain.
+
+If all of the above certificate files contain single certificates, the CA signing certificate and/or the certificate chain can be specified with the following parameters:
+
+----
+pki_ca_signing_nickname=ca_signing
+pki_ca_signing_cert_path=ca_signing.crt
+pki_cert_chain_nickname=cert_chain
+pki_cert_chain_path=cert_chain.p7b
+----
+
+The CA signing certificate and the certificate chain file can contain either a single certificate or a PKCS #7 certificate chain as well.
+
+Finally, execute the following command:
+
+----
+$ pkispawn -f ocsp-step2.cfg -s OCSP
+----
+
+= Verification =
+
+On the CA, verify that the OCSP is added into the security domain with the following command:
+
+----
+$ pki -c Secret.123 -n caadmin securitydomain-show
+
+  Domain: EXAMPLE
+
+  CA Subsystem:
+
+    Host ID: CA <CA hostname> 8443
+    Hostname: <CA hostname>
+    Port: 8080
+    Secure Port: 8443
+    Domain Manager: TRUE
+
+  OCSP Subsystem:
+
+    Host ID: OCSP <OCSP hostname> 8443
+    Hostname: <OCSP hostname>
+    Port: 8080
+    Secure Port: 8443
+    Domain Manager: FALSE
+----
+
+On the OCSP, verify the OCSP admin can access the OCSP. If `pki_client_database_purge=False`, execute the following command:
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/ocsp/alias -c Secret.123 -n ocspadmin ocsp-user-find
+----
+
+Otherwise, execute the following commands:
+
+----
+$ pki -c Secret.123 client-init
+$ pki -c Secret.123 client-cert-import ca_signing --ca-cert ca_signing.crt
+$ pki -c Secret.123 client-cert-import \
+    --pkcs12 ~/.dogtag/pki-tomcat/ocsp_admin_cert.p12 \
+    --pkcs12-password-file ~/.dogtag/pki-tomcat/ocsp/pkcs12_password.conf
+$ pki -c Secret.123 -n ocspadmin ocsp-user-find
+----
