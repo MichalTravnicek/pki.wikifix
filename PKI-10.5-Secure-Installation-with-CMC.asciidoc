@@ -1,0 +1,436 @@
+= Overview =
+
+This page provides some tips for deployment sites that are interested in secure options during installation.  Although some instruction procedures are given for link:https://access.redhat.com/documentation/en-us/red_hat_certificate_system/[RHCS] in the RHEL environment at this time, there should be comparable Dogtag 10.5 procedures.  In this document, the terms **CS** and **PKI** are used interchangeably.
+
+Although non-CMC enrollment methods could take advantage of many of the secure options listed on this page, instructions and examples given here are mainly focused on CMC enrollment methods.
+
+When applicable, relevant pkispawn example config parameters are provided at each section.  They are to be used for knowledge-gaining purpose only, and no action is expected till instructed in the CS instance creation section.
+
+**Note:** unless otherwise noted, all OS commands on this page are to be run as the root user.
+
+**Note:** pkispawn is the CLI used for creating Dogtag/RHCS instances. For more information, type `man pkispawn` at command prompt.
+
+= OS Installation =
+
+* Install RHEL 7.x (Red Hat subscription needed) or Fedora 10.5 per respective instruction.
+
+Some references:
+
+* RHEL-7 - https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/installation_guide/index
+* CentOS-7 - https://wiki.centos.org/Manuals/ReleaseNotes/CentOS7
+* Fedora 27 - https://docs.fedoraproject.org/f27/system-administrators-guide/index.html
+
+= FIPS =
+
+Information on enabling FIPS mode for RHEL can be found here:
+https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/security_guide/chap-federal_standards_and_regulations
+
+Here is a summary of the procedures:
+
+* link:https://www.dogtagpki.org/wiki/Configuring_FIPS_on_RHEL[Configuring FIPS on RHEL]
+
+= HSM =
+
+See supported HSMs: https://access.redhat.com/documentation/en-us/red_hat_certificate_system/9/html/release_notes/chap-release-notes-rhcs-9-2#Release_Notes-Deployment_Notes-Optional_Server_Hardware-9-2
+
+Follow your HSM vendor's procedure to set up your Hardware Security Module.  For CS instance creation using pkispawn, you will need
+
+* token/partition name
+* token/partition password
+
+Make sure you obtain those from your HSM administrator before you proceed with pkispawn.
+
+Here is an example of the relevant pkispawn info for a Thales module:
+
+----
+pki_hsm_enable=True
+pki_hsm_libfile=/opt/nfast/toolkits/pkcs11/libcknfast.so
+# lunasa would be /usr/safenet/lunaclient/lib/libCryptoki2_64.so 
+pki_hsm_modulename=nfast
+pki_token_name=NHSM6000
+pki_token_password=MY.HSM.123
+----
+
+Later in the pkispawn section this option will be included in the example.
+
+= SELinux =
+
+By default, SELinux should be in enforcing mode.  To verify see link:https://www.dogtagpki.org/wiki/SELinux#Checking_SELinux_mode[Checking SELinux mode].
+
+If the result of the command `getenforce` is `disabled` or `permissive` then as a root user:
+
+* edit the file `/etc/sysconfig/selinux` and set `SELINUX=Enforcing`
+* reboot the system
+
+Note: SELinux policies for CS are incorporated into the standard system SELinux policies. There is therefore no actions needed by default.  **However, if HSM is to be used, one needs to run the following command** after HSM client is setup on the installing system and before `pkispawn` is executed (instruction for nCipher):
+
+----
+$ /sbin/restorecon -R /opt/nfast
+$ /opt/nfast/sbin/init.d-ncipher restart
+----
+
+= OS groups and CS Roles =
+
+This section explains how to correspond the CS roles to OS groups, as well as how to strengthen the CS instance files with proper ownership/permissions.
+
+Information on CS roles can be found here: https://access.redhat.com/documentation/en-us/red_hat_certificate_system/9/html-single/administration_guide/index#User_and_Group_Authorization
+
+== CS Instance Files Ownership and Permissions ==
+
+On the file system, when a CS instance is created, by default, the user group `pkiuser` and user id `pkiuser` are set as the owner of the CS system files.
+
+The following relevant `pkispawn` parameters are listed. **The values presented here are the default values so in general you do not need to explicitly specify them**. 
+
+----
+pki_group=pkiuser
+pki_user=pkiuser
+----
+
+== CS Roles and Privileges ==
+
+https://www.dogtagpki.org/wiki/PKI_Roles_and_Privileges
+
+In general, CS administrators, agents, as well as auditors can manage the CS instance remotely using client applications such as CLIs, the Java Console, and browsers.  For the majority of CS management tasks, a CS role user does not need to log on to the host where the CS instance runs. For instance, a pki auditor is allowed to retrieve signed audit logs remotely for verification: link:Audit-Review-and-Search-Design#downloading-audit-log-files[Audit Review and Search_Design - Downloading Audit Log Files].
+
+In some cases,however, a CS administrator might need to log on to the host system to modify configuration files directly.
+
+In addition, on the Operating System, the role "pki administrator" should be someone who is allowed to make changes to the configuration files and read various logs. For some environment, it is desirable to prohibit the administrators to access the audit logs.
+
+Because of these, you want to consider the following:
+
+* Create a `pkiadmin` group on the OS
+** note: Users should be existing on the OS before being added to the pki groups that they belong.
+** Run `man useradd` on the command line to learn how to add a user.
+* Add pki administration users to the `pkiadmin` group:
+** Run `man usermod` on the command line to learn how to add a user to the right pki group.
+* On the OS, add proper `sudo` rules to allow the `pkiadmin` group to read and modify the desired CS configuration files, e.g.
+** `CS.cfg`
+** `server.xml`
+** profiles
+* Change the file owner and permission on the files listed above to `pkiadmin`.
+
+= RHCS/Dogtag and RHDS/389-ds Package Installation =
+
+Overview at link:Installation-Guide[PKI Install Guide]
+link:https://www.dogtagpki.org/wiki/PKI_Data_Storage_Requirements[PKI Data Storage Requirements]
+
+e.g. (for Fedora: yum dnf ...)
+`yum install 389-ds pki-ca pki-kra pki-ocsp`
+
+= Creating an LDAP Instance =
+
+Follow instruction here to install and create DS instance: 
+link:DS-Installation[DS Installation]
+
+= Configuring LDAP over SSL =
+
+When installing a CA instance, if the internal LDAP server is on a different host than the ca's intended host, or if the installing environment is less secure, site administrators should consider employing SSL between the LDAP server and the CA during installation.
+A temporary self-signed DS server certificate could be used initially during CA instance creation before CA becomes functional. 
+Here you will find steps on how to establish that at the "Generating Temporary DS Certificate" section:
+link:https://www.dogtagpki.org/wiki/Enabling_SSL_Connection_with_Internal_Database_on_New_Instance#Generating_Temporary_DS_Certificate[Enabling SSL Connection with Internal Database on New Instance#Generating_Temporary_DS_Certificate]
+
+And here you will find instruction on "Enabling Secure Connection in DS":
+link:https://www.dogtagpki.org/wiki/Enabling_SSL_Connection_with_Internal_Database_on_New_Instance#Enabling_Secure_Connection_in_DS[Enabling SSL Connection with Internal Database on New Instance#Enabling_Secure_Connection_in_DS]
+
+**Note:** Please stop at end of the above linked section.  You will be directed to continue with
+http://pki.fedoraproject.org/wiki/Enabling_SSL_Connection_with_Internal_Database_on_New_Instance#Enabling_Secure_DS_Connection_in_PKI
+when we get to the step on creating the pki instance with pkispawn.
+
+
+Later, when installing a non-CA cs instance, no temporary DS SSL server certificate is needed, as the already-setup CA could issue a real server cert for the directory server.
+
+For ease of reference, I'm copying the relevant example pkispawn parameters given at the above-mentioned instruction link here:
+
+----
+pki_ds_secure_connection=True
+pki_ds_hostname=server.example.com
+pki_ds_ldaps_port=636
+pki_ds_secure_connection_ca_nickname=DS Certificate
+pki_ds_secure_connection_ca_pem_file=ds.crt
+----
+
+where the `pki_ds_secure_connection_ca_pem_file` contains the PEM format of the temporary DS server certificate.
+
+= Creating CS Instance =
+
+First, for information about pkispawn, please run `man pkispawn` at command line.
+
+**Note:** Although the example below is given primarily for creating a root CA, as that's what most likely would be the first
+CA instance one creates, the instructions are meant for all subsystems unless otherwise noted.
+
+== Pre-pkispawn Knowledge and Considerations ==
+
+Before running pkispawn to create a CS instance, a few pre-pkispawn considerations to note:
+
+* **Unique Nicknames:** If a network (shared) HSM partition is used, understand that certificate nicknames must be unique. Unless a nickname is explicitly specified, by default, the following pkispawn parameters are used to generate a nickname: Under `[DEFAULT]` section
+** `pki_instance_name`
+** `pki_security_domain_name`
+** `pki_host` (for server certificates)
+* **Bootstrap Admin User:** A "bootstrap" admin user is needed at time of pkispawn cs instance creation. This bootstrap user by default possesses all role privileges. This user will be the one that creates other role (administrator, agent, auditor) users. For stronger security, after creating the first single-role admin user, the bootstrap user should be removed.  The pkispawn parameters relevant to such "bootstrap" admin user are the following. e.g.: Under `[<subsystem>]` section (e.g. `[CA]`)
+** `pki_admin_email=caadmin@example.com`
+** `pki_admin_name=pkica admin`
+** `pki_admin_nickname=caadmin`*
+** `pki_admin_password=MY.password.123`
+** `pki_admin_uid=caadmin`
+* **Random Serial Numbers:** It is possible to instruct the CA to generate random serial numbers to the certificates it issues link:Random-Certificate-Serial-Numbers[Random Certificate Serial Numbers]. The pkispawn parameter to enable random serial number is:
+** pki_random_serial_numbers_enable (default to false if unspecified)
+* **ECC:** Some sites might prefer having ECC instead of RSA certificates.  By default, without explicitly specified, CS servers are installed with RSA. To install with ECC certificates, the relevant pkispawn configuration parameters are (example shown for CA):
+** under `[DEFAULT]`, add
+*** `pki_admin_key_type=ecc`
+*** `pki_admin_key_size=nistp256`
+*** `pki_admin_key_algorithm=SHA256withEC`
+** under `[CA]`, add
+*** `pki_ca_signing_key_algorithm=SHA256withEC`
+*** `pki_ca_signing_key_size=nistp256`
+*** `pki_ca_signing_key_type=ecc`
+*** `pki_ca_signing_signing_algorithm=SHA256withEC`
+*** `pki_ocsp_signing_key_algorithm=SHA256withEC`
+*** `pki_ocsp_signing_key_size=nistp256`
+*** `pki_ocsp_signing_key_type=ecc`
+*** `pki_ocsp_signing_signing_algorithm=SHA256withEC`
+*** `pki_sslserver_key_algorithm=SHA256withEC`
+*** `pki_sslserver_key_size=nistp256`
+*** `pki_sslserver_key_type=ecc`
+*** `pki_subsystem_key_algorithm=SHA256withEC`
+*** `pki_subsystem_key_size=nistp256`
+*** `pki_subsystem_key_type=ecc`
+** In addition: http://www.dogtagpki.org/wiki/PKI_10.5_Pkispawn_ECC_Profile_Workaround
+* **Passwords:** By default, user passwords are removed after installation. The following parameter is set to `True` by default. For obvious security reasons, make sure the following pkispawn parameter is either not specified, or set to True. Under `[DEFAULT]` section:
+** `pki_client_database_purge=True`
+
+== pkispawn ==
+
+With all the knowledge from the previous sections, we are ready to create a `pkispawn` configuration file for the first CA instance.  This example will be for a root CA, meaning that the CA signing cert will be a self-sign certificate.
+
+For a secure setup, it is advised to use two-step pkispawn procedure to allow administrator opportunity to fine-tune the server configuration before it becomes operational. (see: link:Two-Step-Installation[Two-Step Installation])
+
+=== Step One ===
+
+`pkispawn` example that incorporates all possible secure options (assuming the file name is `ca_inst.inf`):
+
+----
+[DEFAULT]
+pki_instance_name=pki-root-ca-cfu-02082018
+pki_user=pkiuser
+pki_group=pkiuser
+pki_audit_group=pkiaudit
+
+pki_https_port=8443
+pki_http_port=8080
+
+#Token Password
+pki_hsm_enable=True
+pki_hsm_libfile=/opt/nfast/toolkits/pkcs11/libcknfast.so
+pki_hsm_modulename=nfast
+pki_token_name=NHSM6000
+pki_token_password=MY.HSM.123
+
+#Admin Password
+pki_admin_password=MY.password.123
+
+#Security Domain
+pki_hostname=host.example.com
+pki_security_domain_name=Example-root-ca
+pki_security_domain_password=MY.password.123
+
+#client Dir
+pki_client_database_password=MY.password.123
+pki_client_pkcs12_password=MY.password.123
+
+pki_ds_ldap_port=389
+pki_ds_bind_dn=cn=Directory Manager
+pki_ds_password=MY.ds.123
+pki_ds_secure_connection=True
+pki_ds_ldaps_port=636
+pki_ds_secure_connection_ca_pem_file=/tmp/ca_cert.pem
+pki_ds_remove_data=True
+
+[Tomcat]
+pki_ajp_port=8009
+pki_tomcat_server_port=8005
+
+[CA]
+pki_admin_nickname=PKI CA Administrator for pki-root-ca-cfu-02082018
+pki_admin_name=caadmin
+pki_admin_uid=caadmin
+pki_admin_email=caadmin@example.com
+pki_admin_key_type=rsa
+pki_import_admin_cert=False
+pki_ds_hostname=host.example.com
+pki_ds_database=pki-ca-cfu
+pki_random_serial_numbers_enable=True
+----
+
+Run step one install (**note the "--skip-configuration" option**):
+
+----
+$ pkispawn -s CA -f ca_inst.inf -vv --skip-configuration
+----
+
+=== Mid-Installation Configuration (Between the two pkispawn steps) ===
+
+One could tweak configurations at this point before CS is fully installed and goes live. See link:https://github.com/dogtagpki/pki/wiki/Two-Step-Installation#use-cases[Two-Step Installation Use Cases]
+
+Below please find some of the options for the more security-oriented.
+
+For CA's only:
+
+* For CMC Shared Token feature:
+** in case the system keys are on the HSM, you need to add the following in the `CS.cfg`: `cmc.token=<hsm token name>`, e.g.
+*** `cmc.token=NHSM6000`
+** enable the SharedToken authentication plugin
+*** link:PKI-10.5-CMC-Shared-Token#editing-cscfg-manually-to-add-the-shared-token-plugin[Editing CS.cfg Manually to add the Shared Token Plugin]
+* For higher level of security, you want to set `cmc.popLinkWitnessRequired` to `true` in the `CS.cfg`, e.g.
+** `cmc.popLinkWitnessRequired=true`
+* Disable enrollment profiles that you don't wish to offer at your site (e.g. non-CMC enrollment profiles)
+** Follow instruction here to list and disable the profiles that you wish to disable:
+*** link:https://github.com/dogtagpki/pki/wiki/Two-Step-Installation#customizing-ca-certificate-profiles[Customizing CA Certificate Profiles]
+* Customize enrollment profiles: e.g.
+** changing enrolled certificate validity:
+*** `cd <instance directory>/ca/profiles/ca`
+*** edit profile: e.g. `$ vi caCACert.cfg`
+*** e.g. change the following line's range value from 7305 to desired value:
+**** `policyset.caCertSet.2.default.params.range=7305`
+
+For all subsystems:
+
+* Enable signed audit:
+** follow: link:https://www.dogtagpki.org/wiki/Signed_Audit_Log#Configuration[Signed Audit Log#Configuration]
+* Customizing TLS cipher list
+** Although the default TLS ciphers should be sufficiently secure, some sites might optionally wish to tweak the cipher list:
+*** link:Configuring-TLS-Cipher-List#customizing-tls-server-cipher-list[Customizing TLS Server Cipher List]
+** For more configuration for CS subsystem when acting as a client in case of CS subsystem to CS subsystem communication:
+*** link:Configuring-TLS-Cipher-List#customizing-tls-client-cipher-list[Customizing TLS Client Cipher List]
+
+For non-CA subsystems:
+
+* For KRA, if HSM is employed, due to HSM limitation, during the "mid-installation" stage, you want to add the following in the KRA's CS.cfg:
+** `kra.allowEncDecrypt.archival=true`
+** `kra.allowEncDecrypt.recovery=true`
+** note: please see link:PKI-10.4-AES-Design#crmfpopclient[PKI 10.4 AES Design - CRMFPopClient]
+* Enable OCSP. Follow the following:
+** Note: since we are in mid-installation instead of post-installation, when you are being instructed to stop or start the system, remember where you are in the mid-installation instruction, and normally you want to make all changes in the mid-installation stage before you restart. 
+** https://access.redhat.com/documentation/en-us/red_hat_certificate_system/9/html-single/administration_guide/index#revocation-checking
+
+=== Step Two ===
+
+Run pkispawn again, this time with `--skip-installation` option instead:
+
+----
+$ pkispawn -s CA -f ca_inst.inf -vv --skip-installation
+----
+
+== Post-pkispawn Considerations and Operations ==
+
+Here are some of the post-installation operations that one might consider.
+
+=== Replacing Temporary LDAP Server Certificate ===
+
+If you followed the earlier procedure to create a temporary LDAP server certificate, you can now enroll for a real LDAP server certificate from the newly created CA to replace by doing the following:
+
+* Generate a PKCS#10 request.  There are different ways to do this
+** DS should have document on how to do this in their recommended way
+** The standard CS procedure is to use PKCS10Util. e.g.
+*** `PKCS10Client -d . -p MY.password.123 -a rsa -l 2048 -o ds.csr -n "CN=host.example.com"`
+* Generate a CMC request and enroll for certificate:
+** link:Issuing-SSL-Server-Certificate-with-CMC[Issuing SSL Server Certificate with CMC]
+* Replace the DS server certificate;  It can be done in various ways.
+** DS should have document on how to do this in their recommended way
+** shutdown ds and use certutil to delete the temporary cert and add the real cert
+
+=== Setting up User Directory for CMC Shared Secret ===
+
+For information on CMC Shared Token, see link:PKI-10.5-CMC-Shared-Token[PKI 10.5 CMC Shared Token]
+
+To setup directory server for supporting CMC Shared Secret, see:
+link:PKI-10.5-CMC-Shared-Token#directory-configuration[Directory Configuration]
+
+=== Watchdog Daemon (nuxwdog) ===
+
+For information on the Password Watchdog Daemon:
+
+* See link:https://www.dogtagpki.org/wiki/Nuxwdog[Nuxwdog]
+* type `man nuxwdog` at command line.
+
+Setup Procedures:
+
+* Adding Services in CS to be Prompted by Nuxwdog - The cms.passwordlist in the CS.cfg contains list of password prompts that are required at time of cs instance startup.  So in the example where an external ldap server is setup for the CMC Shared Secret feature, it's entry would be required if nuxwdog is configured to run.
+** e.g. CS.cfg: `cms.passwordlist=internaldb,replicationdb,CorporateDirectory`
+* Enable nuxwdog - Follow instruction here to enable nuxwdog: link:https://www.dogtagpki.org/wiki/Nuxwdog#Enabling_Nuwxdog[Nuxwdog#Enabling_Nuwxdog]
+
+=== Remove Sensitive Information ===
+
+It is a good practice to not leave password or other sensitive information on the system.  If you had chosen to use the Password Watchdog Daemon, then you should remove passwords or other sensitive information from other areas for the same reason.
+
+Here are some possible areas that you want to clean up after installation:
+
+* password information from pkispawn configuration files
+
+=== Signed Audit Log ===
+
+To prevent unauthorized log manipulation, CS provides Signed Audit Log feature.  Information can be found:
+
+* link:https://www.dogtagpki.org/wiki/Signed_Audit_Log[Signed Audit Log]
+* link:Audit-Review-and-Search-Design#downloading-audit-log-files[Audit Review and Search Design - Downloading Audit Log Files]
+
+**Note:** At time of this writing, only RSA signing certificates are supported as audit signing cert.
+
+=== Disable Multi-role Support ===
+
+For higher security, sites would want to restrict each user to only one role (e.g. an Administrator is not allowed to also have the Agent provileges).  To do that, set the following in the `CS.cfg`:
+
+----
+multiroles.enable=false
+----
+
+=== Preparing PKI CLI ===
+
+CS services can be accessed using link:PKI-CLI[PKI CLI] as a client.
+
+By default PKI CLI will use an NSS database located at ~/.dogtag/nssdb to store client certificates and keys. If the database does not exist, it will be created automatically. To create a database with a specific password, use link:PKI-CLI-Initialization[pki client-init] or link:NSS-Database[certutil] command.
+
+It is also possible to use an existing NSS database, for example:
+
+* `~/.thunderbird/<profile>`
+* `~/.mozilla/firefox/<profile>`
+
+=== Creating Role Users ===
+
+Initially, right after a CS instance is freshly installed, recall that there is only one user existing -- the bootstrap administrator user.
+
+This special user is to issue certificates for other role users before they take over. The process involves:
+
+* Asking these role users to enroll for their certificates if they have not done so already
+** Note: it should be just a certificate that can identify them.
+* Creating and adding the user entries into CS's authentication user database
+* Adding the user's certificate to his/her ldap record
+* Adding each user to his/her assigned group (role)
+
+**Note:** Once the first administrator is added successfully, the bootstrap administrator user, pkiadmin, can be either removed from the authentication user database.
+
+Setup Procedures:
+
+* Role User Enrolls for a certificate - 
+** Note: In the below example, if KRA has not yet been installed and setup, or if key archival is not of interest, then replace the CRMFPopClient in the instruction with PKCS10Client. e.g. `PKCS10Client -d . -p netscape -n "cn=just me cfu, uid=cfu" -o pkcs10.req`
+** Follow the instruction here to issue a pki administrator: https://github.com/dogtagpki/pki/wiki/CMC-Examples---Getting-Role-User-Certificate
+* Once the certificate is issued successfully, it could be tied in with the intended user and assigned the proper role:
+** Adding User to Assigned Role (group) -You can now create role users per instruction:link:PKI-User-CLI[PKI User CLI]
+** Adding the user certificate to the user record: link:PKI-User-Certificate-CLI[PKI User Certificate CLI]
+* Adding the user to the proper role (group): link:PKI-User-Membership-CLI[PKI User Membership CLI]
+* for TPS, see https://access.redhat.com/documentation/en-us/red_hat_certificate_system/9/html-single/administration_guide/index#managing-user-and-groups-for_a_TPS
+
+=== Java Security Manager ===
+
+This section is for information only.  The default configuration should cover all that's needed.
+
+All RHCS/Dogtag instances run as Tomcat instances with the Java Security
+Manager enabled by default.
+
+This is controlled on an instance-by-instance basis by the
+`SECURITY_MANAGER="true"` parameter located in the
+`/var/lib/pki/<instance_name>/conf/tomcat.conf` file.
+
+= Other CS subsystems =
+
+Follow the instructions below to install non-root-CA subsystems (e.g. subordinate CA, OCSP, KRA, TKS, and TPS):
+link:PKI-10.5-Installation-with-CMC[PKI 10.5 Installation with CMC]
