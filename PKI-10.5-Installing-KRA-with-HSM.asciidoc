@@ -1,0 +1,223 @@
+= Overview =
+
+This document describes the process to install KRA subsystem with HSM. This assumes the CA subsystem has already been installed with HSM and the CA admin certificate has been exported to `/root/.dogtag/pki-tomcat/ca_admin.cert`.
+
+= Preparation =
+
+Prepare a deployment configuration file (e.g. `kra-hsm.cfg`). For nFast add the following parameters:
+
+----
+[DEFAULT]
+pki_hsm_enable=True
+pki_hsm_libfile=/opt/nfast/toolkits/pkcs11/libcknfast.so
+pki_hsm_modulename=nfast
+pki_token_name=HSM
+pki_token_password=Secret.123
+----
+
+For Luna SA add the following parameters:
+
+----
+[DEFAULT]
+pki_hsm_enable=True
+pki_hsm_libfile=/usr/safenet/lunaclient/lib/libCryptoki2_64.so
+pki_hsm_modulename=lunasa
+pki_token_name=HSM
+pki_token_password=Secret.123
+----
+
+By default the server will generate a random password for the internal NSS database. If necesssary (e.g. in FIPS mode) a specific password can be specified with the following parameter:
+
+----
+pki_pin=Secret.123
+----
+
+Then specify the normal KRA configuration parameters:
+
+----
+[KRA]
+pki_admin_cert_file=/root/.dogtag/pki-tomcat/ca_admin.cert
+pki_admin_email=kraadmin@example.com
+pki_admin_name=kraadmin
+pki_admin_nickname=kraadmin
+pki_admin_password=Secret.123
+pki_admin_uid=kraadmin
+
+pki_client_database_password=Secret.123
+pki_client_pkcs12_password=Secret.123
+
+pki_ds_base_dn=dc=kra,dc=example,dc=com
+pki_ds_database=kra
+pki_ds_password=Secret.123
+
+pki_security_domain_name=EXAMPLE
+pki_security_domain_user=caadmin
+pki_security_domain_password=Secret.123
+----
+
+If necessary, specify unique certificate nicknames to avoid conflicts with other instances sharing the same HSM, for example:
+
+----
+pki_storage_nickname=%(pki_instance_name)s/storage
+pki_transport_nickname=%(pki_instance_name)s/transport
+pki_audit_signing_nickname=%(pki_instance_name)s/kra_audit_signing
+pki_subsystem_nickname=%(pki_instance_name)s/subsystem
+----
+
+Also if necessary, specify a unique nickname to avoid conflicts with SSL server certificates for other clones of the same instance sharing the same HSM, for example:
+
+----
+pki_sslserver_nickname=%(pki_instance_name)s/sslserver/%(pki_hostname)s
+----
+
+On PKI 10.6 due to the switch to link:PKI-10.6-HTTP-NIO-Connector-Support[NIO connector] the SSL server certificate has to be created in the internal token:
+
+----
+pki_sslserver_token=internal
+----
+
+= Installation =
+
+To begin the installation, execute the following command:
+
+----
+$ pkispawn -v -f kra-hsm.cfg -s KRA
+----
+
+= Verification =
+
+== Verify HSM module ==
+
+The HSM module should be installed in the NSS database:
+
+----
+$ modutil -dbdir /var/lib/pki/pki-tomcat/alias/ -list
+
+Listing of PKCS #11 Modules
+-----------------------------------------------------------
+  1. NSS Internal PKCS #11 Module
+         slots: 2 slots attached
+        status: loaded
+
+         slot: NSS Internal Cryptographic Services
+        token: NSS Generic Crypto Services
+
+         slot: NSS User Private Key and Certificate Services
+        token: NSS Certificate DB
+
+  2. nfast
+        library name: /opt/nfast/toolkits/pkcs11/libcknfast.so
+         slots: 2 slots attached
+        status: loaded
+
+         slot: 061C-37A2-3CB3 Rt1
+        token: accelerator
+
+         slot: 061C-37A2-3CB3 Rt1 slot 0
+        token: HSM
+-----------------------------------------------------------
+----
+
+== Verify certificates in HSM ==
+
+The certificates should be stored in HSM: 
+
+----
+$ echo Secret.123 > password.txt
+$ certutil -L -d /var/lib/pki/pki-tomcat/alias -h HSM -f password.txt
+
+Certificate Nickname                                         Trust Attributes
+                                                             SSL,S/MIME,JAR/XPI
+
+HSM:pki-tomcat/storage                                       u,u,u
+HSM:pki-tomcat/transport                                     u,u,u
+HSM:pki-tomcat/sslserver/server.example.com                  u,u,u
+HSM:pki-tomcat/subsystem                                     u,u,u
+HSM:pki-tomcat/kra_audit_signing                             u,u,Pu
+----
+
+== Verify keys in HSM ==
+
+The keys should be stored in HSM:
+
+----
+$ certutil -K -d /var/lib/pki/pki-tomcat/alias -h HSM -f password.txt
+< 0> rsa      51c5c7c69664bf3ebbe0e3ab7f32c484f76fab3c   pki-tomcat/storage
+< 1> rsa      42b4d3c576e4193aa93975ebc0cf3b71322076af   pki-tomcat/transport
+< 2> rsa      6aebfa19912e7d4c938487448d8595f0c2ee46ee   pki-tomcat/sslserver/server.example.com
+< 3> rsa      2235764e98d1b973aa1a231c09aebc8e33133641   pki-tomcat/subsystem
+< 4> rsa      c06b9b64e89f1939d3a7137aa4fc9b0300a9db73   pki-tomcat/kra_audit_signing
+----
+
+== Verify KRA is running ==
+
+Verify KRA is running with the following command:
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin kra-user-find
+-----------------
+2 entries matched
+-----------------
+  User ID: kraadmin
+  Full name: kraadmin
+
+  User ID: CA-server.example.com-8443
+  Full name: CA-server.example.com-8443
+----------------------------
+Number of entries returned 2
+----------------------------
+----
+
+== Verify KRA connector ==
+
+Verify the `CS.cfg` in the issuing CA has the following parameters:
+
+----
+ca.connector.KRA.enable=true
+ca.connector.KRA.host=server.example.com
+ca.connector.KRA.local=false
+ca.connector.KRA.nickName=subsystemCert cert-pki-tomcat
+ca.connector.KRA.port=8443
+ca.connector.KRA.timeout=30
+ca.connector.KRA.transportCert=<base-64 encoded data>
+ca.connector.KRA.uri=/kra/agent/kra/connector
+----
+
+= Removing KRA with HSM =
+
+To remove KRA execute the following command:
+
+----
+$ pkidestroy -v -s KRA -i pki-tomcat
+----
+
+Note that the certificates and keys will not be deleted from HSM automatically. To remove the certificates and keys manually, create a temporary NSS database with the HSM module:
+
+----
+$ mkdir nssdb
+$ certutil -N -d nssdb -f password.txt
+$ modutil -dbdir nssdb -add nfast -libfile /opt/nfast/toolkits/pkcs11/libcknfast.so
+----
+
+If this is the last subsystem on the machine, remove the SSL server key (which will remove the corresponding certificate as well) with the following commands:
+
+----
+$ certutil -F -d nssdb -h HSM -f password.txt -n "HSM:pki-tomcat/sslserver/server.example.com"
+----
+
+If this is the last clone of this instance, remove the other keys (which will remove the corresponding certificates as well) with the following commands:
+
+----
+$ certutil -F -d nssdb -h HSM -f password.txt -n "HSM:pki-tomcat/storage"
+$ certutil -F -d nssdb -h HSM -f password.txt -n "HSM:pki-tomcat/transport"
+$ certutil -F -d nssdb -h HSM -f password.txt -n "HSM:pki-tomcat/subsystem"
+$ certutil -F -d nssdb -h HSM -f password.txt -n "HSM:pki-tomcat/kra_audit_signing"
+----
+
+Each command will ask for the NSS database password then the HSM password.
+
+Finally, remove the temporary NSS database:
+
+----
+$ rm -rf nssdb
+----
