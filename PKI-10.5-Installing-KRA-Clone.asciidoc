@@ -1,0 +1,190 @@
+= Overview =
+
+A CA supports multiple KRA instances, but the additional KRA instances have to be installed as clones.
+
+= Creating DS Instance =
+
+link:DS-Installation[Install] a DS instance for the CA clone.
+
+If SSL is enabled on DS master, the DS clone must be configured with SSL too. Make sure the DS master and clone trust each other's certificates.
+
+= Exporting KRA System Certificates =
+
+== Dogtag 10.3 or newer ==
+
+Export KRA system certificates with the following command:
+
+----
+$ pki-server kra-clone-prepare --pkcs12-file kra-certs.p12 --pkcs12-password Secret.123
+----
+
+If necessary, third-party certificates (e.g. other trust anchors) can be added into the same PKCS #12 file with the following command:
+
+----
+$ pki -d /var/lib/pki/pki-tomcat/alias pkcs12-cert-add <nickname> --pkcs12-file kra-certs.p12 --pkcs12-password Secret.123
+----
+
+== Dogtag 10.2 or older ==
+
+Copy the NSS database password into a file:
+
+----
+$ grep "internal=" /var/lib/pki/pki-tomcat/conf/password.conf | awk -F= '{print $2}' > internal.txt
+----
+
+Export all system certificates (including KRA system certificates) into a PKCS #12 file:
+
+----
+$ PKCS12Export -debug \
+    -d /var/lib/pki/pki-tomcat/alias \
+    -p internal.txt \
+    -o kra-certs.p12 \
+    -w ~/.dogtag/pki-tomcat/ca/pkcs12_password.conf
+----
+
+Transfer the file to the clone. The clone will import only the certificates and keys needed by the clone.
+
+== Verification ==
+
+Make sure the PKCS #12 file contains at least the following KRA system certificates:
+
+----
+$ pki pkcs12-cert-find --pkcs12-file kra-certs.p12 --pkcs12-password-file password.txt
+---------------
+5 entries found
+---------------
+  Certificate ID: 198044eedfa033ee967e312c1a2aeb19f8b2d1eb
+  Serial Number: 0x4
+  Nickname: subsystem
+  Subject DN: CN=Subsystem Certificate,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Trust Flags: u,u,u
+  Has Key: true
+
+  Certificate ID: 4de24622b0a8f8bea8955f9b794e670adfa5bc14
+  Serial Number: 0x1
+  Nickname: ca_signing
+  Subject DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Trust Flags: CTu,Cu,Cu
+  Has Key: false
+
+  Certificate ID: 4249d389308f1c3f76e6508ac7a54f5f6fe45020
+  Serial Number: 0x8
+  Nickname: kra_transport
+  Subject DN: CN=DRM Transport Certificate,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Trust Flags: u,u,u
+  Has Key: true
+
+  Certificate ID: 79c0c010f76f29c629a4b68ad773e80a93b77645
+  Serial Number: 0x9
+  Nickname: kra_storage
+  Subject DN: CN=DRM Storage Certificate,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Trust Flags: u,u,u
+  Has Key: true
+
+  Certificate ID: 1c9a257c389146e1fda9f9fcc3a3875515af3d2c
+  Serial Number: 0xa
+  Nickname: kra_audit_signing
+  Subject DN: CN=KRA Audit Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Trust Flags: u,u,Pu
+  Has Key: true
+----
+
+= Installing KRA Clone =
+
+Transfer the PKCS #12 file to the clone, then prepare a deployment configuration file (e.g. `kra-clone.cfg`): 
+
+----
+[KRA]
+pki_admin_email=kraadmin@example.com
+pki_admin_name=kraadmin
+pki_admin_nickname=kraadmin
+pki_admin_password=Secret.123
+pki_admin_uid=kraadmin
+
+pki_client_database_password=Secret.123
+pki_client_database_purge=False
+pki_client_pkcs12_password=Secret.123
+
+pki_ds_base_dn=dc=kra,dc=example,dc=com
+pki_ds_database=kra
+pki_ds_password=Secret.123
+
+pki_security_domain_hostname=master.example.com
+pki_security_domain_https_port=8443
+pki_security_domain_user=caadmin
+pki_security_domain_password=Secret.123
+
+pki_clone=True
+pki_clone_replicate_schema=True
+pki_clone_uri=https://master.example.com:8443
+
+# Dogtag 10.2 or older
+pki_clone_pkcs12_path=/tmp/kra-certs.p12
+pki_clone_pkcs12_password=Secret.123
+
+# Dogtag 10.3 or newer
+pki_server_pkcs12_path=/tmp/kra-certs.p12
+pki_server_pkcs12_password=Secret.123
+----
+
+If necessary, specify the certificate nicknames in the following parameters to match the nicknames in the PKCS #12 file:
+
+----
+pki_storage_nickname=kra_storage
+pki_transport_nickname=kra_transport
+pki_audit_signing_nickname=kra_audit_signing
+pki_ssl_server_nickname=sslserver
+pki_subsystem_nickname=subsystem
+----
+
+By default it will use the CA running on the security domain. To use a different CA, add the following parameter:
+
+----
+pki_issuing_ca_hostname=clone.example.com
+----
+
+Begin the installation: 
+
+----
+$ pkispawn -v -f kra-clone.cfg -s KRA
+----
+
+= Verification =
+
+== Verify certificates ==
+
+The certificates should have the same nicknames and trust flags as in the master:
+
+----
+$ certutil -L -d /var/lib/pki/pki-tomcat/alias
+
+Certificate Nickname                                         Trust Attributes
+                                                             SSL,S/MIME,JAR/XPI
+
+ca_signing                                                   CTu,Cu,Cu
+kra_storage                                                  u,u,u
+sslserver                                                    u,u,u
+subsystem                                                    u,u,u
+kra_audit_signing                                            u,u,Pu
+kra_transport                                                u,u,u
+----
+
+== Verify keys ==
+
+The keys should have the same IDs as in the master except for the SSL server key:
+
+----
+$ sed -n "/^internal=/ s/^[^=]*=// p" < /var/lib/pki/pki-tomcat/conf/password.conf > internal.txt
+$ certutil -K -d /var/lib/pki/pki-tomcat/alias -f internal.txt
+< 0> rsa      f70351198f7f187817c81d487bd234142667795c   ca_signing
+< 1> rsa      8bf6f5cf5440afcf44e3d214f934e01d7af2aa9b   kra_storage
+< 2> rsa      89e726484ed59a6b799964643cc034be56f9a6b4   sslserver
+< 3> rsa      1653750cb7eb41ce1afa96550dde6bcab75abbe3   subsystem
+< 4> rsa      ecc849e34b126b013c11f8a46b6edc4c31eec106   kra_audit_signing
+< 5> rsa      76a05112fbcadcbae4df69d57164976a8b01a326   kra_transport
+----
