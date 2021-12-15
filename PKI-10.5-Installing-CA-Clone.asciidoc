@@ -1,0 +1,198 @@
+= Overview =
+
+PKI CA can be cloned into a separate instance with a separate database. If cloning is done on the same machine (for testing) the clone instance and database need to run on different ports.
+
+This document assumes that the CA instance to be cloned has been created.
+
+= Creating DS Instance =
+
+link:DS-Installation[Install] a DS instance for the CA clone.
+
+If SSL is enabled on DS master, the DS clone must be configured with SSL too. Make sure the DS master and clone trust each other's certificates.
+
+= Exporting CA System Certificates =
+
+== PKI 10.3 or newer ==
+
+PKI 10.3 provides a tool to export only the necessary certificates for cloning. To export the CA system certificates (including the certificate chain) into a PKCS #12 file:
+
+----
+$ pki-server ca-clone-prepare --pkcs12-file ca-certs.p12 --pkcs12-password Secret.123
+----
+
+If necessary, third-party certificates (e.g. other trust anchors) can be added into the same PKCS #12 file with the following command:
+
+----
+$ pki -d /var/lib/pki/pki-tomcat/alias pkcs12-cert-add <nickname> --pkcs12-file ca-certs.p12 --pkcs12-password Secret.123
+----
+
+== PKI 10.2 or older ==
+
+Copy the NSS database password into a file:
+
+----
+$ grep "internal=" /var/lib/pki/pki-tomcat/conf/password.conf | awk -F= '{print $2}' > internal.txt
+----
+
+Export all system certificates in master into a PKCS #12 file:
+
+----
+$ PKCS12Export -debug \
+ -d /var/lib/pki/pki-tomcat/alias \
+ -p internal.txt \
+ -o ca-certs.p12 \
+ -w ~/.dogtag/pki-tomcat/ca/pkcs12_password.conf
+----
+
+Transfer the file to the clone.
+
+== PKI 9.0 or older ==
+
+Prepare password files:
+
+----
+$ echo Secret.123 > password.txt
+$ grep "internal=" /var/lib/pki-ca/conf/password.conf | awk -F= '{print $2}' > internal.txt
+----
+
+Export all system certificates in master into a PKCS #12 file:
+
+<pre>
+$ PKCS12Export -debug \
+ -d /var/lib/pki-ca/alias \
+ -p internal.txt \
+ -o ca-certs.p12 \
+ -w password.txt
+</pre>
+
+== Verification ==
+
+Make sure the PKCS #12 file contains at least the following CA system certificates:
+
+----
+$ pki pkcs12-cert-find --pkcs12-file ca-certs.p12 --pkcs12-password Secret.123
+---------------
+4 entries found
+---------------
+  Certificate ID: 4c5fe90ec89c9d9dd49b0decaddb33d9ee2941be
+  Serial Number: 0x4
+  Nickname: subsystem
+  Subject DN: CN=Subsystem Certificate,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Trust Flags: u,u,u
+  Has Key: true
+
+  Certificate ID: 2be54059ae918395891a6e4cdc4ad12179a8c653
+  Serial Number: 0x1
+  Nickname: ca_signing
+  Subject DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Trust Flags: CTu,Cu,Cu
+  Has Key: true
+
+  Certificate ID: a94f44bac5693bcd221ac5a15b9163a33429f0e5
+  Serial Number: 0x2
+  Nickname: ca_ocsp_signing
+  Subject DN: CN=CA OCSP Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Trust Flags: u,u,u
+  Has Key: true
+
+  Certificate ID: bcf8cf2bc1cfdf6b02b9cb60d9766c182372ef65
+  Serial Number: 0x5
+  Nickname: ca_audit_signing
+  Subject DN: CN=CA Audit Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Trust Flags: u,u,Pu
+  Has Key: true
+----
+
+If third-party certificates were added, it should appear above as well.
+
+= Installing CA Clone =
+
+Transfer the PKCS #12 file to the clone. Set the appropriate SELinux contexts for the p12 file
+
+----
+$ semanage fcontext -a -t pki_tomcat_cert_t /tmp/ca-certs.p12
+$ restorecon -R -v /tmp/ca-certs.p12
+----
+
+Then prepare a deployment configuration file (e.g. ca-clone.cfg):
+
+----
+[CA]
+pki_admin_email=caadmin@example.com
+pki_admin_name=caadmin
+pki_admin_nickname=caadmin
+pki_admin_password=Secret.123
+pki_admin_uid=caadmin
+
+pki_client_database_password=Secret.123
+pki_client_database_purge=False
+pki_client_pkcs12_password=Secret.123
+
+pki_ds_base_dn=dc=ca,dc=example,dc=com
+pki_ds_database=ca
+pki_ds_password=Secret.123
+
+pki_security_domain_hostname=master.example.com
+pki_security_domain_https_port=8443
+pki_security_domain_user=caadmin
+pki_security_domain_password=Secret.123
+
+pki_clone=True
+pki_clone_replicate_schema=True
+pki_clone_uri=https://master.example.com:8443
+
+pki_clone_pkcs12_path=/tmp/ca-certs.p12
+pki_clone_pkcs12_password=Secret.123
+----
+
+If necessary, specify the certificate nicknames in the following parameters to match the nicknames in the PKCS #12 file:
+
+----
+pki_ca_signing_nickname=ca_signing
+pki_ocsp_signing_nickname=ca_ocsp_signing
+pki_audit_signing_nickname=ca_audit_signing
+pki_ssl_server_nickname=sslserver
+pki_subsystem_nickname=subsystem
+----
+
+To begin the installation, execute the following command:
+
+----
+$ pkispawn -v -f ca-clone.cfg -s CA
+----
+
+= Verification =
+
+== Verify certificates ==
+
+The certificates should have the same nicknames and trust flags as in the master:
+
+----
+$ certutil -L -d /var/lib/pki/pki-tomcat/alias
+
+Certificate Nickname                                         Trust Attributes
+                                                             SSL,S/MIME,JAR/XPI
+
+ca_signing                                                   CTu,Cu,Cu
+ca_ocsp_signing                                              u,u,u
+sslserver                                                    u,u,u
+subsystem                                                    u,u,u
+ca_audit_signing                                             u,u,Pu
+----
+== Verify keys ==
+
+The keys should have the same IDs as in the master except for the SSL server key:
+
+----
+$ sed -n "/^internal=/ s/^[^=]*=// p" < /var/lib/pki/pki-tomcat/conf/password.conf > internal.txt
+$ certutil -K -d /var/lib/pki/pki-tomcat/alias -f internal.txt
+< 0> rsa      f4e07b335299c96f0247a6f8dc049e8faa540209   ca_signing
+< 1> rsa      0bdf1085474b7542fa30908c2136c518fdedc615   ca_ocsp_signing
+< 2> rsa      39473f7309b3354d638940e55398cf500d8411f8   sslserver
+< 3> rsa      2235764e98d1b973aa1a231c09aebc8e33133641   subsystem
+< 4> rsa      a532c42398cd592b664eafd4c2b0a73e20ee395e   ca_audit_signing
+----
