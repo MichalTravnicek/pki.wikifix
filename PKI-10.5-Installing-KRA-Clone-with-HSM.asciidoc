@@ -1,0 +1,89 @@
+= Overview =
+
+PKI KRA with HSM can be cloned into a separate instance sharing the same HSM.
+
+Since the certificates and the keys are stored in HSM, it's not necessary to export them into a PKCS #12 file.
+
+This document assumes that the KRA instance with HSM to be cloned has been created.
+
+= Preparation =
+
+Prepare a deployment configuration file (e.g. `kra-hsm-clone.cfg`). For nFast add the following parameters:
+
+----
+[DEFAULT]
+pki_hsm_enable=True
+pki_hsm_libfile=/opt/nfast/toolkits/pkcs11/libcknfast.so
+pki_hsm_modulename=nfast
+pki_token_name=HSM
+pki_token_password=Secret.123
+----
+
+For Luna SA add the following parameters:
+
+----
+[DEFAULT]
+pki_hsm_enable=True
+pki_hsm_libfile=/usr/safenet/lunaclient/lib/libCryptoki2_64.so
+pki_hsm_modulename=lunasa
+pki_token_name=HSM
+pki_token_password=Secret.123
+----
+
+By default the server will generate a random password for the internal NSS database. If necesssary (e.g. in FIPS mode) a specific password can be specified with the following parameter:
+
+----
+pki_pin=Secret.123
+----
+
+Then specify the normal KRA configuration parameters: 
+
+----
+[KRA]
+pki_admin_cert_file=ca_admin.cert
+pki_admin_email=kraadmin@example.com
+pki_admin_name=kraadmin
+pki_admin_nickname=kraadmin
+pki_admin_password=Secret.123
+pki_admin_uid=kraadmin
+
+pki_client_database_password=Secret.123
+pki_client_database_purge=False
+pki_client_pkcs12_password=Secret.123
+
+pki_ds_base_dn=dc=kra,dc=pki,dc=example,dc=com
+pki_ds_database=kra
+pki_ds_password=Secret.123
+
+pki_security_domain_name=EXAMPLE
+pki_security_domain_user=caadmin
+pki_security_domain_password=Secret.123
+
+pki_clone=True
+pki_clone_replicate_schema=True
+pki_clone_uri=https://master.example.com:8443
+----
+
+Specify the same certificates nicknames as in other replicas, for example:
+
+----
+pki_storage_nickname=kra_storage
+pki_transport_nickname=kra_transport
+pki_audit_signing_nickname=kra_audit_signing
+pki_sslserver_nickname=sslserver
+pki_subsystem_nickname=subsystem
+----
+
+Specify a unique SSL server certificate nickname to avoid conflicts with other replicas, for example:
+
+----
+pki_sslserver_nickname=sslserver/%(pki_hostname)s
+----
+
+= Installation =
+
+To begin the installation, execute the following command:
+
+----
+$ pkispawn -v -f kra-hsm-clone.cfg -s KRA
+----
