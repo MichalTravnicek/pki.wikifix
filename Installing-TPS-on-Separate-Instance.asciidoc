@@ -1,0 +1,121 @@
+= Overview =
+
+This page describes the process to install TPS connecting to CA, KRA, and TKS running on a different instance, possibly on a different host. It assumes a DS instance has been installed. See the following pages:
+
+* link:https://github.com/dogtagpki/pki/wiki/DS-Installation[Installing DS]
+* link:https://github.com/dogtagpki/pki/blob/master/docs/installation/ca/Installing_CA.md[Installing CA]
+* link:https://github.com/dogtagpki/pki/blob/master/docs/installation/kra/Installing_KRA.md[Installing KRA]
+* link:https://github.com/dogtagpki/pki/blob/master/docs/installation/tks/Installing_TKS.md[Installing TKS]
+
+= Installing TPS on Separate Instance =
+
+Prepare a deployment configuration file (e.g. `tps.cfg`):
+
+----
+[TPS]
+pki_import_admin_cert=False
+pki_admin_email=tpsadmin@example.com
+pki_admin_name=tpsadmin
+pki_admin_nickname=tpsadmin
+pki_admin_password=Secret.123
+pki_admin_uid=tpsadmin
+
+pki_backup_password=Secret.123
+
+pki_client_database_password=Secret.123
+pki_client_database_purge=False
+pki_client_pkcs12_password=Secret.123
+
+pki_clone_pkcs12_password=Secret.123
+
+pki_ds_base_dn=dc=tps,dc=pki,dc=example,dc=com
+pki_ds_database=tps
+pki_ds_password=Secret.123
+
+pki_token_password=Secret.123
+
+pki_security_domain_name=EXAMPLE
+pki_security_domain_hostname=pki.example.com
+pki_security_domain_https_port=8443
+pki_security_domain_user=caadmin
+pki_security_domain_password=Secret.123
+
+pki_issuing_ca=https://pki.example.com:8443
+
+pki_ca_uri=https://pki.example.com:8443
+pki_kra_uri=https://pki.example.com:8443
+pki_tks_uri=https://pki.example.com:8443
+
+pki_enable_server_side_keygen=True
+
+pki_import_shared_secret=True
+
+pki_authdb_basedn=dc=example,dc=com
+pki_authdb_port=389
+pki_enable_server_side_keygen=True
+----
+
+The above configuration assumes that the TPS is running on tps.example.com and the other subsystems are running on pki.example.com.
+
+To begin the installation, execute the following command:
+
+----
+$ pkispawn -v -f tps.cfg -s TPS
+----
+
+= Removing Remote TPS =
+
+To remove a remote TPS execute the following command on the TPS host:
+
+----
+$ pkidestroy -v -s TPS -i pki-tomcat
+----
+
+Note that currently when a remote TPS is removed it's not removed completely from other subsystems (link:https://fedorahosted.org/pki/ticket/2378[ticket #2378]). To prevent problems in subsequent TPS installation the TPS needs to be removed manually with the following commands.
+
+To remove TPS from TKS:
+
+----
+$ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 -c
+dn: cn=Token Key Service Manager Agents,ou=groups,dc=tks,dc=pki,dc=example,dc=com
+changetype: modify
+delete: uniqueMember
+uniqueMember: uid=TPS-tps.example.com-8443,ou=people,dc=tks,dc=pki,dc=example,dc=com
+
+dn: uid=TPS-tps.example.com-8443,ou=people,dc=tks,dc=pki,dc=example,dc=com
+changetype: delete
+----
+
+To remove TPS from KRA:
+
+----
+$ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 -c
+dn: cn=Data Recovery Manager Agents,ou=groups,dc=kra,dc=pki,dc=example,dc=com
+changetype: modify
+delete: uniqueMember
+uniqueMember: uid=TPS-tps.example.com-8443,ou=people,dc=kra,dc=pki,dc=example,dc=com
+
+dn: uid=TPS-tps.example.com-8443,ou=people,dc=kra,dc=pki,dc=example,dc=com
+changetype: delete
+----
+
+To remove TPS from CA:
+
+----
+$ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 -c
+dn: cn=Certificate Manager Agents,ou=groups,dc=ca,dc=pki,dc=example,dc=com
+changetype: modify
+delete: uniqueMember
+uniqueMember: uid=TPS-tps.example.com-8443,ou=people,dc=ca,dc=pki,dc=example,dc=com
+
+dn: uid=TPS-tps.example.com-8443,ou=people,dc=ca,dc=pki,dc=example,dc=com
+changetype: delete
+----
+
+To remove TPS from Security Domain:
+
+----
+$ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 -c
+dn: cn=tps.example.com:8443,cn=TPSList,ou=Security Domain,dc=ca,dc=pki,dc=example,dc=com
+changetype: delete
+----
