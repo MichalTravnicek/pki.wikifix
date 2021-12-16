@@ -1,0 +1,66 @@
+= Overview =
+
+This page describes the process to install TKS joining a security domain running on a different instance, possibly on a different host.
+
+= Exporting Certificate Chain =
+
+== Dogtag 10.2 or older ==
+
+The remote TKS will download the certificate chain automatically.
+
+== Dogtag 10.3 or newer ==
+
+Dogtag 10.3 provides a mechanism to export the certificate chain manually and transfer it to the host that will run TKS before the installation begins.
+
+Export the certificate chain with this command:
+
+----
+$ pki-server ca-cert-chain-export --pkcs12-file pki-server.p12 --pkcs12-password Secret.123
+----
+
+Copy the `pki-server.p12` to the host that will run TKS.
+
+= Exporting Admin Certificate =
+
+The security domain's admin certificate is stored in `/root/.dogtag/pki-tomcat/ca_admin.cert`. Copy this file to the host that will run TKS.
+
+= Installing Remote TKS =
+
+Create a deployment configuration file:
+
+----
+[TKS]
+pki_admin_cert_file=ca_admin.cert
+pki_admin_email=tksadmin@example.com
+pki_admin_name=tksadmin
+pki_admin_nickname=tksadmin
+pki_admin_password=Secret.123
+pki_admin_uid=tksadmin
+
+pki_client_database_password=Secret.123
+pki_client_database_purge=False
+pki_client_pkcs12_password=Secret.123
+
+pki_clone_pkcs12_password=Secret.123
+
+pki_ds_base_dn=dc=tks,dc=example,dc=com
+pki_ds_database=tks
+pki_ds_password=Secret.123
+
+pki_security_domain_hostname=pki.example.com
+pki_security_domain_name=EXAMPLE
+pki_security_domain_user=caadmin
+pki_security_domain_password=Secret.123
+
+pki_token_password=Secret.123
+
+# Dogtag 10.3 only
+pki_server_pkcs12_path=pki-server.p12
+pki_server_pkcs12_password=Secret.123
+----
+
+To begin the installation:
+
+----
+$ pkispawn -v -f tks.cfg -s TKS
+----
