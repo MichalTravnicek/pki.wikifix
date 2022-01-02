@@ -1,0 +1,27 @@
+= Overview =
+
+This operation will create a new nonce as defined in link:https://tools.ietf.org/html/rfc8555#section-7.2[RFC 8555 Section 7.2].
+
+= Request =
+
+* *URL:* `/acme/new-nonce`
+* *Method:* `HEAD`
+* *Authentication:* Not required
+* *Authorization:* Not required
+
+
+= Response =
+
+== Success ==
+
+* *Code:* `200`
+* *Replay-Nonce:* New nonce
+
+= Examples =
+
+----
+HTTP/1.1 200 OK
+Replay-Nonce: oFvnlFP1wIhRlYS2jTaXbA
+Cache-Control: no-store
+Link: <https://pki.demo.dogtagpki.org/acme/directory>;rel="index"
+----
