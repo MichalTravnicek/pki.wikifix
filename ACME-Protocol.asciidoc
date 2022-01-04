@@ -49,15 +49,15 @@
 | POST /acme/new-account
 | 201 -> account
 
-| Create order
+| link:ACME-Create-Order-REST-API[Create order]
 | POST /acme/new-order
 | 201 -> order
 
-| Check authorization
+| link:ACME-Authorize-Identifier-REST-API[Check authorization]
 | POST-as-GET /acme/authz/{authzID}
 | 200
 
-| Respond to challenges
+| link:ACME-Respond-Challenge-REST-API[Respond to challenges]
 | POST /acme/chall/{challengeID}
 | 200
 
@@ -65,7 +65,7 @@
 | POST-as-GET /acme/authz/{authzID}
 | 200
 
-| Finalize order
+| link:ACME-Finalize-Order-REST-API[Finalize order]
 | POST /acme/order/{orderID}/finalize
 | 200
 
@@ -73,7 +73,7 @@
 | POST-as-GET /acme/order/{orderID}
 | 200
 
-| Download certificate
+| link:ACME-Download-Certificate-REST-API[Download certificate]
 | POST-as-GET /acme/cert/{certID}
 | 200
 |===
@@ -91,15 +91,15 @@
 | HEAD /acme/new-nonce
 | 200
 
-| Create order
+| link:ACME-Create-Order-REST-API[Create order]
 | POST /acme/new-order
 | 201 -> order
 
-| Check authorization
+| link:ACME-Authorize-Identifier-REST-API[Check authorization]
 | POST-as-GET /acme/authz/{authzID}
 | 200
 
-| Respond to challenges
+| link:ACME-Respond-Challenge-REST-API[Respond to challenges]
 | POST /acme/chall/{challengeID}
 | 200
 
@@ -107,7 +107,7 @@
 | POST-as-GET /acme/authz/{authzID}
 | 200
 
-| Finalize order
+| link:ACME-Finalize-Order-REST-API[Finalize order]
 | POST /acme/order/{orderID}/finalize
 | 200
 
@@ -115,7 +115,7 @@
 | POST-as-GET /acme/order/{orderID}
 | 200
 
-| Download certificate
+| link:ACME-Download-Certificate-REST-API[Download certificate]
 | POST-as-GET /acme/cert/{certID}
 | 200
 |===
@@ -179,7 +179,7 @@
 | HEAD /acme/new-nonce
 | 200
 
-| Verifying existing account
+| link:ACME-Create-Account-REST-API[Verifying existing account]
 | POST /acme/new-acct
 | 200
 
@@ -201,7 +201,7 @@
 | HEAD /acme/new-nonce
 | 200
 
-| Verifying existing account
+| link:ACME-Create-Account-REST-API[Verifying existing account]
 | POST /acme/new-acct
 | 200
 
