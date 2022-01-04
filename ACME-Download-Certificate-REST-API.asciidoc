@@ -1,0 +1,41 @@
+= Overview =
+
+This operation downloads an ACME certificate as defined in link:https://tools.ietf.org/html/rfc8555#section-7.4.2[RFC 8555 Section 7.4.2].
+
+= Request =
+
+----
+POST /acme/cert/mAt3xBGaobw HTTP/1.1
+Host: example.com
+Content-Type: application/jose+json
+Accept: application/pem-certificate-chain
+
+{
+    "protected": base64url({
+        "alg": "ES256",
+        "kid": "https://example.com/acme/acct/evOfKhNU60wg",
+        "nonce": "uQpSjlRb4vQVCjVYAyyUWg",
+        "url": "https://example.com/acme/cert/mAt3xBGaobw"
+    }),
+    "payload": "",
+    "signature": "nuSDISbWG8mMgE7H...QyVUL68yzf3Zawps"
+}
+----
+
+= Response =
+
+----
+HTTP/1.1 200 OK
+Content-Type: application/pem-certificate-chain
+Link: <https://example.com/acme/directory>;rel="index"
+
+-----BEGIN CERTIFICATE-----
+[End-entity certificate contents]
+-----END CERTIFICATE-----
+-----BEGIN CERTIFICATE-----
+[Issuer certificate contents]
+-----END CERTIFICATE-----
+-----BEGIN CERTIFICATE-----
+[Other certificate contents]
+-----END CERTIFICATE-----
+----
