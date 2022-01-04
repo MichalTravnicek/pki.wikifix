@@ -1,4 +1,6 @@
-= Domain Validation =
+= Overview =
+
+== Domain Validation ==
 
 * Client generates agent keypair and sends authentication request to server
 * Server generates authentication challenges and nonce and sends the response to client
@@ -8,7 +10,7 @@
 ** with DNS record: `_acme-challenge.<domain>.`
 ** with well-known URI: `http://<domain>/.well-known/acme-challenge/ <filename>`
 
-= Certificate Issuance and Revocation =
+== Certificate Issuance and Revocation ==
 
 * Client generates a CSR and sends a signed request to server
 * Server validates CSR signature and agent signature
@@ -20,8 +22,6 @@
 * Server validates the request
 * Server generates CRL
 
-= Proxies =
-
 == Public Proxy ==
 
 * Public proxy will accept requests from ACME client and pass them to ACME server.
@@ -32,10 +32,189 @@
 * Public proxy will accept requests from ACME client and pass them to ACME server.
 * ACME server will perform validation against the ACME proxy and pass the result to ACME clients.
 
+= Certificate Enrollment with New Account =
+
+|===
+| Action | Request | Response
+
+| Get directory
+| GET /acme/directory
+| 200
+
+| Generate nonce
+| HEAD /acme/new-nonce
+| 200
+
+| Create account
+| POST /acme/new-account
+| 201 -> account
+
+| Create order
+| POST /acme/new-order
+| 201 -> order
+
+| Check authorization
+| POST-as-GET /acme/authz/{authzID}
+| 200
+
+| Respond to challenges
+| POST /acme/chall/{challengeID}
+| 200
+
+| Poll authorization for status
+| POST-as-GET /acme/authz/{authzID}
+| 200
+
+| Finalize order
+| POST /acme/order/{orderID}/finalize
+| 200
+
+| Poll order for status
+| POST-as-GET /acme/order/{orderID}
+| 200
+
+| Download certificate
+| POST-as-GET /acme/cert/{certID}
+| 200
+|===
+
+= Issuing a Certificate with Existing Account =
+
+|===
+| Action | Request | Response
+
+| Get directory
+| GET /acme/directory
+| 200
+
+| Generate nonce
+| HEAD /acme/new-nonce
+| 200
+
+| Create order
+| POST /acme/new-order
+| 201 -> order
+
+| Check authorization
+| POST-as-GET /acme/authz/{authzID}
+| 200
+
+| Respond to challenges
+| POST /acme/chall/{challengeID}
+| 200
+
+| Poll authorization for status
+| POST-as-GET /acme/authz/{authzID}
+| 200
+
+| Finalize order
+| POST /acme/order/{orderID}/finalize
+| 200
+
+| Poll order for status
+| POST-as-GET /acme/order/{orderID}
+| 200
+
+| Download certificate
+| POST-as-GET /acme/cert/{certID}
+| 200
+|===
+
+= Pre-authorization =
+
+|===
+| Action | Request | Response
+
+| Create authorization
+| POST /acme/new-authz
+| 201 -> authz
+|===
+
+= Revoking a Certificate =
+
+|===
+| Action | Request | Response
+
+| Get directory
+| GET /acme/directory
+| 200
+
+| Generate nonce
+| HEAD /acme/new-nonce
+| 200
+
+| Revoke certificate
+| POST /acme/revoke-cert
+| 200
+|===
+
+= Registering an Account =
+
+|===
+| Action | Request | Response
+
+| Get directory
+| GET /acme/directory
+| 200
+
+| Generate nonce
+| HEAD /acme/new-nonce
+| 200
+
+| Creating account
+| POST /acme/new-acct
+| 200
+|===
+
+= Updating an Account =
+
+|===
+| Action | Request | Response
+
+| Get directory
+| GET /acme/directory
+| 200
+
+| Generate nonce
+| HEAD /acme/new-nonce
+| 200
+
+| Verifying existing account
+| POST /acme/new-acct
+| 200
+
+| Updating account
+| POST /acme/acct/{accountID}
+| 200
+|===
+
+= Unregistering an Account =
+
+|===
+| Action | Request | Response
+
+| Get directory
+| GET /acme/directory
+| 200
+
+| Generate nonce
+| HEAD /acme/new-nonce
+| 200
+
+| Verifying existing account
+| POST /acme/new-acct
+| 200
+
+| Deactivating account
+| POST /acme/acct/{accountID}
+| 200
+|===
+
 = RFCs =
 
 * link:https://tools.ietf.org/html/rfc8555[RFC 8555 - Automatic Certificate Management Environment (ACME)]
 * link:https://tools.ietf.org/html/rfc8737[RFC 8737 - ACME TLS ALPN Challenge Extension]
+* link:https://tools.ietf.org/html/rfc7515[RFC 7515 - JSON Web Signature (JWS)]
 * link:https://tools.ietf.org/html/draft-ietf-acme-authority-token-04[ACME Challenges Using an Authority Token]
 * link:https://datatracker.ietf.org/doc/html/draft-tweedale-acme-discovery-01[Automated Certificate Management Environment (ACME) Service Discovery]
 
@@ -43,3 +222,6 @@
 
 * link:https://letsencrypt.org[Let’s Encrypt]
 * link:https://letsencrypt.org/how-it-works[Let's Encrypt - How It Works]
+* link:https://letsencrypt.org/docs/acme-protocol-updates[ACME Protocol Updates]
+* link:https://community.letsencrypt.org/t/end-of-life-plan-for-acmev1/88430[End of Life Plan for ACMEv1]
+* link:https://github.com/golang/go/issues/21081[x/crypto/acme: implement ACME RFC 8555]
