@@ -1,0 +1,22 @@
+= Responding to a Challenge =
+
+This operation submits a response to an ACME challenge as defined in link:https://tools.ietf.org/html/rfc8555#section-7.5.1[RFC 8555 Section 7.5.1].
+
+= Request =
+
+----
+POST /acme/chall/prV_B7yEyA4 HTTP/1.1
+Host: example.com
+Content-Type: application/jose+json
+
+{
+    "protected": base64url({
+        "alg": "ES256",
+        "kid": "https://example.com/acme/acct/evOfKhNU60wg",
+        "nonce": "Q_s3MWoqT05TrdkM2MTDcw",
+        "url": "https://example.com/acme/chall/prV_B7yEyA4"
+    }),
+    "payload": base64url({}),
+    "signature": "9cbg5JO1Gf5YLjjz...SpkUfcdPai9uVYYQ"
+}
+----
