@@ -1,0 +1,345 @@
+= Overview =
+
+This document describes TPS token behavior as implemented in PKI 9.
+
+= Token Database =
+
+Tokens are stored in TPS database as LDAP entries which contain the following attributes:
+
+|===
+| LDAP Attribute | Example
+
+| cn
+| A00192030405060708C9
+
+| tokenUserID
+| testuser
+
+| tokenType
+| externalRegAddToToken
+
+| tokenStatus
+| uninitialized
+
+| tokenReason
+|
+
+| tokenAppletID
+| 1.4.52CF1C58
+
+| keyInfo
+| 0101
+
+| dateOfCreate
+| 20140403112248Z
+
+| dateOfModify
+| 20140403112248Z
+
+| modified
+| 0
+
+| tokenPolicy
+| RE_ENROLL=YES
+
+| extensions
+|
+
+| numberOfResets
+| 0
+
+| numberOfEnrollments
+| 0
+
+| numberOfRenewals
+| 0
+
+| numberOfRecoveries
+| 0
+
+| userCertificate
+|
+|===
+
+See also link:TPS-Database#Tokens[TPS Database].
+
+= Token Database State =
+
+Token state is stored in the database in tokenStatus and tokenReason attributes.
+
+The tokenStatus may have the following values:
+
+|===
+| Name | Code | Value
+
+| STATE_UNINITIALIZED
+| 0
+| uninitialized
+
+| STATE_ACTIVE
+| 1
+| active
+
+| STATE_DISABLED
+| 2
+| disabled
+
+| STATE_LOST
+| 3
+| lost
+
+| STATE_TERMINATED
+| <undefined>
+| terminated
+|===
+
+The tokenReason attribute may have the following values:
+
+|===
+| Value | Description
+
+| <blank>
+|
+
+| keyCompromise
+|
+
+| destroyed
+|
+
+| onHold
+|
+|===
+
+= Token UI States =
+
+The token state is displayed in the UI as follows:
+
+|===
+| Name | Code | Label
+
+| TOKEN_UNINITIALIZED
+| 0
+| Uninitialized.
+
+| TOKEN_DAMAGED
+| 1
+| This token has been physically damaged.
+
+| TOKEN_PERM_LOST
+| 2
+| This token has been permanently lost.
+
+| TOKEN_TEMP_LOST
+| 3
+| This token has been temporarily lost.
+
+| TOKEN_FOUND
+| 4
+| This temporarily lost token has been found.
+
+| TOKEN_TEMP_LOST_PERM_LOST
+| 5
+| This temporarily lost token cannot be found (becomes permanently lost).
+
+| TOKEN_TERMINATED
+| 6
+| This token has been terminated.
+|===
+
+= Token State Conversion =
+
+The token database state is translated into token UI state as follows:
+
+|===
+| tokenStatus | tokenReason | Token UI State
+
+| STATE_UNINITIALIZED
+| <ignored>
+| TOKEN_UNINITIALIZED
+
+| STATE_ACTIVE
+| <ignored>
+| TOKEN_FOUND
+
+| STATE_LOST
+| keyCompromise
+| TOKEN_PERM_LOST
+
+| STATE_LOST
+| destroyed
+| TOKEN_DAMAGED
+
+| STATE_LOST
+| onHold
+| TOKEN_TEMP_LOST
+
+| STATE_TERMINATED
+| <ignored>
+| TOKEN_TERMINATED
+
+| STATE_DISABLED
+| <ignored>
+| TOKEN_PERM_LOST
+|===
+
+The token UI state is translated into token database state as follows:
+
+|===
+| Token UI State | tokenStatus | tokenReason
+
+| TOKEN_DAMAGED
+| STATE_LOST
+| destroyed
+
+| TOKEN_PERM_LOST
+| STATE_LOST
+| keyCompromise
+
+| TOKEN_TEMP_LOST
+| STATE_LOST
+| onHold
+
+| TOKEN_FOUND
+| STATE_ACTIVE
+| <blank>
+
+| TOKEN_TEMP_LOST_PERM_LOST
+| STATE_LOST
+| keyCompromise
+
+| TOKEN_TERMINATED
+| STATE_TERMINATED
+| keyCompromise
+|===
+
+= Token State Transitions =
+
+== State transitions via UI/CLI ==
+
+A TPS agent may change the token state via the UI/CLI. Below is the allowed state transitions:
+
+----
+tokendb._066=# tokendb.allowedTransitions:
+tokendb._067=#   - has transitions between the following states
+tokendb._068=#     TOKEN_UNINITIALIZED = 0,
+tokendb._069=#     TOKEN_DAMAGED =1,
+tokendb._070=#     TOKEN_PERM_LOST=2,
+tokendb._071=#     TOKEN_TEMP_LOST=3,
+tokendb._072=#     TOKEN_FOUND =4,
+tokendb._073=#     TOKEN_TEMP_LOST_PERM_LOST =5,
+tokendb._074=#     TOKEN_TERMINATED = 6
+
+tokendb.allowedTransitions=0:1,0:2,0:3,0:4,0:5,0:6,3:4,3:5,3:6,4:1,4:2,4:3,4:6
+----
+
+|===
+| Current State | Next State | Label
+
+| TOKEN_UNINITIALIZED
+| TOKEN_DAMAGED
+| This token has been physically damaged.
+
+| TOKEN_UNINITIALIZED
+| TOKEN_PERM_LOST
+| This token has been permanently lost.
+
+| TOKEN_UNINITIALIZED
+| TOKEN_TEMP_LOST
+| This token has been temporarily lost.
+
+| TOKEN_UNINITIALIZED
+| TOKEN_FOUND
+| This temporarily lost token has been found.
+
+| TOKEN_UNINITIALIZED
+| TOKEN_TEMP_LOST_PERM_LOST
+| This temporarily lost token cannot be found (becomes permanently lost).
+
+| TOKEN_UNINITIALIZED
+| TOKEN_TERMINATED
+| This token has been terminated.
+
+| TOKEN_TEMP_LOST
+| TOKEN_FOUND
+| This temporarily lost token has been found.
+
+| TOKEN_TEMP_LOST
+| TOKEN_TEMP_LOST_PERM_LOST
+| This temporarily lost token cannot be found (becomes permanently lost).
+
+| TOKEN_TEMP_LOST
+| TOKEN_TERMINATED
+| This token has been terminated.
+
+| TOKEN_FOUND
+| TOKEN_DAMAGED
+| This token has been physically damaged.
+
+| TOKEN_FOUND
+| TOKEN_PERM_LOST
+| This token has been permanently lost.
+
+| TOKEN_FOUND
+| TOKEN_TEMP_LOST
+| This token has been temporarily lost.
+
+| TOKEN_FOUND
+| TOKEN_TERMINATED
+| This token has been terminated.
+|===
+
+== State transitions via token operations ==
+
+A TPS user may change the token state via token operations. Below are the allowed state transitions:
+
+----
+tps._008=# operations.allowedTransitions:
+tps._009=#   - token operations, like formatting and enrollment have transitions between the following states
+tps._010=#     TOKEN_UNINITIALIZED = 0,
+tps._011=#     TOKEN_DAMAGED =1,
+tps._012=#     TOKEN_PERM_LOST=2,
+tps._013=#     TOKEN_TEMP_LOST=3,
+tps._014=#     TOKEN_FOUND =4,
+tps._015=#     TOKEN_TEMP_LOST_PERM_LOST =5,
+tps._016=#     TOKEN_TERMINATED = 6
+tps._017=# Sample: tps.operations.allowedTransitions=0:0,0:4,4:6,6:0
+
+tps.operations.allowedTransitions=0:0,0:4,4:0
+----
+
+|===
+| Current State | Next State | Description
+
+| TOKEN_UNINITIALIZED
+| TOKEN_UNINITIALIZED
+| This allows formatting a blank token or upgrading applet/key of a blank token.
+
+| TOKEN_UNINITIALIZED
+| TOKEN_FOUND
+| This allows enrolling a token.
+
+| TOKEN_FOUND
+| TOKEN_UNINITIALIZED
+| This allows formatting an active token.
+
+| TOKEN_FOUND
+| TOKEN_FOUND
+| This transition is not enabled by default. This allows re-enrolling an active token. Maybe useful for external registration.
+|===
+
+= Issues =
+
+* TOKEN_UNINITIALIZED to TOKEN_FOUND transition should not be allowed from the UI. A token can only become STATE_ACTIVE through enrollment.
+* TOKEN_UNINITIALIZED to TOKEN_TEMP_LOST_PERM_LOST transition is invalid because it doesn't go through TOKEN_TEMP_LOST.
+* Both TOKEN_PERM_LOST and TOKEN_TEMP_LOST_PERM_LOST are stored in the database as STATE_LOST with keyCompromise.
+* STATE_DISABLED is never used or stored in the database. A token is considered "disabled" if it is not STATE_ACTIVE and not STATE_UNINITIALIZED.
+* STATE_DISABLED is mapped into TOKEN_PERM_LOST. STATE_DISABLED infers it may become STATE_ACTIVE again, but TOKEN_PERM_LOST is a terminal state.
+* Both STATE_LOST with keyCompromise and STATE_DISABLED are mapped into TOKEN_PERM_LOST. However, TOKEN_PERM_LOST is always mapped into STATE_LOST with keyCompromise.
+* STATE_ACTIVE is mapped into TOKEN_FOUND. An "active" token may be shown as "found" in the UI even if it's never "lost".
+* The tps.operations.allowedTransitions seems to allow admin to configure transitions between any token UI states. However, the code only supports transitions between TOKEN_UNINITIALIZED and TOKEN_FOUND.
+* The transition from TOKEN_UNINITIALIZED to TOKEN_TEMP_LOST to TOKEN_FOUND bypasses the enrollment operation.
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/TPS_Token_Lifecycle[TPS Token Lifecycle]
