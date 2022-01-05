@@ -1,0 +1,339 @@
+= Overview =
+
+TPS stores the token states in the internal database to determine the current token status and the actions that can be done on the token.
+
+= Token Database =
+
+Tokens are stored in TPS database as LDAP entries which contain the following attributes:
+
+|===
+| LDAP Attribute | Example
+
+| cn
+| A00192030405060708C9
+
+| tokenUserID
+| testuser
+
+| tokenType
+| externalRegAddToToken
+
+| tokenStatus
+| FORMATTED, DAMAGED, PERM_LOST, SUSPENDED, ACTIVE, TERMINATED, UNFORMATTED
+
+| tokenReason
+|
+
+| tokenAppletID
+| 1.4.52CF1C58
+
+| keyInfo
+| 0101
+
+| dateOfCreate
+| 20140403112248Z
+
+| dateOfModify
+| 20140403112248Z
+
+| modified
+| 0
+
+| tokenPolicy
+| RE_ENROLL=YES
+
+| extensions
+|
+
+| numberOfResets
+| 0
+
+| numberOfEnrollments
+| 0
+
+| numberOfRenewals
+| 0
+
+| numberOfRecoveries
+| 0
+
+| userCertificate
+|
+|===
+
+See also link:TPS-Database#Tokens[TPS Database].
+
+= Token States =
+
+Below are the supported token states:
+
+|===
+| Code | Name | Label
+
+| 0
+| FORMATTED
+| Formatted (uninitialized)
+
+| 1
+| DAMAGED
+| Physically damaged
+
+| 2
+| PERM_LOST
+| Permanently lost
+
+| 3
+| SUSPENDED
+| Suspended (temporarily lost)
+
+| 4
+| ACTIVE
+| Active
+
+| 6
+| TERMINATED
+| Terminated
+
+| 7
+| UNFORMATTED
+| Unformatted
+|===
+
+In the CLI the token states will be displayed by their names. In the UI the token states will be displayed by their labels.
+
+= Token State Transitions =
+
+== Token state transitions via UI/CLI ==
+
+The token state transitions that can be done via the UI/CLI are defined in the following property in TPS configuration file:
+
+----
+tokendb.allowedTransitions=0:1,0:2,0:3,0:6,3:2,3:6,4:1,4:2,4:3,4:6,6:7
+----
+
+The property contains a comma-separated list of transitions. Each transition is written in this format: `<current state code>:<new state code>`. The default list is defined in `/usr/share/pki/tps/conf/CS.cfg`.
+
+The list represent the following transitions:
+
+|===
+| Transition | Current State | Next State | Label
+
+| 0:1
+| FORMATTED
+| DAMAGED
+| This token has been physically damaged.
+
+| 0:2
+| FORMATTED
+| PERM_LOST
+| This token has been permanently lost.
+
+| 0:3
+| FORMATTED
+| SUSPENDED
+| This token has been suspended (temporarily lost).
+
+| 0:6
+| FORMATTED
+| TERMINATED
+| This token has been terminated.
+
+| 3:2
+| SUSPENDED
+| TERMINATED
+| This suspended (temporarily lost) token has been terminated.
+
+| 3:6
+| SUSPENDED
+| PERM_LOST
+| This suspended (temporarily lost) has become permanently lost.
+
+| 4:1
+| ACTIVE
+| DAMAGED
+| This token has been physically damaged.
+
+| 4:2
+| ACTIVE
+| PERM_LOST
+| This token has been permanently lost.
+
+| 4:3
+| ACTIVE
+| SUSPENDED
+| This token has been suspended (temporarily lost).
+
+| 4:6
+| ACTIVE
+| TERMINATED
+| This token has been terminated.
+
+| 6:7
+| TERMINATED
+| UNFORMATTED
+| Reuse this token.
+|===
+
+The following transitions are generated automatically depending on the original state of the token. If a token was originally FORMATTED then became SUSPENDED, it can only return to FORMATTED state. If a token was originally ACTIVE then became SUSPENDED, it can only return to the ACTIVE state.
+
+|===
+| Transition | Current State | Next State | Label
+
+| 3:2
+| SUSPENDED
+| FORMATTED
+| This suspended (temporarily lost) token has been found.
+
+| 3:4
+| SUSPENDED
+| ACTIVE
+| This suspended (temporarily lost) token has been found.
+|===
+
+== Token state transitions via token operations ==
+
+The token state transitions that can be done via token operations are defined in the following property in TPS configuration file:
+
+----
+tps.operations.allowedTransitions=0:0,0:4,4:4,4:0,7:0
+----
+
+The property contains a comma-delimited list of transitions. Each transition is written in this format: `<current state code>:<new state code>`. The default list is defined in `/usr/share/pki/tps/conf/CS.cfg`. 
+
+The list represents the following transitions:
+
+|===
+| Transition | Current State | Next State | Description
+
+| 0:0
+| FORMATTED
+| FORMATTED
+| This allows reformatting a token or upgrading applet/key in a token.
+
+| 0:4
+| FORMATTED
+| ACTIVE
+| This allows enrolling a token.
+
+| 4:4
+| ACTIVE
+| ACTIVE
+| This allows re-enrolling an active token. Maybe useful for external registration.
+
+| 4:0
+| ACTIVE
+| FORMATTED
+| This allows formatting an active token.
+
+| 7:0
+| UNFORMATTED
+| FORMATTED
+| This allows formatting a blank or previously used token.
+|===
+
+= Token State and Transition Labels =
+
+The default token state and transition labels are stored in /usr/share/pki/tps/conf/token-states.properties:
+
+----
+# Token states
+UNFORMATTED         = Unformatted
+FORMATTED           = Formatted (uninitialized)
+ACTIVE              = Active
+SUSPENDED           = Suspended (temporarily lost)
+PERM_LOST           = Permanently lost
+DAMAGED             = Physically damaged
+TEMP_LOST_PERM_LOST = Temporarily lost then permanently lost
+TERMINATED          = Terminated
+
+# Token state transitions
+FORMATTED.DAMAGED        = This token has been physically damaged.
+FORMATTED.PERM_LOST      = This token has been permanently lost.
+FORMATTED.SUSPENDED      = This token has been suspended (temporarily lost).
+FORMATTED.TERMINATED     = This token has been terminated.
+SUSPENDED.ACTIVE         = This suspended (temporarily lost) token has been found.
+SUSPENDED.PERM_LOST      = This suspended (temporarily lost) token has become permanently lost.
+SUSPENDED.TERMINATED     = This suspended (temporarily lost) token has been terminated.
+SUSPENDED.FORMATTED      = This suspended (temporarily lost) token has been found.
+ACTIVE.DAMAGED           = This token has been physically damaged.
+ACTIVE.PERM_LOST         = This token has been permanently lost.
+ACTIVE.SUSPENDED         = This token has been suspended (temporarily lost).
+ACTIVE.TERMINATED        = This token has been terminated.
+TERMINATED.UNFORMATTED   = Reuse this token.
+----
+
+= Token Activity Log =
+
+Certain TPS activities are logged:
+
+|===
+| Activity | Description
+
+| add
+| A token was added.
+
+| format
+| A token was formatted.
+
+| enrollment
+| A token was enrolled.
+
+| recovery
+| A token was recovered.
+
+| renewal
+| A token was renewed.
+
+| pin_reset
+| A token PIN was reset.
+
+| token_status_change
+| A token status was changed via CLI/UI.
+
+| token_modify
+| A token was modified.
+
+| delete
+| A token was deleted.
+
+| cert_revocation
+| A token certificate was revoked.
+
+| cert_unrevocation
+| A token certificate was unrevoked.
+|===
+
+= Customization =
+
+== Customizing token state transitions ==
+
+To customize the list of token state transitions, edit the following properties in `/var/lib/pki/pki-tomcat/tps/conf/CS.cfg`:
+
+* `tokendb.allowedTransitions`
+* `tps.operations.allowedTransitions`
+
+Transitions can be removed from the list if necessary. New transitions cannot be added unless they were originally in the list. The original lists are stored in `/usr/share/pki/tps/conf/CS.cfg`.
+
+== Customizing token state and transition labels ==
+
+To customize token state and transition labels, copy the default `token-states.properties` into the instance folder, then change the labels as needed:
+
+----
+$ cp /usr/share/pki/tps/conf/token-states.properties /var/lib/pki/pki-tomcat/tps/conf
+----
+
+The change will be effective immediately. There is no need to restart the server, but the TPS UI may need to be reloaded.
+
+To remove the customized labels simply delete the customized file:
+
+----
+$ rm /var/lib/pki/pki-tomcat/tps/conf/token-states.properties
+----
+
+= Change Log =
+
+* link:PKI-10.3-TPS-Enhancements[PKI 10.3 TPS Enhancements]
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/TPS_Token_Lifecycle[TPS Token Lifecycle]
