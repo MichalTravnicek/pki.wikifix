@@ -1,0 +1,22 @@
+= Overview =
+
+Dogtag Certificate System is a PKI implementation comprised of multiple subsystems:
+
+* Certificate Authority (CA) - implemented in Java
+* Data Recovery Manager (DRM) - implemented in Java
+* Online Status Procotol Protocol (OCSP) Responder - implemented in Java
+* Token Key Service (TKS) - implemented in Java
+* Registration Authority (RA) - implemented in Perl
+* Token Processing System (TPS) - implemented in C and C++
+
+The CA, DRM, OCSP, and TKS subsystems all run as web applications under version 5.5.23 or later of the Tomcat Web Server (Dogtag 1.3 and earlier) or version 6.0 or later of the Tomcat Web Server (Dogtag 9.0), and require the IcedTea Open JRE 1.7 (Fedora 8), or OpenJDK JRE 1.6 (Fedora 9, Fedora 10, or later).  Additionally, all four subsystems require the use of 389 Directory Server 1.2 or later for data storage.
+
+**NOTE:**  The IBM Java Runtime Environment (JRE) 1.5.0.3 or later is required for these PKI subsystems to execute properly on Fedora Core 6 or Fedora 7.
+
+The RA and TPS subsystems require Apache version 2.2 or later.  Additionally, each RA runs as a set of Perl common gateway interface (cgi) scripts requiring Perl 5.8.5 or later, and stores its data in an SQLite database (version 3.3.13 or later).  Each instance of a TPS runs as a set of Apache modules and stores its data in an instance of 389 Directory Server 1.2 or later.
+
+Management of each subsystem, as well as management of individual instances of each subsystem, is provided through the use of various Perl scripts requiring Perl 5.8.5 or later.
+
+= PKI Packages =
+
+See link:https://www.dogtagpki.org/wiki/PKI_Packages[PKI Packages] for a description of all of the PKI components along with their build and runtime dependencies.
