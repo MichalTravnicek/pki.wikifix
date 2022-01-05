@@ -1,0 +1,754 @@
+= Upgrading server.xml =
+
+In PKI 10.5 the following parameters have been removed from the Secure Connector in the `server.xml`:
+
+* `sslOptions`
+* `ssl2Ciphers`
+* `ssl3Ciphers`
+* `tlsCiphers`
+
+----
+$ git diff DOGTAG_10_4_BRANCH:base/server/tomcat8/conf/server.xml DOGTAG_10_5_BRANCH:base/server/tomcat8/conf/server.xml
+----
+
+= Global Audit Event Changes =
+
+Retrieve `LogMessages.properties` files for comparison:
+
+----
+$ git checkout DOGTAG_10_5_BRANCH
+$ git checkout DOGTAG_10_4_BRANCH base/server/cmsbundle/src/LogMessages.properties
+$ mv base/server/cmsbundle/src/LogMessages.properties LogMessages-10.4.properties
+$ git checkout HEAD base/server/cmsbundle/src/LogMessages.properties
+----
+
+To see changes in global audit events:
+
+----
+$ tools/audit/list-all-events.py LogMessages-10.4.properties > all-events-10.4.txt
+$ tools/audit/list-all-events.py base/server/cmsbundle/src/LogMessages.properties > all-events-10.5.txt
+$ diff all-events-10.4.txt all-events-10.5.txt 
+1,2c1
+< ACCESS_SESSION_ESTABLISH_FAILURE
+< ACCESS_SESSION_ESTABLISH_SUCCESS
+---
+> ACCESS_SESSION_ESTABLISH
+8a8
+> AUTH
+10,13c10
+< AUTHZ_FAIL
+< AUTHZ_SUCCESS
+< AUTH_FAIL
+< AUTH_SUCCESS
+---
+> AUTHZ
+15a13
+> CERT_SIGNING_INFO
+18a17,18
+> CLIENT_ACCESS_SESSION_ESTABLISH
+> CLIENT_ACCESS_SESSION_TERMINATED
+20a21,22
+> CMC_REQUEST_RECEIVED
+> CMC_RESPONSE_SENT
+22,23c24
+< CMC_USER_SIGNED_REQUEST_SIG_VERIFY_FAILURE
+< CMC_USER_SIGNED_REQUEST_SIG_VERIFY_SUCCESS
+---
+> CMC_USER_SIGNED_REQUEST_SIG_VERIFY
+48a50
+> CRL_SIGNING_INFO
+68a71
+> OCSP_GENERATION
+70,71c73,74
+< OCSP_REMOVE_CA_REQUEST_PROCESSED_FAILURE
+< OCSP_REMOVE_CA_REQUEST_PROCESSED_SUCCESS
+---
+> OCSP_REMOVE_CA_REQUEST_PROCESSED
+> OCSP_SIGNING_INFO
+73a77
+> RANDOM_GENERATION
+89,90c93
+< TOKEN_APPLET_UPGRADE_FAILURE
+< TOKEN_APPLET_UPGRADE_SUCCESS
+---
+> TOKEN_APPLET_UPGRADE
+99c102
+< TOKEN_KEY_CHANGEOVER_FAILURE
+---
+> TOKEN_KEY_CHANGEOVER
+101d103
+< TOKEN_KEY_CHANGEOVER_SUCCESS
+----
+
+The above changes show that some audit events have been merged:
+
+|===
+| Old Event | New Event
+
+| ACCESS_SESSION_ESTABLISH_FAILURE
+| ACCESS_SESSION_ESTABLISH
+
+| ACCESS_SESSION_ESTABLISH_SUCCESS
+| ACCESS_SESSION_ESTABLISH
+
+| AUTH_FAIL
+| AUTH
+
+| AUTH_SUCCESS
+| AUTH
+
+| AUTHZ_FAIL
+| AUTHZ
+
+| AUTHZ_SUCCESS
+| AUTHZ
+
+| CMC_USER_SIGNED_REQUEST_SIG_VERIFY_FAILURE
+| CMC_USER_SIGNED_REQUEST_SIG_VERIFY
+
+| CMC_USER_SIGNED_REQUEST_SIG_VERIFY_SUCCESS
+| CMC_USER_SIGNED_REQUEST_SIG_VERIFY
+
+| OCSP_REMOVE_CA_REQUEST_PROCESSED_FAILURE
+| OCSP_REMOVE_CA_REQUEST_PROCESSED
+
+| OCSP_REMOVE_CA_REQUEST_PROCESSED_SUCCESS
+| OCSP_REMOVE_CA_REQUEST_PROCESSED
+
+| TOKEN_APPLET_UPGRADE_FAILURE
+| TOKEN_APPLET_UPGRADE
+
+| TOKEN_APPLET_UPGRADE_SUCCESS
+| TOKEN_APPLET_UPGRADE
+
+| TOKEN_KEY_CHANGEOVER_FAILURE
+| TOKEN_KEY_CHANGEOVER
+
+| TOKEN_KEY_CHANGEOVER_SUCCESS
+| TOKEN_KEY_CHANGEOVER
+|===
+
+An upgrade script has been provided to automaticaly update the properties in `CS.cfg` that may contain the above properties:
+
+* `log.instance.SignedAudit.events`
+* `log.instance.SignedAudit.unselected.events`
+* `log.instance.SignedAudit.mandatory.events`
+* `log.instance.SignedAudit.filters`
+
+= CA Audit Event Changes =
+
+Retrieve CA `CS.cfg` files for comparison:
+
+----
+$ git checkout DOGTAG_10_5_BRANCH
+$ git checkout DOGTAG_10_4_BRANCH base/ca/shared/conf/CS.cfg
+$ mv base/ca/shared/conf/CS.cfg ca-CS-10.4.cfg
+$ git checkout HEAD base/ca/shared/conf/CS.cfg
+----
+
+To see changes in default enabled audit events:
+
+----
+$ tools/audit/list-events.py log.instance.SignedAudit.events ca-CS-10.4.cfg > ca-enabled-events-10.4.txt
+$ tools/audit/list-events.py log.instance.SignedAudit.events base/ca/shared/conf/CS.cfg > ca-enabled-events-10.5.txt
+$ diff ca-enabled-events-10.4.txt ca-enabled-events-10.5.txt
+1,2c1
+< ACCESS_SESSION_ESTABLISH_FAILURE
+< ACCESS_SESSION_ESTABLISH_SUCCESS
+---
+> ACCESS_SESSION_ESTABLISH
+4,6c3
+< AUDIT_LOG_DELETE
+< AUDIT_LOG_SHUTDOWN
+< AUDIT_LOG_STARTUP
+---
+> AUTH
+8,11c5
+< AUTHZ_FAIL
+< AUTHZ_SUCCESS
+< AUTH_FAIL
+< AUTH_SUCCESS
+---
+> AUTHZ
+14c8
+< CERT_STATUS_CHANGE_REQUEST
+---
+> CERT_SIGNING_INFO
+16,18c10,13
+< CIMC_CERT_VERIFICATION
+< CMC_ID_POP_LINK_WITNESS
+< CMC_PROOF_OF_IDENTIFICATION
+---
+> CLIENT_ACCESS_SESSION_ESTABLISH
+> CLIENT_ACCESS_SESSION_TERMINATED
+> CMC_REQUEST_RECEIVED
+> CMC_RESPONSE_SENT
+20,27c15
+< CMC_USER_SIGNED_REQUEST_SIG_VERIFY_FAILURE
+< CMC_USER_SIGNED_REQUEST_SIG_VERIFY_SUCCESS
+< COMPUTE_RANDOM_DATA_REQUEST
+< COMPUTE_RANDOM_DATA_REQUEST_PROCESSED_FAILURE
+< COMPUTE_RANDOM_DATA_REQUEST_PROCESSED_SUCCESS
+< COMPUTE_SESSION_KEY_REQUEST
+< COMPUTE_SESSION_KEY_REQUEST_PROCESSED_FAILURE
+< COMPUTE_SESSION_KEY_REQUEST_PROCESSED_SUCCESS
+---
+> CMC_USER_SIGNED_REQUEST_SIG_VERIFY
+30d17
+< CONFIG_CERT_POLICY
+40,41c27
+< CRL_RETRIEVAL
+< CRL_VALIDATION
+---
+> CRL_SIGNING_INFO
+43,49d28
+< DELTA_CRL_PUBLISHING
+< DIVERSIFY_KEY_REQUEST
+< DIVERSIFY_KEY_REQUEST_PROCESSED_FAILURE
+< DIVERSIFY_KEY_REQUEST_PROCESSED_SUCCESS
+< ENCRYPT_DATA_REQUEST
+< ENCRYPT_DATA_REQUEST_PROCESSED_FAILURE
+< ENCRYPT_DATA_REQUEST_PROCESSED_SUCCESS
+51,58d29
+< FULL_CRL_PUBLISHING
+< INTER_BOUNDARY
+< KEY_GEN_ASYMMETRIC
+< KEY_RECOVERY_AGENT_LOGIN
+< KEY_RECOVERY_REQUEST
+< KEY_RECOVERY_REQUEST_ASYNC
+< KEY_RECOVERY_REQUEST_PROCESSED
+< KEY_RECOVERY_REQUEST_PROCESSED_ASYNC
+60,69c31,32
+< NON_PROFILE_CERT_REQUEST
+< OCSP_ADD_CA_REQUEST
+< OCSP_ADD_CA_REQUEST_PROCESSED
+< OCSP_REMOVE_CA_REQUEST
+< OCSP_REMOVE_CA_REQUEST_PROCESSED_FAILURE
+< OCSP_REMOVE_CA_REQUEST_PROCESSED_SUCCESS
+< PRIVATE_KEY_ARCHIVE_REQUEST
+< PRIVATE_KEY_ARCHIVE_REQUEST_PROCESSED
+< PRIVATE_KEY_EXPORT_REQUEST_PROCESSED_FAILURE
+< PRIVATE_KEY_EXPORT_REQUEST_PROCESSED_SUCCESS
+---
+> OCSP_GENERATION
+> OCSP_SIGNING_INFO
+71a35
+> RANDOM_GENERATION
+73,74d36
+< SCHEDULE_CRL_GENERATION
+< SECURITY_DATA_ARCHIVAL_REQUEST
+77,79d38
+< SERVER_SIDE_KEYGEN_REQUEST
+< SERVER_SIDE_KEYGEN_REQUEST_PROCESSED_FAILURE
+< SERVER_SIDE_KEYGEN_REQUEST_PROCESSED_SUCCESS
+----
+
+To see changes in default disabled audit events:
+
+----
+$ tools/audit/list-events.py log.instance.SignedAudit.unselected.events ca-CS-10.4.cfg > ca-disabled-events-10.4.txt
+$ tools/audit/list-events.py log.instance.SignedAudit.unselected.events base/ca/shared/conf/CS.cfg > ca-disabled-events-10.5.txt
+$ diff ca-disabled-events-10.4.txt ca-disabled-events-10.5.txt
+----
+
+To see changes in default mandatory audit events:
+
+----
+$ tools/audit/list-events.py log.instance.SignedAudit.mandatory.events ca-CS-10.4.cfg > ca-mandatory-events-10.4.txt
+$ tools/audit/list-events.py log.instance.SignedAudit.mandatory.events base/ca/shared/conf/CS.cfg > ca-mandatory-events-10.5.txt
+$ diff ca-mandatory-events-10.4.txt ca-mandatory-events-10.5.txt
+----
+
+To see changes in default audit event filters:
+
+----
+$ grep log.instance.SignedAudit.filters ca-CS-10.4.cfg > ca-event-filters-10.4.txt
+$ grep log.instance.SignedAudit.filters base/ca/shared/conf/CS.cfg > ca-event-filters-10.5.txt
+$ diff ca-event-filters-10.4.txt ca-event-filters-10.5.txt
+0a1,7
+> log.instance.SignedAudit.filters.CMC_SIGNED_REQUEST_SIG_VERIFY=(Outcome=Failure)
+> log.instance.SignedAudit.filters.CMC_USER_SIGNED_REQUEST_SIG_VERIFY=(Outcome=Failure)
+> log.instance.SignedAudit.filters.DELTA_CRL_GENERATION=(Outcome=Failure)
+> log.instance.SignedAudit.filters.FULL_CRL_GENERATION=(Outcome=Failure)
+> log.instance.SignedAudit.filters.OCSP_GENERATION=(Outcome=Failure)
+> log.instance.SignedAudit.filters.RANDOM_GENERATION=(Outcome=Failure)
+> log.instance.SignedAudit.filters.SELFTESTS_EXECUTION=(Outcome=Failure)
+----
+
+Since these changes only affect the default values of the properties, they are not required to be applied into existing instances.
+
+= KRA Audit Event Changes =
+
+Retrieve KRA `CS.cfg` files for comparison:
+
+----
+$ git checkout DOGTAG_10_5_BRANCH
+$ git checkout DOGTAG_10_4_BRANCH base/kra/shared/conf/CS.cfg
+$ mv base/kra/shared/conf/CS.cfg kra-CS-10.4.cfg
+$ git checkout HEAD base/kra/shared/conf/CS.cfg
+----
+
+To see changes in default enabled audit events:
+
+----
+$ tools/audit/list-events.py log.instance.SignedAudit.events kra-CS-10.4.cfg > kra-enabled-events-10.4.txt
+$ tools/audit/list-events.py log.instance.SignedAudit.events base/kra/shared/conf/CS.cfg > kra-enabled-events-10.5.txt
+$ diff kra-enabled-events-10.4.txt kra-enabled-events-10.5.txt
+1,2c1
+< ACCESS_SESSION_ESTABLISH_FAILURE
+< ACCESS_SESSION_ESTABLISH_SUCCESS
+---
+> ACCESS_SESSION_ESTABLISH
+5,23c4,8
+< ASYMKEY_GENERATION_REQUEST_PROCESSED
+< AUDIT_LOG_DELETE
+< AUDIT_LOG_SHUTDOWN
+< AUDIT_LOG_STARTUP
+< AUTHZ_FAIL
+< AUTHZ_SUCCESS
+< AUTH_FAIL
+< AUTH_SUCCESS
+< CERT_PROFILE_APPROVAL
+< CERT_STATUS_CHANGE_REQUEST
+< CERT_STATUS_CHANGE_REQUEST_PROCESSED
+< CIMC_CERT_VERIFICATION
+< CMC_SIGNED_REQUEST_SIG_VERIFY
+< COMPUTE_RANDOM_DATA_REQUEST
+< COMPUTE_RANDOM_DATA_REQUEST_PROCESSED_FAILURE
+< COMPUTE_RANDOM_DATA_REQUEST_PROCESSED_SUCCESS
+< COMPUTE_SESSION_KEY_REQUEST
+< COMPUTE_SESSION_KEY_REQUEST_PROCESSED_FAILURE
+< COMPUTE_SESSION_KEY_REQUEST_PROCESSED_SUCCESS
+---
+> ASYMKEY_GEN_REQUEST_PROCESSED
+> AUTH
+> AUTHZ
+> CLIENT_ACCESS_SESSION_ESTABLISH
+> CLIENT_ACCESS_SESSION_TERMINATED
+26,28d10
+< CONFIG_CERT_POLICY
+< CONFIG_CERT_PROFILE
+< CONFIG_CRL_PROFILE
+31d12
+< CONFIG_OCSP_PROFILE
+36,44d16
+< CRL_RETRIEVAL
+< CRL_VALIDATION
+< DIVERSIFY_KEY_REQUEST
+< DIVERSIFY_KEY_REQUEST_PROCESSED_FAILURE
+< DIVERSIFY_KEY_REQUEST_PROCESSED_SUCCESS
+< ENCRYPT_DATA_REQUEST
+< ENCRYPT_DATA_REQUEST_PROCESSED_FAILURE
+< ENCRYPT_DATA_REQUEST_PROCESSED_SUCCESS
+< INTER_BOUNDARY
+47d18
+< KEY_STATUS_CHANGE
+49,54d19
+< NON_PROFILE_CERT_REQUEST
+< OCSP_ADD_CA_REQUEST
+< OCSP_ADD_CA_REQUEST_PROCESSED
+< OCSP_REMOVE_CA_REQUEST
+< OCSP_REMOVE_CA_REQUEST_PROCESSED_FAILURE
+< OCSP_REMOVE_CA_REQUEST_PROCESSED_SUCCESS
+56c21
+< PROOF_OF_POSSESSION
+---
+> RANDOM_GENERATION
+60d24
+< SECURITY_DATA_EXPORT_KEY
+64c28
+< SECURITY_DATA_RETRIEVE_KEY
+---
+> SECURITY_DOMAIN_UPDATE
+69c33
+< SYMKEY_GENERATION_REQUEST_PROCESSED
+---
+> SYMKEY_GEN_REQUEST_PROCESSED
+----
+
+To see changes in default disabled audit events:
+
+----
+$ tools/audit/list-events.py log.instance.SignedAudit.unselected.events kra-CS-10.4.cfg > kra-disabled-events-10.4.txt
+$ tools/audit/list-events.py log.instance.SignedAudit.unselected.events base/kra/shared/conf/CS.cfg > kra-disabled-events-10.5.txt
+$ diff kra-disabled-events-10.4.txt kra-enabled-events-10.5.txt
+----
+
+To see changes in default mandatory audit events:
+
+----
+$ tools/audit/list-events.py log.instance.SignedAudit.mandatory.events kra-CS-10.4.cfg > kra-mandatory-events-10.4.txt
+$ tools/audit/list-events.py log.instance.SignedAudit.mandatory.events base/kra/shared/conf/CS.cfg > kra-mandatory-events-10.5.txt
+$ diff kra-mandatory-events-10.4.txt kra-mandatory-events-10.5.txt
+----
+
+To see changes in default audit event filters:
+
+----
+$ grep log.instance.SignedAudit.filters kra-CS-10.4.cfg > kra-event-filters-10.4.txt
+$ grep log.instance.SignedAudit.filters base/kra/shared/conf/CS.cfg > kra-event-filters-10.5.txt
+$ diff kra-event-filters-10.4.txt kra-event-filters-10.5.txt
+0a1,15
+> log.instance.SignedAudit.filters.ASYMKEY_GENERATION_REQUEST=(Outcome=Failure)
+> log.instance.SignedAudit.filters.ASYMKEY_GEN_REQUEST_PROCESSED=(Outcome=Failure)
+> log.instance.SignedAudit.filters.KEY_GEN_ASYMMETRIC=(Outcome=Failure)
+> log.instance.SignedAudit.filters.KEY_RECOVERY_AGENT_LOGIN=(Outcome=Failure)
+> log.instance.SignedAudit.filters.RANDOM_GENERATION=(Outcome=Failure)
+> log.instance.SignedAudit.filters.SECURITY_DATA_ARCHIVAL_REQUEST=(Outcome=Failure)
+> log.instance.SignedAudit.filters.SECURITY_DATA_ARCHIVAL_REQUEST_PROCESSED=(Outcome=Failure)
+> log.instance.SignedAudit.filters.SECURITY_DATA_RECOVERY_REQUEST=(Outcome=Failure)
+> log.instance.SignedAudit.filters.SECURITY_DATA_RECOVERY_REQUEST_PROCESSED=(Outcome=Failure)
+> log.instance.SignedAudit.filters.SECURITY_DATA_RECOVERY_REQUEST_STATE_CHANGE=(Outcome=Failure)
+> log.instance.SignedAudit.filters.SELFTESTS_EXECUTION=(Outcome=Failure)
+> log.instance.SignedAudit.filters.SERVER_SIDE_KEYGEN_REQUEST=(Outcome=Failure)
+> log.instance.SignedAudit.filters.SERVER_SIDE_KEYGEN_REQUEST_PROCESSED=(Outcome=Failure)
+> log.instance.SignedAudit.filters.SYMKEY_GENERATION_REQUEST=(Outcome=Failure)
+> log.instance.SignedAudit.filters.SYMKEY_GEN_REQUEST_PROCESSED=(Outcome=Failure)
+----
+
+Since these changes only affect the default values of the properties, they are not required to be applied into existing instances.
+
+= OCSP Audit Event Changes =
+
+Retrieve OCSP `CS.cfg` files for comparison:
+
+----
+$ git checkout DOGTAG_10_5_BRANCH
+$ git checkout DOGTAG_10_4_BRANCH base/ocsp/shared/conf/CS.cfg
+$ mv base/ocsp/shared/conf/CS.cfg ocsp-CS-10.4.cfg
+$ git checkout HEAD base/ocsp/shared/conf/CS.cfg
+----
+
+To see changes in default enabled audit events:
+
+----
+$ tools/audit/list-events.py log.instance.SignedAudit.events ocsp-CS-10.4.cfg > ocsp-enabled-events-10.4.txt
+$ tools/audit/list-events.py log.instance.SignedAudit.events base/ocsp/shared/conf/CS.cfg > ocsp-enabled-events-10.5.txt
+$ diff ocsp-enabled-events-10.4.txt ocsp-enabled-events-10.5.txt
+1,2c1
+< ACCESS_SESSION_ESTABLISH_FAILURE
+< ACCESS_SESSION_ESTABLISH_SUCCESS
+---
+> ACCESS_SESSION_ESTABLISH
+4,22c3,6
+< AUDIT_LOG_DELETE
+< AUDIT_LOG_SHUTDOWN
+< AUDIT_LOG_STARTUP
+< AUTHZ_FAIL
+< AUTHZ_SUCCESS
+< AUTH_FAIL
+< AUTH_SUCCESS
+< CERT_PROFILE_APPROVAL
+< CERT_REQUEST_PROCESSED
+< CERT_STATUS_CHANGE_REQUEST
+< CERT_STATUS_CHANGE_REQUEST_PROCESSED
+< CIMC_CERT_VERIFICATION
+< CMC_SIGNED_REQUEST_SIG_VERIFY
+< COMPUTE_RANDOM_DATA_REQUEST
+< COMPUTE_RANDOM_DATA_REQUEST_PROCESSED_FAILURE
+< COMPUTE_RANDOM_DATA_REQUEST_PROCESSED_SUCCESS
+< COMPUTE_SESSION_KEY_REQUEST
+< COMPUTE_SESSION_KEY_REQUEST_PROCESSED_FAILURE
+< COMPUTE_SESSION_KEY_REQUEST_PROCESSED_SUCCESS
+---
+> AUTH
+> AUTHZ
+> CLIENT_ACCESS_SESSION_ESTABLISH
+> CLIENT_ACCESS_SESSION_TERMINATED
+25,28d8
+< CONFIG_CERT_POLICY
+< CONFIG_CERT_PROFILE
+< CONFIG_CRL_PROFILE
+< CONFIG_DRM
+34,48d13
+< CRL_RETRIEVAL
+< CRL_VALIDATION
+< DIVERSIFY_KEY_REQUEST
+< DIVERSIFY_KEY_REQUEST_PROCESSED_FAILURE
+< DIVERSIFY_KEY_REQUEST_PROCESSED_SUCCESS
+< ENCRYPT_DATA_REQUEST
+< ENCRYPT_DATA_REQUEST_PROCESSED_FAILURE
+< ENCRYPT_DATA_REQUEST_PROCESSED_SUCCESS
+< INTER_BOUNDARY
+< KEY_GEN_ASYMMETRIC
+< KEY_RECOVERY_AGENT_LOGIN
+< KEY_RECOVERY_REQUEST
+< KEY_RECOVERY_REQUEST_ASYNC
+< KEY_RECOVERY_REQUEST_PROCESSED
+< KEY_RECOVERY_REQUEST_PROCESSED_ASYNC
+50,51d14
+< NON_PROFILE_CERT_REQUEST
+< OCSP_ADD_CA_REQUEST
+53,61c16,18
+< OCSP_REMOVE_CA_REQUEST
+< OCSP_REMOVE_CA_REQUEST_PROCESSED_FAILURE
+< OCSP_REMOVE_CA_REQUEST_PROCESSED_SUCCESS
+< PRIVATE_KEY_ARCHIVE_REQUEST
+< PRIVATE_KEY_ARCHIVE_REQUEST_PROCESSED
+< PRIVATE_KEY_EXPORT_REQUEST_PROCESSED_FAILURE
+< PRIVATE_KEY_EXPORT_REQUEST_PROCESSED_SUCCESS
+< PROFILE_CERT_REQUEST
+< PROOF_OF_POSSESSION
+---
+> OCSP_REMOVE_CA_REQUEST_PROCESSED
+> OCSP_SIGNING_INFO
+> RANDOM_GENERATION
+62a20
+> SECURITY_DOMAIN_UPDATE
+64,66d21
+< SERVER_SIDE_KEYGEN_REQUEST
+< SERVER_SIDE_KEYGEN_REQUEST_PROCESSED_FAILURE
+< SERVER_SIDE_KEYGEN_REQUEST_PROCESSED_SUCCESS
+----
+
+To see changes in default disabled audit events:
+
+----
+$ tools/audit/list-events.py log.instance.SignedAudit.unselected.events ocsp-CS-10.4.cfg > ocsp-disabled-events-10.4.txt
+$ tools/audit/list-events.py log.instance.SignedAudit.unselected.events base/ocsp/shared/conf/CS.cfg > ocsp-disabled-events-10.5.txt
+$ diff ocsp-disabled-events-10.4.txt ocsp-disabled-events-10.5.txt
+----
+
+To see changes in default mandatory audit events:
+
+----
+$ tools/audit/list-events.py log.instance.SignedAudit.mandatory.events ocsp-CS-10.4.cfg > ocsp-mandatory-events-10.4.txt
+$ tools/audit/list-events.py log.instance.SignedAudit.mandatory.events base/ocsp/shared/conf/CS.cfg > ocsp-mandatory-events-10.5.txt
+$ diff ocsp-mandatory-events-10.4.txt ocsp-mandatory-events-10.5.txt
+----
+
+To see changes in default audit event filters:
+
+----
+$ grep log.instance.SignedAudit.filters ocsp-CS-10.4.cfg > ocsp-event-filters-10.4.txt
+$ grep log.instance.SignedAudit.filters base/ocsp/shared/conf/CS.cfg > ocsp-event-filters-10.5.txt
+$ diff ocsp-event-filters-10.4.txt ocsp-event-filters-10.5.txt
+0a1,2
+> log.instance.SignedAudit.filters.RANDOM_GENERATION=(Outcome=Failure)
+> log.instance.SignedAudit.filters.SELFTESTS_EXECUTION=(Outcome=Failure)
+----
+
+Since these changes only affect the default values of the properties, they are not required to be applied into existing instances.
+
+= TKS Audit Event Changes =
+
+Retrieve TKS `CS.cfg` files for comparison: 
+
+----
+$ git checkout DOGTAG_10_5_BRANCH
+$ git checkout DOGTAG_10_4_BRANCH base/tks/shared/conf/CS.cfg
+$ mv base/tks/shared/conf/CS.cfg tks-CS-10.4.cfg
+$ git checkout HEAD base/tks/shared/conf/CS.cfg
+----
+
+To see changes in default enabled audit events:
+
+----
+$ tools/audit/list-events.py log.instance.SignedAudit.events tks-CS-10.4.cfg > tks-enabled-events-10.4.txt
+$ tools/audit/list-events.py log.instance.SignedAudit.events base/tks/shared/conf/CS.cfg > tks-enabled-events-10.5.txt
+$ diff tks-enabled-events-10.4.txt tks-enabled-events-10.5.txt
+1,2c1
+< ACCESS_SESSION_ESTABLISH_FAILURE
+< ACCESS_SESSION_ESTABLISH_SUCCESS
+---
+> ACCESS_SESSION_ESTABLISH
+4,22c3,6
+< AUDIT_LOG_DELETE
+< AUDIT_LOG_SHUTDOWN
+< AUDIT_LOG_STARTUP
+< AUTHZ_FAIL
+< AUTHZ_SUCCESS
+< AUTH_FAIL
+< AUTH_SUCCESS
+< CERT_PROFILE_APPROVAL
+< CERT_REQUEST_PROCESSED
+< CERT_STATUS_CHANGE_REQUEST
+< CERT_STATUS_CHANGE_REQUEST_PROCESSED
+< CIMC_CERT_VERIFICATION
+< CMC_SIGNED_REQUEST_SIG_VERIFY
+< COMPUTE_RANDOM_DATA_REQUEST
+< COMPUTE_RANDOM_DATA_REQUEST_PROCESSED_FAILURE
+< COMPUTE_RANDOM_DATA_REQUEST_PROCESSED_SUCCESS
+< COMPUTE_SESSION_KEY_REQUEST
+< COMPUTE_SESSION_KEY_REQUEST_PROCESSED_FAILURE
+< COMPUTE_SESSION_KEY_REQUEST_PROCESSED_SUCCESS
+---
+> AUTH
+> AUTHZ
+> CLIENT_ACCESS_SESSION_ESTABLISH
+> CLIENT_ACCESS_SESSION_TERMINATED
+25,28d8
+< CONFIG_CERT_POLICY
+< CONFIG_CERT_PROFILE
+< CONFIG_CRL_PROFILE
+< CONFIG_DRM
+30d9
+< CONFIG_OCSP_PROFILE
+34,48d12
+< CRL_RETRIEVAL
+< CRL_VALIDATION
+< DIVERSIFY_KEY_REQUEST
+< DIVERSIFY_KEY_REQUEST_PROCESSED_FAILURE
+< DIVERSIFY_KEY_REQUEST_PROCESSED_SUCCESS
+< ENCRYPT_DATA_REQUEST
+< ENCRYPT_DATA_REQUEST_PROCESSED_FAILURE
+< ENCRYPT_DATA_REQUEST_PROCESSED_SUCCESS
+< INTER_BOUNDARY
+< KEY_GEN_ASYMMETRIC
+< KEY_RECOVERY_AGENT_LOGIN
+< KEY_RECOVERY_REQUEST
+< KEY_RECOVERY_REQUEST_ASYNC
+< KEY_RECOVERY_REQUEST_PROCESSED
+< KEY_RECOVERY_REQUEST_PROCESSED_ASYNC
+50,61c14
+< NON_PROFILE_CERT_REQUEST
+< OCSP_ADD_CA_REQUEST
+< OCSP_ADD_CA_REQUEST_PROCESSED
+< OCSP_REMOVE_CA_REQUEST
+< OCSP_REMOVE_CA_REQUEST_PROCESSED_FAILURE
+< OCSP_REMOVE_CA_REQUEST_PROCESSED_SUCCESS
+< PRIVATE_KEY_ARCHIVE_REQUEST
+< PRIVATE_KEY_ARCHIVE_REQUEST_PROCESSED
+< PRIVATE_KEY_EXPORT_REQUEST_PROCESSED_FAILURE
+< PRIVATE_KEY_EXPORT_REQUEST_PROCESSED_SUCCESS
+< PROFILE_CERT_REQUEST
+< PROOF_OF_POSSESSION
+---
+> RANDOM_GENERATION
+62a16
+> SECURITY_DOMAIN_UPDATE
+64,66d17
+< SERVER_SIDE_KEYGEN_REQUEST
+< SERVER_SIDE_KEYGEN_REQUEST_PROCESSED_FAILURE
+< SERVER_SIDE_KEYGEN_REQUEST_PROCESSED_SUCCESS
+----
+
+To see changes in default disabled audit events:
+
+----
+$ tools/audit/list-events.py log.instance.SignedAudit.unselected.events tks-CS-10.4.cfg > tks-disabled-events-10.4.txt
+$ tools/audit/list-events.py log.instance.SignedAudit.unselected.events base/tks/shared/conf/CS.cfg > tks-disabled-events-10.5.txt
+$ diff tks-disabled-events-10.4.txt tks-disabled-events-10.5.txt
+----
+
+To see changes in default mandatory audit events:
+
+----
+$ tools/audit/list-events.py log.instance.SignedAudit.mandatory.events tks-CS-10.4.cfg > tks-mandatory-events-10.4.txt
+$ tools/audit/list-events.py log.instance.SignedAudit.mandatory.events base/tks/shared/conf/CS.cfg > tks-mandatory-events-10.5.txt
+$ diff tks-mandatory-events-10.4.txt tks-mandatory-events-10.5.txt
+----
+
+To see changes in default audit event filters:
+
+----
+$ grep log.instance.SignedAudit.filters tks-CS-10.4.cfg > tks-event-filters-10.4.txt
+$ grep log.instance.SignedAudit.filters base/tks/shared/conf/CS.cfg > tks-event-filters-10.5.txt
+$ diff tks-event-filters-10.4.txt tks-event-filters-10.5.txt
+0a1,2
+> log.instance.SignedAudit.filters.RANDOM_GENERATION=(Outcome=Failure)
+> log.instance.SignedAudit.filters.SELFTESTS_EXECUTION=(Outcome=Failure)
+----
+
+Since these changes only affect the default values of the properties, they are not required to be applied into existing instances.
+
+= TPS Audit Event Changes =
+
+Retrieve TPS `CS.cfg` files for comparison:
+
+----
+$ git checkout DOGTAG_10_5_BRANCH
+$ git checkout DOGTAG_10_4_BRANCH base/tps/shared/conf/CS.cfg
+$ mv base/tps/shared/conf/CS.cfg tps-CS-10.4.cfg
+$ git checkout HEAD base/tps/shared/conf/CS.cfg
+----
+
+To see changes in default enabled audit events:
+
+----
+$ tools/audit/list-events.py log.instance.SignedAudit.events tps-CS-10.4.cfg > tps-enabled-events-10.4.txt
+$ tools/audit/list-events.py log.instance.SignedAudit.events base/tps/shared/conf/CS.cfg > tps-enabled-events-10.5.txt
+$ diff tps-enabled-events-10.4.txt tps-enabled-events-10.5.txt
+1,2c1
+< ACCESS_SESSION_ESTABLISH_FAILURE
+< ACCESS_SESSION_ESTABLISH_SUCCESS
+---
+> ACCESS_SESSION_ESTABLISH
+4,9c3,5
+< AUTHZ_FAIL
+< AUTHZ_SUCCESS
+< AUTH_FAIL
+< AUTH_SUCCESS
+< CIMC_CERT_VERIFICATION
+< CONFIG_AUTH
+---
+> AUTH
+> AUTHZ
+> CONFIG_ACL
+14d9
+< CONFIG_TOKEN_GENERAL
+16d10
+< CONFIG_TOKEN_PROFILE
+17a12,13
+> LOG_PATH_CHANGE
+> RANDOM_GENERATION
+18a15
+> SECURITY_DOMAIN_UPDATE
+20,29c17,18
+< TOKEN_APPLET_UPGRADE_FAILURE
+< TOKEN_APPLET_UPGRADE_SUCCESS
+< TOKEN_AUTH_FAILURE
+< TOKEN_AUTH_SUCCESS
+< TOKEN_CERT_ENROLLMENT
+< TOKEN_CERT_RENEWAL
+< TOKEN_CERT_RETRIEVAL
+< TOKEN_FORMAT_FAILURE
+< TOKEN_FORMAT_SUCCESS
+< TOKEN_KEY_CHANGEOVER_FAILURE
+---
+> TOKEN_APPLET_UPGRADE
+> TOKEN_KEY_CHANGEOVER
+31,36d19
+< TOKEN_KEY_CHANGEOVER_SUCCESS
+< TOKEN_KEY_RECOVERY
+< TOKEN_OP_REQUEST
+< TOKEN_PIN_RESET_FAILURE
+< TOKEN_PIN_RESET_SUCCESS
+< TOKEN_STATE_CHANGE
+----
+
+To see changes in default disabled audit events:
+
+----
+$ tools/audit/list-events.py log.instance.SignedAudit.unselected.events tps-CS-10.4.cfg > tps-disabled-events-10.4.txt
+$ tools/audit/list-events.py log.instance.SignedAudit.unselected.events base/tps/shared/conf/CS.cfg > tps-disabled-events-10.5.txt
+$ diff tps-disabled-events-10.4.txt tps-disabled-events-10.5.txt
+----
+
+To see changes in default mandatory audit events:
+
+----
+$ tools/audit/list-events.py log.instance.SignedAudit.mandatory.events tps-CS-10.4.cfg > tps-mandatory-events-10.4.txt
+$ tools/audit/list-events.py log.instance.SignedAudit.mandatory.events base/tps/shared/conf/CS.cfg > tps-mandatory-events-10.5.txt
+$ diff tps-mandatory-events-10.4.txt tps-mandatory-events-10.5.txt
+----
+
+To see changes in default audit event filters:
+
+----
+$ grep log.instance.SignedAudit.filters tps-CS-10.4.cfg > tps-event-filters-10.4.txt
+$ grep log.instance.SignedAudit.filters base/tps/shared/conf/CS.cfg > tps-event-filters-10.5.txt
+$ diff tps-event-filters-10.4.txt tps-event-filters-10.5.txt
+0a1,4
+> log.instance.SignedAudit.filters.RANDOM_GENERATION=(Outcome=Failure)
+> log.instance.SignedAudit.filters.SELFTESTS_EXECUTION=(Outcome=Failure)
+> log.instance.SignedAudit.filters.TOKEN_APPLET_UPGRADE=(Outcome=Failure)
+> log.instance.SignedAudit.filters.TOKEN_KEY_CHANGEOVER=(Outcome=Failure)
+----
+
+Since these changes only affect the default values of the properties, they are not required to be applied into existing instances.
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/Configuration_Upgrade[Configuration Upgrade]
+* link:PKI-10.5-Audit-Event-Improvements[PKI 10.5 Audit Event Improvements]
