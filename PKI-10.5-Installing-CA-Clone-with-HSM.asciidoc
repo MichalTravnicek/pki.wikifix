@@ -1,0 +1,204 @@
+= Overview =
+
+PKI CA with HSM can be cloned into a separate instance sharing the same HSM or a clone of that HSM.
+
+Since the certificates and the keys are stored in HSM, it's not necessary to export them into a PKCS #12 file.
+
+This document assumes that the CA instance with HSM to be cloned has been created.
+
+= Creating DS Instance =
+
+link:DS-Installation[Install] a DS instance for the CA clone.
+
+If SSL is enabled on DS master, the DS clone must be configured with SSL too. Make sure the DS master and clone trust each other's certificates.
+
+= Preparation =
+
+Prepare a deployment configuration file (e.g. ca-hsm-clone.cfg). For nFast add the following parameters:
+
+----
+[DEFAULT]
+pki_hsm_enable=True
+pki_hsm_libfile=/opt/nfast/toolkits/pkcs11/libcknfast.so
+pki_hsm_modulename=nfast
+pki_token_name=HSM
+pki_token_password=Secret.123
+----
+
+For Luna SA add the following parameters:
+
+----
+[DEFAULT]
+pki_hsm_enable=True
+pki_hsm_libfile=/usr/safenet/lunaclient/lib/libCryptoki2_64.so
+pki_hsm_modulename=lunasa
+pki_token_name=HSM
+pki_token_password=Secret.123
+----
+
+By default the server will generate a random password for the internal NSS database. If necesssary (e.g. in FIPS mode) a specific password can be specified with the following parameter:
+
+----
+pki_pin=Secret.123
+----
+
+Then specify the normal CA configuration parameters:
+
+----
+[CA]
+pki_admin_email=caadmin@example.com
+pki_admin_name=caadmin
+pki_admin_nickname=caadmin
+pki_admin_password=Secret.123
+pki_admin_uid=caadmin
+
+pki_client_database_password=Secret.123
+pki_client_database_purge=False
+pki_client_pkcs12_password=Secret.123
+
+pki_ds_base_dn=dc=ca,dc=example,dc=com
+pki_ds_database=ca
+pki_ds_password=Secret.123
+
+pki_security_domain_hostname=master.example.com
+pki_security_domain_https_port=8443
+pki_security_domain_user=caadmin
+pki_security_domain_password=Secret.123
+
+pki_clone=True
+pki_clone_replicate_schema=True
+pki_clone_uri=https://master.example.com:8443
+----
+
+Specify the same certificates nicknames as in other clones of the same instance, for example: 
+
+----
+pki_ca_signing_nickname=%(pki_instance_name)s/ca_signing
+pki_ocsp_signing_nickname=%(pki_instance_name)s/ca_ocsp_signing
+pki_audit_signing_nickname=%(pki_instance_name)s/ca_audit_signing
+pki_subsystem_nickname=%(pki_instance_name)s/subsystem
+----
+
+Specify a unique SSL server certificate nickname to avoid conflicts with other clones of the same instance, for example:
+
+----
+pki_sslserver_nickname=%(pki_instance_name)s/sslserver/%(pki_hostname)s
+----
+
+On PKI 10.6 due to the switch to link:PKI-10.6-HTTP-NIO-Connector-Support[NIO connector] the SSL server certificate has to be created in the internal token:
+
+----
+pki_sslserver_token=internal
+----
+
+= Installation =
+
+To begin the installation, execute the following command:
+
+----
+$ pkispawn -v -f ca-hsm-clone.cfg -s CA
+----
+
+= Verification =
+
+== Verify HSM module ==
+
+The HSM module should be installed in the NSS database:
+
+----
+$ modutil -dbdir /var/lib/pki/pki-tomcat/alias -list
+
+Listing of PKCS #11 Modules
+-----------------------------------------------------------
+  1. NSS Internal PKCS #11 Module
+         slots: 2 slots attached
+        status: loaded
+
+         slot: NSS Internal Cryptographic Services
+        token: NSS Generic Crypto Services
+
+         slot: NSS User Private Key and Certificate Services
+        token: NSS Certificate DB
+
+  2. nfast
+        library name: /opt/nfast/toolkits/pkcs11/libcknfast.so
+         slots: 2 slots attached
+        status: loaded
+
+         slot: 061C-37A2-3CB3 Rt1
+        token: accelerator
+
+         slot: 061C-37A2-3CB3 Rt1 slot 0
+        token: HSM
+-----------------------------------------------------------
+----
+
+== Verify certificates in HSM ==
+
+The certificates should be stored in HSM with the same nicknames as in the master except for the SSL server certificate: 
+
+----
+$ echo Secret.123 > password.txt
+$ certutil -L -d /var/lib/pki/pki-tomcat/alias -h HSM -f password.txt
+
+Certificate Nickname                                         Trust Attributes
+                                                             SSL,S/MIME,JAR/XPI
+
+HSM:pki-tomcat/ca_signing                                    CTu,Cu,Cu
+HSM:pki-tomcat/ca_ocsp_signing                               u,u,u
+HSM:pki-tomcat/sslserver/clone.example.com                   u,u,u
+HSM:pki-tomcat/subsystem                                     u,u,u
+HSM:pki-tomcat/ca_audit_signing                              u,u,Pu
+----
+
+== Verify keys in HSM ==
+
+The keys should be stored in HSM with the same IDs as in the master except for the SSL server key:
+
+----
+$ certutil -K -d /var/lib/pki/pki-tomcat/alias -h HSM -f password.txt
+<291> rsa      f4e07b335299c96f0247a6f8dc049e8faa540209   pki-tomcat/ca_signing
+<292> rsa      0bdf1085474b7542fa30908c2136c518fdedc615   pki-tomcat/ca_ocsp_signing
+<293> rsa      39473f7309b3354d638940e55398cf500d8411f8   pki-tomcat/sslserver/clone.example.com
+<294> rsa      2235764e98d1b973aa1a231c09aebc8e33133641   pki-tomcat/subsystem
+<295> rsa      a532c42398cd592b664eafd4c2b0a73e20ee395e   pki-tomcat/ca_audit_signing
+----
+
+= Removing CA Clone with HSM =
+
+To remove CA clone execute the following command:
+
+----
+$ pkidestroy -v -s CA -i pki-tomcat
+----
+
+Note that the certificates and keys will not be deleted from HSM automatically. To remove the certificates and keys manually, create a temporary NSS database with the HSM module:
+
+----
+$ mkdir nssdb
+$ certutil -N -d nssdb -f password.txt
+$ modutil -dbdir nssdb -add nfast -libfile /opt/nfast/toolkits/pkcs11/libcknfast.so
+----
+
+Remove the SSL server key (which will remove the corresponding certificate as well) with the following commands:
+
+----
+$ certutil -F -d nssdb -h HSM -n "HSM:pki-tomcat/sslserver/clone.example.com"
+----
+
+If this is the last clone of this instance, remove the other keys (which will remove the corresponding certificates as well) with the following commands:
+
+----
+$ certutil -F -d nssdb -h HSM -n "HSM:pki-tomcat/ca_signing"
+$ certutil -F -d nssdb -h HSM -n "HSM:pki-tomcat/ca_ocsp_signing"
+$ certutil -F -d nssdb -h HSM -n "HSM:pki-tomcat/subsystem"
+$ certutil -F -d nssdb -h HSM -n "HSM:pki-tomcat/ca_audit_signing"
+----
+
+Each command will ask for the NSS database password then the HSM password.
+
+Finally, remove the temporary NSS database:
+
+----
+$ rm -rf nssdb
+----
