@@ -1,0 +1,113 @@
+= Overview =
+
+This page describes the process to install a subordinate CA. There are two ways to do that depending
+on the access to the security domain:
+
+* simplified procedure in this page
+* manual procedure in link:https://github.com/dogtagpki/pki/blob/master/docs/installation/ca/Installing_CA_with_External_CA_Signing_Certificate.md[Installing CA with External CA Signing Certificate]
+
+Security domain is a construct that is used to make PKI installations simpler and more convenient.
+It represents a "domain of trust" whereby members agree to perform installation tasks at the request
+of the security domain admins.
+
+If you can log into the security domain as a security domain admin, and the issuing CA is a member of
+the security domain, then use the simplified procedure described in this page.
+
+Otherwise, use the manual procedure described in link:https://github.com/dogtagpki/pki/blob/master/docs/installation/ca/Installing_CA_with_External_CA_Signing_Certificate.md[Installing CA with External CA Signing Certificate].
+
+= Installing Subordinate CA =
+
+Prepare a deployment configuration file (e.g. subca.cfg) as described in link:https://github.com/dogtagpki/pki/blob/master/docs/installation/ca/Installing_CA.md[Installing CA] and specify the following parameters to configure the subordinate CA:
+
+----
+[CA]
+pki_subordinate=True
+pki_issuing_ca_hostname=<issuing CA>
+pki_issuing_ca_https_port=8443
+pki_ca_signing_subject_dn=cn=SubCA Signing,dc=example,dc=com
+
+pki_ds_base_dn=dc=ca,dc=pki,dc=example,dc=com
+pki_ds_database=ca
+pki_ds_password=Secret.123
+
+pki_security_domain_hostname=<security domain>
+pki_security_domain_https_port=8443
+pki_security_domain_user=caadmin
+pki_security_domain_password=Secret.123
+----
+
+Notes:
+
+* the subordinate CA must run on a separate instance from the issuing CA
+
+By default the subordinate CA will join the specified security domain. Alternatively, the subordinate CA can create a new security domain:
+
+----
+pki_subordinate_create_new_security_domain=True
+pki_subordinate_security_domain_name=SUBORDINATE
+----
+
+To begin the installation, execute the following command:
+
+----
+$ pkispawn -v -f subca.cfg -s CA
+----
+
+= Verification =
+
+If the subordinate CA joins root CA's security domain, it will appear in that security domain:
+
+----
+$ pki securitydomain-show
+  Domain: EXAMPLE
+
+  CA Subsystem:
+
+    Host ID: CA rootca.example.com 8443
+    Hostname: rootca.example.com
+    Port: 8080
+    Secure Port: 8443
+    Domain Manager: TRUE
+
+    Host ID: CA subca.example.com 8443
+    Hostname: subca.example.com
+    Port: 8080
+    Secure Port: 8443
+    Domain Manager: FALSE
+----
+
+If the subordinate CA creates a new security domain, it will only appear in the new security domain. It will not join the root CA's security domain.
+
+Root CA's security domain:
+
+----
+$ pki securitydomain-show
+  Domain: EXAMPLE
+
+  CA Subsystem:
+
+    Host ID: CA rootca.example.com 8443
+    Hostname: rootca.example.com
+    Port: 8080
+    Secure Port: 8443
+    Domain Manager: TRUE
+----
+
+Subordinate CA's security domain:
+
+----
+$ pki securitydomain-show
+  Domain: SUBORDINATE
+
+  CA Subsystem:
+
+    Host ID: CA subca.example.com 8443
+    Hostname: subca.example.com
+    Port: 8080
+    Secure Port: 8443
+    Domain Manager: TRUE
+----
+
+= See Also =
+
+* link:Lightweight-CA[Lightweight CA]
