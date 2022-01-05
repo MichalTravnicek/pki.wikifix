@@ -1,0 +1,197 @@
+= Overview =
+
+In general PKI 10.5 server can be upgraded to PKI 10.6 with the following procedure:
+
+* Shutdown PKI server
+* Upgrade PKI packages
+* Follow the link:Upgrading-PKI-Database[database upgrade] procedure to upgrade PKI database
+* Restart PKI server
+
+However, if the SSL server certificate is stored in an HSM that does not support key export, or if the server is configured with Nuxwdog, or both, follow the procedure below.
+
+= Shutdown PKI Server =
+
+If Nuxwdog is disabled, shutdown the server with the following command:
+
+----
+$ systemctl stop pki-tomcatd@pki-tomcat.service
+----
+
+If Nuxwdog is enabled, shutdown the server with the following command:
+
+----
+$ systemctl stop pki-tomcatd-nuxwdog@pki-tomcat.service
+----
+
+= Upgrade PKI Packages =
+
+Enable the RPM repository that contains PKI 10.6, then execute the following command:
+
+----
+$ dnf update
+----
+
+= Upgrade PKI Database =
+
+Follow the [manual database upgrade] procedure to upgrade PKI database.
+
+= Upgrade Procedure for HSM =
+
+If the current SSL server certificate is stored in an HSM that does not support key export,
+follow this procedure to generate a new SSL server certificate in the internal token. Otherwise,
+skip to the next section.
+
+== Inspect current SSL server certificate ==
+
+Get the CA Key Identifier and OCSP URL from the current SSL server certificate with the following commands:
+
+----
+$ pki-server cert-show sslserver --instance "pki-tomcat" --pretty-print
+...
+            Name: Certificate Authority Key Identifier
+            Key ID:
+                20:bf:45:ce:45:a4:e7:cd:5f:dd:e2:76:99:41:73:00:
+                ae:f8:a4:50
+
+            Name: Authority Information Access
+            Method: PKIX Online Certificate Status Protocol
+            Location: 
+                URI: "http://server.example.com:8080/ca/ocsp"
+...
+----
+
+Set AKI and OCSP environment variables based on the above output:
+
+----
+$ AKI="20bf45ce45a4e7cd5fdde27699417300aef8a450"
+$ OCSP="http://server.example.com:8080/ca/ocsp"
+----
+
+== Generate SSL server CSR ==
+
+link:Generating-SSL-Server-CSR-with-NSS[Generate] an SSL server CSR in the internal token with the following commands:
+
+----
+$ cd /etc/pki/pki-tomcat
+$ mkdir -p certs
+$ openssl rand -out noise.bin 2048
+$ certutil -R \
+ -d alias \
+ -z noise.bin \
+ -s "CN=$HOSTNAME,O=EXAMPLE" \
+ -o certs/sslserver.csr.der \
+ -k rsa \
+ -g 2048 \
+ -Z SHA256 \
+ --keyUsage critical,dataEncipherment,keyEncipherment,digitalSignature \
+ --extKeyUsage serverAuth
+$ openssl req -inform der -in certs/sslserver.csr.der -out certs/sslserver.csr
+----
+
+If Nuxwdog is not enabled, the internal token password should be available in the `password.conf`.
+
+== Issue SSL server certificate ==
+
+If the server has a CA subsystem, link:Issuing-SSL-Server-Certificate-with-NSS[issue] the certificate by signing the CSR with the following commands:
+
+----
+$ TOKEN=<token>
+$ SERIAL=<serial number>
+$ echo -e "y\n${AKI}\n\n\n\n2\n7\n${OCSP}\n\n\n\n" | \
+ certutil -C \
+ -d alias \
+ -h ${TOKEN} \
+ -m ${SERIAL} \
+ -a \
+ -i certs/sslserver.csr \
+ -o certs/sslserver.crt \
+ -c "${TOKEN}:ca_signing" \
+ -3 \
+ --extAIA \
+ --keyUsage critical,dataEncipherment,keyEncipherment,digitalSignature \
+ --extKeyUsage serverAuth
+----
+
+**Notes:**
+
+* Select a serial number that do not conflict with existing certificates.
+* If Nuxwdog is not enabled, the HSM password should be available in the password.conf.
+
+If the server does not have a CA subsystem, submit the CSR to the issuing CA to obtain the SSL server certificate, then place it in `/etc/pki/pki-tomcat/certs/sslserver.crt`.
+
+== Modify SSL server certificate configuration ==
+
+Remove the token name in `/etc/pki/pki-tomcat/serverCertNick.conf`:
+
+----
+sslserver
+----
+
+Also remove the token name from the following parameter in `/etc/pki/pki-tomcat/<subsystem>/CS.cfg`:
+
+----
+<subsystem>.cert.sslserver.nickname=sslserver
+----
+
+Replace the token name in the following parameter in `/etc/pki/pki-tomcat/<subsystem>/CS.cfg` with internal token:
+
+----
+<subsystem>.sslserver.tokenname=Internal Key Storage Token
+----
+
+== Install SSL server certificate ==
+
+Install the SSL server certificate in `/etc/pki/pki-tomcat/certs/sslserver.crt` into the internal token with the following command:
+
+----
+$ pki-server cert-import sslserver --instance "pki-tomcat"
+----
+
+= Upgrade Procedure for Nuxwdog =
+
+If Nuxwdog is enabled, follow this procedure to export the SSL Server Certificate
+from the internal token into a PKCS #12 file. Otherwise, skip to the next section.
+
+Create a password file for PKCS #12 keystore:
+
+----
+$ pki password-generate > "/etc/pki/pki-tomcat/keystore.pwd"
+$ chown pkiuser.pkiuser "/etc/pki/pki-tomcat/keystore.pwd"
+$ chmod 0660 "/etc/pki/pki-tomcat/keystore.pwd"
+----
+
+Then export SSL server certificate and key into PKCS #12 keystore:
+
+----
+$ pki-server cert-export sslserver \
+    --instance "pki-tomcat" \
+    --pkcs12-file "/etc/pki/pki-tomcat/keystore.p12" \
+    --pkcs12-password-file "/etc/pki/pki-tomcat/keystore.pwd" \
+    --friendly-name "sslserver" \
+    --cert-encryption "PBE/SHA1/RC2-40" \
+    --key-encryption "PBE/SHA1/DES3/CBC"
+$ chown pkiuser.pkiuser "/etc/pki/pki-tomcat/keystore.p12"
+$ chmod 0660 "/etc/pki/pki-tomcat/keystore.p12"
+----
+
+= Restart PKI Server =
+
+If Nuxwdog is disabled, restart the server with the following command:
+
+----
+$ systemctl start pki-tomcatd@pki-tomcat.service
+----
+
+If Nuxwdog is enabled, restart the server with the following command:
+
+----
+$ systemctl start pki-tomcatd-nuxwdog@pki-tomcat.service
+----
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/Upgrade[Upgrade]
+* link:PKI-10.6-HTTP-NIO-Connector-Support[PKI 10.6 HTTP NIO Connector Support]
+* link:https://www.dogtagpki.org/wiki/PKI_10.6_Server_Configuration[PKI 10.6 Server Configuration]
+* link:PKI-Server-Certificate-CLI[PKI Server Certificate CLI]
+* link:https://www.dogtagpki.org/wiki/Nuxwdog[Nuxwdog]
