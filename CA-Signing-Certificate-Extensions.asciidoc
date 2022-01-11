@@ -1,30 +1,19 @@
-By default the CA signing certificate will have the following extensions:
+To display CA signing certificate extensions:
 
 ----
-        Signed Extensions:
-            Name: Certificate Authority Key Identifier
-            Key ID:
-                7a:06:c1:67:cf:2a:b2:5f:b2:95:b7:d6:0c:21:74:e2:
-                06:69:47:37
+$ pki-server cert-export ca_signing --cert-file ca_signing.crt
+$ openssl x509 -text -noout -in ca_signing.crt
+...
+         X509v3 extensions:
+            X509v3 Authority Key Identifier: 
+                keyid:F8:1E:0E:C5:94:6C:FC:2E:5A:38:7A:D9:6E:8E:97:73:E2:EA:A3:3C
 
-            Name: Certificate Basic Constraints
-            Critical: True
-            Data: Is a CA with no maximum path length.
-
-            Name: Certificate Key Usage
-            Critical: True
-            Usages: Digital Signature
-                    Non-Repudiation
-                    Certificate Signing
-                    CRL Signing
-
-            Name: Certificate Subject Key ID
-            Data:
-                7a:06:c1:67:cf:2a:b2:5f:b2:95:b7:d6:0c:21:74:e2:
-                06:69:47:37
-
-            Name: Authority Information Access
-            Method: PKIX Online Certificate Status Protocol
-            Location:
-                URI: "http://pki.example.com:8080/ca/ocsp"
+            X509v3 Basic Constraints: critical
+                CA:TRUE
+            X509v3 Key Usage: critical
+                Digital Signature, Non Repudiation, Certificate Sign, CRL Sign
+            X509v3 Subject Key Identifier: 
+                F8:1E:0E:C5:94:6C:FC:2E:5A:38:7A:D9:6E:8E:97:73:E2:EA:A3:3C
+            Authority Information Access: 
+                OCSP - URI:http://pki.example.com:8080/ca/ocsp
 ----
