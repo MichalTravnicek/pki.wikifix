@@ -11,8 +11,27 @@ $ openssl x509 -text -noout -in /root/.dogtag/pki-tomcat/ca_admin.cert
                 OCSP - URI:http://pki.example.com:8080/ca/ocsp
 
             X509v3 Key Usage: critical
-                Digital Signature, Non Repudiation, Key Encipherment
+                ...
             X509v3 Extended Key Usage: 
                 TLS Web Client Authentication, E-mail Protection
 ...
 ----
+
+For admin certificate with an RSA key, it will have the following key usages:
+
+----
+            X509v3 Key Usage: critical
+                Digital Signature, Non Repudiation, Key Encipherment
+----
+
+For admin certificate with an ECC key, it will have the following key usages:
+
+----
+            X509v3 Key Usage: critical
+                Digital Signature, Non Repudiation, Key Agreement
+----
+
+See also:
+
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/conf/rsaAdminCert.profile[rsaAdminCert.profile]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/conf/eccAdminCert.profile[eccAdminCert.profile]
