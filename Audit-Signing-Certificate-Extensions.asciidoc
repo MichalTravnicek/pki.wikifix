@@ -1,0 +1,15 @@
+To display CA audit signing certificate extensions:
+
+----
+$ pki-server cert-export ca_audit_signing --cert-file ca_audit_signing.crt
+$ openssl x509 -text -noout -in ca_audit_signing.crt
+...
+        X509v3 extensions:
+            X509v3 Authority Key Identifier: 
+                keyid:F8:1E:0E:C5:94:6C:FC:2E:5A:38:7A:D9:6E:8E:97:73:E2:EA:A3:3C
+
+            X509v3 Key Usage: critical
+                Digital Signature, Non Repudiation
+            Authority Information Access: 
+                OCSP - URI:http://pki.example.com:8080/ca/ocsp
+----
