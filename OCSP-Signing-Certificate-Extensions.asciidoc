@@ -1,20 +1,17 @@
-By default the OCSP signing certificate will have the following extensions:
+To display CA OCSP signing certificate extensions:
 
 ----
-        Signed Extensions:
-            Name: Certificate Authority Key Identifier
-            Key ID:
-                4f:0c:ac:66:25:1c:e4:38:ef:54:64:1b:e8:48:67:43:
-                27:19:84:d3
- 
-            Name: OCSP No Check Extension
-            Data: NULL
- 
-            Name: Authority Information Access
-            Method: PKIX Online Certificate Status Protocol
-            Location:
-                URI: "http://pki.example.com:80/ca/ocsp"
- 
-            Name: Extended Key Usage
-                OCSP Responder Certificate
+$ pki-server cert-export ca_ocsp_signing --cert-file ca_ocsp_signing.crt
+$ openssl x509 -text -noout -in ca_ocsp_signing.crt
+...
+        X509v3 extensions:
+            X509v3 Authority Key Identifier: 
+                keyid:F8:1E:0E:C5:94:6C:FC:2E:5A:38:7A:D9:6E:8E:97:73:E2:EA:A3:3C
+
+            Authority Information Access: 
+                OCSP - URI:http://pki.example.com:8080/ca/ocsp
+
+            X509v3 Extended Key Usage: 
+                OCSP Signing
+            OCSP No Check: 
 ----
