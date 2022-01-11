@@ -1,30 +1,21 @@
-By default the SSL server certificate will have the following extensions:
+To display SSL server certificate extensions:
 
 ----
-        Signed Extensions:
-            Name: Certificate Authority Key Identifier
-            Key ID:
-                4f:0c:ac:66:25:1c:e4:38:ef:54:64:1b:e8:48:67:43:
-                27:19:84:d3
- 
-            Name: Authority Information Access
-            Method: PKIX Online Certificate Status Protocol
-            Location:
-                URI: "http://pki.example.com:80/ca/ocsp"
- 
-            Name: Certificate Key Usage
-            Critical: True
-            Usages: Digital Signature
-                    Non-Repudiation
-                    Key Encipherment
-                    Data Encipherment
- 
-            Name: Extended Key Usage
-                TLS Web Server Authentication Certificate
-                TLS Web Client Authentication Certificate
- 
-            Name: Certificate Subject Key ID
-            Data:
-                26:07:1b:5b:8b:b0:1b:b7:83:da:5d:bf:cb:8d:4f:76:
-                a8:57:ac:0e
+$ pki-server cert-export sslserver --cert-file sslserver.crt
+$ openssl x509 -text -noout -in sslserver.crt
+...
+        X509v3 extensions:
+            X509v3 Authority Key Identifier: 
+                keyid:F8:1E:0E:C5:94:6C:FC:2E:5A:38:7A:D9:6E:8E:97:73:E2:EA:A3:3C
+
+            Authority Information Access: 
+                OCSP - URI:http://pki.example.com:8080/ca/ocsp
+
+            X509v3 Key Usage: critical
+                Digital Signature, Key Encipherment, Data Encipherment
+            X509v3 Extended Key Usage: 
+                TLS Web Server Authentication
+            X509v3 Subject Alternative Name: 
+                DNS:pki.example.com
+...
 ----
