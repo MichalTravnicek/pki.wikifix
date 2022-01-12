@@ -1,0 +1,73 @@
+= Overview =
+
+This page describes the process to issue a CA signing certificate with PKI CA for PKI 10.2 or older.
+
+= Creating Certificate Request =
+
+First, download the request template from the external CA with the following command:
+
+----
+$ pki -U http://ca.external.com:8080 ca-cert-request-profile-show caCACert --output caCACert.xml
+----
+
+Insert the CSR into the corresponding request template.
+
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<CertEnrollmentRequest>
+    ...
+    <Input id="i1">
+        ...
+        <Attribute name="cert_request_type">
+            <Value>pkcs10</Value>
+            ...
+        </Attribute>
+        <Attribute name="cert_request">
+            <Value>
+-----BEGIN CERTIFICATE REQUEST-----
+MIICtTCCAZ0CAQAwPjEUMBIGA1UECgwLZXhhbXBsZS5jb20xETAPBgNVBAsMCEV4dGVybmFsMRMw
+EQYDVQQDDApDQSBTaWduaW5nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6EyJKwCI
+TVJKyD7HGPBHtyXksItrTzj7x3/wXk94W5nT+wyh6KsJ3m/xX3IH5fkl8OpPI+e/IErM/NO7rJam
+Zc3lDBmfYefijslnyUEfo4YPcOUX3dUVwPCay9nO9A2rDSoeoQ6podwFB/Ioc1kMh6Rwx+SdVHey
+scYUbVTWdfeTLPJYd1Wf6rc0oDjyWPhs7j9AkFdrdLfbULIoNW+2GFm3IIEYJvhXkqps8hblk05z
+08IUIIgjaBd6y38j3N9RLhFqqKt8ALiDiRfpqzp7xL0FtjD0puR3ZFGwgrNBER3Q1P56Q2r3IuBF
+MuQGeqRKdD9RQQu8zaydrj8sH/LQ7wIDAQABoDIwMAYJKoZIhvcNAQkOMSMwITAPBgNVHRMBAf8E
+BTADAQH/MA4GA1UdDwEB/wQEAwIBxjANBgkqhkiG9w0BAQsFAAOCAQEAqlPdkR+sLaCEAhcNnzLF
+8tN1ql7K5cyuyxLIblBWsBlKqXhHQBxiycUbonytw5Z426RipEFPufkPRxYPIQio5I36TNLxfS17
+H2kxoyOELALcoZxKe/kUNcJI1I5afLGMQP2Q89N86znmSgGKbngf/21IGIx70NgdHPCNFcz97TtQ
+nem3xEcUQc8H3o4y+wZO91WpaxD8xHQtAxzU11STss5I8iTEXdH3qpXSw428hdCuOtTBSpp3dCS1
+q+V4yM+lahTZTC+f30tqzzyXMlmV1tGZn9hAcnB5a6hpkJmZqlJiTgeqBHB8Zf04rMgz2Hpj6SsE
+LiIK2gBMZeMD4zSSgg==
+-----END CERTIFICATE REQUEST-----
+            </Value>
+            ...
+        </Attribute>
+    </Input>
+    ...
+</CertEnrollmentRequest>
+----
+
+= Submitting Certificate Request =
+
+Submit the request to the external CA with the following command:
+
+----
+$ pki -U http://ca.external.com:8080 ca-cert-request-submit caCACert.xml
+----
+
+= Approving Certificate Request =
+
+The external PKI CA admin can approve the request by executing the following command on the external PKI CA:
+
+----
+$ pki -c Secret.123 -n "PKI Administrator external.com" ca-cert-request-review 28 --action approve
+----
+
+= Retrieving Issued Certificate =
+
+The newly signed CA certificate and the external CA certificate can be downloaded to the installing server with the following commands:
+
+----
+$ pki -U http://ca.external.com:8080 ca-cert-show 0x1c --output /tmp/ca_signing.crt
+$ pki -U http://ca.external.com:8080 ca-cert-show 0x1 --output /tmp/external.crt
+----
