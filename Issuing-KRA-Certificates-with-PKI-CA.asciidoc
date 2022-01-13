@@ -1,6 +1,14 @@
-= PKI Server 10.3 or Newer =
+= Overview =
 
-If the PKI server being installed is version 10.3, the certificate requests can be submitted to an external PKI CA with the following commands:
+This page describes the process to issue KRA certificates with `pki ca` command on PKI 10.3 or later.
+
+For older versions, see:
+
+* link:PKI-10.2-Issuing-KRA-Certificates-with-PKI-CA[PKI 10.2 Issuing KRA Certificates with PKI CA]
+
+= Submitting Certificate Requests =
+
+The certificate requests can be submitted to an external PKI CA with the following commands:
 
 ----
 $ cd /etc/pki/pki-tomcat
@@ -12,11 +20,15 @@ $ pki -U <CA URL> ca-cert-request-submit --profile caServerCert --csr-file sslse
 $ pki -U <CA URL> ca-cert-request-submit --profile caUserCert --csr-file kra_admin.csr --subject uid=kraadmin
 ----
 
+= Approving Certificate Requests =
+
 The external CA admin can approve the request by executing the following command on the external PKI CA:
 
 ----
 $ pki -c Secret.123 -n "PKI Administrator example.com" ca-cert-request-review <request ID> --action approve
 ----
+
+= Retrieving Issued Certificates =
 
 The KRA certificates and the external CA certificate can be downloaded to the installing server with the following commands:
 
@@ -28,40 +40,4 @@ $ pki -U <CA URL> ca-cert-show <cert ID> --output subsystem.cert
 $ pki -U <CA URL> ca-cert-show <cert ID> --output sslserver.cert
 $ pki -U <CA URL> ca-cert-show <cert ID> --output kra_admin.cert
 $ pki -U <CA URL> ca-cert-show 0x1 --output ca_signing.cert
-----
-
-= PKI Server 10.2 or Older =
-
-If the PKI server being installed is version 10.2.x or older, download the request templates from an external PKI CA with the following commands:
-
-----
-$ pki -U <CA URL> ca-cert-request-profile-show caStorageCert --output caStorageCert.xml
-$ pki -U <CA URL> ca-cert-request-profile-show caTransportCert --output caTransportCert.xml
-$ pki -U <CA URL> ca-cert-request-profile-show caSignedLogCert --output caSignedLogCert.xml
-$ pki -U <CA URL> ca-cert-request-profile-show caSubsystemCert --output caSubsystemCert.xml
-$ pki -U <CA URL> ca-cert-request-profile-show caServerCert --output caServerCert.xml
-$ pki -U <CA URL> ca-cert-request-profile-show caUserCert --output caUserCert.xml
-----
-
-Insert the CSRs into the corresponding request templates. Submit the requests to the external CA with the following commands:
-
-----
-$ pki -U <CA URL> ca-cert-request-submit caStorageCert.xml
-$ pki -U <CA URL> ca-cert-request-submit caTransportCert.xml
-$ pki -U <CA URL> ca-cert-request-submit caSignedLogCert.xml
-$ pki -U <CA URL> ca-cert-request-submit caSubsystemCert.xml
-$ pki -U <CA URL> ca-cert-request-submit caServerCert.xml
-$ pki -U <CA URL> ca-cert-request-submit caUserCert.xml
-----
-
-The KRA certificates and the external CA certificate can be downloaded to the installing server with the following commands:
-
-----
-$ pki -U <CA URL> ca-cert-show <cert ID> --output kra_storage.crt
-$ pki -U <CA URL> ca-cert-show <cert ID> --output kra_transport.crt
-$ pki -U <CA URL> ca-cert-show <cert ID> --output kra_audit_signing.crt
-$ pki -U <CA URL> ca-cert-show <cert ID> --output subsystem.crt
-$ pki -U <CA URL> ca-cert-show <cert ID> --output sslserver.crt
-$ pki -U <CA URL> ca-cert-show <cert ID> --output kra_admin.crt
-$ pki -U <CA URL> ca-cert-show 0x1 --output ca_signing.crt
 ----
