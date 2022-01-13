@@ -1,6 +1,14 @@
-= PKI 10.8 or Newer =
+= Overview =
 
-In PKI 10.8 or later, the certificate requests can be submitted to a PKI CA with the following commands:
+This page describes the process to issue OCSP certificates with pki ca command on PKI 10.8 or later.
+
+For older versions, see:
+
+* link:PKI-10.3-Issuing-OCSP-Certificates-with-PKI-CA[PKI 10.3 Issuing OCSP Certificates with PKI CA]
+
+= Submitting Certificate Requests =
+
+The certificate requests can be submitted to a PKI CA with the following commands:
 
 ----
 $ pki -U <CA URL> ca-cert-request-submit --profile caUserCert --csr-file ocsp_admin.csr --subject uid=ocspadmin
@@ -10,11 +18,15 @@ $ pki -U <CA URL> ca-cert-request-submit --profile caServerCert --csr-file ocsp_
 $ pki -U <CA URL> ca-cert-request-submit --profile caSubsystemCert --csr-file ocsp_subsystem.csr
 ----
 
+= Approving Certificate Requests =
+
 The CA admin can approve the request by executing the following command:
 
 ----
 $ pki -U <CA URL> -u caadmin -w Secret.123 ca-cert-request-approve <request ID>
 ----
+
+= Retrieving Issued Certificates =
 
 The certificates and the CA signing certificate can be downloaded with the following commands:
 
@@ -25,33 +37,4 @@ $ pki -U <CA URL> ca-cert-export <cert ID> --output-file ocsp_signing.crt
 $ pki -U <CA URL> ca-cert-export <cert ID> --output-file ocsp_sslserver.crt
 $ pki -U <CA URL> ca-cert-export <cert ID> --output-file ocsp_subsystem.crt
 $ pki -U <CA URL> ca-cert-signing-export --output-file ca_signing.crt
-----
-
-= PKI 10.3 or Newer =
-
-In PKI 10.3 or later, the certificate requests can be submitted to a PKI CA with the following commands:
-
-----
-$ pki -U <CA URL> ca-cert-request-submit --profile caUserCert --csr-file ocsp_admin.csr --subject uid=ocspadmin
-$ pki -U <CA URL> ca-cert-request-submit --profile caSignedLogCert --csr-file ocsp_audit_signing.csr
-$ pki -U <CA URL> ca-cert-request-submit --profile caOCSPCert --csr-file ocsp_signing.csr
-$ pki -U <CA URL> ca-cert-request-submit --profile caServerCert --csr-file ocsp_sslserver.csr
-$ pki -U <CA URL> ca-cert-request-submit --profile caSubsystemCert --csr-file ocsp_subsystem.csr
-----
-
-The CA admin can approve the request by executing the following command:
-
-----
-$ pki -U <CA URL> -c Secret.123 -n caadmin ca-cert-request-review <request ID> --action approve
-----
-
-The certificates and the CA signing certificate can be downloaded with the following commands:
-
-----
-$ pki -U <CA URL> ca-cert-show <cert ID> --output ocsp_admin.crt
-$ pki -U <CA URL> ca-cert-show <cert ID> --output ocsp_audit_signing.crt
-$ pki -U <CA URL> ca-cert-show <cert ID> --output ocsp_signing.crt
-$ pki -U <CA URL> ca-cert-show <cert ID> --output ocsp_sslserver.crt
-$ pki -U <CA URL> ca-cert-show <cert ID> --output ocsp_subsystem.crt
-$ pki -U <CA URL> ca-cert-show 0x1 --output ca_signing.crt
 ----
