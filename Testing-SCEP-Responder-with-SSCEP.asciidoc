@@ -1,0 +1,63 @@
+= Configuring SSCEP =
+
+SSCEP client configuration can be altered by editing link:https://github.com/dogtagpki/sscep/blob/master/sscep.conf[sscep.conf]:
+
+----
+$ diff ../sscep-org/sscep.conf sscep.conf 
+30a31,32
+> # Verbose		no
+> # Debug		no
+42,43c44,45
+< #FingerPrint	md5
+< FingerPrint		sha1
+---
+> # FingerPrint	md5
+> FingerPrint	sha512
+66d67
+< EncAlgorithm	3des
+69c70
+< SigAlgorithm	sha1
+---
+> SigAlgorithm	sha512
+----
+
+SSCEP client configuration can be altered by using edited `sscep.conf` file through the `-f` option:
+
+----
+$ sscep enroll -f sscep.conf -c ca.crt -k local.key -r local.csr  -l cert.crt -u 'http://<host-name>:8080/ca/cgi-bin/pkiclient.exe'
+----
+
+= Generating SCEP Request =
+
+Here is an example how to set SHA512:
+
+----
+$ mkrequest -ip 10.14.54.237 password sha512
+Generating RSA private key, 1024 bit long modulus
+...........++++++
+.++++++
+e is 65537 (0x10001)
+DIGEST=-sha512
+----
+
+= Using SSCEP Options =
+
+----
+$ sscep enroll -c ca.crt -k local.key -r local.csr -E 3des -S sha256 -l cert.crt -u 'http://<hostname>:8080/ca/cgi-bin/pkiclient.exe'
+----
+
+----
+$ sscep enroll -c ca.crt -k local.key -r local.csr -E 3des -S sha256 -d -l cert.crt -u 'http://<hostname>:8080/ca/cgi-bin/pkiclient.exe'
+----
+
+= SSCEP Failures =
+
+SSCEP client fails to verify SCEP response including SHA2 hashing algorithm:
+
+----
+$ sscep enroll -f sscep.conf -c ca.crt -k local.key -r local.csr  -l cert.crt -u http://<host-name>:8080/ca/cgi-bin/pkiclient.exe
+...
+./sscep: verifying signature
+./sscep: error verifying signature
+8570:error:2107106C:PKCS7 routines:PKCS7_signatureVerify:unable to find message digest:pk7_doit.c:897:
+----
