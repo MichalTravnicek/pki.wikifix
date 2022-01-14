@@ -1,6 +1,10 @@
+= Overview =
+
+link:https://github.com/dogtagpki/sscep[SSCEP] provides an SCEP client that works with the SCEP Responder.
+
 = Configuring SSCEP =
 
-SSCEP client configuration can be altered by editing link:https://github.com/dogtagpki/sscep/blob/master/sscep.conf[sscep.conf]:
+SSCEP can be configured with a configuration file (e.g. link:https://github.com/dogtagpki/sscep/blob/master/sscep.conf[sscep.conf]):
 
 ----
 $ diff ../sscep-org/sscep.conf sscep.conf 
@@ -21,7 +25,7 @@ $ diff ../sscep-org/sscep.conf sscep.conf
 > SigAlgorithm	sha512
 ----
 
-SSCEP client configuration can be altered by using edited `sscep.conf` file through the `-f` option:
+The configuration file can be specified with the `-f` option:
 
 ----
 $ sscep enroll \
@@ -73,7 +77,7 @@ $ sscep enroll \
 
 = SSCEP Failures =
 
-SSCEP client fails to verify SCEP response including SHA2 hashing algorithm:
+SSCEP fails to verify SCEP response including SHA2 hashing algorithm:
 
 ----
 $ sscep enroll \
