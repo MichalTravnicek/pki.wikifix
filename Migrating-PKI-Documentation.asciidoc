@@ -91,7 +91,7 @@ This page has been moved to <URL>.
 To find pages that contain links to old wiki:
 
 ----
-$ grep link: `find . -type f` | sed -n "s/\.\/\([^:]*\).*link:\(https:\/\/www.dogtagpki.org\/.*\[.*\]\).*/\1:\2/p" | sort | uniq
+$ grep link: `find . -type f` | sed -n "s/\.\/\([^:]*\).*link:\(https:\/\/www.dogtagpki.org[^\[]*\).*/\1:\2/p" | sort | uniq
 ----
 
 = See Also =
