@@ -86,6 +86,14 @@ This page has been moved to <URL>.
 ----
 * Change all links to the page in the new wiki into the new URL.
 
+= Finding Links to Old Wiki =
+
+To find pages that contain links to old wiki:
+
+----
+$ grep link: `find . -type f` | sed -n "s/\.\/\([^:]*\).*link:\(https:\/\/www.dogtagpki.org\/.*\[.*\]\).*/\1:\2/p" | sort | uniq
+----
+
 = See Also =
 
 * link:https://docs.asciidoctor.org/asciidoc/latest/syntax-quick-reference/[AsciiDoc Syntax Quick Reference]
