@@ -34,7 +34,7 @@ $ sscep enroll \
     -k local.key \
     -r local.csr \
     -l cert.crt \
-    -u 'http://<host-name>:8080/ca/cgi-bin/pkiclient.exe'
+    -u http://<host-name>:8080/ca/cgi-bin/pkiclient.exe
 ----
 
 = Generating SCEP Request =
@@ -60,7 +60,7 @@ $ sscep enroll \
     -E 3des \
     -S sha256 \
     -l cert.crt \
-    -u 'http://<hostname>:8080/ca/cgi-bin/pkiclient.exe'
+    -u http://<hostname>:8080/ca/cgi-bin/pkiclient.exe
 ----
 
 ----
@@ -72,7 +72,7 @@ $ sscep enroll \
     -S sha256 \
     -d \
     -l cert.crt \
-    -u 'http://<hostname>:8080/ca/cgi-bin/pkiclient.exe'
+    -u http://<hostname>:8080/ca/cgi-bin/pkiclient.exe
 ----
 
 = SSCEP Failures =
