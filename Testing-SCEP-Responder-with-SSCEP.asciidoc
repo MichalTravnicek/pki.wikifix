@@ -24,7 +24,13 @@ $ diff ../sscep-org/sscep.conf sscep.conf
 SSCEP client configuration can be altered by using edited `sscep.conf` file through the `-f` option:
 
 ----
-$ sscep enroll -f sscep.conf -c ca.crt -k local.key -r local.csr  -l cert.crt -u 'http://<host-name>:8080/ca/cgi-bin/pkiclient.exe'
+$ sscep enroll \
+    -f sscep.conf \
+    -c ca.crt \
+    -k local.key \
+    -r local.csr \
+    -l cert.crt \
+    -u 'http://<host-name>:8080/ca/cgi-bin/pkiclient.exe'
 ----
 
 = Generating SCEP Request =
@@ -43,11 +49,26 @@ DIGEST=-sha512
 = Using SSCEP Options =
 
 ----
-$ sscep enroll -c ca.crt -k local.key -r local.csr -E 3des -S sha256 -l cert.crt -u 'http://<hostname>:8080/ca/cgi-bin/pkiclient.exe'
+$ sscep enroll \
+    -c ca.crt \
+    -k local.key \
+    -r local.csr \
+    -E 3des \
+    -S sha256 \
+    -l cert.crt \
+    -u 'http://<hostname>:8080/ca/cgi-bin/pkiclient.exe'
 ----
 
 ----
-$ sscep enroll -c ca.crt -k local.key -r local.csr -E 3des -S sha256 -d -l cert.crt -u 'http://<hostname>:8080/ca/cgi-bin/pkiclient.exe'
+$ sscep enroll \
+    -c ca.crt \
+    -k local.key \
+    -r local.csr \
+    -E 3des \
+    -S sha256 \
+    -d \
+    -l cert.crt \
+    -u 'http://<hostname>:8080/ca/cgi-bin/pkiclient.exe'
 ----
 
 = SSCEP Failures =
@@ -55,7 +76,13 @@ $ sscep enroll -c ca.crt -k local.key -r local.csr -E 3des -S sha256 -d -l cert.
 SSCEP client fails to verify SCEP response including SHA2 hashing algorithm:
 
 ----
-$ sscep enroll -f sscep.conf -c ca.crt -k local.key -r local.csr  -l cert.crt -u http://<host-name>:8080/ca/cgi-bin/pkiclient.exe
+$ sscep enroll \
+    -f sscep.conf \
+    -c ca.crt \
+    -k local.key \
+    -r local.csr \
+    -l cert.crt \
+    -u http://<host-name>:8080/ca/cgi-bin/pkiclient.exe
 ...
 ./sscep: verifying signature
 ./sscep: error verifying signature
