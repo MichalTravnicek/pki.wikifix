@@ -1,0 +1,46 @@
+= Use Cases =
+
+== Use Case 1: Writing Database Upgrade Scripts ==
+
+As PKI developer I want to safely update the PKI database in production environment
+to fix issues or to provide new functionality.
+
+The upgrade framework should provide a mechanism to:
+
+* update database schema
+* add new entries
+* delete entries
+* add new attributes to multiple entries
+* modify attributes on multiple entries
+* delete attributes from multiple entries
+* execute the upgrade scripts based on the current database version
+* update the database version after the execution is complete
+
+== Use Case 2: Upgrading PKI Database to Fix Performance Issue ==
+
+As a PKI administrator I want to fix PKI server performance issue.
+
+=== See Also ===
+
+* link:https://bugzilla.redhat.com/show_bug.cgi?id=1658280[Bug 1658280 - Slow host deletion due to certificate pagination]
+
+== Use Case 3: Upgrading PKI Database to Use Random Serial Numbers v2 ==
+
+As a PKI administrator I want to use link:Random-Certificate-Serial-Numbers-v2[Random Certificate Serial Numbers v2].
+
+Note that if the serial numbers are to be generated using replica-specific sequence numbers,
+that might require adding new LDAP schema and LDAP entries to store the sequence numbers in the database.
+However, if the serial numbers are to be generated using UUID, that might not require database changes.
+
+=== See Also ===
+
+* link:https://bugzilla.redhat.com/show_bug.cgi?id=1641804[Bug 1641804 - Random Serial Number v2 Support]
+
+=== Acceptance Criteria ===
+
+* Install several CA replicas.
+* Issue certificates from each replica.
+* The serial numbers should be issued using link:Random-Certificate-Serial-Numbers-v1[Random Certificate Serial Numbers v1].
+* Run the database upgrade.
+* Issue new certificates from each replica.
+* The serial number should be issued using link:Random-Certificate-Serial-Numbers-v2[Random Certificate Serial Numbers v2].
