@@ -20,9 +20,7 @@ See link:https://github.com/dogtagpki/nss/wiki/Exporting-Certificate[Exporting C
 
 = Decoding Certificate =
 
-----
-$ certutil -L -d nssdb -n testcert -r | dumpasn1
-----
+See link:https://github.com/dogtagpki/nss/wiki/Decoding-Certificate[Decoding Certificate].
 
 = Importing Certificate =
 
@@ -60,7 +58,6 @@ $ certutil -M -d nssdb -n <nickname> -t CT,C,C
 ----
 
 = Exporting into PKCS #12 File =
-
 
 To export the all keys and certificates in the database:
 
@@ -103,8 +100,8 @@ $ openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in newfile.key.pkcs1 -
 == Verify the exported cert and key match ==
 
 ----
-openssl pkey -in privateKey.key -pubout -outform pem | sha256sum
-openssl x509 -in certificate.crt -pubkey -noout -outform pem | sha256sum 
+$ openssl pkey -in privateKey.key -pubout -outform pem | sha256sum
+$ openssl x509 -in certificate.crt -pubkey -noout -outform pem | sha256sum 
 ----
 
 The output from both commands must match.
@@ -113,19 +110,9 @@ The output from both commands must match.
 
 See link:https://github.com/dogtagpki/nss/wiki/Modifying-Certificate[Modifying Certificate].
 
-= Validating Certificate Chain =
+= Validating Certificate =
 
-To validate a certificate in internal token:
-
-----
-$ certutil -O -d nssdb -n testcert
-----
-
-To validate a certificate in HSM:
-
-----
-$ certutil -O -d nssdb -h HSM -f password.txt -n HSM:testcert
-----
+See https://github.com/dogtagpki/nss/wiki/Validating-Certificate[Validating Certificate].
 
 = Deleting Certificate =
 
