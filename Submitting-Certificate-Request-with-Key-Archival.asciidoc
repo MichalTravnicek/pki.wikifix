@@ -9,8 +9,8 @@ There are several ways to generate and submit the request:
 
 The following certificate profiles support key archival:
 
-* `caSigningUserCert`
 * `caDualCert`
+* `caSigningUserCert`
 
 = Submitting Certificate Request with CRMFPopClient =
 
@@ -22,10 +22,11 @@ Then submit the certificate request with the following command:
 $ CRMFPopClient \
     -d ~/.dogtag/nssdb \
     -p "" \
-    -n CN=testuser \
-    -f caSigningUserCert \
-    -b kra_transport.crt \
-    -m pki.example.com:8080
+    -m pki.example.com:8080 \
+    -f caDualCert \
+    -n UID=testuser \
+    -u testuser \
+    -b kra_transport.crt
 Submitting CRMF request to pki.example.com:8080
 Request ID: 10
 Request Status: pending
@@ -37,7 +38,7 @@ Reason:
 Submit a certificate request with the following command: 
 
 ----
-$ pki client-cert-request CN=testuser --profile caSigningUserCert --type crmf
+$ pki client-cert-request UID=testuser --profile caDualCert --type crmf
 -----------------------------
 Submitted certificate request
 -----------------------------
