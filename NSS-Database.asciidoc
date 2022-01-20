@@ -28,7 +28,7 @@ See link:https://github.com/dogtagpki/nss/wiki/Importing-Certificate[Importing C
 
 = Exporting Certificate Chain =
 
-Export each certificate in the certificate chain (see link:https://github.com/dogtagpki/pki/wiki/NSS-Database#Exporting_Certificate[Exporting Certificate]), then create a PKCS #7 file:
+To export a certificate chain, export each certificate (see link:https://github.com/dogtagpki/nss/wiki/Exporting-Certificate[Exporting Certificate]), then create a PKCS #7 file:
 
 ----
 $ openssl crl2pkcs7 -nocrl -certfile ca1.crt -certfile ca2.crt ... -out cert_chain.p7b
@@ -42,7 +42,7 @@ $ openssl pkcs7 -print_certs -in cert_chain.p7b
 
 = Importing Certificate Chain =
 
-Each certificate in the certificate chain can be imported individually:
+To import a certificate chain, import each certificate (see link:https://github.com/dogtagpki/nss/wiki/Importing-Certificate[Importing Certificate]):
 
 ----
 $ certutil -A -d nssdb -a -i -n testcert -i testcert.pem -t CT,C,C
