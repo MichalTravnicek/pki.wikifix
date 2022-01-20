@@ -11,6 +11,38 @@ To install CA with link:Random-Certificate-Serial-Numbers-v1[Random Certificate 
 pki_random_serial_numbers_enable=True
 ----
 
+After installation the certificates will have random serial numbers, for example:
+
+----
+$ pki ca-cert-find
+---------------
+6 entries found
+---------------
+  Serial Number: 0x1fd1470
+  Subject DN: CN=CA Audit Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  ...
+
+  Serial Number: 0x568fea3
+  Subject DN: CN=Subsystem Certificate,OU=pki-tomcat,O=EXAMPLE
+  ...
+
+  Serial Number: 0x6df4937
+  Subject DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  ...
+
+  Serial Number: 0x7ca2e40
+  Subject DN: CN=pki.example.com,OU=pki-tomcat,O=EXAMPLE
+  ...
+
+  Serial Number: 0xbd8b567
+  Subject DN: CN=CA OCSP Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  ...
+
+  Serial Number: 0xc19799e
+  Subject DN: CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE
+  ...
+----
+
 = See Also =
 
 * link:Random-Certificate-Serial-Numbers[Random Certificate Serial Numbers]
