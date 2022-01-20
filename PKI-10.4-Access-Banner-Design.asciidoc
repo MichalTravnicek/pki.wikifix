@@ -52,15 +52,15 @@ These services will be deployed under the /pki web application. The web deployme
 
 PKI UI consists of the following pages:
 
-* Root page: http://server.example.com:8080/
-* PKI UI welcome page: http://server.example.com:8080/pki/
-* PKI UI main page: https://server.example.com:8443/pki/ui/
+* Root page: http://pki.example.com:8080/
+* PKI UI welcome page: http://pki.example.com:8080/pki/
+* PKI UI main page: https://pki.example.com:8443/pki/ui/
 * PKI subsystem UIs:
-** https://server.example.com:8443/ca/
-** https://server.example.com:8443/ka/
-** https://server.example.com:8443/ocsp/
-** https://server.example.com:8443/tks/
-** https://server.example.com:8443/tps/
+** https://pki.example.com:8443/ca/
+** https://pki.example.com:8443/ka/
+** https://pki.example.com:8443/ocsp/
+** https://pki.example.com:8443/tks/
+** https://pki.example.com:8443/tps/
 
 The root page will simply redirect to the welcome page.
 
@@ -77,7 +77,7 @@ If banner is disabled, the PKI Console will work exactly the same as before.
 If banner is enabled, when PKI Console is started it will call the REST service to retrieve the banner, then display the banner on the terminal. It will ask the user whether to continue with the application. If the user answers No the application will exit immediately. If the user answers Yes the application will continue as before (e.g. asking the user for the username and password).
 
 ----
-$ pkiconsole https://server.example.com:8443/ca
+$ pkiconsole https://pki.example.com:8443/ca
 WARNING!
 Access to this service is restricted to those individuals with
 specific permissions. If you are not an authorized user, disconnect
@@ -105,8 +105,8 @@ Do you want to proceed (y/N)? Y
 -----------------
 3 entries matched
 -----------------
-  User ID: CA-server.example.com-8443
-  Full name: CA-server.example.com-8443
+  User ID: CA-pki.example.com-8443
+  Full name: CA-pki.example.com-8443
 
   User ID: caadmin
   Full name: caadmin
