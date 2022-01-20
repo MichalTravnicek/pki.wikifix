@@ -116,33 +116,7 @@ The output from both commands must match.
 
 = Modifying a Certificate =
 
-== Modifying trust flags in internal token ==
-
-To modifying a certificate's trust attribute in internal token:
-
-----
-$ certutil -M -d nssdb -n testcert -t "CT,C,C"
-----
-
-== Modifying trust flags in HSM ==
-
-To modifying a certificate's trust attribute in HSM:
-
-----
-$ certutil -M -d nssdb -h HSM -f password.HSM -n HSM:testcert -t "CT,C,C"
-----
-
-This command modifies the trust attributes both in internal token and HSM. This command ignores the -f parameter, so the password must be entered manually
-
-== Renaming a certificate ==
-
-To rename a certificate:
-
-* export the certificate into a file
-* delete the certificate from NSS database
-* reimport the certificate with a new nickname
-
-See also link:https://bugzilla.mozilla.org/show_bug.cgi?id=448738[NSS Bug 448738].
+See link:https://github.com/dogtagpki/nss/wiki/Modifying-Certificate[Modifying Certificate].
 
 = Validating Certificate Chain =
 
