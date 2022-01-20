@@ -26,36 +26,7 @@ $ certutil -L -d nssdb -n testcert -r | dumpasn1
 
 = Importing Certificate =
 
-To add a certificate into the internal token:
-
-----
-$ certutil -A -d nssdb -n testcert -i testcert.pem -t "CT,C,C"
-----
-
-To add a certificate into both the internal token and the HSM:
-
-----
-$ certutil -A -d nssdb -h HSM -f password.HSM -n testcert -i testcert.pem -t "CT,C,C"
-----
-
-To add a certificate only to the HSM:
-
-----
-$ certutil -A -d nssdb -h HSM -f password.HSM -P HSM -n testcert -i testcert.pem -t "CT,C,C"
-----
-
-Do NOT execute the following command, it will mess up the database:
-
-----
-$ certutil -A -d nssdb -h HSM -f password.HSM -n HSM:testcert -i testcert.pem -t "CT,C,C"
-----
-
-In FIPS mode, the certificate has to be added separately into internal token and HSM (see link:https://bugzilla.redhat.com/show_bug.cgi?id=1393668[bug #1393668]):
-
-----
-$ certutil -A -d nssdb -h HSM -f password.HSM -n testcert -i testcert.pem -t ""
-$ certutil -A -d nssdb -f password.internal -n testcert -i testcert.pem -t "CT,C,C"
-----
+See link:https://github.com/dogtagpki/nss/wiki/Importing-Certificate[Importing Certificate].
 
 = Exporting Certificate Chain =
 
