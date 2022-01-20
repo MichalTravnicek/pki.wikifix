@@ -134,34 +134,7 @@ $ certutil -O -d nssdb -h HSM -f password.txt -n HSM:testcert
 
 = Deleting Certificate =
 
-== Deleting a certificate in internal token ==
-
-This command deletes a certificate in the internal token:
-
-----
-$ certutil -D -d nssdb -n testcert
-----
-
-== Deleting a certificate in HSM ==
-
-If the certificate is also in HSM, the certificate will not be deleted from HSM, but the trust attribute will change to "u,u,u".
-
-This command deletes a certificate in HSM:
-
-----
-$ certutil -D -d nssdb -h HSM -f password.HSM -n HSM:testcert
-----
-
-This command deletes the certificate in HSM. This command ignores the -f parameter, so the password must be entered manually.
-
-In any case, if the certificate has a key in the token, the key will be orphaned.
-
-These commands do not work:
-
-----
-$ certutil -D -d nssdb -P HSM -n testcert
-$ certutil -D -d nssdb -h HSM -f password.HSM -P HSM -n testcert
-----
+See link:https://github.com/dogtagpki/nss/wiki/Deleting-Certificate[Deleting Certificate].
 
 = Listing Keys =
 
