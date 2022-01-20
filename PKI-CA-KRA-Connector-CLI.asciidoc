@@ -42,7 +42,7 @@ Specify the KRA connector configuration in an XML file:
 ----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <kraConnectorInfo>
-    <host>server.example.com</host>
+    <host>pki.example.com</host>
     <port>8443</port>
     <transportCert>... base-64 encoded transport certificate ...</transportCert>
     <uri>/kra/agent/kra/connector</uri>
@@ -62,19 +62,19 @@ Added KRA connector
 = Adding KRA Host =
 
 ----
-$ pki -n caadmin ca-kraconnector-add --host server.example.com --port 8443
-----------------------------------------
-Added KRA host "server.example.com:8443"
-----------------------------------------
+$ pki -n caadmin ca-kraconnector-add --host pki.example.com --port 8443
+-------------------------------------
+Added KRA host "pki.example.com:8443"
+-------------------------------------
 ----
 
 = Deleting KRA Host =
 
 ----
-$ pki -n caadmin ca-kraconnector-del --host server.example.com --port 8443
-------------------------------------------
-Removed KRA host "server.example.com:8443"
-------------------------------------------
+$ pki -n caadmin ca-kraconnector-del --host pki.example.com --port 8443
+---------------------------------------
+Removed KRA host "pki.example.com:8443"
+---------------------------------------
 ----
 
 = Deleting KRA Connector =
