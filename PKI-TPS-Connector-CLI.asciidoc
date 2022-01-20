@@ -31,7 +31,7 @@ Connector "ca1"
   Status: Enabled
   Properties:
     tps.connector.ca1.enable: true
-    tps.connector.ca1.host: server.example.com
+    tps.connector.ca1.host: pki.example.com
     tps.connector.ca1.maxHttpConns: 15
     tps.connector.ca1.minHttpConns: 1
     tps.connector.ca1.nickName: subsystemCert cert-pki-tomcat
@@ -58,10 +58,10 @@ The configuration will be stored in XML format:
 ----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Connector id="ca1" xmlns:ns2="http://www.w3.org/2005/Atom">
-    <Link href="https://server.example.com:8443/tps/rest/connectors/ca1" rel="self"/>
+    <Link href="https://pki.example.com:8443/tps/rest/connectors/ca1" rel="self"/>
     <Properties>
         <Property name="tps.connector.ca1.enable">true</Property>
-        <Property name="tps.connector.ca1.host">server.example.com</Property>
+        <Property name="tps.connector.ca1.host">pki.example.com</Property>
         <Property name="tps.connector.ca1.maxHttpConns">15</Property>
         <Property name="tps.connector.ca1.minHttpConns">1</Property>
         <Property name="tps.connector.ca1.nickName">subsystemCert cert-pki-tomcat</Property>
@@ -84,10 +84,10 @@ To add a new connector, download the configuration of an existing connector into
 ----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Connector id="ca2" xmlns:ns2="http://www.w3.org/2005/Atom">
-    <Link href="https://server.example.com:8443/tps/rest/connectors/test" rel="self"/>
+    <Link href="https://pki.example.com:8443/tps/rest/connectors/test" rel="self"/>
     <Properties>
         <Property name="tps.connector.test.enable">true</Property>
-        <Property name="tps.connector.test.host">server.example.com</Property>
+        <Property name="tps.connector.test.host">pki.example.com</Property>
         <Property name="tps.connector.test.maxHttpConns">15</Property>
         <Property name="tps.connector.test.minHttpConns">1</Property>
         <Property name="tps.connector.test.nickName">subsystemCert cert-pki-tomcat</Property>
