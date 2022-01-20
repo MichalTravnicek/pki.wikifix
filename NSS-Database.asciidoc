@@ -61,17 +61,14 @@ $ certutil -M -d nssdb -n <nickname> -t CT,C,C
 
 = Exporting into PKCS #12 File =
 
-To export a single certificate:
-
-----
-$ pk12util -d nssdb -k password.internal -n nickname -o output.p12 -w output.password
-----
 
 To export the all keys and certificates in the database:
 
 ----
 $ PKCS12Export -d nssdb -p password.internal -o output.p12 -w output.password
 ----
+
+See also link:https://github.com/dogtagpki/nss/wiki/Exporting-Certificate-into-PKCS12-File[Exporting Certificate into PKCS12 File].
 
 = Importing from PKCS #12 File =
 
