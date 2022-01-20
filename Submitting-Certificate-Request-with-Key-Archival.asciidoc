@@ -21,13 +21,11 @@ Then submit the certificate request with the following command:
 ----
 $ CRMFPopClient \
     -d ~/.dogtag/nssdb \
-    -p Secret.123 \
+    -p "" \
     -n CN=testuser \
     -f caSigningUserCert \
     -b kra_transport.crt \
-    -m $HOSTNAME:8080 \
-    -u testuser \
-    -r testuser
+    -m server.example.com:8080
 Submitting CRMF request to server.example.com:8080
 Request ID: 10
 Request Status: pending
@@ -39,7 +37,7 @@ Reason:
 Submit a certificate request with the following command: 
 
 ----
-$ pki -c Secret.123 client-cert-request CN=testuser --profile caSigningUserCert --type crmf
+$ pki client-cert-request CN=testuser --profile caSigningUserCert --type crmf
 -----------------------------
 Submitted certificate request
 -----------------------------
