@@ -10,10 +10,10 @@ $ pki -n caadmin tks-tpsconnector-find
 1 entries matched
 -----------------
   Connector ID: 0
-  Host: server.example.com
+  Host: pki.example.com
   Port: 8443
-  User ID: TPS-server.example.com-8443
-  Nickname: TPS-server.example.com-8443 sharedSecret
+  User ID: TPS-pki.example.com-8443
+  Nickname: TPS-pki.example.com-8443 sharedSecret
 ----------------------------
 Number of entries returned 1
 ----------------------------
@@ -22,24 +22,24 @@ Number of entries returned 1
 = Displaying TPS Connector Info =
 
 ----
-$ pki -n tksadmin tks-tpsconnector-show --host server.example.com --port 8443
----------------------------------------
-TPS Connector "server.example.com:8443"
----------------------------------------
+$ pki -n tksadmin tks-tpsconnector-show --host pki.example.com --port 8443
+------------------------------------
+TPS Connector "pki.example.com:8443"
+------------------------------------
   Connector ID: 0
-  Host: server.example.com
+  Host: pki.example.com
   Port: 8443
-  User ID: TPS-server.example.com-8443
-  Nickname: TPS-server.example.com-8443 sharedSecret
+  User ID: TPS-pki.example.com-8443
+  Nickname: TPS-pki.example.com-8443 sharedSecret
 ----
 
 = Adding TPS Connector =
 
 ----
-$ pki -n tksadmin tks-tpsconnector-add --host server.example.com --port 8443
----------------------------------------------
-Added TPS connector "server.example.com:8443"
----------------------------------------------
+$ pki -n tksadmin tks-tpsconnector-add --host pki.example.com --port 8443
+------------------------------------------
+Added TPS connector "pki.example.com:8443"
+------------------------------------------
 ----
 
 = Modifying TPS Connector =
@@ -51,15 +51,15 @@ Modified TPS connector "0"
 --------------------------
   Connector ID: 0
   Host: tps.example.com
-  User ID: TPS-server.example.com-8443
-  Nickname: TPS-server.example.com-8443 sharedSecret
+  User ID: TPS-pki.example.com-8443
+  Nickname: TPS-pki.example.com-8443 sharedSecret
 ----
 
 = Deleting TPS Connector =
 
 ----
-$ pki -n tksadmin tks-tpsconnector-del --host server.example.com --port 8443
------------------------------------------------
-Removed TPS connector "server.example.com:8443"
------------------------------------------------
+$ pki -n tksadmin tks-tpsconnector-del --host pki.example.com --port 8443
+--------------------------------------------
+Removed TPS connector "pki.example.com:8443"
+--------------------------------------------
 ----
