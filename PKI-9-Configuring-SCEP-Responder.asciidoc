@@ -1,0 +1,52 @@
+The SCEP responder can be configured in `/var/lib/pki-ca/conf/CS.cfg`:
+
+----
+ca.scep.enable=true
+ca.scep.encryptionAlgorithm=DES3
+ca.scep.allowedEncryptionAlgorithms=DES,DES3
+ca.scep.hashAlgorithm=SHA1
+ca.scep.allowedHashAlgorithms=SHA1,SHA256,SHA512
+ca.scep.nonceSizeLimit=16
+----
+
+SCEP supports usage of its own key pair, which can be configured by adding the following line:
+
+----
+ca.scep.nickname=scepSigningCert cert-pki-ca
+ca.scep.tokenname=Internal Key Storage Token
+----
+
+to the SCEP section of `/var/lib/pki-ca/conf/CS.cfg`.
+
+Keep in mind that  to enable separate SCEP key pair:
+
+* new SCEP key pair has to be designated
+* SCEP certificate has to be created
+* SCEP certificate has to be imported to NSS-DB using `scepSigningCert cert-pki-ca` as its nickname
+
+SCEP support for its own key pair was tested using existing OCSP keys and certificate.
+Test was configured by adding the following line:
+
+----
+ca.scep.nickname=ocspSigningCert cert-pki-ca
+ca.scep.tokenname=Internal Key Storage Token
+----
+
+to the SCEP section of `/var/lib/pki-ca/conf/CS.cfg`.
+
+Note that `ca.crt` was replaced by `ocsp.crt`.
+
+----
+$ sscep enroll \
+    -u http://<hostname>:9180/ca/cgi-bin/pkiclient.exe \
+    -c ocsp.crt \
+    -k local.key \
+    -r local.csr \
+    -E 3des \
+    -S sha256 \
+    -l cert.crt \
+    -d
+----
+
+Add IP address and password to `/var/lib/pki-ca/conf/flatfile.txt`.
+Leave empty line between and after each pair of lines containing `UID` and `PWD`.
