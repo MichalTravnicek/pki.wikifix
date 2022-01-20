@@ -148,7 +148,7 @@ Certificate Nickname                                         Trust Attributes
 
 HSM:pki-tomcat/ca_signing                                    CTu,Cu,Cu
 HSM:pki-tomcat/ca_ocsp_signing                               u,u,u
-HSM:pki-tomcat/sslserver/server.example.com                  u,u,u
+HSM:pki-tomcat/sslserver/pki.example.com                     u,u,u
 HSM:pki-tomcat/subsystem                                     u,u,u
 HSM:pki-tomcat/ca_audit_signing                              u,u,Pu
 ----
@@ -168,7 +168,7 @@ The HSM should contain the following keys:
 $ certutil -K -d /var/lib/pki/pki-tomcat/alias -h HSM -f password.txt
 < 0> rsa      f4e07b335299c96f0247a6f8dc049e8faa540209   pki-tomcat/ca_signing
 < 1> rsa      0bdf1085474b7542fa30908c2136c518fdedc615   pki-tomcat/ca_ocsp_signing
-< 2> rsa      6aebfa19912e7d4c938487448d8595f0c2ee46ee   pki-tomcat/sslserver/server.example.com
+< 2> rsa      6aebfa19912e7d4c938487448d8595f0c2ee46ee   pki-tomcat/sslserver/pki.example.com
 < 3> rsa      2235764e98d1b973aa1a231c09aebc8e33133641   pki-tomcat/subsystem
 < 4> rsa      a532c42398cd592b664eafd4c2b0a73e20ee395e   pki-tomcat/ca_audit_signing
 ----
@@ -182,8 +182,8 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin ca-user-find
 -----------------
 3 entries matched
 -----------------
-  User ID: CA-server.example.com-8443
-  Full name: CA-server.example.com-8443
+  User ID: CA-pki.example.com-8443
+  Full name: CA-pki.example.com-8443
 
   User ID: caadmin
   Full name: caadmin
@@ -214,7 +214,7 @@ $ modutil -dbdir nssdb -add nfast -libfile /opt/nfast/toolkits/pkcs11/libcknfast
 If this is the last subsystem on the machine, remove the SSL server key (which will remove the corresponding certificate as well) with the following commands:
 
 ----
-$ certutil -F -d nssdb -h HSM -f password.txt -n "HSM:pki-tomcat/sslserver/server.example.com"
+$ certutil -F -d nssdb -h HSM -f password.txt -n "HSM:pki-tomcat/sslserver/pki.example.com"
 ----
 
 If this is the last clone of this instance, remove the other keys (which will remove the corresponding certificates as well) with the following commands:

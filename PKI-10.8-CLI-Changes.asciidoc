@@ -27,7 +27,7 @@ If the user chooses not to trust the certificate, the operation will fail:
 
 ----
 $ pki ca-cert-find
-WARNING: UNTRUSTED ISSUER encountered on 'CN=server.example.com' indicates a non-trusted CA cert 'CN=CA Signing Certificate,O=EXAMPLE'
+WARNING: UNTRUSTED ISSUER encountered on 'CN=pki.example.com' indicates a non-trusted CA cert 'CN=CA Signing Certificate,O=EXAMPLE'
 Trust this certificate (y/N)?
 IOException: SocketException cannot write on socket
 ----
@@ -36,7 +36,7 @@ If the user chooses to trust the certificate, the certificate will be imported i
 
 ----
 $ pki ca-cert-find
-WARNING: UNTRUSTED ISSUER encountered on 'CN=server.example.com' indicates a non-trusted CA cert 'CN=CA Signing Certificate,O=EXAMPLE'
+WARNING: UNTRUSTED ISSUER encountered on 'CN=pki.example.com' indicates a non-trusted CA cert 'CN=CA Signing Certificate,O=EXAMPLE'
 Trust this certificate (y/N)? y
 ...
 
@@ -45,7 +45,7 @@ $ certutil -L -d ~/.dogtag/nssdb
 Certificate Nickname                                         Trust Attributes
                                                              SSL,S/MIME,JAR/XPI
 
-CN=server.example.com                                        P,,
+CN=pki.example.com                                        P,,
 ----
 
 Once the certificate is trusted, the CLI will no longer generate the above warning if it receives the same certificate again.

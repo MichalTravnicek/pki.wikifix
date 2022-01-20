@@ -59,8 +59,8 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias/ -c Secret.123 -n caadmin kra-user-find
   User ID: kraadmin
   Full name: kraadmin
 
-  User ID: CA-server.example.com-8443
-  Full name: CA-server.example.com-8443
+  User ID: CA-pki.example.com-8443
+  Full name: CA-pki.example.com-8443
 ----------------------------
 Number of entries returned 2
 ----------------------------
@@ -72,7 +72,7 @@ Verify the CS.cfg in the issuing CA has the following parameters:
 
 ----
 ca.connector.KRA.enable=true
-ca.connector.KRA.host=server.example.com
+ca.connector.KRA.host=pki.example.com
 ca.connector.KRA.local=false
 ca.connector.KRA.nickName=subsystemCert cert-pki-tomcat
 ca.connector.KRA.port=8443

@@ -47,7 +47,7 @@ $ pki-server <subsystem>-db-config-mod --protocol ldapi --socket /var/run/slapd-
 ----
 $ pki-server <subsystem>-db-config-mod --auth basic --bind-dn "cn=Directory Manager" --bind-password Secret.123
   Protocol: ldap
-  Hostname: server.example.com
+  Hostname: pki.example.com
   Port: 389
   Base DN: dc=ca,dc=example,dc=com
   Backend Database: ca
@@ -60,7 +60,7 @@ $ pki-server <subsystem>-db-config-mod --auth basic --bind-dn "cn=Directory Mana
 ----
 $ pki-server <subsystem>-db-config-mod --auth client-cert --nickname "subsystemCert cert-pki-ca"
   Protocol: ldaps
-  Hostname: server.example.com
+  Hostname: pki.example.com
   Port: 636
   Base DN: dc=ca,dc=example,dc=com
   Backend Database: ca

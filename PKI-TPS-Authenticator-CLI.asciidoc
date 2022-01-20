@@ -38,7 +38,7 @@ Authenticator "ldap1"
     auths.instance.ldap1.ldap.ldapauth.bindDN:
     auths.instance.ldap1.ldap.ldapauth.bindPWPrompt: ldap1
     auths.instance.ldap1.ldap.ldapauth.clientCertNickname: subsystemCert cert-pki-tomcat
-    auths.instance.ldap1.ldap.ldapconn.host: server.example.com
+    auths.instance.ldap1.ldap.ldapconn.host: pki.example.com
     auths.instance.ldap1.ldap.ldapconn.port: 389
     auths.instance.ldap1.ldap.ldapconn.secureConn: False
     auths.instance.ldap1.ldap.ldapconn.version: 3
@@ -83,7 +83,7 @@ The configuration is stored in XML format:
 ----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Authenticator id="ldap1" xmlns:ns2="http://www.w3.org/2005/Atom">
-    <Link href="https://server.example.com:8443/tps/rest/authenticators/ldap1" rel="self"/>
+    <Link href="https://pki.example.com:8443/tps/rest/authenticators/ldap1" rel="self"/>
     <Properties>
         <Property name="auths.instance.ldap1.authCredName">uid</Property>
         <Property name="auths.instance.ldap1.dnpattern"></Property>
@@ -95,7 +95,7 @@ The configuration is stored in XML format:
         <Property name="auths.instance.ldap1.ldap.ldapauth.bindDN"></Property>
         <Property name="auths.instance.ldap1.ldap.ldapauth.bindPWPrompt">ldap1</Property>
         <Property name="auths.instance.ldap1.ldap.ldapauth.clientCertNickname">subsystemCert cert-pki-tomcat</Property>
-        <Property name="auths.instance.ldap1.ldap.ldapconn.host">server.example.com</Property>
+        <Property name="auths.instance.ldap1.ldap.ldapconn.host">pki.example.com</Property>
         <Property name="auths.instance.ldap1.ldap.ldapconn.port">389</Property>
         <Property name="auths.instance.ldap1.ldap.ldapconn.secureConn">False</Property>
         <Property name="auths.instance.ldap1.ldap.ldapconn.version">3</Property>
@@ -158,7 +158,7 @@ To modify an authenticator configuration, make sure the authenticator is disable
 ----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Authenticator id="ldap1" xmlns:ns2="http://www.w3.org/2005/Atom">
-    <Link href="https://server.example.com:8443/tps/rest/authenticators/ldap1" rel="self"/>
+    <Link href="https://pki.example.com:8443/tps/rest/authenticators/ldap1" rel="self"/>
     <Properties>
         ...
         <Property name="auths.instance.ldap1.ldap.maxConns">20</Property>

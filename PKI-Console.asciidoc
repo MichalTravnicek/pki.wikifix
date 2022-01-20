@@ -58,7 +58,7 @@ $ pki -d ~/.dogtag-idm-console -c Secret.123 client-cert-import \
 To start PKI console:
 
 ----
-$ pkiconsole https://server.example.com:8443/<subsystem>
+$ pkiconsole https://pki.example.com:8443/<subsystem>
 ----
 
 Supported subsystems are: ca, kra, ocsp, tks.
@@ -66,7 +66,7 @@ Supported subsystems are: ca, kra, ocsp, tks.
 If access banner is enabled on the server, it will appear before the console is started, for example:
 
 ----
-$ pkiconsole https://server.example.com:8443/ca
+$ pkiconsole https://pki.example.com:8443/ca
 WARNING!
 Access to this service is restricted to those individuals with
 specific permissions. If you are not an authorized user, disconnect
@@ -114,7 +114,7 @@ Create `/usr/share/applications/pkiconsole.desktop`:
 [Desktop Entry]
 Name=PKI Console 
 Comment=Manage PKI Server
-Exec=/usr/bin/pkiconsole https://server.example.com:8443/ca
+Exec=/usr/bin/pkiconsole https://pki.example.com:8443/ca
 Icon=pki
 Terminal=true
 Type=Application

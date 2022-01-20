@@ -108,7 +108,7 @@ To generate a server certificate request with the same key:
 $ pki -d /etc/dirsrv/slapd-localhost -C /etc/dirsrv/slapd-localhost/pwdfile.txt \
     nss-cert-request \
     --key-id d33aaa95388e61eaa164c381a7fbb59c0c5007c8 \
-    --subject "CN=server.example.com" \
+    --subject "CN=pki.example.com" \
     --ext /usr/share/pki/server/certs/sslserver.conf \
     --csr ds-sslserver.csr
 ----
@@ -242,7 +242,7 @@ $ LDAPTLS_CACERTDIR=/etc/dirsrv/slapd-localhost \
 Configure PKI server to use SSL by editing `/var/lib/pki/pki-tomcat/<subsystem>/conf/CS.cfg`:
 
 ----
-internaldb.ldapconn.host=server.example.com
+internaldb.ldapconn.host=pki.example.com
 internaldb.ldapconn.port=636
 internaldb.ldapconn.secureConn=true
 ----
@@ -256,7 +256,7 @@ $ systemctl restart pki-tomcatd@pki-tomcat.service
 Verify in DS access log at `/var/log/dirsrv/slapd-localhost/access` that PKI server is connecting using SSL:
 
 ----
-conn=36 fd=64 slot=64 SSL connection from server.example.com to server.example.com
+conn=36 fd=64 slot=64 SSL connection from pki.example.com to pki.example.com
 conn=36 TLS1.2 128-bit AES
 ----
 

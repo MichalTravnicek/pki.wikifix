@@ -131,7 +131,7 @@ Certificate Nickname                                         Trust Attributes
 
 HSM:pki-tomcat/storage                                       u,u,u
 HSM:pki-tomcat/transport                                     u,u,u
-HSM:pki-tomcat/sslserver/server.example.com                  u,u,u
+HSM:pki-tomcat/sslserver/pki.example.com                     u,u,u
 HSM:pki-tomcat/subsystem                                     u,u,u
 HSM:pki-tomcat/kra_audit_signing                             u,u,Pu
 ----
@@ -144,7 +144,7 @@ The keys should be stored in HSM:
 $ certutil -K -d /var/lib/pki/pki-tomcat/alias -h HSM -f password.txt
 < 0> rsa      51c5c7c69664bf3ebbe0e3ab7f32c484f76fab3c   pki-tomcat/storage
 < 1> rsa      42b4d3c576e4193aa93975ebc0cf3b71322076af   pki-tomcat/transport
-< 2> rsa      6aebfa19912e7d4c938487448d8595f0c2ee46ee   pki-tomcat/sslserver/server.example.com
+< 2> rsa      6aebfa19912e7d4c938487448d8595f0c2ee46ee   pki-tomcat/sslserver/pki.example.com
 < 3> rsa      2235764e98d1b973aa1a231c09aebc8e33133641   pki-tomcat/subsystem
 < 4> rsa      c06b9b64e89f1939d3a7137aa4fc9b0300a9db73   pki-tomcat/kra_audit_signing
 ----
@@ -161,8 +161,8 @@ $ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin kra-user-find
   User ID: kraadmin
   Full name: kraadmin
 
-  User ID: CA-server.example.com-8443
-  Full name: CA-server.example.com-8443
+  User ID: CA-pki.example.com-8443
+  Full name: CA-pki.example.com-8443
 ----------------------------
 Number of entries returned 2
 ----------------------------
@@ -174,7 +174,7 @@ Verify the `CS.cfg` in the issuing CA has the following parameters:
 
 ----
 ca.connector.KRA.enable=true
-ca.connector.KRA.host=server.example.com
+ca.connector.KRA.host=pki.example.com
 ca.connector.KRA.local=false
 ca.connector.KRA.nickName=subsystemCert cert-pki-tomcat
 ca.connector.KRA.port=8443
@@ -202,7 +202,7 @@ $ modutil -dbdir nssdb -add nfast -libfile /opt/nfast/toolkits/pkcs11/libcknfast
 If this is the last subsystem on the machine, remove the SSL server key (which will remove the corresponding certificate as well) with the following commands:
 
 ----
-$ certutil -F -d nssdb -h HSM -f password.txt -n "HSM:pki-tomcat/sslserver/server.example.com"
+$ certutil -F -d nssdb -h HSM -f password.txt -n "HSM:pki-tomcat/sslserver/pki.example.com"
 ----
 
 If this is the last clone of this instance, remove the other keys (which will remove the corresponding certificates as well) with the following commands:

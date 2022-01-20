@@ -38,7 +38,7 @@ auths.revocationChecking.kra=kra
 auths.revocationChecking.bufferSize=50
 auths.revocationChecking.unknownStateInterval=0
 auths.revocationChecking.validityInterval=120
-auths.revocationChecking.url=http://server.example.com:8080/ca/ocsp
+auths.revocationChecking.url=http://pki.example.com:8080/ca/ocsp
 ----
 
 If necessary (e.g. for testing), the cache can be disabled:
@@ -103,7 +103,7 @@ To enable global certificate revocation checking, edit `/var/lib/pki/pki-tomcat/
 <Connector name="Secure"
    ...
     enableOCSP="true"
-    ocspResponderURL="http://another-server.example.com:8080/ca/ocsp"
+    ocspResponderURL="http://another-pki.example.com:8080/ca/ocsp"
     ocspResponderCertNickname="ocspSigningCert cert-pki-tomcat CA"
     ...>
 
@@ -136,8 +136,8 @@ $ pki -c Secret.123 -n testuser ca-user-find
 -----------------
 4 entries matched
 -----------------
-  User ID: CA-server.example.com-8443
-  Full name: CA-server.example.com-8443
+  User ID: CA-pki.example.com-8443
+  Full name: CA-pki.example.com-8443
 
   User ID: caadmin
   Full name: caadmin
@@ -212,8 +212,8 @@ $ pki -d ~/.dogtag/pki-tomcat/kra/alias -c Secret.123 -n kraadmin kra-user-find
   User ID: pkidbuser
   Full name: pkidbuser
 
-  User ID: CA-server.example.com-8443
-  Full name: CA-server.example.com-8443
+  User ID: CA-pki.example.com-8443
+  Full name: CA-pki.example.com-8443
 ----------------------------
 Number of entries returned 3
 ----------------------------

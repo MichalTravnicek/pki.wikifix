@@ -27,7 +27,7 @@ $ certutil -R \
    -k rsa \
    -g 2048 \
    -Z SHA256 \
-   -s "CN=server.example.com,O=EXAMPLE" \
+   -s "CN=pki.example.com,O=EXAMPLE" \
    --extSAN dns:www.example.com,dns:www.example.org \
    --keyUsage critical,dataEncipherment,keyEncipherment,digitalSignature \
    --extKeyUsage serverAuth \
@@ -61,7 +61,7 @@ $ openssl req -text -noout -in sslserver.csr
 Certificate Request:
     Data:
         Version: 1 (0x0)
-        Subject: O = EXAMPLE, CN = server.example.com
+        Subject: O = EXAMPLE, CN = pki.example.com
         Subject Public Key Info:
             Public Key Algorithm: rsaEncryption
                 Public-Key: (2048 bit)

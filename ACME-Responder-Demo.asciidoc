@@ -47,7 +47,7 @@ To perform certificate enrollment with HTTP-01, execute the following command:
 $ certbot certonly --standalone \
     --server https://pki.demo.dogtagpki.org/acme/directory \
     --preferred-challenges http \
-    -d server.example.com
+    -d pki.example.com
 ----
 
 To perform certificate enrollment with DNS-01, execute the following command:
@@ -56,7 +56,7 @@ To perform certificate enrollment with DNS-01, execute the following command:
 $ certbot certonly --manual \
     --server https://pki.demo.dogtagpki.org/acme/directory \
     --preferred-challenges dns \
-    -d server.example.com
+    -d pki.example.com
 ----
 
 See also link:https://github.com/dogtagpki/pki/blob/master/docs/user/acme/Using_PKI_ACME_Responder_with_Certbot.md[Using PKI ACME Responder with Certbot].

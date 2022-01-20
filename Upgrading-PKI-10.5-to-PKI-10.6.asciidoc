@@ -56,7 +56,7 @@ $ pki-server cert-show sslserver --instance "pki-tomcat" --pretty-print
             Name: Authority Information Access
             Method: PKIX Online Certificate Status Protocol
             Location: 
-                URI: "http://server.example.com:8080/ca/ocsp"
+                URI: "http://pki.example.com:8080/ca/ocsp"
 ...
 ----
 
@@ -64,7 +64,7 @@ Set AKI and OCSP environment variables based on the above output:
 
 ----
 $ AKI="20bf45ce45a4e7cd5fdde27699417300aef8a450"
-$ OCSP="http://server.example.com:8080/ca/ocsp"
+$ OCSP="http://pki.example.com:8080/ca/ocsp"
 ----
 
 == Generate SSL server CSR ==
