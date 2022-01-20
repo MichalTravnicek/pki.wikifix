@@ -1,25 +1,6 @@
 = Creating Database =
 
-To create NSS database without a password:
-
-----
-$ mkdir -p nssdb
-$ certutil -N -d nssdb --empty-password
-----
-
-To create NSS database with a password:
-
-----
-$ mkdir -p nssdb
-$ echo Secret.123 > password.internal
-$ certutil -N -d nssdb -f password.internal
-----
-
-To change NSS database password:
-
-----
-$ certutil -W -d nssdb -f oldpassword.txt -@newpassword.txt
-----
+See link:https://github.com/dogtagpki/nss/wiki/Creating-NSS-Database[Creating NSS Database].
 
 = Modules =
 
