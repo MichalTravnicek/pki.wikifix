@@ -40,7 +40,7 @@ Administrator:
   Import certificate from [/root/.dogtag/pki-tomcat/ca_admin.cert]: 
 
 Directory Server:
-  Hostname [server.example.com]: 
+  Hostname [pki.example.com]: 
   Use a secure LDAPS connection (Yes/No/Quit) [N]? 
   LDAP Port [389]: 
   Bind DN [cn=Directory Manager]: 
@@ -48,7 +48,7 @@ Directory Server:
   Base DN [o=pki-tomcat-KRA]: 
 
 Security Domain:
-  Hostname [server.example.com]: 
+  Hostname [pki.example.com]: 
   Secure HTTP port [8443]: 
   Name: example.com Security Domain
   Username [caadmin]: 
@@ -72,7 +72,7 @@ Installing KRA into /var/lib/pki/pki-tomcat.
             systemctl restart pki-tomcatd@pki-tomcat.service
 
       The URL for the subsystem is:
-            https://server.example.com:8443/kra
+            https://pki.example.com:8443/kra
 
       PKI instances will be enabled upon system boot
 
