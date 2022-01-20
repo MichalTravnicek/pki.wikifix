@@ -133,49 +133,11 @@ See link:https://github.com/dogtagpki/nss/wiki/Deleting-Certificate[Deleting Cer
 
 = Listing Keys =
 
-== Listing keys in internal token ==
-
-----
-$ certutil -K -d nssdb -f password.internal
-----
-
-== Listing keys in HSM ==
-
-----
-$ certutil -K -d nssdb -h HSM -f password.HSM
-----
+See link:https://github.com/dogtagpki/nss/wiki/Listing-Keys[Listing Keys].
 
 = Deleting a Key =
 
-== Deleting a key in internal token ==
-
-To delete a certificate and its key in internal token:
-
-----
-$ certutil -F -d nssdb -f password.internal -n testcert
-----
-
-To delete a key in internal token:
-
-----
-$ certutil -F -d nssdb -f password.internal -k <key ID>
-----
-
-== Deleting a key in HSM ==
-
-To delete a certificate and its key in HSM:
-
-----
-$ pki -d nssdb --token HSM -C password.HSM client-cert-del HSM:testcert
-----
-
-The certutil command does not work:
-
-----
-$ certutil -F -d nssdb -h HSM -f password.HSM -n HSM:testcert
-Incorrect password/PIN entered.
-certutil: could not authenticate to token NSS Certificate DB.: SEC_ERROR_BAD_PASSWORD: The security password entered is incorrect.
-----
+See link:https://github.com/dogtagpki/nss/wiki/Deleting-Key[Deleting Key].
 
 = Cloning Database =
 
