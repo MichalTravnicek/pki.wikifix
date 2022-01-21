@@ -1,76 +1,9 @@
 = Overview =
 
-This page describes the process to install a CA subsystem with random serial numbers. By default CA will use sequential serial numbers.
+By default CA will use sequential serial numbers for certificate requests and certificate serial numbers.
+The CA can optionally be installed with random serial numbers.
 
-= Installing CA with Random Serial Numbers v1 =
-
-To install CA with link:Random-Certificate-Serial-Numbers-v1[Random Certificate Serial Numbers v1], follow the normal CA installation procedure, but specify the following parameter:
-
-----
-[CA]
-pki_random_serial_numbers_enable=True
-----
-
-After installation the certificates will have random serial numbers, for example:
-
-----
-$ pki ca-cert-find
----------------
-6 entries found
----------------
-  Serial Number: 0x1fd1470
-  Subject DN: CN=CA Audit Signing Certificate,OU=pki-tomcat,O=EXAMPLE
-  ...
-
-  Serial Number: 0x568fea3
-  Subject DN: CN=Subsystem Certificate,OU=pki-tomcat,O=EXAMPLE
-  ...
-
-  Serial Number: 0x6df4937
-  Subject DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
-  ...
-
-  Serial Number: 0x7ca2e40
-  Subject DN: CN=pki.example.com,OU=pki-tomcat,O=EXAMPLE
-  ...
-
-  Serial Number: 0xbd8b567
-  Subject DN: CN=CA OCSP Signing Certificate,OU=pki-tomcat,O=EXAMPLE
-  ...
-
-  Serial Number: 0xc19799e
-  Subject DN: CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE
-  ...
-----
-
-The certificate requests will still use sequential numbers:
-
-----
-$ pki -n caadmin ca-cert-request-find
------------------
-6 entries matched
------------------
-  Request ID: 0x1
-  ...
-
-  Request ID: 0x2
-  ...
-
-  Request ID: 0x3
-  ...
-
-  Request ID: 0x4
-  ...
-
-  Request ID: 0x5
-  ...
-
-  Request ID: 0x6
-  ...
-----------------------------
-Number of entries returned 6
-----------------------------
-----
+* link:Installing-CA-with-Random-Serial-Numbers-v1[Installing CA with Random Serial Numbers v1]
 
 = See Also =
 
