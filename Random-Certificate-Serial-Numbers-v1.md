@@ -1,12 +1,12 @@
 # Introduction
 
-Dogtag 9 introduced new serial number range management for requests,
+PKI 9 introduced new serial number range management for requests,
 certificates, and replica IDs. This allowed to automate cloning for IPA
 installation. Option 3 from the original proposal drafts current CS
 implementation of serial number management.
 
 There are no known attacks on SHA2 hashes, which are supported by
-Dogtag. Reviews of recent [attacks on cryptographic
+PKI. Reviews of recent [attacks on cryptographic
 hashes](http://www.ietf.org/rfc/rfc4270.txt) like MD5 or SHA1 suggested
 that those attacks could have been prevented by making signed parts of
 the certificate random enough. One of the suggested solution was to make
@@ -26,7 +26,7 @@ hash-based attacks](http://tools.ietf.org/html/rfc4270#section-5.1):
 
   - Certificate serial numbers are represented by Java's [big
     integers](http://docs.oracle.com/javase/6/docs/api/index.html?java/math/BigInteger.html).
-  - Automatic serial number range management developed for Dogtag 9 is
+  - Automatic serial number range management developed for PKI 9 is
     suggested for continuous issuing of random certificate serial
     numbers but range management and random certificate serial numbers
     are two separate features.
@@ -379,7 +379,7 @@ without console:
 ### How to Enable Random Certificate Serial Numbers during CA Configuration
 
 Here are steps allowing to enable random certificate serial numbers
-during CA configuration for Dogtag 10:
+during CA configuration for PKI 10:
 
 pkispawn configuration file needs to have the following section:
 
@@ -389,7 +389,7 @@ pkispawn configuration file needs to have the following section:
 >     pki_random_serial_numbers_enable=True
 
 Here are steps allowing to enable random certificate serial numbers
-during CA configuration for Dogtag 9:
+during CA configuration for PKI 9:
 
   - Run pkicreate
   - Stop CA
