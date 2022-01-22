@@ -11,7 +11,7 @@ $ mkdir /var/lib/pki/pki-tomcat/ca/crl
 $ chown pkiuser.pkiuser /var/lib/pki/pki-tomcat/ca/crl
 ----
 
-= Enabling CRL Publishing =
+= Configuring CRL Publishing =
 
 The CRL publishing configuration is stored in `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg`.
 
@@ -21,7 +21,7 @@ To enable CRL publishing:
 ca.publish.enable=true
 ----
 
-To configure file-based CRL publishing:
+To configure file-based CRL publisher:
 
 ----
 ca.publish.publisher.instance.FileBasedPublisher.pluginName=FileBasedPublisher
@@ -35,7 +35,7 @@ ca.publish.publisher.instance.FileBasedPublisher.Filename.b64=false
 ca.publish.publisher.instance.FileBasedPublisher.Filename.der=true
 ----
 
-To configure publishing rules:
+To configure publishing rule:
 
 ----
 ca.publish.rule.instance.FileCrlRule.enable=true
@@ -59,7 +59,7 @@ Finally, restart the server.
 To view the published CRL:
 
 ----
-$ openssl crl -inform DER -text -noout -in /var/lib/pki/pki-tomcat/ca/crl/MasterCRL.bin
+$ openssl crl -text -noout -in /var/lib/pki/pki-tomcat/ca/crl/MasterCRL.bin
 Certificate Revocation List (CRL):
         Version 2 (0x1)
         Signature Algorithm: sha256WithRSAEncryption
