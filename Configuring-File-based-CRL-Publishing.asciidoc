@@ -13,10 +13,17 @@ $ chown pkiuser.pkiuser /var/lib/pki/pki-tomcat/ca/crl
 
 = Enabling CRL Publishing =
 
-To enable file-based CRL publishing configure the following parameters in `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg`:
+The CRL publishing configuration is stored in `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg`.
+
+To enable CRL publishing:
 
 ----
 ca.publish.enable=true
+----
+
+To configure file-based CRL publishing:
+
+----
 ca.publish.publisher.instance.FileBasedPublisher.pluginName=FileBasedPublisher
 ca.publish.publisher.instance.FileBasedPublisher.crlLinkExt=bin
 ca.publish.publisher.instance.FileBasedPublisher.directory=/var/lib/pki/pki-tomcat/ca/crl
@@ -26,6 +33,11 @@ ca.publish.publisher.instance.FileBasedPublisher.zipCRLs=false
 ca.publish.publisher.instance.FileBasedPublisher.zipLevel=9
 ca.publish.publisher.instance.FileBasedPublisher.Filename.b64=false
 ca.publish.publisher.instance.FileBasedPublisher.Filename.der=true
+----
+
+To configure publishing rules:
+
+----
 ca.publish.rule.instance.FileCrlRule.enable=true
 ca.publish.rule.instance.FileCrlRule.mapper=NoMap
 ca.publish.rule.instance.FileCrlRule.pluginName=Rule
