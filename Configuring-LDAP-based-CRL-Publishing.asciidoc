@@ -1,7 +1,28 @@
-Configure the LDAP-based CRL publishing in `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg`, for example:
+= Overview =
+
+This page describes the process to configure LDAP-based CRL publishing in CA.
+
+= Configuring CRL Publishing =
+
+The CRL publishing configuration is stored in `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg`.
+
+To enable CRL publishing:
 
 ----
 ca.publish.enable=true
+----
+
+To configure LDAP-based CRL publisher:
+
+----
+ca.publish.publisher.instance.LdapCrlPublisher.crlAttr=certificateRevocationList;binary
+ca.publish.publisher.instance.LdapCrlPublisher.crlObjectClass=pkiCA
+ca.publish.publisher.instance.LdapCrlPublisher.pluginName=LdapCrlPublisher
+----
+
+To configure LDAP connection:
+
+----
 ca.publish.ldappublish.enable=true
 ca.publish.ldappublish.ldap.ldapauth.authtype=BasicAuth
 ca.publish.ldappublish.ldap.ldapauth.bindDN=cn=Directory Manager
@@ -10,12 +31,19 @@ ca.publish.ldappublish.ldap.ldapauth.clientCertNickname=
 ca.publish.ldappublish.ldap.ldapconn.host=localhost.localdomain
 ca.publish.ldappublish.ldap.ldapconn.port=389
 ca.publish.ldappublish.ldap.ldapconn.secureConn=false
+----
+
+To configure CRL mapper:
+
+----
 ca.publish.mapper.instance.LdapCrlMap.createCAEntry=true
 ca.publish.mapper.instance.LdapCrlMap.dnPattern=cn=$subj.cn,dc=example,dc=com
 ca.publish.mapper.instance.LdapCrlMap.pluginName=LdapCaSimpleMap
-ca.publish.publisher.instance.LdapCrlPublisher.crlAttr=certificateRevocationList;binary
-ca.publish.publisher.instance.LdapCrlPublisher.crlObjectClass=pkiCA
-ca.publish.publisher.instance.LdapCrlPublisher.pluginName=LdapCrlPublisher
+----
+
+To configure publishing rule:
+
+----
 ca.publish.rule.instance.LdapCrlRule.enable=true
 ca.publish.rule.instance.LdapCrlRule.mapper=LdapCrlMap
 ca.publish.rule.instance.LdapCrlRule.pluginName=Rule
@@ -31,6 +59,8 @@ ca.crl.MasterCRL.alwaysUpdate=true
 ----
 
 Finally, restart the server.
+
+= Retrieving Published CRL =
 
 To retrieve the published CRL:
 
@@ -48,8 +78,10 @@ dn: cn=Certificate Authority,dc=example,dc=com
 certificateRevocationList;binary:< file://<path>
 ----
 
+= Displaying Published CRL =
+
 To view the published CRL:
 
 ----
-$ openssl crl -inform DER -text -noout -in <path>
+$ openssl crl -text -noout -in <path>
 ----
