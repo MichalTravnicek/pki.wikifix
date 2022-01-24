@@ -1,0 +1,59 @@
+= CMCEnroll =
+
+`CMCEnroll` is a command line utility used to sign a certificate enrollment request with an agent's certificate.
+
+= CMCRequest =
+
+`CMCRequest` is a command line utility used to construct a CMC request. 
+
+Prepare a configuration file (e.g. `cmcrequest.cfg`):
+
+----
+numRequests=1
+
+input=/tmp/testuser.pem
+output=/tmp/cmcrequest.out
+
+dbdir=/root/.dogtag/pki-tomcat/ca/alias
+password=Secret.123
+nickname=caadmin
+
+format=pkcs10
+----
+
+Execute the following command:
+
+----
+$ CMCRequest cmcrequest.cfg
+----
+
+= CMCResponse =
+
+`CMCResponse` is a tool to parse a CMC response.
+
+If the response is a success, the tool will show the certificate chain.
+
+If the response is an error, it will show the error message.
+
+----
+Number of controls is 1
+Control #0: CMCStatusInfoV2
+   OID: {1 3 6 1 5 5 7 7 25}
+   BodyList: 0
+   Status String: Proof-of-Identification Verification Failed after verifyIdentityProofV2
+   OtherInfo type: FAIL
+     failInfo=bad identity
+----
+
+----
+Number of controls is 1
+Control #0: CMCStatusInfoV2
+   OID: {1 3 6 1 5 5 7 7 25}
+   BodyList: 1
+   OtherInfo type: FAIL
+     failInfo=internal ca error
+----
+
+= CMCRevoke =
+
+`CMCRevoke` is a command line utility used to sign a revocation request with an agent's certificate.
