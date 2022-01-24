@@ -46,7 +46,13 @@ ca.publish.rule.instance.FileCrlRule.publisher=FileBasedPublisher
 ca.publish.rule.instance.FileCrlRule.type=crl
 ----
 
-By default the CRL is only updated at scheduled times. To update the CRL immediately on each certificate revocation:
+To simplify testing, the buffer size for revocation checking can be set to 0 so that revocation will take effect immediately:
+
+----
+auths.revocationChecking.bufferSize=0
+----
+
+Also by default the CRL is only updated at scheduled times. To update the CRL immediately on each certificate revocation:
 
 ----
 ca.crl.MasterCRL.alwaysUpdate=true
