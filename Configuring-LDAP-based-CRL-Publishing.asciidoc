@@ -41,7 +41,7 @@ ca.publish.mapper.instance.LdapCrlMap.dnPattern=cn=$subj.cn,dc=example,dc=com
 ca.publish.mapper.instance.LdapCrlMap.pluginName=LdapCaSimpleMap
 ----
 
-To configure publishing rule:
+To configure CRL publishing rule:
 
 ----
 ca.publish.rule.instance.LdapCrlRule.enable=true
@@ -52,7 +52,13 @@ ca.publish.rule.instance.LdapCrlRule.publisher=LdapCrlPublisher
 ca.publish.rule.instance.LdapCrlRule.type=crl
 ----
 
-By default the CRL is only updated at scheduled times. To update the CRL on each revocation:
+To simplify testing, the buffer size for revocation checking can be set to 0 so that revocation will take effect immediately:
+
+----
+auths.revocationChecking.bufferSize=0
+----
+
+Also by default the CRL is only updated at scheduled times. To update the CRL immediately on each certificate revocation:
 
 ----
 ca.crl.MasterCRL.alwaysUpdate=true
@@ -83,5 +89,8 @@ certificateRevocationList;binary:< file://<path>
 To view the published CRL:
 
 ----
-$ openssl crl -text -noout -in <path>
+$ openssl crl \
+    -in <path> \
+    -inform DER \
+    -text -noout
 ----
