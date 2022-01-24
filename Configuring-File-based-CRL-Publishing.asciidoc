@@ -35,7 +35,7 @@ ca.publish.publisher.instance.FileBasedPublisher.Filename.b64=false
 ca.publish.publisher.instance.FileBasedPublisher.Filename.der=true
 ----
 
-To configure publishing rule:
+To configure CRL publishing rule:
 
 ----
 ca.publish.rule.instance.FileCrlRule.enable=true
@@ -46,7 +46,7 @@ ca.publish.rule.instance.FileCrlRule.publisher=FileBasedPublisher
 ca.publish.rule.instance.FileCrlRule.type=crl
 ----
 
-By default the CRL is only updated at scheduled times. To update the CRL on each certificate revocation:
+By default the CRL is only updated at scheduled times. To update the CRL immediately on each certificate revocation:
 
 ----
 ca.crl.MasterCRL.alwaysUpdate=true
