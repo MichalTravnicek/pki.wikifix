@@ -65,7 +65,11 @@ Finally, restart the server.
 To view the published CRL:
 
 ----
-$ openssl crl -text -noout -in /var/lib/pki/pki-tomcat/ca/crl/MasterCRL.bin
+$ openssl crl \
+    -in /var/lib/pki/pki-tomcat/ca/crl/MasterCRL.bin \
+    -inform DER \
+    -text \
+    -noout
 Certificate Revocation List (CRL):
         Version 2 (0x1)
         Signature Algorithm: sha256WithRSAEncryption
