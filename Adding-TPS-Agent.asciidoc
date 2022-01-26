@@ -1,0 +1,146 @@
+= Overview =
+
+The default TPS admin is also a TPS agent. If the CA admin certificate was imported during TPS installation, the CA admin user can access TPS as TPS admin/agent using the same certificate.
+
+This document describes the process to set up a new TPS agent that is not a TPS admin.
+
+= Creating Linux User for TPS Agent =
+
+As a Linux admin create a Linux user for the new TPS agent:
+
+----
+$ useradd tpsagent
+$ passwd tpsagent
+Changing password for user tpsagent.
+New password: ********
+Retype new password: ********
+passwd: all authentication tokens updated successfully.
+----
+
+= Creating PKI User for TPS Agent =
+
+As the TPS admin (or CA admin if the certificate was imported during installation) create a PKI user for the new TPS agent:
+
+----
+$ pki -n tpsadmin tps-user-add tpsagent --fullName "TPS Agent"
+---------------------
+Added user "tpsagent"
+---------------------
+  User ID: tpsagent
+  Full name: TPS Agent
+----
+
+Then add the new user to the `TPS Agents` group:
+
+----
+$ pki -n tpsadmin tps-group-member-add "TPS Agents" tpsagent
+-----------------------------
+Added group member "tpsagent"
+-----------------------------
+  User: tpsagent
+----
+
+= Requesting TPS Agent Certificate =
+
+As the new TPS agent, prepare a security database:
+
+----
+$ pki client-init
+------------------
+Client initialized
+------------------
+----
+
+Then generate and submit a certificate request:
+
+----
+$ pki client-cert-request uid=tpsagent
+-----------------------------
+Submitted certificate request
+-----------------------------
+  Request ID: 10
+  Type: enrollment
+  Request Status: pending
+  Operation Result: success
+----
+
+= Generating TPS Agent Certificate =
+
+As a CA agent (e.g. the default CA admin), approve the request:
+
+----
+$ pki -n caadmin ca-cert-request-review 10 --action approve
+-------------------------------
+Approved certificate request 10
+-------------------------------
+  Request ID: 10
+  Type: enrollment
+  Request Status: complete
+  Operation Result: success
+  Certificate ID: 0xa
+----
+
+As the TPS admin (e.g. the default CA admin), assign the certificate to the new user:
+
+----
+$ pki -n tpsadmin tps-user-cert-add tpsagent --serial 0xa
+---------------------------------------------------------------------------------------------
+Added certificate "2;10;CN=CA Signing Certificate,O=example.com Security Domain;UID=tpsagent"
+---------------------------------------------------------------------------------------------
+  Cert ID: 2;10;CN=CA Signing Certificate,O=example.com Security Domain;UID=tpsagent
+  Version: 2
+  Serial Number: 0xa
+  Issuer: CN=CA Signing Certificate,O=example.com Security Domain
+  Subject: UID=tpsagent
+----
+
+= Retrieving TPS Agent Certificate =
+
+As the new TPS agent, import the certificate into security database:
+
+----
+$ pki client-cert-import tpsagent --serial 0xa
+-------------------------------
+Imported certificate "tpsagent"
+-------------------------------
+----
+
+Verify that the certificate has been imported:
+
+----
+$ pki client-cert-find
+----------------------
+1 certificate(s) found
+----------------------
+  Serial Number: 0xa
+  Nickname: tpsagent
+  Subject DN: UID=tpsagent
+  Issuer DN: CN=CA Signing Certificate,O=example.com Security Domain
+----------------------------
+Number of entries returned 1
+----------------------------
+----
+
+= Using TPS Agent Certificate =
+
+To use the certificate in the CLI, specify the new TPS agent certificate nickname:
+
+----
+$ pki -n tpsagent <command>
+----
+
+To use the certificate in Firefox, export the certificate and the private key into a PKCS #12 file, then import it into the browser:
+
+----
+$ pki client-cert-show tpsagent --pkcs12 tpsagent.p12 --pkcs12-password Secret.123
+----
+
+To use the certificate with Python client, export the certificate and the private key into a PEM file:
+
+----
+$ pki client-cert-show tpsagent --client-cert tpsagent.pem
+----
+
+= See Also =
+
+* link:Adding-System-User[Adding System User]
