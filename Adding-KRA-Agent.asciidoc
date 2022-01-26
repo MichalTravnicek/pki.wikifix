@@ -1,0 +1,149 @@
+= Overview =
+
+This document describes the process to set up a new KRA agent.
+
+The default KRA admin is also a KRA agent. If the CA admin certificate was imported during KRA installation, the CA admin user can access KRA as KRA admin/agent using the same certificate.
+
+= Creating Linux User for KRA Agent =
+
+As a Linux admin create a Linux user for the new KRA agent:
+
+----
+$ useradd newkraagent
+$ passwd newkraagent
+Changing password for user newkraagent.
+New password: ********
+Retype new password: ********
+passwd: all authentication tokens updated successfully.
+----
+
+= Creating PKI User for KRA Agent =
+
+As the KRA admin (or CA admin if the certificate was imported during installation) create a PKI user for the new KRA agent:
+
+----
+$ pki -n <KRA admin nickname> kra-user-add newkraagent --fullName "KRA Agent"
+------------------------
+Added user "newkraagent"
+------------------------
+  User ID: newkraagent
+  Full name: KRA Agent
+----
+
+Then add the new user to the `Data Recovery Manager Agents` group:
+
+----
+$ pki -n <KRA admin nickname> kra-group-member-add "Data Recovery Manager Agents" newkraagent
+--------------------------------
+Added group member "newkraagent"
+--------------------------------
+  User: newkraagent
+----
+
+= Requesting KRA Agent Certificate =
+
+As the new KRA agent, prepare a security database:
+
+----
+$ pki client-init
+------------------
+Client initialized
+------------------
+----
+
+Then generate and submit a certificate request:
+
+----
+$ pki client-cert-request uid=newkraagent
+-----------------------------
+Submitted certificate request
+-----------------------------
+  Request ID: 10
+  Type: enrollment
+  Request Status: pending
+  Operation Result: success
+----
+
+= Generating KRA Agent Certificate =
+
+As a CA agent (e.g. the default CA admin), approve the request:
+
+----
+$ pki -n <CA admin nickname> ca-cert-request-review 10 --action approve
+-------------------------------
+Approved certificate request 10
+-------------------------------
+  Request ID: 10
+  Type: enrollment
+  Request Status: complete
+  Operation Result: success
+  Certificate ID: 0xa
+----
+
+As the KRA admin (e.g. the default CA admin), assign the certificate to the new user:
+
+----
+$ pki -n <KRA admin nickname> kra-user-cert-add newkraagent --serial 0xa
+------------------------------------------------------------------------------------------------
+Added certificate "2;10;CN=CA Signing Certificate,O=example.com Security Domain;UID=newkraagent"
+------------------------------------------------------------------------------------------------
+  Cert ID: 2;10;CN=CA Signing Certificate,O=example.com Security Domain;UID=newkraagent
+  Version: 2
+  Serial Number: 0xa
+  Issuer: CN=CA Signing Certificate,O=example.com Security Domain
+  Subject: UID=newkraagent
+----
+
+= Retrieving KRA Agent Certificate =
+
+As the new KRA agent, import the certificate into security database:
+
+----
+$ pki client-cert-import newkraagent --serial 0xa
+----------------------------------
+Imported certificate "newkraagent"
+----------------------------------
+----
+
+Verify that the certificate has been imported:
+
+----
+$ pki client-cert-find
+----------------------
+1 certificate(s) found
+----------------------
+  Serial Number: 0xa
+  Nickname: newkraagent
+  Subject DN: UID=newkraagent
+  Issuer DN: CN=CA Signing Certificate,O=example.com Security Domain
+----------------------------
+Number of entries returned 1
+----------------------------
+----
+
+= Using KRA Agent Certificate =
+
+To use the certificate in the CLI, specify the new KRA agent certificate nickname:
+
+----
+$ pki -n newkraagent <command>
+----
+
+To use the certificate in Firefox, export the certificate and the private key into a PKCS #12 file, then import it into the browser:
+
+----
+$ pki client-cert-show newkraagent --pkcs12 newkraagent.p12 --pkcs12-password Secret.123
+----
+
+To use the certificate with Python client, export the certificate and the private key into a PEM file:
+
+----
+$ pki client-cert-show newkraagent --client-cert newkraagent.pem
+----
+
+= See Also =
+
+* link:Default-CA-Admin[Default CA Admin]
+* link:Adding-CA-Admin[Adding CA Admin]
+* link:Adding-CA-Agent[Adding CA Agent]
+* link:Adding-System-User[Adding System User]
