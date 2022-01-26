@@ -1,0 +1,148 @@
+= Overview =
+
+This document describes the process to add a new TPS operator.
+
+= Creating Linux User for TPS Operator =
+
+As a Linux admin create a Linux user for the new TPS Operator:
+
+----
+$ useradd tpsoperator
+$ passwd tpsoperator
+Changing password for user tpsoperator.
+New password: ********
+Retype new password: ********
+passwd: all authentication tokens updated successfully.
+----
+
+= Creating PKI User for TPS Operator =
+
+As the CA admin create a PKI user for the new TPS Operator:
+
+----
+$ pki -n <CA admin nickname> tps-user-add tpsoperator --fullName "TPS Operator"
+------------------------
+Added user "tpsoperator"
+------------------------
+  User ID: tpsoperator
+  Full name: TPS Operator
+----
+
+Then add the new user to the `TPS Operators` group:
+
+----
+$ pki -n <CA admin nickname> tps-group-member-add "TPS Operators" tpsoperator
+--------------------------------
+Added group member "tpsoperator"
+--------------------------------
+  User: tpsoperator
+----
+
+= Requesting TPS Operator Certificate =
+
+As the new TPS Operator, prepare a security database:
+
+----
+$ pki client-init
+------------------
+Client initialized
+------------------
+----
+
+Then generate and submit a certificate request:
+
+----
+$ pki client-cert-request uid=tpsoperator
+-----------------------------
+Submitted certificate request
+-----------------------------
+  Request ID: 10
+  Type: enrollment
+  Request Status: pending
+  Operation Result: success
+----
+
+= Generating TPS Operator Certificate =
+
+As an existing CA agent (e.g. the default CA admin), approve the request:
+
+----
+$ pki -n <CA agent nickname> ca-cert-request-review 10 --action approve
+-------------------------------
+Approved certificate request 10
+-------------------------------
+  Request ID: 10
+  Type: enrollment
+  Request Status: complete
+  Operation Result: success
+  Certificate ID: 0xa
+----
+
+As a TPS admin, assign the certificate to the new user:
+
+----
+$ pki -n <TPS admin nickname> tps-user-cert-add tpsoperator --serial 0xa
+------------------------------------------------------------------------------------------------
+Added certificate "2;10;CN=CA Signing Certificate,O=example.com Security Domain;UID=tpsoperator"
+------------------------------------------------------------------------------------------------
+  Cert ID: 2;10;CN=CA Signing Certificate,O=example.com Security Domain;UID=tpsoperator
+  Version: 2
+  Serial Number: 0xa
+  Issuer: CN=CA Signing Certificate,O=example.com Security Domain
+  Subject: UID=tpsoperator
+----
+
+= Retrieving TPS Operator Certificate =
+
+As the new TPS Operator, import the certificate into security database:
+
+----
+$ pki client-cert-import tpsoperator --serial 0xa
+----------------------------------
+Imported certificate "tpsoperator"
+----------------------------------
+----
+
+Verify that the certificate has been imported:
+
+----
+$ pki client-cert-find
+----------------------
+1 certificate(s) found
+----------------------
+  Serial Number: 0xa
+  Nickname: tpsoperator
+  Subject DN: UID=tpsoperator
+  Issuer DN: CN=CA Signing Certificate,O=example.com Security Domain
+----------------------------
+Number of entries returned 1
+----------------------------
+----
+
+= Using TPS Operator Certificate =
+
+To use the certificate in the CLI, specify the new TPS Operator certificate nickname:
+
+----
+$ pki -n tpsoperator <command>
+----
+
+To use the certificate in Firefox, export the certificate and the private key into a PKCS #12 file, then import it into the browser:
+
+----
+$ pki client-cert-show tpsoperator --pkcs12 tpsoperator.p12 --pkcs12-password Secret.123
+----
+
+To use the certificate with Python client, export the certificate and the private key into a PEM file:
+
+----
+$ pki client-cert-show tpsoperator --client-cert tpsoperator.pem
+----
+
+= See Also =
+
+* link:TPS-Operator-Guide[TPS Operator Guide]
+* link:Default-CA-Admin[Default CA Admin]
+* link:Adding-CA-Admin[Adding CA Admin]
+* link:Adding-KRA-Agent[Adding KRA Agent]
+* link:Adding-System-User[Adding System User]
