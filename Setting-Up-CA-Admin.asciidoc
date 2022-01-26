@@ -1,0 +1,163 @@
+= Overview =
+
+This document describes the process to setup a new CA admin. See also the link:Default-CA-Admin[Default CA Admin].
+
+= Creating Linux User for CA Admin =
+
+As a Linux admin create a Linux user for the new CA admin:
+
+----
+$ useradd newcaadmin
+$ passwd newaadmin
+Changing password for user newcaadmin.
+New password: ********
+Retype new password: ********
+passwd: all authentication tokens updated successfully.
+----
+
+= Creating PKI User for CA Admin =
+
+As an existing CA admin (e.g. the default CA admin) create a PKI user for the new CA admin:
+
+----
+$ pki -n <CA admin nickname> ca-user-add newcaadmin --fullName "CA Admin"
+-----------------------
+Added user "newcaadmin"
+-----------------------
+  User ID: newcaadmin
+  Full name: CA Admin
+----
+
+Then add the new user to the `Administrators` group:
+
+----
+$ pki -n <CA admin nickname> ca-group-member-add Administrators newcaadmin
+-------------------------------
+Added group member "newcaadmin"
+-------------------------------
+  User: newcaadmin
+----
+
+= Requesting CA Admin Certificate =
+
+As the new CA admin, prepare a security database:
+
+----
+$ pki client-init
+------------------
+Client initialized
+------------------
+----
+
+Then generate and submit a certificate request:
+
+----
+$ pki client-cert-request uid=newcaadmin
+-----------------------------
+Submitted certificate request
+-----------------------------
+  Request ID: 10
+  Type: enrollment
+  Request Status: pending
+  Operation Result: success
+----
+
+= Generating CA Admin Certificate =
+
+As an existing CA agent (e.g. the default CA admin), approve the request:
+
+----
+$ pki -n <CA agent nickname> ca-cert-request-review 10 --action approve
+-------------------------------
+Approved certificate request 10
+-------------------------------
+  Request ID: 10
+  Type: enrollment
+  Request Status: complete
+  Operation Result: success
+  Certificate ID: 0xa
+----
+
+As an existing CA admin (e.g. the default CA admin), assign the certificate to the new user:
+
+----
+$ pki -n <CA admin nickname> ca-user-cert-add newcaadmin --serial 0xa
+-----------------------------------------------------------------------------------------------
+Added certificate "2;10;CN=CA Signing Certificate,O=example.com Security Domain;UID=newcaadmin"
+-----------------------------------------------------------------------------------------------
+  Cert ID: 2;10;CN=CA Signing Certificate,O=example.com Security Domain;UID=newcaadmin
+  Version: 2
+  Serial Number: 0xa
+  Issuer: CN=CA Signing Certificate,O=example.com Security Domain
+  Subject: UID=newcaadmin
+----
+
+= Retrieving CA Admin Certificate =
+
+As the new CA admin, import the certificate into security database:
+
+----
+$ pki client-cert-import newcaadmin --serial 0xa
+---------------------------------
+Imported certificate "newcaadmin"
+---------------------------------
+----
+
+Verify that the certificate has been imported:
+
+----
+$ pki client-cert-find
+----------------------
+1 certificate(s) found
+----------------------
+  Serial Number: 0xa
+  Nickname: newcaadmin
+  Subject DN: UID=newcaadmin
+  Issuer DN: CN=CA Signing Certificate,O=example.com Security Domain
+----------------------------
+Number of entries returned 1
+----------------------------
+----
+
+= Using CA Admin Certificate =
+
+To use the certificate in the CLI, specify the new CA admin certificate nickname:
+
+----
+$ pki -n newcaadmin <command>
+----
+
+To use the certificate in Firefox, export the certificate and the private key into a PKCS #12 file, then import it into the browser:
+
+----
+$ pki client-cert-show newcaadmin --pkcs12 newcaadmin.p12 --pkcs12-password Secret.123
+----
+
+To use the certificate with Python client, export the certificate and the private key into a PEM file:
+
+----
+$ pki client-cert-show newcaadmin --client-cert newcaadmin.pem
+----
+
+= Recovering CA Admin Certificate =
+
+If all admin certificates for a given instance have been lost,
+execute the following steps to generate a new admin certificate:
+
+* Stop PKI server
+* Edit `CS.cfg`:
+
+----
+ca.Policy.enable=true
+cmsgateway.enableAdminEnroll=true
+----
+
+* Restart PKI server
+* Go to https://$HOSTNAME:8443/ca/admin/ca/adminEnroll.html
+* Verify the new admin certificate by navigating to: https://$HOSTNAME:8443/ca/agent/ca/
+
+= References =
+
+* link:https://www.dogtagpki.org/wiki/CA_Agent_Setup[CA Agent Setup]
+* link:https://www.dogtagpki.org/wiki/KRA_Agent_Setup[KRA Agent Setup]
+* link:Adding-System-User[Adding System User]
