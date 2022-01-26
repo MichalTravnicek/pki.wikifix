@@ -1,0 +1,146 @@
+= Overview =
+
+This document describes the process to add a new CA agent. Note that the link:Default-CA-Admin[Default CA Admin] is also a CA agent.
+
+= Creating Linux User for CA Agent =
+
+As a Linux admin create a Linux user for the new CA agent:
+
+----
+$ useradd newcaagent
+$ passwd newcaagent
+Changing password for user newcaagent.
+New password: ********
+Retype new password: ********
+passwd: all authentication tokens updated successfully.
+----
+
+= Creating PKI User for CA Agent =
+
+As the CA admin create a PKI user for the new CA agent:
+
+----
+$ pki -n caadmin ca-user-add newcaagent --fullName "CA Agent"
+-----------------------
+Added user "newcaagent"
+-----------------------
+  User ID: newcaagent
+  Full name: CA Agent
+----
+
+Then add the new user to the `Certificate Manager Agents` group:
+
+----
+$ pki -n caadmin ca-group-member-add "Certificate Manager Agents" newcaagent
+-------------------------------
+Added group member "newcaagent"
+-------------------------------
+  User: newcaagent
+----
+
+= Requesting CA Agent Certificate =
+
+As the new CA agent, prepare a security database:
+
+----
+$ pki client-init
+------------------
+Client initialized
+------------------
+----
+
+Then generate and submit a certificate request:
+
+----
+$ pki client-cert-request uid=newcaagent
+-----------------------------
+Submitted certificate request
+-----------------------------
+  Request ID: 10
+  Type: enrollment
+  Request Status: pending
+  Operation Result: success
+----
+
+= Generating CA Agent Certificate =
+
+As an existing CA agent (e.g. the default CA admin), approve the request:
+
+----
+$ pki -n caadmin ca-cert-request-approve 10
+-------------------------------
+Approved certificate request 10
+-------------------------------
+  Request ID: 10
+  Type: enrollment
+  Request Status: complete
+  Operation Result: success
+  Certificate ID: 0xa
+----
+
+As a CA admin, assign the certificate to the new user:
+
+----
+$ pki -n caadmin ca-user-cert-add newcaagent --serial 0xa
+-----------------------------------------------------------------------------------------------
+Added certificate "2;10;CN=CA Signing Certificate,O=example.com Security Domain;UID=newcaagent"
+-----------------------------------------------------------------------------------------------
+  Cert ID: 2;10;CN=CA Signing Certificate,O=example.com Security Domain;UID=newcaagent
+  Version: 2
+  Serial Number: 0xa
+  Issuer: CN=CA Signing Certificate,O=example.com Security Domain
+  Subject: UID=newcaagent
+----
+
+= Retrieving CA Agent Certificate =
+
+As the new CA agent, import the certificate into security database:
+
+----
+$ pki client-cert-import newcaagent --serial 0xa
+---------------------------------
+Imported certificate "newcaagent"
+---------------------------------
+----
+
+Verify that the certificate has been imported:
+
+----
+$ pki client-cert-find
+----------------------
+1 certificate(s) found
+----------------------
+  Serial Number: 0xa
+  Nickname: newcaagent
+  Subject DN: UID=newcaagent
+  Issuer DN: CN=CA Signing Certificate,O=example.com Security Domain
+----------------------------
+Number of entries returned 1
+----------------------------
+----
+
+= Using CA Agent Certificate =
+
+To use the certificate in the CLI, specify the new CA agent certificate nickname:
+
+----
+$ pki -n newcaagent <command>
+----
+
+To use the certificate in Firefox, export the certificate and the private key into a PKCS #12 file, then import it into the browser:
+
+----
+$ pki client-cert-show newcaagent --pkcs12 newcaagent.p12 --pkcs12-password Secret.123
+----
+
+To use the certificate with Python client, export the certificate and the private key into a PEM file:
+
+----
+$ pki client-cert-show newcaagent --client-cert newcaagent.pem
+----
+
+= See Also =
+
+* link:Adding-CA-Admin[Adding CA Admin]
+* link:https://www.dogtagpki.org/wiki/KRA_Agent_Setup[KRA Agent Setup]
+* link:Adding-System-User[Adding System User]
