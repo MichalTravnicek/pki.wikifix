@@ -1,7 +1,13 @@
+= Overview =
+
+This service can be used to check the status of a PKI subsystem.
+
 = Request =
 
-* Operation: `GET /ca/admin/ca/getStatus`
-* Authentication: None
+* *Operation:* `GET /<subsystem>/admin/<subsystem>/getStatus`
+* *Authentication:* None
+
+The `<subsystem>` is the subsystem type in lower case (e.g. `ca`, `kra`).
 
 = Response =
 
@@ -9,11 +15,28 @@
 * *Type:* The subsystem type (e.g. `CA`, `KRA`).
 * *Status:* `starting` or `running`.
 * *Version:* PKI package version (e.g. `10.10.5-5.fc33`).
-* *Product Version:* Product name and version (which may not necessarily be the same as PKI package version). If the server theme package (e.g. `dogtag-pki-server-theme`) is not installed, the product name and version will not be returned.
+* *ProductVersion:* Product name and version (which may not necessarily be the same as PKI package version). If the server theme package (e.g. `dogtag-pki-server-theme`) is not installed, the product name and version will not be returned.
 
-= Example =
+== JSON Response ==
 
-To call the service using `curl`:
+Starting from PKI 11 this service returns a response in JSON format, for example:
+
+----
+$ curl -s http://localhost.localdomain:8080/ca/admin/ca/getStatus | python -m json.tool
+{
+    "Response": {
+        "State": "1",
+        "Type": "CA",
+        "Status": "running",
+        "Version": "11.1.0-0.1.alpha2.20220127004241UTC.2ccd9cc8.fc35",
+        "ProductVersion": "Dogtag Certificate System"
+    }
+}
+----
+
+== XML Response ==
+
+Prior to PKI 11 this service returns a response in XML format, for example:
 
 ----
 $ curl -s http://localhost.localdomain:8080/ca/admin/ca/getStatus | xmllint --format -
