@@ -1,0 +1,204 @@
+= Overview =
+
+The goal of this document is to propose a design to provide a Python binding for PKI REST services.
+
+This should provide the clients written in Python, access to the PKI resources (certs, cert requests, users etc.), exposed by the REST services of PKI. The REST services for PKI are defined link:PKI-REST-API-Design[here].
+
+= Goals = 
+
+1. Provide a framework to access the PKI resources.
+2. Hide all the miscellaneous features from the python client (such as connection, handling data etc.)
+
+== Example ==
+
+This is how the resources can be accessed currently by a python client.
+
+----
+connection = client.PKIConnection('http','localhost','8080','ca')
+connection.authenticate('caadmin', 'XXXX')
+url = '/rest/certs/0x6'
+r = self.connection.get(url, self.headers)
+e.TYPES['CertData'] = CertData()
+certData = e.CustomTypeDecoder(r.json()) 
+----
+
+Similar implementation in the Java client API using the RESTEasy packages.
+
+----
+public class CertClient extends Client {
+
+   public CertResource certClient;
+
+   public CertClient(PKIClient client, String subsystem) throws URISyntaxException {
+       super(client, subsystem, "cert");
+       init();
+   }
+
+   public void init() throws URISyntaxException {
+       certClient = createProxy(CertResource.class);
+   }
+   public CertData getCert(CertId id) {
+       return certClient.getCert(id);
+   }
+}
+----
+
+where the connection details are present in PKIClient and the CertResource is the resource for certificate related queries.
+
+The CertResource is the interface for the client to sumit a query and get data. The implementation of the query is handled by the service class, CertService, on the server side.
+
+----
+@Path("")
+public interface CertResource {
+   @GET
+   @Path("certs/{id}")
+   @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+   public CertData getCert(@PathParam("id") CertId id);
+}
+----
+
+The RESTEasy packages provides the annotations which handle the background tasks.
+
+A similar framework is needed for the python clients, where the clients can access the resource without writing additional code to handle the connection, data transfer etc. details.
+
+= Design 1 =
+
+The modules providing the REST services can be placed in ./base/common/python/pki/ in the code tree as independent modules like (cert/user/group/<subsystem>) and can be imported in the client code from pki.<module_name> after installing the rpms.
+Each module provides methods to access the specific REST resources using the connection(pki.client.PKIConnection) object passed by the client.
+The PKIConnection object will also provide API for client cert authentication to perform privileged operations using the REST Interface.
+
+Data objects contain the information required by the operation. The objects are serialized as a JSON object and attached as a payload over the HTTP request.
+
+Following is the example of how the certificate resource can be accessed by the client.
+
+In base/common/python/pki/cert/certresource.py,
+
+----
+class CertId:
+   def __init__(self, id):
+       if str(id).startswith('0x'):
+           #hex number
+           print 'hex number'
+           self.id = id
+       else:
+           self.id = id
+
+class CertData:
+   def __init__(self):
+       pass
+   
+   def from_dict(self, attr_list):
+       for key in attr_list:
+           setattr(self, key, attr_list[key])
+       return self
+   
+class CertDataInfo:
+   
+   def __init__(self):
+       self.certId = None
+       self.subjectDN = None
+       self.status = None
+       self.type=None
+       self.version=None
+       self.keyAlgorithmOID = None
+       self.keyLength = None
+       self.notValidBefore = None
+       self.notValidAfter = None
+       self.issuedOn = None
+       self.issuedBy = None
+       
+   def from_dict(self, attr_list):
+       for key in attr_list:
+           setattr(self, key, attr_list[key])
+       return self
+
+class CertDataInfos:
+   
+   def __init__(self):
+       self.certInfoList = []
+       self.links = []
+   
+   def decode_from_json(self, jsonValue):
+       certInfos = jsonValue['CertDataInfo']
+       print certInfos
+       if not isinstance(certInfos, types.ListType):
+           certInfo = CertDataInfo()
+           self.certInfoList.append(certInfo.from_dict(certInfos))
+       else:
+           for certInfo in certInfos:
+               certDataInfo = CertDataInfo()
+               certDataInfo.from_dict(certInfo)
+               self.certInfoList.append(certDataInfo)
+   
+class CertSearchRequest:
+   
+   def __init__(self):
+       self.serialNumberRangeInUse = False
+       self.serialTo = None
+       self.serialFrom = None
+       self.subjectInUse = False
+       self.eMail = None
+       self.commonName = None
+       self.userID = None
+       self.orgUnit = None
+       self.org = None
+       self.locality = None
+       self.state = None
+       self.country = None
+       self.matchExactly = None
+       self.status = None
+       self.revokedBy = None
+       self.revokedOnFrom = None
+       self.revokedOnTo = None
+       self.revocationReason = None
+       self.issuedBy = None
+       self.issuedOnFrom = None
+       self.issuedOnTo = None
+       ...
+
+class CertResource:
+   
+   #connection - PKIConnection object with the server details
+   def __init__(self, connection):
+       self.connection = connection
+       self.headers = {'Content-type': 'application/json',
+                       'Accept': 'application/json'}
+       self.certURL = '/rest/certs'
+       self.agentCertURL = '/rest/agent/certs'
+   
+   def getCert(self, certId):
+       url = self.certURL + '/' + str(certId.id)
+       r = self.connection.get(url, self.headers)
+       e.TYPES['CertData'] = CertData()
+       certData = e.CustomTypeDecoder(r.json()) 
+       return certData
+   
+   def searchCerts(self, cert_search_request):
+       url = self.certURL + '/search'
+       e.TYPES['CertSearchRequest'] = CertSearchRequest
+       searchRequest = json.dumps(cert_search_request, cls=e.CustomTypeEncoder)
+       r = self.connection.post(url, searchRequest, self.headers)
+       print r.json()['CertDataInfos']
+       cdis = CertDataInfos()
+       cdis.decode_from_json(r.json()['CertDataInfos'])
+       return cdis
+----
+
+Note: CustomTypeEncoder provides encoding of custom objects into JSON. The CustomTypeDecoder() provides the decode mechanism. Both are present in base/common/python/pki/encoder.py.
+
+How the client can access the resources:
+
+----
+import pki.cert.certresource as cert_client
+import pki.client as client
+
+def main():
+   connection = client.PKIConnection('http','localhost','8080','ca')
+   connection.authenticate('caadmin', 'XXXX')
+   cR = cert_client.CertResource(connection)
+   cert = cR.getCert(CertId('0x6'))
+   print str(cert) # A Pretty Print method has to be provided     
+    
+if __name__ == "__main__":
+   main()
+----
