@@ -6,7 +6,7 @@ An authentication plugin is generally the second type of plugin called during th
 
 image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/authentication_plugin.gif[Dogtag PKI]
 
-Additional information about authentication plugins may be found in the corresponding link:http://pki.fedoraproject.org/pki/javadocs/dogtag_9/pki-common/index.html?com/netscape/certsrv/authentication/package-summary.html[com.netscape.certsrv.authentication] javadocs.
+Additional information about authentication plugins may be found in the corresponding link:https://www.dogtagpki.org/pki/javadocs/dogtag_9/pki-common/index.html?com/netscape/certsrv/authentication/package-summary.html[com.netscape.certsrv.authentication] javadocs.
 
 = General Structure of Authentication Plugins =
 
@@ -14,9 +14,9 @@ A typical authentication plugin resembles the following diagram:
 
 image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/authentication_class.gif[Dogtag PKI]
 
-Basic authentication plugins `implement` the link:http://pki.fedoraproject.org/pki/javadocs/dogtag_9/pki-common/index.html?com/netscape/certsrv/authentication/IAuthManager.html[com.netscape.certsrv.authentication.IAuthManager] interface,
-and the link:http://pki.fedoraproject.org/pki/javadocs/dogtag_9/pki-common/index.html?com/netscape/certsrv/base/IExtendedPluginInfo.html[com.netscape.certsrv.base.IExtendedPluginInfo] interface.
-Additionally, if an authentication plugin needs to interact with the *profiles* framework, it will also need to `implement` the link:http://pki.fedoraproject.org/pki/javadocs/dogtag_9/pki-common/index.html?com/netscape/certsrv/profile/IProfileAuthenticator.html[com.netscape.certsrv.profile.IProfileAuthenticator] interface.
+Basic authentication plugins `implement` the link:https://www.dogtagpki.org/pki/javadocs/dogtag_9/pki-common/index.html?com/netscape/certsrv/authentication/IAuthManager.html[com.netscape.certsrv.authentication.IAuthManager] interface,
+and the link:https://www.dogtagpki.org/pki/javadocs/dogtag_9/pki-common/index.html?com/netscape/certsrv/base/IExtendedPluginInfo.html[com.netscape.certsrv.base.IExtendedPluginInfo] interface.
+Additionally, if an authentication plugin needs to interact with the *profiles* framework, it will also need to `implement` the link:https://www.dogtagpki.org/pki/javadocs/dogtag_9/pki-common/index.html?com/netscape/certsrv/profile/IProfileAuthenticator.html[com.netscape.certsrv.profile.IProfileAuthenticator] interface.
 
 = Typical Internal Structure of Authentication Plugins =
 
@@ -65,12 +65,12 @@ import java.util.Vector;
 
 == Class definition ==
 
-An authentication plugin should `implement` the link:http://pki.fedoraproject.org/pki/javadocs/dogtag_9/pki-common/index.html?com/netscape/certsrv/authentication/IAuthManager.html[com.netscape.certsrv.authentication.IAuthManager] interface,
+An authentication plugin should `implement` the link:https://www.dogtagpki.org/pki/javadocs/dogtag_9/pki-common/index.html?com/netscape/certsrv/authentication/IAuthManager.html[com.netscape.certsrv.authentication.IAuthManager] interface,
 or `extend` one of its class implementations.
-For example, the tutorial `implements` the link:http://pki.fedoraproject.org/pki/javadocs/dogtag_9/pki-common/index.html?com/netscape/certsrv/profile/IProfileAuthenticator.html[com.netscape.certsrv.profile.IProfileAuthenticator] interface,
-which itself actually `extends` the link:http://pki.fedoraproject.org/pki/javadocs/dogtag_9/pki-common/index.html?com/netscape/certsrv/authentication/IAuthManager.html[com.netscape.certsrv.authentication.IAuthManager] interface.
+For example, the tutorial `implements` the link:https://www.dogtagpki.org/pki/javadocs/dogtag_9/pki-common/index.html?com/netscape/certsrv/profile/IProfileAuthenticator.html[com.netscape.certsrv.profile.IProfileAuthenticator] interface,
+which itself actually `extends` the link:https://www.dogtagpki.org/pki/javadocs/dogtag_9/pki-common/index.html?com/netscape/certsrv/authentication/IAuthManager.html[com.netscape.certsrv.authentication.IAuthManager] interface.
 Note that it is mandatory for an authentication manager to `implement` this interface *IF AND ONLY IF* the authentication manager must interact with the profile framework.
-Additionally, to provide help features, all authentication plugins should also `implement` the link:http://pki.fedoraproject.org/pki/javadocs/dogtag_9/pki-common/index.html?com/netscape/certsrv/base/IExtendedPluginInfo.html[com.netscape.certsrv.base.IExtendedPluginInfo] interface.
+Additionally, to provide help features, all authentication plugins should also `implement` the link:https://www.dogtagpki.org/pki/javadocs/dogtag_9/pki-common/index.html?com/netscape/certsrv/base/IExtendedPluginInfo.html[com.netscape.certsrv.base.IExtendedPluginInfo] interface.
 
 If the authentication plugin requires interaction with the profiles framework:
 
