@@ -1,0 +1,28 @@
+= Request =
+
+* Operation: `GET /ca/admin/ca/getStatus`
+* Authentication: None
+
+= Response =
+
+* *State:* `0` means the server is being installed, `1` means the server is ready.
+* *Type:* The subsystem type (e.g. `CA`, `KRA`).
+* *Status:* `starting` or `running`.
+* *Version:* PKI package version (e.g. `10.10.5-5.fc33`).
+* *Product Version:* Product name and version (which may not necessarily be the same as PKI package version). If the server theme package (e.g. `dogtag-pki-server-theme`) is not installed, the product name and version will not be returned.
+
+= Example =
+
+To call the service using `curl`:
+
+----
+$ curl -s http://localhost.localdomain:8080/ca/admin/ca/getStatus | xmllint --format -
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<XMLResponse>
+  <State>1</State>
+  <Type>CA</Type>
+  <Status>running</Status>
+  <Version>10.10.5-5.fc33</Version>
+  <ProductVersion>Dogtag Certificate System</ProductVersion>
+</XMLResponse>
+----
