@@ -1,0 +1,55 @@
+= Overview =
+
+A database upgrade framework will provide a framework to create incremental database upgrade scripts for clustered environment.
+The framework will keep track of the database version so it can determine which upgrade scripts to execute.
+
+= Upgrade Process =
+
+* Disable write access on replicas.
+* Upgrade packages on master and replicas and restart the servers.
+* Perform database upgrade on master and wait until it's propagated to all replicas.
+* Allow write access on replicas.
+
+= Fully Automated Upgrade (Not Yet Implemented) =
+
+With fully automated upgrade, the database upgrade tool will run as part of package upgrade. There are some caveats with this mechanism:
+
+* The DS of the server being upgraded cannot be shutdown when the package is installed, otherwise the upgrade will fail.
+
+* The upgrade must be done one server at a time, and the changes must be completely replicated before upgrading another replica, otherwise the changes might collide.
+
+* The changes must be backward compatible, otherwise replicas that have not been upgraded yet may have a problem.
+
+* Non-upgrade changes to the database/configuration in all replicas should be limited or prevented until all replicas are upgraded, otherwise it may cause inconsistencies.
+
+* If nuxwdog is enabled, or in IPA deployment, the password.conf may not exist. The password.conf must be restored at least temporarily, otherwise the upgrade will fail.
+
+* Upgrade failures may not be known immediately unless the admin checks the upgrade log, or discovers that some functionalities are not working.
+
+* It's not possible to dry-run database upgrade. Depending on the changes, it may not be possible to revert database changes. The admin should be advised to create a backup before upgrade.
+
+* The admin should be careful with yum/dnf updates since it could trigger unplanned upgrade.
+
+= Semi Automated Upgrade (Not Yet Implemented) =
+
+With semi automated upgrade, the database upgrade is executed separately after the packages on all servers are upgraded. The caveats with fully automated upgrade can be addressed as follows:
+
+* The DS does not need to be running when the packages are upgraded, but it needs to run before running the database upgrade tool.
+
+* The packages on all servers can be updated simultaneously. Once it's done, the database upgrade can be executed on one of the servers.
+
+* Since the packages are already upgraded on all servers, the required down time will be shorter in case there are non-backward compatible changes.
+
+* If the password.conf is not available, the upgrade tool can ask for it from the admin.
+
+* Since the upgrade tool is executed manually by the admin, any upgrade issue will be immediately noticable.
+
+* The admin will be able to run the upgrade tool in dry-run mode and evaluate the changes before executing the actual upgrade.
+
+* There is no unplanned upgrade since the upgrade tool is executed manually.
+
+= See Also =
+
+* link:Upgrading-PKI-Database[Upgrading PKI Database]
+* link:https://www.dogtagpki.org/wiki/Tracking_db_migrations[Tracking db migrations]
+* link:https://github.com/dogtagpki/pki/issues/1279[Ticket #1279: Database upgrade framework]
