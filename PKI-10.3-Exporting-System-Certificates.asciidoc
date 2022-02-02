@@ -1,0 +1,289 @@
+= Overview =
+
+When installing a new PKI subsystem to join an existing security domain (e.g. installing KRA, cloning a CA), the new subsystem needs to authenticate against the security domain over SSL. The current mechanism has some issues:
+
+* To establish SSL connection, the new subsystem has to trust the SSL server certificate on the security domain without certificate chain.
+* For cloning, the current mechanism already requires exporting all certificates and keys from master, including certificate chain and third-party certificates. However, the current export mechanism will also include other certificates and keys not needed by the new subsystem. Also, currently the the third-party certificates (e.g. proxy certificate) do not get imported into the new subsystem, which may be needed to establish the SSL connection.
+
+To address these issues PKI 10.3 will provide an alternative mechanism to export only the certificates and keys required by the new subsystem which include certificate chain and third-party certificates. The certificates and keys needs be transferred to the new subsystem, then the installer will import all certificates and keys such that it can make the proper SSL connection. This process will be implemented with the new link:PKI-PKCS12-CLI[PKI PKCS12 CLI].
+
+For backward compatibility the existing mechanism will continue to work, but it may be deprecated in the future.
+
+= Installation Targets =
+
+The following table describes the **Required Certificates/Keys** for installing a **Target**. The required certificates/keys must be exported locally from the **Source**.
+
+|===
+| Target | Source | Required Certificates/Keys | Property | Example
+
+.2+| Remote CA
+.2+| Security domain
+| Certificate chain
+| ca.subsystem.nickname
+|
+
+| Third party certificates
+| cs.thirdparty.cert
+|
+
+.2+| Remote KRA
+.2+| Security domain
+| Certificate chain
+| kra.subsystem.nickname
+|
+
+| Third party certificates
+| cs.thirdparty.cert
+|
+
+.2+| Remote OCSP
+.2+| Security domain
+| Certificate chain
+| ocsp.subsystem.nickname
+|
+
+| Third party certificates
+| cs.thirdparty.cert
+|
+
+.2+| Remote TKS
+.2+| Security domain
+| Certificate chain
+| tks.subsystem.nickname
+|
+
+| Third party certificates
+| cs.thirdparty.cert
+|
+
+.2+| Remote TPS
+.2+| Security domain
+| Certificate chain
+| tps.subsystem.nickname
+|
+
+| Third party certificates
+| cs.thirdparty.cert
+|
+
+.6+| CA clone
+.6+| CA master
+| Certificate chain
+| ca.subsystem.nickname
+|
+
+| Third party certificates
+| cs.thirdparty.cert
+|
+
+| Subsystem certificate and key
+| ca.subsystem.nickname
+| subsystemCert cert-pki-tomcat
+
+| CA signing certificate and key
+| ca.signing.nickname
+| caSigningCert cert-pki-tomcat CA
+
+| CA OCSP signing certificate and key
+| ca.ocsp_signing.nickname
+| ocspSigningCert cert-pki-tomcat CA
+
+| CA audit signing certificate and key
+| ca.audit_signing.nickname
+| auditSigningCert cert-pki-tomcat CA
+
+.6+| KRA clone
+.6+| KRA master
+| Certificate chain
+| kra.subsystem.nickname
+|
+
+| Third party certificates
+| cs.thirdparty.cert
+|
+
+| Subsystem certificate and key
+| kra.subsystem.nickname
+| subsystemCert cert-pki-tomcat
+
+| KRA transport certificate and key
+| kra.transport.nickname
+| transportCert cert-pki-tomcat KRA
+
+| KRA storage certificate and key
+| kra.storage.nickname
+| storageCert cert-pki-tomcat KRA
+
+| KRA audit signing certificate and key
+| kra.audit_signing.nickname
+| auditSigningCert cert-pki-tomcat KRA
+
+.5+| OCSP clone
+.5+| OCSP master
+| Certificate chain
+| ocsp.subsystem.nickname
+|
+
+| Third party certificates
+| cs.thirdparty.cert
+|
+
+| Subsystem certificate and key
+| ocsp.subsystem.nickname
+| subsystemCert cert-pki-tomcat
+
+| OCSP signing certificate and key
+| ocsp.signing.nickname
+| ocspSigningCert cert-pki-tomcat OCSP
+
+| OCSP audit signing certificate and key
+| ocsp.audit_signing.nickname
+| auditSigningCert cert-pki-tomcat OCSP
+
+.4+| TKS clone
+.4+| TKS master
+| Certificate chain
+| tks.subsystem.nickname
+|
+
+| Third party certificates
+| cs.thirdparty.cert
+|
+
+| Subsystem certificate and key
+| tks.subsystem.nickname
+| subsystemCert cert-pki-tomcat
+
+| TKS audit signing certificate and key
+| tks.audit_signing.nickname
+| auditSigningCert cert-pki-tomcat TKS
+
+.4+| TPS clone
+.4+| TPS master
+| Certificate chain
+| tps.subsystem.nickname
+|
+
+| Third party certificates
+| cs.thirdparty.cert
+|
+
+| Subsystem certificate and key
+| tps.subsystem.nickname
+| subsystemCert cert-pki-tomcat
+
+| TPS audit signing certificate and key
+| tps.audit_signing.nickname
+| auditSigningCert cert-pki-tomcat TPS
+|===
+
+The **Certificate chain** can be obtained by exporting the certificate whose nickname listed under **Properties** without the including the certificate itself, only the certificate chain.
+
+The **Third-party certificates** (e.g. proxy certificate, external CA certificate) will be exported based on the following properties in CS.cfg:
+
+----
+cs.thirdparty.cert.0.nickname=<nickname>
+cs.thirdparty.cert.1.nickname=<nickname>
+...
+----
+
+The other certificates can be obtained by exporting the certificate whose nickname listed under **Properties**.
+
+= Exporting System Certificates =
+
+== Remote Subsystem ==
+
+To export the certificates/keys for a remote subsystem, execute the following command on the security domain:
+
+----
+$ pki-server ca-cert-chain-export \
+    --pkcs12-file pki-server.p12 \
+    --pkcs12-password-file password.txt
+----
+
+Transfer the file to the new subsystem.
+
+== Cloning ==
+
+To export the certificates/keys for cloning, execute the following command on the master:
+
+----
+$ pki-server <subsystem>-clone-prepare
+    --pkcs12-file pki-server.p12 \
+    --pkcs12-password-file password.txt
+----
+
+Transfer the file to the new subsystem.
+
+== Advanced Procedure ==
+
+Store the NSS database password in a file:
+
+----
+$ grep "internal=" /var/lib/pki/pki-tomcat/conf/password.conf | awk -F= '{print $2}' > internal.txt
+----
+
+Create an empty PKCS #12 file:
+
+----
+$ pki pkcs12-create --pkcs12 pki-server.p12 --pkcs12-password-file password.txt
+----
+
+Export certificate chain:
+
+----
+$ pki -d /var/lib/pki/pki-tomcat/alias -C internal.txt \
+    pkcs12-cert-add "subsystemCert cert-pki-tomcat" \
+    --pkcs12 pki-server.p12 \
+    --pkcs12-password-file password.txt \
+    --no-cert
+----
+
+Additional certificates can be added manually with the following command:
+
+----
+$ pki -d /var/lib/pki/pki-tomcat/alias -C internal.txt \
+ pkcs12-cert-add <nickname> \
+    --pkcs12 pki-server.p12 \
+    --pkcs12-password-file password.txt
+----
+
+Verify the PKCS #12 file now contains the certificate chain only:
+
+----
+$ pki pkcs12-cert-find --pkcs12 pki-server.p12 --pkcs12-password-file password.txt
+$ pki pkcs12-key-find --pkcs12 pki-server.p12 --pkcs12-password-file password.txt
+----
+
+= Importing System Certificates =
+
+To import the certificates/keys file during PKI server deployment, specify the following deployment properties:
+
+----
+pki_server_pkcs12_path=pki-server.p12
+pki_server_pkcs12_password=Secret.123
+----
+
+If the properties are specified, the `pkispawn` will import the PKCS #12 file with the following command:
+
+----
+$ pki-server pkcs12-import \
+    --pkcs12-file pki-server.p12 \
+    --pkcs12-password-file password.txt
+----
+
+If the `pki_server_pkcs12` property is specified, the following code in `SystemConfigService.configureClone()` will not be executed:
+
+----
+ConfigurationUtils.importCertChain(host, port, "/ca/admin/ca/getCertChain", "securitydomain");
+ConfigurationUtils.restoreCertsFromP12(p12File, p12Pass);
+----
+
+= Backward Compatibility =
+
+If the `pki_server_pkcs12` is not specified, the installer will work like before.
+
+= See Also =
+
+* link:PKI-PKCS12-CLI[PKI PKCS12 CLI]
+* link:https://fedorahosted.org/pki/ticket/1742[PKI Ticket #1742: pkispawn ignores 3rd party CA certs in pki_clone_pkcs12_path]
