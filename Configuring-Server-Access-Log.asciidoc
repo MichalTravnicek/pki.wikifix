@@ -1,0 +1,23 @@
+= Overview =
+
+The access log configuration is located at `/var/lib/pki/pki-tomcat/conf/server.xml`:
+
+----
+<Server ...>
+  <Service ...>
+    <Engine ...>
+      <Host ...>
+
+        <Valve className="org.apache.catalina.valves.AccessLogValve"
+               directory="logs"
+               prefix="localhost_access_log"
+               suffix=".txt"
+               pattern="common"/>
+
+      </Host>
+    </Engine>
+  </Service>
+</Server>
+----
+
+The logs will be stored in `/var/log/pki/pki-tomcat/localhost_access_log.YYYY-MM-DD.txt`.
