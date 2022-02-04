@@ -1,0 +1,25 @@
+= Overview (Under Construction) =
+
+This page describes the process to install a KRA subsystem with random serial numbers.
+
+= Installation Procedure =
+
+To install KRA with random certificate serial numbers, follow the normal KRA installation procedure, then specify the following parameter:
+
+----
+[KRA]
+pki_key_id_generator=random
+pki_request_id_generator=random
+----
+
+The keys will have random IDs, for example:
+
+----
+$ pki -n admin kra-key-find
+----
+
+The key requests will also have random IDs, for example:
+
+----
+$ pki -n admin kra-key-request-find
+----
