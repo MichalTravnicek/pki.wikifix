@@ -1,0 +1,76 @@
+= Overview (Under Construction) =
+
+This page describes the process to install a CA subsystem with link:Random-Certificate-Serial-Numbers-v3[Random Certificate Serial Numbers v3].
+
+= Installation Procedure =
+
+To install CA with random certificate serial numbers v3, follow the normal CA installation procedure, then specify the following parameter:
+
+----
+[CA]
+pki_cert_id_length=64
+pki_cert_id_generator=random
+pki_request_id_length=64
+pki_request_id_generator=random
+----
+
+After installation the certificates will have random serial numbers, for example:
+
+----
+$ pki ca-cert-find
+---------------
+6 entries found
+---------------
+  Serial Number: 0x492def152c08aa04
+  Subject DN: CN=CA Audit Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  ...
+
+  Serial Number: 0x92b092a77078824b
+  Subject DN: CN=Subsystem Certificate,OU=pki-tomcat,O=EXAMPLE
+  ...
+
+  Serial Number: 0x9bacecd931a6af3a
+  Subject DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  ...
+
+  Serial Number: 0x9dc4940abdf1ff1c
+  Subject DN: CN=pki.example.com,OU=pki-tomcat,O=EXAMPLE
+  ...
+
+  Serial Number: 0xe0ff3db3b558df66
+  Subject DN: CN=CA OCSP Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  ...
+
+  Serial Number: 0xe29c6e419c9454b6
+  Subject DN: CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE
+  ...
+----
+
+The certificate requests will also use random IDs, for example:
+
+----
+$ pki -n caadmin ca-cert-request-find
+-----------------
+6 entries matched
+-----------------
+  Request ID: 0x1b201c63214ddc28
+  ...
+
+  Request ID: 0x2058a767dc1639d7
+  ...
+
+  Request ID: 0x399ef0fb529b5fad
+  ...
+
+  Request ID: 0x6c524421dde25ee6
+  ...
+
+  Request ID: 0xa9fcd098a224880f
+  ...
+
+  Request ID: 0xd6072b757fa9964d
+  ...
+----------------------------
+Number of entries returned 6
+----------------------------
+----
