@@ -55,6 +55,7 @@ Also, not mentioned above, there's a risk of colliding with existing serial numb
 
 * Some CLIs or Web UI tools in PKI may rely on sorting by serial numbers. This needs to be replaced with sorting by time.
 * link:https://pagure.io/freeipa/issue/8802[Ticket #8802]: IPA cannot handle long serial numbers.
+* NSS/JSS does not support 160-bit serial numbers possibly since its handling the serial numbers as signed numbers and does not allow negative values, so the maximum it can handle currently is 159 bits.
 
 = Migration =
 
