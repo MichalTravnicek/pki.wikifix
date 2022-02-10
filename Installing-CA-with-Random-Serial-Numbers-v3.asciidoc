@@ -13,9 +13,9 @@ pki_cert_id_generator=random
 pki_cert_id_length=159
 ----
 
-The key certificate ID length (in bits) can be specified in the `pki_cert_id_length` parameter. By default it will be 160 bits.
+The key certificate ID length (in bits) can be specified in the `pki_cert_id_length` parameter. The default is `160` bits.
 
-**Note**: Currently NSS/JSS is only able to handle up to 159-bit serial numbers.
+**Note**: Currently NSS/JSS is only able to handle up to `159` bits.
 
 To use random certificate request IDs, add the following parameters in the `[CA]` section:
 
@@ -23,7 +23,7 @@ To use random certificate request IDs, add the following parameters in the `[CA]
 pki_request_id_generator=random
 ----
 
-The certificate request ID length (in bits) can be specified in the `pki_cert_request_id_length` parameter. By default it will be 160 bits.
+The certificate request ID length (in bits) can be specified in the `pki_cert_request_id_length` parameter. The default is `160` bits.
 
 After installation the certificates will have random serial numbers, for example:
 
