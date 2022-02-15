@@ -1,0 +1,107 @@
+= Overview =
+
+PKI defines about 100 audit events and the are used in about 800 locations. They need to be inspected/revised in order to ensure their correctness. This document describes the changes to correct the current issue while preventing future degradation.
+
+= Consolidating Audit Event ID =
+
+Status: This change is complete.
+
+== Old Code ==
+
+In the old code some audit event IDs are hard-coded in the code that generates the audit log. Some others are defined in constants, but the constants are defined in various classes, and sometimes they have duplicates too.
+
+Finding where an event is generated is a very cumbersome process. First we need to find the event ID in link:https://github.com/dogtagpki/pki/blob/master/base/server/cmsbundle/src/LogMessages.properties[LogMessages.properties]. Then we need to do a string search against the entire code to find all the occurrences. Searching with a partial event ID may generate unwanted results.
+
+== New Code ==
+
+In the new code Audit events will be defined in link:https://github.com/dogtagpki/pki/blob/master/base/server/src/main/java/com/netscape/certsrv/logging/AuditEvent.java[AuditEvent.java], for example:
+
+----
+public class AuditEvent implements IBundleLogEvent {
+
+    public final static String CERT_REQUEST_PROCESSED =
+            "LOGGING_SIGNED_AUDIT_CERT_REQUEST_PROCESSED_5";
+}
+----
+
+Finding an event usage can be done quickly and accurately in Eclipse using References menu.
+
+= Generating Audit Log =
+
+Status: This change is in progress.
+
+== Old Code ==
+
+The old code uses `CMS.getLogMessage()` which takes an audit event ID and variable-length parameters to generate audit log message. The event ID will be used to get the template from `LogMessages.properties` and then the parameters will be inserted into the template to generate the actual log message.
+
+----
+String message = CMS.getLogMessage(
+    AuditEvent.CERT_REQUEST_PROCESSED,
+    auditSubjectID,
+    ILogger.SUCCESS,
+    auditRequesterID,
+    ILogger.SIGNED_AUDIT_ACCEPTANCE,
+    auditInfoCertValue);
+
+audit(message);
+----
+
+The problem with this is that the parameters required by the template may not match the actual parameters provided in the code. Since there are a lot of code invocations (i.e. around 800), it is hard to guarantee the correctness since each invocation has to be inspected manually.
+
+== New Code ==
+
+In the new code a new sublclass of `AuditEvent` will be created for each event type, for example:
+
+----
+public class CertRequestProcessedEvent extends AuditEvent {
+
+    public CertRequestProcessedEvent(
+            String subjectID,
+            String outcome,
+            String requesterID,
+            String infoName,
+            String infoValue) {
+
+        super(CERT_REQUEST_PROCESSED, new Object[]  {
+                subjectID,
+                outcome,
+                requesterID,
+                infoName,
+                infoValue
+        });
+    }
+}
+----
+
+The code will now generate event-specific `AuditEvent` class which has specific list of parameters in its constructor.
+
+----
+AuditEvent event = new CertRequestProcessedEvent(
+    auditSubjectID,
+    ILogger.SUCCESS,
+    auditRequesterID,
+    ILogger.SIGNED_AUDIT_ACCEPTANCE,
+    auditInfoCertValue);
+
+audit(event);
+----
+
+The log message will be generated and logged with the following code:
+
+----
+public void audit(AuditEvent event) {
+
+    String template = event.getMessage();
+    Object[] params = event.getParameters();
+
+    String message = CMS.getLogMessage(template, params);
+
+    audit(message);
+}
+----
+
+This mechanism will simplify the maintenance since the inspection will only need to be done between the templates and the event classes which is much fewer (i.e. around 100) than individual invocations. The correctness of each invocation will be guaranteed at compile time. However, there's a one time cost to replace all invocations with the new code.
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/Signed_Audit_Log_Design[Signed Audit Log Design]
