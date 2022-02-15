@@ -1,0 +1,26 @@
+= Enabling Signed Audit Logs via CLI =
+
+To enable signed audit logs via `pki-server` CLI, execute the following command:
+
+----
+$ pki-server ca-audit-config-mod --logSigning True
+----
+
+Then restart the server.
+
+= Enabling Signed Audit Logs via TPS UI =
+
+To enable signed audit logs via TPS UI, go to System -> Audit Logging. Disable logging first, click Edit, change the Signed Logging to true, then reenable the Logging.
+
+Then restart the server.
+
+= Enabling Signed Audit Logs Manually =
+
+The signed audit logs can be configured with the following parameters in `/etc/pki/<instance>/<subsystem>/CS.cfg`:
+
+----
+log.instance.SignedAudit.logSigning=true
+log.instance.SignedAudit.signedAuditCertNickname=<audit signing cert nickname>
+----
+
+Then restart the server.
