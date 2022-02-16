@@ -15,12 +15,6 @@ $ chown pkiuser.pkiuser /var/lib/pki/pki-tomcat/ca/crl
 
 The CRL publishing configuration is stored in `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg`.
 
-To enable CRL publishing:
-
-----
-ca.publish.enable=true
-----
-
 To configure file-based CRL publisher:
 
 ----
@@ -44,6 +38,12 @@ ca.publish.rule.instance.FileCrlRule.pluginName=Rule
 ca.publish.rule.instance.FileCrlRule.predicate=
 ca.publish.rule.instance.FileCrlRule.publisher=FileBasedPublisher
 ca.publish.rule.instance.FileCrlRule.type=crl
+----
+
+To enable CRL publishing:
+
+----
+ca.publish.enable=true
 ----
 
 To simplify testing, the buffer size for revocation checking can be set to `0` so that each certificate revocation will take effect immediately:
