@@ -6,20 +6,6 @@ This page describes the process to configure LDAP-based CRL publishing in CA.
 
 The CRL publishing configuration is stored in `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg`.
 
-To enable CRL publishing:
-
-----
-ca.publish.enable=true
-----
-
-To configure LDAP-based CRL publisher:
-
-----
-ca.publish.publisher.instance.LdapCrlPublisher.crlAttr=certificateRevocationList;binary
-ca.publish.publisher.instance.LdapCrlPublisher.crlObjectClass=pkiCA
-ca.publish.publisher.instance.LdapCrlPublisher.pluginName=LdapCrlPublisher
-----
-
 To configure LDAP connection:
 
 ----
@@ -31,6 +17,14 @@ ca.publish.ldappublish.ldap.ldapauth.clientCertNickname=
 ca.publish.ldappublish.ldap.ldapconn.host=localhost.localdomain
 ca.publish.ldappublish.ldap.ldapconn.port=389
 ca.publish.ldappublish.ldap.ldapconn.secureConn=false
+----
+
+To configure LDAP-based CRL publisher:
+
+----
+ca.publish.publisher.instance.LdapCrlPublisher.crlAttr=certificateRevocationList;binary
+ca.publish.publisher.instance.LdapCrlPublisher.crlObjectClass=pkiCA
+ca.publish.publisher.instance.LdapCrlPublisher.pluginName=LdapCrlPublisher
 ----
 
 To configure CRL mapper:
@@ -50,6 +44,12 @@ ca.publish.rule.instance.LdapCrlRule.pluginName=Rule
 ca.publish.rule.instance.LdapCrlRule.predicate=issuingPointId==MasterCRL
 ca.publish.rule.instance.LdapCrlRule.publisher=LdapCrlPublisher
 ca.publish.rule.instance.LdapCrlRule.type=crl
+----
+
+To enable CRL publishing:
+
+----
+ca.publish.enable=true
 ----
 
 To simplify testing, the buffer size for revocation checking can be set to `0` so that each certificate revocation will take effect immediately:
