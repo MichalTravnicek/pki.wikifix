@@ -41,13 +41,24 @@ $ cp /usr/share/pki/server/conf/logging.properties /var/lib/pki/pki-tomcat/conf
 $ chown pkiuser.pkiuser /var/lib/pki/pki-tomcat/conf/logging.properties
 ----
 
-Edit the `logging.properties` copy as needed. For example, to log `INFO` messages or higher:
+Edit `/var/lib/pki/pki-tomcat/conf/logging.properties` as needed. For example, to troubleshoot PKI issues:
 
 ----
-org.mozilla.jss.level = INFO
 org.dogtagpki.level = INFO
 com.netscape.level = INFO
 netscape.level = INFO
+----
+
+To troubleshoot JSS issues:
+
+----
+org.mozilla.jss.level = INFO
+----
+
+To troubleshoot RESTEasy issues:
+
+----
+org.jboss.resteasy = INFO
 ----
 
 Finally, restart the server.
