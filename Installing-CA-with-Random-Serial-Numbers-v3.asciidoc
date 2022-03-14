@@ -10,10 +10,9 @@ To use random certificate serial numbers, add the following parameters in the `[
 
 ----
 pki_cert_id_generator=random
-pki_cert_id_length=159
 ----
 
-The certificate ID length (in bits) can be specified in the `pki_cert_id_length` parameter. The default is `160` bits, but currently NSS/JSS is only able to handle up to `159` bits.
+The certificate ID length (in bits) can be specified in the `pki_cert_id_length` parameter. The default is `128` bits.
 
 To use random certificate request IDs, add the following parameters in the `[CA]` section:
 
@@ -21,7 +20,7 @@ To use random certificate request IDs, add the following parameters in the `[CA]
 pki_request_id_generator=random
 ----
 
-The certificate request ID length (in bits) can be specified in the `pki_request_id_length` parameter. The default is `160` bits.
+The certificate request ID length (in bits) can be specified in the `pki_request_id_length` parameter. The default is `128` bits.
 
 = Verification =
 
@@ -32,27 +31,27 @@ $ pki ca-cert-find
 ---------------
 6 entries found
 ---------------
-  Serial Number: 0x475d38900180aeafc3c6ec2e723ee697a8d1cad
+  Serial Number: 0x5daa529608aea948dcc35a584f6e64b0
   Subject DN: CN=CA Audit Signing Certificate,OU=pki-tomcat,O=EXAMPLE
   ...
 
-  Serial Number: 0xf9f46142fc730b83cd1b154cb051eb1a73b45ff
+  Serial Number: 0x65f868071ebf5e2cdc18392239a53081
   Subject DN: CN=Subsystem Certificate,OU=pki-tomcat,O=EXAMPLE
   ...
 
-  Serial Number: 0x114fc86ecda95707aebf89ee8f9fdaf243a357e8
+  Serial Number: 0xc51860ead8f26d178075a8cf4f7e4b07
   Subject DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
   ...
 
-  Serial Number: 0x5a4f00ea59a16f2d6411db76b3c7602326e5dd5c
+  Serial Number: 0xcb7a32c09fce096b6dd52db5feeca2fb
   Subject DN: CN=pki.example.com,OU=pki-tomcat,O=EXAMPLE
   ...
 
-  Serial Number: 0x5f688c6644b1763830bae4fa61315961d4c04e2f
+  Serial Number: 0xe6f644e5f52dad59bc1f118f73f26155
   Subject DN: CN=CA OCSP Signing Certificate,OU=pki-tomcat,O=EXAMPLE
   ...
 
-  Serial Number: 0x617688896166652ae4e43da7a29b09067ba46b85
+  Serial Number: 0xf43eb9d05996aec15333108150491971
   Subject DN: CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE
   ...
 ----------------------------
@@ -67,22 +66,22 @@ $ pki -n caadmin ca-cert-request-find
 -----------------
 6 entries matched
 -----------------
-  Request ID: 0x12682f58a35a292bab4e34ca761b9082bc101e36
+  Request ID: 0x203d34be7c2bd073a0389fc3fd44e0d4
   ...
 
-  Request ID: 0x2fe23d227eac6212069ae943d8eeaafaab71df9f
+  Request ID: 0x6c55b093e1fa99141f7d154e0dc1de78
   ...
 
-  Request ID: 0x7596b17add9cf90344d05bb0e78302cd47e55d12
+  Request ID: 0x71e6de234411c81d983bf1a844758102
   ...
 
-  Request ID: 0xa176dbc5e82ac9b1c93162ff8f142a8ad5beadaa
+  Request ID: 0x7dacb0f978c51bd299b813a990de0bbf
   ...
 
-  Request ID: 0xc14831aa693224b9510793b45afdb22ac8ad5e8d
+  Request ID: 0x8870e866c214abc6985a9636ccb84b03
   ...
 
-  Request ID: 0xd10ec4046e966dc0ea620d2f4c82a5bb3bf5a8ee
+  Request ID: 0xa8e8722bac34a65d6a1b714505c97b00
   ...
 ----------------------------
 Number of entries returned 6
