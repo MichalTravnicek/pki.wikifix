@@ -1,0 +1,61 @@
+= Overview =
+
+This page describes the process to configure an existing KRA with Random Serial Numbers v3.
+
+= Configuration =
+
+== Stopping PKI Server ==
+
+To stop PKI server:
+
+----
+$ pki-server stop --wait
+----
+
+== Configuring Key Request ID Generator ==
+
+To disable the legacy ID generator for key requests:
+
+----
+$ pki-server kra-config-unset dbs.beginRequestNumber
+$ pki-server kra-config-unset dbs.endRequestNumber
+$ pki-server kra-config-unset dbs.requestIncrement
+$ pki-server kra-config-unset dbs.requestLowWaterMark
+$ pki-server kra-config-unset dbs.requestCloneTransferNumber
+$ pki-server kra-config-unset dbs.requestRangeDN
+----
+
+To enable the RSNv3 ID generator for key requests:
+
+----
+$ pki-server kra-config-set dbs.request.id.generator random
+$ pki-server kra-config-set dbs.request.id.length 128
+----
+
+== Configuring Key ID Generator ==
+
+To disable the legacy ID generator for keys:
+
+----
+$ pki-server kra-config-unset dbs.beginSerialNumber
+$ pki-server kra-config-unset dbs.endSerialNumber
+$ pki-server kra-config-unset dbs.serialIncrement
+$ pki-server kra-config-unset dbs.serialLowWaterMark
+$ pki-server kra-config-unset dbs.serialCloneTransferNumber
+$ pki-server kra-config-unset dbs.serialRangeDN
+----
+
+To enable the RSNv3 ID generator for keys:
+
+----
+$ pki-server kra-config-set dbs.key.id.generator random
+$ pki-server kra-config-set dbs.key.id.length 128
+----
+
+== Restarting PKI Server ==
+
+To restart PKI server:
+
+----
+$ pki-server start --wait
+----
