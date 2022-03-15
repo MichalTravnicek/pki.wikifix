@@ -112,7 +112,13 @@ $ dsctl localhost restart
 To verify the SSL connection:
 
 ----
-$ LDAPTLS_REQCERT=never ldapsearch -H ldaps://$HOSTNAME:636 -x -D "cn=Directory Manager" -w Secret.123 -b "" -s base
+$ LDAPTLS_REQCERT=never ldapsearch \
+    -H ldaps://$HOSTNAME:636 \
+    -x \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -b "" \
+    -s base
 ----
 
 = See Also =
