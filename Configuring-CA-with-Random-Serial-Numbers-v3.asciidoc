@@ -8,7 +8,7 @@ WARNING: Switching back from **Random Serial Numbers v3** to the legacy **Sequen
 
 == Stopping PKI Server ==
 
-To stop PKI server:
+First, stop PKI server:
 
 ----
 $ pki-server stop --wait
@@ -16,7 +16,7 @@ $ pki-server stop --wait
 
 == Configuring Certificate Request ID Generator ==
 
-To disable the legacy ID generator for certificate requests:
+Disable the legacy ID generator for certificate requests:
 
 ----
 $ pki-server ca-config-unset dbs.beginRequestNumber
@@ -27,7 +27,7 @@ $ pki-server ca-config-unset dbs.requestCloneTransferNumber
 $ pki-server ca-config-unset dbs.requestRangeDN
 ----
 
-To enable the RSNv3 ID generator for certificate requests:
+Enable the RSNv3 ID generator for certificate requests:
 
 ----
 $ pki-server ca-config-set dbs.request.id.generator random
@@ -36,7 +36,7 @@ $ pki-server ca-config-set dbs.request.id.length 128
 
 == Configuring Certificate ID Generator ==
 
-To disable the legacy ID generator for certificates:
+Disable the legacy ID generator for certificates:
 
 ----
 $ pki-server ca-config-unset dbs.beginSerialNumber
@@ -47,7 +47,7 @@ $ pki-server ca-config-unset dbs.serialCloneTransferNumber
 $ pki-server ca-config-unset dbs.serialRangeDN
 ----
 
-To enable the RSNv3 ID generator for certificates:
+Enable the RSNv3 ID generator for certificates:
 
 ----
 $ pki-server ca-config-set dbs.cert.id.generator random
@@ -56,7 +56,7 @@ $ pki-server ca-config-set dbs.cert.id.length 128
 
 == Restarting PKI Server ==
 
-To restart PKI server:
+Finally, restart PKI server:
 
 ----
 $ pki-server start --wait
