@@ -8,7 +8,7 @@ WARNING: Switching back from **Random Serial Numbers v3** to the legacy **Sequen
 
 == Stopping PKI Server ==
 
-To stop PKI server:
+First, stop PKI server:
 
 ----
 $ pki-server stop --wait
@@ -16,7 +16,7 @@ $ pki-server stop --wait
 
 == Configuring Key Request ID Generator ==
 
-To disable the legacy ID generator for key requests:
+Disable the legacy ID generator for key requests:
 
 ----
 $ pki-server kra-config-unset dbs.beginRequestNumber
@@ -27,7 +27,7 @@ $ pki-server kra-config-unset dbs.requestCloneTransferNumber
 $ pki-server kra-config-unset dbs.requestRangeDN
 ----
 
-To enable the RSNv3 ID generator for key requests:
+Enable the RSNv3 ID generator for key requests:
 
 ----
 $ pki-server kra-config-set dbs.request.id.generator random
@@ -36,7 +36,7 @@ $ pki-server kra-config-set dbs.request.id.length 128
 
 == Configuring Key ID Generator ==
 
-To disable the legacy ID generator for keys:
+Disable the legacy ID generator for keys:
 
 ----
 $ pki-server kra-config-unset dbs.beginSerialNumber
@@ -47,7 +47,7 @@ $ pki-server kra-config-unset dbs.serialCloneTransferNumber
 $ pki-server kra-config-unset dbs.serialRangeDN
 ----
 
-To enable the RSNv3 ID generator for keys:
+Enable the RSNv3 ID generator for keys:
 
 ----
 $ pki-server kra-config-set dbs.key.id.generator random
@@ -56,7 +56,7 @@ $ pki-server kra-config-set dbs.key.id.length 128
 
 == Restarting PKI Server ==
 
-To restart PKI server:
+Finally, restart PKI server:
 
 ----
 $ pki-server start --wait
