@@ -1,7 +1,7 @@
 = Introduction =
 
 The role and interactions of the KRA has changed.  No longer do we expect the KRA to only support
-privste key escrow and to talk only with the CA and a group of agents, but we expect the KRA to
+private key escrow and to talk only with the CA and a group of agents, but we expect the KRA to
 be accessed by a number of different applications - Barbican, CA, IPA (for the vault), and other services
 such as DNSSEC.
 
@@ -9,7 +9,7 @@ In order to facilitate these interactions, a number of enhancements have been pr
 
 * Partitioning of secrets and requests so that different applications only have access to their specific secrets and requests.
 * Addition of additional authentication mechanisms - and in particular for IPA use cases, GSSAPI.
-* Addition of the ability to define an authentication database, which could be used to define addtional agents.
+* Addition of the ability to define an authentication database, which could be used to define additional agents.
 
 The basic idea is that we will continue to restrict access to the KRA to "agents" ie. a restricted set of users
 each of which will have the ability to store and restrieve a specific set of secrets.
