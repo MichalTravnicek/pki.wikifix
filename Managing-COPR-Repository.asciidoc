@@ -1,0 +1,11 @@
+= Creating New Repository =
+
+Each PKI branch that is actively maintained should have a corresponding COPR repository. When a new PKI branch is created from another branch, a new COPR repository should be forked from the COPR repository corresponding to the original branch.
+
+For example, below is the process to create a new `@pki/10.12` repository for `v10.12` branch in PKI. The repository will be forked from an existing `@pki/10.11` repository.
+
+First, open the link:https://copr.fedorainfracloud.org/coprs/g/pki/10.11[@pki/10.11] repository and click **Fork this project**. Change the **Fork owner** to `@pki` and **Fork name** to `10.12`, then click **Fork it**.
+
+Next, go to **Packages** in `@pki/10.12` repository and change the **Committish** of `pki` package to `v10.12`. Change the **Committish** of other packages as well if necessary. Rebuild the packages to verify the changes.
+
+Finally, go to **Settings** -> **Integrations**, copy the Webhook URL for GitHub, append `?id=@pki/10.12` to the URL to make it easier to identify, then add the URL to each GitHub project.
