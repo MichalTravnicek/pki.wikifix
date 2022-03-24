@@ -76,7 +76,7 @@ In PKI 10.1 or later the authentication can be done as follows:
 $ pki -n <certificate nickname> -c <assword> <command>
 ----
 
-The NSS database password now should be specified with a -c parameter. This option should only be used in a test environment where plain-text password visible in shell history or in shell scripts would not cause a security problem.
+The NSS database password now should be specified with a `-c` parameter. This option should only be used in a test environment where plain-text password visible in shell history or in shell scripts would not cause a security problem.
 
 === PKI 10.2 or later ===
 
@@ -89,7 +89,7 @@ $ pki -n <certificate nickname> -C <password file> <command>
 
 The first option is identical to the option available in the previous version.
 
-The second option using -C parameter can be used to provide the NSS database password via a file. This option might be preferrable for batch execution as greater safeguards may be placed upon a file (e.g. system permissions, system ACLs, SELinux).
+The second option using `-C` parameter can be used to provide the NSS database password via a file. This option might be preferrable for batch execution as greater safeguards may be placed upon a file (e.g. system permissions, system ACLs, SELinux).
 
 === PKI 10.4.1 or later ===
 
@@ -118,7 +118,7 @@ $ pki -n <certificate nickname> -f <password config> <command>
 
 The first, second, and the third options are identical to the options available in the previous version.
 
-The fourth option with -f provides a way to specify multiple passwords for NSS database that has multiple tokens.
+The fourth option with `-f` provides a way to specify multiple passwords for NSS database that has multiple tokens.
 The passwords can be specified in a configuration file. The internal token password should be specified
 as follows:
 
