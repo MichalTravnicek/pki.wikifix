@@ -1,0 +1,158 @@
+= Overview =
+
+This document describes how to use `curl` to access PKI services.
+
+= Information =
+
+To display information about curl:
+
+----
+$ curl -V
+curl 7.59.0 (x86_64-redhat-linux-gnu) libcurl/7.59.0 OpenSSL/1.1.0i zlib/1.2.11 libidn2/2.1.1 libpsl/0.20.2 (+libidn2/2.0.4) libssh/0.8.6/openssl/zlib nghttp2/1.32.1
+Release-Date: 2018-03-14
+Protocols: dict file ftp ftps gopher http https imap imaps ldap ldaps pop3 pop3s rtsp scp sftp smb smbs smtp smtps telnet tftp 
+Features: AsynchDNS IDN IPv6 Largefile GSS-API Kerberos SPNEGO NTLM NTLM_WB SSL libz TLS-SRP HTTP2 UnixSockets HTTPS-proxy PSL Metalink 
+----
+
+= GET Operation =
+
+To execute a `GET` operation:
+
+----
+$ curl http://$HOSTNAME:8080
+----
+
+To download a file:
+
+----
+$ curl -O -J <URL>
+----
+
+= POST Operation =
+
+To execute a `POST` operation:
+
+----
+$ curl -X POST http://$HOSTNAME:8080
+----
+
+= SSL Connection =
+
+----
+$ curl -k https://$HOSTNAME:8443
+----
+
+= SSL Ciphers =
+
+The names of SSL ciphers depend on the TLS backend used by `curl`.
+See link:https://curl.haxx.se/docs/ssl-ciphers.html[SSL Ciphers].
+
+To specify SSL ciphers:
+
+----
+$ curl --ciphers ECDHE-RSA-AES128-SHA256 https://$HOSTNAME:8443
+----
+
+To show ciphers used by `curl`:
+
+----
+$ curl --ciphers ECDHE-RSA-AES128-SHA256 https://www.howsmyssl.com/a/check | jq
+{
+  "given_cipher_suites": [
+    "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256",
+    "TLS_EMPTY_RENEGOTIATION_INFO_SCSV"
+  ],
+  "ephemeral_keys_supported": true,
+  "session_ticket_supported": false,
+  "tls_compression_supported": false,
+  "unknown_cipher_suite_supported": false,
+  "beast_vuln": false,
+  "able_to_detect_n_minus_one_splitting": false,
+  "insecure_cipher_suites": {},
+  "tls_version": "TLS 1.2",
+  "rating": "Probably Okay"
+}
+----
+
+See also link:https://github.com/curl/curl/blob/master/lib/vtls/nss.c#L120[lib/vtls/nss.c].
+
+= Data Format =
+
+Supported data formats are:
+
+* `application/xml`
+* `application/json`
+
+If the PKI service takes a request data, the format should be specified in the `Content-Type` header:
+
+----
+$ curl -H "Content-Type: application/xml" ...
+----
+
+If the PKI service returns a response data, the format should be specified in the `Accept` header:
+
+----
+$ curl -H "Accept: application/json" ...
+----
+
+= Authentication =
+
+To authenticate using NSS database:
+
+----
+$ export SSL_DIR=~/.dogtag/nssdb
+$ curl -E <nickname>:<password> ...
+----
+
+To authenticate with PEM certificate and key:
+
+----
+$ curl -E <filename>:<password> ...
+----
+
+To authenticate with username and password:
+
+----
+$ curl --user <username>:<password> ...
+----
+
+= Examples =
+
+To retrieve certificates from CA in XML:
+
+----
+$ curl -H "Content-Type: application/xml" \
+    http://$HOSTNAME:8080/ca/rest/certs
+----
+
+To retrieve certificates from CA in JSON:
+
+----
+$ curl -H "Accept: application/json" \
+    http://$HOSTNAME:8080/ca/rest/certs
+----
+
+To view TPS configuration with client certificate authentication:
+
+----
+$ SSL_DIR=~/.dogtag/pki-tomcat/ca/alias/ curl \
+    -E "caadmin:Secret.123" \
+    https://$HOSTNAME:8443/tps/rest/config
+----
+
+To update TPS configuration:
+
+----
+$ SSL_DIR=~/.dogtag/pki-tomcat/ca/alias/ curl \
+    -E "caadmin:Secret.123" \
+    -H "Content-Type: application/xml" \
+    -X PATCH \
+    --data @input.xml \
+ https://$HOSTNAME:8443/tps/rest/config
+----
+
+= See Also =
+
+* link:https://bugzilla.redhat.com/show_bug.cgi?id=266021[Bug 266021 - curl + nss doesn't work]
+* link:https://unix.stackexchange.com/questions/208437/how-to-convert-ssl-ciphers-to-curl-format[How to convert ssl ciphers to curl format?]
+* link:https://linux.die.net/man/1/curl[curl man page]
