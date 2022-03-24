@@ -1,4 +1,4 @@
-= Certificate Services
+= Certificate Services =
 
 * link:CA-List-Certificates-REST-API[List Certificates]
 * link:CA-Search-Certificates-REST-API[Search Certificates]
@@ -10,12 +10,12 @@
 * link:CA-Revoke-Signing-Certificate-REST-API[Revoke Signing Certificate]
 * link:CA-Unrevoke-Certificate-REST-API[Unrevoke Certificate]
 
-= Certificate Request Template Services
+= Certificate Request Template Services =
 
 * link:PKI-CA-List-Certificate-Request-Templates-REST-API[List Certificate Request Templates]
 * link:PKI-CA-Retrieve-Certificate-Request-Template-REST-API[Retrieve Certificate Request Template]
 
-= Certificate Request Services
+= Certificate Request Services =
 
 * link:PKI-CA-List-Certificate-Requests-REST-API[List Certificate Requests]
 * link:PKI-CA-Retrieve-Certificate-Request-REST-API[Retrieve Certificate Request]
@@ -35,12 +35,12 @@
 [%collapsible]
 ====
 
-= Account Services
+= Account Services =
 
 * link:PKI-CA-Login-REST-API[Login]
 * link:PKI-CA-Logout-REST-API[Logout]
 
-= User Services
+= User Services =
 
 * link:PKI-CA-List-Users-REST-API[List Users]
 * link:PKI-CA-Retrieve-User-REST-API[Retrieve User]
@@ -49,20 +49,20 @@
 * link:PKI-CA-Modify-User-REST-API[Modify User]
 * link:PKI-CA-Delete-User-REST-API[Delete User]
 
-= User Certificate Services
+= User Certificate Services =
 
 * link:PKI-CA-List-User-Certificates-REST-API[List User Certificates]
 * link:PKI-CA-Add-User-Certificate-REST-API[Add User Certificate]
 * link:PKI-CA-Retrieve-User-Certificate-REST-API[Retrieve User Certificate]
 * link:PKI-CA-Delete-User-Certificate-REST-API[Delete User Certificate]
 
-= User Roles Services
+= User Roles Services =
 
 * link:PKI-CA-List-User-Roles-REST-API[List User Roles]
 * link:PKI-CA-Add-User-Role-REST-API[Add User Role]
 * link:PKI-CA-Delete-User-Role-REST-API[Delete User Role]
 
-= Group Services
+= Group Services =
 
 * link:PKI-CA-List-Groups-REST-API[List Groups]
 * link:PKI-CA-Retrieve-Group-REST-API[Retrieve Group]
@@ -70,7 +70,7 @@
 * link:PKI-CA-Modify-Group-REST-API[Modify Group]
 * link:PKI-CA-Delete-Group-REST-API[Delete Group]
 
-= Group Member Services
+= Group Member Services =
 
 * link:PKI-CA-List-Group-Members-REST-API[List Group Members]
 * link:PKI-CA-Retrieve-Group-Member-REST-API[Retrieve Group Member]
@@ -78,42 +78,19 @@
 * link:PKI-CA-Delete-Group-Member-REST-API[Delete Group Member]
 ====
 
-= Examples
+= Examples =
 
-== Client Certificate and Key Extraction
+== Using curl ==
 
-For operations that require client certificate authentication, extract the cert and key from P12 to PEM file:
+See link:Accessing-PKI-Services-with-curl[Accessing PKI Services with curl].
 
-----
-$ openssl pkcs12 -in ~/.dogtag/pki-tomcat/ca_admin_cert.p12 -out file.crt.pem -clcerts -nokeys
-$ openssl pkcs12 -in ~/.dogtag/pki-tomcat/ca_admin_cert.p12 -out file.key.pem -nocerts -nodes
-----
-
-== Using curl
-
-[GET] To list all cert requests pass both the cert and key as params to curl:
-
-----
-$ curl -v -k -E file.crt.pem --key file.key.pem https://<host>:8443/ca/rest/agent/certrequests
-----
-
-*Note:* Use *-k* if the CA chain is not imported system-wide
-
-[GET] You can also pass a PKCS12 file to curl:
-
-----
-$ curl -k --cert-type P12 \
-    --cert ~/.dogtag/pki-tomcat/ca_admin_cert.p12:<password> \
-    https://<host>:8443/ca/rest/agent/certrequests
-----
-
-== Using Postman
+== Using Postman ==
 
 Go to *File -> Settings -> Certificates (tab) -> (Under Client Certificates) Add Certificate -> Select cert and key*
 
 *Note:* Make sure to provide the correct *hostname* and *port* to ensure that the credentials are pinned with the request.
 
-= See Also
+= See Also =
 
 * link:PKI-REST-API-Design[PKI REST API Design]
 * link:PKI-CA-Java-API[PKI CA Java API]
