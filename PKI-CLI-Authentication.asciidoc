@@ -28,13 +28,13 @@ $ pki -u <username> -w <password> <command>
 
 === PKI 10.2 or later ===
 
-The following additional new options are available in Dogtag 10.2.x:
+The following additional new options are available in PKI 10.2.x:
 
 ----
 $ pki -u <username> -W <password file> <command>
 ----
 
-Use of the "-W" (uppercase 'W') option is preferred for batch deployments as greater safeguards may be placed upon a file (e. g. - system permissions, system ACLs, SELinux, etc.) rather than the "-w" (lowercase 'w') option of a simple plaintext designation which may be seen in shell history when invoked directly from the command-line, are far more likely to show up accidentally in cut/pastes of command-lines, and inside shell scripts which are seldom safeguarded from being world readable.
+Use of the `-W` (uppercase `W`) option is preferred for batch deployments as greater safeguards may be placed upon a file (e.g. system permissions, system ACLs, SELinux, etc.) rather than the `-w` (lowercase `w`) option of a simple plaintext designation which may be seen in shell history when invoked directly from the command-line, are far more likely to show up accidentally in cut/pastes of command-lines, and inside shell scripts which are seldom safeguarded from being world readable.
 
 ----
 $ pki -u <username> -y <command>
