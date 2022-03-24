@@ -104,10 +104,16 @@ $ export SSL_DIR=~/.dogtag/nssdb
 $ curl -E <nickname>:<password> ...
 ----
 
+To authenticate using PKCS #12 file:
+
+----
+$ curl --cert-type P12 --cert <PKCS #12 file>:<PKCS #12 password> ...
+----
+
 To authenticate with PEM certificate and key:
 
 ----
-$ curl -E <filename>:<password> ...
+$ curl -E <cert file> --key <key file> ...
 ----
 
 To authenticate with username and password:
