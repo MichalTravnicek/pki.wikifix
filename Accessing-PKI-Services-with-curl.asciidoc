@@ -124,26 +124,19 @@ $ curl --user <username>:<password> ...
 
 = Examples =
 
-To retrieve certificates from CA in XML:
+To retrieve certificates from CA:
 
 ----
-$ curl -H "Content-Type: application/xml" \
-    http://$HOSTNAME:8080/ca/rest/certs
+$ curl http://$HOSTNAME:8080/ca/rest/certs
 ----
 
-To retrieve certificates from CA in JSON:
+To retrieve certificate requests from CA:
 
 ----
-$ curl -H "Accept: application/json" \
-    http://$HOSTNAME:8080/ca/rest/certs
-----
-
-To view TPS configuration with client certificate authentication:
-
-----
-$ SSL_DIR=~/.dogtag/pki-tomcat/ca/alias/ curl \
-    -E "caadmin:Secret.123" \
-    https://$HOSTNAME:8443/tps/rest/config
+$ curl -k \
+    --cert-type P12 \
+    --cert ~/.dogtag/pki-tomcat/ca_admin_cert.p12:Secret.123 \
+    https://$HOSTNAME:8443/ca/rest/agent/certrequests
 ----
 
 To update TPS configuration:
