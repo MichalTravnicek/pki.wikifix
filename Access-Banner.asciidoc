@@ -13,9 +13,9 @@ To install banner, create `/etc/pki/pki-tomcat/banner.txt` containing a banner m
 ----
 WARNING!
 Access to this service is restricted to those individuals with
-specific permissions. If you are not an authorized user, disconnect
-now. Any attempts to gain unauthorized access will be prosecuted to
-the fullest extent of the law.
+specific permissions. Any attempts to gain access, authorized
+or not, and all operations that follow, are audited and could
+be used against you in the court of law.
 ----
 
 Make sure the file is UTF-8 encoded and readable by pkiuser. If the file contains invalid character(s) or not readable, the server will fail on restart and an error message will be logged in systemd journal.
@@ -59,9 +59,9 @@ In PKI Console the banner will appear before the console is displayed, for examp
 $ pkiconsole https://pki.example.com:8443/ca
 WARNING!
 Access to this service is restricted to those individuals with
-specific permissions. If you are not an authorized user, disconnect
-now. Any attempts to gain unauthorized access will be prosecuted to
-the fullest extent of the law.
+specific permissions. Any attempts to gain access, authorized
+or not, and all operations that follow, are audited and could
+be used against you in the court of law.
 
 Do you want to proceed (y/N)? y
 ----
@@ -74,9 +74,9 @@ In PKI CLI the banner will appear before the actual operation is executed, for e
 $ pki ca-cert-show 0x1
 WARNING!
 Access to this service is restricted to those individuals with
-specific permissions. If you are not an authorized user, disconnect
-now. Any attempts to gain unauthorized access will be prosecuted to
-the fullest extent of the law.
+specific permissions. Any attempts to gain access, authorized
+or not, and all operations that follow, are audited and could
+be used against you in the court of law.
 
 Do you want to proceed (y/N)? y
 -----------------
