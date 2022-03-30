@@ -1,0 +1,275 @@
+= Overview =
+
+Currently PKI server is using a custom logging framework which has some limitations. link:https://github.com/dogtagpki/pki/issues/766[Ticket #766] proposes to address these limitations by replacing it with a full-featured logging framework commonly used in other projects. This document summarizes basic similarities and differences between the frameworks and provides a recommendation.
+
+= Background =
+
+The current framework is implemented in the link:https://github.com/dogtagpki/pki/blob/master/base/server/src/main/java/com/netscape/cmscore/util/Debug.java[Debug] class.
+The framework is mostly used indirectly by invoking methods in link:https://github.com/dogtagpki/pki/blob/master/base/server/src/main/java/com/netscape/cmscore/apps/CMS.java[CMS] class, for example:
+
+----
+CMS.debug("MyProgram.main(): Executing an operation");
+----
+
+These classes depend on a number of objects that are created by PKI server, so it would be difficult to create reusable code that can run outside the PKI server environment (e.g. in CLIs or unit tests) using this framework.
+
+The framework supports log levels ranging from `0` (most detailed) to `10` (least detailed). However, currently almost all messages are logged with the default level `5` (verbose). To log a message at different level, the level has to be specified as a parameter (i.e. there is no level-specific methods):
+
+----
+CMS.debug(CMS.DEBUG_INFORM, "MyProgram.main(): Executing an operation");
+----
+
+The log level applies globally. There is no mechanism to log different components at different levels.
+
+The logging configuration is stored in the `CS.cfg` of the corresponding subsystem:
+
+----
+debug.append=true
+debug.enabled=true
+debug.filename=/var/lib/pki/<instance>/logs/<subsystem>/debug
+debug.hashkeytypes=
+debug.level=0
+debug.showcaller=false
+----
+
+The framework only supports file output without log rotation, so the log file could become huge overtime, which has to be managed separately to avoid filling up the disk space.
+
+The log format is fixed, there is no configuration parameter to customize the format:
+
+----
+[23/Sep/2016:18:46:02][http-bio-8080-exec-1]: MyProgram.main(): Executing an operation
+----
+
+These limitations can be addressed using third-party logging frameworks. The most common ones are:
+
+* link:http://logging.apache.org/log4j/[Log4j]
+* link:http://docs.oracle.com/javase/7/docs/api/java/util/logging/package-summary.html[java.util.logging (JUL)]
+* link:http://www.slf4j.org/[SLF4J]
+* link:http://commons.apache.org/proper/commons-logging/[Apache Commons Logging (JCL)]
+
+= Log4j =
+
+link:https://www.dogtagpki.org/wiki/Log4j[Log4j] is probably the most commonly used logging framework.
+As of Aug 5, 2015, http://logging.apache.org/log4j/1.2/[Log4j 1.2] had reached end of life.
+link:http://logging.apache.org/log4j/2.x/[Log4j 2.x] brought significant improvements.
+
+Log4j 2.x can be used as follows:
+
+----
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+ 
+public class MyProgram {
+
+    final static Logger logger = LogManager.getLogger(MyProgram.class);
+
+    public static void main(String[] args) {
+        logger.info("Executing an operation");
+    }
+}
+----
+
+Log4j supports the following log levels: `OFF`, `FATAL`, `ERROR`, `WARN`, `CONFIG`, `INFO`, `DEBUG`, `TRACE`, `FINEST`, `ALL`.
+
+To change log level in Log4j 1.2:
+
+----
+logger.setLevel(level);
+----
+
+To change log level in Log4j 2.x, use the core API (see link:http://logging.apache.org/log4j/2.x/manual/customconfig.html[Programmatic Configuration]):
+
+----
+LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+Configuration config = ctx.getConfiguration();
+LoggerConfig loggerConfig = config.getLoggerConfig(loggerName); 
+loggerConfig.setLevel(level);
+ctx.updateLoggers();  
+----
+
+Log4j supports a wide range of link:https://logging.apache.org/log4j/2.0/manual/appenders.html[appenders] including `ConsoleAppender`, `RollingFileAppender`, `JDBCAppender`, `SMTPAppender`, `SyslogAppender`.
+
+In Tomcat the Log4j configuration needs to be stored in these locations:
+
+* `<instance>/lib/log4j.properties`
+* `<webapp>/WEB-INF/classes/log4j.properties`
+
+Ideally the `<instance>/lib` should link to `/usr/share/tomcat/lib` to minimize changes during upgrade.
+However, since the `log4j.properties` must be stored in `<instance>/lib`, this folder must be a real folder, and each JAR file in this folder must be linked individually.
+
+The `<instance>/lib/log4j.properties` itself can be linked to the default `/usr/share/pki/server/conf/log4j.properties` so it will be upgraded automatically.
+The `<webapp>/WEB-INF` folder is already located in `/usr/share/pki`.
+
+Log4j 1.2 API can be used with other frameworks using an adapter:
+
+* link:http://www.slf4j.org/legacy.html[SLF4J]
+* link:https://logging.apache.org/log4j/2.0/log4j-1.2-api/index.html[Log4j 2.x]
+
+Log4j 2.x API can be used with other frameworks using an adapter:
+
+* link:https://logging.apache.org/log4j/2.0/log4j-to-slf4j/index.html[SLF4J]
+
+Log4j 1.2 is available on all platforms. Log4j 2.x is currently available on Fedora and Debian, but not on RHEL/CentOS.
+
+See also:
+
+* link:http://logging.apache.org/log4j/1.2/apidocs/index.html[Log4j 1.2 API]
+* link:http://logging.apache.org/log4j/2.x/log4j-api/apidocs/index.html[Log4j 2.x API]
+* link:http://logging.apache.org/log4j/2.x/log4j-core/apidocs/index.html[Log4j 2.x Core API]
+* link:http://logging.apache.org/log4j/2.x/manual/configuration.html[Configuration]
+* link:http://logging.apache.org/log4j/2.x/manual/webapp.html[Using Log4j 2 in Web Applications]
+
+= java.util.logging (JUL) =
+
+link:http://docs.oracle.com/javase/7/docs/api/java/util/logging/package-summary.html[java.util.logging (JUL)] is a logging framework provided by Java standard library, so it can be used without additional dependencies. This framework is used by Tomcat by default, but some components are link:https://tomcat.apache.org/tomcat-7.0-doc/logging.html[replaced] to support running in a container.
+
+JUL can be used as follows:
+
+----
+import java.util.logging Logger;
+
+public class MyProgram {
+
+    final static Logger logger = Logger.getLogger(MyProgram.class.getName());
+
+    public static void main(String[] args) {
+        logger.info("Executing an operation");
+    }
+}
+----
+
+JUL supports the following log levels: `OFF`, `SEVERE`, `WARNING`, `INFO`, `CONFIG`, `FINE`, `FINER`, `FINEST`, `ALL`.
+
+To change the log level dynamically:
+
+----
+logger.setLevel(level);
+----
+
+JUL supports the following handlers: `ConsoleHandler`, `FileHandler` which support log rotation, `MemoryHandler`.
+
+In Tomcat JUL configuration needs to be stored in the following locations:
+
+* `<instance>/conf/logging.properties`
+* `<webapp>/WEB-INF/classes/logging.properties`
+
+The `<instance>/conf/logging.properties` can be linked to the default `/usr/share/pki/server/conf/logging.properties` so it will be upgraded automatically. The `<webapp>/WEB-INF` folder is already located in `/usr/share/pki`.
+
+To specify a `logging.properties` file on the command line add the following parameter to the JVM:
+
+----
+-Djava.util.logging.config.file=/path/to/logging.properties
+----
+
+This is especially useful with stand-alone programs.
+
+JUL API can be used with other frameworks using an adapter:
+
+* link:http://www.slf4j.org/legacy.html[SLF4J]
+* link:https://logging.apache.org/log4j/2.0/log4j-jul/index.html[Log4j 2.x]
+
+JUL is available on all Java platforms since it's part of standard library.
+
+See also:
+
+* link:http://docs.oracle.com/javase/7/docs/api/java/util/logging/package-summary.html[JUL API]
+
+= SLF4J =
+
+The link:http://www.slf4j.org/[Simple Logging Facade for Java (SLF4J)] provides a common API for various logging frameworks.
+
+SLF4J can be used as follows:
+
+----
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class MyProgram {
+
+    final static Logger logger = LoggerFactory.getLogger(MyProgram.class);
+
+    public static void main(String[] args) {
+        logger.info("Executing an operation");
+    }
+}
+----
+
+SLF4J supports the following log levels: ERROR, WARN, INFO, DEBUG, TRACE.
+
+SLF4J API can be used with other frameworks using an adapter:
+
+* link:http://www.slf4j.org/api/org/slf4j/impl/JCLLoggerAdapter.html[JCL]
+* link:http://www.slf4j.org/api/org/slf4j/impl/JDK14LoggerAdapter.html[JUL]
+* link:http://www.slf4j.org/api/org/slf4j/impl/Log4jLoggerAdapter.html[Log4j 1.2]
+* link:https://logging.apache.org/log4j/2.0/log4j-slf4j-impl/index.html[Log4j 2.x]
+
+SLF4J does not have its own configuration file.
+The logging configuration depends on the actual framework used.
+Changing log level dynamically must be done with the actual framework's API.
+
+SLF4J is available on all platforms but in different versions.
+
+See also:
+
+* link:http://www.slf4j.org/api/[SLF4J API]
+
+= Apache Commons Logging (JCL) =
+
+The link:http://commons.apache.org/proper/commons-logging/[Apache/Jakarta Commons Logging (JCL)] provides a common logging API for various logging frameworks.
+
+JCL can be used as follows:
+
+----
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+public class MyProgram {
+
+    final static Log log = LogFactory.getLog(MyProgram.class);
+
+    public static void main(String[] args) {
+        log.info("Executing an operation");
+    }
+}
+----
+
+JCL supports the following log levels: `FATAL`, `ERROR`, `WARN`, `INFO`, `DEBUG`, `TRACE`.
+
+JCL API can be used with other frameworks using an adapter:
+
+* link:http://commons.apache.org/proper/commons-logging/apidocs/org/apache/commons/logging/impl/Jdk14Logger.html[JUL]
+* link:http://commons.apache.org/proper/commons-logging/apidocs/org/apache/commons/logging/impl/Log4JLogger.html[Log4j 1.2]
+* link:https://logging.apache.org/log4j/2.0/log4j-jcl/index.html[Log4j 2.x]
+* link:http://www.slf4j.org/legacy.html[SLF4J]
+
+JCL does not have its own configuration file.
+The logging configuration depends on the actual framework used.
+Changing log level dynamically must be done with the actual framework's API.
+
+JCL is available on all platforms but in different versions.
+
+See also:
+
+* link:https://commons.apache.org/proper/commons-logging/javadocs/api-release/index.html[JCL API]
+
+= Transition =
+
+There are currently thousands of invocations of `CMS.debug()`, but the transition to the new logging framework can be done incrementally with any of the above frameworks.
+Initially the `Debug` class will be changed to use the new logging framework.
+Then while writing a unit test for a particular class, each `CMS.debug()` invocation in the class can be replaced with the new logging API.
+Finally, once the old framework is no longer used anywhere, the `Debug` class and the logging methods in the `CMS` class can be dropped.
+It's not necessary to make a huge change at once.
+The entire transition could be done in multiple releases as time permits.
+
+= Conclusion =
+
+For the actual logging implementation, Log4j 2.x might offer the best performance and feature set. However, based on simplicity, availability, and consistency on different platforms, JUL might be the safest option with Log4j 1.2 as a runner-up since it had reached end of life, at least until Log4j 2.x becomes widely available and only if it provides a functionality necessary for PKI that is not offered in JUL. Since even the current framework is considered adequate so far, JUL would be more than sufficient.
+
+SLF4J and JCL would be useful to change the logging implementation in the future or to allow reusing PKI code in another system that already has a logging framework. However, the current PKI code does not support such modular usage and it might take a while before that can be supported. Also, there could be a performance penalty when using a logging framework indirectly via an adapter. But if needed, SLF4J seems to be a safer choice because it has bigger user base.
+
+It might be impossible to determine the best choice for PKI without actually trying it. Fortunately it's possible to try the logger without making big initial changes. So the recommendation is to start with SLF4J over JUL and reevaluate the choice sometime later. In any case, converting from one framework to another mostly can be done with simple search & replace operations if needed in the future. The use of framework-specific code (i.e. for changing log level dynamically) should be minimized and possibly be encapsulated so it can be replaced easily.
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/PKI_Logging[PKI Logging]
+* link:https://www.dogtagpki.org/wiki/PKI_Server_Logging[PKI Server Logging]
