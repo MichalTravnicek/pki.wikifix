@@ -321,60 +321,7 @@ New Certificate Serial Number Configuration:
 
 ### How to Enable Random Certificate Serial Numbers
 
-To enable automatic serial number range management either modify CS.cfg
-by setting
-
-> 
-> 
->     dbs.enableSerialManagement=true
-
-then restart CA or go console and enable automatic serial number range
-management from console UI
-
-![Enable automatic serial number range management](enable-ranges.png
-"Enable automatic serial number range management")
-
-Random certificate serial numbers can be enabled once automatic serial
-number range management is on. This can be done by setting
-
-> 
-> 
->     dbs.enableRandomSerialNumbers=true
-
-in CS.cfg and restarting CA or simply by enabling random certificate
-serial numbers from console UI
-
-![Enable random certificate serial numbers](enable-random.png
-"Enable random certificate serial numbers")
-
-Once random certificate serial numbers, console UI should show the
-following information:
-
-![Enabled random certificate serial numbers](enabled-random.png
-"Enabled random certificate serial numbers")
-
-Note: It is safer to use console when switching between sequential and
-random method of certificate serial number assignment.
-
-### How to Enable Random Certificate Serial Numbers without Console
-
-Here are steps allowing to enable random certificate serial numbers
-without console:
-
-  - Stop CA
-  - Set **enableRandomSerialNumbers** to **true**
-
-> 
-> 
->     dbs.enableRandomSerialNumbers=true
-
-  - Set **forceModeChange** to **true**
-
-> 
-> 
->     dbs.forceModeChange=true
-
-  - Start CA
+See [Configuring CA with Random Serial Numbers v1](Configuring-CA-with-Random-Serial-Numbers-v1).
 
 ### How to Enable Random Certificate Serial Numbers during CA Configuration
 
