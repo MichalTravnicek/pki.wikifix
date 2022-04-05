@@ -1,0 +1,47 @@
+= Enabling RSNv1 =
+
+To enable automatic serial number range management either modify `CS.cfg` by setting
+
+----
+dbs.enableSerialManagement=true
+----
+
+then restart CA or go console and enable automatic serial number range management from console UI
+
+image::https://www.dogtagpki.org/images/e/e1/Enable-ranges.png[Enable automatic serial number range management]
+
+Random certificate serial numbers can be enabled once automatic serial number range management is on.
+This can be done by setting
+
+----
+dbs.enableRandomSerialNumbers=true
+----
+
+in `CS.cfg` and restarting CA or simply by enabling random certificate serial numbers from console UI
+
+image::https://www.dogtagpki.org/images/2/2a/Enable-random.png[Enable random certificate serial numbers]
+
+Once random certificate serial numbers, console UI should show the following information:
+
+image::https://www.dogtagpki.org/images/2/2a/Enable-random.png[Enable random certificate serial numbers]
+
+Note: It is safer to use console when switching between sequential and random method of certificate serial number assignment.
+
+= Enabling RSNv1 without Console =
+
+Here are steps allowing to enable random certificate serial numbers without console:
+
+* Stop CA
+* Set **enableRandomSerialNumbers** to **true**
+
+----
+dbs.enableRandomSerialNumbers=true
+----
+
+* Set **forceModeChange** to **true**
+
+----
+dbs.forceModeChange=true
+----
+
+* Start CA
