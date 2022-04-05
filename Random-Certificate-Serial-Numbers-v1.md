@@ -326,16 +326,6 @@ See [Configuring CA with Random Serial Numbers v1](Configuring-CA-with-Random-Se
 ### How to Enable Random Certificate Serial Numbers during CA Configuration
 
 Here are steps allowing to enable random certificate serial numbers
-during CA configuration for PKI 10:
-
-pkispawn configuration file needs to have the following section:
-
-> 
-> 
->     [CA]
->     pki_random_serial_numbers_enable=True
-
-Here are steps allowing to enable random certificate serial numbers
 during CA configuration for PKI 9:
 
   - Run pkicreate
@@ -355,8 +345,10 @@ during CA configuration for PKI 9:
 Random certificate serial numbers are inherited via CA cloning, so CA
 clones require no special configuration.  
 
-![CA with Random Serial Numbers](random-syscerts.png
+![CA with Random Serial Numbers](https://www.dogtagpki.org/images/8/8b/Random-syscerts.png
 "CA with Random Serial Numbers")
+
+For PKI 10 see [Installing CA with Random Serial Numbers v1](Installing-CA-with-Random-Serial-Numbers-v1).
 
 ### Agent and End Entity User Interface
 
