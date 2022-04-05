@@ -369,18 +369,7 @@ ending in 2012.
 
 ### How to Reset Random Serial Number Counter
 
-Here are steps allowing to reset random certificate serial number
-counter to number of certificates in the serial number range currently
-assigned to CA:
-
-  - Stop CA
-  - Update CA's CS.cfg file by setting:
-
-> 
-> 
->     dbs.randomSerialNumberCounter=-2
-
-  - Start CA
+See [Resetting Random Serial Numbers v1 Counter](Resetting-Random-Serial-Numbers-v1-Counter).
 
 ### Reverting to Normal Serial Number
 
