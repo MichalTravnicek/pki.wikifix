@@ -1,0 +1,20 @@
+= Overview =
+
+By default the CA subsystem is configured with Sequential Serial Numbers.
+It is possible to switch to Random Serial Numbers v1 or Random Serial Numbers v3.
+
+WARNING: Switching back from **Random Serial Numbers v3** to the **Sequential Serial Numbers** is not supported.
+
+= Switching Back from RSNv1 to Sequential Serial Numbers =
+
+Once you enabled Random Serial Numbers v1 in CA, you can revert it back, using following steps:
+
+* Stop CA
+* Update CA's `CS.cfg` file by setting:
+
+----
+dbs.enableRandomSerialNumbers=false
+----
+
+* Start CA
+* After starting the CA enroll two certificates, check the certificate ID will generate serially. To start serial number Server will pick up any Random Number and start from that number.
