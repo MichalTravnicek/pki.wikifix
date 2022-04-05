@@ -373,20 +373,7 @@ See [Resetting Random Serial Numbers v1 Counter](Resetting-Random-Serial-Numbers
 
 ### Reverting to Normal Serial Number
 
-Once you enabled Random Serial Numbers in CA, you can revert it back,
-using following steps:
-
-  - Stop CA
-  - Update CA's CS.cfg file by setting:
-
-> 
-> 
->     dbs.enableRandomSerialNumbers=false
-
-  - Start CA
-  - After starting the CA enroll two certificates, check the certificate
-    ID will generate serially. To start serial number Server will pick
-    up any Random Number and start from that number.
+See [Configuring CA with Sequential Serial Numbers](Configuring-CA-with-Sequential-Serial-Numbers).
 
 # Issues
 
