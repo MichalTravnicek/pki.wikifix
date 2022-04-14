@@ -22,14 +22,14 @@ If the database does not exist it will be created automatically.
 To create a new NSS database manually:
 
 ----
-$ pki -d ~/.dogtag-idm-console -c Secret.123 client-init
+$ pki -d ~/.dogtag-idm-console client-init
 ----
 
 = Authentication =
 
 == Username and Password ==
 
-To authenticate using username and password, make sure the CS.cfg of the subsystem is configured as follows:
+To authenticate using username and password, make sure the `CS.cfg` of the subsystem is configured as follows:
 
 ----
 authType=pwd
@@ -39,7 +39,7 @@ By default the server is configured to use username and password authentication.
 
 == Client Certificate ==
 
-To authenticate using client certificate, make sure the CS.cfg of the subsystem is configured as follows:
+To authenticate using client certificate, make sure the `CS.cfg` of the subsystem is configured as follows:
 
 ----
 authType=sslclientauth
@@ -48,9 +48,9 @@ authType=sslclientauth
 Import the subsystem admin certificate into the NSS database, for example:
 
 ----
-$ pki -d ~/.dogtag-idm-console -c Secret.123 client-cert-import \
+$ pki -d ~/.dogtag-idm-console client-cert-import \
   --pkcs12 ~/.dogtag/pki-tomcat/ca_admin_cert.p12 \
-  --pkcs12-password-file ~/.dogtag/pki-tomcat/ca/pkcs12_password.conf
+  --pkcs12-password Secret.123
 ----
 
 = Starting PKI Console =
