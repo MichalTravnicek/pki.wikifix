@@ -124,6 +124,8 @@ The scratch build be created in https://koji.fedoraproject.org.
 
 = Building with Side Tag =
 
+A side tag can be used to update multiple packages at the same time (i.e. avoid partial update).
+
 To list existing side tags:
 
 ----
@@ -136,7 +138,7 @@ To request a new side tag:
 $ fedpkg request-side-tag
 ----
 
-To build with a side tag:
+To build a package with the side tag:
 
 ----
 $ fedpkg build --target <side tag>
@@ -147,6 +149,8 @@ Wait for the repo to be created before building the next package:
 ----
 $ koji wait-repo <side tag>
 ----
+
+Once all packages are built, create an update in link:https://bodhi.fedoraproject.org[Bodhi] using the side tag.
 
 See also link:https://fedoraproject.org/wiki/User:Nphilipp/Package_update_HOWTO#Multiple_Packages[Package update HOWTO - Multiple Packages].
 
