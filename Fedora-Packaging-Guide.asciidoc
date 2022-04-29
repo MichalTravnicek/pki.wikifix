@@ -124,13 +124,19 @@ The scratch build be created in https://koji.fedoraproject.org.
 
 = Building with Side Tag =
 
-To create a side tag:
+To list existing side tags:
+
+----
+$ fedpkg list-side-tags
+----
+
+To request a new side tag:
 
 ----
 $ fedpkg request-side-tag
 ----
 
-To build with the side tag:
+To build with a side tag:
 
 ----
 $ fedpkg build --target <side tag>
