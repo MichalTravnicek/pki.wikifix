@@ -1,18 +1,17 @@
 = Overview =
 
-Each PKI branch that is actively maintained should have a corresponding COPR repository. When a new PKI branch is created from another branch, a new COPR repository should be forked from the COPR repository corresponding to the original branch.
+Each PKI branch that is actively maintained should have a corresponding COPR repository:
 
 ----
-+ master
-  + v11.2
-  + v11.1
-  + v11.0
-+ v10
-  + v10.12
-  + v10.11
++ master      --> @pki/master
+  + v11.1     --> @pki/11.1
+  + v11.0     --> @pki/11.0
++ v10         --> @pki/10
+  + v10.12    --> @pki/10.12
+  + v10.11    --> @pki/10.11
 ----
 
-For example, below is the process to create a new `@pki/11.2` repository for `v11.2` branch in PKI. The repository should be forked from an existing `@pki/master` repository. `v10.x` repositories should be forked from `v10` repository.
+When a new branch (e.g. `v11.2`) is created from another branch (e.g. `master`), a new COPR repository (i.e. `@pki/11.2`) should be created from the COPR repository corresponding to the original branch (i.e. `@pki/master`). In general, all `@pki/11.x` repositories should be created from `@pki/master` repository, and all `@pki/10.x` repositories should be created from `@pki/10` repository.
 
 = Creating New Repository =
 
