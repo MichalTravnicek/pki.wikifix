@@ -14,23 +14,21 @@ Each PKI branch that is actively maintained should have a corresponding COPR rep
 
 For example, below is the process to create a new `@pki/11.2` repository for `v11.2` branch in PKI. The repository should be forked from an existing `@pki/master` repository. `v10.x` repositories should be forked from `v10` repository.
 
-= Creating COPR Repository using Web UI =
+= Creating New Repository =
 
-To create the repository, open the link:https://copr.fedorainfracloud.org/coprs/g/pki/master[@pki/master] repository and click **Fork this project**. Change the **Fork owner** to `@pki` and **Fork name** to `11.2`, then click **Fork it**.
+To create the repository using Web UI, open the link:https://copr.fedorainfracloud.org/coprs/g/pki/master[@pki/master] repository and click **Fork this project**. Change the **Fork owner** to `@pki` and **Fork name** to `11.2`, then click **Fork it**.
 
-To update the packages, go to **Packages** in `@pki/11.2` repository and change the **Committish** of `pki` package to `v11.2`. Change the **Committish** of other packages as well if necessary. Rebuild the packages to verify the changes.
-
-Finally, go to **Settings** -> **Integrations**, copy the Webhook URL for GitHub, append `?id=@pki/10.12` to the URL to make it easier to identify, then add the URL to each GitHub project.
-
-= Creating COPR Repository using CLI =
-
-To create the repository:
+To create the repository using CLI:
 
 ----
 $ copr fork @pki/master @pki/11.2
 ----
 
-To update the packages:
+= Updating Packages =
+
+To update the packages using Web UI, go to **Packages** in `@pki/11.2` repository and change the **Committish** of `pki` package to `v11.2`. Change the **Committish** of other packages as well if necessary.
+
+To update the packages using CLI:
 
 ----
 $ copr edit-package-scm \
@@ -70,6 +68,8 @@ $ copr edit-package-scm \
     @pki/11.2
 ----
 
+= Building Packages =
+
 To build the packages:
 
 ----
@@ -79,3 +79,7 @@ $ copr build-package --name ldapjdk --nowait @pki/11.2
 $ copr build-package --name idm-console-framework --nowait @pki/11.2
 $ copr build-package --name pki --nowait @pki/11.2
 ----
+
+= Configuring Webhooks =
+
+Go to **Settings** -> **Integrations**, copy the Webhook URL for GitHub, append `?id=@pki/11.2` to the URL to make it easier to identify, then add the URL to each GitHub project.
