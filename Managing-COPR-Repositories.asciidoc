@@ -81,4 +81,17 @@ $ copr build-package --name pki --nowait @pki/11.2
 
 = Configuring Webhooks =
 
-Go to **Settings** -> **Integrations**, copy the Webhook URL for GitHub, append `?id=@pki/11.2` to the URL to make it easier to identify, then add the URL to each GitHub project.
+Go to **Settings** -> **Integrations**, copy the Webhook URL for GitHub (e.g. `https://copr.fedorainfracloud.org/webhooks/github/<ID>/<UUID>/`), append `?id=<repository>` (e.g. `?id=@pki/11.2`) to the URL to make it easier to identify, then open each GitHub project's Webhooks configuration:
+
+* https://github.com/dogtagpki/jss/settings/hooks
+* https://github.com/dogtagpki/tomcatjss/settings/hooks
+* https://github.com/dogtagpki/ldap-sdk/settings/hooks
+* https://github.com/dogtagpki/idm-console-framework/settings/hooks
+* https://github.com/dogtagpki/pki/settings/hooks
+
+Click **Add webhook**, then enter:
+
+* **Payload URL**: `https://copr.fedorainfracloud.org/webhooks/github/<ID>/<UUID>/?id=<repository >` 
+* **Content type**: `application/json`
+
+Then click **Add webhook**.
