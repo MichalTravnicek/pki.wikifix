@@ -16,7 +16,7 @@ Examples are available in link:https://github.com/dogtagpki/pki/tree/master/base
 * link:https://github.com/dogtagpki/pki/blob/master/base/server/certs/subca_signing.conf[subca_signing.conf]
 * link:https://github.com/dogtagpki/pki/blob/master/base/server/certs/subsystem.conf[subsystem.conf]
 
-= Basic Constraints =
+= Basic Constraints Extension =
 
 The Basic Constraints extension can be specified in the `basicConstraints` property, for example:
 
@@ -30,7 +30,7 @@ Supported extension values:
 * `CA:<boolean>`
 * `pathlen:<integer>`
 
-= Key Usage =
+= Key Usage Extension =
 
 The Key Usage extension can be specified in the `keyUsage` property, for example:
 
@@ -52,7 +52,7 @@ Supported extension values:
 * `decipherOnly`
 
 
-= Extended Key Usage =
+= Extended Key Usage Extension =
 
 The Extended Key Usage extension can be specified in the `extendedKeyUsage` property, for example:
 
@@ -68,7 +68,7 @@ Supported extension values:
 * `emailProtection`
 * `OCSPSigning`
 
-= Subject Key Identifier =
+= Subject Key Identifier Extension =
 
 The Subject Key Identifier extension can be specified in the `subjectKeyIdentifier` property, for example:
 
@@ -80,7 +80,7 @@ Supported extension values:
 
 * `hash`
 
-= Authority Key Identifier =
+= Authority Key Identifier Extension =
 
 The Authority Key Identifier extension can be specified in the `authorityKeyIdentifier` property, for example:
 
@@ -93,7 +93,7 @@ Supported extension values:
 * `keyid`
 * `keyid:always`
 
-= Authority Info Access =
+= Authority Info Access Extension =
 
 The Authority Info Access extension can be specified in the `authorityInfoAccess` property, for example:
 
@@ -106,13 +106,12 @@ Supported extension values:
 * `caIssuers;URI:<URI>`
 * `OCSP;URI:<URI>`
 
-= Certificate Policies =
+= Certificate Policies Extension =
 
 The Certificate Policies extension can be specified in the `certificatePolicies` property, for example:
 
 ----
 certificatePolicies    = 2.23.140.1.2.1, @cps_policy
-
 cps_policy.id          = 1.3.6.1.4.1.44947.1.1.1
 cps_policy.CPS.1       = http://cps.example.com
 ----
@@ -127,7 +126,7 @@ Each policy can be specified in separate properties:
 * `<policy>.id`
 * `<policy>.CPS.<id>`
 
-= OCSP No Check =
+= OCSP No Check Extension =
 
 The OCSP No Check extension can be specified in the `noCheck` property, for example:
 
@@ -139,7 +138,7 @@ Supported extension values:
 
 * `ignored`
 
-= Subject Alternative Name =
+= Subject Alternative Name Extension =
 
 The Subject Alternative Name extension can be specified in the `subjectAltName` property, for example:
 
@@ -151,6 +150,24 @@ Supported extension values:
 
 * `DNS:request_subject_cn`
 * `DNS:request_san_ext`
+
+= Generic Extensions =
+
+Generic extensions can be specified in the `genericExtensions` property, for example:
+
+----
+genericExtensions      = 1.3.6.1.4.1.311.20.2
+1.3.6.1.4.1.311.20.2   = DER:1E:0A:00:53:00:75:00:62:00:43:00:41
+----
+
+Supported extension values:
+
+* `<OID>`
+
+Each generic extension can be specified in a `<OID>` property which supports the following values:
+
+* `critical`
+* `DER:<byte>:<byte>:...:<<byte>`
 
 = See Also =
 
