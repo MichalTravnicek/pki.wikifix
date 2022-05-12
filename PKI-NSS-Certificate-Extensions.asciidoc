@@ -13,7 +13,7 @@ Examples are available in link:https://github.com/dogtagpki/pki/tree/master/base
 
 = Basic Constraints =
 
-The basic constraints extension can be specified in the `basicConstraints` property, for example:
+The Basic Constraints extension can be specified in the `basicConstraints` property, for example:
 
 ----
 basicConstraints       = critical, CA:FALSE
@@ -27,7 +27,7 @@ Supported values:
 
 = Key Usage =
 
-The key usage extension can be specified in the `keyUsage` property, for example:
+The Key Usage extension can be specified in the `keyUsage` property, for example:
 
 ----
 keyUsage               = critical, digitalSignature, keyEncipherment
@@ -49,27 +49,57 @@ Supported values:
 
 = Extended Key Usage =
 
+The Extended Key Usage extension can be specified in the `extendedKeyUsage` property, for example:
+
 ----
 extendedKeyUsage       = serverAuth, clientAuth
 ----
 
+Supported values:
+
+* `critical`
+* `serverAuth`
+* `clientAuth`
+* `emailProtection`
+* `OCSPSigning`
+
 = Subject Key Identifier =
+
+The Subject Key Identifier extension can be specified in the `subjectKeyIdentifier` property, for example:
 
 ----
 subjectKeyIdentifier   = hash
 ----
 
+Supported values:
+
+* `hash`
+
 = Authority Key Identifier =
+
+The Authority Key Identifier extension can be specified in the `authorityKeyIdentifier` property, for example:
 
 ----
 authorityKeyIdentifier = keyid:always
 ----
 
+Supported values:
+
+* `keyid`
+* `keyid:always`
+
 = Authority Info Access =
+
+The Authority Info Access extension can be specified in the `authorityInfoAccess` property, for example:
 
 ----
 authorityInfoAccess    = OCSP;URI:http://ocsp.example.com, caIssuers;URI:http://cert.example.com
 ----
+
+Supported values:
+
+* `caIssuers;URI:<URI>`
+* `OCSP;URI:<URI>`
 
 = Certificate Policies =
 
