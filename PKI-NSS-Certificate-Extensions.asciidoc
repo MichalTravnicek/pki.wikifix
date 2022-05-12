@@ -19,7 +19,7 @@ The Basic Constraints extension can be specified in the `basicConstraints` prope
 basicConstraints       = critical, CA:FALSE
 ----
 
-Supported values:
+Supported extension values:
 
 * `critical`
 * `CA:<boolean>`
@@ -33,7 +33,7 @@ The Key Usage extension can be specified in the `keyUsage` property, for example
 keyUsage               = critical, digitalSignature, keyEncipherment
 ----
 
-Supported values:
+Supported extension values:
 
 * `critical`
 * `digitalSignature`
@@ -55,7 +55,7 @@ The Extended Key Usage extension can be specified in the `extendedKeyUsage` prop
 extendedKeyUsage       = serverAuth, clientAuth
 ----
 
-Supported values:
+Supported extension values:
 
 * `critical`
 * `serverAuth`
@@ -71,7 +71,7 @@ The Subject Key Identifier extension can be specified in the `subjectKeyIdentifi
 subjectKeyIdentifier   = hash
 ----
 
-Supported values:
+Supported extension values:
 
 * `hash`
 
@@ -83,7 +83,7 @@ The Authority Key Identifier extension can be specified in the `authorityKeyIden
 authorityKeyIdentifier = keyid:always
 ----
 
-Supported values:
+Supported extension values:
 
 * `keyid`
 * `keyid:always`
@@ -96,12 +96,14 @@ The Authority Info Access extension can be specified in the `authorityInfoAccess
 authorityInfoAccess    = OCSP;URI:http://ocsp.example.com, caIssuers;URI:http://cert.example.com
 ----
 
-Supported values:
+Supported extension values:
 
 * `caIssuers;URI:<URI>`
 * `OCSP;URI:<URI>`
 
 = Certificate Policies =
+
+The Certificate Policies extension can be specified in the `certificatePolicies` property, for example:
 
 ----
 certificatePolicies    = 2.23.140.1.2.1, @cps_policy
@@ -109,6 +111,16 @@ certificatePolicies    = 2.23.140.1.2.1, @cps_policy
 cps_policy.id          = 1.3.6.1.4.1.44947.1.1.1
 cps_policy.CPS.1       = http://cps.example.com
 ----
+
+Supported extension values:
+
+* `<OID>`
+* `@<policy>`
+
+Each policy can be specified in separate properties:
+
+* `<policy>.id`
+* `<policy>.CPS.<id>`
 
 = See Also =
 
