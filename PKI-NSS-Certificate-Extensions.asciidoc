@@ -127,6 +127,31 @@ Each policy can be specified in separate properties:
 * `<policy>.id`
 * `<policy>.CPS.<id>`
 
+= OCSP No Check =
+
+The OCSP No Check extension can be specified in the `noCheck` property, for example:
+
+----
+noCheck                = ignored
+----
+
+Supported extension values:
+
+* `ignored`
+
+= Subject Alternative Name =
+
+The Subject Alternative Name extension can be specified in the `subjectAltName` property, for example:
+
+----
+subjectAltName         = DNS:request_subject_cn, DNS:request_san_ext
+----
+
+Supported extension values:
+
+* `DNS:request_subject_cn`
+* `DNS:request_san_ext`
+
 = See Also =
 
 * link:https://www.openssl.org/docs/manmaster/man5/x509v3_config.html[OpenSSL x509v3_config]
