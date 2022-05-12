@@ -13,15 +13,39 @@ Examples are available in link:https://github.com/dogtagpki/pki/tree/master/base
 
 = Basic Constraints =
 
+The basic constraints extension can be specified in the `basicConstraints` property, for example:
+
 ----
 basicConstraints       = critical, CA:FALSE
 ----
 
+Supported values:
+
+* `critical`
+* `CA:<boolean>`
+* `pathlen:<integer>`
+
 = Key Usage =
+
+The key usage extension can be specified in the `keyUsage` property, for example:
 
 ----
 keyUsage               = critical, digitalSignature, keyEncipherment
 ----
+
+Supported values:
+
+* `critical`
+* `digitalSignature`
+* `nonRepudiation`
+* `keyEncipherment`
+* `dataEncipherment`
+* `keyAgreement`
+* `keyCertSign`
+* `cRLSign`
+* `encipherOnly`
+* `decipherOnly`
+
 
 = Extended Key Usage =
 
