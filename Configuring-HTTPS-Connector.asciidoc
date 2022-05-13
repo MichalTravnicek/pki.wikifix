@@ -1,0 +1,97 @@
+= Switching to JSS Connector =
+
+To configure JSS Connector:
+
+----
+$ pki-server http-connector-mod Secure --type JSS
+-----------------
+Updated connector
+-----------------
+  Connector ID: Secure
+  Scheme: https
+  Port: 8443
+  Protocol: org.apache.coyote.http11.Http11Protocol
+  SSL Implementation: org.apache.tomcat.util.net.jss.JSSImplementation
+  SSL Version Range Stream: tls1_0:tls1_2
+  SSL Version Range Datagram: tls1_1:tls1_2
+  SSL Range Ciphers: -TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA,-TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA,-TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA,-TLS_ECDH_RSA_WITH_AES_128_CBC_SHA,-TLS_ECDH_RSA_WITH_AES_256_CBC_SHA,-TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA,-TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,-TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA,-TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,-TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,-TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,-TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,-TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA,-TLS_DHE_DSS_WITH_AES_128_CBC_SHA,-TLS_DHE_DSS_WITH_AES_256_CBC_SHA,-TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA,-TLS_DHE_RSA_WITH_AES_128_CBC_SHA,-TLS_DHE_RSA_WITH_AES_256_CBC_SHA,-TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,-TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,-TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,-TLS_DHE_DSS_WITH_AES_128_GCM_SHA256,-TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,-TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,-TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,-TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,-TLS_RSA_WITH_AES_128_CBC_SHA256,-TLS_RSA_WITH_AES_256_CBC_SHA256,-TLS_RSA_WITH_AES_128_GCM_SHA256,-TLS_RSA_WITH_3DES_EDE_CBC_SHA,+TLS_RSA_WITH_AES_128_CBC_SHA,+TLS_RSA_WITH_AES_256_CBC_SHA
+  NSS Database Directory: /var/lib/pki/pki-tomcat/alias
+  NSS Password Class: org.apache.tomcat.util.net.jss.PlainPasswordFile
+  NSS Password File: /var/lib/pki/pki-tomcat/conf/password.conf
+  Server Cert Nickname File: /var/lib/pki/pki-tomcat/conf/serverCertNick.conf
+----
+
+= Switching to JSSE Connector =
+
+== Creating password file ==
+
+Store the password for the PKCS #12 files into a file:
+
+----
+$ echo Secret.123 > /etc/pki/pki-tomcat/keystore.pwd
+$ chown pkiuser.pkiuser /etc/pki/pki-tomcat/keystore.pwd
+$ chmod 0660 /etc/pki/pki-tomcat/keystore.pwd
+----
+
+== Exporting SSL server certificate ==
+
+Export the SSL server certificate with the following command:
+
+----
+$ pki-server cert-export \
+    sslserver \
+    --instance "pki-tomcat" \
+    --pkcs12-file /etc/pki/pki-tomcat/keystore.p12 \
+    --pkcs12-password-file /etc/pki/pki-tomcat/keystore.pwd \
+    --cert-encryption "PBE/SHA1/RC2-40" \
+    --key-encryption "PBE/SHA1/DES3/CBC"
+----
+
+Alternatively, the SSL server certificate can be exported with the following command:
+
+----
+$ pk12util \
+    -n sslserver \
+    -d /var/lib/pki/pki-tomcat/alias \
+    -k Secret.123 \
+    -o /etc/pki/pki-tomcat/keystore.p12 \
+    -w /etc/pki/pki-tomcat/keystore.pwd
+----
+
+Then configure the file permission as follows:
+
+----
+$ chown pkiuser.pkiuser /etc/pki/pki-tomcat/keystore.p12
+$ chmod 0660 /etc/pki/pki-tomcat/keystore.p12
+----
+
+== Configuring JSSE connector ==
+
+To configure JSSE connector:
+
+----
+$ pki-server http-connector-mod Secure \
+    --type JSSE \
+    --keystore-file /etc/pki/pki-tomcat/keystore.p12 \
+    --keystore-password-file /etc/pki/pki-tomcat/keystore.pwd
+-----------------
+Updated connector
+-----------------
+  Connector ID: Secure
+  Scheme: https
+  Port: 8443
+  Protocol: org.dogtagpki.tomcat.Http11NioProtocol
+  SSL Version Range Stream: tls1_0:tls1_2
+  SSL Version Range Datagram: tls1_1:tls1_2
+  SSL Range Ciphers: -TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA,-TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA,-TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA,-TLS_ECDH_RSA_WITH_AES_128_CBC_SHA,-TLS_ECDH_RSA_WITH_AES_256_CBC_SHA,-TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA,-TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,-TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA,-TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,-TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,-TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,-TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,-TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA,-TLS_DHE_DSS_WITH_AES_128_CBC_SHA,-TLS_DHE_DSS_WITH_AES_256_CBC_SHA,-TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA,-TLS_DHE_RSA_WITH_AES_128_CBC_SHA,-TLS_DHE_RSA_WITH_AES_256_CBC_SHA,-TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,-TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,-TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,-TLS_DHE_DSS_WITH_AES_128_GCM_SHA256,-TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,-TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,-TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,-TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,-TLS_RSA_WITH_AES_128_CBC_SHA256,-TLS_RSA_WITH_AES_256_CBC_SHA256,-TLS_RSA_WITH_AES_128_GCM_SHA256,-TLS_RSA_WITH_3DES_EDE_CBC_SHA,+TLS_RSA_WITH_AES_128_CBC_SHA,+TLS_RSA_WITH_AES_256_CBC_SHA
+  NSS Database Directory: /var/lib/pki/pki-tomcat/alias
+  NSS Password Class: org.apache.tomcat.util.net.jss.PlainPasswordFile
+  NSS Password File: /var/lib/pki/pki-tomcat/conf/password.conf
+  Server Cert Nickname File: /var/lib/pki/pki-tomcat/conf/serverCertNick.conf
+  Keystore File: /etc/pki/pki-tomcat/keystore.p12
+  Keystore Password File: /etc/pki/pki-tomcat/keystore.pwd
+----
+
+= See Also =
+
+* link:https://github.com/dogtagpki/pki/blob/master/docs/admin/server/Configuring-HTTPS-Connector.adoc[Configuring HTTPS Connector]
