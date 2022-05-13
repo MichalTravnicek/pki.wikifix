@@ -1,25 +1,7 @@
-= Switching to JSS Connector =
+= Overview =
 
-To configure JSS Connector:
-
-----
-$ pki-server http-connector-mod Secure --type JSS
------------------
-Updated connector
------------------
-  Connector ID: Secure
-  Scheme: https
-  Port: 8443
-  Protocol: org.apache.coyote.http11.Http11Protocol
-  SSL Implementation: org.apache.tomcat.util.net.jss.JSSImplementation
-  SSL Version Range Stream: tls1_0:tls1_2
-  SSL Version Range Datagram: tls1_1:tls1_2
-  SSL Range Ciphers: -TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA,-TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA,-TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA,-TLS_ECDH_RSA_WITH_AES_128_CBC_SHA,-TLS_ECDH_RSA_WITH_AES_256_CBC_SHA,-TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA,-TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,-TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA,-TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,-TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,-TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,-TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,-TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA,-TLS_DHE_DSS_WITH_AES_128_CBC_SHA,-TLS_DHE_DSS_WITH_AES_256_CBC_SHA,-TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA,-TLS_DHE_RSA_WITH_AES_128_CBC_SHA,-TLS_DHE_RSA_WITH_AES_256_CBC_SHA,-TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,-TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,-TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,-TLS_DHE_DSS_WITH_AES_128_GCM_SHA256,-TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,-TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,-TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,-TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,-TLS_RSA_WITH_AES_128_CBC_SHA256,-TLS_RSA_WITH_AES_256_CBC_SHA256,-TLS_RSA_WITH_AES_128_GCM_SHA256,-TLS_RSA_WITH_3DES_EDE_CBC_SHA,+TLS_RSA_WITH_AES_128_CBC_SHA,+TLS_RSA_WITH_AES_256_CBC_SHA
-  NSS Database Directory: /var/lib/pki/pki-tomcat/alias
-  NSS Password Class: org.apache.tomcat.util.net.jss.PlainPasswordFile
-  NSS Password File: /var/lib/pki/pki-tomcat/conf/password.conf
-  Server Cert Nickname File: /var/lib/pki/pki-tomcat/conf/serverCertNick.conf
-----
+This page describes how to configure HTTPS connector.
+By default PKI server will be installed with a JSS connector.
 
 = Switching to JSSE Connector =
 
@@ -90,6 +72,29 @@ Updated connector
   Server Cert Nickname File: /var/lib/pki/pki-tomcat/conf/serverCertNick.conf
   Keystore File: /etc/pki/pki-tomcat/keystore.p12
   Keystore Password File: /etc/pki/pki-tomcat/keystore.pwd
+----
+
+= Switching to JSS Connector =
+
+To configure JSS Connector:
+
+----
+$ pki-server http-connector-mod Secure --type JSS
+-----------------
+Updated connector
+-----------------
+  Connector ID: Secure
+  Scheme: https
+  Port: 8443
+  Protocol: org.apache.coyote.http11.Http11Protocol
+  SSL Implementation: org.apache.tomcat.util.net.jss.JSSImplementation
+  SSL Version Range Stream: tls1_0:tls1_2
+  SSL Version Range Datagram: tls1_1:tls1_2
+  SSL Range Ciphers: -TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA,-TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA,-TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA,-TLS_ECDH_RSA_WITH_AES_128_CBC_SHA,-TLS_ECDH_RSA_WITH_AES_256_CBC_SHA,-TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA,-TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,-TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA,-TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,-TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,-TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,-TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,-TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA,-TLS_DHE_DSS_WITH_AES_128_CBC_SHA,-TLS_DHE_DSS_WITH_AES_256_CBC_SHA,-TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA,-TLS_DHE_RSA_WITH_AES_128_CBC_SHA,-TLS_DHE_RSA_WITH_AES_256_CBC_SHA,-TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,-TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,-TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,-TLS_DHE_DSS_WITH_AES_128_GCM_SHA256,-TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,-TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,-TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,-TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,-TLS_RSA_WITH_AES_128_CBC_SHA256,-TLS_RSA_WITH_AES_256_CBC_SHA256,-TLS_RSA_WITH_AES_128_GCM_SHA256,-TLS_RSA_WITH_3DES_EDE_CBC_SHA,+TLS_RSA_WITH_AES_128_CBC_SHA,+TLS_RSA_WITH_AES_256_CBC_SHA
+  NSS Database Directory: /var/lib/pki/pki-tomcat/alias
+  NSS Password Class: org.apache.tomcat.util.net.jss.PlainPasswordFile
+  NSS Password File: /var/lib/pki/pki-tomcat/conf/password.conf
+  Server Cert Nickname File: /var/lib/pki/pki-tomcat/conf/serverCertNick.conf
 ----
 
 = See Also =
