@@ -23,7 +23,7 @@ This is where `tpsclient` is often useful. Here are some of the reasons to use t
 Add a user to the database:
 
 ----
-$ ldapadd -H ldap://localhost -D "cn=Directory Manager" -w Secret.123 << EOF
+$ ldapadd -H ldap://localhost -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: uid=testuser,ou=people,dc=example,dc=com
 objectClass: top
 objectClass: person
