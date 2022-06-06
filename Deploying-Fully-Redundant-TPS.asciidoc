@@ -85,7 +85,7 @@ To ensure this does not happen - you can always choose to use separate database 
 But, you can also easily fix this by re-importing the CA, KRA, and TKS schema using `ldapmodify` on host1.
 
 ----
-$ ldapmodify -h localhost -p 7389 -D "cn=directory manager" -w redhat123 -f /usr/share/pki/ca/conf/schema.ldif
+$ ldapmodify -H ldap://localhost:7389 -D "cn=directory manager" -w redhat123 -f /usr/share/pki/ca/conf/schema.ldif
 ----
 
 And so on for the other subsystems.
