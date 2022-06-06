@@ -33,7 +33,7 @@ When the DS instance is created, it will automatically create the root entry (i.
 To create PKI subtree:
 
 ----
-$ ldapadd -h $HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 << EOF
+$ ldapadd -H ldap://$HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: dc=pki,dc=example,dc=com
 objectClass: domain
 dc: pki
