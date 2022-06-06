@@ -1,9 +1,9 @@
 = Creating Backend Instance =
 
-To create a backend instance (e.g. pki) for a subtree (e.g. dc=pki,dc=example,dc=com), execute the following command:
+To create a backend instance (e.g. `pki`) for a subtree (e.g. `dc=pki,dc=example,dc=com`), execute the following command:
 
 ----
-$ ldapadd -h $HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 << EOF
+$ ldapadd -H ldap://$HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: cn=pki,cn=ldbm database,cn=plugins,cn=config
 objectClass: top
 objectClass: nsBackendInstance
@@ -15,10 +15,10 @@ EOF
 
 = Creating Mapping Tree =
 
-To map a subtree (e.g. dc=pki,dc=example,dc=com) to a backend (e.g. pki), execute the following command:
+To map a subtree (e.g. `dc=pki,dc=example,dc=com`) to a backend (e.g. `pki`), execute the following command:
 
 ----
-$ ldapadd -h $HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 << EOF
+$ ldapadd -H ldap://$HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: cn="dc=pki,dc=example,dc=com",cn=mapping tree,cn=config
 objectClass: top
 objectClass: extensibleObject
@@ -31,10 +31,10 @@ EOF
 
 = Adding Top-level Entry =
 
-To add the top-level entry (e.g. dc=pki,dc=example,dc=com), execute the following command:
+To add the top-level entry (e.g. `dc=pki,dc=example,dc=com`), execute the following command:
 
 ----
-$ ldapadd -h $HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 << EOF
+$ ldapadd -H ldap://$HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: dc=pki,dc=example,dc=com
 objectClass: domain
 dc: pki
