@@ -127,7 +127,7 @@ applies to all other repositories.
 
 > 
 > 
->     ldapsearch -h <hostname> -p 389 -D 'cn=directory manager' -w ... -s base
+>     ldapsearch -H ldap://<hostname> -D 'cn=directory manager' -w ... -s base
 >                -b 'ou=certificateRepository,ou=ca,dc=<hostname>-pki-ca' 'objectclass=*' nextRange
 >     version: 1
 >     dn: ou=certificateRepository,ou=ca,dc=<hostname>-pki-ca
