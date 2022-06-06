@@ -106,7 +106,7 @@ userPassword: <password>
 * Execute an `ldapadd` command similar to the following to add this entry (e.g. located in `sample.ldif`) to the DS instance replacing `<password>` with the appropriate value:
 
 ----
-$ ldapadd -x -D "cn=Directory Manager" -w <password> -h localhost -f sample.ldif
+$ ldapadd -H ldap://localhost -x -D "cn=Directory Manager" -w <password> -f sample.ldif
 ----
 
 * Create a sample test `tpsclient` format file (e.g. `format.tst`) similar to the following replacing `<hostname>`, `<TPS unsecure port>`, `<uid>`, and `<password>` with the appropriate values:
