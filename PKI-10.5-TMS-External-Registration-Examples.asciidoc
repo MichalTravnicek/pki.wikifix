@@ -120,13 +120,13 @@ certstoadd: 251,ca1,89,kra1
 === run ldapmodify ===
 
 ----
-$ ldapmodify -x -D "cn=Directory Manager" -w yourPassWord -h host.example.com -f mod1b.ldif
+$ ldapmodify -H ldap://host.example.com -x -D "cn=Directory Manager" -w yourPassWord -f mod1b.ldif
 ----
 
 === check user1b entry ===
 
 ----
-$ ldapsearch -x -LLL -b "ou=People,dc=example,dc=com" -h host.example.com uid=user1b
+$ ldapsearch -H ldap://host.example.com -x -LLL -b "ou=People,dc=example,dc=com" uid=user1b
 dn: uid=user1b,ou=People,dc=example,dc=com
 objectClass: person
 objectClass: organizationalPerson
@@ -195,13 +195,13 @@ certstoadd: 251,ca1
 === run ldapmodify ===
 
 ----
-$ ldapmodify -x -D "cn=Directory Manager" -w yourPassWord -h host.example.com -f mod1b.ldif
+$ ldapmodify -H ldap://host.example.com -x -D "cn=Directory Manager" -w yourPassWord -f mod1b.ldif
 ----
 
 === check user1b entry ===
 
 ----
-$ ldapsearch -x -LLL -b "ou=People,dc=example,dc=com" -h host.example.com uid=user1b
+$ ldapsearch -H ldap://host.example.com -x -LLL -b "ou=People,dc=example,dc=com" uid=user1b
 dn: uid=user1b,ou=People,dc=example,dc=com
 objectClass: person
 objectClass: organizationalPerson
