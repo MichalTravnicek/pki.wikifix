@@ -55,7 +55,7 @@ $ dscreate from-file ds.inf
 Initially the DS instance is empty. To add a root entry and PKI base entry:
 
 ----
-$ ldapadd -h $HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 << EOF
+$ ldapadd -H ldap://$HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: dc=example,dc=com
 objectClass: domain
 dc: example
