@@ -1,36 +1,43 @@
-## Prerequisites
+# Prerequisites
 
 - Dependencies have been installed:
-```
-dnf install 389-ds-base dogtag-pki 
-```
-- A DS instance has been [created](https://github.com/dogtagpki/pki/wiki/DS-Installation).
 
-## Create user 
+----
+dnf install 389-ds-base dogtag-pki 
+----
+
+- A DS instance has been link:https://github.com/dogtagpki/pki/wiki/DS-Installation[created].
+
+# Create user
+
 Use the following command to create a user or use an existing one. 
-```commandline
+
+----
 $ useradd <user>
-```
+----
 
 Example:
-```commandline
+
+----
 $ useradd sysadmin
-```
-## Create configuration file
+----
+
+# Create configuration file
 
 Before using `pkispawn`, a config file specifying our new user must be created.
  
-```
+----
 [DEFAULT]
 pki_server_database_password=Secret.123
 pki_user=<user>
 pki_group=<user>
-```
+----
 
-Other examples can be found [here](https://github.com/dogtagpki/pki/tree/master/base/server/examples/installation).
+Other examples can be found link:https://github.com/dogtagpki/pki/tree/master/base/server/examples/installation[here].
 
-eg `customer_user_ca.cfg`:
-```plaintext
+e.g. `customer_user_ca.cfg`:
+
+----
 [DEFAULT]
 pki_server_database_password=Secret.123
 pki_user=sysadmin
@@ -58,15 +65,17 @@ pki_ocsp_signing_nickname=ca_ocsp_signing
 pki_audit_signing_nickname=ca_audit_signing
 pki_sslserver_nickname=sslserver
 pki_subsystem_nickname=subsystem
-```
+----
 
-## Installation:
+# Installation
+
 To install the PKI subsystem use:
-```commandline
-$ pkispawn -f <deployment configuration>
-```
 
-```commandline
+----
+$ pkispawn -f <deployment configuration>
+----
+
+----
 $ pkispawn -f customer_user.cfg
 
 Subsystem (CA/KRA/OCSP/TKS/TPS) [CA]: 
@@ -103,5 +112,4 @@ Installing CA into /var/lib/pki/pki-tomcat.
 
     ==========================================================================
 
-```
-
+----
