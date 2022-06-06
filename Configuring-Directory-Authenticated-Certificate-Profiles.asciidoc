@@ -13,7 +13,7 @@ It assumes that the CA is already installed.
 Make sure the LDAP server has a user with a password:
 
 ----
-$ ldapadd -h $HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 << EOF
+$ ldapadd -H ldap://$HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 << EOF
 dn: uid=testuser,ou=People,dc=example,dc=com
 objectClass: person
 objectClass: organizationalPerson
@@ -28,8 +28,13 @@ EOF
 Verify using the following command:
 
 ----
-$ ldapsearch -h $HOSTNAME -x -D "uid=testuser,ou=People,dc=example,dc=com" -w Secret.123 \
-    -b "dc=example,dc=com" "(objectClass=*)"
+$ ldapsearch \
+    -H ldap://$HOSTNAME \
+    -x \
+    -D "uid=testuser,ou=People,dc=example,dc=com" \
+    -w Secret.123 \
+    -b "dc=example,dc=com" \
+    "(objectClass=*)"
 ----
 
 = Configuring PKI Server =
