@@ -70,15 +70,19 @@ Supported extension values:
 
 = Subject Key Identifier Extension =
 
-The Subject Key Identifier extension can be specified in the `subjectKeyIdentifier` property, for example:
+The Subject Key Identifier extension can be specified in the `subjectKeyIdentifier` property.
+
+To generate an SKI extension with the first method defined in link:https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.2[RFC 5280 Section 4.2.1.2]:
 
 ----
 subjectKeyIdentifier   = hash
 ----
 
-Supported extension values:
+To generate an SKI extension with the specified ID:
 
-* `hash`
+----
+subjectKeyIdentifier   = <byte>:<byte>:...:<byte>
+----
 
 = Authority Key Identifier Extension =
 
