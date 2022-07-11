@@ -12,7 +12,7 @@ $ pki nss-key-find
   Algorithm: RSA
 
   Key ID: 0x64594734139b4006527bc57c8792d90333e4263c
-  Algorithm: RSA
+  Algorithm: EC
 ----
 
 To list keys in HSM:
@@ -23,7 +23,7 @@ $ pki --token HSM nss-key-find
   Algorithm: RSA
 
   Key ID: 0x64594734139b4006527bc57c8792d90333e4263c
-  Algorithm: RSA
+  Algorithm: EC
 ----
 
 To find the key belonging to a certificate:
@@ -35,6 +35,26 @@ $ pki nss-key-find --nickname ca_signing
 ----
 
 **Availability:** Since PKI 11.2.
+
+= Creating Key in NSS Database =
+
+To create an RSA key in internal token:
+
+----
+$ pki nss-key-create --key-type=RSA
+  Key ID: 0x12e1587cf58ab6e16a5d8cf9682252a8bdf7a591
+  Algorithm: RSA
+----
+
+To create an EC key in internal token:
+
+----
+$ pki nss-key-create --key-type=EC
+  Key ID: 0x12e1587cf58ab6e16a5d8cf9682252a8bdf7a591
+  Algorithm: EC
+----
+
+**Availability:** Since PKI 11.3.
 
 = Deleting Key from NSS Database (Not Implemented) =
 
