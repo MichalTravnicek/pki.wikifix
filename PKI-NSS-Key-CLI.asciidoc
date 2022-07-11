@@ -38,7 +38,7 @@ $ pki nss-key-find --nickname ca_signing
 
 = Creating Key in NSS Database =
 
-To create an RSA key in internal token:
+To create an RSA key:
 
 ----
 $ pki nss-key-create --key-type=RSA
@@ -46,12 +46,20 @@ $ pki nss-key-create --key-type=RSA
   Algorithm: RSA
 ----
 
-To create an EC key in internal token:
+To create an EC key:
 
 ----
 $ pki nss-key-create --key-type=EC
   Key ID: 0x12e1587cf58ab6e16a5d8cf9682252a8bdf7a591
   Algorithm: EC
+----
+
+To create an AES key:
+
+----
+$ pki nss-key-create --key-type=AES test
+  Nickname: test
+  Algorithm: AES
 ----
 
 **Availability:** Since PKI 11.3.
