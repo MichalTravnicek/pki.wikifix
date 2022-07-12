@@ -1,0 +1,54 @@
+= AgentCertAuthentication =
+
+= CertUserDBAuthentication =
+
+See also link:https://github.com/dogtagpki/pki/blob/master/base/server/cmscore/src/com/netscape/cmscore/authentication/CertUserDBAuthentication.java[CertUserDBAuthentication.java].
+
+= ChallengePhraseAuthentication =
+
+= CMCAuth =
+
+= CMCUserSignedAuth =
+
+= DirBasedAuthentication =
+
+----
+auths.instance.UserDirEnrollment.pluginName=UidPwdDirAuth
+auths.instance.UserDirEnrollment.ldap.basedn=dc=example,dc=com
+auths.instance.UserDirEnrollment.ldap.ldapauth.authtype=BasicAuth
+auths.instance.UserDirEnrollment.ldap.ldapauth.bindDN=cn=Directory Manager
+auths.instance.UserDirEnrollment.ldap.ldapauth.bindPWPrompt=internaldb
+auths.instance.UserDirEnrollment.ldap.ldapconn.host=server.example.com
+auths.instance.UserDirEnrollment.ldap.ldapconn.port=389
+auths.instance.UserDirEnrollment.ldap.ldapconn.secureConn=false
+----
+
+See also link:Configuring-Directory-Authenticated-Certificate-Profiles[Directory-Authenticated Certificate Profiles].
+
+= HashAuthentication =
+
+= NullAuthentication =
+
+= PasswdUserDBAuthentication =
+
+= SSLclientCertAuthentication =
+
+= SSLClientCertAuthentication =
+
+= TokenAuthentication =
+
+= ProfileAuthenticator =
+
+== FlatFileAuth ==
+
+----
+auths.instance.flatFileAuth.pluginName=FlatFileAuth
+auths.instance.flatFileAuth.authAttributes=PWD
+auths.instance.flatFileAuth.deferOnFailure=true
+auths.instance.flatFileAuth.fileName=/var/lib/pki/pki-tomcat/conf/ca/flatfile.txt
+auths.instance.flatFileAuth.keyAttributes=UID
+----
+
+= See Also =
+
+* link:Authentication-Plugins[Authentication Plugins]
