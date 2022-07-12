@@ -17,6 +17,18 @@ $ pki nss-cert-request \
     --csr ca_signing.csr
 ----
 
+The above command will create a new certificate request with a new key.
+
+To create a certificate request with an existing key, execute the following command:
+
+----
+$ pki nss-cert-request \
+    --key-id <key ID> \
+    --subject "CN=Certificate Authority" \
+    --ext /usr/share/pki/server/certs/ca_signing.conf \
+    --csr ca_signing.csr
+----
+
 Availability: PKI 10.9
 
 = See Also =
