@@ -1,0 +1,32 @@
+= Updating LDAP Schema =
+
+----
+$ ldapmodify -H ldap://$HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 << EOF
+dn: cn=schema
+changetype: modify
+add: attributeTypes
+attributetypes: ( shrTok-oid NAME 'shrTok' DESC 'User Defined ObjectClass for SharedToken'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 SINGLE-VALUE X-ORIGIN 'custom for sharedToken')
+EOF
+----
+
+= Configuring Authentication Manager =
+
+----
+auths.instance.SharedToken.dnpattern=
+auths.instance.SharedToken.ldap.basedn=dc=pki,dc=example,dc=com
+auths.instance.SharedToken.ldap.ldapauth.authtype=BasicAuth
+auths.instance.SharedToken.ldap.ldapauth.bindDN=cn=Directory Manager
+auths.instance.SharedToken.ldap.ldapauth.bindPWPrompt=Rule SharedToken
+auths.instance.SharedToken.ldap.ldapauth.clientCertNickname=
+auths.instance.SharedToken.ldap.ldapconn.host=localhost
+auths.instance.SharedToken.ldap.ldapconn.port=389
+auths.instance.SharedToken.ldap.ldapconn.secureConn=false
+auths.instance.SharedToken.ldap.ldapconn.version=3
+auths.instance.SharedToken.ldap.maxConns=
+auths.instance.SharedToken.ldap.minConns=
+auths.instance.SharedToken.ldapByteAttributes=
+auths.instance.SharedToken.ldapStringAttributes=
+auths.instance.SharedToken.pluginName=SharedToken
+auths.instance.SharedToken.shrTokAttr=shrTok
+----
