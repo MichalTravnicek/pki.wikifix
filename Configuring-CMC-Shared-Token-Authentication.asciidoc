@@ -12,9 +12,6 @@ $ pki \
     --subject "CN=Issuance Protection" \
     --csr issuance_protection.csr
 
-$ openssl req -text -noout \
-    -in issuance_protection.csr
-
 $ CMCRequest \
     /usr/share/pki/server/examples/cmc/issuance_protection-cmc-request.cfg
 
@@ -25,15 +22,11 @@ $ CMCResponse \
     -d /root/.dogtag/nssdb \
     -i issuance_protection.cmc-response \
     -o issuance_protection.p7b
+----
 
-$ openssl pkcs7 \
-    -print_certs \
-    -in issuance_protection.p7b
+= Importing Issuance Protection Certificate =
 
-$ pki \
-    pkcs7-cert-find \
-    --pkcs7 issuance_protection.p7b
-
+----
 $ pki \
     -d /etc/pki/pki-tomcat/alias \
     -f /etc/pki/pki-tomcat/password.conf \
@@ -42,20 +35,10 @@ $ pki \
     issuance_protection
 
 $ pki \
-    -d /etc/pki/pki-tomcat/alias \
-    -f /etc/pki/pki-tomcat/password.conf \
-    nss-cert-find
-
-$ pki \
     pkcs7-cert-export \
     --pkcs7 issuance_protection.p7b \
     --output-prefix issuance_protection- \
     --output-suffix .crt \
-
-$ pki \
-    nss-cert-import \
-    --cert issuance_protection-0.crt \
-    ca_signing
 
 $ pki \
     nss-cert-import \
@@ -98,16 +81,85 @@ $ sed -i \
 $ pki-server restart --wait
 ----
 
-= Updating LDAP Schema =
+= Setting Up Authentication Database =
 
 ----
-$ ldapmodify -H ldap://$HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 << EOF
-dn: cn=schema
-changetype: modify
-add: attributeTypes
-attributetypes: ( shrTok-oid NAME 'shrTok' DESC 'User Defined ObjectClass for SharedToken'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 SINGLE-VALUE X-ORIGIN 'custom for sharedToken')
-EOF
+$ ldapmodify \
+    -H ldap://ds.example.com:3389 \
+    -x \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f /usr/share/pki/server/conf/schema-sharedToken.ldif
+
+$ ldapadd \
+    -H ldap://ds.example.com:3389 \
+    -x \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f /usr/share/pki/server/examples/cmc/shared_secret-people.ldif
+
+$ CMCSharedToken \
+    -d /root/.dogtag/nssdb \
+    -p "" \
+    -n issuance_protection \
+    -s <token> \
+    -o shared_secret.b64
+
+$ sed -i -e :a -e 'N;s/\n/,/;ba' shared_secret.b64
+
+$ SHARED_SECRET="shrTok: $(cat shared_secret.b64)"
+$ echo "shrTok: $SHARED_SECRET" >> shared_secret-user.shrTok
+
+$ cp \
+    /usr/share/pki/server/examples/cmc/shared_secret-user.ldif \
+    shared_secret-user.ldif
+
+$ sed -i "\$ a\\$SHARED_SECRET" shared_secret-user.ldif
+
+$ ldapadd \
+    -H ldap://ds.example.com:3389 \
+    -x \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f shared_secret-user.ldif
+----
+
+= Issuing Certificate with CMC Shared Token =
+
+----
+$ pki nss-key-create --key-type RSA | tee output
+$ KEY_ID=$(sed -n 's/^\s*Key ID:\s*\(\S\+\)\s*$/\1/p' output)
+
+$ pki \
+    nss-cert-request \
+    --key-id $KEY_ID \
+    --subject "uid=testuser" \
+    --ext /usr/share/pki/server/certs/shared_secret.conf \
+    --csr shared_secret.csr
+
+$ cp \
+    /usr/share/pki/server/examples/cmc/shared_secret-cmc-request.cfg \
+    shared_secret-cmc-request.cfg
+
+$ sed -i \
+    -e "s/\(request.privKeyId\)=.*/\1=$KEY_ID/" \
+    shared_secret-cmc-request.cfg
+
+$ CMCRequest \
+     shared_secret-cmc-request.cfg
+
+$ HttpClient \
+     /usr/share/pki/server/examples/cmc/shared_secret-cmc-submit.cfg
+
+$ CMCResponse \
+    -d /root/.dogtag/nssdb \
+    -i shared_secret.cmc-response \
+    -o shared_secret.p7b
+
+$ pki \
+    pkcs7-import \
+    --pkcs7 shared_secret.p7b \
+    testuser
 ----
 
 = See Also =
