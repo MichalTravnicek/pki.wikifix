@@ -4,7 +4,6 @@
 * link:Using-caAgentFileSigning-Profile[caAgentFileSigning]: Agent-Authenticated File Signing
 * link:Using-caAgentServerCert-Profile[caAgentServerCert]: Agent-Authenticated Server Certificate Enrollment
 * link:CA-Certificate-Profile[caCACert]: Manual Certificate Manager Signing Certificate Enrollment
-* link:Using-caCMCUserCert-Profile[caCMCUserCert]: Signed CMC-Authenticated User Certificate Enrollment
 * caDirPinUserCert
 * link:Using-caDirUserCert-Profile[caDirUserCert]: Directory-Authenticated User Dual-Use Certificate Enrollment
 * link:Using-caDualCert-Profile[caDualCert]: Manual User Signing & Encryption Certificates Enrollment
@@ -24,13 +23,37 @@
 * link:Using-DomainController-Profile[DomainController]: Domain Controller
 * link:ACME-Server-Certificate-Profile[acmeServerCert]: ACME Server Certificate Profile
 
+= Certificate Enrollment Profiles with CMC =
+
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caCMCECUserCert.cfg[caCMCECUserCert]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caCMCECserverCert.cfg[caCMCECserverCert]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caCMCECsubsystemCert.cfg[caCMCECsubsystemCert]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caCMCUserCert.cfg[caCMCUserCert]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caCMCauditSigningCert.cfg[caCMCauditSigningCert]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caCMCcaCert.cfg[caCMCcaCert]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caCMCcaIssuanceProtectionCert.cfg[caCMCcaIssuanceProtectionCert]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caCMCkraStorageCert.cfg[caCMCkraStorageCert]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caCMCkraTransportCert.cfg[caCMCkraTransportCert]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caCMCocspCert.cfg[caCMCocspCert]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caCMCserverCert.cfg[caCMCserverCert]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caCMCsubsystemCert.cfg[caCMCsubsystemCert]
+* link:Using-caCMCUserCert-Profile[caCMCUserCert]: Signed CMC-Authenticated User Certificate Enrollment
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caECFullCMCSharedTokenCert.cfg[caECFullCMCSharedTokenCert]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caECFullCMCUserCert.cfg[caECFullCMCUserCert]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caECFullCMCUserSignedCert.cfg[caECFullCMCUserSignedCert]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caECSimpleCMCUserCert.cfg[caECSimpleCMCUserCert]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caFullCMCSharedTokenCert.cfg[caFullCMCSharedTokenCert]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caFullCMCUserCert.cfg[caFullCMCUserCert]: Signed CMC-Authenticated User Certificate Enrollment
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caFullCMCUserSignedCert.cfg[caFullCMCUserSignedCert]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caSimpleCMCUserCert.cfg[caSimpleCMCUserCert]
+
 = Certificate Renewal Profiles =
 
 * link:Using-caDirUserRenewal-Profile[caDirUserRenewal]: Directory-Authenticated User Certificate Self-Renew profile
 * link:Using-caManualRenewal-Profile[caManualRenewal]: Renew certificate to be manually approved by agents
 * link:Using-caSSLClientSelfRenewal-Profile[caSSLClientSelfRenewal]: Self-renew user SSL client certificates
 
-= Internal Profiles =
+= Internal Certificate Profiles =
 
 The following profiles are used internally for installation:
 
@@ -51,7 +74,6 @@ The following profiles are used internally for installation:
 * caECUserCert
 * caEncECUserCert
 * caEncUserCert
-* caFullCMCUserCert: Signed CMC-Authenticated User Certificate Enrollment
 * caIPAserviceCert
 * caJarSigningCert
 * caRAagentCert
@@ -59,7 +81,6 @@ The following profiles are used internally for installation:
 * caRARouterCert
 * caRAserverCert
 * link:Configuring-SCEP-Responder[caRouterCert]
-* caSimpleCMCUserCert
 * caTempTokenDeviceKeyEnrollment
 * caTempTokenUserEncryptionKeyEnrollment
 * caTempTokenUserSigningKeyEnrollment
