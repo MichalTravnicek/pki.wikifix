@@ -17,8 +17,8 @@ $ pki \
 = Generating Certificate Request =
 
 ----
-$ pki nss-key-create --key-type RSA | tee output
-$ KEY_ID=$(sed -n 's/^\s*Key ID:\s*\(\S\+\)\s*$/\1/p' output)
+$ pki nss-key-create --output-format json | tee output
+$ KEY_ID=$(jq -r '.keyId' output)
 
 $ pki \
     nss-cert-request \
