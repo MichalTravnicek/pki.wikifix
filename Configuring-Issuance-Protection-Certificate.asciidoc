@@ -1,0 +1,46 @@
+= Creating Issuance Protection Certificate =
+
+----
+$ pki \
+    -d /etc/pki/pki-tomcat/alias \
+    -f /etc/pki/pki-tomcat/password.conf \
+    nss-cert-request \
+    --subject "CN=Issuance Protection" \
+    --csr issuance_protection.csr
+
+$ CMCRequest \
+    -d /etc/pki/pki-tomcat/alias \
+    /usr/share/pki/server/examples/cmc/issuance_protection-cmc-request.cfg
+
+$ HttpClient \
+    -d /etc/pki/pki-tomcat/alias \
+    /usr/share/pki/server/examples/cmc/issuance_protection-cmc-submit.cfg
+
+$ CMCResponse \
+    -d /etc/pki/pki-tomcat/alias \
+    -i issuance_protection.cmc-response \
+    -o issuance_protection.p7b
+----
+
+= Importing Issuance Protection Certificate =
+
+----
+$ pki \
+    -d /etc/pki/pki-tomcat/alias \
+    -f /etc/pki/pki-tomcat/password.conf \
+    pkcs7-import \
+    --pkcs7 issuance_protection.p7b \
+    issuance_protection
+----
+
+= Configuring Issuance Protection =
+
+----
+$ pki-server ca-config-set ca.cert.issuance_protection.nickname issuance_protection
+----
+
+= Restarting PKI Server =
+
+----
+$ pki-server restart --wait
+----
