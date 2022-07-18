@@ -2,7 +2,9 @@
 
 This page describes the process to create an issuance protection certificate for link:Configuring-CMC-Shared-Token-Authentication[CMC Shared Token authentication] in CA.
 
-= Requesting Issuance Protection Certificate =
+= Generating Issuance Protection Certificate Request =
+
+First, generate a certificate request in the CA's NSS database:
 
 ----
 $ pki \
@@ -11,26 +13,38 @@ $ pki \
     nss-cert-request \
     --subject "CN=Issuance Protection" \
     --csr issuance_protection.csr
+----
 
+Then generate a CMC request with the above certificate request:
+
+----
 $ CMCRequest \
-    -d /etc/pki/pki-tomcat/alias \
     /usr/share/pki/server/examples/cmc/issuance_protection-cmc-request.cfg
 ----
 
 = Issuing Issuance Protection Certificate =
 
+Submit the CMC request to the server:
+
 ----
 $ HttpClient \
-    -d /etc/pki/pki-tomcat/alias \
     /usr/share/pki/server/examples/cmc/issuance_protection-cmc-submit.cfg
+----
 
+Processed the response with the following command:
+
+----
 $ CMCResponse \
     -d /etc/pki/pki-tomcat/alias \
     -i issuance_protection.cmc-response \
     -o issuance_protection.p7b
 ----
 
+The issuance protection certificate chain will be stored in `issuance_protection.p7b`.
+
 = Importing Issuance Protection Certificate =
+
+To import the certificate into the CA's NSS database:
 
 ----
 $ pki \
@@ -42,6 +56,8 @@ $ pki \
 ----
 
 = Configuring Issuance Protection =
+
+To register the certificate as a system certificate:
 
 ----
 $ pki-server ca-config-set ca.cert.issuance_protection.nickname issuance_protection
