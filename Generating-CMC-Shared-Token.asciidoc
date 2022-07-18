@@ -1,0 +1,53 @@
+= Importing Issuance Protection Certificate =
+
+----
+
+$ pki \
+    pkcs7-cert-export \
+    --pkcs7 issuance_protection.p7b \
+    --output-prefix issuance_protection- \
+    --output-suffix .crt \
+
+$ pki \
+    nss-cert-import \
+    --cert issuance_protection-1.crt \
+    issuance_protection
+----
+
+= Generating Shared Token =
+
+----
+$ CMCSharedToken \
+    -d /root/.dogtag/nssdb \
+    -p "" \
+    -n issuance_protection \
+    -s <token> \
+    -o shared_token.b64
+
+$ sed -i -e :a -e 'N;s/\n/,/;ba' shared_token.b64
+$ SHARED_TOKEN=$(cat shared_token.b64)
+----
+
+= Adding Shared Token for User =
+
+----
+$ ldapmodify \
+    -H ldap://ds.example.com:3389 \
+    -x \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    << EOF
+dn: uid=testuser,ou=people,dc=example,dc=com
+changetype: modify
+add: objectClass
+objectClass: extensibleobject
+-
+add: shrTok
+shrTok: $SHARED_TOKEN
+-
+EOF
+----
+
+= See Also =
+
+* link:PKI-10.5-CMC-Shared-Token[PKI 10.5 CMC Shared Token]
