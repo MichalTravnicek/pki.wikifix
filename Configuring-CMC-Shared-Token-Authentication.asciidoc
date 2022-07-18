@@ -2,56 +2,6 @@
 
 This page is still under construction.
 
-= Creating Issuance Protection Certificate =
-
-----
-$ pki \
-    -d /etc/pki/pki-tomcat/alias \
-    -f /etc/pki/pki-tomcat/password.conf \
-    nss-cert-request \
-    --subject "CN=Issuance Protection" \
-    --csr issuance_protection.csr
-
-$ CMCRequest \
-    /usr/share/pki/server/examples/cmc/issuance_protection-cmc-request.cfg
-
-$ HttpClient \
-    /usr/share/pki/server/examples/cmc/issuance_protection-cmc-submit.cfg
-
-$ CMCResponse \
-    -d /root/.dogtag/nssdb \
-    -i issuance_protection.cmc-response \
-    -o issuance_protection.p7b
-----
-
-= Importing Issuance Protection Certificate =
-
-----
-$ pki \
-    -d /etc/pki/pki-tomcat/alias \
-    -f /etc/pki/pki-tomcat/password.conf \
-    pkcs7-import \
-    --pkcs7 issuance_protection.p7b \
-    issuance_protection
-
-$ pki \
-    pkcs7-cert-export \
-    --pkcs7 issuance_protection.p7b \
-    --output-prefix issuance_protection- \
-    --output-suffix .crt \
-
-$ pki \
-    nss-cert-import \
-    --cert issuance_protection-1.crt \
-    issuance_protection
-----
-
-= Configuring Issuance Protection =
-
-----
-$ pki-server ca-config-set ca.cert.issuance_protection.nickname issuance_protection
-----
-
 = Configuring Authentication Manager =
 
 ----
@@ -127,6 +77,18 @@ $ ldapadd \
 = Issuing Certificate with CMC Shared Token =
 
 ----
+
+$ pki \
+    pkcs7-cert-export \
+    --pkcs7 issuance_protection.p7b \
+    --output-prefix issuance_protection- \
+    --output-suffix .crt \
+
+$ pki \
+    nss-cert-import \
+    --cert issuance_protection-1.crt \
+    issuance_protection
+
 $ pki nss-key-create --key-type RSA | tee output
 $ KEY_ID=$(sed -n 's/^\s*Key ID:\s*\(\S\+\)\s*$/\1/p' output)
 
