@@ -1,4 +1,4 @@
-= Creating Issuance Protection Certificate =
+= Requesting Issuance Protection Certificate =
 
 ----
 $ pki \
@@ -11,7 +11,11 @@ $ pki \
 $ CMCRequest \
     -d /etc/pki/pki-tomcat/alias \
     /usr/share/pki/server/examples/cmc/issuance_protection-cmc-request.cfg
+----
 
+= Issuing Issuance Protection Certificate =
+
+----
 $ HttpClient \
     -d /etc/pki/pki-tomcat/alias \
     /usr/share/pki/server/examples/cmc/issuance_protection-cmc-submit.cfg
