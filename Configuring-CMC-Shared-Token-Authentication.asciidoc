@@ -6,7 +6,44 @@ It assumes that:
 
 * Issuance protection certificate has been link:Creating-Issuance-Protection-Certificate[created].
 
+= Setting Up Authentication Database =
+
+First, update the schema to add the LDAP attribute for the shared token:
+
+----
+$ ldapmodify \
+    -H ldap://ds.example.com:3389 \
+    -x \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f /usr/share/pki/ca/auth/ds/schema.ldif
+----
+
+Create the subtree (e.g. `ou=people,dc=example,dc=com`) to store the users:
+
+----
+$ ldapadd \
+    -H ldap://ds.example.com:3389 \
+    -x \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f /usr/share/pki/ca/auth/ds/create.ldif
+----
+
+Then add the users:
+
+----
+$ ldapadd \
+    -H ldap://ds.example.com:3389 \
+    -x \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f /usr/share/pki/ca/auth/ds/example.ldif
+----
+
 = Configuring Authentication Manager =
+
+Add an authentication manager using the above authentication database:
 
 ----
 $ pki-server ca-config-set auths.instance.SharedToken.ldap.basedn ou=people,dc=example,dc=com
@@ -29,46 +66,35 @@ $ sed -i \
     /var/lib/pki/pki-tomcat/ca/profiles/ca/caFullCMCSharedTokenCert.cfg
 ----
 
-= Restarting PKI Server =
+= Restarting CA Subsystem =
 
 ----
-$ pki-server restart --wait
+$ pki-server ca-undeploy --wait
+$ pki-server ca-deploy --wait
 ----
 
-= Setting Up Authentication Database =
+= Generating Shared Token =
 
 ----
-$ ldapmodify \
-    -H ldap://ds.example.com:3389 \
-    -x \
-    -D "cn=Directory Manager" \
-    -w Secret.123 \
-    -f /usr/share/pki/server/conf/schema-sharedToken.ldif
-
-$ ldapadd \
-    -H ldap://ds.example.com:3389 \
-    -x \
-    -D "cn=Directory Manager" \
-    -w Secret.123 \
-    -f /usr/share/pki/server/examples/cmc/shared_secret-people.ldif
-
 $ CMCSharedToken \
     -d /root/.dogtag/nssdb \
     -p "" \
     -n issuance_protection \
     -s <token> \
-    -o shared_secret.b64
+    -o shared_token.b64
 
-$ sed -i -e :a -e 'N;s/\n/,/;ba' shared_secret.b64
+$ sed -i -e :a -e 'N;s/\n/,/;ba' shared_token.b64
+$ SHARED_TOKEN=$(cat shared_token.b64)
+----
 
-$ SHARED_SECRET="shrTok: $(cat shared_secret.b64)"
-$ echo "shrTok: $SHARED_SECRET" >> shared_secret-user.shrTok
+= Adding User with Shared Token =
 
+----
 $ cp \
     /usr/share/pki/server/examples/cmc/shared_secret-user.ldif \
     shared_secret-user.ldif
 
-$ sed -i "\$ a\\$SHARED_SECRET" shared_secret-user.ldif
+$ sed -i "\$ a\\shrTok: $SHARED_TOKEN" shared_secret-user.ldif
 
 $ ldapadd \
     -H ldap://ds.example.com:3389 \
