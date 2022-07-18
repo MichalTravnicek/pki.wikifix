@@ -73,37 +73,6 @@ $ pki-server ca-undeploy --wait
 $ pki-server ca-deploy --wait
 ----
 
-= Generating Shared Token =
-
-----
-$ CMCSharedToken \
-    -d /root/.dogtag/nssdb \
-    -p "" \
-    -n issuance_protection \
-    -s <token> \
-    -o shared_token.b64
-
-$ sed -i -e :a -e 'N;s/\n/,/;ba' shared_token.b64
-$ SHARED_TOKEN=$(cat shared_token.b64)
-----
-
-= Adding User with Shared Token =
-
-----
-$ cp \
-    /usr/share/pki/server/examples/cmc/shared_secret-user.ldif \
-    shared_secret-user.ldif
-
-$ sed -i "\$ a\\shrTok: $SHARED_TOKEN" shared_secret-user.ldif
-
-$ ldapadd \
-    -H ldap://ds.example.com:3389 \
-    -x \
-    -D "cn=Directory Manager" \
-    -w Secret.123 \
-    -f shared_secret-user.ldif
-----
-
 = See Also =
 
 * link:PKI-10.5-CMC-Shared-Token[PKI 10.5 CMC Shared Token]
