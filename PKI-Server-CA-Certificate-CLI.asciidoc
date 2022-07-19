@@ -1,3 +1,36 @@
+= Listing Certificates =
+
+To list certificates in CA database:
+
+----
+$ pki-server ca-cert-find
+----
+
+= Creating Certificate =
+
+To create a certificate:
+
+----
+$ pki-server ca-cert-create \
+    --request <ID> \
+    --profile <ID> \
+    --key-ID <ID> \
+    --serial <serial>
+----
+
+**Availability:** Since PKI 11.3.
+
+= Importing Certificate =
+
+----
+$ pki-server ca-cert-import \
+    --cert <path> \
+    --profile <ID> \
+    --request <ID>
+----
+
+**Availability:** Since PKI 11.3.
+
 = Exporting Certificate Chain =
 
 To export certificate chain to install additional subsystems:
