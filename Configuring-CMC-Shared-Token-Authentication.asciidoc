@@ -61,7 +61,7 @@ $ pki-server ca-config-set auths.instance.SharedToken.shrTokAttr shrTok
 
 ----
 $ sed -i \
-    -e "s/\(^enable\)=.*/\1=true/" \
+    -e "s/^\(enable\)=.*/\1=true/" \
     /var/lib/pki/pki-tomcat/ca/profiles/ca/caFullCMCSharedTokenCert.cfg
 ----
 
