@@ -33,15 +33,13 @@ $ sed -i \
     -e "s/\(request.privKeyId\)=.*/\1=$KEY_ID/" \
     testuser-cmc-request.cfg
 
-$ CMCRequest \
-     testuser-cmc-request.cfg
+$ CMCRequest testuser-cmc-request.cfg
 ----
 
 = Issuing User Certificate =
 
 ----
-$ HttpClient \
-     /usr/share/pki/tools/examples/cmc/testuser-cmc-submit.cfg
+$ HttpClient /usr/share/pki/tools/examples/cmc/testuser-cmc-submit.cfg
 
 $ CMCResponse \
     -d /root/.dogtag/nssdb \
@@ -49,11 +47,8 @@ $ CMCResponse \
     -o testuser.p7b
 ----
 
-= Importing User Certificate Chain =
+= Importing User Certificate =
 
 ----
-$ pki \
-    pkcs7-import \
-    --pkcs7 testuser.p7b \
-    testuser
+$ pki pkcs7-import --pkcs7 testuser.p7b testuser
 ----
