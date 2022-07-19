@@ -1,6 +1,6 @@
-= Listing Certificates =
+= Listing Certificate Records =
 
-To list certificates in CA database:
+To list certificate records in CA:
 
 ----
 $ pki-server ca-cert-find
@@ -8,7 +8,7 @@ $ pki-server ca-cert-find
 
 = Creating Certificate =
 
-To create a certificate:
+To create a certificate from a certificate request in CA:
 
 ----
 $ pki-server ca-cert-create \
@@ -22,6 +22,8 @@ $ pki-server ca-cert-create \
 
 = Importing Certificate =
 
+To import a certificate into CA:
+
 ----
 $ pki-server ca-cert-import \
     --cert <path> \
@@ -30,6 +32,14 @@ $ pki-server ca-cert-import \
 ----
 
 **Availability:** Since PKI 11.3.
+
+= Removing Certificate Record =
+
+To remove a certificate record from CA:
+
+----
+$ pki-server ca-cert-del <serial>
+----
 
 = Exporting Certificate Chain =
 
