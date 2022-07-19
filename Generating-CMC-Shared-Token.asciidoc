@@ -19,7 +19,7 @@ $ CMCSharedToken \
     -o testuser.b64
 ----
 
-The token will be wrapped with issuance protection's public key and stored into `testuser.b64`. Load the encrypted token and convert it into a single line with the following command:
+The token will be encrypted with issuance protection's public key and stored into `testuser.b64`. Convert the encrypted token into a single line with the following command:
 
 ----
 $ SHARED_TOKEN=$(sed -e :a -e 'N;s/\n//;ba' testuser.b64)
