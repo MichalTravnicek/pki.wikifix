@@ -8,28 +8,6 @@ It assumes that:
 * CMC shared token authentication has been link:Configuring-CMC-Shared-Token-Authentication[configured].
 * A shared token has been link:Generating-CMC-Shared-Token[generated] for a user.
 
-= Exporting Issuance Protection Certificate =
-
-To export the issuance protection certificate from CA's NSS database:
-
-----
-$ pki-server \
-    cert-export \
-    --cert-file ca_issuance_protection.crt \
-    ca_issuance_protection
-----
-
-= Importing Issuance Protection Certificate =
-
-To import the issuance protection certificate into the client's NSS database:
-
-----
-$ pki \
-    nss-cert-import \
-    --cert ca_issuance_protection.crt \
-    ca_issuance_protection
-----
-
 = Generating Certificate Request =
 
 ----
