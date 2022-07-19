@@ -8,19 +8,22 @@ It assumes that:
 * CMC shared token authentication has been link:Configuring-CMC-Shared-Token-Authentication[configured].
 * A shared token has been link:Generating-CMC-Shared-Token[generated] for a user.
 
-= Importing Issuance Protection Certificate =
+= Exporting Issuance Protection Certificate =
+
+To export the issuance protection certificate from CA's NSS database:
 
 ----
+$ pki-server cert-export issuance_protection --cert-file issuance_protection.crt
+----
 
-$ pki \
-    pkcs7-cert-export \
-    --pkcs7 issuance_protection.p7b \
-    --output-prefix issuance_protection- \
-    --output-suffix .crt \
+= Importing Issuance Protection Certificate =
 
+To import the issuance protection certificate into the client's NSS database:
+
+----
 $ pki \
     nss-cert-import \
-    --cert issuance_protection-1.crt \
+    --cert issuance_protection.crt \
     issuance_protection
 ----
 
@@ -34,42 +37,42 @@ $ pki \
     nss-cert-request \
     --key-id $KEY_ID \
     --subject "uid=testuser" \
-    --ext /usr/share/pki/server/certs/shared_secret.conf \
-    --csr shared_secret.csr
+    --ext /usr/share/pki/tools/certs/testuser.conf \
+    --csr testuser.csr
 ----
 
 = Creating CMC Request =
 
 ----
 $ cp \
-    /usr/share/pki/server/examples/cmc/shared_secret-cmc-request.cfg \
-    shared_secret-cmc-request.cfg
+    /usr/share/pki/tools/examples/cmc/testuser-cmc-request.cfg \
+    testuser-cmc-request.cfg
 
 $ sed -i \
     -e "s/\(request.privKeyId\)=.*/\1=$KEY_ID/" \
-    shared_secret-cmc-request.cfg
+    testuser-cmc-request.cfg
 
 $ CMCRequest \
-     shared_secret-cmc-request.cfg
+     testuser-cmc-request.cfg
 ----
 
 = Issuing Certificate =
 
 ----
 $ HttpClient \
-     /usr/share/pki/server/examples/cmc/shared_secret-cmc-submit.cfg
+     /usr/share/pki/tools/examples/cmc/testuser-cmc-submit.cfg
 
 $ CMCResponse \
     -d /root/.dogtag/nssdb \
-    -i shared_secret.cmc-response \
-    -o shared_secret.p7b
+    -i testuser.cmc-response \
+    -o testuser.p7b
 ----
 
-= Importing Issued Certificate =
+= Importing Issued Certificate Chain =
 
 ----
 $ pki \
     pkcs7-import \
-    --pkcs7 shared_secret.p7b \
+    --pkcs7 testuser.p7b \
     testuser
 ----
