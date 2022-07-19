@@ -8,16 +8,21 @@ It assumes that:
 
 = Generating Shared Token =
 
+To generate a shared token:
+
 ----
 $ CMCSharedToken \
-    -d /root/.dogtag/nssdb \
-    -p "" \
-    -n issuance_protection \
+    -d /etc/pki/pki-tomcat/alias \
+    -p Secret.123 \
+    -n ca_issuance_protection \
     -s <token> \
     -o testuser.b64
+----
 
-$ sed -i -e :a -e 'N;s/\n//;ba' testuser.b64
-$ SHARED_TOKEN=$(cat testuser.b64)
+The token will be wrapped with issuance protection's public key and stored into `testuser.b64`. Load the encrypted token and convert it into a single line with the following command:
+
+----
+$ SHARED_TOKEN=$(sed -e :a -e 'N;s/\n//;ba' testuser.b64)
 ----
 
 = Adding Shared Token for User =
