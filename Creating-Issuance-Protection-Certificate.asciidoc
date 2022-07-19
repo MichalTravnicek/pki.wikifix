@@ -11,15 +11,15 @@ $ pki \
     -d /etc/pki/pki-tomcat/alias \
     -f /etc/pki/pki-tomcat/password.conf \
     nss-cert-request \
-    --subject "CN=Issuance Protection" \
-    --csr issuance_protection.csr
+    --subject "CN=CA Issuance Protection" \
+    --csr ca_issuance_protection.csr
 ----
 
 Then generate a CMC request with the above certificate request:
 
 ----
 $ CMCRequest \
-    /usr/share/pki/server/examples/cmc/issuance_protection-cmc-request.cfg
+    /usr/share/pki/server/examples/cmc/ca_issuance_protection-cmc-request.cfg
 ----
 
 = Issuing Issuance Protection Certificate =
@@ -28,7 +28,7 @@ Submit the CMC request to the server:
 
 ----
 $ HttpClient \
-    /usr/share/pki/server/examples/cmc/issuance_protection-cmc-submit.cfg
+    /usr/share/pki/server/examples/cmc/ca_issuance_protection-cmc-submit.cfg
 ----
 
 Processed the response with the following command:
@@ -36,11 +36,11 @@ Processed the response with the following command:
 ----
 $ CMCResponse \
     -d /etc/pki/pki-tomcat/alias \
-    -i issuance_protection.cmc-response \
-    -o issuance_protection.p7b
+    -i ca_issuance_protection.cmc-response \
+    -o ca_issuance_protection.p7b
 ----
 
-The issuance protection certificate chain will be stored in `issuance_protection.p7b`.
+The issuance protection certificate chain will be stored in `ca_issuance_protection.p7b`.
 
 = Importing Issuance Protection Certificate =
 
@@ -51,8 +51,8 @@ $ pki \
     -d /etc/pki/pki-tomcat/alias \
     -f /etc/pki/pki-tomcat/password.conf \
     pkcs7-import \
-    --pkcs7 issuance_protection.p7b \
-    issuance_protection
+    --pkcs7 ca_issuance_protection.p7b \
+    ca_issuance_protection
 ----
 
 = Configuring Issuance Protection =
