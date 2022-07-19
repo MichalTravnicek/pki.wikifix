@@ -8,7 +8,7 @@ It assumes that:
 
 = Setting Up Authentication Database =
 
-First, update the schema to add the LDAP attribute for the shared token:
+Update the schema to define the LDAP attribute for the shared token:
 
 ----
 $ ldapmodify \
@@ -19,7 +19,7 @@ $ ldapmodify \
     -f /usr/share/pki/ca/auth/ds/schema.ldif
 ----
 
-Create the subtree (e.g. `ou=people,dc=example,dc=com`) to store the users:
+Create the subtree (e.g. `ou=people,dc=example,dc=com`) to store the user records:
 
 ----
 $ ldapadd \
@@ -30,7 +30,7 @@ $ ldapadd \
     -f /usr/share/pki/ca/auth/ds/create.ldif
 ----
 
-Then add the users:
+Then add user records:
 
 ----
 $ ldapadd \
@@ -43,7 +43,7 @@ $ ldapadd \
 
 = Configuring Authentication Manager =
 
-Add an authentication manager using the above authentication database:
+Configure CMC shared token authentication to use the above authentication database:
 
 ----
 $ pki-server ca-config-set auths.instance.SharedToken.ldap.basedn ou=people,dc=example,dc=com
@@ -53,7 +53,6 @@ $ pki-server ca-config-set auths.instance.SharedToken.ldap.ldapauth.bindPWPrompt
 $ pki-server ca-config-set auths.instance.SharedToken.ldap.ldapconn.host ds.example.com
 $ pki-server ca-config-set auths.instance.SharedToken.ldap.ldapconn.port 3389
 $ pki-server ca-config-set auths.instance.SharedToken.ldap.ldapconn.secureConn false
-$ pki-server ca-config-set auths.instance.SharedToken.ldap.ldapconn.version 3
 $ pki-server ca-config-set auths.instance.SharedToken.pluginName SharedToken
 $ pki-server ca-config-set auths.instance.SharedToken.shrTokAttr shrTok
 ----
@@ -62,7 +61,7 @@ $ pki-server ca-config-set auths.instance.SharedToken.shrTokAttr shrTok
 
 ----
 $ sed -i \
-    -e "s/\(enable\)=.*/\1=true/" \
+    -e "s/\(^enable\)=.*/\1=true/" \
     /var/lib/pki/pki-tomcat/ca/profiles/ca/caFullCMCSharedTokenCert.cfg
 ----
 
