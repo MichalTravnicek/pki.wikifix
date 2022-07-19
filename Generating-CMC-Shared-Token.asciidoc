@@ -1,3 +1,11 @@
+= Overview =
+
+This page describes the process to generate a token for link:Issuing-Certificate-with-CMC-Shared-Token[issuing a certificate with CMC shared token].
+
+It assumes that:
+
+* Issuance protection certificate has been link:Creating-Issuance-Protection-Certificate[created].
+
 = Generating Shared Token =
 
 ----
@@ -6,10 +14,10 @@ $ CMCSharedToken \
     -p "" \
     -n issuance_protection \
     -s <token> \
-    -o shared_token.b64
+    -o testuser.b64
 
-$ sed -i -e :a -e 'N;s/\n/,/;ba' shared_token.b64
-$ SHARED_TOKEN=$(cat shared_token.b64)
+$ sed -i -e :a -e 'N;s/\n//;ba' testuser.b64
+$ SHARED_TOKEN=$(cat testuser.b64)
 ----
 
 = Adding Shared Token for User =
