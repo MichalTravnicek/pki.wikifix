@@ -7,8 +7,8 @@ This page describes the process to configure the CA to publish the CRL to a file
 To prepare the publishing folder execute the following commands:
 
 ----
-$ mkdir /var/lib/pki/pki-tomcat/ca/crl
-$ chown pkiuser.pkiuser /var/lib/pki/pki-tomcat/ca/crl
+$ mkdir /var/lib/pki/pki-tomcat/crl
+$ chown pkiuser.pkiuser /var/lib/pki/pki-tomcat/crl
 ----
 
 = Configuring CRL Publishing =
@@ -18,44 +18,44 @@ The CRL publishing configuration is stored in `/var/lib/pki/pki-tomcat/ca/conf/C
 To configure file-based CRL publisher:
 
 ----
-ca.publish.publisher.instance.FileBasedPublisher.pluginName=FileBasedPublisher
-ca.publish.publisher.instance.FileBasedPublisher.crlLinkExt=bin
-ca.publish.publisher.instance.FileBasedPublisher.directory=/var/lib/pki/pki-tomcat/ca/crl
-ca.publish.publisher.instance.FileBasedPublisher.latestCrlLink=true
-ca.publish.publisher.instance.FileBasedPublisher.timeStamp=LocalTime
-ca.publish.publisher.instance.FileBasedPublisher.zipCRLs=false
-ca.publish.publisher.instance.FileBasedPublisher.zipLevel=9
-ca.publish.publisher.instance.FileBasedPublisher.Filename.b64=false
-ca.publish.publisher.instance.FileBasedPublisher.Filename.der=true
+$ pki-server ca-config-set ca.publish.publisher.instance.FileBasedPublisher.pluginName FileBasedPublisher
+$ pki-server ca-config-set ca.publish.publisher.instance.FileBasedPublisher.crlLinkExt bin
+$ pki-server ca-config-set ca.publish.publisher.instance.FileBasedPublisher.directory /var/lib/pki/pki-tomcat/crl
+$ pki-server ca-config-set ca.publish.publisher.instance.FileBasedPublisher.latestCrlLink true
+$ pki-server ca-config-set ca.publish.publisher.instance.FileBasedPublisher.timeStamp LocalTime
+$ pki-server ca-config-set ca.publish.publisher.instance.FileBasedPublisher.zipCRLs false
+$ pki-server ca-config-set ca.publish.publisher.instance.FileBasedPublisher.zipLevel 9
+$ pki-server ca-config-set ca.publish.publisher.instance.FileBasedPublisher.Filename.b64 false
+$ pki-server ca-config-set ca.publish.publisher.instance.FileBasedPublisher.Filename.der true
 ----
 
 To configure CRL publishing rule:
 
 ----
-ca.publish.rule.instance.FileCrlRule.enable=true
-ca.publish.rule.instance.FileCrlRule.mapper=NoMap
-ca.publish.rule.instance.FileCrlRule.pluginName=Rule
-ca.publish.rule.instance.FileCrlRule.predicate=
-ca.publish.rule.instance.FileCrlRule.publisher=FileBasedPublisher
-ca.publish.rule.instance.FileCrlRule.type=crl
+$ pki-server ca-config-set ca.publish.rule.instance.FileCrlRule.enable true
+$ pki-server ca-config-set ca.publish.rule.instance.FileCrlRule.mapper NoMap
+$ pki-server ca-config-set ca.publish.rule.instance.FileCrlRule.pluginName Rule
+$ pki-server ca-config-set ca.publish.rule.instance.FileCrlRule.predicate ""
+$ pki-server ca-config-set ca.publish.rule.instance.FileCrlRule.publisher FileBasedPublisher
+$ pki-server ca-config-set ca.publish.rule.instance.FileCrlRule.type crl
 ----
 
 To enable CRL publishing:
 
 ----
-ca.publish.enable=true
+$ pki-server ca-config-set ca.publish.enable true
 ----
 
 To simplify testing, the buffer size for revocation checking can be set to `0` so that each certificate revocation will take effect immediately:
 
 ----
-auths.revocationChecking.bufferSize=0
+$ pki-server ca-config-set auths.revocationChecking.bufferSize 0
 ----
 
 Also by default the CRL is only updated at scheduled times. To update the CRL immediately on each certificate revocation:
 
 ----
-ca.crl.MasterCRL.alwaysUpdate=true
+$ pki-server ca-config-set ca.crl.MasterCRL.alwaysUpdate true
 ----
 
 Finally, restart the server.
@@ -66,7 +66,7 @@ To view the published CRL:
 
 ----
 $ openssl crl \
-    -in /var/lib/pki/pki-tomcat/ca/crl/MasterCRL.bin \
+    -in /var/lib/pki/pki-tomcat/crl/MasterCRL.bin \
     -inform DER \
     -text \
     -noout
