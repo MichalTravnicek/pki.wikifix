@@ -31,7 +31,7 @@ To configure CRL mapper:
 
 ----
 ca.publish.mapper.instance.LdapCrlMap.createCAEntry=true
-ca.publish.mapper.instance.LdapCrlMap.dnPattern=cn=$subj.cn,dc=example,dc=com
+ca.publish.mapper.instance.LdapCrlMap.dnPattern=cn=crl,dc=example,dc=com
 ca.publish.mapper.instance.LdapCrlMap.pluginName=LdapCaSimpleMap
 ----
 
@@ -76,10 +76,10 @@ $ ldapsearch \
     -x \
     -D "cn=Directory Manager" \
     -w Secret.123 \
-    -b "cn=Certificate Authority,dc=example,dc=com" \
+    -b "cn=crl,dc=example,dc=com" \
     -t \
     certificateRevocationList
-dn: cn=Certificate Authority,dc=example,dc=com
+dn: cn=crl,dc=example,dc=com
 certificateRevocationList;binary:< file://<path>
 ----
 
