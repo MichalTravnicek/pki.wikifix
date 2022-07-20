@@ -9,59 +9,59 @@ The CRL publishing configuration is stored in `/var/lib/pki/pki-tomcat/ca/conf/C
 To configure the LDAP connection:
 
 ----
-ca.publish.ldappublish.enable=true
-ca.publish.ldappublish.ldap.ldapauth.authtype=BasicAuth
-ca.publish.ldappublish.ldap.ldapauth.bindDN=cn=Directory Manager
-ca.publish.ldappublish.ldap.ldapauth.bindPWPrompt=internaldb
-ca.publish.ldappublish.ldap.ldapauth.clientCertNickname=
-ca.publish.ldappublish.ldap.ldapconn.host=localhost.localdomain
-ca.publish.ldappublish.ldap.ldapconn.port=389
-ca.publish.ldappublish.ldap.ldapconn.secureConn=false
+$ pki-server ca-config-set ca.publish.ldappublish.enable true
+$ pki-server ca-config-set ca.publish.ldappublish.ldap.ldapauth.authtype BasicAuth
+$ pki-server ca-config-set ca.publish.ldappublish.ldap.ldapauth.bindDN "cn=Directory Manager"
+$ pki-server ca-config-set ca.publish.ldappublish.ldap.ldapauth.bindPWPrompt internaldb
+$ pki-server ca-config-set ca.publish.ldappublish.ldap.ldapauth.clientCertNickname ""
+$ pki-server ca-config-set ca.publish.ldappublish.ldap.ldapconn.host localhost.localdomain
+$ pki-server ca-config-set ca.publish.ldappublish.ldap.ldapconn.port 389
+$ pki-server ca-config-set ca.publish.ldappublish.ldap.ldapconn.secureConn false
 ----
 
 To configure LDAP-based CRL publisher:
 
 ----
-ca.publish.publisher.instance.LdapCrlPublisher.crlAttr=certificateRevocationList;binary
-ca.publish.publisher.instance.LdapCrlPublisher.crlObjectClass=pkiCA
-ca.publish.publisher.instance.LdapCrlPublisher.pluginName=LdapCrlPublisher
+$ pki-server ca-config-set ca.publish.publisher.instance.LdapCrlPublisher.crlAttr "certificateRevocationList;binary"
+$ pki-server ca-config-set ca.publish.publisher.instance.LdapCrlPublisher.crlObjectClass pkiCA
+$ pki-server ca-config-set ca.publish.publisher.instance.LdapCrlPublisher.pluginName LdapCrlPublisher
 ----
 
 To configure CRL mapper:
 
 ----
-ca.publish.mapper.instance.LdapCrlMap.createCAEntry=true
-ca.publish.mapper.instance.LdapCrlMap.dnPattern=cn=crl,dc=example,dc=com
-ca.publish.mapper.instance.LdapCrlMap.pluginName=LdapCaSimpleMap
+$ pki-server ca-config-set ca.publish.mapper.instance.LdapCrlMap.createCAEntry true
+$ pki-server ca-config-set ca.publish.mapper.instance.LdapCrlMap.dnPattern cn=crl,dc=example,dc=com
+$ pki-server ca-config-set ca.publish.mapper.instance.LdapCrlMap.pluginName LdapCaSimpleMap
 ----
 
 To configure CRL publishing rule:
 
 ----
-ca.publish.rule.instance.LdapCrlRule.enable=true
-ca.publish.rule.instance.LdapCrlRule.mapper=LdapCrlMap
-ca.publish.rule.instance.LdapCrlRule.pluginName=Rule
-ca.publish.rule.instance.LdapCrlRule.predicate=issuingPointId==MasterCRL
-ca.publish.rule.instance.LdapCrlRule.publisher=LdapCrlPublisher
-ca.publish.rule.instance.LdapCrlRule.type=crl
+$ pki-server ca-config-set ca.publish.rule.instance.LdapCrlRule.enable true
+$ pki-server ca-config-set ca.publish.rule.instance.LdapCrlRule.mapper LdapCrlMap
+$ pki-server ca-config-set ca.publish.rule.instance.LdapCrlRule.pluginName Rule
+$ pki-server ca-config-set ca.publish.rule.instance.LdapCrlRule.predicate issuingPointId==MasterCRL
+$ pki-server ca-config-set ca.publish.rule.instance.LdapCrlRule.publisher LdapCrlPublisher
+$ pki-server ca-config-set ca.publish.rule.instance.LdapCrlRule.type crl
 ----
 
 To enable CRL publishing:
 
 ----
-ca.publish.enable=true
+$ pki-server ca-config-set ca.publish.enable true
 ----
 
 To simplify testing, the buffer size for revocation checking can be set to `0` so that each certificate revocation will take effect immediately:
 
 ----
-auths.revocationChecking.bufferSize=0
+$ pki-server ca-config-set auths.revocationChecking.bufferSize 0
 ----
 
 Also by default the CRL is only updated at scheduled times. To update the CRL immediately on each certificate revocation:
 
 ----
-ca.crl.MasterCRL.alwaysUpdate=true
+$ pki-server ca-config-set ca.crl.MasterCRL.alwaysUpdate true
 ----
 
 Finally, restart the server.
@@ -77,6 +77,7 @@ $ ldapsearch \
     -D "cn=Directory Manager" \
     -w Secret.123 \
     -b "cn=crl,dc=example,dc=com" \
+    -o ldif_wrap=no \
     -t \
     certificateRevocationList
 dn: cn=crl,dc=example,dc=com
