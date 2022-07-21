@@ -9,40 +9,40 @@ The OCSP publishing configuration is stored in `/var/lib/pki/pki-tomcat/ca/conf/
 To configure OCSP publisher:
 
 ----
-ca.publish.publisher.instance.OCSPPublisher-pki-example-com-8443.enableClientAuth=true
-ca.publish.publisher.instance.OCSPPublisher-pki-example-com-8443.host=pki.example.com
-ca.publish.publisher.instance.OCSPPublisher-pki-example-com-8443.nickName=subsystem
-ca.publish.publisher.instance.OCSPPublisher-pki-example-com-8443.path=/ocsp/agent/ocsp/addCRL
-ca.publish.publisher.instance.OCSPPublisher-pki-example-com-8443.pluginName=OCSPPublisher
-ca.publish.publisher.instance.OCSPPublisher-pki-example-com-8443.port=8443
+$ pki-server ca-config-set ca.publish.publisher.instance.OCSPPublisher.enableClientAuth true
+$ pki-server ca-config-set ca.publish.publisher.instance.OCSPPublisher.host pki.example.com
+$ pki-server ca-config-set ca.publish.publisher.instance.OCSPPublisher.nickName subsystem
+$ pki-server ca-config-set ca.publish.publisher.instance.OCSPPublisher.path /ocsp/agent/ocsp/addCRL
+$ pki-server ca-config-set ca.publish.publisher.instance.OCSPPublisher.pluginName OCSPPublisher
+$ pki-server ca-config-set ca.publish.publisher.instance.OCSPPublisher.port 8443
 ----
 
 To configure CRL publishing rule:
 
 ----
-ca.publish.rule.instance.ocsprule-pki-example-com-8443.enable=true
-ca.publish.rule.instance.ocsprule-pki-example-com-8443.mapper=NoMap
-ca.publish.rule.instance.ocsprule-pki-example-com-8443.pluginName=Rule
-ca.publish.rule.instance.ocsprule-pki-example-com-8443.publisher=OCSPPublisher-pki-example-com-8443
-ca.publish.rule.instance.ocsprule-pki-example-com-8443.type=crl
+$ pki-server ca-config-set ca.publish.rule.instance.OCSPRule.enable true
+$ pki-server ca-config-set ca.publish.rule.instance.OCSPRule.mapper NoMap
+$ pki-server ca-config-set ca.publish.rule.instance.OCSPRule.pluginName Rule
+$ pki-server ca-config-set ca.publish.rule.instance.OCSPRule.publisher OCSPPublisher
+$ pki-server ca-config-set ca.publish.rule.instance.OCSPRule.type crl
 ----
 
 To enable CRL publishing:
 
 ----
-ca.publish.enable=true
+$ pki-server ca-config-set ca.publish.enable true
 ----
 
 To simplify testing, the buffer size for revocation checking can be set to `0` so that each certificate revocation will take effect immediately:
 
 ----
-auths.revocationChecking.bufferSize=0
+$ pki-server ca-config-set auths.revocationChecking.bufferSize 0
 ----
 
 Also by default the CRL is only updated at scheduled times. To update the CRL immediately on each certificate revocation:
 
 ----
-ca.crl.MasterCRL.alwaysUpdate=true
+$ pki-server ca-config-set ca.crl.MasterCRL.alwaysUpdate true
 ----
 
 Finally, restart the server.
