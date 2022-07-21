@@ -1,0 +1,132 @@
+= Overview =
+
+This page describes the process to install a standalone OCSP. In this scenario, the OCSP uses an external CA to issue the OCSP system certificates. It does not join the CA's security domain, and CRL publishing will need to be link:Configuring-OCSP-Publishing[configured] separately in the CA.
+
+The installation process consists multiple steps:
+
+* Generating system certificate requests
+* Issuing system certificates
+* Importing system certificates
+
+See also link:https://github.com/dogtagpki/pki/blob/master/docs/installation/ocsp/Installing_OCSP_with_External_Certificates.md[Installing OCSP with External Certificates].
+
+= Generating Certificate Requests =
+
+Prepare a deployment configuration file for step 1 (e.g. `ocsp-standalone-step1.cfg`):
+
+----
+[OCSP]
+pki_admin_email=ocspadmin@example.com
+pki_admin_name=ocspadmin
+pki_admin_nickname=ocspadmin
+pki_admin_password=Secret.123
+pki_admin_uid=ocspadmin
+
+pki_client_database_password=Secret.123
+pki_client_database_purge=False
+pki_client_pkcs12_password=Secret.123
+
+pki_ds_base_dn=dc=ocsp,dc=example,dc=com
+pki_ds_database=ocsp
+pki_ds_password=Secret.123
+
+pki_security_domain_name=EXAMPLE
+pki_token_password=Secret.123
+
+pki_standalone=True
+pki_external_step_two=False
+
+pki_ocsp_signing_nickname=ocsp_signing
+pki_subsystem_nickname=subsystem
+pki_sslserver_nickname=sslserver
+pki_audit_signing_nickname=ocsp_audit_signing
+
+pki_external_signing_csr_path=ocsp_signing.csr
+pki_external_subsystem_csr_path=subsystem.csr
+pki_external_sslserver_csr_path=sslserver.csr
+pki_external_audit_signing_csr_path=ocsp_audit_signing.csr
+pki_external_admin_csr_path=ocsp_admin.csr
+----
+
+Optionally, specify the HSM parameters:
+
+----
+pki_hsm_enable=True
+pki_hsm_libfile=/opt/nfast/toolkits/pkcs11/libcknfast.so
+pki_hsm_modulename=nfast
+----
+
+Then execute the following command:
+
+----
+$ pkispawn -f ocsp-standalone-step1.cfg -s OCSP
+----
+
+It will create an NSS database in /var/lib/pki/pki-tomcat/alias and generate CSRs in the specified paths.
+
+= Issuing Certificates =
+
+Use the CSRs to issue OCSP certificates:
+
+* link:Issuing-OCSP-Signing-Certificate[Issuing OCSP Signing Certificate]
+* link:Issuing-Subsystem-Certificate[Issuing Subsystem Certificate]
+* link:Issuing-SSL-Server-Certificate[Issuing SSL Server Certificate]
+* link:Issuing-Audit-Signing-Certificate[Issuing Audit Signing Certificate]
+* link:Issuing-Admin-Certificate[Issuing Admin Certificate]
+
+Place the issued certificates in the location indicated in the next section.
+
+= Completing Installation =
+
+Prepare a deployment configuration for step 2 (e.g. `ocsp-standalone-step2.cfg`) by copying it from step 1 (i.e. `ocsp-standalone-step1.cfg`) and make the following changes.
+
+Specify step 2 with the following parameter:
+
+----
+pki_external_step_two=True
+----
+
+Specify the certificate files with the following parameter:
+
+----
+pki_external_signing_cert_path=ocsp_signing.crt
+pki_external_subsystem_cert_path=subsystem.crt
+pki_external_sslserver_cert_path=sslserver.crt
+pki_external_audit_signing_cert_path=ocsp_audit_signing.crt
+pki_external_admin_cert_path=ocsp_admin.crt
+----
+
+Each certificate file can contain either a single PEM certificate or a PKCS #7 certificate chain.
+
+If all of the above certificate files contain single certificates, the CA signing certificate and/or the certificate chain can be specified with the following parameters:
+
+----
+pki_external_ca_cert_chain_nickname=cert_chain
+pki_external_ca_cert_path=ca_signing.crt
+pki_external_ca_cert_chain_path=cert_chain.p7b
+----
+
+The CA signing certificate and the certificate chain file can contain either a single certificate or a PKCS #7 certificate chain as well.
+
+Finally, execute the following command:
+
+----
+$ pkispawn -f ocsp-standalone-step2.cfg -s OCSP
+----
+
+= Verification =
+
+----
+$ pki -d ~/.dogtag/pki-tomcat/ocsp/alias -c Secret.123 -n ocspadmin ocsp-user-find
+-----------------
+2 entries matched
+-----------------
+  User ID: ocspadmin
+  Full name: ocspadmin
+
+  User ID: pkidbuser
+  Full name: pkidbuser
+----------------------------
+Number of entries returned 2
+----------------------------
+----
