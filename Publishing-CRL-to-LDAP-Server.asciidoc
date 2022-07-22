@@ -2,6 +2,19 @@
 
 This page describes the process to configure CA to publish CRLs to an LDAP server.
 
+= Preparing LDAP Server =
+
+Ensure the LDAP server can be accessed with the following command:
+
+----
+$ ldapsearch \
+    -H ldap://$HOSTNAME:389 \
+    -x \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -b "dc=example,dc=com"
+----
+
 = Configuring CRL Publishing =
 
 The CRL publishing configuration is stored in `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg`.
