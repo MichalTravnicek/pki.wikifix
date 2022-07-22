@@ -1,0 +1,142 @@
+= Overview =
+
+This page describes the process to configure CA to publish CRLs to an OCSP responder.
+
+= Creating CA User in OCSP =
+
+Export the subsystem certificate from the CA:
+
+----
+$ pki-server cert-export subsystem --cert-file subsystem.crt
+----
+
+Create a user in OCSP's "Trusted Managers" group with the subsystem certificate:
+
+----
+$ pki-server ocsp-user-add CA --full-name "CA" --type agentType
+$ pki-server ocsp-user-cert-add CA --cert subsystem.crt
+$ pki-server ocsp-group-member-add "Trusted Managers" CA
+----
+
+= Creating CRL Issuing Point in OCSP =
+
+Export the signing certificate chain from the CA:
+
+----
+$ pki-server cert-export ca_signing --cert-file ca_signing.crt
+$ pki pkcs7-cert-import --pkcs7 ca_signing.p7 --input-file ca_signing.crt
+----
+
+Create a CRL issuing point in the OCSP with the CA signing certificate:
+
+----
+$ pki-server ocsp-crl-issuingpoint-add --cert-chain ca_signing.p7
+----
+
+= Configuring OCSP Publishing in CA =
+
+The OCSP publishing configuration is stored in `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg`.
+
+To configure OCSP publisher:
+
+----
+$ pki-server ca-config-set ca.publish.publisher.instance.OCSPPublisher.enableClientAuth true
+$ pki-server ca-config-set ca.publish.publisher.instance.OCSPPublisher.host pki.example.com
+$ pki-server ca-config-set ca.publish.publisher.instance.OCSPPublisher.nickName subsystem
+$ pki-server ca-config-set ca.publish.publisher.instance.OCSPPublisher.path /ocsp/agent/ocsp/addCRL
+$ pki-server ca-config-set ca.publish.publisher.instance.OCSPPublisher.pluginName OCSPPublisher
+$ pki-server ca-config-set ca.publish.publisher.instance.OCSPPublisher.port 8443
+----
+
+To configure CRL publishing rule:
+
+----
+$ pki-server ca-config-set ca.publish.rule.instance.OCSPRule.enable true
+$ pki-server ca-config-set ca.publish.rule.instance.OCSPRule.mapper NoMap
+$ pki-server ca-config-set ca.publish.rule.instance.OCSPRule.pluginName Rule
+$ pki-server ca-config-set ca.publish.rule.instance.OCSPRule.publisher OCSPPublisher
+$ pki-server ca-config-set ca.publish.rule.instance.OCSPRule.type crl
+----
+
+To enable CRL publishing:
+
+----
+$ pki-server ca-config-set ca.publish.enable true
+----
+
+To simplify testing, the buffer size for revocation checking can be set to `0` so that each certificate revocation will take effect immediately:
+
+----
+$ pki-server ca-config-set auths.revocationChecking.bufferSize 0
+----
+
+Also by default the CRL is only updated at scheduled times. To update the CRL immediately on each certificate revocation:
+
+----
+$ pki-server ca-config-set ca.crl.MasterCRL.alwaysUpdate true
+----
+
+Finally, restart the server.
+
+= Verification =
+
+To check certificate status:
+
+----
+$ openssl ocsp \
+    -url http://pki.example.com:8080/ocsp/ee/ocsp \
+    -CAfile ca_signing.crt \
+    -issuer ca_signing.crt \
+    -cert cert.crt \
+    -text
+OCSP Request Data:
+    Version: 1 (0x0)
+    Requestor List:
+        Certificate ID:
+          Hash Algorithm: sha1
+          Issuer Name Hash: 7F5FA888F0E54C17B4DC24E9F718F57DB80AF905
+          Issuer Key Hash: 5774C6359D2E466BE79CAB20F0A6FA52ECF68BFC
+          Serial Number: 09
+    Request Extensions:
+        OCSP Nonce: 
+            04101922CE3A9BB314A20D45AD6F241AEE91
+OCSP Response Data:
+    OCSP Response Status: successful (0x0)
+    Response Type: Basic OCSP Response
+    Version: 1 (0x0)
+    Responder Id: O = EXAMPLE, OU = pki-tomcat, CN = OCSP Signing Certificate
+    Produced At: Feb 16 04:44:18 2022 GMT
+    Responses:
+    Certificate ID:
+      Hash Algorithm: sha1
+      Issuer Name Hash: 7F5FA888F0E54C17B4DC24E9F718F57DB80AF905
+      Issuer Key Hash: 5774C6359D2E466BE79CAB20F0A6FA52ECF68BFC
+      Serial Number: 09
+    Cert Status: revoked
+    Revocation Time: Feb 16 04:44:15 2022 GMT
+    This Update: Feb 16 04:44:15 2022 GMT
+
+    Response Extensions:
+        OCSP Nonce: 
+            04101922CE3A9BB314A20D45AD6F241AEE91
+    Signature Algorithm: sha256WithRSAEncryption
+         80:0d:5c:cf:85:cd:2e:7e:cd:eb:86:d5:2d:c0:80:ef:7a:02:
+         e6:c1:2f:d0:5a:f8:b5:19:ad:65:ff:ac:47:df:cb:9e:50:30:
+         b1:48:da:a9:9f:18:5f:cc:e7:2d:7d:be:d4:24:ab:30:7b:76:
+         5a:09:55:1b:47:a2:f0:7c:27:69:22:03:95:2b:71:4e:68:35:
+         3f:75:93:64:fb:32:e6:cd:25:f2:c3:ef:47:c3:8f:6d:4f:49:
+         92:6e:73:18:f0:f5:e7:3c:46:5d:b3:e9:1d:b6:63:99:c8:f4:
+         6d:1b:4d:32:52:b8:9d:83:fe:49:26:d8:34:ff:8b:79:db:35:
+         f6:f4:e5:17:ea:75:a2:68:f2:bf:fc:59:eb:5c:3e:31:fe:1c:
+         d2:41:64:d9:1c:58:db:8e:ec:39:11:a0:97:8b:d1:93:c3:52:
+         b5:d3:c8:f2:7b:70:2b:ed:ce:75:93:6c:19:26:e7:13:6e:a0:
+         f1:e5:64:ef:c5:69:2b:be:0d:9f:22:76:80:7d:f2:bb:0c:30:
+         9e:d9:5c:b6:4f:a2:57:93:f5:70:b9:a1:53:eb:ec:93:d4:e0:
+         c1:97:26:b0:e1:a6:7f:ff:64:a5:1c:b6:f4:03:b2:4a:e5:e3:
+         1b:8b:92:5f:7f:50:16:be:5f:78:ed:48:82:c2:8e:68:f1:86:
+         80:dc:86:ec
+...
+cert.crt: revoked
+	This Update: Feb 16 04:44:15 2022 GMT
+	Revocation Time: Feb 16 04:44:15 2022 GMT
+----
