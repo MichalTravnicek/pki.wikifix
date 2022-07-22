@@ -20,16 +20,17 @@ $ pki-server ocsp-group-member-add "Trusted Managers" ocspagent
 
 = Creating CRL Issuing Point in OCSP =
 
-Export the signing certificate from the CA:
+Export the signing certificate chain from the CA:
 
 ----
 $ pki-server cert-export ca_signing --cert-file ca_signing.crt
+$ pki pkcs7-cert-import --pkcs7 ca_signing.p7 --input-file ca_signing.crt
 ----
 
 Create a CRL issuing point in the OCSP with the CA signing certificate:
 
 ----
-$ pki-server ocsp-issuingpoint-add --cert-chain ca_signing.crt
+$ pki-server ocsp-crl-issuingpoint-add --cert-chain ca_signing.p7
 ----
 
 = Configuring OCSP Publishing in CA =
