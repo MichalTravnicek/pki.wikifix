@@ -2,7 +2,37 @@
 
 This page describes the process to configure the CA to publish the CRL to the OCSP responder.
 
-= Configuring OCSP Publishing =
+= Creating Agent User in OCSP =
+
+Export the subsystem certificate from the CA:
+
+----
+$ pki-server cert-export subsystem --cert-file subsystem.crt
+----
+
+Create an agent user in the OCSP with the subsystem certificate:
+
+----
+$ pki-server ocsp-user-add ocspagent --full-name "OCSP Agent" --type agentType
+$ pki-server ocsp-user-cert-add ocspagent --cert subsystem.crt
+$ pki-server ocsp-group-member-add "Online Certificate Status Manager Agents" ocspagent
+----
+
+= Creating CRL Issuing Point in OCSP =
+
+Export the signing certificate from the CA:
+
+----
+$ pki-server cert-export ca_signing --cert-file ca_signing.crt
+----
+
+Create a CRL issuing point in the OCSP with the CA signing certificate:
+
+----
+$ pki-server ocsp-issuingpoint-add --cert-chain ca_signing.crt
+----
+
+= Configuring OCSP Publishing in CA =
 
 The OCSP publishing configuration is stored in `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg`.
 
