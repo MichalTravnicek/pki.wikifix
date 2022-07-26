@@ -25,7 +25,9 @@ The token will be encrypted with issuance protection's public key and stored int
 $ SHARED_TOKEN=$(sed -e :a -e 'N;s/\n//;ba' testuser.b64)
 ----
 
-= Adding Shared Token into User Record =
+= Assigning Shared Token to User =
+
+To assign the shared token to a user, add the `extensibleObject` object class and the `shrTok` attribute into the LDAP user:
 
 ----
 $ ldapmodify \
@@ -37,7 +39,7 @@ $ ldapmodify \
 dn: uid=testuser,ou=people,dc=example,dc=com
 changetype: modify
 add: objectClass
-objectClass: extensibleobject
+objectClass: extensibleObject
 -
 add: shrTok
 shrTok: $SHARED_TOKEN
