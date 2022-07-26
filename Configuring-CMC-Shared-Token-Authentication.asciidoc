@@ -69,12 +69,22 @@ $ pki-server ca-config-set auths.instance.SharedToken.pluginName SharedToken
 $ pki-server ca-config-set auths.instance.SharedToken.shrTokAttr shrTok
 ----
 
-= Enabling caFullCMCSharedTokenCert Profile =
+= Enabling CMC Profile with Shared Token =
+
+To enable the RSA profile:
 
 ----
 $ sed -i \
     -e "s/^\(enable\)=.*/\1=true/" \
     /var/lib/pki/pki-tomcat/ca/profiles/ca/caFullCMCSharedTokenCert.cfg
+----
+
+To enable the EC profile:
+
+----
+$ sed -i \
+    -e "s/^\(enable\)=.*/\1=true/" \
+    /var/lib/pki/pki-tomcat/ca/profiles/ca/caECFullCMCSharedTokenCert.cfg
 ----
 
 = Restarting CA Subsystem =
