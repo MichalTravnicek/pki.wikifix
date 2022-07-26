@@ -8,21 +8,32 @@ It assumes that:
 * CMC shared token authentication has been link:Configuring-CMC-Shared-Token-Authentication[configured].
 * A shared token has been link:Generating-CMC-Shared-Token[generated] for a user.
 
-= Generating Certificate Request =
+= Generating Key Pair =
+
+To generate a key pair in the user's NSS database:
 
 ----
 $ pki nss-key-create --output-format json | tee output
 $ KEY_ID=$(jq -r '.keyId' output)
+----
+
+= Creating Certificate Request =
+
+Create a certificate request with the key pair and an SKI extension (e.g. link:https://github.com/dogtagpki/pki/blob/master/base/tools/examples/certs/testuser.conf[/usr/share/pki/tools/certs/testuser.conf]):
+
+----
 
 $ pki \
     nss-cert-request \
     --key-id $KEY_ID \
     --subject "uid=testuser" \
-    --ext /usr/share/pki/tools/certs/testuser.conf \
+    --ext testuser.conf \
     --csr testuser.csr
 ----
 
 = Creating CMC Request =
+
+To create a CMC request prepare a `CMCRequest` configuration file (e.g. link:https://github.com/dogtagpki/pki/blob/master/base/tools/examples/cmc/testuser-cmc-request.cfg[/usr/share/pki/tools/examples/cmc/testuser-cmc-request.cfg]) and store the key ID in the `request.privKeyId` property:
 
 ----
 $ cp \
@@ -32,7 +43,11 @@ $ cp \
 $ sed -i \
     -e "s/^\(request.privKeyId\)=.*/\1=$KEY_ID/" \
     testuser-cmc-request.cfg
+----
 
+Then execute the following command:
+
+----
 $ CMCRequest testuser-cmc-request.cfg
 ----
 
