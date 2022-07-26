@@ -51,11 +51,19 @@ Then execute the following command:
 $ CMCRequest testuser-cmc-request.cfg
 ----
 
-= Issuing User Certificate =
+= Submitting CMC Request =
+
+To submit the CMC request prepare an `HttpClient` configuration file (e.g. link:https://github.com/dogtagpki/pki/blob/master/base/tools/examples/cmc/testuser-cmc-submit.cfg[testuser-cmc-submit.cfg]), then execute the following command:
 
 ----
 $ HttpClient /usr/share/pki/tools/examples/cmc/testuser-cmc-submit.cfg
+----
 
+= Processing CMC Response =
+
+To process the CMC response:
+
+----
 $ CMCResponse \
     -d /root/.dogtag/nssdb \
     -i testuser.cmc-response \
@@ -63,6 +71,8 @@ $ CMCResponse \
 ----
 
 = Importing User Certificate =
+
+To import the certificate chain into the user's NSS database:
 
 ----
 $ pki pkcs7-import --pkcs7 testuser.p7b testuser
