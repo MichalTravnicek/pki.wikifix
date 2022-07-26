@@ -8,11 +8,11 @@ It assumes that:
 
 = Setting Up Authentication Database =
 
-== Updating LDAP Schema ==
+== Adding LDAP Attribute ==
 
-Define the LDAP attribute to store the shared token in an LDIF file (e.g. link:https://github.com/dogtagpki/pki/blob/master/base/ca/auth/ds/schema.ldif[/usr/share/pki/ca/auth/ds/schema.ldif]).
+Define an LDAP attribute (e.g. `shrTok`) to store the shared token in an LDIF file (e.g. link:https://github.com/dogtagpki/pki/blob/master/base/ca/auth/ds/schema.ldif[/usr/share/pki/ca/auth/ds/schema.ldif]).
 
-To update the schema:
+To add the attribute:
 
 ----
 $ ldapmodify \
@@ -25,7 +25,7 @@ $ ldapmodify \
 
 == Creating LDAP Subtree ==
 
-Define the LDAP subtree (e.g. `ou=people,dc=example,dc=com`) to store LDAP users in an LDIF file (e.g. link:https://github.com/dogtagpki/pki/blob/master/base/ca/auth/ds/create.ldif[/usr/share/pki/ca/auth/ds/create.ldif]).
+Define an LDAP subtree (e.g. `ou=people,dc=example,dc=com`) to store LDAP users in an LDIF file (e.g. link:https://github.com/dogtagpki/pki/blob/master/base/ca/auth/ds/create.ldif[/usr/share/pki/ca/auth/ds/create.ldif]).
 
 To add the subtree:
 
@@ -40,9 +40,9 @@ $ ldapadd \
 
 == Adding LDAP Users ==
 
-Define the LDAP users in an LDIF file (e.g. link:https://github.com/dogtagpki/pki/blob/master/base/ca/auth/ds/example.ldif[/usr/share/pki/ca/auth/ds/example.ldif]):
+Define an LDAP user (e.g. `uid=testuser,ou=people,dc=example,dc=com`) in an LDIF file (e.g. link:https://github.com/dogtagpki/pki/blob/master/base/ca/auth/ds/example.ldif[/usr/share/pki/ca/auth/ds/example.ldif]):
 
-To add the users:
+To add the user:
 
 ----
 $ ldapadd \
