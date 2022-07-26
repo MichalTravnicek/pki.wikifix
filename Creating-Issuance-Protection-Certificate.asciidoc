@@ -2,7 +2,7 @@
 
 This page describes the process to create an issuance protection certificate for CMC shared token authentication.
 
-= Generating Issuance Protection Certificate Request =
+= Generating Certificate Request =
 
 First, generate a certificate request in the CA's NSS database:
 
@@ -15,9 +15,9 @@ $ pki \
     --csr ca_issuance_protection.csr
 ----
 
-= Generating CMC Request =
+= Creating CMC Request =
 
-To create a CMC request prepare a CMC request configuration file. A sample CMC request configuration is available at link:https://github.com/dogtagpki/pki/blob/master/base/server/examples/cmc/ca_issuance_protection-cmc-request.cfg[/usr/share/pki/server/examples/cmc/ca_issuance_protection-cmc-request.cfg].
+To create a CMC request prepare a `CMCRequest` configuration file. A sample configuration file is available at link:https://github.com/dogtagpki/pki/blob/master/base/server/examples/cmc/ca_issuance_protection-cmc-request.cfg[/usr/share/pki/server/examples/cmc/ca_issuance_protection-cmc-request.cfg].
 
 Then execute the following command:
 
@@ -25,14 +25,15 @@ Then execute the following command:
 $ CMCRequest ca_issuance_protection-cmc-request.cfg
 ----
 
-= Issuing Issuance Protection Certificate =
+= Submitting CMC Request =
 
-Submit the CMC request to the server:
+To submit the CMC request prepare an `HttpClient` configuration file. A sample configuration file is available at link:https://github.com/dogtagpki/pki/blob/master/base/server/examples/cmc/ca_issuance_protection-cmc-submit.cfg[/usr/share/pki/server/examples/cmc/ca_issuance_protection-cmc-submit.cfg].
 
 ----
-$ HttpClient \
-    /usr/share/pki/server/examples/cmc/ca_issuance_protection-cmc-submit.cfg
+$ HttpClient ca_issuance_protection-cmc-submit.cfg
 ----
+
+= Processing CMC Response =
 
 Processed the response with the following command:
 
