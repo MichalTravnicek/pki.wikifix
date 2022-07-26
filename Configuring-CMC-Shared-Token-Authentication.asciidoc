@@ -8,7 +8,11 @@ It assumes that:
 
 = Setting Up Authentication Database =
 
-Update the schema to define the LDAP attribute for the shared token:
+== Updating LDAP Schema ==
+
+Define the LDAP attribute to store the shared token in an LDIF file (e.g. link:https://github.com/dogtagpki/pki/blob/master/base/ca/auth/ds/schema.ldif[/usr/share/pki/ca/auth/ds/schema.ldif]).
+
+To update the schema:
 
 ----
 $ ldapmodify \
@@ -16,21 +20,14 @@ $ ldapmodify \
     -x \
     -D "cn=Directory Manager" \
     -w Secret.123 \
-    -f /usr/share/pki/ca/auth/ds/schema.ldif
+    -f schema.ldif
 ----
 
-Create the subtree (e.g. `ou=people,dc=example,dc=com`) to store the user records:
+== Creating LDAP Subtree ==
 
-----
-$ ldapadd \
-    -H ldap://ds.example.com:3389 \
-    -x \
-    -D "cn=Directory Manager" \
-    -w Secret.123 \
-    -f /usr/share/pki/ca/auth/ds/create.ldif
-----
+Define the LDAP subtree (e.g. `ou=people,dc=example,dc=com`) to store LDAP users in an LDIF file (e.g. link:https://github.com/dogtagpki/pki/blob/master/base/ca/auth/ds/create.ldif[/usr/share/pki/ca/auth/ds/create.ldif]).
 
-Then add user records:
+To add the subtree:
 
 ----
 $ ldapadd \
@@ -38,7 +35,22 @@ $ ldapadd \
     -x \
     -D "cn=Directory Manager" \
     -w Secret.123 \
-    -f /usr/share/pki/ca/auth/ds/example.ldif
+    -f create.ldif
+----
+
+== Adding LDAP Users ==
+
+Define the LDAP users in an LDIF file (e.g. link:https://github.com/dogtagpki/pki/blob/master/base/ca/auth/ds/example.ldif[/usr/share/pki/ca/auth/ds/example.ldif]):
+
+To add the users:
+
+----
+$ ldapadd \
+    -H ldap://ds.example.com:3389 \
+    -x \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f example.ldif
 ----
 
 = Configuring Authentication Manager =
