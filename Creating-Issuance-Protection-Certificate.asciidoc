@@ -15,11 +15,14 @@ $ pki \
     --csr ca_issuance_protection.csr
 ----
 
-Then generate a CMC request with the above certificate request:
+= Generating CMC Request =
+
+To create a CMC request prepare a CMC request configuration file. A sample CMC request configuration is available at link:https://github.com/dogtagpki/pki/blob/master/base/server/examples/cmc/ca_issuance_protection-cmc-request.cfg[/usr/share/pki/server/examples/cmc/ca_issuance_protection-cmc-request.cfg].
+
+Then execute the following command:
 
 ----
-$ CMCRequest \
-    /usr/share/pki/server/examples/cmc/ca_issuance_protection-cmc-request.cfg
+$ CMCRequest ca_issuance_protection-cmc-request.cfg
 ----
 
 = Issuing Issuance Protection Certificate =
