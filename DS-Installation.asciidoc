@@ -31,6 +31,7 @@ $ sed -i \
     -e "s/;instance_name = .*/instance_name = localhost/g" \
     -e "s/;root_password = .*/root_password = Secret.123/g" \
     -e "s/;suffix = .*/suffix = dc=example,dc=com/g" \
+    -e "s/;create_suffix_entry = .*/create_suffix_entry = True/g" \
     -e "s/;self_sign_cert = .*/self_sign_cert = False/g" \
     ds.inf
 ----
@@ -56,10 +57,6 @@ Initially the DS instance is empty. Use an LDAP client to add a root entry and P
 
 ----
 $ ldapadd -H ldap://$HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 << EOF
-dn: dc=example,dc=com
-objectClass: domain
-dc: example
-
 dn: dc=pki,dc=example,dc=com
 objectClass: domain
 dc: pki
