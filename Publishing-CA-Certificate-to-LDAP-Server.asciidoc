@@ -35,7 +35,7 @@ $ pki-server ca-config-set ca.publish.ldappublish.ldap.ldapconn.secureConn false
 To configure LDAP-based CA certificate publisher:
 
 ----
-$ pki-server ca-config-set ca.publish.publisher.instance.LdapCaCertPublisher.caCertAttr "caCertificate;binary"
+$ pki-server ca-config-set ca.publish.publisher.instance.LdapCaCertPublisher.caCertAttr "cACertificate;binary"
 $ pki-server ca-config-set ca.publish.publisher.instance.LdapCaCertPublisher.caObjectClass pkiCA
 $ pki-server ca-config-set ca.publish.publisher.instance.LdapCaCertPublisher.pluginName LdapCaCertPublisher
 ----
@@ -80,7 +80,7 @@ $ ldapsearch \
     -b "cn=Certificate Authority,dc=example,dc=com" \
     -o ldif_wrap=no \
     -t \
-    caCertificate
+    cACertificate
 dn: cn=Certificate Authority,dc=example,dc=com
-caCertificate;binary:< file://<path>
+cACertificate;binary:< file://<path>
 ----
