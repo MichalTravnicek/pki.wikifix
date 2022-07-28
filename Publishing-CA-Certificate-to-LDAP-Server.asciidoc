@@ -1,0 +1,68 @@
+= Overview =
+
+This page describes the process to configure CA to publish CA certificates to an LDAP server.
+
+= Preparing LDAP Server =
+
+Ensure the LDAP server can be accessed with the following command:
+
+----
+$ ldapsearch \
+    -H ldap://$HOSTNAME:389 \
+    -x \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -b "dc=example,dc=com"
+----
+
+= Configuring CA Certificate Publishing =
+
+The CA certificate publishing configuration is stored in `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg`.
+
+To configure the LDAP connection:
+
+----
+$ pki-server ca-config-set ca.publish.ldappublish.enable true
+$ pki-server ca-config-set ca.publish.ldappublish.ldap.ldapauth.authtype BasicAuth
+$ pki-server ca-config-set ca.publish.ldappublish.ldap.ldapauth.bindDN "cn=Directory Manager"
+$ pki-server ca-config-set ca.publish.ldappublish.ldap.ldapauth.bindPWPrompt internaldb
+$ pki-server ca-config-set ca.publish.ldappublish.ldap.ldapauth.clientCertNickname ""
+$ pki-server ca-config-set ca.publish.ldappublish.ldap.ldapconn.host localhost.localdomain
+$ pki-server ca-config-set ca.publish.ldappublish.ldap.ldapconn.port 389
+$ pki-server ca-config-set ca.publish.ldappublish.ldap.ldapconn.secureConn false
+----
+
+To configure LDAP-based CA certificate publisher:
+
+----
+$ pki-server ca-config-set ca.publish.publisher.instance.LdapCaCertPublisher.caCertAttr "caCertificate;binary"
+$ pki-server ca-config-set ca.publish.publisher.instance.LdapCaCertPublisher.caObjectClass pkiCA
+$ pki-server ca-config-set ca.publish.publisher.instance.LdapCaCertPublisher.pluginName LdapCaCertPublisher
+----
+
+To configure CA certificate mapper:
+
+----
+$ pki-server ca-config-set ca.publish.mapper.instance.LdapCaCertMap.createCAEntry true
+$ pki-server ca-config-set ca.publish.mapper.instance.LdapCaCertMap.dnPattern "cn=Certificate Authority,dc=example,dc=com"
+$ pki-server ca-config-set ca.publish.mapper.instance.LdapCaCertMap.pluginName LdapCaSimpleMap
+----
+
+To configure CA certificate publishing rule:
+
+----
+$ pki-server ca-config-set ca.publish.rule.instance.LdapCaCertRule.enable true
+$ pki-server ca-config-set ca.publish.rule.instance.LdapCaCertRule.mapper LdapCaCertMap
+$ pki-server ca-config-set ca.publish.rule.instance.LdapCaCertRule.pluginName Rule
+$ pki-server ca-config-set ca.publish.rule.instance.LdapCaCertRule.predicate ""
+$ pki-server ca-config-set ca.publish.rule.instance.LdapCaCertRule.publisher LdapCaCertPublisher
+$ pki-server ca-config-set ca.publish.rule.instance.LdapCaCertRule.type cacert
+----
+
+To enable CRL publishing:
+
+----
+$ pki-server ca-config-set ca.publish.enable true
+----
+
+Finally, restart the server.
