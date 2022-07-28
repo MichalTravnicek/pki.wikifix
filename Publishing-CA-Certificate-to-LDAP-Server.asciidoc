@@ -59,7 +59,7 @@ $ pki-server ca-config-set ca.publish.rule.instance.LdapCaCertRule.publisher Lda
 $ pki-server ca-config-set ca.publish.rule.instance.LdapCaCertRule.type cacert
 ----
 
-To enable CRL publishing:
+To enable publishing:
 
 ----
 $ pki-server ca-config-set ca.publish.enable true
@@ -69,7 +69,7 @@ Finally, restart the server.
 
 = Verification =
 
-To retrieve the published CRL:
+To retrieve the published CA certificate:
 
 ----
 $ ldapsearch \
@@ -83,4 +83,13 @@ $ ldapsearch \
     cACertificate
 dn: cn=Certificate Authority,dc=example,dc=com
 cACertificate;binary:< file://<path>
+----
+
+To view the published CA certificate:
+
+----
+$ openssl x509 \
+    -in <path> \
+    -inform DER \
+    -text -noout
 ----
