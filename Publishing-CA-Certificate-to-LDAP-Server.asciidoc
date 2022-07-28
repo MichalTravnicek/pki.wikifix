@@ -66,3 +66,21 @@ $ pki-server ca-config-set ca.publish.enable true
 ----
 
 Finally, restart the server.
+
+= Verification =
+
+To retrieve the published CRL:
+
+----
+$ ldapsearch \
+    -H ldap://$HOSTNAME:389 \
+    -x \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -b "cn=Certificate Authority,dc=example,dc=com" \
+    -o ldif_wrap=no \
+    -t \
+    caCertificate
+dn: cn=Certificate Authority,dc=example,dc=com
+caCertificate;binary:< file://<path>
+----
