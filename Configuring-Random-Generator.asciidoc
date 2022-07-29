@@ -1,0 +1,16 @@
+= Configuration =
+
+PKI server uses JSS subsystem to initialize JSS environment.
+
+The random number generator configuration is located in `CS.cfg`:
+
+----
+jss.random.algorithm=pkcs11prng
+jss.random.provider=Mozilla-JSS
+----
+
+It will use `PK11SecureRandom` by default.
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/JSS_Subsystem[JSS Subsystem]
