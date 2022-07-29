@@ -1,0 +1,21 @@
+= Session ID Generator =
+
+The session ID generator configuration is stored in the web application context files:
+
+----
+<Manager secureRandomProvider="Mozilla-JSS" secureRandomAlgorithm="pkcs11prng"/>
+----
+
+Examples:
+
+* https://github.com/dogtagpki/pki/blob/master/base/ca/tomcat-9.0/conf/Catalina/localhost/ca.xml
+* https://github.com/dogtagpki/pki/blob/master/base/kra/tomcat-9.0/conf/Catalina/localhost/kra.xml
+* https://github.com/dogtagpki/pki/blob/master/base/ocsp/tomcat-9.0/conf/Catalina/localhost/ocsp.xml
+* https://github.com/dogtagpki/pki/blob/master/base/tks/tomcat-9.0/conf/Catalina/localhost/tks.xml
+* https://github.com/dogtagpki/pki/blob/master/base/tps/tomcat-9.0/conf/Catalina/localhost/tps.xml
+* https://github.com/dogtagpki/pki/blob/master/base/acme/tomcat-9.0/conf/Catalina/localhost/acme.xml
+
+
+= See Also =
+
+* link:https://tomcat.apache.org/tomcat-9.0-doc/config/manager.html[Tomcat 9 - The Manager Component]
