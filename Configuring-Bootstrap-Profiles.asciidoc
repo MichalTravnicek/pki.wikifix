@@ -1,0 +1,122 @@
+= Overview =
+
+This page describes the process to configure link:Bootstrap-Profiles[bootstrap profiles] during link:Two-Step-Installation[two-step] CA installation.
+
+= Configuration =
+
+During installation bootstrap profiles templates will be copied from `/usr/share/pki/ca/conf` into `/var/lib/pki/<instance>/<subsystem>/conf`. To customize bootstrap profiles, edit the files in `/var/lib/pki/<instance>/<subsystem>/conf`:
+
+----
+id=...
+name=...
+description=...
+profileIDMapping=...
+profileSetIDMapping=...
+list=<list of constraint IDs>
+<constraint ID>.default.class=...
+<constraint ID>.default.name=...
+<constraint ID>.default.params.<name>=...
+----
+
+== CA Certificate Validity Default ==
+
+----
+<constraint ID>.default.class=com.netscape.cms.profile.def.CAValidityDefault
+<constraint ID>.default.name=CA Certificate Validity Default
+<constraint ID>.default.params.range=7305
+<constraint ID>.default.params.startTime=0
+----
+
+The range unit can be changed with the following property:
+
+----
+<constraint ID>.default.params.rangeUnit=<unit>
+----
+
+Valid `<unit>` values are:
+
+* `year`
+* `month`
+* `day` (default)
+* `hour`
+* `minute`
+
+== Validity Default ==
+
+----
+<constraint ID>.default.class=com.netscape.cms.profile.def.ValidityDefault
+<constraint ID>.default.name=Validity Default
+<constraint ID>.default.params.range=720
+<constraint ID>.default.params.startTime=0
+----
+
+The range unit can also be changed as in the CA Certificate Validity Default.
+
+== Authority Key Identifier Default ==
+
+----
+<constraint ID>.default.class=com.netscape.cms.profile.def.AuthorityKeyIdentifierExtDefault
+<constraint ID>.default.name=Authority Key Identifier Default
+<constraint ID>.default.params.localKey=true
+----
+
+== Basic Constraints Extension Default ==
+
+----
+<constraint ID>.default.class=com.netscape.cms.profile.def.BasicConstraintsExtDefault
+<constraint ID>.default.name=Basic Constraints Extension Default
+<constraint ID>.default.params.basicConstraintsCritical=true
+<constraint ID>.default.params.basicConstraintsIsCA=true
+<constraint ID>.default.params.basicConstraintsPathLen=-1
+----
+
+== AIA Extension Default ==
+
+----
+<constraint ID>.default.class=com.netscape.cms.profile.def.AuthInfoAccessExtDefault
+<constraint ID>.default.name=AIA Extension Default
+<constraint ID>.default.params.authInfoAccessADEnable_0=true
+<constraint ID>.default.params.authInfoAccessADLocationType_0=URIName
+<constraint ID>.default.params.authInfoAccessADLocation_0=
+<constraint ID>.default.params.authInfoAccessADMethod_0=1.3.6.1.5.5.7.48.1
+<constraint ID>.default.params.authInfoAccessCritical=false
+<constraint ID>.default.params.authInfoAccessNumADs=1
+----
+
+== Key Usage Default ==
+
+----
+<constraint ID>.default.class=com.netscape.cms.profile.def.KeyUsageExtDefault
+<constraint ID>.default.name=Key Usage Default
+<constraint ID>.default.params.keyUsageCritical=true
+<constraint ID>.default.params.keyUsageDigitalSignature=true
+<constraint ID>.default.params.keyUsageNonRepudiation=true
+<constraint ID>.default.params.keyUsageDataEncipherment=true
+<constraint ID>.default.params.keyUsageKeyEncipherment=true
+<constraint ID>.default.params.keyUsageKeyAgreement=false
+<constraint ID>.default.params.keyUsageKeyCertSign=false
+<constraint ID>.default.params.keyUsageCrlSign=false
+<constraint ID>.default.params.keyUsageEncipherOnly=false
+<constraint ID>.default.params.keyUsageDecipherOnly=false
+----
+
+== Subject Key Identifier Extension Default ==
+
+----
+<constraint ID>.default.class=com.netscape.cms.profile.def.SubjectKeyIdentifierExtDefault
+<constraint ID>.default.name=Subject Key Identifier Extension Default
+<constraint ID>.default.params.critical=false
+----
+
+== Extended Key Usage Extension Default ==
+
+----
+<constraint ID>.default.class=com.netscape.cms.profile.def.ExtendedKeyUsageExtDefault
+<constraint ID>.default.name=Extended Key Usage Extension Default
+<constraint ID>.default.params.exKeyUsageCritical=false
+<constraint ID>.default.params.exKeyUsageOIDs=1.3.6.1.5.5.7.3.1
+----
+
+= See Also =
+
+* link:Certificate-Profile-Constraints[Certificate Profile Constraints]
