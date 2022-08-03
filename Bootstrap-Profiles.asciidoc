@@ -25,26 +25,9 @@ The templates for bootstrap profiles are stored in link:https://github.com/dogta
 ** https://github.com/dogtagpki/pki/blob/master/base/ca/shared/conf/rsaAdminCert.profile[rsaAdminCert.profile]
 ** https://github.com/dogtagpki/pki/blob/master/base/ca/shared/conf/eccAdminCert.profile[eccAdminCert.profile]
 
-= Configuration =
-
-During CA installation these templates will be copied into `/var/lib/pki/<instance>/<subsystem>/conf` which then can be customized using the link:Two-Step-Installation[Two-Step Installation].
-
-To customize a bootstrap profile, edit the profile configuration file in `/var/lib/pki/<instance>/<subsystem>/conf` (not in `/usr/share/pki/ca/conf`):
-
-----
-id=...
-name=...
-description=...
-profileIDMapping=...
-profileSetIDMapping=...
-list=<list of numbers>
-<number>.default.class=...
-<number>.default.name=...
-<number>.default.params.<name>=...
-----
-
 = See Also =
 
+* link:Configuring-Bootstrap-Profiles[Configuring Bootstrap Profiles]
 * link:Configuring-Certificate-Profiles[Configuring Certificate Profiles]
 * link:https://www.dogtagpki.org/wiki/Certificate_Profile_Constraints[Certificate Profile Constraints]
 * link:https://www.ietf.org/rfc/rfc3280.txt[RFC 3280]
