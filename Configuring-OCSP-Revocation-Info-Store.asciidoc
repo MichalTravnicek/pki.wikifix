@@ -1,0 +1,43 @@
+= Overview =
+
+This page describes the process to configure OCSP to an LDAP server for revocation info store.
+
+= Preparing LDAP Server =
+
+Ensure the LDAP server can be accessed with the following command:
+
+----
+$ ldapsearch \
+    -H ldap://$HOSTNAME:389 \
+    -x \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -b "dc=example,dc=com"
+----
+
+= Configuring Revocation Info Store =
+
+The revocation info store configuration is stored in `/var/lib/pki/pki-tomcat/ocsp/conf/CS.cfg`.
+
+To configure the LDAP store:
+
+----
+$ pki-server ocsp-config-set ocsp.store.ldapStore.baseDN0 "cn=Certificate Authority,dc=example,dc=com"
+$ pki-server ocsp-config-set ocsp.store.ldapStore.byName true
+$ pki-server ocsp-config-set ocsp.store.ldapStore.caCertAttr "cACertificate;binary"
+$ pki-server ocsp-config-set ocsp.store.ldapStore.crlAttr "certificateRevocationList;binary"
+$ pki-server ocsp-config-set ocsp.store.ldapStore.host0 localhost.localdomain
+$ pki-server ocsp-config-set ocsp.store.ldapStore.includeNextUpdate false
+$ pki-server ocsp-config-set ocsp.store.ldapStore.notFoundAsGood true
+$ pki-server ocsp-config-set ocsp.store.ldapStore.numConns 1
+$ pki-server ocsp-config-set ocsp.store.ldapStore.port0 389
+$ pki-server ocsp-config-set ocsp.store.ldapStore.refreshInSec0 120
+----
+
+To use the LDAP store:
+
+----
+$ pki-server ocsp-config-set ocsp.storeId ldapStore
+----
+
+Finally, restart the server.
