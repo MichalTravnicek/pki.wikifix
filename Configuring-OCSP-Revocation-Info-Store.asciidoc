@@ -43,7 +43,7 @@ To configure the LDAP store:
 $ pki-server ocsp-config-set ocsp.store.ldapStore.numConns 1
 $ pki-server ocsp-config-set ocsp.store.ldapStore.host0 localhost.localdomain
 $ pki-server ocsp-config-set ocsp.store.ldapStore.port0 389
-$ pki-server ocsp-config-set ocsp.store.ldapStore.baseDN0 "cn=Certificate Authority,dc=example,dc=com"
+$ pki-server ocsp-config-set ocsp.store.ldapStore.baseDN0 "dc=crl,dc=pki,dc=example,dc=com"
 $ pki-server ocsp-config-set ocsp.store.ldapStore.byName true
 $ pki-server ocsp-config-set ocsp.store.ldapStore.caCertAttr "cACertificate;binary"
 $ pki-server ocsp-config-set ocsp.store.ldapStore.crlAttr "certificateRevocationList;binary"
