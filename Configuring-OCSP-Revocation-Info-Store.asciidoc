@@ -30,7 +30,7 @@ Verify with the following command:
 $ ldapsearch \
     -H ldap://$HOSTNAME:389 \
     -x \
-    -b "dc=example,dc=com"
+    -b "dc=crl,dc=pki,dc=example,dc=com"
 ----
 
 = Configuring Revocation Info Store =
@@ -57,7 +57,7 @@ To enable the LDAP store:
 $ pki-server ocsp-config-set ocsp.storeId ldapStore
 ----
 
-By default the CRL cache will refresh every 24 hours. To simplify testing, the refresh can be configured to happen more frequently, for example every `60` seconds:
+By default the CRL cache will refresh every 24 hours. To simplify testing, the refresh can be configured to happen more frequently, e.g. every `60` seconds:
 
 ----
 $ pki-server ocsp-config-set ocsp.store.ldapStore.refreshInSec0 60
