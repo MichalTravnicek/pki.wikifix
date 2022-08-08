@@ -48,7 +48,7 @@ To configure CA certificate mapper:
 
 ----
 $ pki-server ca-config-set ca.publish.mapper.instance.LdapCaCertMap.createCAEntry true
-$ pki-server ca-config-set ca.publish.mapper.instance.LdapCaCertMap.dnPattern "cn=Certificate Authority,dc=example,dc=com"
+$ pki-server ca-config-set ca.publish.mapper.instance.LdapCaCertMap.dnPattern "cn=\$subj.cn,dc=crl,dc=pki,dc=example,dc=com"
 $ pki-server ca-config-set ca.publish.mapper.instance.LdapCaCertMap.pluginName LdapCaSimpleMap
 ----
 
@@ -81,11 +81,18 @@ $ ldapsearch \
     -x \
     -D "cn=Directory Manager" \
     -w Secret.123 \
-    -b "cn=Certificate Authority,dc=example,dc=com" \
+    -b "dc=crl,dc=pki,dc=example,dc=com" \
     -o ldif_wrap=no \
     -t \
-    cACertificate
-dn: cn=Certificate Authority,dc=example,dc=com
+    "(objectClass=pkiCA)"
+dn: cn=CA Signing Certificate,dc=crl,dc=pki,dc=example,dc=com
+cn: CA Signing Certificate
+sn: CA Signing Certificate
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: pkiCA
 cACertificate;binary:< file://<path>
 ----
 
