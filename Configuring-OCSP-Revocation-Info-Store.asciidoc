@@ -9,7 +9,7 @@ To configure CA to publish the revocation information to an LDAP store:
 
 = Preparing LDAP Server =
 
-Configure the LDAP server to allow anonymous access with the following command:
+Ensure the CRL publishing subtree can be accessed anonymously:
 
 ----
 $ ldapmodify
@@ -17,7 +17,7 @@ $ ldapmodify
     -x \
     -D "cn=Directory Manager" \
     -w Secret.123
-dn: dc=example,dc=com
+dn: dc=crl,dc=pki,dc=example,dc=com
 changetype: modify
 add: aci
 aci: (targetattr!="userPassword || aci")
