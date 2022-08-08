@@ -8,15 +8,17 @@ To configure OCSP responder to get the CRL from an LDAP server, see:
 
 = Preparing LDAP Server =
 
-Ensure the LDAP server can be accessed with the following command:
+Prepare a CRL publishing subtree:
 
 ----
-$ ldapsearch \
+$ ldapadd \
     -H ldap://$HOSTNAME:389 \
     -x \
     -D "cn=Directory Manager" \
-    -w Secret.123 \
-    -b "dc=example,dc=com"
+    -w Secret.123
+dn: dc=crl,dc=pki,dc=example,dc=com
+objectClass: domain
+dc: crl
 ----
 
 = Configuring CRL Publishing =
@@ -48,7 +50,7 @@ To configure CRL mapper:
 
 ----
 $ pki-server ca-config-set ca.publish.mapper.instance.LdapCrlMap.createCAEntry true
-$ pki-server ca-config-set ca.publish.mapper.instance.LdapCrlMap.dnPattern cn=crl,dc=example,dc=com
+$ pki-server ca-config-set ca.publish.mapper.instance.LdapCrlMap.dnPattern "cn=\$subj.cn,dc=crl,dc=pki,dc=example,dc=com"
 $ pki-server ca-config-set ca.publish.mapper.instance.LdapCrlMap.pluginName LdapCaSimpleMap
 ----
 
@@ -58,7 +60,7 @@ To configure CRL publishing rule:
 $ pki-server ca-config-set ca.publish.rule.instance.LdapCrlRule.enable true
 $ pki-server ca-config-set ca.publish.rule.instance.LdapCrlRule.mapper LdapCrlMap
 $ pki-server ca-config-set ca.publish.rule.instance.LdapCrlRule.pluginName Rule
-$ pki-server ca-config-set ca.publish.rule.instance.LdapCrlRule.predicate issuingPointId==MasterCRL
+$ pki-server ca-config-set ca.publish.rule.instance.LdapCrlRule.predicate ""
 $ pki-server ca-config-set ca.publish.rule.instance.LdapCrlRule.publisher LdapCrlPublisher
 $ pki-server ca-config-set ca.publish.rule.instance.LdapCrlRule.type crl
 ----
@@ -96,8 +98,15 @@ $ ldapsearch \
     -b "cn=crl,dc=example,dc=com" \
     -o ldif_wrap=no \
     -t \
-    certificateRevocationList
-dn: cn=crl,dc=example,dc=com
+    "(objectClass=pkiCA)"
+dn: cn=CA Signing Certificate,dc=crl,dc=pki,dc=example,dc=com
+cn: CA Signing Certificate
+sn: CA Signing Certificate
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: pkiCA
 certificateRevocationList;binary:< file://<path>
 ----
 
