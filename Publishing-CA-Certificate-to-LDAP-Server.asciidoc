@@ -8,15 +8,17 @@ To configure OCSP responder to get the CA certificate from an LDAP server, see:
 
 = Preparing LDAP Server =
 
-Ensure the LDAP server can be accessed with the following command:
+Prepare a CA certificate publishing subtree:
 
 ----
-$ ldapsearch \
+$ ldapadd \
     -H ldap://$HOSTNAME:389 \
     -x \
     -D "cn=Directory Manager" \
-    -w Secret.123 \
-    -b "dc=example,dc=com"
+    -w Secret.123
+dn: dc=crl,dc=pki,dc=example,dc=com
+objectClass: domain
+dc: crl
 ----
 
 = Configuring CA Certificate Publishing =
