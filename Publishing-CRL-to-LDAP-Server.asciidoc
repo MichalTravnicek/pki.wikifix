@@ -27,13 +27,13 @@ To configure the LDAP connection:
 
 ----
 $ pki-server ca-config-set ca.publish.ldappublish.enable true
+$ pki-server ca-config-set ca.publish.ldappublish.ldap.ldapconn.host $HOSTNAME
+$ pki-server ca-config-set ca.publish.ldappublish.ldap.ldapconn.port 389
+$ pki-server ca-config-set ca.publish.ldappublish.ldap.ldapconn.secureConn false
 $ pki-server ca-config-set ca.publish.ldappublish.ldap.ldapauth.authtype BasicAuth
 $ pki-server ca-config-set ca.publish.ldappublish.ldap.ldapauth.bindDN "cn=Directory Manager"
 $ pki-server ca-config-set ca.publish.ldappublish.ldap.ldapauth.bindPWPrompt internaldb
 $ pki-server ca-config-set ca.publish.ldappublish.ldap.ldapauth.clientCertNickname ""
-$ pki-server ca-config-set ca.publish.ldappublish.ldap.ldapconn.host localhost.localdomain
-$ pki-server ca-config-set ca.publish.ldappublish.ldap.ldapconn.port 389
-$ pki-server ca-config-set ca.publish.ldappublish.ldap.ldapconn.secureConn false
 ----
 
 To configure LDAP-based CRL publisher:
