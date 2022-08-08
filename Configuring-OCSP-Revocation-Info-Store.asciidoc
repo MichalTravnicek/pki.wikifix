@@ -9,7 +9,22 @@ To configure CA to publish the revocation information to an LDAP store:
 
 = Preparing LDAP Server =
 
-Ensure the LDAP server can be accessed anonymously with the following command:
+Configure the LDAP server to allow anonymous access with the following command:
+
+----
+$ ldapmodify
+    -H ldap://$HOSTNAME:389 \
+    -x \
+    -D "cn=Directory Manager" \
+    -w Secret.123
+dn: dc=example,dc=com
+changetype: modify
+add: aci
+aci: (targetattr!="userPassword || aci")
+ (version 3.0; acl "Enable anonymous access"; allow (read, search, compare) userdn="ldap:///anyone";)
+----
+
+Verify with the following command:
 
 ----
 $ ldapsearch \
@@ -36,16 +51,16 @@ $ pki-server ocsp-config-set ocsp.store.ldapStore.includeNextUpdate false
 $ pki-server ocsp-config-set ocsp.store.ldapStore.notFoundAsGood true
 ----
 
-By default the CRL cache will refresh every 24 hours. To simplify testing, the refresh can be configured to happen more frequently, for example every minute:
-
-----
-$ pki-server ocsp-config-set ocsp.store.ldapStore.refreshInSec0 60
-----
-
-To use the LDAP store:
+To enable the LDAP store:
 
 ----
 $ pki-server ocsp-config-set ocsp.storeId ldapStore
+----
+
+By default the CRL cache will refresh every 24 hours. To simplify testing, the refresh can be configured to happen more frequently, for example every `60` seconds:
+
+----
+$ pki-server ocsp-config-set ocsp.store.ldapStore.refreshInSec0 60
 ----
 
 Finally, restart the server.
