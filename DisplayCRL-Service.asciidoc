@@ -13,9 +13,10 @@ The DisplayCRL service can be used to display the latest CRL in CA.
 
 ----
 $ curl \
-    -k https://localhost.localdomain:8443/ca/agent/ca/displayCRL \
+    https://localhost.localdomain:8443/ca/agent/ca/displayCRL \
     --cert-type P12 \
     --cert ~/.dogtag/pki-tomcat/ca_admin_cert.p12:Secret.123 \
+    -k \
     -d "pageSize=50&crlIssuingPoint=MasterCRL&pageStart=1&crlDisplayType=entireCRL&xml=true" \
     | xmllint --format -
 ----
