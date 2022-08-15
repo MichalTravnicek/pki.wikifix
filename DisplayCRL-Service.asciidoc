@@ -1,0 +1,21 @@
+= Overview =
+
+The DisplayCRL service can be used to display the current CRL in the CA.
+
+= Request =
+
+* *Operation:* `POST /ca/agent/ca/displayCRL`
+* *Authentication:* Client certificate
+
+= Response =
+
+== XML Response ==
+
+----
+$ curl \
+    -k https://localhost.localdomain:8443/ca/agent/ca/displayCRL \
+    --cert-type P12 \
+    --cert ~/.dogtag/pki-tomcat/ca_admin_cert.p12:Secret.123 \
+    -d "pageSize=50&crlIssuingPoint=MasterCRL&pageStart=1&crlDisplayType=entireCRL&xml=true" \
+    | xmllint --format -
+----
