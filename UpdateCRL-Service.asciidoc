@@ -14,7 +14,8 @@ The UpdateCRL service can be used to force the update of the CRL.
 ----
 $ curl \
     -d "xml=true" \
-    --cert-type P12 --cert ~/.dogtag/pki-tomcat/ca_admin_cert.p12:Secret.123 \
+    --cert-type P12 \
+    --cert ~/.dogtag/pki-tomcat/ca_admin_cert.p12:Secret.123 \
     -sk \
     https://localhost.localdomain:8443/ca/agent/ca/updateCRL \
     | xmllint --format -
