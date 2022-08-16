@@ -48,21 +48,12 @@ pki_subsystem_nickname=subsystem
 pki_sslserver_nickname=sslserver
 pki_audit_signing_nickname=kra_audit_signing
 
-# PKI 10.5
 pki_storage_csr_path=kra_storage.csr
 pki_transport_csr_path=kra_transport.csr
 pki_subsystem_csr_path=subsystem.csr
 pki_sslserver_csr_path=sslserver.csr
 pki_audit_signing_csr_path=kra_audit_signing.csr
 pki_admin_csr_path=kra_admin.csr
-
-# PKI 10.4
-pki_external_storage_csr_path=kra_storage.csr
-pki_external_transport_csr_path=kra_transport.csr
-pki_external_subsystem_csr_path=subsystem.csr
-pki_external_sslserver_csr_path=sslserver.csr
-pki_external_audit_signing_csr_path=kra_audit_signing.csr
-pki_external_admin_csr_path=kra_admin.csr
 ----
 
 Optionally, specify the HSM parameters:
@@ -107,21 +98,12 @@ pki_external_step_two=True
 Specify the certificate files with the following parameters:
 
 ----
-# PKI 10.5
 pki_storage_cert_path=kra_storage.crt
 pki_transport_cert_path=kra_transport.crt
 pki_subsystem_cert_path=subsystem.crt
 pki_sslserver_cert_path=sslserver.crt
 pki_audit_signing_cert_path=kra_audit_signing.crt
 pki_admin_cert_path=kra_admin.crt
-
-# PKI 10.4
-pki_external_storage_cert_path=kra_storage.crt
-pki_external_transport_cert_path=kra_transport.crt
-pki_external_subsystem_cert_path=subsystem.crt
-pki_external_sslserver_cert_path=sslserver.crt
-pki_external_audit_signing_cert_path=kra_audit_signing.crt
-pki_external_admin_cert_path=kra_admin.crt
 ----
 
 Each certificate file can contain either a single PEM certificate or a PKCS #7 certificate chain.
@@ -129,16 +111,10 @@ Each certificate file can contain either a single PEM certificate or a PKCS #7 c
 If all of the above certificate files contain single certificates, the CA signing certificate and/or the certificate chain can be specified with the following parameters:
 
 ----
-# PKI 10.5
 pki_ca_signing_nickname=ca_signing
 pki_ca_signing_cert_path=ca_signing.crt
 pki_cert_chain_nickname=cert_chain
 pki_cert_chain_path=cert_chain.p7b
-
-# PKI 10.4
-pki_external_ca_cert_chain_nickname=cert_chain
-pki_external_ca_cert_path=ca_signing.crt
-pki_external_ca_cert_chain_path=cert_chain.p7b
 ----
 
 The CA signing certificate and the certificate chain file can contain either a single certificate or a PKCS #7 certificate chain as well.
