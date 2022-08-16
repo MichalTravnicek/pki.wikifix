@@ -13,8 +13,18 @@ The UpdateCRL service can be used to force the update of the CRL.
 
 ----
 $ curl \
-  -d "xml=true" \
-  --cert-type P12 --cert ~/.dogtag/pki-tomcat/ca_admin_cert.p12:Secret.123 \
-  -k https://localhost.localdomain:8443/ca/agent/ca/updateCRL \
-  | xmllint --format -
+    -d "xml=true" \
+    --cert-type P12 --cert ~/.dogtag/pki-tomcat/ca_admin_cert.p12:Secret.123 \
+    -sk \
+    https://localhost.localdomain:8443/ca/agent/ca/updateCRL \
+    | xmllint --format -
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xml>
+  <header>
+    <crlIssuingPoint>MasterCRL</crlIssuingPoint>
+    <crlUpdate>Scheduled</crlUpdate>
+  </header>
+  <fixed/>
+  <records/>
+</xml>
 ----
