@@ -41,3 +41,11 @@ $ docker build \
     -t pki-ca \
     .
 ----
+
+= Pushing Container Image to Quay =
+
+----
+$ podman tag pki-ca:latest quay.io/<username>/pki-ca:latest
+$ podman push quay.io/<username>/pki-ca:latest
+----
+
