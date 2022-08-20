@@ -8,29 +8,20 @@ This document describes the process to deploy CA as a container on Podman. The c
 
 See link:Deploying-DS-Container-on-Podman[Deploying DS Container on Podman].
 
-= Creating CA Container =
+= Deploying CA Container =
+
+Run the container with the following command:
 
 ----
-$ podman create \
+$ podman run \
     --name=pki-ca \
     --hostname=ca.example.com \
+    --network=example \
+    --network-alias=ca.example.com \
     -p 8080:8080 \
     -p 8443:8443 \
+    -d \
     quay.io/dogtagpki/pki-ca
-----
-
-= Connecting to Network =
-
-----
-$ podman network connect example pki-ca --alias ca.example.com
-----
-
-= Starting CA Container =
-
-To start the container:
-
-----
-$ podman start pki-ca
 ----
 
 Wait until the container is started:
