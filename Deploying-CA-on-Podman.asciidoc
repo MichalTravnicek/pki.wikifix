@@ -1,0 +1,28 @@
+= Overview =
+
+NOTE: This page is still under construction.
+
+This document describes the process to deploy CA as a container on Podman. The container image is available at link:https://quay.io/repository/dogtagpki/pki-ca[quay.io/dogtagpki/pki-ca].
+
+= Creating a Pod =
+
+Create a pod with the following command:
+
+----
+$ podman pod create --name pki -p 8080:8080 -p 8443:8443
+----
+
+= Deploying DS Container =
+
+= Deploying CA Container =
+
+Deploy the CA container with the following command:
+
+----
+$ podman run \
+    --name pki-ca \
+    --pod pki \
+    --rm \
+    -it \
+    quay.io/dogtagpki/pki-ca
+----
