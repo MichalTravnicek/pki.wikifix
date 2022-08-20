@@ -64,6 +64,17 @@ dc: pki
 EOF
 ----
 
+= Verification =
+
+----
+$ podman exec ds ldapsearch \
+    -H ldap://ds.example.com:3389 \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -x \
+    -b "dc=example,dc=com"
+----
+
 = Enabling SSL Connection =
 
 ----
