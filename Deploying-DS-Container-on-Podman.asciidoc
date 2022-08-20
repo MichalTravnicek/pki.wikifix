@@ -52,10 +52,10 @@ $ podman exec ds dsconf localhost backend create \
 
 ----
 $ podman exec -i ds ldapadd \
-        -H ldap://localhost:3389 \
-        -D "cn=Directory Manager" \
-        -w Secret.123 \
-        -x << EOF
+    -H ldap://localhost:3389 \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -x << EOF
 dn: dc=example,dc=com
 objectClass: domain
 dc: example
