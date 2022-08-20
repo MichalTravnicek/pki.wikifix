@@ -4,12 +4,6 @@ NOTE: This page is still under construction.
 
 This document describes the process to deploy CA as a container on Podman. The container image is available at link:https://quay.io/repository/dogtagpki/pki-ca[quay.io/dogtagpki/pki-ca].
 
-= Creating Network =
-
-----
-$ network connect example ds --alias ds.example.com
-----
-
 = Deploying DS Container =
 
 See link:Deploying-DS-Container-on-Podman[Deploying DS Container on Podman].
@@ -62,4 +56,10 @@ Retrieve the container information:
 $ podman exec pki-ca pki info
   Server URL: https://ca.example.com:8443
   Server Version: 11.3.0
+----
+
+= Removing CA Container =
+
+----
+$ podman rm -f pki-ca
 ----
