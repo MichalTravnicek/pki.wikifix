@@ -23,6 +23,7 @@ $ podman run \
     --name=ds \
     --hostname=ds.example.com \
     --network=example \
+    --network-alias=ds.example.com \
     -v ds-data:/data \
     -e DS_DM_PASSWORD=Secret.123 \
     -p 3389:3389 \
