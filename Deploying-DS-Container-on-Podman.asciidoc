@@ -48,7 +48,7 @@ $ podman exec ds dsconf localhost backend create \
 = Creating PKI LDAP Tree =
 
 ----
-$ podman exec -i ds ldapadd \
+$ podman exec ds ldapadd \
     -H ldap://ds.example.com:3389 \
     -D "cn=Directory Manager" \
     -w Secret.123 \
