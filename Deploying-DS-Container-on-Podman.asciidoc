@@ -1,0 +1,73 @@
+= Overview =
+
+This page describes the process to prepare a DS container on Podman for PKI server.
+
+= Creating DS Volume =
+
+----
+$ podman volume create ds-data
+----
+
+= Creating DS Container =
+
+Create the container with the following command:
+
+----
+$ podman create \
+    --name=ds \
+    -v ds-data:/data \
+    -e DS_DM_PASSWORD=Secret.123 \
+    -p 3389:3389 \
+    -p 3636:3636 \
+    quay.io/389ds/dirsrv
+----
+
+Start the container with the following command:
+
+----
+$ podman start ds
+----
+
+Wait for the container to start:
+
+----
+$ podman exec ds ldapsearch \
+    -H ldap://localhost:3389 \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -x \
+    -b "" \
+    -s base
+----
+
+= Creating DS Backend =
+
+----
+$ podman exec ds dsconf localhost backend create \
+    --suffix dc=example,dc=com \
+    --be-name userRoot
+----
+
+= Creating PKI LDAP Tree =
+
+----
+$ podman exec -i ds ldapadd \
+        -H ldap://localhost:3389 \
+        -D "cn=Directory Manager" \
+        -w Secret.123 \
+        -x << EOF
+dn: dc=example,dc=com
+objectClass: domain
+dc: example
+
+dn: dc=pki,dc=example,dc=com
+objectClass: domain
+dc: pki
+EOF
+----
+
+= Enabling SSL Connection =
+
+----
+$ podman exec ds mkdir -p /data/tls/ca
+----
