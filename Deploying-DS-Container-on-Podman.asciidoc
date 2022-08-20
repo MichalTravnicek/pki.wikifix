@@ -2,6 +2,12 @@
 
 This page describes the process to deploy a DS container on Podman for PKI server.
 
+= Creating Network =
+
+----
+$ podman network create example
+----
+
 = Creating DS Volume =
 
 ----
@@ -10,35 +16,25 @@ $ podman volume create ds-data
 
 = Creating DS Container =
 
-Create the container with the following command:
+Run the container with the following command:
 
 ----
-$ podman create \
+$ podman run \
     --name=ds \
     --hostname=ds.example.com \
+    --network=example \
     -v ds-data:/data \
     -e DS_DM_PASSWORD=Secret.123 \
     -p 3389:3389 \
     -p 3636:3636 \
+    -d \
     quay.io/389ds/dirsrv
-----
-
-Start the container with the following command:
-
-----
-$ podman start ds
 ----
 
 Wait until the container is started:
 
 ----
 $ podman logs -f ds
-----
-
-= Connecting to Network =
-
-----
-$ podman network connect example ds --alias ds.example.com
 ----
 
 = Creating DS Backend =
@@ -76,6 +72,7 @@ $ podman exec ds mkdir -p /data/tls/ca
 = Removing DS Container =
 
 ----
-$ podman rm ds
+$ podman rm -f ds
 $ podman volume rm ds-data
+$ podman network rm example
 ----
