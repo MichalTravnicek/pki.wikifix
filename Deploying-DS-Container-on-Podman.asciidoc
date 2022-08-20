@@ -29,19 +29,10 @@ Start the container with the following command:
 $ podman start ds
 ----
 
-Verify that the container is running:
+Wait until the container is started:
 
 ----
-$ podman exec ds ldapsearch \
-    -H ldap://ds.example.com:3389 \
-    -D "cn=Directory Manager" \
-    -w Secret.123 \
-    -x \
-    -b "" \
-    -s base
-dn:
-objectClass: top
-netscapemdsuffix: cn=ldap://dc=ds,dc=example,dc=com:3389
+$ podman logs -f ds
 ----
 
 = Connecting to Network =
