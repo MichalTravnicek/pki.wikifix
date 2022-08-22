@@ -6,16 +6,8 @@ This page describes the procedure to build PKI CA container.
 
 = Prerequisites =
 
-To install Podman:
-
 ----
 $ dnf install podman
-----
-
-To install Docker:
-
-----
-$ dnf install docker
 ----
 
 = Dockerfile =
@@ -24,19 +16,8 @@ The CA Dockerfile is located at link:https://github.com/dogtagpki/pki/blob/maste
 
 = Building Container Image Locally =
 
-To build with Podman:
-
 ----
 $ podman build \
-    -f base/ca/Dockerfile \
-    -t pki-ca \
-    .
-----
-
-To build with Docker:
-
-----
-$ docker build \
     -f base/ca/Dockerfile \
     -t pki-ca \
     .
