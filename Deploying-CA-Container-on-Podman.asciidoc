@@ -14,7 +14,7 @@ Run the container with the following command:
 
 ----
 $ podman run \
-    --name=pki-ca \
+    --name=ca \
     --hostname=ca.example.com \
     --network=example \
     --network-alias=ca.example.com \
@@ -27,7 +27,7 @@ $ podman run \
 Wait until the container is started:
 
 ----
-$ podman logs -f pki-ca
+$ podman logs -f ca
 ----
 
 = Verification =
@@ -35,7 +35,7 @@ $ podman logs -f pki-ca
 Install the CA signing certificate:
 
 ----
-$ podman exec pki-ca pki \
+$ podman exec ca pki \
     client-cert-import \
     --ca-cert ca_signing.crt \
     ca_signing
@@ -44,7 +44,7 @@ $ podman exec pki-ca pki \
 Retrieve the container information:
 
 ----
-$ podman exec pki-ca pki info
+$ podman exec ca pki info
   Server URL: https://ca.example.com:8443
   Server Version: 11.3.0
 ----
@@ -52,5 +52,5 @@ $ podman exec pki-ca pki info
 = Removing CA Container =
 
 ----
-$ podman rm -f pki-ca
+$ podman rm -f ca
 ----
