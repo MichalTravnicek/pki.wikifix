@@ -92,6 +92,7 @@ $ podman cp ca_signing.crt client:ca_signing.crt
 $ podman exec client pki \
     nss-cert-import \
     --cert ca_signing.crt \
+    --trust CT,C,C \
     ca_signing
 ----
 
