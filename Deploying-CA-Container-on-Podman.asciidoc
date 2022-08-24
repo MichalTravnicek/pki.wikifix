@@ -8,6 +8,28 @@ This document describes the process to deploy CA as a container on Podman. The c
 
 See link:https://github.com/dogtagpki/389-ds-base/wiki/Deploying-DS-Container-on-Podman[Deploying DS Container on Podman].
 
+= Generating System Certificates =
+
+By default the CA container will create a new system certificates and admin certificate.
+
+To use existing certificates, store the certificates and keys in the following PKCS #12 files:
+
+* `server.p12`
+** `ca_signing` certificate
+** `ocsp_signing` certificate
+** `audit_signing` certificate
+** `subsystem` certificate
+** `sslserver` certificate
+* `admin.p12`
+** `admin` certificate
+
+Then store the PKCS #12 files in a location that will be mapped to the `/certs` folder in the container.
+
+See also:
+
+* link:Generating-System-Certificates[Generating System Certificates]
+* link:PKI-PKCS12-CLI[PKI PKCS12 CLI]
+
 = Deploying CA Container =
 
 Run the container with the following command:
@@ -18,6 +40,7 @@ $ podman run \
     --hostname=ca.example.com \
     --network=example \
     --network-alias=ca.example.com \
+    -v $PWD/certs:/certs \
     -p 8080:8080 \
     -p 8443:8443 \
     -d \
@@ -30,23 +53,58 @@ Wait until the container is started:
 $ podman logs -f ca
 ----
 
-= Verification =
+= Accessing CA Locally =
 
-Install the CA signing certificate:
-
-----
-$ podman exec ca pki \
-    client-cert-import \
-    --ca-cert ca_signing.crt \
-    ca_signing
-----
-
-Retrieve the container information:
+The CA service can be accessed locally using the `pki` CLI within the CA container itself, for example:
 
 ----
 $ podman exec ca pki info
+$ podman exec ca pki \
+    -n admin \
+    ca-user-show \
+    admin
+----
+
+= Accessing CA Remotely =
+
+To access the CA service remotely, retrieve the `ca_signing.crt` from the CA container, then install it on the client, for example:
+
+----
+$ podman cp ca:/certs/ca_signing.crt ca_signing.crt
+$ podman cp ca_signing.crt client:ca_signing.crt
+$ podman exec client pki \
+    nss-cert-import \
+    --cert ca_signing.crt \
+    ca_signing
+----
+
+Then the CA service can be accessed using its URL, for example:
+
+----
+$ podman exec client pki -U https://ca.example.com:8443 info
   Server URL: https://ca.example.com:8443
   Server Version: 11.3.0
+----
+
+To perform administrative operations remotely, retrieve the `admin.p12` from the CA container, then install it on the client, for example:
+
+----
+$ podman cp ca:/certs/admin.p12 admin.p12
+$ podman cp admin.p12 client:admin.p12
+$ podman exec client pki \
+    pkcs12-import \
+    --pkcs12 admin.p12 \
+    --password Secret.123
+----
+
+Then use the `admin` certificate for authentication, for example:
+
+----
+$ podman exec client pki \
+    -U https://ca.example.com:8443 \
+    -n admin \
+    ca-user-show \
+    admin
 ----
 
 = Removing CA Container =
