@@ -4,6 +4,14 @@ NOTE: This page is still under construction.
 
 This document describes the process to deploy CA as a container on Podman in PKI 11.3 or later. The container image is available at link:https://quay.io/repository/dogtagpki/pki-ca[quay.io/dogtagpki/pki-ca].
 
+= Creating Network =
+
+Create a network for the containers:
+
+----
+$ podman network create example
+----
+
 = Deploying DS Container =
 
 See link:https://github.com/dogtagpki/389-ds-base/wiki/Deploying-DS-Container-on-Podman[Deploying DS Container on Podman].
@@ -12,7 +20,7 @@ See link:https://github.com/dogtagpki/389-ds-base/wiki/Deploying-DS-Container-on
 
 By default the CA container will create a new system certificates and admin certificate.
 
-To use existing certificates, store the certificates and keys in the following PKCS #12 files:
+To deploy the CA container with existing certificates, store the certificates and keys in the following PKCS #12 files:
 
 * `server.p12`
 ** `ca_signing` certificate
@@ -23,7 +31,7 @@ To use existing certificates, store the certificates and keys in the following P
 * `admin.p12`
 ** `admin` certificate
 
-Then store the PKCS #12 files in a location that will be mapped to the `/certs` folder in the container.
+Then store the PKCS #12 files in a location that will be mapped to the `/certs` folder in the CA container.
 
 See also:
 
