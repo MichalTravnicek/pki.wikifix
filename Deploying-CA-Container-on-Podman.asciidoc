@@ -40,7 +40,7 @@ See also:
 
 = Deploying CA Container =
 
-Run the container with the following command:
+Run the CA container with the following command:
 
 ----
 $ podman run \
@@ -55,13 +55,13 @@ $ podman run \
     quay.io/dogtagpki/pki-ca
 ----
 
-Wait until the container is started:
+Wait until the CA service is running:
 
 ----
 $ podman logs -f ca
 ----
 
-= Accessing CA Locally =
+= Accessing CA Service Locally =
 
 The CA service can be accessed locally using the `pki` CLI within the CA container itself, for example:
 
@@ -80,7 +80,7 @@ $ podman exec ca pki \
     admin
 ----
 
-= Accessing CA Remotely =
+= Accessing CA Service Remotely =
 
 To access the CA service remotely, retrieve the `ca_signing.crt` from the CA container, then install it on the client, for example:
 
