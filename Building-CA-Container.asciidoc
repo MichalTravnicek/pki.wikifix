@@ -4,17 +4,13 @@ NOTE: This page is still under construction.
 
 This page describes the procedure to build a CA container with PKI 11.3 or later.
 
-= Prerequisites =
-
-----
-$ dnf install podman
-----
-
 = Dockerfile =
 
 The CA Dockerfile is located at link:https://github.com/dogtagpki/pki/blob/master/base/ca/Dockerfile[base/ca/Dockerfile].
 
-= Building Container Image Locally =
+= Building CA Container Locally =
+
+To build the CA container locally:
 
 ----
 $ podman build \
@@ -23,14 +19,16 @@ $ podman build \
     .
 ----
 
-= Pushing Container Image to Quay =
+To push the CA container to Quay:
 
 ----
 $ podman tag pki-ca:latest quay.io/<username>/pki-ca:latest
 $ podman push quay.io/<username>/pki-ca:latest
 ----
 
-= Configuring Autobuild on Quay =
+= Building CA Container on Quay =
+
+The repository on Quay can be configured to build the CA container automatically:
 
 * Open https://quay.io/repository
 * Click a container repository (e.g. *dogtagpki/pki-ca*)
@@ -52,4 +50,3 @@ $ podman push quay.io/<username>/pki-ca:latest
 * Don't select anything under *Optional Robot Account*
 * Click *Continue*
 * Under *Ready to go!* click *Continue*
-
