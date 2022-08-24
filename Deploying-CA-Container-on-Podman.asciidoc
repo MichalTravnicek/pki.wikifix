@@ -20,16 +20,22 @@ See link:https://github.com/dogtagpki/389-ds-base/wiki/Deploying-DS-Container-on
 
 By default the CA container will create a new system certificates and admin certificate.
 
-To deploy the CA container with existing certificates, store the certificates and keys in the following PKCS #12 files:
+To deploy the CA container with existing certificates, prepare the following files:
 
 * `server.p12` which contains:
-** `ca_signing` certificate
-** `ocsp_signing` certificate
-** `audit_signing` certificate
-** `subsystem` certificate
-** `sslserver` certificate
+** `ca_signing` certificate and key
+** `ocsp_signing` certificate and key
+** `audit_signing` certificate and key
+** `subsystem` certificate and key
+** `sslserver` certificate and key
 * `admin.p12` which contains:
-** `admin` certificate
+** `admin` certificate and key
+* `ca_signing.csr` certificate request
+* `ocsp_signing.csr` certificate request
+* `audit_signing.csr` certificate request
+* `subsystem.csr` certificate request
+* `sslserver.csr` certificate request
+* `admin.csr` certificate request
 
 Then store the PKCS #12 files in a location that will be mapped to the `/certs` folder in the CA container.
 
