@@ -61,7 +61,9 @@ Wait until the CA service is running:
 $ podman logs -f ca
 ----
 
-= Accessing CA Service Locally =
+= Accessing CA Service =
+
+== Local access ==
 
 The CA service can be accessed locally using the `pki` CLI within the CA container itself, for example:
 
@@ -80,7 +82,7 @@ $ podman exec ca pki \
     admin
 ----
 
-= Accessing CA Service Remotely =
+== Remote access ==
 
 To access the CA service remotely, retrieve the `ca_signing.crt` from the CA container, then install it on the client, for example:
 
