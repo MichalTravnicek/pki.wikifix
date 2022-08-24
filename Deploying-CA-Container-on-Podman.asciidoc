@@ -2,7 +2,7 @@
 
 NOTE: This page is still under construction.
 
-This document describes the process to deploy CA container on Podman with PKI 11.3 or later. The container image is available at link:https://quay.io/repository/dogtagpki/pki-ca[quay.io/dogtagpki/pki-ca].
+This document describes the process to deploy CA container on Podman with PKI 11.3 or later. See link:Building-CA-Container[Building CA Container].
 
 = Creating Network =
 
@@ -60,7 +60,7 @@ $ podman run \
     -p 8080:8080 \
     -p 8443:8443 \
     -d \
-    quay.io/dogtagpki/pki-ca
+    pki-ca
 ----
 
 Wait until the CA service is running:
