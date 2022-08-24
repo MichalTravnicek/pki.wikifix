@@ -22,13 +22,13 @@ By default the CA container will create a new system certificates and admin cert
 
 To deploy the CA container with existing certificates, store the certificates and keys in the following PKCS #12 files:
 
-* `server.p12`
+* `server.p12` which contains:
 ** `ca_signing` certificate
 ** `ocsp_signing` certificate
 ** `audit_signing` certificate
 ** `subsystem` certificate
 ** `sslserver` certificate
-* `admin.p12`
+* `admin.p12` which contains:
 ** `admin` certificate
 
 Then store the PKCS #12 files in a location that will be mapped to the `/certs` folder in the CA container.
