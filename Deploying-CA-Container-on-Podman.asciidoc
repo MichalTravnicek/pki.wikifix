@@ -81,7 +81,7 @@ $ podman exec ca pki info
   Server Version: 11.3.0
 ----
 
-To perform administrative tasks, use the `admin` certificate for authentication, for example:
+To perform administrative operations, use the `admin` certificate for authentication, for example:
 
 ----
 $ podman exec ca pki \
@@ -112,7 +112,7 @@ $ podman exec client pki -U https://ca.example.com:8443 info
   Server Version: 11.3.0
 ----
 
-To perform administrative tasks remotely, retrieve the `admin.p12` from the CA container, then install it on the client, for example:
+To perform administrative operations, retrieve the `admin.p12` from the CA container, then install it on the client, for example:
 
 ----
 $ podman cp ca:/certs/admin.p12 admin.p12
