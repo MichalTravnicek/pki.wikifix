@@ -22,7 +22,7 @@ $ ldapmodify \
     -f /usr/share/pki/server/database/ds/schema.ldif
 ----
 
-= Add Base Entry =
+= Adding Base Entry =
 
 ----
 $ ldapadd \
@@ -35,7 +35,7 @@ dc: ca
 EOF
 ----
 
-= Add Database Entries =
+= Adding Database Entries =
 
 ----
 $ sed \
@@ -48,7 +48,7 @@ $ ldapadd \
     -f create.ldif
 ----
 
-= Add Indexes =
+= Adding Indexes =
 
 ----
 $ sed \
@@ -61,7 +61,7 @@ $ ldapadd \
     -f index.ldif
 ----
 
-= Rebuild Indexes =
+= Rebuilding Indexes =
 
 Start the rebuild task with the following commands:
 
@@ -80,11 +80,82 @@ Wait for the task to complete:
 
 ----
 $ ldapsearch \
-    -H ldap://ds.example.com:3389 \
+    -H ldap://$HOSTNAME \
     -D "cn=Directory Manager" \
     -w Secret.123 \
     -b "cn=index1160589770, cn=index, cn=tasks, cn=config" \
     nsTaskExitCode
 ----
 
-Verify that the `nsTaskExitCode` is `0`.
+Verify that `nsTaskExitCode` is `0`.
+
+= Adding ACL Entries =
+
+----
+$ sed \
+    -e 's/{rootSuffix}/dc=ca,dc=pki,dc=example,dc=com/g' \
+    /usr/share/pki/ca/database/ds/acl.ldif | tee acl.ldif
+$ ldapadd \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f acl.ldif
+----
+
+= Granting Access to Database User =
+
+----
+$ sed \
+    -e 's/{rootSuffix}/dc=example,dc=com/g' \
+    -e 's/{dbuser}/uid=pkidbuser,ou=people,dc=ca,dc=pki,dc=example,dc=com/g' \
+    /usr/share/pki/server/database/ds/db-access-grant.ldif | tee db-access-grant.ldif
+$ ldapadd \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f db-access-grant.ldif \
+----
+
+= Adding VLV Indexes =
+
+----
+$ sed \
+    -e 's/{instanceId}/pki-tomcat/g' \
+    -e 's/{database}/userroot/g' \
+    -e 's/{rootSuffix}/dc=ca,dc=pki,dc=example,dc=com/g' \
+    /usr/share/pki/ca/database/ds/vlv.ldif | tee vlv.ldif
+$ ldapadd \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f vlv.ldif
+----
+
+= Rebuilding VLV Indexes =
+
+Start the rebuild task with the following commands:
+
+----
+$ sed \
+    -e 's/{database}/userroot/g' \
+    -e 's/{instanceId}/pki-tomcat/g' \
+    /usr/share/pki/ca/database/ds/vlvtasks.ldif | tee vlvtasks.ldif
+$ ldapadd \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f vlvtasks.ldif
+----
+
+Wait for the task to complete:
+
+----
+$ ldapsearch \
+    -H ldap://ds.example.com:3389 \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -b "cn=index1160589769, cn=index, cn=tasks, cn=config" \
+    nsTaskExitCode
+----
+
+Verify that `nsTaskExitCode` is `0`.
