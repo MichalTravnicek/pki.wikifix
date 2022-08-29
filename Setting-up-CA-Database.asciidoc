@@ -1,0 +1,90 @@
+= Deploying DS Container =
+
+See link:https://github.com/dogtagpki/389-ds-base/wiki/Deploying-DS-Container-on-Podman[Deploying DS Container on Podman].
+
+= Configuring DS =
+
+----
+$ ldapadd \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f /usr/share/pki/server/database/ds/config.ldif
+----
+
+= Adding Schema =
+
+----
+$ ldapmodify \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f /usr/share/pki/server/database/ds/schema.ldif
+----
+
+= Add Base Entry =
+
+----
+$ ldapadd \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 << EOF
+dn: dc=ca,dc=pki,dc=example,dc=com
+objectClass: dcObject
+dc: ca
+EOF
+----
+
+= Add Database Entries =
+
+----
+$ sed \
+    -e 's/{rootSuffix}/dc=ca,dc=pki,dc=example,dc=com/g' \
+    /usr/share/pki/ca/database/ds/create.ldif | tee create.ldif
+$ ldapadd \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f create.ldif
+----
+
+= Add Indexes =
+
+----
+$ sed \
+    -e 's/{database}/userroot/g' \
+    /usr/share/pki/ca/database/ds/index.ldif | tee index.ldif
+$ ldapadd \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f index.ldif
+----
+
+= Rebuild Indexes =
+
+Start the rebuild task with the following commands:
+
+----
+$ sed \
+    -e 's/{database}/userroot/g' \
+    /usr/share/pki/ca/database/ds/indextasks.ldif | tee indextasks.ldif
+$ ldapadd \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f indextasks.ldif
+----
+
+Wait for the task to complete:
+
+----
+$ ldapsearch \
+    -H ldap://ds.example.com:3389 \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -b "cn=index1160589770, cn=index, cn=tasks, cn=config" \
+    nsTaskExitCode
+----
+
+Verify that the `nsTaskExitCode` is `0`.
