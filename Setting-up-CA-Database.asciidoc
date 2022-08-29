@@ -49,7 +49,7 @@ $ ldapadd \
     -f create.ldif
 ----
 
-= Adding CA Indexes =
+= Adding CA Search Indexes =
 
 ----
 $ sed \
@@ -62,7 +62,7 @@ $ ldapadd \
     -f index.ldif
 ----
 
-= Rebuilding CA Indexes =
+= Rebuilding CA Search Indexes =
 
 Start the rebuild task with the following commands:
 
@@ -90,7 +90,7 @@ $ ldapsearch \
 
 Verify that `nsTaskExitCode` is `0`.
 
-= Adding CA ACL Entries =
+= Adding CA ACL Resources =
 
 ----
 $ sed \
@@ -103,7 +103,7 @@ $ ldapadd \
     -f acl.ldif
 ----
 
-= Granting Access to Database User =
+= Granting Access to PKI Database User =
 
 ----
 $ sed \
