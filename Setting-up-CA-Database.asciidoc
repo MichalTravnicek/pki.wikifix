@@ -1,6 +1,8 @@
-= Deploying DS Container =
+= Overview =
 
-See link:https://github.com/dogtagpki/389-ds-base/wiki/Deploying-DS-Container-on-Podman[Deploying DS Container on Podman].
+This document describes the process to set up CA using DS database.
+It assumes that the DS database has been installed as described in
+See link:Deploying-DS-Container-on-Podman[Deploying DS Container on Podman].
 
 = Configuring DS =
 
@@ -12,7 +14,7 @@ $ ldapadd \
     -f /usr/share/pki/server/database/ds/config.ldif
 ----
 
-= Adding Schema =
+= Adding PKI Schema =
 
 ----
 $ ldapmodify \
@@ -22,7 +24,7 @@ $ ldapmodify \
     -f /usr/share/pki/server/database/ds/schema.ldif
 ----
 
-= Adding Base Entry =
+= Adding CA Base Entry =
 
 ----
 $ ldapadd \
@@ -35,7 +37,7 @@ dc: ca
 EOF
 ----
 
-= Adding Database Entries =
+= Adding CA Database Entries =
 
 ----
 $ sed \
@@ -48,7 +50,7 @@ $ ldapadd \
     -f create.ldif
 ----
 
-= Adding Indexes =
+= Adding CA Indexes =
 
 ----
 $ sed \
@@ -61,7 +63,7 @@ $ ldapadd \
     -f index.ldif
 ----
 
-= Rebuilding Indexes =
+= Rebuilding CA Indexes =
 
 Start the rebuild task with the following commands:
 
@@ -89,7 +91,7 @@ $ ldapsearch \
 
 Verify that `nsTaskExitCode` is `0`.
 
-= Adding ACL Entries =
+= Adding CA ACL Entries =
 
 ----
 $ sed \
@@ -116,7 +118,7 @@ $ ldapadd \
     -f db-access-grant.ldif \
 ----
 
-= Adding VLV Indexes =
+= Adding CA VLV Indexes =
 
 ----
 $ sed \
@@ -131,7 +133,7 @@ $ ldapadd \
     -f vlv.ldif
 ----
 
-= Rebuilding VLV Indexes =
+= Rebuilding CA VLV Indexes =
 
 Start the rebuild task with the following commands:
 
