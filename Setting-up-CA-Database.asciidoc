@@ -1,8 +1,7 @@
 = Overview =
 
 This document describes the process to set up CA using DS database.
-It assumes that the DS database has been installed as described in
-See link:Deploying-DS-Container-on-Podman[Deploying DS Container on Podman].
+It assumes that the DS database has been installed as described in link:DS-Installation[DS Installation].
 
 = Configuring DS =
 
@@ -153,7 +152,7 @@ Wait for the task to complete:
 
 ----
 $ ldapsearch \
-    -H ldap://ds.example.com:3389 \
+    -H ldap://$HOSTNAME \
     -D "cn=Directory Manager" \
     -w Secret.123 \
     -b "cn=index1160589769, cn=index, cn=tasks, cn=config" \
