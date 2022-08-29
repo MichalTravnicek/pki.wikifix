@@ -50,7 +50,7 @@ $ podman exec ds dsconf localhost backend create \
     --be-name userRoot
 ----
 
-= Creating PKI LDAP Tree =
+= Creating PKI Subtree =
 
 ----
 $ podman exec -i ds ldapadd \
@@ -68,7 +68,7 @@ dc: pki
 EOF
 ----
 
-= Accessing PKI LDAP Tree =
+= Accessing PKI Subtree =
 
 ----
 $ podman exec ds ldapsearch \
