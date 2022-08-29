@@ -1,1 +1,96 @@
-This page has been moved to https://github.com/dogtagpki/389-ds-base/wiki/Deploying-DS-Container-on-Podman.
+= Overview =
+
+This page describes the process to deploy a DS container on Podman for PKI server. The container image is available at link:https://quay.io/repository/389ds/dirsrv[quay.io/389ds/dirsrv].
+
+= Creating Network =
+
+Create a network for the container, for example:
+
+----
+$ podman network create example
+----
+
+Alternatively, use an existing network.
+
+= Creating DS Volume =
+
+----
+$ podman volume create ds-data
+----
+
+= Deploying DS Container =
+
+Run the container with the following command:
+
+----
+$ podman run \
+    --name=ds \
+    --hostname=ds.example.com \
+    --network=example \
+    --network-alias=ds.example.com \
+    -v ds-data:/data \
+    -e DS_DM_PASSWORD=Secret.123 \
+    -p 3389:3389 \
+    -p 3636:3636 \
+    -d \
+    quay.io/389ds/dirsrv
+----
+
+Wait until the container is started:
+
+----
+$ podman logs -f ds
+----
+
+= Creating DS Backend =
+
+----
+$ podman exec ds dsconf localhost backend create \
+    --suffix dc=example,dc=com \
+    --be-name userRoot
+----
+
+= Creating PKI LDAP Tree =
+
+----
+$ podman exec -i ds ldapadd \
+    -H ldap://ds.example.com:3389 \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -x << EOF
+dn: dc=example,dc=com
+objectClass: domain
+dc: example
+
+dn: dc=pki,dc=example,dc=com
+objectClass: domain
+dc: pki
+EOF
+----
+
+= Accessing PKI LDAP Tree =
+
+----
+$ podman exec ds ldapsearch \
+    -H ldap://ds.example.com:3389 \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -x \
+    -b "dc=example,dc=com"
+----
+
+= Enabling SSL Connection =
+
+----
+$ podman exec ds mkdir -p /data/tls/ca
+----
+
+= Removing DS Container =
+
+If the DS container is no longer needed, it can be removed with the following commands:
+
+----
+$ podman rm -f ds
+$ podman volume rm ds-data
+$ podman network rm example
+----
