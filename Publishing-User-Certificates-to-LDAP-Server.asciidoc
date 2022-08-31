@@ -4,7 +4,7 @@ This page describes the process to configure CA to publish user certificates to 
 
 = Preparing LDAP Server =
 
-Prepare the publishing target:
+Prepare the publishing subtree:
 
 ----
 $ ldapadd \
@@ -15,6 +15,23 @@ $ ldapadd \
 dn: ou=people,dc=pki,dc=example,dc=com
 objectClass: organizationalUnit
 ou: people
+----
+
+Add the users, for example:
+
+----
+$ ldapadd \
+    -H ldap://$HOSTNAME:389 \
+    -x \
+    -D "cn=Directory Manager" \
+    -w Secret.123
+dn: uid=testuser,ou=people,dc=pki,dc=example,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: testuser
+cn: Test User
+sn: User
 ----
 
 = Configuring User Certificate Publishing =
