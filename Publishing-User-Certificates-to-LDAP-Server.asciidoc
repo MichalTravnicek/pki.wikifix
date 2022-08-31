@@ -14,6 +14,7 @@ $ ldapadd \
     -w Secret.123
 dn: ou=people,dc=pki,dc=example,dc=com
 objectClass: organizationalUnit
+objectClass: top
 ou: people
 ----
 
@@ -29,6 +30,7 @@ dn: uid=testuser,ou=people,dc=pki,dc=example,dc=com
 objectClass: person
 objectClass: organizationalPerson
 objectClass: inetOrgPerson
+objectClass: top
 uid: testuser
 cn: Test User
 sn: User
@@ -83,3 +85,115 @@ $ pki-server ca-config-set ca.publish.enable true
 ----
 
 Finally, restart the server.
+
+= Verification =
+
+Submit a certificate request for a user:
+
+----
+$ pki client-cert-request uid=testuser --profile caUserCert
+----
+
+Approve the request:
+
+----
+$ pki -n caadmin ca-cert-request-approve <request ID> --force
+----
+
+To retrieve the published user certificate:
+
+----
+$ ldapsearch \
+    -H ldap://$HOSTNAME:389 \
+    -x \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -b uid=testuser,ou=people,dc=pki,dc=example,dc=com \
+    -t
+dn: uid=testuser,ou=people,dc=pki,dc=example,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: top
+uid: testuser
+cn: Test User
+sn: User
+userCertificate;binary:< file://<path>
+----
+
+To view the published user certificate:
+
+----
+$ openssl x509 \
+    -in <path> \
+    -inform DER \
+    -text -noout
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            b6:0a:d9:f8:f3:b4:c0:a5:b0:8c:ca:0d:00:44:ee:f8
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: O = EXAMPLE, OU = pki-tomcat, CN = CA Signing Certificate
+        Validity
+            Not Before: Aug 31 15:58:29 2022 GMT
+            Not After : Feb 27 16:58:29 2023 GMT
+        Subject: UID = testuser
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                RSA Public-Key: (2048 bit)
+                Modulus:
+                    00:c5:0e:0e:6f:10:4f:32:be:8e:81:37:6d:cf:89:
+                    fe:d8:4a:0c:bd:bf:1c:a2:af:60:25:ee:3a:9e:47:
+                    ef:96:6f:20:1f:46:2e:70:67:29:ed:76:02:11:8a:
+                    c5:1c:fe:3f:b3:ec:f3:4c:11:c2:04:6d:0d:cb:1a:
+                    07:0f:ec:c0:08:10:b4:e6:b8:91:d6:bb:dc:9a:f5:
+                    6f:75:22:b0:1a:59:44:84:6f:2a:76:9f:01:09:30:
+                    6e:14:5c:ab:5c:a5:25:af:7e:b5:ed:79:f0:38:da:
+                    b3:df:87:71:02:2c:3a:93:b6:d9:9e:8f:87:2c:f3:
+                    81:21:cc:74:a8:a1:74:e8:8d:1b:ea:ab:cd:f3:23:
+                    bc:92:09:42:aa:4f:0b:1b:c8:c9:58:c5:75:72:c9:
+                    d5:56:48:5f:7a:25:8a:2d:45:41:09:47:59:79:b5:
+                    fa:6b:9c:82:ae:c4:93:4a:d7:5f:11:f7:64:89:83:
+                    c1:fa:6e:6a:87:ef:83:74:f3:f5:4c:b7:cf:46:94:
+                    70:b3:4e:1b:2d:f8:6f:e0:f1:9f:1e:07:82:98:65:
+                    93:dc:cc:ae:8d:8d:b4:7e:e6:b9:ae:6c:c1:e5:06:
+                    1a:92:d3:31:11:47:e1:b4:5b:6f:58:9a:a3:97:f4:
+                    2f:70:2a:4f:4a:bf:7b:b3:47:89:bd:2e:05:d8:6e:
+                    1a:93
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Authority Key Identifier: 
+                keyid:0E:9F:2D:3B:AC:81:50:91:A0:2B:70:22:98:A7:D2:74:1C:15:9E:40
+
+            Authority Information Access: 
+                OCSP - URI:http://fedora:8080/ca/ocsp
+
+            X509v3 Key Usage: critical
+                Digital Signature, Non Repudiation, Key Encipherment
+            X509v3 Extended Key Usage: 
+                TLS Web Client Authentication, E-mail Protection
+    Signature Algorithm: sha256WithRSAEncryption
+         1b:b8:51:40:81:1a:4b:54:c3:98:3e:b2:2e:75:89:0b:b9:e5:
+         75:13:0b:15:c5:c6:e4:37:5e:92:78:74:5c:7d:a4:cf:d9:f9:
+         c4:d3:64:3e:06:ab:10:51:b3:4f:b7:2a:65:26:5f:d8:35:2f:
+         da:84:c7:27:23:0a:c1:be:60:67:e7:ce:f1:83:7e:98:e2:68:
+         c3:76:42:8c:da:1a:52:f1:99:ce:91:97:79:1a:5f:09:9c:68:
+         6b:1b:26:59:29:02:09:8e:91:13:5d:bc:42:55:23:85:31:91:
+         fc:6d:c1:2d:7e:b6:46:1b:d8:5a:0a:78:a0:dd:ca:fa:a5:df:
+         8c:2d:68:01:ac:23:27:30:05:c9:f9:ff:f5:67:b9:dc:87:10:
+         f6:26:de:26:54:2a:7a:db:ec:db:04:01:52:da:d4:0a:ed:04:
+         cb:52:e1:09:39:a5:12:e5:7a:a3:c1:6f:5d:9d:cd:77:58:ce:
+         0d:86:ea:9c:28:c3:11:48:b2:94:0e:07:a3:4a:87:04:88:93:
+         a7:a1:e6:49:5c:81:61:4d:81:ae:67:15:0d:1b:c0:cf:2e:d0:
+         a1:b9:56:b7:b9:16:01:db:ba:c6:9c:a0:11:bc:1c:40:ab:62:
+         95:22:52:13:c5:d8:59:08:f3:98:f9:9a:8c:81:ee:c8:f9:ae:
+         c4:09:6d:b6:e9:0d:f8:5d:9b:5b:1d:41:6e:3d:c9:7c:70:aa:
+         e7:1f:71:59:b0:86:b5:30:30:74:00:4f:12:2a:f6:44:ae:02:
+         fa:5c:bd:c5:ba:cb:70:5f:38:ae:bb:86:5c:e2:0c:79:6e:0a:
+         ab:f5:1d:70:06:e5:a7:96:0e:18:99:78:6d:3f:6e:bd:dc:d7:
+         35:ac:1b:6b:27:0a:e2:13:3b:5f:bf:ca:67:fb:ef:c8:29:57:
+         ec:ee:8f:4e:b4:03:f1:8b:49:15:68:e0:f5:94:a0:b7:b5:96:
+         f6:32:14:8e:9c:98:99:73:44:8f:fa:95:b1:9b:22:13:21:1f:
+         df:dd:5b:40:5a:61
+----
