@@ -1,0 +1,19 @@
+= Overview =
+
+This page describes the process to configure CA to publish user certificates to an LDAP server.
+
+= Preparing LDAP Server =
+
+Prepare the publishing target:
+
+----
+$ ldapadd \
+    -H ldap://$HOSTNAME:389 \
+    -x \
+    -D "cn=Directory Manager" \
+    -w Secret.123
+dn: ou=people,dc=pki,dc=example,dc=com
+objectClass: organizationalUnit
+ou: people
+----
+
