@@ -33,3 +33,36 @@ $ pki-server ca-config-set ca.publish.ldappublish.ldap.ldapauth.bindDN "cn=Direc
 $ pki-server ca-config-set ca.publish.ldappublish.ldap.ldapauth.bindPWPrompt internaldb
 $ pki-server ca-config-set ca.publish.ldappublish.ldap.ldapauth.clientCertNickname ""
 ----
+
+To configure LDAP-based user certificate publisher:
+
+----
+$ pki-server ca-config-set ca.publish.publisher.instance.LdapUserCertPublisher.certAttr "userCertificate;binary"
+$ pki-server ca-config-set ca.publish.publisher.instance.LdapUserCertPublisher.pluginName LdapUserCertPublisher
+----
+
+To configure user certificate mapper:
+
+----
+$ pki-server ca-config-set ca.publish.mapper.instance.LdapUserCertMap.dnPattern "uid=\$subj.UID,ou=people,dc=pki,dc=example,dc=com"
+$ pki-server ca-config-set ca.publish.mapper.instance.LdapUserCertMap.pluginName LdapSimpleMap
+----
+
+To configure user certificate publishing rule:
+
+----
+$ pki-server ca-config-set ca.publish.rule.instance.LdapUserCertRule.enable true
+$ pki-server ca-config-set ca.publish.rule.instance.LdapUserCertRule.mapper LdapUserCertMap
+$ pki-server ca-config-set ca.publish.rule.instance.LdapUserCertRule.pluginName Rule
+$ pki-server ca-config-set ca.publish.rule.instance.LdapUserCertRule.predicate ""
+$ pki-server ca-config-set ca.publish.rule.instance.LdapUserCertRule.publisher LdapUserCertPublisher
+$ pki-server ca-config-set ca.publish.rule.instance.LdapUserCertRule.type certs
+----
+
+To enable publishing:
+
+----
+$ pki-server ca-config-set ca.publish.enable true
+----
+
+Finally, restart the server.
