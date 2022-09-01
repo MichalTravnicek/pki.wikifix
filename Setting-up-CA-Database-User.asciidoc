@@ -4,7 +4,7 @@ NOTE: This page is still under construction.
 
 This page describes the process to set up a user to access the CA database in DS.
 
-= Adding Database User =
+= Adding User in DS =
 
 ----
 $ ldapadd \
@@ -24,7 +24,7 @@ userType: agentType
 EOF
 ----
 
-= Adding Subsystem Certificate into Database User =
+= Assigning Subsystem Certificate to the User =
 
 Convert the subsystem certificate to DER format:
 
@@ -71,7 +71,7 @@ userCertificate:< file:subsystem.der
 EOF
 ----
 
-= Adding Database Users into Groups =
+= Adding the Users into CA Groups =
 
 ----
 $ ldapmodify \
@@ -92,7 +92,7 @@ uniqueMember: uid=pkidbuser,ou=people,dc=ca,dc=pki,dc=example,dc=com
 EOF
 ----
 
-= Granting Access to Database User =
+= Granting the User Access to the Database =
 
 ----
 $ sed \
