@@ -109,21 +109,6 @@ $ ldapadd \
     -f acl.ldif
 ----
 
-= Granting Access to PKI Database User =
-
-----
-$ sed \
-    -e 's/{rootSuffix}/dc=example,dc=com/g' \
-    -e 's/{dbuser}/uid=pkidbuser,ou=people,dc=ca,dc=pki,dc=example,dc=com/g' \
-    /usr/share/pki/server/database/ds/db-access-grant.ldif \
-    | tee db-access-grant.ldif
-$ ldapadd \
-    -H ldap://$HOSTNAME \
-    -D "cn=Directory Manager" \
-    -w Secret.123 \
-    -f db-access-grant.ldif \
-----
-
 = Adding CA VLV Indexes =
 
 ----
@@ -169,3 +154,97 @@ $ ldapsearch \
 ----
 
 Verify that `nsTaskExitCode` is `0`.
+
+= Adding Database User =
+
+----
+$ ldapadd \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 << EOF
+dn: uid=pkidbuser,ou=people,dc=ca,dc=pki,dc=example,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: cmsuser
+cn: pkidbuser
+sn: pkidbuser
+uid: pkidbuser
+userState: 1
+userType: agentType
+EOF
+----
+
+= Adding Subsystem Certificate into Database User =
+
+Convert the subsystem certificate to DER format:
+
+----
+$ openssl x509 -outform der -in subsystem.crt -out subsystem.der
+----
+
+Get get certificate serial number in decimal format:
+
+----
+$ openssl x509 -text -noout -in subsystem.crt | tee output
+SERIAL=$(sed -En 'N; s/^ *Serial Number:\n *(.*)$/\1/p; D' output)
+HEX_SERIAL=$(echo "$SERIAL" | tr -d ':')
+DEC_SERIAL=$(python -c "print(int('$HEX_SERIAL', 16))")
+----
+
+Add the certificate into the user entry:
+
+----
+$ ldapmodify \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 << EOF
+dn: uid=pkidbuser,ou=people,dc=ca,dc=pki,dc=example,dc=com
+changetype: modify
+add: description
+description: 2;$DEC_SERIAL;CN=CA Signing Certificate;CN=Subsystem Certificate
+-
+add: seeAlso
+seeAlso: CN=Subsystem Certificate
+-
+add: userCertificate
+userCertificate:< file:subsystem.der
+-
+EOF
+----
+
+= Adding Database Users into Groups =
+
+----
+$ ldapmodify \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 << EOF
+dn: cn=Subsystem Group,ou=groups,dc=ca,dc=pki,dc=example,dc=com
+changetype: modify
+add: uniqueMember
+uniqueMember: uid=pkidbuser,ou=people,dc=ca,dc=pki,dc=example,dc=com
+-
+
+dn: cn=Certificate Manager Agents,ou=groups,dc=ca,dc=pki,dc=example,dc=com
+changetype: modify
+add: uniqueMember
+uniqueMember: uid=pkidbuser,ou=people,dc=ca,dc=pki,dc=example,dc=com
+-
+EOF
+----
+
+= Granting Access to Database User =
+
+----
+$ sed \
+    -e 's/{rootSuffix}/dc=example,dc=com/g' \
+    -e 's/{dbuser}/uid=pkidbuser,ou=people,dc=ca,dc=pki,dc=example,dc=com/g' \
+    /usr/share/pki/server/database/ds/db-access-grant.ldif \
+    | tee db-access-grant.ldif
+$ ldapadd \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f db-access-grant.ldif \
+----
