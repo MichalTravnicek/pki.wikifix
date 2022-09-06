@@ -1,0 +1,32 @@
+= Overview =
+
+This page describes the procedure to build a Fedora Runner image with PKI 11.3 or later.
+
+= Dockerfile =
+
+The image is defined in the link:https://github.com/dogtagpki/pki/blob/master/Dockerfile[Dockerfile].
+
+= Building Fedora Runner Image =
+
+To build the image:
+
+----
+$ podman build \
+    --target fedora-runner \
+    --tag fedora-runner:latest \
+    .
+----
+
+To push the development image to Quay:
+
+----
+$ podman tag fedora-runner:latest quay.io/<username>/fedora-runner:latest
+$ podman push quay.io/<username>/fedora-runner:latest
+----
+
+To push the official image to Quay:
+
+----
+$ podman tag fedora-runner:latest quay.io/dogtagpki/fedora-runner:latest
+$ podman push quay.io/dogtagpki/fedora-runner:latest
+----
