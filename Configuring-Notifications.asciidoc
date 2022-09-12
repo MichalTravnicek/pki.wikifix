@@ -1,29 +1,29 @@
 = Certificate Issued Notification =
 
 ----
-ca.notification.certIssued.emailSubject=Your Certificate Request
-ca.notification.certIssued.emailTemplate=[PKI_INSTANCE_PATH]/[PKI_SUBSYSTEM_TYPE]/emails/certIssued_CA.html
-ca.notification.certIssued.enabled=false
-ca.notification.certIssued.senderEmail=
+$ pki-server ca-config-set ca.notification.certIssued.emailSubject "Your Certificate Request"
+$ pki-server ca-config-set ca.notification.certIssued.emailTemplate /var/lib/pki/pki-tomcat/ca/emails/certIssued_CA.html
+$ pki-server ca-config-set ca.notification.certIssued.enabled false
+$ pki-server ca-config-set ca.notification.certIssued.senderEmail admin@example.com
 ----
 
 = Certificate Revoked Notification =
 
 ----
-ca.notification.certRevoked.emailSubject=Your Certificate Revoked
-ca.notification.certRevoked.emailTemplate=[PKI_INSTANCE_PATH]/[PKI_SUBSYSTEM_TYPE]/emails/certRevoked_CA.html
-ca.notification.certRevoked.enabled=false
-ca.notification.certRevoked.senderEmail=
+$ pki-server ca-config-set ca.notification.certRevoked.emailSubject "Your Certificate Revoked"
+$ pki-server ca-config-set ca.notification.certRevoked.emailTemplate /var/lib/pki/pki-tomcat/ca/emails/certRevoked_CA.html
+$ pki-server ca-config-set ca.notification.certRevoked.enabled false
+$ pki-server ca-config-set ca.notification.certRevoked.senderEmail admin@example.com
 ----
 
 = Request in Queue Notification =
 
 ----
-ca.notification.requestInQ.emailSubject=Certificate Request in Queue
-ca.notification.requestInQ.emailTemplate=[PKI_INSTANCE_PATH]/[PKI_SUBSYSTEM_TYPE]/emails/reqInQueue_CA.html
-ca.notification.requestInQ.enabled=false
-ca.notification.requestInQ.recipientEmail=
-ca.notification.requestInQ.senderEmail=
+$ pki-server ca-config-set ca.notification.requestInQ.emailSubject "Certificate Request in Queue"
+$ pki-server ca-config-set ca.notification.requestInQ.emailTemplate /var/lib/pki/pki-tomcat/ca/emails/reqInQueue_CA.html
+$ pki-server ca-config-set ca.notification.requestInQ.enabled false
+$ pki-server ca-config-set ca.notification.requestInQ.recipientEmail admin@example.com
+$ pki-server ca-config-set ca.notification.requestInQ.senderEmail admin@example.com
 ----
 
 = See Also =
