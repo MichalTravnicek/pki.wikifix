@@ -1,29 +1,40 @@
-= Certificate Issued Notification =
+= Overview =
+
+This page describes the process to configure email notifications in CA.
+The configuration is stored in `/var/lib/pki/pki-tomcat/conf/ca/CS.cfg`.
+
+= Certificate Issued Notifications =
+
+To configure certificate issued notifications:
 
 ----
-$ pki-server ca-config-set ca.notification.certIssued.emailSubject "Your Certificate Request"
-$ pki-server ca-config-set ca.notification.certIssued.emailTemplate /var/lib/pki/pki-tomcat/ca/emails/certIssued_CA.html
 $ pki-server ca-config-set ca.notification.certIssued.enabled false
 $ pki-server ca-config-set ca.notification.certIssued.senderEmail admin@example.com
+$ pki-server ca-config-set ca.notification.certIssued.emailSubject "Your Certificate Request"
+$ pki-server ca-config-set ca.notification.certIssued.emailTemplate /var/lib/pki/pki-tomcat/ca/emails/certIssued_CA.html
 ----
 
-= Certificate Revoked Notification =
+= Certificate Revoked Notifications =
+
+To configure certificate revoked notifications:
 
 ----
-$ pki-server ca-config-set ca.notification.certRevoked.emailSubject "Your Certificate Revoked"
-$ pki-server ca-config-set ca.notification.certRevoked.emailTemplate /var/lib/pki/pki-tomcat/ca/emails/certRevoked_CA.html
 $ pki-server ca-config-set ca.notification.certRevoked.enabled false
 $ pki-server ca-config-set ca.notification.certRevoked.senderEmail admin@example.com
+$ pki-server ca-config-set ca.notification.certRevoked.emailSubject "Your Certificate Revoked"
+$ pki-server ca-config-set ca.notification.certRevoked.emailTemplate /var/lib/pki/pki-tomcat/ca/emails/certRevoked_CA.html
 ----
 
 = Request in Queue Notification =
 
+To configure request in queue notifications:
+
 ----
-$ pki-server ca-config-set ca.notification.requestInQ.emailSubject "Certificate Request in Queue"
-$ pki-server ca-config-set ca.notification.requestInQ.emailTemplate /var/lib/pki/pki-tomcat/ca/emails/reqInQueue_CA.html
 $ pki-server ca-config-set ca.notification.requestInQ.enabled false
 $ pki-server ca-config-set ca.notification.requestInQ.recipientEmail admin@example.com
 $ pki-server ca-config-set ca.notification.requestInQ.senderEmail admin@example.com
+$ pki-server ca-config-set ca.notification.requestInQ.emailSubject "Certificate Request in Queue"
+$ pki-server ca-config-set ca.notification.requestInQ.emailTemplate /var/lib/pki/pki-tomcat/ca/emails/reqInQueue_CA.html
 ----
 
 = See Also =
