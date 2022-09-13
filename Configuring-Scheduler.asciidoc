@@ -1,7 +1,9 @@
 = General Configuration =
 
+To configure job schedulre:
+
 ----
-$ pki-server ca-config-set jobsScheduler.enabled false
+$ pki-server ca-config-set jobsScheduler.enabled true
 $ pki-server ca-config-set jobsScheduler.interval 1
 ----
 
@@ -35,6 +37,12 @@ $ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.summary.recipie
 $ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.summary.senderEmail admin@example.com
 ----
 
+Email templates:
+
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/emails/rnJob1.txt[/usr/share/pki/ca/emails/rnJob1.txt]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/emails/rnJob1Summary.txt[/usr/share/pki/ca/emails/rnJob1Summary.txt]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/emails/rnJob1Item.txt[/usr/share/pki/ca/emails/rnJob1Item.txt]
+
 = Certificate Publishing =
 
 To configure certificate publishing job:
@@ -50,6 +58,11 @@ $ pki-server ca-config-set jobsScheduler.job.publishCerts.summary.itemTemplate /
 $ pki-server ca-config-set jobsScheduler.job.publishCerts.summary.recipientEmail admin@example.com
 $ pki-server ca-config-set jobsScheduler.job.publishCerts.summary.senderEmail admin@example.com
 ----
+
+Email templates:
+
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/emails/publishCerts.html[/usr/share/pki/ca/emails/publishCerts.html]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/emails/publishCertsItem.html[/usr/share/pki/ca/emails/publishCertsItem.html]
 
 = Request in Queue Notifier =
 
@@ -67,6 +80,11 @@ $ pki-server ca-config-set jobsScheduler.job.requestInQueueNotifier.summary.reci
 $ pki-server ca-config-set jobsScheduler.job.requestInQueueNotifier.summary.senderEmail admin@example.com
 ----
 
+Email templates:
+
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/emails/riq1Summary.html[/usr/share/pki/ca/emails/riq1Summary.html]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/emails/riq1Item.html[/usr/share/pki/ca/emails/riq1Item.html]
+
 = Unpublish Expired Certificates =
 
 To configure unpublish expired certificates job:
@@ -82,6 +100,11 @@ $ pki-server ca-config-set jobsScheduler.job.unpublishExpiredCerts.summary.itemT
 $ pki-server ca-config-set jobsScheduler.job.unpublishExpiredCerts.summary.recipientEmail admin@example.com
 $ pki-server ca-config-set jobsScheduler.job.unpublishExpiredCerts.summary.senderEmail admin@example.com
 ----
+
+Email templates:
+
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/emails/euJob1.html[/usr/share/pki/ca/emails/euJob1.html]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/emails/euJob1Item.html[/usr/share/pki/ca/emails/euJob1Item.html]
 
 = See Also =
 
