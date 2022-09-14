@@ -1,0 +1,32 @@
+= Overview =
+
+The `pki <subsystem>-job` commands provide an interface to manage jobs in the subsystem.
+
+**Availability:** Since PKI 11.3.
+
+= Listing Available Jobs =
+
+To list the available jobs in the subsystem:
+
+----
+$ pki ca-job-find
+  Job ID: certRenewalNotifier
+  Enabled: false
+  Cron: 0 3 * * 1-5
+  Plugin: RenewalNotificationJob
+
+  Job ID: publishCerts
+  Enabled: false
+  Cron: 0 0 * * 2
+  Plugin: PublishCertsJob
+
+  Job ID: requestInQueueNotifier
+  Enabled: false
+  Cron: 0 0 * * 0
+  Plugin: RequestInQueueJob
+
+  Job ID: unpublishExpiredCerts
+  Enabled: false
+  Cron: 0 0 * * 6
+  Plugin: UnpublishExpiredJob
+----
