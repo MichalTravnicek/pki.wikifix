@@ -1,0 +1,39 @@
+= CRL Container =
+
+----
+dn: ou=crlIssuingPoints,ou=ca,dc=ca,dc=pki,dc=example,dc=com
+serialno: 010
+ou: crlIssuingPoints
+objectClass: top
+objectClass: repository
+----
+
+= CRL Record =
+
+----
+dn: cn=MasterCRL,ou=crlIssuingPoints,ou=ca,dc=ca,dc=pki,dc=example,dc=com
+objectClass: top
+objectClass: crlIssuingPointRecord
+cn: MasterCRL
+crlNumber: 0218
+deltaNumber: 010
+crlSize: 010
+deltaSize: 02-1
+firstUnsaved: -1
+revokedCerts:: rO0ABXNyABNqYXZhLnV0aWwuSGFzaHRhYmxlE7sPJSFK5LgDAAJGAApsb2FkRmF
+ jdG9ySQAJdGhyZXNob2xkeHA/QAAAAAAAAncIAAAAAwAAAAB4
+unrevokedCerts:: rO0ABXNyABNqYXZhLnV0aWwuSGFzaHRhYmxlE7sPJSFK5LgDAAJGAApsb2FkR
+ mFjdG9ySQAJdGhyZXNob2xkeHA/QAAAAAAAAncIAAAAAwAAAAB4
+expiredCerts:: rO0ABXNyABNqYXZhLnV0aWwuSGFzaHRhYmxlE7sPJSFK5LgDAAJGAApsb2FkRmF
+ jdG9ySQAJdGhyZXNob2xkeHA/QAAAAAAAAncIAAAAAwAAAAB4
+certificateRevocationList:: MIIBmzCBhAIBATANBgkqhkiG9w0BAQsFADAhMR8wHQYDVQQDDB
+ ZDQSBTaWduaW5nIENlcnRpZmljYXRlFw0yMjA5MTkxNTA3MDBaFw0yMjA5MTkxNzAwMDBaoC8wLTA
+ fBgNVHSMEGDAWgBS3uDl1CFgBPCTwL0T7i25mJAxejjAKBgNVHRQEAwIBEjANBgkqhkiG9w0BAQsF
+ AAOCAQEAnBbdkudwRKouGEYivDgvzEK5+g7BKH+xCSnVLiv/LBB/iZ6izCLNTJ8XI7Jvvr03MgSVp
+ A2Rxi9H8JCXy4W8eVQ2JYk49+yG42Frt9EfYD+0tudUOLJesXfep+YMdVfjfpMNOnP1oa+TeXomaa
+ RXbntgfIreff0lGyAwRo4bblw3lrJz4LKqVJwS+ODwgtFqEH41W+DdihVto37YRsZayvbpoAcbUtH
+ O5S5xK1G6mGB2ZpZ+uIcpIjnvaxrDyi0S1iiURyi+pAHXNrWxZ6vE+si5pUAJURWpYG/0SrfsmJzA
+ h8PnuOAomHrmnRvlVm+KM1BpFVccIIf3WunaZOeipw==
+nextUpdate: 20220919170000Z
+thisUpdate: 20220919150700Z
+----
