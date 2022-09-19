@@ -37,3 +37,77 @@ certificateRevocationList:: MIIBmzCBhAIBATANBgkqhkiG9w0BAQsFADAhMR8wHQYDVQQDDB
 nextUpdate: 20220919170000Z
 thisUpdate: 20220919150700Z
 ----
+
+= Retrieving CRL =
+
+To retrieve the CRL from the database:
+
+----
+$ ldapsearch \
+    -H ldap://$HOSTNAME:389 \
+    -x \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -b "ou=crlIssuingPoints,ou=ca,dc=ca,dc=pki,dc=example,dc=com" \
+    -o ldif_wrap=no \
+    -t \
+    "(objectClass=crlIssuingPointRecord)"
+dn: cn=MasterCRL,ou=crlIssuingPoints,ou=ca,dc=ca,dc=pki,dc=example,dc=com
+objectClass: top
+objectClass: crlIssuingPointRecord
+cn: MasterCRL
+crlNumber: 011
+deltaNumber: 010
+crlSize: 010
+deltaSize: 02-1
+firstUnsaved: -1
+revokedCerts:< file://<path>
+unrevokedCerts:< file://<path>
+expiredCerts:< file://<path>
+certificateRevocationList:< file://<path>
+nextUpdate: 20220919170000Z
+thisUpdate: 20220919161853Z
+----
+
+To view the CRL:
+
+----
+$ openssl crl \
+    -in <path> \
+    -inform DER \
+    -text -noout
+Certificate Revocation List (CRL):
+        Version 2 (0x1)
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: O = EXAMPLE, OU = pki-tomcat, CN = CA Signing Certificate
+        Last Update: Jan 22 00:56:35 2022 GMT
+        Next Update: Jan 22 01:00:00 2022 GMT
+        CRL extensions:
+            X509v3 Authority Key Identifier:
+                keyid:6E:27:EA:CC:40:91:88:35:C7:B0:60:45:B3:2C:6A:74:0B:BF:EE:8A
+
+            X509v3 CRL Number:
+                2
+Revoked Certificates:
+    Serial Number: 07
+        Revocation Date: Jan 22 00:56:35 2022 GMT
+        CRL entry extensions:
+            X509v3 CRL Reason Code:
+                Certificate Hold
+    Signature Algorithm: sha256WithRSAEncryption
+         2d:3f:c1:4d:d4:0a:39:a2:bf:ce:bc:12:96:46:b4:c6:c5:8c:
+         65:fb:fe:ea:9b:b1:a3:df:7b:a4:b0:57:9d:d8:55:a4:39:b4:
+         5a:17:d7:0a:93:4d:7e:0c:0e:da:87:b1:18:5f:21:96:d4:1e:
+         c5:3c:ae:07:87:56:e4:30:fc:06:ea:c7:da:61:fd:ea:b6:b1:
+         fa:24:bf:54:f0:32:ea:1d:65:91:58:4e:83:fe:50:72:4a:cc:
+         37:4b:61:db:43:c9:9b:74:25:e6:64:93:a4:23:02:ba:b9:64:
+         4e:99:5f:12:d6:81:d0:bb:52:b7:df:6e:0d:f3:60:98:9a:0f:
+         86:e0:da:77:f9:5c:8b:d7:68:92:10:54:cf:10:0b:41:01:e5:
+         b9:aa:44:9f:34:bb:18:36:13:5d:4f:02:38:48:24:b2:c2:72:
+         60:18:a4:64:65:10:dc:4a:30:ae:71:e6:9b:b4:de:0a:c7:fc:
+         4f:a1:d7:68:b6:8b:bf:dd:08:24:ab:8e:28:e8:ef:20:ce:24:
+         83:48:65:4f:c2:f0:04:19:08:fd:5b:30:94:b6:d6:71:30:45:
+         2d:25:63:5b:e2:7d:bd:f0:c0:2c:1b:f6:da:a6:93:05:21:fd:
+         78:ba:a5:a3:ed:88:f5:fb:c9:f0:e5:b0:e3:e9:9a:c0:00:e9:
+         44:b2:4a:83
+----
