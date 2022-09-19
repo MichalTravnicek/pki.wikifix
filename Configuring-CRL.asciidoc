@@ -29,7 +29,7 @@ EOF
 
 Then restart the server.
 
-= Miscellaneous Configuration =
+= Miscellaneous CRL Configuration =
 
 ----
 ca.crl.pageSize=100
@@ -61,7 +61,7 @@ By default CRL will be generated even if there's no revoked certificate:
 ca.crl.MasterCRL.noCRLIfNoRevokedCert=false
 ----
 
-= Configuring Update Frequency =
+= Configuring CRL Update Frequency =
 
 By default the CA will only update the CRL at scheduled times. To configure the CA to immediately update the CRL on each revocation operation:
 
@@ -94,7 +94,7 @@ ca.crl.MasterCRL.autoUpdateInterval=240
 ca.crl.MasterCRL.dailyUpdates=1:00
 ----
 
-= Configuring Extensions =
+= Configuring CRL Extensions =
 
 ----
 ca.crl.MasterCRL.extension.AuthorityInformationAccess.accessLocation0=
