@@ -4,14 +4,14 @@ NOTE: This page is still under construction.
 
 This document describes the process to deploy CA container with PKI 11.3 or later.
 
-Limitations:
+Current limitations:
 
-* DS must be running when the CA container is started
-* Existing configuration files are not yet supported
-* Replication is not yet supported
+* Existing CA configuration files are not yet supported
+* CA replication is not yet supported (i.e. no scaling)
 * HSM is not yet supported
-* No security domain
-* Long startup time
+* No security domain (i.e. other subsystems need to be set up manually)
+* Long startup time (due to certs import and instance creation)
+* DS must be running when the CA container is started
 
 = Creating Network =
 
