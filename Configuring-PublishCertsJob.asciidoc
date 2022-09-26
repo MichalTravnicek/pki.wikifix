@@ -1,0 +1,20 @@
+= Configuration =
+
+To configure certificate publishing job:
+
+----
+$ pki-server ca-config-set jobsScheduler.job.publishCerts.enabled true
+$ pki-server ca-config-set jobsScheduler.job.publishCerts.cron "0 0 * * 2"
+$ pki-server ca-config-set jobsScheduler.job.publishCerts.pluginName PublishCertsJob
+$ pki-server ca-config-set jobsScheduler.job.publishCerts.summary.enabled true
+$ pki-server ca-config-set jobsScheduler.job.publishCerts.summary.emailSubject "Certs Publishing Summary"
+$ pki-server ca-config-set jobsScheduler.job.publishCerts.summary.emailTemplate /var/lib/pki/pki-tomcat/ca/emails/publishCerts.html
+$ pki-server ca-config-set jobsScheduler.job.publishCerts.summary.itemTemplate /var/lib/pki/pki-tomcat/ca/emails/publishCertsItem.html
+$ pki-server ca-config-set jobsScheduler.job.publishCerts.summary.recipientEmail admin@example.com
+$ pki-server ca-config-set jobsScheduler.job.publishCerts.summary.senderEmail admin@example.com
+----
+
+= Email Templates =
+
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/emails/publishCerts.html[/usr/share/pki/ca/emails/publishCerts.html]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/emails/publishCertsItem.html[/usr/share/pki/ca/emails/publishCertsItem.html]
