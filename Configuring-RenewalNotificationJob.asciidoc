@@ -1,0 +1,26 @@
+= Configuration =
+
+To configure certificate renewal notifier job:
+
+----
+$ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.enabled true
+$ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.cron "0 3 * * 1-5"
+$ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.emailSubject "Certificate Renewal Notification"
+$ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.emailTemplate /var/lib/pki/pki-tomcat/ca/emails/rnJob1.txt
+$ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.notifyEndOffset 30
+$ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.notifyTriggerOffset 30
+$ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.pluginName RenewalNotificationJob
+$ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.senderEmail admin@example.com
+$ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.summary.enabled true
+$ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.summary.emailSubject "Certificate Renewal Notification Summary"
+$ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.summary.emailTemplate /var/lib/pki/pki-tomcat/ca/emails/rnJob1Summary.txt
+$ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.summary.itemTemplate /var/lib/pki/pki-tomcat/ca/emails/rnJob1Item.txt
+$ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.summary.recipientEmail admin@example.com
+$ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.summary.senderEmail admin@example.com
+----
+
+= Email Templates =
+
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/emails/rnJob1.txt[/usr/share/pki/ca/emails/rnJob1.txt]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/emails/rnJob1Summary.txt[/usr/share/pki/ca/emails/rnJob1Summary.txt]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/emails/rnJob1Item.txt[/usr/share/pki/ca/emails/rnJob1Item.txt]
