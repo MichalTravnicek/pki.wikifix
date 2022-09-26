@@ -1,0 +1,20 @@
+= Configuration =
+
+To configure request in queue notifier job:
+
+----
+$ pki-server ca-config-set jobsScheduler.job.requestInQueueNotifier.enabled true
+$ pki-server ca-config-set jobsScheduler.job.requestInQueueNotifier.cron "0 0 * * 0"
+$ pki-server ca-config-set jobsScheduler.job.requestInQueueNotifier.pluginName RequestInQueueJob
+$ pki-server ca-config-set jobsScheduler.job.requestInQueueNotifier.subsystemId ca
+$ pki-server ca-config-set jobsScheduler.job.requestInQueueNotifier.summary.enabled true
+$ pki-server ca-config-set jobsScheduler.job.requestInQueueNotifier.summary.emailSubject "Requests in Queue Summary Report"
+$ pki-server ca-config-set jobsScheduler.job.requestInQueueNotifier.summary.emailTemplate /var/lib/pki/pki-tomcat/ca/emails/riq1Summary.html
+$ pki-server ca-config-set jobsScheduler.job.requestInQueueNotifier.summary.recipientEmail admin@example.com
+$ pki-server ca-config-set jobsScheduler.job.requestInQueueNotifier.summary.senderEmail admin@example.com
+----
+
+= Email Templates =
+
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/emails/riq1Summary.html[/usr/share/pki/ca/emails/riq1Summary.html]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/emails/riq1Item.html[/usr/share/pki/ca/emails/riq1Item.html]
