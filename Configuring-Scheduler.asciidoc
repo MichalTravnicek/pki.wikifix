@@ -7,104 +7,21 @@ $ pki-server ca-config-set jobsScheduler.enabled true
 $ pki-server ca-config-set jobsScheduler.interval 1
 ----
 
-= Plugins =
-
-----
-$ pki-server ca-config-set jobsScheduler.impl.PublishCertsJob.class com.netscape.cms.jobs.PublishCertsJob
-$ pki-server ca-config-set jobsScheduler.impl.RenewalNotificationJob.class com.netscape.cms.jobs.RenewalNotificationJob
-$ pki-server ca-config-set jobsScheduler.impl.RequestInQueueJob.class com.netscape.cms.jobs.RequestInQueueJob
-$ pki-server ca-config-set jobsScheduler.impl.UnpublishExpiredJob.class com.netscape.cms.jobs.UnpublishExpiredJob
-----
-
 = Certificate Renewal Notifier =
 
-To configure certificate renewal notifier job:
-
-----
-$ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.enabled true
-$ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.cron "0 3 * * 1-5"
-$ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.emailSubject "Certificate Renewal Notification"
-$ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.emailTemplate /var/lib/pki/pki-tomcat/ca/emails/rnJob1.txt
-$ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.notifyEndOffset 30
-$ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.notifyTriggerOffset 30
-$ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.pluginName RenewalNotificationJob
-$ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.senderEmail admin@example.com
-$ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.summary.enabled true
-$ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.summary.emailSubject "Certificate Renewal Notification Summary"
-$ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.summary.emailTemplate /var/lib/pki/pki-tomcat/ca/emails/rnJob1Summary.txt
-$ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.summary.itemTemplate /var/lib/pki/pki-tomcat/ca/emails/rnJob1Item.txt
-$ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.summary.recipientEmail admin@example.com
-$ pki-server ca-config-set jobsScheduler.job.certRenewalNotifier.summary.senderEmail admin@example.com
-----
-
-Email templates:
-
-* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/emails/rnJob1.txt[/usr/share/pki/ca/emails/rnJob1.txt]
-* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/emails/rnJob1Summary.txt[/usr/share/pki/ca/emails/rnJob1Summary.txt]
-* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/emails/rnJob1Item.txt[/usr/share/pki/ca/emails/rnJob1Item.txt]
+See link:Configuring-RenewalNotificationJob[Configuring RenewalNotificationJob].
 
 = Certificate Publishing =
 
-To configure certificate publishing job:
-
-----
-$ pki-server ca-config-set jobsScheduler.job.publishCerts.enabled true
-$ pki-server ca-config-set jobsScheduler.job.publishCerts.cron "0 0 * * 2"
-$ pki-server ca-config-set jobsScheduler.job.publishCerts.pluginName PublishCertsJob
-$ pki-server ca-config-set jobsScheduler.job.publishCerts.summary.enabled true
-$ pki-server ca-config-set jobsScheduler.job.publishCerts.summary.emailSubject "Certs Publishing Summary"
-$ pki-server ca-config-set jobsScheduler.job.publishCerts.summary.emailTemplate /var/lib/pki/pki-tomcat/ca/emails/publishCerts.html
-$ pki-server ca-config-set jobsScheduler.job.publishCerts.summary.itemTemplate /var/lib/pki/pki-tomcat/ca/emails/publishCertsItem.html
-$ pki-server ca-config-set jobsScheduler.job.publishCerts.summary.recipientEmail admin@example.com
-$ pki-server ca-config-set jobsScheduler.job.publishCerts.summary.senderEmail admin@example.com
-----
-
-Email templates:
-
-* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/emails/publishCerts.html[/usr/share/pki/ca/emails/publishCerts.html]
-* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/emails/publishCertsItem.html[/usr/share/pki/ca/emails/publishCertsItem.html]
+See link:Configuring-PublishCertsJob[Configuring PublishCertsJob].
 
 = Request in Queue Notifier =
 
-To configure request in queue notifier job:
-
-----
-$ pki-server ca-config-set jobsScheduler.job.requestInQueueNotifier.enabled true
-$ pki-server ca-config-set jobsScheduler.job.requestInQueueNotifier.cron "0 0 * * 0"
-$ pki-server ca-config-set jobsScheduler.job.requestInQueueNotifier.pluginName RequestInQueueJob
-$ pki-server ca-config-set jobsScheduler.job.requestInQueueNotifier.subsystemId ca
-$ pki-server ca-config-set jobsScheduler.job.requestInQueueNotifier.summary.enabled true
-$ pki-server ca-config-set jobsScheduler.job.requestInQueueNotifier.summary.emailSubject "Requests in Queue Summary Report"
-$ pki-server ca-config-set jobsScheduler.job.requestInQueueNotifier.summary.emailTemplate /var/lib/pki/pki-tomcat/ca/emails/riq1Summary.html
-$ pki-server ca-config-set jobsScheduler.job.requestInQueueNotifier.summary.recipientEmail admin@example.com
-$ pki-server ca-config-set jobsScheduler.job.requestInQueueNotifier.summary.senderEmail admin@example.com
-----
-
-Email templates:
-
-* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/emails/riq1Summary.html[/usr/share/pki/ca/emails/riq1Summary.html]
-* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/emails/riq1Item.html[/usr/share/pki/ca/emails/riq1Item.html]
+See link:Configuring-RequestInQueueJob[Configuring RequestInQueueJob].
 
 = Unpublish Expired Certificates =
 
-To configure unpublish expired certificates job:
-
-----
-$ pki-server ca-config-set jobsScheduler.job.unpublishExpiredCerts.enabled true
-$ pki-server ca-config-set jobsScheduler.job.unpublishExpiredCerts.cron "0 0 * * 6"
-$ pki-server ca-config-set jobsScheduler.job.unpublishExpiredCerts.pluginName UnpublishExpiredJob
-$ pki-server ca-config-set jobsScheduler.job.unpublishExpiredCerts.summary.enabled true
-$ pki-server ca-config-set jobsScheduler.job.unpublishExpiredCerts.summary.emailSubject "Expired Certs Unpublished Summary"
-$ pki-server ca-config-set jobsScheduler.job.unpublishExpiredCerts.summary.emailTemplate /var/lib/pki/pki-tomcat/ca/emails/euJob1.html
-$ pki-server ca-config-set jobsScheduler.job.unpublishExpiredCerts.summary.itemTemplate /var/lib/pki/pki-tomcat/ca/emails/euJob1Item.html
-$ pki-server ca-config-set jobsScheduler.job.unpublishExpiredCerts.summary.recipientEmail admin@example.com
-$ pki-server ca-config-set jobsScheduler.job.unpublishExpiredCerts.summary.senderEmail admin@example.com
-----
-
-Email templates:
-
-* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/emails/euJob1.html[/usr/share/pki/ca/emails/euJob1.html]
-* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/emails/euJob1Item.html[/usr/share/pki/ca/emails/euJob1Item.html]
+See link:Configuring-UnpublishExpiredJob[Configuring UnpublishExpiredJob].
 
 = See Also =
 
