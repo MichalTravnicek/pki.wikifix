@@ -1,0 +1,20 @@
+= Configuration =
+
+To configure unpublish expired certificates job:
+
+----
+$ pki-server ca-config-set jobsScheduler.job.unpublishExpiredCerts.enabled true
+$ pki-server ca-config-set jobsScheduler.job.unpublishExpiredCerts.cron "0 0 * * 6"
+$ pki-server ca-config-set jobsScheduler.job.unpublishExpiredCerts.pluginName UnpublishExpiredJob
+$ pki-server ca-config-set jobsScheduler.job.unpublishExpiredCerts.summary.enabled true
+$ pki-server ca-config-set jobsScheduler.job.unpublishExpiredCerts.summary.emailSubject "Expired Certs Unpublished Summary"
+$ pki-server ca-config-set jobsScheduler.job.unpublishExpiredCerts.summary.emailTemplate /var/lib/pki/pki-tomcat/ca/emails/euJob1.html
+$ pki-server ca-config-set jobsScheduler.job.unpublishExpiredCerts.summary.itemTemplate /var/lib/pki/pki-tomcat/ca/emails/euJob1Item.html
+$ pki-server ca-config-set jobsScheduler.job.unpublishExpiredCerts.summary.recipientEmail admin@example.com
+$ pki-server ca-config-set jobsScheduler.job.unpublishExpiredCerts.summary.senderEmail admin@example.com
+----
+
+= Email Templates =
+
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/emails/euJob1.html[/usr/share/pki/ca/emails/euJob1.html]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/emails/euJob1Item.html[/usr/share/pki/ca/emails/euJob1Item.html]
