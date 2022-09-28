@@ -31,6 +31,24 @@ $ pki -n caadmin ca-job-find
   Plugin: UnpublishExpiredJob
 ----
 
+= Display Job Details =
+
+----
+$ pki -n caadmin ca-job-show unpublishExpiredCerts
+  Job ID: unpublishExpiredCerts
+  Enabled: false
+  Cron: 0 0 * * 6
+  Plugin: UnpublishExpiredJob
+
+  Parameters:
+  - summary.emailSubject: Expired Certs Unpublished Summary
+  - summary.emailTemplate: /var/lib/pki/pki-tomcat/ca/emails/euJob1.html
+  - summary.enabled: true
+  - summary.itemTemplate: /var/lib/pki/pki-tomcat/ca/emails/euJob1Item.html
+  - summary.recipientEmail: 
+  - summary.senderEmail: 
+----
+
 = Starting a Job Manually =
 
 To start a job manually:
