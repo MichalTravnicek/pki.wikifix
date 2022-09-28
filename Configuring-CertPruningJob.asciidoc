@@ -15,8 +15,8 @@ $ pki-server ca-config-set jobsScheduler.impl.CertPruningJob.class com.netscape.
 To configure certificate pruning job:
 
 ----
-$ pki-server ca-config-set jobsScheduler.job.certPruning.cron "0 0 1 * *"
 $ pki-server ca-config-set jobsScheduler.job.certPruning.enabled false
+$ pki-server ca-config-set jobsScheduler.job.certPruning.cron "0 0 1 * *"
 $ pki-server ca-config-set jobsScheduler.job.certPruning.pluginName CertPruningJob
 $ pki-server ca-config-set jobsScheduler.job.certPruning.retention 30
 $ pki-server ca-config-set jobsScheduler.job.certPruning.retentionUnit day
