@@ -4,6 +4,13 @@ This page describes the process to switch the ID generators in an existing CA fr
 
 WARNING: Switching back from **Random Serial Numbers v3** to the legacy **Sequential Serial Numbers** or **Random Serial Numbers v1** is not supported.
 
+In a cluster environment it's recommended to perform the switch in two steps:
+
+* Upgrade all servers one-by-one to PKI 11.2 or later.
+* Switch all servers one-by-one to Random Serial Numbers v3.
+
+The Random Serial Numbers v3 has not been designed or tested to work with the legacy Sequential Serial Numbers or Random Serial Numbers v1, so it's not recommended to maintain a mixed configuration within a cluster for a long time.
+
 = Configuration Process =
 
 == Stopping PKI Server ==
