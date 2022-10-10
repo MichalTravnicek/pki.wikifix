@@ -1,0 +1,82 @@
+= Activity Container =
+
+----
+dn: ou=Activities,dc=tps,dc=pki,dc=example,dc=com
+ou: Activities
+objectClass: top
+objectClass: organizationalunit
+----
+
+= Activity Record =
+
+The resource is stored in LDAP. Search will be done with this LDAP filter: `(|(tokenID=*<keyword>*)(tokenUserID=*<keyword>*))`.
+
+|===
+| LDAP Attribute | REST Attribute | Indexed | Searchable | Example
+
+| cn
+| Activity ID
+| Yes
+| No. The attribute doesn't contain useful information to search.
+| 20140403112248865475.abf44b40
+
+| tokenID
+| Token ID
+| Yes
+| Yes
+| 534E0650000100000108
+
+| tokenUserID
+| User ID
+| Yes
+| Yes
+| testuser
+
+| tokenIP
+| IP
+|
+|
+| 127.0.0.1
+
+| tokenOp
+| Operation
+|
+|
+| enrollment
+
+| tokenResult
+| Result
+|
+|
+| success
+
+| tokenMsg
+| Message
+|
+|
+| applet_version=1.4.52CF1C58 tokenType=userKey userid=testuser
+
+| tokenType
+| Type
+|
+|
+| userKey
+
+| extensions
+| Extensions
+|
+|
+|
+
+| dateOfCreate
+| Date
+| Yes
+| No. The attribute doesn't contain useful information to search.
+| 20140403112248Z
+
+| dateOfModify
+| 
+| Yes
+| No. The attribute is not used.
+| 20140403112248Z
+|===
