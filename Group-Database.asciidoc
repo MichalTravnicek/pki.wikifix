@@ -26,3 +26,23 @@ The resource is stored in LDAP. Search will be done with this LDAP filter: `(cn=
 | No. The attribute is not indexed.
 | Administrators for TUS
 |===
+
+= Group Members =
+
+The resource is stored in LDAP. But since the group ID is known, the member ID search will be done with string comparison: `memberID.contains(keyword)`.
+
+|===
+| LDAP Attribute | REST Attribute | Indexed | Searchable | Example
+
+| cn
+| Group ID
+| Yes
+| No. The group ID must be specified in order to search a member ID.
+| TUS Administrators
+
+| uniqueMember
+| Member ID
+| Yes
+| Yes
+| uid=admin,ou=People,dc=example,dc=com
+|===
