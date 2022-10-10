@@ -1,0 +1,28 @@
+= Group Container =
+
+----
+dn: ou=Groups,dc=tps,dc=pki,dc=example,dc=com
+ou: Groups
+objectClass: top
+objectClass: organizationalunit
+----
+
+= Group Record =
+
+The resource is stored in LDAP. Search will be done with this LDAP filter: `(cn=*<keyword>*)`.
+
+|===
+| LDAP Attribute | REST Attribute | Indexed | Searchable | Example
+
+| cn
+| Group ID
+| Yes
+| Yes
+| TUS Administrators
+
+| description
+| Description
+|
+| No. The attribute is not indexed.
+| Administrators for TUS
+|===
