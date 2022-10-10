@@ -11,6 +11,36 @@ nextRange: 1000000001
 
 = Certificate Record =
 
+|===
+| LDAP Attribute | Description | Indexed | Searchable | Example
+
+| cn
+| Serial number in decimal
+| Yes
+| Yes
+| 143845092896708171325141363599427560669
+
+| serialno
+| 2-digit length + serial number in decimal
+|
+|
+| 39143845092896708171325141363599427560669
+
+| subjectName
+| Subject name
+|
+|
+| CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+
+| issuerName
+| Issuer name
+|
+|
+| CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+|===
+
+= Examples =
+
 ----
 dn: cn=143845092896708171325141363599427560669,ou=certificateRepository,ou=ca,
  dc=ca,dc=pki,dc=example,dc=com
