@@ -1,3 +1,12 @@
+= Token Container =
+
+----
+dn: ou=Tokens,dc=tps,dc=pki,dc=example,dc=com
+ou: Tokens
+objectClass: top
+objectClass: organizationalunit
+----
+
 = Token Record =
 
 The resource is stored in LDAP. Search will be done with this LDAP filter: `(|(cn=*<keyword>*)(tokenUserID=*<keyword>*))`.
