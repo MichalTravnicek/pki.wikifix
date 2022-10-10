@@ -1,0 +1,64 @@
+= User Container =
+
+----
+dn: ou=People,dc=tps,dc=pki,dc=example,dc=com
+ou: People
+objectClass: top
+objectClass: organizationalunit
+----
+
+= User Record =
+
+The resource is stored in LDAP. Search will be done with this LDAP filter: `(|(uid=*<keyword>*)(cn=*<keyword>*)(mail=*<keyword>*))`.
+
+|===
+| LDAP Attribute | REST Attribute | Indexed | Searchable | Example
+
+| uid
+| User ID
+| Yes
+| Yes
+| testuser
+
+| cn
+| Full Name
+| Yes
+| Yes
+| Test User
+
+| mail
+| Email
+| Yes
+| Yes
+|
+
+| userPassword
+| Password
+|
+|
+| e1NTSEF9UEY...
+
+| telephoneNumber
+| Phone
+|
+|
+|
+
+| userType
+| Type
+|
+|
+|
+
+| userState
+| State
+|
+|
+|
+
+| profileID
+| TPS Profiles
+|
+|
+| All Profiles
+|===
