@@ -26,99 +26,11 @@ See link:TPS-Activity-Database[TPS Activity Database].
 
 = Users =
 
-The resource is stored in LDAP. Search will be done with this LDAP filter: `(|(uid=*<keyword>*)(cn=*<keyword>*)(mail=*<keyword>*))`.
-
-|===
-| LDAP Attribute | REST Attribute | Indexed | Searchable | Example
-
-| uid
-| User ID
-| Yes
-| Yes
-| testuser
-
-| cn
-| Full Name
-| Yes
-| Yes
-| Test User
-
-| mail
-| Email
-| Yes
-| Yes
-|
-
-| userPassword
-| Password
-|
-|
-| e1NTSEF9UEY...
-
-| telephoneNumber
-| Phone
-|
-|
-|
-
-| userType
-| Type
-|
-|
-|
-
-| userState
-| State
-|
-|
-|
-
-| profileID
-| TPS Profiles
-|
-|
-| All Profiles
-|===
+See link:User-Database[User Database].
 
 = Groups =
 
-The resource is stored in LDAP. Search will be done with this LDAP filter: `(cn=*<keyword>*)`.
-
-|===
-| LDAP Attribute | REST Attribute | Indexed | Searchable | Example
-
-| cn
-| Group ID
-| Yes
-| Yes
-| TUS Administrators
-
-| description
-| Description
-|
-| No. The attribute is not indexed.
-| Administrators for TUS
-|===
-
-= Group Members =
-
-The resource is stored in LDAP. But since the group ID is known, the member ID search will be done with string comparison: `memberID.contains(keyword)`.
-
-|===
-| LDAP Attribute | REST Attribute | Indexed | Searchable | Example
-
-| cn
-| Group ID
-| Yes
-| No. The group ID must be specified in order to search a member ID.
-| TUS Administrators
-
-| uniqueMember
-| Member ID
-| Yes
-| Yes
-| uid=admin,ou=People,dc=example,dc=com
-|===
+See link:Group-Database[Group Database].
 
 = Authentication Sources =
 
