@@ -1,0 +1,112 @@
+= Certificate Container =
+
+----
+dn: ou=Certificates,dc=tps,dc=pki,dc=example,dc=com
+ou: Certificates
+objectClass: top
+objectClass: organizationalunit
+----
+
+= Certificate Record =
+
+The resource is stored in LDAP. Search will be done with this LDAP filter: `(|(cn=*<keyword>*)(tokenID=*<keyword>*)(tokenUserID=*<keyword>*))`.
+
+|===
+| LDAP Attribute | REST Attribute | Indexed | Searchable | Example
+
+| cn
+| Certificate ID
+| Yes
+| Yes
+| c0.2014114170558
+
+| tokenSerial
+| Serial Number
+| Yes
+| No. The attribute doesn't contain useful information to search.
+| c0
+
+| tokenSubject
+| Subject
+|
+|
+| UID=testuser,O=Token Key User
+
+| tokenID
+| Token ID
+| Yes
+| Yes
+| 534E0650000100000108
+
+| tokenUserID
+| User ID
+| Yes
+| Yes
+| testuser
+
+| tokenKeyType 
+| Key Type
+| Yes
+| No, but maybe in the future.
+| encryption
+
+| tokenStatus 
+| Status
+|
+|
+| active
+
+| tokenIssuer
+| Issued By
+|
+|
+| CN=Certificate Authority,OU=pki-tomcat,O=Example Security Domain
+
+| tokenOrigin
+| Origin
+|
+|
+| 534E0650000100000108
+
+| tokenType
+| Type
+|
+|
+| userKey
+
+| tokenNotBefore
+| Valid Not Before
+|
+|
+| 20140114170556Z
+
+| tokenNotAfter
+| Valid Not After
+|
+|
+| 20190113170556Z
+
+| extensions
+| Extensions
+|
+|
+|
+
+| dateOfCreate
+| Create Timestamp
+| Yes
+| No. The attribute doesn't contain useful information to search.
+| 20140403112248Z
+
+| dateOfModify
+| Modify Timestamp
+| Yes
+| No. The attribute doesn't contain useful information to search.
+| 20140403112248Z
+
+| userCertificate
+| Base-64 Encoded Certificate
+| Yes
+| No. The attribute doesn't contain useful information to search.
+| MIIB+jCCAZ2gAW...
+|===
