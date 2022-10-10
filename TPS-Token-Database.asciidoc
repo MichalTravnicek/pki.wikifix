@@ -117,6 +117,24 @@ The resource is stored in LDAP. Search will be done with this LDAP filter: `(|(c
 |
 |===
 
+= Examples =
+
+----
+dn: cn=BCF9D2DDC9820F4D30CC,ou=Tokens,dc=tps,dc=pki,dc=example,dc=com
+objectClass: top
+objectClass: tokenRecord
+cn: BCF9D2DDC9820F4D30CC
+tokenType: userKey
+tokenStatus: ACTIVE
+tokenAppletID: 0.0.6FBBC105
+dateOfCreate: 20221010152104Z
+tokenPolicy: RE_ENROLL=YES;RENEW=NO;FORCE_FORMAT=NO;PIN_RESET=NO;RESET_PIN_RES
+ ET_TO_NO=NO
+keyInfo: 0101
+dateOfModify: 20221010152107Z
+tokenUserID: testuser
+----
+
 = See Also =
 
 * link:https://www.dogtagpki.org/wiki/TPS_Tokens[TPS Tokens]
