@@ -2,6 +2,40 @@
 
 The `pki-server` command is a tool for managing PKI servers on the local machine. The command does not require an authentication, but it can only be run by the system administrator.
 
+= Usage =
+
+In general the PKI Server CLI takes the following parameters:
+
+----
+$ pki-server [CLI options] <command> [command arguments/options]
+----
+
+The CLI options should be placed before the command. The command arguments/options should be placed after the command.
+
+To view available commands and options:
+
+----
+$ pki-server --help
+----
+
+Some commands may have sub-commands. To view the sub-commands:
+
+----
+$ pki-server <command>
+----
+
+To view the command usage:
+
+----
+$ pki-server <command> --help
+----
+
+To run the command in verbose mode:
+
+----
+$ pki-server -v <command>
+----
+
 = Server Management Commands =
 
 * link:PKI-Server-Create-CLI[PKI Server Create CLI]
