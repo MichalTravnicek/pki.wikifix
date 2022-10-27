@@ -1,0 +1,13 @@
+= Overview =
+
+This document describes the CA database pruning functionality in PKI 11.3.
+
+= Background =
+
+Normally the CA keeps track of enrollment/renewal requests and issued certificates by creating request records and certificate records in LDAP database.
+
+Prior to PKI 11.3 there was no supported method to prune these records, so the database could continue to grow without limit, and that will potentially cause issues such as excessive storage requirement, performance degradation, and increased costs.
+
+While it’s possible to remove the records directly from the database, it’s not a procedure that can be guaranteed to work safely with legacy serial number generators (i.e. sequential or RSNv1). These generators rely on a range management system to avoid serial number collisions in a cluster environment. This system is complex and fragile since it maintains its state in memory, in the local configuration file, and in the database at the same time, and occasionally redistributes the range among other servers in the cluster.
+
+If records are removed directly from the database without considering the state stored in memory and in the configuration file, there is a risk that the range management system could enter an inconsistent state, and the CA might stop issuing certificates. The recovery procedure if this happens is not well tested/documented, so it’s highly recommended to avoid this situation in the first place, especially in large/complex deployments.
