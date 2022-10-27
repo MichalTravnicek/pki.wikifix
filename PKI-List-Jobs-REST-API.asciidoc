@@ -1,0 +1,51 @@
+= Request =
+
+* **Path:** `/<subsystem>/rest/jobs`
+* **Method:** `GET`
+* **Authentication:** User must be a member of `Administrators` group or a job owner
+* **Content:** None
+* **Success code:** `200`
+
+= Examples =
+
+----
+$ curl \
+  -k \
+  -s \
+  -H "Accept: application/json" \
+  --user caadmin:Secret.123 \
+  https://localhost.localdomain:8443/ca/rest/jobs | python -m json.tool
+{
+    "total": 4,
+    "entries": [
+        {
+            "id": "certRenewalNotifier",
+            "enabled": false,
+            "cron": "0 3 * * 1-5",
+            "pluginName": "RenewalNotificationJob",
+            "parameters": {}
+        },
+        {
+            "id": "publishCerts",
+            "enabled": false,
+            "cron": "0 0 * * 2",
+            "pluginName": "PublishCertsJob",
+            "parameters": {}
+        },
+        {
+            "id": "requestInQueueNotifier",
+            "enabled": false,
+            "cron": "0 0 * * 0",
+            "pluginName": "RequestInQueueJob",
+            "parameters": {}
+        },
+        {
+            "id": "unpublishExpiredCerts",
+            "enabled": false,
+            "cron": "0 0 * * 6",
+            "pluginName": "UnpublishExpiredJob",
+            "parameters": {}
+        }
+    ]
+}
+----
