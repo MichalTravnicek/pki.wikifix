@@ -1,0 +1,32 @@
+= Request =
+
+* **Path:** `/<subsystem>/rest/jobs/<ID>`
+* **Method:** `GET`
+* **Authentication:** User must be a member of `Administrators` group or a job owner
+* **Content:** None
+* **Success code:** `200`
+
+= Examples =
+
+----
+$ curl \
+  -k \
+  -s \
+  -H "Accept: application/json" \
+  --user caadmin:Secret.123 \
+  https://localhost.localdomain:8443/ca/rest/jobs/publishCerts | python -m json.tool
+{
+    "id": "publishCerts",
+    "enabled": false,
+    "cron": "0 0 * * 2",
+    "pluginName": "PublishCertsJob",
+    "parameters": {
+        "summary.emailSubject": "Certs Publishing Summary",
+        "summary.emailTemplate": "/var/lib/pki/pki-tomcat/ca/emails/publishCerts.html",
+        "summary.enabled": "true",
+        "summary.itemTemplate": "/var/lib/pki/pki-tomcat/ca/emails/publishCertsItem.html",
+        "summary.recipientEmail": "",
+        "summary.senderEmail": ""
+    }
+}
+----
