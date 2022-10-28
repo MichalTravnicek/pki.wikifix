@@ -1,0 +1,19 @@
+= Request =
+
+* **Path:** `/<subsystem>/rest/jobs/<ID>/start`
+* **Method:** `POST`
+* **Authentication:** User must be a member of `Administrators` group or a job owner
+* **Content:** None
+* **Success code:** `200`
+
+= Examples =
+
+----
+$ curl \
+  -k \
+  -s \
+  -X POST \
+  -H "Accept: application/json" \
+  --user caadmin:Secret.123 \
+  https://localhost.localdomain:8443/ca/rest/jobs/publishCerts/start
+----
