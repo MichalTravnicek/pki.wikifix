@@ -1,0 +1,21 @@
+= Tomcat =
+
+To register Tomcat:
+
+* Go to **Windows** -> **Preferences** -> **Server** -> **Runtime Environment **
+* Add Tomcat
+* Click **Apply and Close**
+
+To configure Project Facets:
+
+* Right click on project
+* Select **Properties** ->** Project Facets**
+* Click **Runtimes** tab
+* Select **Tomcat**
+* Click **Apply and Close**
+
+To configure PKI/Tomcat JSS project:
+
+* Right click `base/server/tomcat7/src`, select **Build Path** -> **Remove from Build Path**.
+* Right click `base/server/tomcat8/src`, select **Build Path** -> **Select as Source Folder**.
+* Click **Project** -> **Properties**. Click **Java Build Path** on the left panel, click **Libraries** tab, click **Add External JARs**, then select `/usr/share/java/tomcat/tomcat-util-scan.jar`.
