@@ -1,0 +1,27 @@
+= Eclipse Keeps Crashing =
+
+If Eclipse keeps crashing on start, try removing the `~/.eclipse` folder and restart Eclipse. It's not necessary to remove the workspace folder.
+
+If it's still not working, try removing all Java packages (including JDK) then reinstall Eclipse.
+
+= Missing JRE System Library =
+
+The following error message may appear after upgrading Java:
+
+----
+The container 'JRE System Library [...]' references non existing library '...'
+----
+
+To fix the problem, try restarting Eclipse.
+
+If the problem persists, try the following steps:
+
+* Right-click on the project and open *Properties*.
+* Select *Java Build Path* -> *Libraries*.
+* Select *JRE System Library*.
+* Click *Remove*.
+* Click *Add Library...*.
+* Select *JRE System Library*.
+* Select *Workspace default JRE*.
+* Click *Finish*.
+* Click *Apply and Close*.
