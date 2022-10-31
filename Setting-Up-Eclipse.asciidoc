@@ -90,36 +90,6 @@ Then right-click on the project in Eclipse, and select *Refresh*.
 
 To switch Java version, open **Window** -> **Preferences** -> **Java** -> **Installed JREs**. Select the Java version to use, then click **Apply and Close**.
 
-= Troubleshooting =
-
-== Eclipse Keeps Crashing ==
-
-If Eclipse keeps crashing on start, try removing the `~/.eclipse` folder and restart Eclipse. It's not necessary to remove the workspace folder.
-
-If it's still not working, try removing all Java packages (including JDK) then reinstall Eclipse.
-
-== Missing JRE System Library ==
-
-The following error message may appear after upgrading Java:
-
-----
-The container 'JRE System Library [...]' references non existing library '...'
-----
-
-To fix the problem, try restarting Eclipse.
-
-If the problem persists, try the following steps:
-
-* Right-click on the project and open *Properties*.
-* Select *Java Build Path* -> *Libraries*.
-* Select *JRE System Library*.
-* Click *Remove*.
-* Click *Add Library...*.
-* Select *JRE System Library*.
-* Select *Workspace default JRE*.
-* Click *Finish*.
-* Click *Apply and Close*.
-
 = See Also =
 
 * link:https://www.dogtagpki.org/wiki/PKI_Eclipse[PKI Eclipse]
@@ -127,3 +97,4 @@ If the problem persists, try the following steps:
 * link:Setting-Up-Eclipse-Profile[Setting Up Eclipse Profile]
 * link:Setting-Up-Maven-Project-in-Eclipse[Setting Up Maven Project in Eclipse]
 * link:Setting-Up-Tomcat-in-Eclipse[Setting Up Tomcat in Eclipse]
+* link:Troubleshooting-Eclipse[Troubleshooting Eclipse]
