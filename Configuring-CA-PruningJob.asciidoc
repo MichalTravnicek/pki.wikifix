@@ -7,7 +7,7 @@ NOTE: This page is still under construction.
 = Plugin Configuration =
 
 ----
-$ pki-server ca-config-set jobsScheduler.impl.PruningJob.class com.netscape.cms.jobs.PruningJob
+$ pki-server ca-config-set jobsScheduler.impl.PruningJob.class org.dogtagpki.server.ca.job.PruningJob
 ----
 
 = Job Configuration =
@@ -20,5 +20,7 @@ $ pki-server ca-config-set jobsScheduler.job.pruning.cron "0 0 1 * *"
 $ pki-server ca-config-set jobsScheduler.job.pruning.pluginName PruningJob
 $ pki-server ca-config-set jobsScheduler.job.pruning.certRetentionTime 30
 $ pki-server ca-config-set jobsScheduler.job.pruning.certRetentionUnit day
+$ pki-server ca-config-set jobsScheduler.job.pruning.requestRetentionTime 30
+$ pki-server ca-config-set jobsScheduler.job.pruning.requestRetentionUnit day
 $ pki-server ca-config-set jobsScheduler.job.pruning.summary.enabled false
 ----
