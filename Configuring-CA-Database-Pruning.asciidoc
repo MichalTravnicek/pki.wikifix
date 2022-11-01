@@ -22,7 +22,7 @@ By default the pruning job is disabled. To enable the pruning job:
 $ pki-server ca-config-set jobsScheduler.job.pruning.enabled true
 ----
 
-== Configuring certificate pruning ==
+== Configuring certificate retention period ==
 
 By default an expired certificate will be retained for 30 days before it will be pruned.
 When an expired certificate is pruned, the corresponding request will also be pruned.
@@ -35,7 +35,7 @@ $ pki-server ca-config-set jobsScheduler.job.pruning.certRetentionUnit day
 
 Valid retention units: `minute`, `hour`, `day`, `year`.
 
-== Configuring request pruning ==
+== Configuring request retention period ==
 
 By default an incomplete request will be retained for 30 days before it will be pruned.
 To configure request retention period:
