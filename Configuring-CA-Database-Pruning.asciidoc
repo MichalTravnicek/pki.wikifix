@@ -4,7 +4,11 @@ NOTE: This page is still under construction.
 
 This page describes the process to configure link:CA-Database-Pruning[CA database pruning] in PKI 11.3.
 
-= Enabling Pruning Job =
+= Configuration =
+
+The pruning configuration is stored in `/etc/pki/pki-tomcat/ca/CS.cfg`. It is necessary to restart the CA after making configuration changes.
+
+== Enabling pruning job ==
 
 To enable the pruning job:
 
@@ -12,7 +16,7 @@ To enable the pruning job:
 $ pki-server ca-config-set jobsScheduler.job.pruning.enabled false
 ----
 
-= Configuring Certificate Pruning =
+== Configuring certificate pruning ==
 
 To configure certificate retention:
 
@@ -21,7 +25,7 @@ $ pki-server ca-config-set jobsScheduler.job.pruning.certRetentionTime 30
 $ pki-server ca-config-set jobsScheduler.job.pruning.certRetentionUnit day
 ----
 
-= Configuring Request Pruning =
+== Configuring request pruning ==
 
 To configure request retention:
 
