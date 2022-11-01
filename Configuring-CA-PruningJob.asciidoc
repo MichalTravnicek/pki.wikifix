@@ -16,11 +16,36 @@ To configure certificate pruning job:
 
 ----
 $ pki-server ca-config-set jobsScheduler.job.pruning.enabled false
-$ pki-server ca-config-set jobsScheduler.job.pruning.cron "0 0 1 * *"
 $ pki-server ca-config-set jobsScheduler.job.pruning.pluginName PruningJob
 $ pki-server ca-config-set jobsScheduler.job.pruning.certRetentionTime 30
 $ pki-server ca-config-set jobsScheduler.job.pruning.certRetentionUnit day
 $ pki-server ca-config-set jobsScheduler.job.pruning.requestRetentionTime 30
 $ pki-server ca-config-set jobsScheduler.job.pruning.requestRetentionUnit day
 $ pki-server ca-config-set jobsScheduler.job.pruning.summary.enabled false
+----
+
+= Triggering Pruning Job =
+
+To trigger the job automatically using the internal scheduler, add the following parameter, then restart the CA:
+
+----
+$ pki-server ca-config-set jobsScheduler.job.pruning.cron "0 0 * * *"
+----
+
+To trigger the job manually or automatically using an external scheduler, execute the following command as an administrator:
+
+----
+$ pki -n caadmin ca-job-start pruning
+----
+
+To execute the command as another user, specify the user as the job owner, then restart the CA:
+
+----
+$ pki-server ca-config-set jobsScheduler.job.pruning.owner caagent
+----
+
+Then the command can be executed as follows:
+
+----
+$ pki -n caagent ca-job-start pruning
 ----
