@@ -71,7 +71,7 @@ To trigger pruning job automatically using the link:Configuring-Scheduler[intern
 $ pki-server ca-config-set jobsScheduler.job.pruning.cron "0 0 * * *"
 ----
 
-To trigger pruning job automatically using an external scheduler (e.g. `cron`), execute the following command as in the manual trigger:
+To trigger pruning job automatically using an external scheduler (e.g. `cron`), configure the scheduler to execute the following command:
 
 ----
 $ pki -n <client cert> ca-job-start pruning
