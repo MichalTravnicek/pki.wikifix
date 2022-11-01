@@ -1,6 +1,6 @@
 = Overview =
 
-This document describes the CA database pruning functionality in PKI 11.3.
+This page describes the CA database pruning functionality in PKI 11.3.
 
 = Background =
 
@@ -12,7 +12,7 @@ While it’s possible to remove the records directly from the database, it’s n
 
 If records are removed directly from the database without considering the state stored in memory and in the configuration file, there is a risk that the range management system could enter an inconsistent state, and the CA might stop issuing certificates. The recovery procedure if this happens is not well tested/documented, so it’s highly recommended to avoid this situation in the first place, especially in large/complex deployments.
 
-= Proposed Solution =
+= Solution =
 
 In order to remove the records safely, the CA needs to use the link:https://github.com/dogtagpki/pki/wiki/Random-Certificate-Serial-Numbers-v3[RSNv3] to generate the certificate serial numbers and enrollment/renewal request IDs. RSNv3 works by generating large random numbers which mathematically have a negligible risk of collisions, so it does not need the range management system anymore. This way the CA can generate unique serial numbers without depending on existing records in the database.
 
