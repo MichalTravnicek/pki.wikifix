@@ -10,29 +10,36 @@ The pruning configuration is stored in `/etc/pki/pki-tomcat/ca/CS.cfg`. It is ne
 
 == Enabling pruning job ==
 
-To enable the pruning job:
+By default the pruning job is disabled. To enable the pruning job:
 
 ----
-$ pki-server ca-config-set jobsScheduler.job.pruning.enabled false
+$ pki-server ca-config-set jobsScheduler.job.pruning.enabled true
 ----
 
 == Configuring certificate pruning ==
 
-To configure certificate retention:
+By default an expired certificate will be retained for 30 days before it will be pruned.
+When an expired certificate is pruned, the corresponding request will also be pruned.
+To configure certificate retention period:
 
 ----
 $ pki-server ca-config-set jobsScheduler.job.pruning.certRetentionTime 30
 $ pki-server ca-config-set jobsScheduler.job.pruning.certRetentionUnit day
 ----
 
+Valid retention units: `minute`, `hour`, `day`, `year`.
+
 == Configuring request pruning ==
 
-To configure request retention:
+By default an incomplete request will be retained for 30 days before it will be pruned.
+To configure request retention period:
 
 ----
 $ pki-server ca-config-set jobsScheduler.job.pruning.requestRetentionTime 30
 $ pki-server ca-config-set jobsScheduler.job.pruning.requestRetentionUnit day
 ----
+
+Valid retention units: `minute`, `hour`, `day`, `year`.
 
 = Triggering Pruning =
 
