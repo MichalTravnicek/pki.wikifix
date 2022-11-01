@@ -26,26 +26,36 @@ $ pki-server ca-config-set jobsScheduler.job.pruning.summary.enabled false
 
 = Triggering Pruning Job =
 
+== Manual Trigger ==
+
+To trigger the job manually as an administrator, execute the following command:
+
+----
+$ pki -n caadmin ca-job-start pruning
+----
+
+To trigger the job manually as another user, specify the user as the job owner, then restart the CA:
+
+----
+$ pki-server ca-config-set jobsScheduler.job.pruning.owner <user>
+----
+
+Then the command can be executed as follows:
+
+----
+$ pki -n <client cert> ca-job-start pruning
+----
+
+== Automatic Trigger ==
+
 To trigger the job automatically using the link:Configuring-Scheduler[internal scheduler], add the following parameter, then restart the CA:
 
 ----
 $ pki-server ca-config-set jobsScheduler.job.pruning.cron "0 0 * * *"
 ----
 
-To trigger the job manually or automatically using an external scheduler (e.g. `cron`), execute the following command as an administrator:
+To trigger the job automatically using an external scheduler (e.g. `cron`), execute the following command as in the manual trigger:
 
 ----
-$ pki -n caadmin ca-job-start pruning
-----
-
-To execute the command as another user, specify the user as the job owner, then restart the CA:
-
-----
-$ pki-server ca-config-set jobsScheduler.job.pruning.owner caagent
-----
-
-Then the command can be executed as follows:
-
-----
-$ pki -n caagent ca-job-start pruning
+$ pki -n <client cert> ca-job-start pruning
 ----
