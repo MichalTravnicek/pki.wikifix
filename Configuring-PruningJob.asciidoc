@@ -1,0 +1,24 @@
+= Overview =
+
+NOTE: This page is still under construction.
+
+*Availability:* Since PKI 11.3
+
+= Plugin Configuration =
+
+----
+$ pki-server ca-config-set jobsScheduler.impl.PruningJob.class com.netscape.cms.jobs.PruningJob
+----
+
+= Job Configuration =
+
+To configure certificate pruning job:
+
+----
+$ pki-server ca-config-set jobsScheduler.job.pruning.enabled false
+$ pki-server ca-config-set jobsScheduler.job.pruning.cron "0 0 1 * *"
+$ pki-server ca-config-set jobsScheduler.job.pruning.pluginName PruningJob
+$ pki-server ca-config-set jobsScheduler.job.pruning.certRetentionTime 30
+$ pki-server ca-config-set jobsScheduler.job.pruning.certRetentionUnit day
+$ pki-server ca-config-set jobsScheduler.job.pruning.summary.enabled false
+----
