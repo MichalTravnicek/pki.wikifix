@@ -16,7 +16,7 @@ If records are removed directly from the database without considering the state 
 
 In order to remove the records safely, the CA needs to use the link:https://github.com/dogtagpki/pki/wiki/Random-Certificate-Serial-Numbers-v3[RSNv3] to generate the certificate serial numbers and enrollment/renewal request IDs. RSNv3 works by generating large random numbers which mathematically have a negligible risk of collisions, so it does not need the range management system anymore. This way the CA can generate unique serial numbers without depending on existing records in the database.
 
-The CA will provide a pruning job that will remove:
+The CA in PKI 11.3 provides a pruning job that will remove:
 
 * certificates that have expired for some time
 * completed requests corresponding to the expired certificates
