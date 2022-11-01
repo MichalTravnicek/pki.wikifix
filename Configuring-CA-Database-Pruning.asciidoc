@@ -4,9 +4,15 @@ NOTE: This page is still under construction.
 
 This page describes the process to configure link:CA-Database-Pruning[CA database pruning] in PKI 11.3.
 
+= Prerequisite =
+
+Ensure that the certificate and request ID generators are configured to use RSNv3.
+See link:Configuring-CA-with-Random-Serial-Numbers-v3[Configuring CA with Random Serial Numbers v3].
+
 = Configuration =
 
 The pruning configuration is stored in `/etc/pki/pki-tomcat/ca/CS.cfg`. It is necessary to restart the CA after making configuration changes.
+
 
 == Enabling pruning job ==
 
