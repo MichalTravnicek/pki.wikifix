@@ -102,8 +102,9 @@ $ pki-server ca-config-set jobsScheduler.job.pruning.cron "0 0 1 * *"
 
 In the above example the job is scheduled to run at 12:00am on the first day of each month.
 
-To trigger pruning job automatically using an external scheduler (e.g. `cron`), configure the scheduler to execute the following command:
+Alternatively, the pruning job can also be triggered using an external scheduler (e.g. `cron`).
+Ensure the owner's certificate is installed on the client, then configure the scheduler to execute the following command:
 
 ----
-$ pki -n <client cert> ca-job-start pruning
+$ pki -n <nickname> ca-job-start pruning
 ----
