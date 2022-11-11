@@ -45,6 +45,8 @@ $ pki-server ca-config-set jobsScheduler.job.pruning.certSearchSizeLimit 1000
 $ pki-server ca-config-set jobsScheduler.job.pruning.certSearchTimeLimit 0
 ----
 
+The time limit is expressed in seconds. A value `0` indicates there is no time limit.
+
 == Configuring request retention period ==
 
 By default an incomplete request will be retained for 30 days before it will be pruned.
@@ -66,6 +68,8 @@ To configure request search constraints:
 $ pki-server ca-config-set jobsScheduler.job.pruning.requestSearchSizeLimit 1000
 $ pki-server ca-config-set jobsScheduler.job.pruning.requestSearchTimeLimit 0
 ----
+
+The time limit is expressed in seconds. A value `0` indicates there is no time limit.
 
 = Triggering Pruning =
 
