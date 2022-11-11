@@ -35,6 +35,16 @@ $ pki-server ca-config-set jobsScheduler.job.pruning.certRetentionUnit day
 
 Valid retention units: `minute`, `hour`, `day`, `year`.
 
+== Configuring certificate search constraints ==
+
+By default the pruning job will look for at most 1000 certificates without time limit.
+To configure certificate search constraints:
+
+----
+$ pki-server ca-config-set jobsScheduler.job.pruning.certSearchSizeLimit 1000
+$ pki-server ca-config-set jobsScheduler.job.pruning.certSearchTimeLimit 0
+----
+
 == Configuring request retention period ==
 
 By default an incomplete request will be retained for 30 days before it will be pruned.
@@ -46,6 +56,16 @@ $ pki-server ca-config-set jobsScheduler.job.pruning.requestRetentionUnit day
 ----
 
 Valid retention units: `minute`, `hour`, `day`, `year`.
+
+== Configuring request search constraints ==
+
+By default the pruning job will look for at most 1000 requests without time limit.
+To configure request search constraints:
+
+----
+$ pki-server ca-config-set jobsScheduler.job.pruning.requestSearchSizeLimit 1000
+$ pki-server ca-config-set jobsScheduler.job.pruning.requestSearchTimeLimit 0
+----
 
 = Triggering Pruning =
 
