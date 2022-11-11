@@ -13,13 +13,23 @@ See link:Configuring-CA-with-Random-Serial-Numbers-v3[Configuring CA with Random
 
 The pruning configuration is stored in `/etc/pki/pki-tomcat/ca/CS.cfg`. It is necessary to restart the CA after making configuration changes.
 
-
 == Enabling pruning job ==
 
 By default the pruning job is disabled. To enable the pruning job:
 
 ----
 $ pki-server ca-config-set jobsScheduler.job.pruning.enabled true
+----
+
+== Configuring job owner ==
+
+The pruning job can only be accessed and triggered by the job owner.
+By default the job is owned by members of the `Administrators` group.
+
+To configure an additional owner:
+
+----
+$ pki-server ca-config-set jobsScheduler.job.pruning.owner <username>
 ----
 
 == Configuring certificate retention period ==
@@ -75,22 +85,11 @@ The time limit is expressed in seconds. A value `0` indicates there is no time l
 
 == Manual Trigger ==
 
-To trigger pruning job manually as an administrator, execute the following command:
+To trigger pruning job manually, ensure the owner's certificate is installed on the client,
+then execute the following command:
 
 ----
-$ pki -n caadmin ca-job-start pruning
-----
-
-To trigger pruning job manually as another user, specify the user as the job owner, then restart the CA:
-
-----
-$ pki-server ca-config-set jobsScheduler.job.pruning.owner <user>
-----
-
-Then the command can be executed as follows:
-
-----
-$ pki -n <client cert> ca-job-start pruning
+$ pki -n <nickname> ca-job-start pruning
 ----
 
 == Automatic Trigger ==
