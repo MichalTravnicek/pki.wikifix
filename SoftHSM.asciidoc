@@ -1,0 +1,227 @@
+= Overview =
+
+Currently SoftHSM only works in self-signed CA installation. It doesn't work in CA installation with externally-signed CA signing certificate due to file permission issues.
+
+= Installation =
+
+To install SoftHSM:
+
+----
+$ dnf install softhsm
+----
+
+It will install the following library:
+
+* `/usr/lib64/pkcs11/libsofthsm2.so`
+
+Verify that NSS recognizes the library:
+
+----
+$ modutil -nocertdb -list
+
+Listing of PKCS #11 Modules
+-----------------------------------------------------------
+  1. NSS Internal PKCS #11 Module
+	   uri: pkcs11:library-manufacturer=Mozilla%20Foundation;library-description=NSS%20Internal%20Crypto%20Services;library-version=3.43
+	 slots: 2 slots attached
+	status: loaded
+
+	 slot: NSS Internal Cryptographic Services
+	token: NSS Generic Crypto Services
+	  uri: pkcs11:token=NSS%20Generic%20Crypto%20Services;manufacturer=Mozilla%20Foundation;serial=0000000000000000;model=NSS%203
+
+	 slot: NSS User Private Key and Certificate Services
+	token: NSS Certificate DB
+	  uri: pkcs11:token=NSS%20Certificate%20DB;manufacturer=Mozilla%20Foundation;serial=0000000000000000;model=NSS%203
+
+  2. p11-kit-proxy
+	library name: p11-kit-proxy.so
+	   uri: pkcs11:library-manufacturer=PKCS%2311%20Kit;library-description=PKCS%2311%20Kit%20Proxy%20Module;library-version=1.1
+	 slots: 1 slot attached
+	status: loaded
+
+	 slot: SoftHSM slot ID 0x0
+	token: 
+	  uri: pkcs11:manufacturer=SoftHSM%20project;model=SoftHSM%20v2
+-----------------------------------------------------------
+----
+
+= Configuration =
+
+The configuration file is located at:
+
+* system-wide configuration: `/etc/softhsm2.conf`
+* user-specific configuration: `~/.config/softhsm2/softhsm2.conf`
+
+See also link:https://www.systutorials.com/docs/linux/man/5-softhsm2.conf[softhsm2.conf (5)].
+
+= Granting Permission to PKI System User =
+
+By default the SoftHSM file permissions are configured as follows:
+
+----
+$ ls -ld /var/lib/softhsm
+drwxr-x---. 3 ods ods 4096 Jun  6 20:03 /var/lib/softhsm
+$ ls -ld /var/lib/softhsm/tokens
+drwxrwx--T. 2 ods ods 4096 Nov  5  2018 /var/lib/softhsm/tokens
+----
+
+To allow PKI server (which by default runs as `pkiuser`) to access SoftHSM files:
+
+----
+$ usermod pkiuser -a -G ods
+----
+
+or:
+
+----
+$ chmod 755 /var/lib/softhsm
+$ chmod 1777 /var/lib/softhsm/tokens
+----
+
+= Creating User-specific Tokens =
+
+As pkiuser, prepare a folder for user-specific tokens:
+
+----
+$ mkdir -p /home/pkiuser/.config/softhsm2/tokens
+----
+
+Specify user-specific token folder in `/home/pkiuser/.config/softhsm2/softhsm2.conf`:
+
+----
+directories.tokendir = /home/pkiuser/.config/softhsm2/tokens
+----
+
+= Listing Tokens =
+
+To list SoftHSM tokens for the current user:
+
+----
+$ runuser -u pkiuser -- softhsm2-util --show-slots
+Available slots:
+Slot 0
+    Slot info:
+        Description:      SoftHSM slot ID 0x1                                             
+        Manufacturer ID:  SoftHSM project                 
+        Hardware version: 2.3
+        Firmware version: 2.3
+        Token present:    yes
+    Token info:
+        Manufacturer ID:  SoftHSM project                 
+        Model:            SoftHSM v2      
+        Hardware version: 2.3
+        Firmware version: 2.3
+        Serial number:                    
+        Initialized:      no
+        User PIN init.:   no
+        Label:                                        
+----
+
+= Creating Token =
+
+To create a SoftHSM token for the current user:
+
+----
+$ runuser -u pkiuser -- softhsm2-util --init-token --label HSM --so-pin Secret.HSM --pin Secret.HSM --free
+----
+
+The token will be created in `/var/lib/softhsm/tokens` folder.
+
+= Deleting Token =
+
+To remove a token:
+
+----
+$ runuser -u pkiuser -- softhsm2-util --delete-token --token HSM
+----
+
+Alternatively:
+
+----
+$ rm -rf /var/lib/softhsm/tokens/<token ID>
+----
+
+= NSS Interoperability =
+
+To create NSS database:
+
+----
+$ mkdir nssdb
+$ certutil -N -d nssdb --empty-password
+----
+
+On some systems it may be necessary to add the SoftHSM module:
+
+----
+$ modutil -dbdir nssdb -add softhsm -libfile /usr/lib64/pkcs11/libsofthsm2.so -force
+----
+
+To list certificates in the token:
+
+----
+$ certutil -L -d nssdb -h HSM -f password.txt
+
+Certificate Nickname                                         Trust Attributes
+                                                             SSL,S/MIME,JAR/XPI
+
+HSM:ca_signing                                               u,u,u
+HSM:sslserver                                                u,u,u
+----
+
+To list keys in the token:
+
+----
+$ certutil -K -d nssdb -h HSM
+< 1> rsa      b0bb70560aed2c6a4880f5c165fb9169f8767e67   ca_signing
+< 2> rsa      e53bdd18f57201bade4625e037d29703c4e0eb7e   HSM:sslserver
+----
+
+= OpenSSL Interoperability =
+
+----
+$ openssl engine pkcs11 -pre MODULE_PATH:/usr/lib/libsofthsm.so -c -t
+----
+
+See also https://developers.yubico.com/YubiHSM2/Usage_Guides/OpenSSL_with_pkcs11_engine.html (replace yubikey with softhsm).
+
+= PKI Interoperability =
+
+To list certificates:
+
+----
+$ pki --token HSM -c Secret.HSM pkcs11-cert-find
+  Type: X.509
+  Serial Number: 0x1
+  Subject DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+
+  Cert ID: HSM:sslserver
+  Type: X.509
+  Serial Number: 0x3
+  Subject DN: CN=localhost.localdomain,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+----
+
+To list keys:
+
+----
+$ pki --token HSM -c Secret.HSM pkcs11-key-find
+  Key ID: HSM:b0bb70560aed2c6a4880f5c165fb9169f8767e67
+  Type: RSA
+  Algorithm: RSA
+
+  Key ID: HSM:e53bdd18f57201bade4625e037d29703c4e0eb7e
+  Type: RSA
+  Algorithm: RSA
+----
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/HSM[HSM]
+* link:https://www.opendnssec.org/softhsm[SoftHSM]
+* link:https://www.dogtagpki.org/wiki/PKCS11[PKCS11]
+* link:https://github.com/dogtagpki/pki/wiki/NSS-Database[NSS Database]
+* link:https://pagure.io/dogtagpki/issue/3087[Ticket #3087: SoftHSM support]
+* link:https://bugzilla.redhat.com/show_bug.cgi?id=1272423[Bug #1272423: Softhsm PKCS#11 module not visible to NSS becasue it is not in the search path]
+* link:https://bugzilla.redhat.com/show_bug.cgi?id=1625548[Bug #1625548: Make softhsm default directory usable for other applications]
