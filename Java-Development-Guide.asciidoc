@@ -1,4 +1,4 @@
-= Configuring Source and Target Versions =
+= Configuring Java Source and Target Versions in CMake =
 
 Java source and target versions are hard-coded in link:https://github.com/dogtagpki/pki/blob/master/cmake/Modules/Java.cmake#L87-L88[cmake/Modules/Java.cmake]:
 
@@ -8,4 +8,19 @@ COMMAND ${Java_JAVAC_EXECUTABLE}
     -source 17
     -target 17
     ...
+----
+
+= Configuring Java Release Version in Maven =
+
+Java release version is hard-coded in link:https://github.com/dogtagpki/pki/blob/master/pom.xml#L225[pom.xml]:
+
+----
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-compiler-plugin</artifactId>
+    <version>3.8.1</version>
+    <configuration>
+        <release>17</release>
+     </configuration>
+</plugin>
 ----
