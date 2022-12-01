@@ -1,0 +1,11 @@
+= Configuring Source and Target Versions =
+
+Java source and target versions are hard-coded in link:https://github.com/dogtagpki/pki/blob/master/cmake/Modules/Java.cmake#L87-L88[cmake/Modules/Java.cmake]:
+
+----
+COMMAND ${Java_JAVAC_EXECUTABLE}
+    ...
+    -source 17
+    -target 17
+    ...
+----
