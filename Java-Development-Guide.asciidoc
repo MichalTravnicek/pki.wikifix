@@ -1,3 +1,13 @@
+= Java Dependency =
+
+Java dependency is defined in link:https://github.com/dogtagpki/pki/blob/master/pki.spec#L72-L74[pki.spec]:
+
+----
+%define java_devel java-17-openjdk-devel
+%define java_headless java-17-openjdk-headless
+%define java_home %{_jvmdir}/jre-17-openjdk
+----
+
 = Configuring Java Source and Target Versions in CMake =
 
 Java source and target versions are hard-coded in link:https://github.com/dogtagpki/pki/blob/master/cmake/Modules/Java.cmake#L87-L88[cmake/Modules/Java.cmake]:
