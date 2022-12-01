@@ -79,10 +79,15 @@ $ podman exec ds ldapsearch \
     -b "dc=example,dc=com"
 ----
 
-= Enabling SSL Connection =
+= Install SSL Certificate =
+
+To install SSL certificate, copy the server certificate, server key, and CA certificate as follows:
 
 ----
 $ podman exec ds mkdir -p /data/tls/ca
+$ podman cp ca.crt ds:/data/tls/ca
+$ podman cp server.crt ds:/data/tls
+$ podman cp server.key ds:/data/tls
 ----
 
 = Removing DS Container =
