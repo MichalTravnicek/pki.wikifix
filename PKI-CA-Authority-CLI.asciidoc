@@ -20,7 +20,7 @@ $ pki -n caadmin ca-authority-find
   Authority DN:   CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
   ID:             f37225e8-b6d7-49be-abe1-6a2f5f3e0be3
   Issuer DN:      CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
-  Serial no:      1
+  Serial no:      0x9ac1b2540e75b6a6af68fb167549302e
   Enabled:        true
   Ready to sign:  true
   Description:    Host authority
@@ -29,7 +29,7 @@ $ pki -n caadmin ca-authority-find
   ID:             4aa054e0-4742-4968-8c38-6c7b8539ceb1
   Parent ID:      f37225e8-b6d7-49be-abe1-6a2f5f3e0be3
   Issuer DN:      CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
-  Serial no:      7
+  Serial no:      0xff105174b5dd0443c5ae812df6497766
   Enabled:        true
   Ready to sign:  true
 ----------------------------
@@ -49,7 +49,7 @@ $ pki -n caadmin ca-authority-find \
   ID:             4aa054e0-4742-4968-8c38-6c7b8539ceb1
   Parent ID:      f37225e8-b6d7-49be-abe1-6a2f5f3e0be3
   Issuer DN:      CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
-  Serial no:      7
+  Serial no:      0xff105174b5dd0443c5ae812df6497766
   Enabled:        true
   Ready to sign:  true
 ----------------------------
@@ -69,7 +69,7 @@ $ pki -n caadmin ca-authority-find \
   Authority DN:   CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
   ID:             f37225e8-b6d7-49be-abe1-6a2f5f3e0be3
   Issuer DN:      CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
-  Serial no:      1
+  Serial no:      0x9ac1b2540e75b6a6af68fb167549302e
   Enabled:        true
   Ready to sign:  true
   Description:    Host authority
@@ -78,7 +78,7 @@ $ pki -n caadmin ca-authority-find \
   ID:             4aa054e0-4742-4968-8c38-6c7b8539ceb1
   Parent ID:      f37225e8-b6d7-49be-abe1-6a2f5f3e0be3
   Issuer DN:      CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
-  Serial no:      7
+  Serial no:      0xff105174b5dd0443c5ae812df6497766
   Enabled:        true
   Ready to sign:  true
 ----------------------------
@@ -96,7 +96,7 @@ $ pki -n caadmin ca-authority-show 4aa054e0-4742-4968-8c38-6c7b8539ceb1
   ID:             4aa054e0-4742-4968-8c38-6c7b8539ceb1
   Parent ID:      f37225e8-b6d7-49be-abe1-6a2f5f3e0be3
   Issuer DN:      CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
-  Serial no:      7
+  Serial no:      0xff105174b5dd0443c5ae812df6497766
   Enabled:        true
   Ready to sign:  true
 ----
@@ -109,7 +109,7 @@ $ pki -n caadmin ca-authority-show --dn CN=test
   ID:             4aa054e0-4742-4968-8c38-6c7b8539ceb1
   Parent ID:      f37225e8-b6d7-49be-abe1-6a2f5f3e0be3
   Issuer DN:      CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
-  Serial no:      7
+  Serial no:      0xff105174b5dd0443c5ae812df6497766
   Enabled:        true
   Ready to sign:  true
 ----
@@ -122,7 +122,7 @@ $ pki -n caadmin ca-authority-show --host-authority
   Authority DN:   CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
   ID:             f37225e8-b6d7-49be-abe1-6a2f5f3e0be3
   Issuer DN:      CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
-  Serial no:      1
+  Serial no:      0x9ac1b2540e75b6a6af68fb167549302e
   Enabled:        true
   Ready to sign:  true
   Description:    Host authority
@@ -139,7 +139,7 @@ $ pki -n caadmin ca-authority-create CN=test \
   ID:             4aa054e0-4742-4968-8c38-6c7b8539ceb1
   Parent ID:      f37225e8-b6d7-49be-abe1-6a2f5f3e0be3
   Issuer DN:      CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
-  Serial no:      7
+  Serial no:      0xff105174b5dd0443c5ae812df6497766
   Enabled:        true
   Ready to sign:  true
 ----
@@ -153,7 +153,7 @@ $ pki -n caadmin ca-authority-create CN=test \
   ID:             4aa054e0-4742-4968-8c38-6c7b8539ceb1
   Parent ID:      f37225e8-b6d7-49be-abe1-6a2f5f3e0be3
   Issuer DN:      CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
-  Serial no:      7
+  Serial no:      0xff105174b5dd0443c5ae812df6497766
   Enabled:        true
   Ready to sign:  true
 ----
@@ -165,7 +165,7 @@ $ pki -n caadmin ca-authority-create CN=test
   Authority DN:   CN=test
   ID:             4aa054e0-4742-4968-8c38-6c7b8539ceb1
   Issuer DN:      CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
-  Serial no:      7
+  Serial no:      0xff105174b5dd0443c5ae812df6497766
   Enabled:        true
   Ready to sign:  true
 ----
@@ -180,7 +180,7 @@ $ pki -n caadmin ca-authority-enable 4aa054e0-4742-4968-8c38-6c7b8539ceb1
   ID:             4aa054e0-4742-4968-8c38-6c7b8539ceb1
   Parent ID:      f37225e8-b6d7-49be-abe1-6a2f5f3e0be3
   Issuer DN:      CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
-  Serial no:      7
+  Serial no:      0xff105174b5dd0443c5ae812df6497766
   Enabled:        true
   Ready to sign:  true
 ----
@@ -193,7 +193,7 @@ $ pki -n caadmin ca-authority-disable 4aa054e0-4742-4968-8c38-6c7b8539ceb1
   ID:             4aa054e0-4742-4968-8c38-6c7b8539ceb1
   Parent ID:      f37225e8-b6d7-49be-abe1-6a2f5f3e0be3
   Issuer DN:      CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
-  Serial no:      7
+  Serial no:      0xff105174b5dd0443c5ae812df6497766
   Enabled:        false
   Ready to sign:  true
 ----
