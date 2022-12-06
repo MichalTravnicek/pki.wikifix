@@ -43,7 +43,7 @@ The following methods shall be added to the `ICertificateAuthority` interface:
 /**
  * Enumerate all authorities, including host authority.
  */
-public List&lt;ICertificateAuthority&gt; getCAs();
+public List<ICertificateAuthority> getCAs();
 
 /**
  * Return whether this CA is the host authority (not a
@@ -160,7 +160,7 @@ interface KeyRetriever {
    *
    * @return true if the retrieval was successful, otherwise false
    */
-  boolean retrieveKey(String nickname, Collection&lt;String&gt; hostname);
+  boolean retrieveKey(String nickname, Collection<String> hostname);
 }
 ----
 
