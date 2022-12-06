@@ -15,3 +15,45 @@ $ pki -n caadmin kra-key-find
 Number of entries returned 1
 ----------------------------
 ----
+
+Keys archived by CA might look like the following:
+
+----
+  Key ID: 0x39f9a475fc569ed63a0cca110a04a1bf
+  Algorithm: 1.2.840.113549.1.1.1
+  Size: 2048
+  Owner: UID=testuser
+----
+
+Keys archived by TPS might look like the following:
+
+----
+  Key ID: 0x00eaa1433c9cb26df5e2c263d5429a3764
+  Algorithm: RSA
+  Size: 1024
+  Owner: DC64C599EF770D9D3D61:testuser1
+
+  Key ID: 0x6a6b0ec3b7878685329c204c1c6ac178
+  Algorithm: RSA
+  Size: 1024
+  Owner: 485486E509C820F0D01B:testuser2
+----
+
+Keys archived by IPA might look like the following:
+
+----
+  Key ID: 0x01
+  Client Key ID: ipa:/users/admin/test_vault
+  Status: inactive
+  Owner: ipakra
+
+  Key ID: 0x02
+  Client Key ID: ipa:/services/HTTP/server.example.com@EXAMPLE.COM/test_vault
+  Status: inactive
+  Owner: ipakra
+
+  Key ID: 0x03
+  Client Key ID: ipa:/shared/test_vault
+  Status: inactive
+  Owner: ipakra
+----
