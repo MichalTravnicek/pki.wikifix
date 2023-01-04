@@ -1,1 +1,95 @@
-This page has been moved to https://github.com/dogtagpki/pki/wiki/Configuring-Signed-Audit-Logs.
+= Configuration =
+
+The signed audit configuration is stored in `/etc/pki/<instance>/<subsystem>/CS.cfg`:
+
+----
+log.instance.SignedAudit.type=signedAudit
+log.instance.SignedAudit.enable=true
+log.instance.SignedAudit.bufferSize=512
+log.instance.SignedAudit.expirationTime=0
+log.instance.SignedAudit.level=1
+log.instance.SignedAudit.pluginName=file
+----
+
+== Signed Audit Filename ==
+
+The signed audit log filename can be configured with the following parameter:
+
+----
+log.instance.SignedAudit.fileName=/var/lib/pki/pki-tomcat/logs/ca/signedAudit/ca_audit
+----
+
+By default the audit logs are stored in `/var/log/pki/<instance>/<subsystem>/signedAudit` with the following names:
+
+* CA: `ca_audit`
+* KRA: `kra_cert-kra_audit`
+* OCSP: `ocsp_cert-ocsp_audit`
+* TKS: `tks_cert-tks_audit`
+* TPS: `tps_cert-tps_audit`
+
+If the server has been running more than the time specified in `rolloverInterval`, or the log file has exceeded the size specified in `maxFileSize`, the log file will be renamed into `<filename>.yyyyMMddHHmmss`.
+
+== Signed Audit Flush Interval ==
+
+The maximum time (in seconds) before the buffer is flushed to the file can be configured with the following parameter:
+
+----
+log.instance.SignedAudit.flushInterval=5
+----
+
+The default is 5 seconds.
+
+== Signed Audit Maximum File Size ==
+
+The maximum size (in kilobytes) for audit log files can be configured with the following parameter:
+
+----
+log.instance.SignedAudit.maxFileSize=2000
+----
+
+The default is 2000 kB which is around 2MB.
+
+== Signed Audit Rollover Interval ==
+
+The rollover interval (in seconds) for audit log files can be configured with the following parameter:
+
+----
+log.instance.SignedAudit.rolloverInterval=2592000
+----
+
+The default is 2592000 seconds which means 30 days (30 * 24 * 60 * 60).
+
+== Signed Audit Logs ==
+
+See link:https://www.dogtagpki.org/wiki/Signed_Audit_Log[Signed Audit Log].
+
+= Signed Audit Events =
+
+The events to be audited can be configured with the following parameter:
+
+----
+log.instance.SignedAudit.events=ACCESS_SESSION_ESTABLISH,ACCESS_SESSION_TERMINATED,...
+----
+
+Some events that are enabled by default. See link:Signed-Audit-Events[Signed Audit Events].
+
+The available events are listed in this link:https://github.com/dogtagpki/pki/blob/master/base/server/cmsbundle/src/LogMessages.properties[LogMessages.properties], for example:
+
+----
+# LOGGING_SIGNED_AUDIT_ACCESS_SESSION_ESTABLISH_SUCCESS
+# - used when access session was established successfully
+# ParamNameValPairs must be a name;;value pair
+#    (where name and value are separated by the delimiter ;;)
+#    separated by + (if more than one name;;value pair) of config params changed
+#
+LOGGING_SIGNED_AUDIT_ACCESS_SESSION_ESTABLISH_SUCCESS=\
+<type=ACCESS_SESSION_ESTABLISH>:[AuditEvent=ACCESS_SESSION_ESTABLISH]{0} access session establish success
+----
+
+= Signed Audit Event Filters =
+
+If an event type is listed in `log.instance.SignedAudit.events`, all events of that type will be recorded as audit logs, which sometimes could generate too many logs. To reduce the number of logs, the events can be limited using link:Signed-Audit-Event-Filters[Signed Audit Event Filters], for example:
+
+----
+log.instance.SignedAudit.filters.ACCESS_SESSION_ESTABLISH=(Outcome=Failure)
+----
