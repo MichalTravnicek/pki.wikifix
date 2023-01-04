@@ -1,0 +1,52 @@
+= Initializing Signature =
+
+The signature is initialized in `LogFile.setupSigning()`:
+
+----
+CryptoManager cm = CryptoManager.getInstance();
+
+X509Certificate cert = cm.findCertByNickname(nickname);
+PrivateKey signingKey = cm.findPrivKeyByCert(cert);
+
+String signingAlgorithm;
+if (signingKey instanceof RSAPrivateKey) {
+    signingAlgorithm = "SHA-256/RSA";
+
+} else if (signingKey instanceof DSAPrivateKey) {
+    signingAlgorithm = "SHA-256/DSA";
+}
+
+Signature signature = Signature.getInstance(signingAlgorithm, "Mozilla-JSS");
+signature.initSign(signingKey);
+
+String logEntry = getLastSignature();
+if (lastSignature != null) {
+    signature.update(logEntry.getBytes("UTF-8"));
+    signature.update(LINE_SEP_BYTE);
+}
+----
+
+= Updating Signature =
+
+The signature is updated in `LogFile.doLog()`:
+
+----
+signature.update(logEntry.getBytes("UTF-8"));
+signature.update(LINE_SEP_BYTE);
+----
+
+= Generating Signature =
+
+The signature is generated in `LogFile.pushSignature()`:
+
+----
+bytes = signature.sign();
+signature.initSign(signingKey);
+
+... store base-64-encoded bytes ...
+----
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/Signed_Audit_Log[Signed Audit Log]
+* link:https://github.com/dogtagpki/pki/wiki/PKI-10.4-Audit-Log-Improvements[PKI 10.4 Audit Log Improvements]
