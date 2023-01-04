@@ -1,0 +1,41 @@
+= Overview =
+
+If log signing is enabled, the server will periodically generate log entries containing the signature. For example:
+
+----
+<log entry 1>
+<log entry 2>
+[AuditEvent=AUDIT_LOG_SIGNING][SubjectID=$System$][Outcome=Success] signature of audit buffer just flushed: sig: <signature 1>
+<log entry 3>
+<log entry 4>
+[AuditEvent=AUDIT_LOG_SIGNING][SubjectID=$System$][Outcome=Success] signature of audit buffer just flushed: sig: <signature 2>
+...
+...
+...
+[AuditEvent=AUDIT_LOG_SIGNING][SubjectID=$System$][Outcome=Success] signature of audit buffer just flushed: sig: <signature 3>
+----
+
+By default log signing is disabled, so when the server is initially started after installation it will generate normal log entries without signatures (e.g. log entry 1 and 2).
+
+When the server is restarted after enabling log signing, an initial signature (e.g. signature 1) will be generated based on empty data. The previous log entries (e.g. log entries 1 and 2) are not signed since the authenticity cannot be guaranteed. Then the server may generate normal log entries (e.g. log entries 3 and 4).
+
+Depending on the `flushInterval` setting, after certain number of normal log entries the server will generate a signature (e.g. signature 2) generated based on the previous signature (e.g. signature 1) and the log entries between these signatures (e.g. log entry 3 and 4).
+
+Depending on the `maxFileSize` and `rolloverInterval` settings, at some point the server will rollover the old log file and switch to a new log file. When that happens the server will generate a final signature (e.g. signature 3) for the old log file, then it will generate an initial signature (e.g. signature 4) based on the previous signature (i.e. signature 3) for the new log file.
+
+= Enabling Signed Audit =
+
+* link:Enabling-Signed-Audit[Enabling Signed Audit]
+
+= Verifying Signed Audit Logs =
+
+* link:Verifying-Signed-Audit-Logs[Verifying Signed Audit Logs]
+
+= Signed Audit Logging Failures =
+
+* link:https://github.com/dogtagpki/pki/blob/master/docs/admin/Signed_Audit_Logging_Failures.md[Signed Audit Logging Failures]
+
+= See Also =
+
+* link:Configuring-Signed-Audit[Configuring Signed Audit]
+* link:Signed-Audit-Design[Signed Audit Design]
