@@ -1,0 +1,30 @@
+= Overview =
+
+By default the CD system will publish the builds to GitHub Container Registry. Sometimes it's necessary to publish the builds to a different container registry. This can be done by creating the following GitHub variables and secrets:
+
+* Variables:
+** `REGISTRY` (e.g. `quay.io`)
+** `REGISTRY_NAMESPACE` (e.g. `<username>`)
+* Secrets:
+** `REGISTRY_USERNAME` (e.g. `<username>+github`)
+** `REGISTRY_PASSWORD` (e.g. robot account's token)
+
+To reset the configuration simply remove the variables and secrets.
+
+**Availability:** Since PKI 11.4
+
+= Configuring Container Registry =
+
+* Go to *Settings* -> *Secrets and variables* -> *Actions*.
+* Click *New repository secret*.
+* Add `REGISTRY_USERNAME` and `REGISTRY_PASSWORD` secrets.
+* Click *Variables* tab.
+* Click *New repository variable*.
+* Add `REGISTRY` and `REGISTRY_NAMESPACE` variables.
+
+= Resetting Container Registry Configuration =
+
+* Go to *Settings* -> *Secrets and variables* -> *Actions*.
+* Click *Remove secret* next to `REGISTRY_USERNAME` and `REGISTRY_PASSWORD`.
+* Click *Variables* tab.
+* Click *Delete variable* next to `REGISTRY` and `REGISTRY_NAMESPACE`.
