@@ -6,7 +6,7 @@ By default the CD system will publish the builds to GitHub Container Registry. S
 ** `REGISTRY` (e.g. `quay.io`)
 ** `REGISTRY_NAMESPACE` (e.g. `<username>`)
 * Secrets:
-** `REGISTRY_USERNAME` (e.g. `<username>+github`)
+** `REGISTRY_USERNAME` (e.g. robot account's username)
 ** `REGISTRY_PASSWORD` (e.g. robot account's token)
 
 To reset the configuration simply remove the variables and secrets.
@@ -26,8 +26,8 @@ To reset the configuration simply remove the variables and secrets.
 * Go to *Account Settings* -> *Robot Accounts*.
 * Click *Create Robot Account*.
 * Enter a name for the robot account (e.g. `github`).
-* Click *Create robot account*.
-* Provide *Write* permissions to the relevant repositories.
+* Click *Create robot account* (i.e. `<username>+github`).
+* Provide *Write* permissions to the relevant repositories (e.g. `pki-dist`).
 * Click *Add permissions*.
 
 = Configuring Container Registry =
