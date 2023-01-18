@@ -1,11 +1,17 @@
 = Overview =
 
-The link:Continuous-Delivery[Continuous Delivery] system can be configured to publish container images to GitHub Container Registry or other container registry (e.g. Quay.io). This can be done by creating the following GitHub variables and secrets:
+The link:Continuous-Delivery[Continuous Delivery] system can be configured to publish the container images to a container registry.
 
-* Variables:
+To publish to GitHub Container Registry, configure the following variable in GitHub:
+
+* `REGISTRY` with value `ghcr.io`
+
+To publish to other container registry (e.g. Quay.io), configure the following variables and secrets in GitHub:
+
+* variables:
 ** `REGISTRY` (e.g. `quay.io`)
 ** `REGISTRY_NAMESPACE` (e.g. `dogtagpki`)
-* Secrets:
+* secrets:
 ** `REGISTRY_USERNAME` (e.g. robot account name)
 ** `REGISTRY_PASSWORD` (e.g. robot account token)
 
