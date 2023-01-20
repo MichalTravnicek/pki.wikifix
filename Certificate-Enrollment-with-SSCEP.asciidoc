@@ -1,45 +1,9 @@
 = Overview =
 
-This page describes the certificate enrollment process using link:https://github.com/dogtagpki/sscep/wiki[SSCEP].
-
+PKI supports certificate enrollment using link:https://github.com/dogtagpki/sscep/wiki[SSCEP].
 It assumes the SCEP responder has been configured in the CA.
-See link:https://github.com/dogtagpki/pki/wiki/Configuring-SCEP-Responder[Configuring SCEP Responder].
 
-= Getting CA Certificate =
+= See Also =
 
-To get the CA certificate:
-
-----
-$ sscep getca \
-    -u http://pki.example.com:8080/ca/cgi-bin/pkiclient.exe \
-    -c ca.crt
-----
-
-It will store the CA certificate in `ca.crt`.
-
-= Generate Certificate Request =
-
-To generate a certificate request, enter the client's IP address and password:
-
-----
-$ /usr/bin/mkrequest -ip <IP address> <password>
-----
-
-It will generate a `local.key` and a `local.csr`.
-
-= Enrolling Certificate =
-
-To enroll a certificate:
-
-----
-$ sscep enroll \
-    -u http://pki.example.com:8080/ca/cgi-bin/pkiclient.exe \
-    -c ca.crt \
-    -k local.key \
-    -r local.csr \
-    -l local.crt \
-    -E 3des \
-    -S sha256
-----
-
-It will store the certificate in `local.crt`.
+* link:https://github.com/dogtagpki/pki/wiki/Configuring-SCEP-Responder[Configuring SCEP Responder]
+* link:https://github.com/dogtagpki/sscep/wiki/User-Guide[SSCEP User Guide]
