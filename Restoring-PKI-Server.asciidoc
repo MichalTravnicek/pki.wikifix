@@ -23,6 +23,11 @@ Then start the server:
 $ pki-server start --wait
 ----
 
+= Current Limitation =
+
+* The server should be restored on a machine with the same hostname since the hostname of the original server is stored in various server files and database entries.
+* The server should be restored on a machine with the same PKI version since the server files and database could changed in a different PKI version.
+
 = See Also =
 
 * link:https://access.redhat.com/documentation/en-us/red_hat_directory_server/12/html/backing_up_and_restoring_red_hat_directory_server/restoring-directory-server_backing-up-and-restoring-rhds[RHDS 12: Restoring Directory Server]
