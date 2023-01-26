@@ -1,0 +1,28 @@
+= Overview =
+
+This page describes the process to restore a PKI server which includes.
+
+* server configuration files
+* server log files
+* system certificates and the keys in internal NSS token
+* profile configuration files
+
+**Note:** Data stored in the DS or HSM will need to be restored separately if necessary. Please refer to the DS and HSM documentation.
+
+= Restoring PKI Server =
+
+To restore PKI server from a backup file (e.g. `pki-tomcat.tar.gz`), execute the following command:
+
+----
+$ tar xzvf pki-tomcat.tar.gz -C /
+----
+
+Then start the server:
+
+----
+$ pki-server start --wait
+----
+
+= See Also =
+
+* link:https://access.redhat.com/documentation/en-us/red_hat_directory_server/12/html/backing_up_and_restoring_red_hat_directory_server/restoring-directory-server_backing-up-and-restoring-rhds[RHDS 12: Restoring Directory Server]
