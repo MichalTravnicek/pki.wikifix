@@ -1,0 +1,43 @@
+= Overview =
+
+This page describes the process to back up a PKI server which includes:
+
+* server configuration files
+* server log files
+* system certificates and the keys in internal NSS token
+* profile configuration files
+
+**Note:** Data stored in the DS or HSM will need to be backed up separately. Please refer to the DS and HSM documentation.
+
+= Backing Up PKI Server =
+
+First, make sure the server is stopped:
+
+----
+$ pki-server stop --wait
+----
+
+Then execute the following command:
+
+----
+$ tar czvf pki-tomcat.tar.gz \
+    -C / \
+    etc/pki/pki-tomcat \
+    etc/sysconfig/pki-tomcat \
+    etc/sysconfig/pki/tomcat/pki-tomcat \
+    etc/systemd/system/pki-tomcatd.target.wants/pki-tomcatd@pki-tomcat.service \
+    var/lib/pki/pki-tomcat \
+    var/log/pki/pki-tomcat
+----
+
+Finally, restart the server.
+
+----
+$ pki-server start --wait
+----
+
+Store the `pki-tomcat.tar.gz` in a safe location.
+
+= See Also =
+
+* link:https://access.redhat.com/documentation/en-us/red_hat_directory_server/12/html/backing_up_and_restoring_red_hat_directory_server/backing-up-directory-server_backing-up-and-restoring-rhds[RHDS 12: Backing up Directory Server]
