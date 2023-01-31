@@ -1,0 +1,16 @@
+= Overview =
+
+Currently PKI uses RESTEasy which has a dependency on JAXB.
+However, some Java libraries including JAXB were link:https://www.oracle.com/java/technologies/javase/11-relnote-issues.html#JDK-8190378[removed] in JDK 11.
+
+= JAXB in PKI 10 or Earlier =
+
+= JAXB in PKI 11 or Later =
+
+In Fedora JAXB API is provided by link:https://src.fedoraproject.org/rpms/jaxb-api[jaxb-api] package.
+The following link:https://koji.fedoraproject.org/koji/packageinfo?packageID=31906[builds] are available:
+
+* Fedora 33-37: `jaxb-api-2.3.x`
+* Fedora 38: `jaxb-api-4.0.x`
+
+The JAR file is located at `/usr/share/java/jaxb-api.jar` which contains `javax.xml.bind` packages.
