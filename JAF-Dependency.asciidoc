@@ -1,0 +1,14 @@
+= Overview =
+
+Currently PKI uses Jackson which has a dependency on Jakarta Activation which is formerly known as JavaBeans Activation Framework (JAF).
+JAF was provided by JDK 1.8 but it was link:https://www.oracle.com/java/technologies/javase/11-relnote-issues.html#JDK-8190378[removed] in JDK 11 and replaced by external Jakarta Activation.
+
+= Jakarta Activation Dependency for PKI 11 or Later =
+
+In newer Fedora Jakarta Activation is provided by link:https://src.fedoraproject.org/rpms/jakarta-activation[jakarta-activation] package.
+The following link:https://koji.fedoraproject.org/koji/packageinfo?packageID=31333[builds] are available:
+
+* Fedora 33-37: `jakarta-activation-1.2.x`
+* Fedora 38: `jakarta-activation-2.1.x`
+
+The JAR file is located at `/usr/share/java/jakarta-activation/jakarta.activation-api.jar` which contains `javax.activation` packages.
