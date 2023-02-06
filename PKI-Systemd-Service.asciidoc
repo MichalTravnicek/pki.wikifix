@@ -1,0 +1,111 @@
+= Unit Files =
+
+Templates:
+
+* link:https://github.com/dogtagpki/pki/blob/master/base/server/share/lib/systemd/system/pki-tomcatd%40.service[/usr/lib/systemd/system/pki-tomcatd@.service]
+* link:https://github.com/dogtagpki/pki/blob/master/base/server/share/lib/systemd/system/pki-tomcatd-nuxwdog%40.service[/usr/lib/systemd/system/pki-tomcatd-nuxwdog@.service]
+
+Targets:
+
+* link:https://github.com/dogtagpki/pki/blob/master/base/server/share/lib/systemd/system/pki-tomcatd.target[/usr/lib/systemd/system/pki-tomcatd.target]
+* /etc/systemd/system/pki-tomcatd.target.wants
+* link:https://github.com/dogtagpki/pki/blob/master/base/server/share/lib/systemd/system/pki-tomcatd-nuxwdog.target[/usr/lib/systemd/system/pki-tomcatd-nuxwdog.target]
+* /etc/systemd/system/pki-tomcatd-nuxwdog.target.wants
+
+= PKI Systemd Service =
+
+Each PKI instance will have a systemd service. By default the system service will be defined in
+
+* /etc/systemd/system/pki-tomcatd.target.wants/pki-tomcatd@pki-tomcat.service
+
+which is a link to:
+
+* link:https://github.com/dogtagpki/pki/blob/master/base/server/share/lib/systemd/system/pki-tomcatd%40.service[/usr/lib/systemd/system/pki-tomcatd@.service]
+
+----
+[Unit]
+Description=PKI Tomcat Server %i
+PartOf=pki-tomcatd.target
+
+[Service]
+Type=simple
+EnvironmentFile=/usr/share/pki/etc/tomcat.conf
+EnvironmentFile=/etc/tomcat/tomcat.conf
+Environment="NAME=%i"
+EnvironmentFile=-/etc/sysconfig/%i
+ExecStartPre=/usr/sbin/pki-server migrate --instance %i
+ExecStartPre=/usr/bin/pkidaemon start %i
+ExecStart=/usr/libexec/tomcat/server start
+ExecStop=/usr/libexec/tomcat/server stop
+SuccessExitStatus=143
+User=pkiuser
+Group=pkiuser
+----
+
+The environment variables are stored in Tomcat configuration files. See also:
+
+* link:https://www.dogtagpki.org/wiki/Tomcat_Configuration[Tomcat Configuration]
+* link:Server-Configuration-Files[Server Configuration Files]
+
+To start a service:
+
+----
+$ systemctl start pki-tomcatd@<instance>.service
+----
+
+To stop a service:
+
+----
+$ systemctl stop pki-tomcatd@<instance>.service
+----
+
+To check service status:
+
+----
+$ systemctl status pki-tomcatd@<instance>.service
+----
+
+= Nuxwdog Service =
+
+If link:https://www.dogtagpki.org/wiki/Nuxwdog[Nuxwdog] is enabled for this instance, the system service will be defined in link:https://github.com/dogtagpki/pki/blob/master/base/server/share/lib/systemd/system/pki-tomcatd-nuxwdog%40.service[/etc/systemd/system/pki-tomcatd-nuxwdog.target.wants/pki-tomcatd-nuxwdog@pki-tomcat.service]:
+
+----
+[Unit]
+Description=PKI Tomcat Server %i Started by Nuxwdog
+PartOf=pki-tomcatd-nuxwdog.target
+
+[Service]
+Type=forking
+EnvironmentFile=/etc/tomcat/tomcat.conf
+Environment="NAME=%i"
+Environment="STARTED_BY_SYSTEMD=1"
+EnvironmentFile=-/etc/sysconfig/%i
+ExecStartPre=/usr/bin/pkidaemon start %i
+ExecStart=/bin/nuxwdog -f /etc/pki/%i/nuxwdog.conf
+SuccessExitStatus=143
+TimeoutStartSec=180
+PIDFile=/var/lib/pki/%i/logs/wd-%i.pid
+----
+
+Note: The `-` on the `EnvironmentFile` line ensures that no error messages is generated if the environment file does not exist. Since many of these files were optional in sysvinit, you should include the `-` when using this directive. 
+
+See also:
+
+* link:https://www.dogtagpki.org/wiki/Nuxwdog[Nuxwdog]
+
+= Service Configuration =
+
+Instance-specific environment variables can be specified in `/etc/sysconfig/pki-tomcat`.
+
+= Enabling PKI Service =
+
+----
+$ systemctl enable pki-tomcatd.target
+----
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/Systemd[Systemd]
+* link:https://www.dogtagpki.org/wiki/Tomcat_Systemd[Tomcat Systemd]
+* link:https://www.dogtagpki.org/wiki/Nuxwdog[Nuxwdog]
+* link:https://www.dogtagpki.org/wiki/Directory_Structure[Directory Structure]
