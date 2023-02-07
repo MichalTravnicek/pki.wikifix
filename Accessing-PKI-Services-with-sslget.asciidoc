@@ -10,14 +10,26 @@ Before using `sslget`, prepare an NSS database, for example:
 $ pki client-init --force
 ----
 
-= Anonymous GET Operation =
- 
+= GET Operation =
+
+To execute a `GET` operation:
+
 ----
 $ sslget -d ~/.dogtag/nssdb -p "" -r <path> $HOSTNAME:8443
 ----
 
-= Authenticated GET Operation =
+= POST Operation =
+
+To execute a `POST` operation:
 
 ----
-$ sslget -d ~/.dogtag/nssdb -p "" -n caadmin -r <path> $HOSTNAME:8443
+$ sslget -d ~/.dogtag/nssdb -p "" -e <URL-encoded params> -r <path> $HOSTNAME:8443
+----
+
+= Authentication =
+
+To authenticate using a client certificate in the NSS database:
+
+----
+$ sslget -d ~/.dogtag/nssdb -p "" -n <nickname> ...
 ----
