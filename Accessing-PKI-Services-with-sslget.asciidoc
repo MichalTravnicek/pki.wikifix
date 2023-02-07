@@ -1,0 +1,23 @@
+= Overview =
+
+This page describes how to use `sslget` to access PKI services.
+
+= Initialization =
+
+Before using `sslget`, prepare an NSS database, for example:
+
+----
+$ pki client-init --force
+----
+
+= Anonymous GET Operation =
+ 
+----
+$ sslget -d ~/.dogtag/nssdb -p "" -r <path> $HOSTNAME:8443
+----
+
+= Authenticated GET Operation =
+
+----
+$ sslget -d ~/.dogtag/nssdb -p "" -n caadmin -r <path> $HOSTNAME:8443
+----
