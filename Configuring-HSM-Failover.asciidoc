@@ -1,0 +1,26 @@
+= Overview =
+
+PKI server can be configured to perform an auto-shutdown when the HSM becomes unavailable. It will also generate a crumb file so an external process can detect and restart the server such that it can connect to a backup HSM.
+
+= Configuration =
+
+The auto-shutdown can be configured with the following parameters in `CS.cfg`:
+
+----
+autoShutdown.allowed=false
+autoShutdown.crumbFile=<instance>/logs/autoShutdown.crumb
+autoShutdown.restart.count=0
+autoShutdown.restart.enable=false
+autoShutdown.restart.max=3
+----
+
+At auto-shutdown, a crumb file will be left in the instance directory for an external daemon to detect and restart, if necessary.
+Due to limitation of the watchdog (nuxwdog) at present time, the restart option currently only works if started with watchdog (nuxwdog), and it will prompt for passwords on the terminals.
+
+The restart counter is to prevent the server from going into an infinite restart loop.
+Administrator will have to reset `autoShutdown.restart.count` to `0` when `max` is reached.
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/HSM[HSM]
+* link:https://github.com/dogtagpki/pki/issues/2152[Ticket #2152: HSM failover support]
