@@ -1,0 +1,46 @@
+= Plain LDAP Connection =
+
+----
+internaldb.ldapconn.host=server.example.com
+internaldb.ldapconn.port=389
+internaldb.ldapconn.secureConn=false
+----
+
+= LDAPS Connection =
+
+To enable SSL connection in PKI server, see link:https://www.dogtagpki.org/wiki/Enabling_SSL_Connection_with_Internal_Database[Enabling SSL Connection with Internal Database].
+
+To configure SSL connection in PKI server, edit `CS.cfg`:
+
+----
+internaldb.ldapconn.host=server.example.com
+internaldb.ldapconn.port=636
+internaldb.ldapconn.secureConn=true
+----
+
+Then restart PKI server:
+
+----
+$ systemctl restart pki-tomcatd@pki-tomcat.service
+----
+
+= TCP Options =
+
+In PKI 10.4 the TCP Keep-Alive option is enabled by default. It can be configured globally with the following parameter in `CS.cfg`:
+
+----
+tcp.keepAlive=true
+----
+
+Java does not provide a way to configure other TCP Keep-Alive settings. They need to be configured in the following files in `/proc/sys/net/ipv4`:
+
+* `tcp_keepalive_intvl`
+* `tcp_keepalive_probes`
+* `tcp_keepalive_time`
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/PKI_LDAP[PKI LDAP]
+* link:https://www.dogtagpki.org/wiki/DS_Connection[DS Connection]
+* link:https://www.dogtagpki.org/wiki/Enabling_SSL_Connection_with_Internal_Database[Enabling SSL Connection with Internal Database]
+* link:http://stackoverflow.com/questions/1480236/does-a-tcp-socket-connection-have-a-keep-alive[Does a TCP socket connection have a “keep alive”?]
