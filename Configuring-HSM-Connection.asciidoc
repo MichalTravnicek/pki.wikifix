@@ -1,0 +1,75 @@
+= Configuring NSS Database =
+
+To check HSM configuration in the NSS database:
+
+----
+$ modutil -dbdir /etc/pki/pki-tomcat/alias -list
+----
+
+To add nFast HSM module:
+
+----
+$ modutil \
+    -dbdir /etc/pki/pki-tomcat/alias \
+    -nocertdb \
+    -add nfast \
+    -libfile /opt/nfast/toolkits/pkcs11/libcknfast.so \
+    -force
+----
+
+To add LunaSA HSM module:
+
+----
+$ modutil \
+    -dbdir /etc/pki/pki-tomcat/alias \
+    -nocertdb \
+    -add lunasa \
+    -libfile /usr/safenet/lunaclient/lib/libCryptoki2_64.so \
+    -force
+----
+
+= Configuring HSM Password =
+
+The HSM password is stored in `/etc/pki/pki-tomcat/password.conf`:
+
+----
+hardware-<token>=<password>
+----
+
+= Configuring SSL Server Certificate with HSM =
+
+The configuration for SSL server certificate is stored in `/etc/pki/pki-tomcat/serverCertNick.conf`:
+
+----
+<token>:sslserver
+----
+
+= Configuring CA System Certificates with HSM =
+
+The configuration for CA system certificates is stored in `/etc/pki/pki-tomcat/ca/CS.cfg`:
+
+----
+ca.audit_signing.tokenname=<token>
+
+ca.cert.audit_signing.nickname=<token>:ca_audit_signing
+ca.cert.ocsp_signing.nickname=<token>:ca_ocsp_signing
+ca.cert.signing.nickname=<token>:ca_signing
+ca.cert.sslserver.nickname=<token>:sslserver
+ca.cert.subsystem.nickname=<token>:subsystem
+
+ca.ocsp_signing.newNickname=<token>:ca_ocsp_signing
+ca.ocsp_signing.tokenname=<token>
+ca.signing.newNickname=<token>:ca_signing
+ca.signing.tokenname=<token>
+ca.sslserver.tokenname=<token>
+ca.subsystem.tokenname=<token>
+ 
+cloning.module.token=<token>
+
+log.instance.SignedAudit.signedAuditCertNickname=<token>:ca_audit_signing
+----
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/HSM[HSM]
+* link:NSS-Database[NSS Database]
