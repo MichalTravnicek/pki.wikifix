@@ -13,6 +13,14 @@ See link:CentOS-Packages[CentOS Packages].
 To set up the authentication, login with Fedora FAS account to https://accounts.centos.org,
 then add SSH public key into https://gitlab.com.
 
+To use `centpkg`, create a personal access token with scope *api* at https://gitlab.com/-/profile/personal_access_tokens.
+Store the token in `~/.config/rpkg/centpkg.conf` as follows:
+
+----
+[centpkg.distgit]
+token = <token>
+----
+
 = Cloning a Project =
 
 To clone a project into a local repository:
@@ -29,15 +37,7 @@ All subsequent `centpkg` and `git` commands need to be executed in the repositor
 To fork a project, visit the main project page and click the *Fork* button at the top of the page.
 The forked project should appear at `https://gitlab.com/<username>/<project>/`.
 
-*(Does not work)* Alternatively, create a personal access token with scope *api* at https://gitlab.com/-/profile/personal_access_tokens.
-Store the token in `~/.config/rpkg/centpkg.conf` as follows:
-
-----
-[centpkg.distgit]
-token = <token>
-----
-
-Then execute:
+*(Does not work)* Alternatively, execute:
 
 ----
 $ centpkg fork
