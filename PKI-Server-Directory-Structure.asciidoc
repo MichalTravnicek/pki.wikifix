@@ -4,13 +4,20 @@ This page describes the directory structure of a PKI server instance.
 
 = Default Directory Structure =
 
+By default PKI server will be installed with the following directory structure.
+
+Configuration files are stored under `/etc/pki/<instance>`:
+
 ----
 + /etc/pki/<instance>
   + alias
   + Catalina
     + localhost
-+ /etc/sysconfig/pki/tomcat/<instance>
-  + <subsystem>
+----
+
+Server files are stored under `/var/lib/pki/<instance>`:
+
+----
 + /var/lib/pki/<instance>
   + alias -> /etc/pki/<instance>/alias
   + bin -> /usr/share/tomcat/bin
@@ -23,6 +30,11 @@ This page describes the directory structure of a PKI server instance.
   + webapps
   + work
   + <subsystem>
+----
+
+Log files are stored under `/var/lib/pki/<instance>`:
+
+----
 + /var/log/pki/<instance>
   + backup
     + <version>
@@ -34,7 +46,18 @@ This page describes the directory structure of a PKI server instance.
     + signedAudit
 ----
 
+Registry files are stored under `/etc/sysconfig/pki/tomcat/<instance>`:
+
+----
++ /etc/sysconfig/pki/tomcat/<instance>
+  + <subsystem>
+----
+
 = Tomcat Directory Structure =
+
+Certain subsystems can be installed with the following directory structure.
+
+All files are stored under `/var/lib/tomcats/<instance>`:
 
 ----
 + /var/lib/tomcats/<instance>
@@ -49,3 +72,5 @@ This page describes the directory structure of a PKI server instance.
   + work
 ----
 
+This directory structure resembles the standard Tomcat directory structure.
+In the future it might be possible to install all subsystems with this directory structure.
