@@ -1,0 +1,33 @@
+= Overview =
+
+This page describes the directory structure of a PKI server instance.
+
+= Directory Structure =
+
+----
++ /etc/pki/<instance>
+  + alias
+  + Catalina
+    + localhost
++ /var/lib/pki/<instance>
+  + alias -> /etc/pki/<instance>/alias
+  + bin -> /usr/share/tomcat/bin
+  + common
+    + lib -> /usr/share/pki/server/common/lib
+  + conf -> /etc/pki/<instance>
+  + lib -> /usr/share/pki/server/lib
+  + logs -> /var/log/pki/<instance>
+  + temp
+  + webapps
+  + work
+  + <subsystem>
++ /var/log/pki/<instance>
+  + backup
+    + <version>
+      + <index>
+        + oldfiles
+  + pki
+  + <subsystem>
+    + archive
+    + signedAudit
+----
