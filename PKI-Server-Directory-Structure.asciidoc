@@ -13,6 +13,7 @@ Configuration files are stored under `/etc/pki/<instance>`:
   + alias
   + Catalina
     + localhost
+  + <subsystem>
 ----
 
 Server files are stored under `/var/lib/pki/<instance>`:
@@ -66,8 +67,13 @@ All files are stored under `/var/lib/tomcats/<instance>`:
   + common
     + lib
   + conf
+    + <subsystem>
   + lib
   + logs
+    + pki
+    + <subsystem>
+      + archive
+      + signedAudit
   + temp
   + webapps
   + work
