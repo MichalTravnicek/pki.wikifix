@@ -13,7 +13,10 @@ PKI server Dockerfile is located at the top-level link:https://github.com/dogtag
 To build PKI server container locally:
 
 ----
-$ podman build -t pki-server .
+$ podman build \
+    --target pki-server \
+    -t pki-server \
+    .
 ----
 
 To push PKI server container to Quay.io:
