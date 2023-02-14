@@ -1,0 +1,25 @@
+= Overview =
+
+NOTE: This page is still under construction.
+
+This page describes the procedure to build a PKI server container with PKI 11.4 or later.
+
+= Dockerfile =
+
+PKI server Dockerfile is located at the top-level link:https://github.com/dogtagpki/pki/blob/master/Dockerfile[Dockerfile].
+
+= Building PKI Server Container Locally =
+
+To build PKI server container locally:
+
+----
+$ podman build -t pki-server .
+----
+
+To push PKI server container to Quay.io:
+
+----
+$ podman tag pki-server:latest quay.io/<username>/pki-server:latest
+$ podman push quay.io/<username>/pki-server:latest
+----
+
