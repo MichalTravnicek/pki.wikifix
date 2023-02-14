@@ -1,0 +1,54 @@
+= Overview =
+
+NOTE: This page is still under construction.
+
+This document describes the process to deploy PKI server container as a systemd service with PKI 11.4 or later.
+
+= Deploy Container =
+
+link:Deploying-PKI-Server-Container[Deploy] PKI server container as `root` user.
+
+= Configuring SELinux =
+
+----
+$ setsebool -P container_manage_cgroup on
+----
+
+= Creating Systemd Service =
+
+Create `/etc/systemd/system/pki-server.service`:
+
+----
+[Unit]
+Description=PKI server container
+
+[Service]
+Restart=always
+ExecStart=/usr/bin/podman start -a pki-server
+ExecStop=/usr/bin/podman stop -t 2 pki-server
+
+[Install]
+WantedBy=local.target
+----
+
+Then execute:
+
+----
+$ systemctl daemon-reload
+----
+
+= Starting Systemd Service =
+
+----
+$ systemctl start pki-server.service
+----
+
+= Monitoring Systemd Service =
+
+----
+$ journalctl -fu pki-server.service
+----
+
+= See Also =
+
+* link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux_atomic_host/7/html/managing_containers/running_containers_as_systemd_services_with_podman[Running Containers as systemd Services with Podman]
