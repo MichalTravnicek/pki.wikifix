@@ -1,0 +1,25 @@
+= Overview =
+
+This page describes the process to disable Nuxwdog on a PKI server instance.
+
+= Procedure =
+
+First, stop the Nuxwdog systemd service:
+
+----
+$ systemctl stop pki-tomcatd-nuxwdog@pki-tomcat.service
+----
+
+Then disable Nuxwdog:
+
+----
+$ pki-server nuxwdog-disable
+----
+
+Next, restore `/etc/pki/pki-tomcat/password.conf`.
+
+Finally, restart the regular systemd service:
+
+-----
+$ systemctl start pki-tomcatd@pki-tomcat.service
+----
