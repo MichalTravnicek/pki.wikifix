@@ -1,10 +1,16 @@
+= Overview =
+
+This page describes the process to enable Nuxwdog on a PKI server instance.
+
+= Procedure =
+
 First, shutdown the server with the following command:
 
 ----
 $ systemctl stop pki-tomcatd@pki-tomcat.service
 ----
 
-Enable Nuxwdog with the following command:
+Then enable Nuxwdog with the following command:
 
 ----
 $ pki-server nuxwdog-enable
@@ -29,7 +35,7 @@ Remove the password file or move it somewhere else:
 $ rm -f /etc/pki/pki-tomcat/password.conf
 ----
 
-Restart the server with the following command:
+Finally, restart the server with the following command:
 
 ----
 $ systemctl start pki-tomcatd-nuxwdog@pki-tomcat.service
