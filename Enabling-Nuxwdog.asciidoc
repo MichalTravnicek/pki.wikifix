@@ -1,0 +1,39 @@
+First, shutdown the server with the following command:
+
+----
+$ systemctl stop pki-tomcatd@pki-tomcat.service
+----
+
+Enable Nuxwdog with the following command:
+
+----
+$ pki-server nuxwdog-enable
+----
+
+If any of the system certificates reside on a cryptographic token other than the internal NSS database,
+you will see entries like this in `/etc/pki/pki-tomcat/password.conf`:
+
+----
+hardware-<token>=<password>
+----
+
+In that case, add the following parameter to `/etc/pki/pki-tomcat/<subsystem>/CS.cfg`:
+
+----
+cms.tokenList=<token>
+----
+
+Remove the password file or move it somewhere else:
+
+----
+$ rm -f /etc/pki/pki-tomcat/password.conf
+----
+
+Restart the server with the following command:
+
+----
+$ systemctl start pki-tomcatd-nuxwdog@pki-tomcat.service
+[pki-tomcat] Please provide the password for internal: **********
+[pki-tomcat] Please provide the password for internaldb: **********
+[pki-tomcat] Please provide the password for replicationdb: ***********
+----
