@@ -12,7 +12,7 @@ Targets:
 * link:https://github.com/dogtagpki/pki/blob/master/base/server/share/lib/systemd/system/pki-tomcatd-nuxwdog.target[/usr/lib/systemd/system/pki-tomcatd-nuxwdog.target]
 * /etc/systemd/system/pki-tomcatd-nuxwdog.target.wants
 
-= PKI Systemd Service =
+= Default Systemd Service =
 
 Each PKI instance will have a systemd service. By default the system service will be defined in
 
@@ -65,7 +65,7 @@ To check service status:
 $ systemctl status pki-tomcatd@<instance>.service
 ----
 
-= Nuxwdog Service =
+= Nuxwdog Systemd Service =
 
 If Nuxwdog is enabled for this instance, the system service will be defined in
 
@@ -99,11 +99,11 @@ See also:
 
 * link:https://www.dogtagpki.org/wiki/Nuxwdog[Nuxwdog]
 
-= Service Configuration =
+= Systemd Service Configuration =
 
 Instance-specific environment variables can be specified in `/etc/sysconfig/pki-tomcat`.
 
-= Enabling PKI Service =
+= Enabling PKI Systemd Service =
 
 ----
 $ systemctl enable pki-tomcatd.target
