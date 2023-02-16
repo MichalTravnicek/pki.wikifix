@@ -48,6 +48,8 @@ Log files are stored under `/var/lib/pki/<instance>`:
     + signedAudit
 ----
 
+The systemd unit file is stored at `/etc/systemd/system/pki-tomcatd.target.wants/pki-tomcatd@<instance>.service` which is a link to link:https://github.com/dogtagpki/pki/blob/master/base/server/share/lib/systemd/system/pki-tomcatd%40.service[/usr/lib/systemd/system/pki-tomcatd@.service].
+
 Registry files are stored under `/etc/sysconfig/pki/tomcat/<instance>`:
 
 ----
@@ -57,7 +59,7 @@ Registry files are stored under `/etc/sysconfig/pki/tomcat/<instance>`:
 
 = Tomcat Directory Structure =
 
-Certain subsystems can be installed with the following directory structure.
+Certain PKI subsystems can be installed with standard Tomcat directory structure. In the future it might be possible to install all subsystems with this directory structure.
 
 All files are stored under `/var/lib/tomcats/<instance>`:
 
@@ -79,8 +81,7 @@ All files are stored under `/var/lib/tomcats/<instance>`:
   + work
 ----
 
-This directory structure resembles the standard Tomcat directory structure.
-In the future it might be possible to install all subsystems with this directory structure.
+The systemd unit file is stored at `/usr/lib/systemd/system/tomcat@.service`.
 
 = See Also =
 
