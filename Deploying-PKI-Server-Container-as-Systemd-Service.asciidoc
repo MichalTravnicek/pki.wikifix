@@ -39,7 +39,7 @@ To start the systemd service, execute the following command:
 $ systemctl start pki-server-container.service
 ----
 
-It should start a `pki-server` container:
+It should start `pki-server` container:
 
 ----
 $ podman ps
@@ -59,6 +59,30 @@ To monitor the container:
 
 ----
 $ podman logs -f pki-server
+----
+
+= Stopping Systemd Service =
+
+To stop the systemd service, execute the following command:
+
+----
+$ systemctl stop pki-server-container.service
+----
+
+It should stop `pki-server` container.
+
+= Removing Systemd Service =
+
+To remove the systemd service, execute the following command:
+
+----
+$ rm -f /etc/systemd/system/pki-server-container.service
+----
+
+Then execute:
+
+----
+$ systemctl daemon-reload
 ----
 
 = See Also =
