@@ -21,8 +21,8 @@ $ podman pull quay.io/dogtagpki/pki-server
 To create the systemd service, execute the following command:
 
 ----
-$ ln -sf /usr/lib/systemd/system/pki-server.service
-    /etc/systemd/system/pki-server.service
+$ ln -sf /usr/lib/systemd/system/pki-server-container.service
+    /etc/systemd/system/pki-server-container.service
 ----
 
 Then execute:
@@ -36,7 +36,7 @@ $ systemctl daemon-reload
 To start the systemd service, execute the following command:
 
 ----
-$ systemctl start pki-server.service
+$ systemctl start pki-server-container.service
 ----
 
 It should start a `pki-server` container:
@@ -52,7 +52,7 @@ CONTAINER ID  IMAGE                                ...     NAMES
 To monitor the systemd service:
 
 ----
-$ journalctl -fu pki-server.service
+$ journalctl -fu pki-server-container.service
 ----
 
 To monitor the container:
