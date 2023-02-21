@@ -4,6 +4,18 @@ NOTE: This page is still under construction.
 
 This document describes the process to create a PKI systemd service with Podman using PKI 11.4 or later.
 
+= Installing Podman =
+
+----
+$ dnf install -y podman
+----
+
+= Installing PKI server image =
+
+----
+$ podman pull quay.io/dogtagpki/pki-server
+----
+
 = Configuring SELinux =
 
 ----
@@ -27,17 +39,29 @@ $ systemctl daemon-reload
 
 = Starting Systemd Service =
 
+To start the systemd service, execute the following command:
+
 ----
 $ systemctl start pki-podman.service
 ----
 
+It should start a `pki-server` container in Podman:
+
+----
+$ podman ps
+CONTAINER ID  IMAGE                                ...     NAMES
+8594b6b6e0c7  quay.io/dogtagpki/pki-server:latest  ...     pki-server
+----
+
 = Monitoring Systemd Service =
+
+To view systemd journal:
 
 ----
 $ journalctl -fu pki-podman.service
 ----
 
-= Monitoring Podman Container =
+To view Podman logs:
 
 ----
 $ podman logs -f pki-server
