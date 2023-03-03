@@ -8,9 +8,11 @@ This page describe the structure of security domain database in LDAP.
 ou=Security Domain,<CA base DN>
 + cn=<subsystem type>List
   + cn=<hostname>:<port>
++ ou=sessions
+  + cn=<session ID>
 ----
 
-= Top-level Entry =
+= Security Domain Entry =
 
 ----
 dn: ou=Security Domain,dc=ca,dc=pki,dc=example,dc=com
@@ -20,7 +22,7 @@ ou: Security Domain
 name: EXAMPLE
 ----
 
-= Subsystem List =
+= Security Group Entry =
 
 ----
 dn: cn=CAList,ou=Security Domain,dc=ca,dc=pki,dc=example,dc=com
@@ -29,7 +31,7 @@ objectClass: pkiSecurityGroup
 cn: CAList
 ----
 
-= Subsystem =
+= Subsystem Entry =
 
 ----
 dn: cn=pki.example.com:8443,cn=CAList,ou=Security Domain,dc=ca,dc=pki,dc=example,dc=com
@@ -45,4 +47,26 @@ SecureAdminPort: 8443
 Clone: FALSE
 SubsystemName: CA pki.example.com 8443
 DomainManager: FALSE
+----
+
+= Sessions Entry =
+
+----
+dn: ou=sessions,ou=Security Domain,dc=ca,dc=pki,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: sessions
+----
+
+= Session Entry =
+
+----
+dn: cn=<session ID>,ou=sessions,ou=Security Domain,dc=ca,dc=pki,dc=example,dc=com
+objectClass: top
+objectClass: securityDomainSessionEntry
+cn: <session ID>
+host: <IP address>
+uid: <uid>
+cmsUserGroup: <group>
+dateOfCreate: <timestamp>
 ----
