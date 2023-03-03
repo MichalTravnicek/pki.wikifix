@@ -5,16 +5,8 @@ This page describe the structure of security domain database in LDAP.
 = Database Structure =
 
 ----
-ou=Security Domain,dc=ca,dc=pki,dc=example,dc=com
-+ cn=CAList
-  + cn=<hostname>:<port>
-+ cn=KRAList
-  + cn=<hostname>:<port>
-+ cn=OCSPList
-  + cn=<hostname>:<port>
-+ cn=TKSList
-  + cn=<hostname>:<port>
-+ cn=TPSList
+ou=Security Domain,<CA base DN>
++ cn=<subsystem type>List
   + cn=<hostname>:<port>
 ----
 
@@ -22,6 +14,7 @@ ou=Security Domain,dc=ca,dc=pki,dc=example,dc=com
 
 ----
 dn: ou=Security Domain,dc=ca,dc=pki,dc=example,dc=com
+objectClass: top
 objectClass: organizationalUnit
 ou: Security Domain
 name: EXAMPLE
@@ -31,6 +24,7 @@ name: EXAMPLE
 
 ----
 dn: cn=CAList,ou=Security Domain,dc=ca,dc=pki,dc=example,dc=com
+objectClass: top
 objectClass: pkiSecurityGroup
 cn: CAList
 ----
@@ -39,6 +33,7 @@ cn: CAList
 
 ----
 dn: cn=pki.example.com:8443,cn=CAList,ou=Security Domain,dc=ca,dc=pki,dc=example,dc=com
+objectClass: top
 objectClass: pkiSubsystem
 cn: pki.example.com:844
 Host: pki.example.com
