@@ -1,0 +1,19 @@
+= Overview =
+
+This page describe the structure of security domain database in LDAP.
+
+= Database Structure =
+
+----
+ou=Security Domain,dc=ca,dc=pki,dc=example,dc=com
++ cn=CAList
+  + cn=<hostname>:<port>
++ cn=KRAList
+  + cn=<hostname>:<port>
++ cn=OCSPList
+  + cn=<hostname>:<port>
++ cn=TKSList
+  + cn=<hostname>:<port>
++ cn=TPSList
+  + cn=<hostname>:<port>
+----
