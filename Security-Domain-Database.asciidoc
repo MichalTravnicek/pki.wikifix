@@ -17,3 +17,37 @@ ou=Security Domain,dc=ca,dc=pki,dc=example,dc=com
 + cn=TPSList
   + cn=<hostname>:<port>
 ----
+
+= Top-level Entry =
+
+----
+dn: ou=Security Domain,dc=ca,dc=pki,dc=example,dc=com
+objectClass: organizationalUnit
+ou: Security Domain
+name: EXAMPLE
+----
+
+= Subsystem List =
+
+----
+dn: cn=CAList,ou=Security Domain,dc=ca,dc=pki,dc=example,dc=com
+objectClass: pkiSecurityGroup
+cn: CAList
+----
+
+= Subsystem =
+
+----
+dn: cn=pki.example.com:8443,cn=CAList,ou=Security Domain,dc=ca,dc=pki,dc=example,dc=com
+objectClass: pkiSubsystem
+cn: pki.example.com:844
+Host: pki.example.com
+UnSecurePort: 8080
+SecurePort: 8443
+SecureEEClientAuthPort: 8443
+SecureAgentPort: 8443
+SecureAdminPort: 8443
+Clone: FALSE
+SubsystemName: CA pki.example.com 8443
+DomainManager: FALSE
+----
