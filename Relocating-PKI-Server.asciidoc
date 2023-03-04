@@ -2,12 +2,11 @@
 
 NOTE: This page is still under development.
 
-This page describes the process to back up a PKI server then restore it on a different machine.
+This page describes the process to relocate a PKI server to a new machine with a different hostname.
 
-= Backing up and restoring PKI server =
+= Transferring PKI server files =
 
-* link:Backing-Up-PKI-Server[Back Up PKI Server]
-* link:Restoring-PKI-Server[Restoring PKI Server]
+To transfer PKI server files to the new machine, use the link:Backing-Up-PKI-Server[backup] and link:Restoring-PKI-Server[restore] procedure, but do not restart the server yet.
 
 = Updating configuration files =
 
@@ -176,4 +175,10 @@ $ pki-server \
     ca-user-cert-add \
     --cert subsystem.crt \
     CA-<new hostname>-8443
+----
+
+= Starting PKI server =
+
+----
+$ pki-server start --wait
 ----
