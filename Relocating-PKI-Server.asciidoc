@@ -1,0 +1,100 @@
+= Overview =
+
+NOTE: This page is still under development.
+
+This page describes the process to back up a PKI server then restore it on a different machine.
+
+= Backing up and restoring PKI server =
+
+* link:Backing-Up-PKI-Server[Back Up PKI Server]
+* link:Restoring-PKI-Server[Restoring PKI Server]
+
+= Updating configuration files =
+
+To replace the old hostname with the new hostname:
+
+----
+$ find \
+    etc/pki/pki-tomcat \
+    etc/sysconfig/pki-tomcat \
+    etc/sysconfig/pki/tomcat/pki-tomcat \
+    etc/systemd/system/pki-tomcatd.target.wants/pki-tomcatd@pki-tomcat.service \
+    var/lib/pki/pki-tomcat \
+    -type f \
+    ! -name "*.db" \
+    ! -name "CS.cfg.bak.*" \
+    -exec sed -i 's/<old hostname>/<new hostname>/g' {} +
+----
+
+= Updating SSL server certificate in NSS database =
+
+To remove the old SSL server certificate:
+
+----
+$ pki nss-cert-remove certutil \
+    -D \
+    -d /etc/pki/pki-tomcat/alias \
+    -f /etc/pki/pki-tomcat/alias/password.txt \
+    -n sslserver
+----
+
+To generate a new SSL server certificate request:
+
+----
+$ pki \
+    -d /etc/pki/pki-tomcat/alias \
+    -f /etc/pki/pki-tomcat/password.conf \
+    nss-cert-request \
+    --subject "CN=<new hostname>,OU=pki-tomcat,O=EXAMPLE" \
+    --ext /usr/share/pki/server/certs/sslserver.conf \
+    --csr sslserver.csr
+----
+
+To issue a new SSL server certificate:
+
+----
+$ pki \
+    -d /etc/pki/pki-tomcat/alias \
+    -f /etc/pki/pki-tomcat/password.conf \
+    nss-cert-issue \
+    --issuer ca_signing \
+    --csr sslserver.csr \
+    --ext /usr/share/pki/server/certs/sslserver.conf \
+    --cert sslserver.crt
+----
+
+To import the new SSL server certificate:
+
+----
+$ pki \
+    -d /etc/pki/pki-tomcat/alias \
+    -f /etc/pki/pki-tomcat/password.conf \
+    nss-cert-import \
+    --cert sslserver.crt \
+    sslserver
+----
+
+= Updating SSL server certificate in CS.cfg =
+
+To update the certificate request:
+
+----
+$ openssl req \
+    -outform der \
+    -in sslserver.csr \
+    -out sslserver.csr.der
+$ pki-server ca-config-set ca.signing.certreq `cat sslserver.csr.der | base64 -w 0`
+----
+
+To update the certificate:
+
+----
+$ pki \
+    -d /etc/pki/pki-tomcat/alias \
+    -f /etc/pki/pki-tomcat/password.conf \
+    nss-cert-export \
+    sslserver \
+    --format DER \
+    --output-file sslserver.crt.der
+$ pki-server ca-config-set ca.sslserver.cert `cat sslserver.crt.der | base64 -w 0`
+----
