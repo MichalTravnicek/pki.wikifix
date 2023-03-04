@@ -98,3 +98,44 @@ $ pki \
     --output-file sslserver.crt.der
 $ pki-server ca-config-set ca.sslserver.cert `cat sslserver.crt.der | base64 -w 0`
 ----
+
+= Importing SSL server certificate into CA =
+
+To import the certificate request:
+
+----
+$ pki-server ca-cert-request-import \
+    --csr sslserver.csr \
+    --profile serverCert.profile \
+----
+
+To import the certificate:
+
+----
+$ pki-server ca-cert-import \
+    --cert sslserver.crt \
+    --profile serverCert.profile \
+    --request <request ID>
+----
+
+= Updating security domain registration =
+
+To unregister the old services:
+
+----
+$ pki-server \
+    sd-host-del \
+    "CA <old hostname> 8443"
+----
+
+To register the new services:
+
+----
+$ pki-server \
+    sd-host-add \
+    --subsystem CA \
+    --hostname <new hostname> \
+    --secure-port 8443 \
+    --domain-manager \
+    "CA secondary-pki.example.com 8443"
+----
