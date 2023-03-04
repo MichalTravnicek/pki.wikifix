@@ -6,7 +6,7 @@ This page describes the process to relocate a PKI server to a new machine with a
 
 = Transferring PKI server files =
 
-To transfer PKI server files to the new machine, use the link:Backing-Up-PKI-Server[backup] and link:Restoring-PKI-Server[restore] procedure, but do not restart the server yet.
+First, transfer PKI server files to the new machine using the link:Backing-Up-PKI-Server[backup] and link:Restoring-PKI-Server[restore] procedure, but do not restart the server yet.
 
 = Updating configuration files =
 
@@ -177,7 +177,9 @@ $ pki-server \
     CA-<new hostname>-8443
 ----
 
-= Starting PKI server =
+= Restarting PKI server =
+
+Finally, restart the server on the new machine:
 
 ----
 $ pki-server start --wait
