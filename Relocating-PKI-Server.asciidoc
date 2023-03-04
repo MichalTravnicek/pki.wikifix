@@ -137,5 +137,43 @@ $ pki-server \
     --hostname <new hostname> \
     --secure-port 8443 \
     --domain-manager \
-    "CA secondary-pki.example.com 8443"
+    "CA <new hostname> 8443"
+----
+
+= Updating subsystem user =
+
+To export the subsystem certificate:
+
+----
+$ pki-server cert-export \
+    --cert-file subsystem.crt \
+    subsystem
+----
+
+To remove the old user:
+
+----
+$ pki-server \
+    ca-user-del \
+    CA-<old hostname>-8443
+----
+
+To add the new user:
+
+----
+$ pki-server \
+    ca-user-add \
+    --full-name "CA-<new hostname>-8443" \
+    --type agentType \
+    --state 1 \
+    CA-<new hostname>-8443
+----
+
+To add assign the user certificate:
+
+----
+$ pki-server \
+    ca-user-cert-add \
+    -cert subsystem.crt \
+    CA-<new hostname>-8443
 ----
