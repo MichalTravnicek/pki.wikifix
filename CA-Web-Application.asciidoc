@@ -108,28 +108,32 @@ CA application is defined in link:https://github.com/dogtagpki/pki/blob/master/b
 
 = Threads =
 
-* ACME's LDAPDatabase
-* ACME's PostgreSQLDatabase
-* ACMEScheduler
-* ACMEChallengeService
+* LDAPConnSetupMgr
+* LDAPConnThread
+* EventService
+* ACME's LDAPDatabase -> LDAPConfigMonitor
+* ACME's PostgreSQLDatabase -> PostgreSQLConfigMonitor
+* ACMEScheduler -> ACMETask
+* ACMEChallengeService -> ACMEChallengeProcessor
 * ACMEEngineConfigFileSource
 * CRLIssuingPoint
 * CertStatusUpdateTask
 * RetrieveModificationsTask
 * SerialNumberUpdateTask
 * LDAPProfileSubsystem
-* AuthorityManager
-* KeyRetrieverRunner
-* ConnectAsync
+* CAEngine -> AuthorityManager
+* CAEngine -> KeyRetrieverRunner
+* JssSSLSocketFactory -> ConnectAsync
 * RecoverBySerial -> WaitApprovalThread
 * KeyStatusUpdateTask
-* DeleteOldCRLsThread
-* DefStoreCRLUpdater
-* UpdateCRLThread
-* FlushThread
-* RolloverThread
-* ExpirationThread
-* Resender
+* DefStore -> DeleteOldCRLsThread
+* DefStore -> DefStoreCRLUpdater
+* LDAPStore -> CRLUpdater
+* AddCRLServlet -> UpdateCRLThread
+* LogFile -> FlushThread
+* RollingLogFile -> RolloverThread
+* RollingLogFile -> ExpirationThread
+* HttpConnector -> Resender
 * JobsScheduler -> Job
 * RequestQueue -> RecoverThread
 * RequestNotifier -> RunListeners
