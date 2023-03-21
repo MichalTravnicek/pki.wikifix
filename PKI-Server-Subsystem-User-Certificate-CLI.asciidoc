@@ -1,6 +1,7 @@
 = Overview =
 
 The `pki-server <subsystem>-user-cert` provides a way to manage user certificates in subsystem database even when PKI server is offline.
+The certificates can be used for client certificate authentication.
 These commands can only be executed by the system administrator.
 
 = Listing Subsystem User Certificates =
@@ -9,7 +10,14 @@ To list subsystem user certificates, specify the user ID:
 
 ----
 $ pki-server <subsystem>-user-cert-find testuser
+  Cert ID: 2;40906138576323294556013286889651288237;CN=CA Signing Certificate,O=EXAMPLE;CN=Test User,E=testuser@example.com,O=EXAMPLE
+  Version: 2
+  Serial Number: 0x1ec63c581a462361700bf8ceedc5b8ad
+  Issuer: CN=CA Signing Certificate,O=EXAMPLE
+  Subject: CN=Test User,E=testuser@example.com,O=EXAMPLE
 ----
+
+*Availability:* Since PKI 11.4.
 
 = Adding Subsystem User Certificate =
 
@@ -17,4 +25,10 @@ To add a subsystem user certificate, specify the user ID and the certificate fil
 
 ----
 $ pki-server <subsystem>-user-cert-add testuser --cert testuser.crt
+----
+
+Alternatively, the certificate can be provided via standard input:
+
+----
+$ cat testuser.crt | pki-server <subsystem>-user-cert-add testuser
 ----
