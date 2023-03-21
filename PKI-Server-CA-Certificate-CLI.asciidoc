@@ -13,12 +13,16 @@ To create a certificate from a certificate request in CA:
 ----
 $ pki-server ca-cert-create \
     --request <ID> \
-    --profile <ID> \
+    --profile <profile config filename> \
     --key-ID <ID> \
     --serial <serial>
 ----
 
-**Availability:** Since PKI 11.3.
+where:
+
+* `<profile config filename>` is the filename of the profile configuration in `/etc/pki/pki-tomcat/ca` (e.g. `serverCert.profile`) without the path.
+
+*Availability:* Since PKI 11.3.
 
 = Importing Certificate =
 
@@ -27,11 +31,15 @@ To import a certificate into CA:
 ----
 $ pki-server ca-cert-import \
     --cert <path> \
-    --profile <ID> \
+    --profile <profile config filename> \
     --request <ID>
 ----
 
-**Availability:** Since PKI 11.3.
+where:
+
+* `<profile config filename>` is the filename of the profile configuration in `/etc/pki/pki-tomcat/ca` (e.g. `serverCert.profile`) without the path.
+
+*Availability:* Since PKI 11.3.
 
 = Removing Certificate =
 
