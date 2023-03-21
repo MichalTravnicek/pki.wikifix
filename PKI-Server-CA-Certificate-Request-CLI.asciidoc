@@ -43,11 +43,12 @@ $ pki-server ca-cert-request-show <request ID>
 To import a certificate request in CA database:
 
 ----
-$ pki-server ca-cert-request-import --csr <path to CSR> --profile <profile>
+$ pki-server ca-cert-request-import --csr <path to CSR> --profile <profile config filename>
 ----
 
-The `<path to CSR>` is the relative or absolute path to the CSR file.
+where:
 
-The `<profile>` is the filename of the profile configuration in `/etc/pki/pki-tomcat/ca` (e.g. `serverCert.profile`) without the path.
+* `<path to CSR>` is a relative or absolute path to the CSR file.
+* `<profile config filename>` is the filename of the profile configuration in `/etc/pki/pki-tomcat/ca` (e.g. `serverCert.profile`) without the path.
 
 *Availability:* Since PKI 11.4.
