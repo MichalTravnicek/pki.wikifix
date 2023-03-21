@@ -1,0 +1,19 @@
+= Overview =
+
+The `pki-server <subsystem>-user-cert` provides a way to manage user certificates while the server is offline.
+
+= Listing Subsystem User Certificates =
+
+To list subsystem user certificates, specify the user ID:
+
+----
+$ pki-server <subsystem>-user-cert-find testuser
+----
+
+= Adding Subsystem User Certificate =
+
+To add a subsystem user certificate, specify the user ID and the certificate file:
+
+----
+$ pki-server <subsystem>-user-cert-add testuser --cert testuser.crt
+----
