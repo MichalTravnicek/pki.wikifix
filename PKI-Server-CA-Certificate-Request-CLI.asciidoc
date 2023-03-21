@@ -1,11 +1,11 @@
 = Overview =
 
-The `pki-server ca-cert-request-*` commands provide a way to manage certificate requests in CA when PKI server is offline.
+The `pki-server ca-cert-request-*` commands provide a way to manage certificate requests in CA database when PKI server is offline.
 These commands can only be executed by the system administrator.
 
 = Finding Certificate Requests =
 
-To find the certificate request for a certificate:
+To find the certificate request for a certificate in CA database:
 
 ----
 $ pki-server ca-cert-request-find --cert-file <cert file>
@@ -32,7 +32,7 @@ DMK8f1ILzfnK1kUEkBQ9zoiDlQyiUsl6TDJKXFc8Woqi0VTgK2AJ7cVdrwtOiE++<CRLF>
 
 = Displaying Certificate Request =
 
-To display a certificate request:
+To display a certificate request in CA database:
 
 ----
 $ pki-server ca-cert-request-show <request ID>
@@ -40,8 +40,14 @@ $ pki-server ca-cert-request-show <request ID>
 
 = Importing Certificate Request =
 
-To import a certificate request:
+To import a certificate request in CA database:
 
 ----
 $ pki-server ca-cert-request-import --csr <path to CSR> --profile <profile>
 ----
+
+The `<path to CSR>` is the relative or absolute path to the CSR file.
+
+The `<profile>` is the filename of the profile configuration in `/etc/pki/pki-tomcat/ca` (e.g. `serverCert.profile`) without the path.
+
+*Availability:* Since PKI 11.4.
