@@ -119,19 +119,19 @@ $ pki-server ca-cert-import \
 
 = Updating security domain registration =
 
-To unregister the old services:
+To unregister the old subsystem:
 
 ----
 $ pki-server \
-    sd-host-del \
+    sd-subsystem-del \
     "CA <old hostname> 8443"
 ----
 
-To register the new services:
+To register the new subsystem:
 
 ----
 $ pki-server \
-    sd-host-add \
+    sd-subsystem-add \
     --subsystem CA \
     --hostname <new hostname> \
     --secure-port 8443 \
