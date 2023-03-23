@@ -9,12 +9,9 @@ in a PKCS #12 file (e.g. `~/.dogtag/pki-tomcat/ca_admin_cert.p12`) after CA inst
 and the PKCS #12 file is protected with a password specified in the
 `pki_client_pkcs12_password` parameter during installation.
 
-The nickname of the admin certificate can be configured in the
-`pki_admin_nickname` parameter in `pkispawn` configuration file.
+= Checking PKCS #12 File =
 
-= Checking the PKCS #12 File =
-
-To check the PKCS #12 file execute the following command:
+To check the content of the PKCS #12 file execute the following command:
 
 ----
 $ pki pkcs12-cert-find \
@@ -30,6 +27,7 @@ $ pki pkcs12-cert-find \
 ----
 
 The nickname of the admin certificate is listed as `Friendly Name`.
+This nickname can be configured during installation using the `pki_admin_nickname` parameter for `pkispawn`.
 
 = Importing Admin Certificate =
 
