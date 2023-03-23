@@ -9,6 +9,16 @@ in a PKCS #12 file (e.g. `~/.dogtag/pki-tomcat/ca_admin_cert.p12`) after CA inst
 and the PKCS #12 file is protected with a password specified in the
 `pki_client_pkcs12_password` parameter during installation.
 
+= Displaying the Content of PKCS #12 File =
+
+To show the content of the PKCS #12 file execute the following command:
+
+----
+$ pki pkcs12-cert-find \
+    --pkcs12 ~/.dogtag/pki-tomcat/ca_admin_cert.p12 \
+    --pkcs12-password Secret.123
+----
+
 = Importing Admin Certificate =
 
 By default the PKI CLI uses an NSS database at `~/.dogtag/nssdb`.
