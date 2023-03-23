@@ -9,15 +9,24 @@ in a PKCS #12 file (e.g. `~/.dogtag/pki-tomcat/ca_admin_cert.p12`) after CA inst
 and the PKCS #12 file is protected with a password specified in the
 `pki_client_pkcs12_password` parameter during installation.
 
-= Displaying the Content of PKCS #12 File =
+= Checking the Admin Certificate =
 
-To show the content of the PKCS #12 file execute the following command:
+To check the admin certificate execute the following command:
 
 ----
 $ pki pkcs12-cert-find \
     --pkcs12 ~/.dogtag/pki-tomcat/ca_admin_cert.p12 \
     --pkcs12-password Secret.123
+  Certificate ID: 0x35488a4d338dfce3968b9f9a0d6a668a5ea3508d
+  Serial Number: 0x1ec63c581a462361700bf8ceedc5b8ad
+  Friendly Name: caadmin
+  Subject DN: CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Has Key: true
+  Key ID: 0x35488a4d338dfce3968b9f9a0d6a668a5ea3508d
 ----
+
+The nickname of the admin certificate is listed as `Friendly Name`.
 
 = Importing Admin Certificate =
 
