@@ -16,25 +16,41 @@ $ pki-server <subsystem>-group-find
   ...
 ----
 
+= Finding Groups by Member =
+
 To find the groups that contain a user:
 
 ----
-$ pki-server <subsystem>-group-find --member caadmin
+$ pki-server <subsystem>-group-find --member testuser
   Group ID: Certificate Manager Agents
   Description: Agents for Certificate Manager
 ----
 
-= Listing Subsystem Group Members =
+*Availability:* Since PKI 10.4
+
+= Listing Group Members =
 
 ----
-$ pki-server ca-group-member-find "Certificate Manager Agents"
+$ pki-server <subsystem>-group-member-find "Certificate Manager Agents"
   User ID: caadmin
 
   User ID: pkidbuser
 ----
 
-= Adding Subsystem Group Member =
+= Adding Group Member =
+
+To add a user to a group:
 
 ----
-$ pki-server ca-group-member-add "Certificate Manager Agents" testuser
+$ pki-server <subsystem>-group-member-add "Certificate Manager Agents" testuser
 ----
+
+= Removing Group Member =
+
+To remove a user from a group:
+
+----
+$ pki-server <subsystem>-group-member-del "Certificate Manager Agents" testuser
+----
+
+*Availability:* Since PKI 10.4
