@@ -1,5 +1,7 @@
 = Listing Subsystem Groups =
 
+To list all groups:
+
 ----
 $ pki-server <subsystem>-group-find
   Group ID: Certificate Manager Agents
@@ -12,6 +14,14 @@ $ pki-server <subsystem>-group-find
   Description: Subsystem Group
 
   ...
+----
+
+To find the groups that contain a user:
+
+----
+$ pki-server <subsystem>-group-find --member caadmin
+  Group ID: Certificate Manager Agents
+  Description: Agents for Certificate Manager
 ----
 
 = Listing Subsystem Group Members =
