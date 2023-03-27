@@ -37,5 +37,23 @@ If there's a change in the subtree, the old LWCA object will be discarded
 and a new LWCA object will be created.
 
 If the signing cert or key of the LWCA doesn't exist yet on the server,
-the `AuthorityMonitor` will create a `KeyRetriever` thread which
-will retrieve the cert and key from another host in the cluster.
+the `AuthorityMonitor` will create a `KeyRetriever-<ID>` thread for the LWCA
+which will retrieve the cert and key from another host in the cluster.
+
+= CRL Generation =
+
+When PKI server is started it will initialize the CRL issuing points
+and start `CertStatusUpdateTask` and `RetrieveModificationTask` threads.
+
+Each CRL issuing points maintain lists of revoked certs, unrevoked certs, and expired certs in memory.
+When the CA revokes/unrevokes a cert, or when a cert becomes expired, these lists will be updated.
+
+The `CertStatusUpdateTask` will periodically run LDAP searches to find not-yet-valid certs that have become valid,
+valid certs that have become expired, and revoked certs that have become expired,
+then update the cert status in LDAP.
+It will also update the list of expired cts in all CRL issuing points.
+
+The `RetrieveModificationTask` will start a persistent search to monitor cert status changes in LDAP.
+If a cert is revoked/unrevoked in LDAP, the thread will the list of revoked/unrevoked certs in all CRL issuing points.
+
+Each CRL issuing point also runs a `CRLIssuingPoint-<ID>` thread to periodically generate a CRL and publish the CRL.
