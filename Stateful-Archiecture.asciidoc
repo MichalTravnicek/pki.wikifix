@@ -24,7 +24,7 @@ and a new profile object will be created.
 The file-based `ProfileSubsystem` does not have such monitor.
 Any change in profile configuration files will require restarting PKI server.
 
-= Lightweight CAs =
+= Lightweight CA (LWCA) =
 
 The lightweight CAs are managed by CA subsystem.
 LWCA is only supported in IPA since it requires an IPA-specific key retriever tool to work properly in cluster environment.
@@ -70,17 +70,17 @@ it will switch to the new serial number range.
 
 KRA also has a `KeyStatusUpdateTask` thread that does the same process for keys and key requests.
 
-= OCSP =
+= OCSP Responder =
 
-When PKI server is started, OCSP will create a `DefStore` that stores the following information in memory:
+When PKI server is started, OCSP responder will create a `DefStore` that stores the following information in memory:
 
 * a cache for CRL issuing points
 * the number of CRL updates since startup
 * the number of requests for each CRL issuing point since startup
 
-OCSP will also start a `DefStoreCRLUpdater` thread that will periodically clear the CRL issuing point cache.
+The OCSP responder will also start a `DefStoreCRLUpdater` thread that will periodically clear the CRL issuing point cache.
 
-When OCSP receives a request, it will try to find the CRL issuing point in LDAP,
+When the OCSP responder receives a request, it will try to find the CRL issuing point in LDAP,
 then store it in the cache.
 
 = Job Scheduler =
