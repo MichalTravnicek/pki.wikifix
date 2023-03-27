@@ -82,3 +82,20 @@ OCSP will also start a `DefStoreCRLUpdater` thread that will periodically clear 
 
 When OCSP receives a request, it will try to find the CRL issuing point in LDAP,
 then store it in the cache.
+
+= Job Scheduler =
+
+Each PKI subsystem has a job scheduler. The scheduler keeps the following information in memory:
+
+* job plugins
+* job instances
+* job threads
+* scheduler thread
+
+When PKI server is started, it will load job scheduler configuration and create the job plugins and instances,
+It will also start a `JobScheduler` thread that will wake up periodically and find jobs instances that match the schedule.
+Then it will create to run the job in the background.
+
+If the configuration is updated, the server will need to be restarted.
+
+If all servers in the cluster have identical job scheduler configuration, the same jobs will be executed on multiple servers simultaneously, which in the best case could cause redundancy and in the worst case could cause race conditions.
