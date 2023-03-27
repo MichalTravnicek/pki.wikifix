@@ -69,3 +69,10 @@ When the CA creates a new cert or cert request, if there's no more available ser
 it will switch to the new serial number range.
 
 KRA also has a `KeyStatusUpdateTask` thread that does the same process for keys and key requests.
+
+= OCSP =
+
+The `DefStore` class stores the following information in memory:
+
+* the number of CRL updates since startup
+* the number of requests for each CRL issuing point since startup
