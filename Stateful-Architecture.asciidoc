@@ -71,6 +71,12 @@ it will switch to the new serial number range.
 
 KRA also has a `KeyStatusUpdateTask` thread that does the same process for keys and key requests.
 
+= ACME Responder =
+
+When PKI server is started, the ACME responder will create an `LDAPConfigMonitor` thread
+which will start a persistent search to monitor changes in ACME configuration stored in LDAP.
+This is mechanism is used to manage ACME responders on all servers in the cluster.
+
 = OCSP Responder =
 
 When PKI server is started, OCSP responder will create a `DefStore` that stores the following information in memory:
