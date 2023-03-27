@@ -57,3 +57,15 @@ The `RetrieveModificationTask` will start a persistent search to monitor cert st
 If a cert is revoked/unrevoked in LDAP, the thread will the list of revoked/unrevoked certs in all CRL issuing points.
 
 Each CRL issuing point also runs a `CRLIssuingPoint-<ID>` thread to periodically generate a CRL and publish the CRL.
+
+= Serial Number Range Management =
+
+When CA is started it will start a `SerialNumberUpdateTask` thread
+which will find the largest serial number in LDAP
+and update the counter of remaining RSNv1 numbers in range in `CS.cfg`.
+If there are only few numbers remaining, CA will allocate a new range in LDAP for the server.
+
+When the CA creates a new cert or cert request, if there's no more available serial number in the range
+it will switch to the new serial number range.
+
+KRA also has a `KeyStatusUpdateTask` thread that does the same process for keys and key requests.
