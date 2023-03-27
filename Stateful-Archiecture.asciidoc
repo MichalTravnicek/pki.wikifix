@@ -72,7 +72,13 @@ KRA also has a `KeyStatusUpdateTask` thread that does the same process for keys 
 
 = OCSP =
 
-The `DefStore` class stores the following information in memory:
+When PKI server is started, OCSP will create a `DefStore` that stores the following information in memory:
 
+* a cache for CRL issuing points
 * the number of CRL updates since startup
 * the number of requests for each CRL issuing point since startup
+
+OCSP will also start a `DefStoreCRLUpdater` thread that will periodically clear the CRL issuing point cache.
+
+When OCSP receives a request, it will try to find the CRL issuing point in LDAP,
+then store it in the cache.
