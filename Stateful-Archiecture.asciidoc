@@ -1,0 +1,24 @@
+= Overview =
+
+This page describes the stateful architecture used in PKI 11.4.
+
+= Certificate Profiles =
+
+In CA the certificate profiles are managed by the profile subsystem.
+The `AbstractProfileSubsystem` provides the base implementation.
+The `ProfileSubsystem` provides the implementation for file-based profiles which is the default.
+The `LDAPProfileSubsystem` provides the implementation for LDAP-based profiles which is mainly used in IPA.
+
+When PKI server is started the profile subsystem will load the profile configuration
+from files or LDAP and store the `Profile` objects in memory.
+If the admin updates the profile configuration, both the profile configuration in file/LDAP
+and the profile object in memory will be updated.
+
+In `LDAPProfileSubsysstem` when PKI server is started it will start a `ProfileChangeMonitor` thread
+which will start a persistent search against the profile subtree in `ou=certificateProfiles,ou=ca,<suffix>`.
+The persistent search will initially load all profile configuration stored in the subtree,
+create the profile objects based on the configuration, then listen to changes in the subtree.
+If there's a change in the subtree, the old profile object will be discarded and a new profile object will be created.
+
+The file-based `ProfileSubsystem` does not have such monitor.
+Any change in profile configuration files will require restarting PKI server.
