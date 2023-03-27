@@ -16,9 +16,26 @@ and the profile object in memory will be updated.
 
 In `LDAPProfileSubsysstem` when PKI server is started it will start a `ProfileChangeMonitor` thread
 which will start a persistent search against the profile subtree in `ou=certificateProfiles,ou=ca,<suffix>`.
-The persistent search will initially load all profile configuration stored in the subtree,
+The thread will initially load all profile configuration stored in the subtree,
 create the profile objects based on the configuration, then listen to changes in the subtree.
-If there's a change in the subtree, the old profile object will be discarded and a new profile object will be created.
+If there's a change in the subtree, the old profile object will be discarded
+and a new profile object will be created.
 
 The file-based `ProfileSubsystem` does not have such monitor.
 Any change in profile configuration files will require restarting PKI server.
+
+= Lightweight CAs =
+
+The lightweight CAs are managed by CA subsystem.
+LWCA is only supported in IPA since it requires an IPA-specific key retriever tool to work properly in cluster environment.
+
+When PKI server started, it will create an `AuthorityMonitor` thread
+which will start a persistent search against the LWCA subtree in `ou=authorities,ou=ca,<suffix>`.
+The thread will initially load all LWCA configuration stored in the subtree,
+create the LWCA objects based on the configuration, then listen to changes in the subtree.
+If there's a change in the subtree, the old LWCA object will be discarded
+and a new LWCA object will be created.
+
+If the signing cert or key of the LWCA doesn't exist yet on the server,
+the `AuthorityMonitor` will create a `KeyRetriever` thread which
+will retrieve the cert and key from another host in the cluster.
