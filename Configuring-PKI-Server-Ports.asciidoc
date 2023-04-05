@@ -1,0 +1,44 @@
+= Overview =
+
+WARNING: This page is still under construction.
+
+This page describes the process to change PKI server port numbers.
+
+= Configuring HTTP Port =
+
+----
+$ pki-server http-connector-mod Unsecure --port 80
+----
+
+= Configuring HTTPS Port =
+
+----
+$ pki pki-server http-connector-mod Secure --port 443
+----
+
+= Updating Security Domain Registration =
+
+To remove the old subsystem:
+
+----
+$ pki-server sd-subsystem-del "CA <hostname> <old HTTPS port>"
+----
+
+To add the new subsystem:
+
+----
+$ pki-server \
+    sd-subsystem-add \
+    --subsystem CA \
+    --hostname <hostname> \
+    --unsecure-port <new HTTP port> \
+    --secure-port <new HTTPS port> \
+    --domain-manager \
+    "CA pki.example.com <new HTTPS port>"
+----
+
+= Updating Security Domain Connection =
+
+----
+$ pki-server ca-config-set service.securityDomainPort <new HTTPS port>
+----
