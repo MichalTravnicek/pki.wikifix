@@ -4,6 +4,19 @@ WARNING: This page is still under construction.
 
 This page describes the process to change PKI server port numbers.
 
+The ports are stored in several locations:
+
+* `/etc/pki/<instance>/server.xml`
+* `/etc/pki/<instance>/<subsystem>/CS.cfg`
+* security domain database
+* LWCA database
+
+= Stopping Server =
+
+----
+$ pki-server stop --wait
+----
+
 = Configuring HTTP Port =
 
 ----
@@ -18,13 +31,25 @@ $ pki pki-server http-connector-mod Secure --port 443
 
 = Updating Security Domain Registration =
 
-To remove the old subsystem:
+To remove the old subsystem user from `Subsystem Group`:
+
+----
+$ pki-server ca-group-member-del "Subsystem Group" CA-<hostname>-<old HTTPS port>
+----
+
+To remove the old subsystem user:
+
+----
+$ pki-server ca-user-del CA-<hostname>-<old HTTPS port>"
+----
+
+To remove the old subsystem registration:
 
 ----
 $ pki-server sd-subsystem-del "CA <hostname> <old HTTPS port>"
 ----
 
-To add the new subsystem:
+To add the new subsystem registration:
 
 ----
 $ pki-server \
@@ -37,8 +62,39 @@ $ pki-server \
     "CA pki.example.com <new HTTPS port>"
 ----
 
+To add a new subsystem user:
+
+----
+$ pki-server \
+    ca-user-add \
+    --full-name "CA-<hostname>-<new HTTP port>" \
+    --type agentType \
+    --state 1 \
+    CA-<hostname>-<new HTTP port>
+----
+
+To assign the subsystem certificate to the new subsystem user:
+
+----
+$ cat subsystem.crt | pki pki-server \
+    ca-user-cert-add \
+    CA-<hostname>-<new HTTP port>
+----
+
+To add the new subsystem user into the `Subsystem Group`:
+
+----
+$ pki-server ca-group-member-add "Subsystem Group" CA-<hostname>-<new HTTPS port>
+----
+
 = Updating Security Domain Connection =
 
 ----
 $ pki-server ca-config-set service.securityDomainPort <new HTTPS port>
+----
+
+= Restarting Server =
+
+----
+$ pki-server start --wait
 ----
