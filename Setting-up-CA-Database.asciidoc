@@ -52,6 +52,20 @@ $ ldapadd \
     -f create.ldif
 ----
 
+= Adding CA ACL Resources =
+
+----
+$ sed \
+    -e 's/{rootSuffix}/dc=ca,dc=pki,dc=example,dc=com/g' \
+    /usr/share/pki/ca/database/ds/acl.ldif \
+    | tee acl.ldif
+$ ldapadd \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f acl.ldif
+----
+
 = Adding CA Search Indexes =
 
 ----
@@ -94,20 +108,6 @@ $ ldapsearch \
 ----
 
 Verify that `nsTaskExitCode` is `0`.
-
-= Adding CA ACL Resources =
-
-----
-$ sed \
-    -e 's/{rootSuffix}/dc=ca,dc=pki,dc=example,dc=com/g' \
-    /usr/share/pki/ca/database/ds/acl.ldif \
-    | tee acl.ldif
-$ ldapadd \
-    -H ldap://$HOSTNAME \
-    -D "cn=Directory Manager" \
-    -w Secret.123 \
-    -f acl.ldif
-----
 
 = Adding CA VLV Indexes =
 
