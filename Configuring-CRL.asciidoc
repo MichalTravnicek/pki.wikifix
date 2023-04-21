@@ -63,36 +63,7 @@ ca.crl.MasterCRL.noCRLIfNoRevokedCert=false
 
 = Configuring CRL Update Frequency =
 
-By default the CA will only update the CRL at scheduled times. To configure the CA to immediately update the CRL on each revocation operation:
-
-----
-ca.crl.MasterCRL.alwaysUpdate=true
-----
-
-Daily updates:
-
-----
-ca.crl.MasterCRL.enableDailyUpdates=true
-ca.crl.MasterCRL.enableUpdateInterval=false
-ca.crl.MasterCRL.dailyUpdates=0:50,04:55,06:55
-----
-
-Update interval (in minutes):
-
-----
-ca.crl.MasterCRL.enableDailyUpdates=false
-ca.crl.MasterCRL.enableUpdateInterval=true
-ca.crl.MasterCRL.autoUpdateInterval=240
-----
-
-Daily synchronized update interval:
-
-----
-ca.crl.MasterCRL.enableDailyUpdates=true
-ca.crl.MasterCRL.enableUpdateInterval=true
-ca.crl.MasterCRL.autoUpdateInterval=240
-ca.crl.MasterCRL.dailyUpdates=1:00
-----
+See link:Configuring-CRL-Update-Frequency[Configuring CRL Update Frequency].
 
 = Configuring CRL Extensions =
 
