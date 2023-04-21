@@ -1,0 +1,32 @@
+By default the CA will only update the CRL at scheduled times.
+
+To configure the CA to immediately update the CRL on each revocation operation:
+
+----
+ca.crl.MasterCRL.alwaysUpdate=true
+----
+
+To configure daily updates:
+
+----
+ca.crl.MasterCRL.enableDailyUpdates=true
+ca.crl.MasterCRL.enableUpdateInterval=false
+ca.crl.MasterCRL.dailyUpdates=0:50,04:55,06:55
+----
+
+To configure update interval (in minutes):
+
+----
+ca.crl.MasterCRL.enableDailyUpdates=false
+ca.crl.MasterCRL.enableUpdateInterval=true
+ca.crl.MasterCRL.autoUpdateInterval=240
+----
+
+To configure daily synchronized update interval:
+
+----
+ca.crl.MasterCRL.enableDailyUpdates=true
+ca.crl.MasterCRL.enableUpdateInterval=true
+ca.crl.MasterCRL.autoUpdateInterval=240
+ca.crl.MasterCRL.dailyUpdates=1:00
+----
