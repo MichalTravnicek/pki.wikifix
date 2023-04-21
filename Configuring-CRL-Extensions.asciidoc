@@ -1,0 +1,96 @@
+= Configuring Authority Information Access Extension =
+
+----
+ca.crl.MasterCRL.extension.AuthorityInformationAccess.accessLocation0=
+ca.crl.MasterCRL.extension.AuthorityInformationAccess.accessLocationType0=URI
+ca.crl.MasterCRL.extension.AuthorityInformationAccess.accessMethod0=caIssuers
+ca.crl.MasterCRL.extension.AuthorityInformationAccess.class=com.netscape.cms.crl.CMSAuthInfoAccessExtension
+ca.crl.MasterCRL.extension.AuthorityInformationAccess.critical=false
+ca.crl.MasterCRL.extension.AuthorityInformationAccess.enable=false
+ca.crl.MasterCRL.extension.AuthorityInformationAccess.numberOfAccessDescriptions=1
+ca.crl.MasterCRL.extension.AuthorityInformationAccess.type=CRLExtension
+----
+
+= Configuring  Authority Key Identifier Extension =
+
+----
+ca.crl.MasterCRL.extension.AuthorityKeyIdentifier.class=com.netscape.cms.crl.CMSAuthorityKeyIdentifierExtension
+ca.crl.MasterCRL.extension.AuthorityKeyIdentifier.critical=false
+ca.crl.MasterCRL.extension.AuthorityKeyIdentifier.enable=true
+ca.crl.MasterCRL.extension.AuthorityKeyIdentifier.type=CRLExtension
+----
+
+= Configuring CRL Number Extension =
+
+----
+ca.crl.MasterCRL.extension.CRLNumber.class=com.netscape.cms.crl.CMSCRLNumberExtension
+ca.crl.MasterCRL.extension.CRLNumber.critical=false
+ca.crl.MasterCRL.extension.CRLNumber.enable=true
+ca.crl.MasterCRL.extension.CRLNumber.type=CRLExtension
+----
+
+= Configuring CRL Reason Extension =
+
+----
+ca.crl.MasterCRL.extension.CRLReason.class=com.netscape.cms.crl.CMSCRLReasonExtension
+ca.crl.MasterCRL.extension.CRLReason.critical=false
+ca.crl.MasterCRL.extension.CRLReason.enable=true
+ca.crl.MasterCRL.extension.CRLReason.type=CRLEntryExtension
+----
+
+= Configuring Delta CRL Indicator Extension =
+
+----
+ca.crl.MasterCRL.extension.DeltaCRLIndicator.class=com.netscape.cms.crl.CMSDeltaCRLIndicatorExtension
+ca.crl.MasterCRL.extension.DeltaCRLIndicator.critical=true
+ca.crl.MasterCRL.extension.DeltaCRLIndicator.enable=false
+ca.crl.MasterCRL.extension.DeltaCRLIndicator.type=CRLExtension
+----
+
+= Configuring Freshest CRL Extension =
+
+----
+ca.crl.MasterCRL.extension.FreshestCRL.class=com.netscape.cms.crl.CMSFreshestCRLExtension
+ca.crl.MasterCRL.extension.FreshestCRL.critical=false
+ca.crl.MasterCRL.extension.FreshestCRL.enable=false
+ca.crl.MasterCRL.extension.FreshestCRL.numPoints=0
+ca.crl.MasterCRL.extension.FreshestCRL.pointName0=
+ca.crl.MasterCRL.extension.FreshestCRL.pointType0=
+ca.crl.MasterCRL.extension.FreshestCRL.type=CRLExtension
+----
+
+= Configuring Invalidity Date Extension =
+
+----
+ca.crl.MasterCRL.extension.InvalidityDate.class=com.netscape.cms.crl.CMSInvalidityDateExtension
+ca.crl.MasterCRL.extension.InvalidityDate.critical=false
+ca.crl.MasterCRL.extension.InvalidityDate.enable=true
+ca.crl.MasterCRL.extension.InvalidityDate.type=CRLEntryExtension
+----
+
+= Configuring Issuer Alternative Name Extension =
+
+----
+ca.crl.MasterCRL.extension.IssuerAlternativeName.class=com.netscape.cms.crl.CMSIssuerAlternativeNameExtension
+ca.crl.MasterCRL.extension.IssuerAlternativeName.critical=false
+ca.crl.MasterCRL.extension.IssuerAlternativeName.enable=false
+ca.crl.MasterCRL.extension.IssuerAlternativeName.name0=
+ca.crl.MasterCRL.extension.IssuerAlternativeName.nameType0=
+ca.crl.MasterCRL.extension.IssuerAlternativeName.numNames=0
+ca.crl.MasterCRL.extension.IssuerAlternativeName.type=CRLExtension
+----
+
+= Configuring Issuing Distribution Point Extension =
+
+----
+ca.crl.MasterCRL.extension.IssuingDistributionPoint.class=com.netscape.cms.crl.CMSIssuingDistributionPointExtension
+ca.crl.MasterCRL.extension.IssuingDistributionPoint.critical=true
+ca.crl.MasterCRL.extension.IssuingDistributionPoint.enable=false
+ca.crl.MasterCRL.extension.IssuingDistributionPoint.indirectCRL=false
+ca.crl.MasterCRL.extension.IssuingDistributionPoint.onlyContainsCACerts=false
+ca.crl.MasterCRL.extension.IssuingDistributionPoint.onlyContainsUserCerts=false
+ca.crl.MasterCRL.extension.IssuingDistributionPoint.onlySomeReasons=
+ca.crl.MasterCRL.extension.IssuingDistributionPoint.pointName=
+ca.crl.MasterCRL.extension.IssuingDistributionPoint.pointType=
+ca.crl.MasterCRL.extension.IssuingDistributionPoint.type=CRLExtension
+----
