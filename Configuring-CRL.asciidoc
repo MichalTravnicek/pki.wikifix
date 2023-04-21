@@ -1,15 +1,20 @@
-= Enabling/Disabling CRL =
+= Enabling CRL =
 
-CRL can be enabled/disabled using the following parameter in CS.cfg:
+CRL is enabled by default in CA. To enable CRL manually:
 
 ----
-ca.crl.MasterCRL.enable=true
+$ pki-server ca-config-set ca.crl.MasterCRL.enable true
+$ pki-server ca-config-set ca.crl.MasterCRL.enableCRLCache true
+$ pki-server ca-config-set ca.crl.MasterCRL.enableCRLUpdates true
+$ pki-server ca-config-set ca.transitRecordPageSize 200
+$ pki-server ca-config-set ca.transitMaxRecords 1000000
+$ pki-server ca-config-set ca.certStatusUpdateInterval 600
 ----
 
 To enable delta CRL:
 
 ----
-ca.crl.MasterCRL.extension.DeltaCRLIndicator.enable=true
+$ pki-server ca-config-set ca.crl.MasterCRL.extension.DeltaCRLIndicator.enable true
 ----
 
 The server must be restarted.
@@ -68,3 +73,12 @@ See link:Configuring-CRL-Update-Frequency[Configuring CRL Update Frequency].
 = Configuring CRL Extensions =
 
 See link:Configuring-CRL-Extensions[Configuring CRL Extensions].
+
+= Disabling CRL =
+
+----
+$ pki-server ca-config-set ca-config-set ca.certStatusUpdateInterval 0
+$ pki-server ca-config-set ca-config-set ca.listenToCloneModifications false
+$ pki-server ca-config-set ca-config-set ca.crl.MasterCRL.enableCRLCache false
+$ pki-server ca-config-set ca-config-set ca.crl.MasterCRL.enableCRLUpdates false
+----
