@@ -1,0 +1,185 @@
+= Overview =
+
+The `pki pkcs12-cert` commands provide a way to manage the certificates in a PKCS #12 file.
+
+= Listing Certificates in PKCS #12 File =
+
+To list the certificates in a PKCS #12 file:
+
+----
+$ pki pkcs12-cert-find --pkcs12-file test.p12 --pkcs12-password Secret.123
+---------------
+1 entries found
+---------------
+  Certificate ID: 75e2ac1d08ca99ed4c9bd31ad847fd18bc4db9ca
+  Serial Number: 0x6
+  Friendly Name: caadmin
+  Subject DN: CN=PKI Administrator,E=caadmin@example.com,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,O=EXAMPLE
+  Trust flags: u,u,u
+  Has Key: true
+  Key ID: 16228b70f066d50a68d59e64c9367b53c234473d
+----
+
+= Importing Certificate into PKCS #12 File =
+
+To import a certificate including the key and trust flags from client NSS database:
+
+----
+$ pki pkcs12-cert-import caadmin \
+    --pkcs12-file test.p12 \
+    --pkcs12-password Secret.123
+------------------------------
+Imported certificate "caadmin"
+------------------------------
+----
+
+If the PKCS #12 file already exists, it will be overwritten. To add certificate into an existing PKCS #12 file, specify the `--append` option:
+
+----
+$ pki pkcs12-cert-import caadmin \
+    --pkcs12-file test.p12 \
+    --pkcs12-password Secret.123 \
+    --append
+------------------------------
+Imported certificate "caadmin"
+------------------------------
+----
+
+The trust flags can be overwritten with the `--trust-flags` parameter:
+
+----
+$ pki pkcs12-cert-import caadmin \
+    --pkcs12-file test.p12 \
+    --pkcs12-password Secret.123 \
+    --trust-flags <trust flags>
+------------------------------
+Imported certificate "caadmin"
+------------------------------
+----
+
+To import a certificate from client NSS database without the key:
+
+----
+$ pki pkcs12-cert-import caadmin \
+    --pkcs12-file test.p12 \
+    --pkcs12-password Secret.123 \
+    --no-key
+------------------------------
+Imported certificate "caadmin"
+------------------------------
+----
+
+To import a certificate from a file (not implemented yet):
+
+----
+$ pki pkcs12-cert-import caadmin \
+    --pkcs12-file test.p12 \
+    --pkcs12-password Secret.123 \
+    --cert-file caadmin.pem
+------------------------------
+Imported certificate "caadmin"
+------------------------------
+----
+
+To import a certificate from a file with trust flags (not implemented yet):
+
+----
+$ pki pkcs12-cert-import caadmin \
+    --pkcs12-file test.p12 \
+    --pkcs12-password Secret.123 \
+    --cert-file caadmin.pem \
+    --trust-flags "u,u,u"
+------------------------------
+Imported certificate "caadmin"
+------------------------------
+----
+
+DEPRECATED: To add a certificate including the key and trust flags from client NSS database:
+
+----
+$ pki pkcs12-cert-add caadmin \
+    --pkcs12-file test.p12 \
+    --pkcs12-password Secret.123
+---------------------------
+Added certificate "caadmin"
+---------------------------
+----
+
+If the PKCS #12 file does not exist, it will be created automatically. If the PKCS #12 file already exists, the certificate will be added into the file.
+
+= Exporting Certificate from PKCS #12 File =
+
+To export a certificate from PKCS #12 file into a PEM file:
+
+----
+$ pki pkcs12-cert-export caadmin \
+    --pkcs12-file test.p12 \
+    --pkcs12-password Secret.123 \
+    --cert-file caadmin.pem
+----
+
+= Modifying Certificate in PKCS #12 File =
+
+To change the nickname of a certificate by its ID:
+
+----
+$ pki pkcs12-cert-mod 75e2ac1d08ca99ed4c9bd31ad847fd18bc4db9ca \
+    --pkcs12-file test.p12 \
+    --pkcs12-password Secret.123 \
+    --friendly-name "CA admin"
+---------------------------------------------------------------
+Modified certificate "75e2ac1d08ca99ed4c9bd31ad847fd18bc4db9ca"
+---------------------------------------------------------------
+----
+
+To change the nickname of a certificate by its current nickname:
+
+----
+$ pki pkcs12-cert-mod caadmin \
+    --pkcs12-file test.p12 \
+    --pkcs12-password Secret.123 \
+    --friendly-name "CA admin"
+------------------------------
+Modified certificate "caadmin"
+------------------------------
+----
+
+To change the trust flags of a certificate by its ID:
+
+----
+$ pki pkcs12-cert-mod 75e2ac1d08ca99ed4c9bd31ad847fd18bc4db9ca \
+    --pkcs12-file test.p12 \
+    --pkcs12-password Secret.123 \
+    --trust-flags "u,u,u"
+---------------------------------------------------------------
+Modified certificate "75e2ac1d08ca99ed4c9bd31ad847fd18bc4db9ca"
+---------------------------------------------------------------
+----
+
+To change the trust flags of a certificate by its nickname:
+
+----
+$ pki pkcs12-cert-mod caadmin \
+    --pkcs12-file test.p12 \
+    --pkcs12-password Secret.123 \
+    --trust-flags "u,u,u"
+------------------------------
+Modified certificate "caadmin"
+------------------------------
+----
+
+*Note:* If the trust flags value is blank, the trust flags will be removed from the certificate.
+
+= Removing Certificate from PKCS #12 File =
+
+To delete a certificate from PKCS #12 file:
+
+----
+$ pki pkcs12-cert-del caadmin \
+    --pkcs12-file test.p12 \
+    --pkcs12-password Secret.123
+-----------------------------
+Deleted certificate "caadmin"
+-----------------------------
+----
