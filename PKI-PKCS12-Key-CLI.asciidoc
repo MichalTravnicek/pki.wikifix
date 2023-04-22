@@ -1,0 +1,35 @@
+= Overview =
+
+The `pki pkcs12-key` commands provide a way to manage keys in a PKCS #12 file.
+
+= Listing Keys in PKCS #12 File =
+
+To list the keys in PKCS #12 file:
+
+----
+$ pki pkcs12-key-find --pkcs12-file test.p12 --pkcs12-password Secret.123
+---------------
+1 entries found
+---------------
+  Key ID: 16228b70f066d50a68d59e64c9367b53c234473d
+  Friendly Name: caadmin
+----
+
+The PKCS #12 password can also be specified in a file:
+
+----
+$ pki pkcs12-key-find --pkcs12-file test.p12 --pkcs12-password-file pkcs12pwd.txt
+----
+
+= Removing Key from PKCS #12 File =
+
+To delete a key from PKCS #12 file:
+
+----
+$ pki pkcs12-key-del 16228b70f066d50a68d59e64c9367b53c234473d \
+    --pkcs12-file test.p12 \
+    --pkcs12-password Secret.123
+------------------------------------------------------
+Deleted key "16228b70f066d50a68d59e64c9367b53c234473d"
+------------------------------------------------------
+----
