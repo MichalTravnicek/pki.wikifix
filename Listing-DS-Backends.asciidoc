@@ -1,3 +1,15 @@
+= Listing DS Backends =
+
+----
+$ ldapsearch \
+    -H ldap://$HOSTNAME:389 \
+    -x -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -b "cn=ldbm database,cn=plugins,cn=config" \
+    -s one \
+    "(objectClass=nsBackendInstance)"
+----
+
 = Default DS Backend =
 
 ----
@@ -15,14 +27,41 @@ nsslapd-directory: /var/lib/dirsrv/slapd-localhost/db/userroot
 nsslapd-dncachememsize: 67108864
 ----
 
-= Listing DS Backends =
+= Displaying Entries in DS Backend =
 
 ----
-$ ldapsearch \
-    -H ldap://$HOSTNAME:389 \
-    -x -D "cn=Directory Manager" \
-    -w Secret.123 \
-    -b "cn=ldbm database,cn=plugins,cn=config" \
-    -s one \
-    "(objectClass=nsBackendInstance)"
+$ dbscan -f /var/lib/dirsrv/slapd-localhost/db/userroot/id2entry.db
+id 1
+	rdn: dc=example,dc=com
+	objectClass: domain
+	objectClass: top
+	dc: example
+	creatorsName: cn=directory manager
+	modifiersName: cn=directory manager
+	createTimestamp: 20190719175111Z
+	modifyTimestamp: 20190719175111Z
+	nsUniqueId: cb359181-aa4d11e9-aae8d385-5b12da74
+	entryid: 1
+	numSubordinates: 1
+	
+id 2
+	rdn: dc=pki
+	objectClass: domain
+	objectClass: top
+	dc: pki
+	creatorsName: cn=directory manager
+	modifiersName: cn=directory manager
+	createTimestamp: 20190719175111Z
+	modifyTimestamp: 20190719175111Z
+	nsUniqueId: cb359182-aa4d11e9-aae8d385-5b12da74
+	parentid: 1
+	entryid: 2
+----
+
+= Displaying Entry Hierarchy in DS Backend =
+
+----
+$ dbscan -f /var/lib/dirsrv/slapd-localhost/db/userroot/ancestorid.db -r -n
+=1                                      1
+	2
 ----
