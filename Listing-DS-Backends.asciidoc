@@ -1,0 +1,28 @@
+= Default DS Backend =
+
+----
+dn: cn=userroot,cn=ldbm database,cn=plugins,cn=config
+objectClass: top
+objectClass: extensibleObject
+objectClass: nsBackendInstance
+cn: userroot
+nsslapd-suffix: dc=example,dc=com
+nsslapd-cachesize: -1
+nsslapd-cachememsize: 67108864
+nsslapd-readonly: off
+nsslapd-require-index: off
+nsslapd-directory: /var/lib/dirsrv/slapd-localhost/db/userroot
+nsslapd-dncachememsize: 67108864
+----
+
+= Listing DS Backends =
+
+----
+$ ldapsearch \
+    -H ldap://$HOSTNAME:389 \
+    -x -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -b "cn=ldbm database,cn=plugins,cn=config" \
+    -s one \
+    "(objectClass=nsBackendInstance)"
+----
