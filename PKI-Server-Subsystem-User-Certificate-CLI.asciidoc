@@ -17,7 +17,7 @@ $ pki-server <subsystem>-user-cert-find testuser
   Subject: CN=Test User,E=testuser@example.com,O=EXAMPLE
 ----
 
-*Availability:* Since PKI 11.4.
+*Availability:* Since PKI 11.4
 
 = Adding Subsystem User Certificate =
 
@@ -32,3 +32,15 @@ Alternatively, the certificate can be provided via standard input:
 ----
 $ cat testuser.crt | pki-server <subsystem>-user-cert-add testuser
 ----
+
+= Removing Subsystem User Certificate =
+
+To remove a subsystem user certificate, specify the user ID and the certificate ID:
+
+----
+$ pki-server <subsystem>-user-cert-del \
+    testuser \
+    "2;40906138576323294556013286889651288237;CN=CA Signing Certificate,O=EXAMPLE;CN=Test User,E=testuser@example.com,O=EXAMPLE"
+----
+
+*Availability:* Since PKI 11.5
