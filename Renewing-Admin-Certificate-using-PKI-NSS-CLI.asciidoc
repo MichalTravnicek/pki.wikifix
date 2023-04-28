@@ -27,30 +27,31 @@ $ pki nss-cert-request \
     --csr admin.csr
 ----
 
-= Issuing New Admin Certificate =
-
-To issue a new admin certificate using the existing CA signing certificate:
-
-----
-$ pki \
-    -d /etc/pki/pki-tomcat/alias \
-    -f /etc/pki/pki-tomcat/password.conf \
-    nss-cert-issue \
-    --issuer ca_signing \
-    --csr admin.csr \
-    --ext /usr/share/pki/server/certs/admin.conf \
-    --cert admin.crt
-----
-
 = Importing Certificate Request into CA Database =
 
 To import the new admin certificate request into CA database:
 
 ----
-$ pki-server ca-cert-request-import --csr admin.csr --profile adminCert.profile
+$ pki-server \
+    ca-cert-request-import \
+    --csr admin.csr \
+    --profile adminCert.profile
 ----
 
 It should generate a new request ID.
+
+= Issuing New Admin Certificate =
+
+To issue a new admin certificate using the CA signing certificate:
+
+----
+$ pki-server \
+    ca-cert-create \
+    --request <request ID> \
+    --profile adminCert.profile \
+    --type local \
+    > admin.crt
+----
 
 = Importing New Admin Certificate into CA Database =
 
@@ -97,9 +98,9 @@ To remove the existing admin certificate and key:
 $ certutil -F -d ~/.dogtag/nssdb -n caadmin
 ----
 
-= Using New Admin Certificate =
+= Importing New Admin Certificate into PKI CLI =
 
-Import the new admin certificate into PKI CLI:
+To import the new admin certificate into PKI CLI:
 
 ----
 $ pki nss-cert-import caadmin --cert admin.crt
