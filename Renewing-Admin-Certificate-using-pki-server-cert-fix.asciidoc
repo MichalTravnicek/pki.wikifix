@@ -1,0 +1,44 @@
+= Overview =
+
+This page describes the process to renew the admin certificate using `pki-server cert-fix` CLI.
+
+*Notes:*
+
+* This procedure may require setting the system clock back to when the admin certificate was still valid.
+
+= Renewal Procedure =
+
+To renew the admin certificate and system certificates, execute the following command and provide the admin certificate serial number:
+
+----
+$ pki-server cert-fix \
+    --ldap-url ldap://localhost.localdomain \
+    --agent-uid caadmin \
+    --extra-cert <serial number>
+----
+
+If the DS connection was configured to use client certificate authentication, but the certificate has already expired, and the DS server is running locally, the command can be executed with LDAPI instead:
+
+----
+$ pki-server cert-fix \
+    --ldapi-socket /var/run/slapd-localhost.socket \
+    --agent-uid caadmin \
+    --extra-cert <serial number>
+----
+
+Then assign the new certificate to the admin user with the following command:
+
+----
+$ pki \
+    -U https://localhost.localdomain:8443 \
+    -d ~/.dogtag/nssdb \
+    -c Secret.123 \
+    -n caadmin \
+    ca-user-cert-add \
+    --input /etc/pki/pki-tomcat/certs/<serial number>-renewed.crt \
+    caadmin
+----
+
+= See Also =
+
+* link:https://github.com/dogtagpki/pki/blob/master/docs/admin/Offline_System_Certificate_Renewal.md[Offline System Certificate Renewal]
