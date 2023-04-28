@@ -9,7 +9,27 @@ These commands can only be executed by the system administrator.
 To list subsystem user roles, specify the user ID:
 
 ----
-$ pki-server <subsystem>-user-role-find testuser
+$ pki-server <subsystem>-user-role-find <user ID>
+----
+
+*Availability:* Since PKI 11.5
+
+= Adding Subsystem User Role =
+
+To add a subsystem user role, specify the user ID and the role ID:
+
+----
+$ pki-server <subsystem>-user-role-add <user ID> <role ID>
+----
+
+*Availability:* Since PKI 11.5
+
+= Removing Subsystem User Role =
+
+To remove a subsystem user role, specify the user ID and the role ID:
+
+----
+$ pki-server <subsystem>-user-cert-del <user ID> <role ID>
 ----
 
 *Availability:* Since PKI 11.5
