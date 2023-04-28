@@ -51,55 +51,9 @@ $ pki \
     caadmin
 ----
 
-= Using pki nss CLI =
+= Using PKI NSS CLI =
 
-NOTE: This procedure requires RSNv3. Available since PKI 11.5.
-
-Generate a new admin key and certificate request:
-
-----
-$ pki nss-cert-request \
-    --subject "CN=Administrator" \
-    --ext /usr/share/pki/server/certs/admin.conf \
-    --csr admin.csr
-----
-
-Issue a new admin certificate using the existing CA signing certificate:
-
-----
-$ pki \
-    -d /etc/pki/pki-tomcat/alias \
-    -f /etc/pki/pki-tomcat/password.conf \
-    nss-cert-issue \
-    --issuer ca_signing \
-    --csr admin.csr \
-    --ext /usr/share/pki/server/certs/admin.conf \
-    --cert admin.crt
-----
-
-Import the new admin certificate:
-
-----
-$ pki nss-cert-import admin --cert admin.crt
-----
-
-Find the existing admin certificate in the admin user record:
-
-----
-$ pki-server ca-user-cert-find caadmin
-----
-
-Remove the existing admin certificate from the admin user record:
-
-----
-$ pki-server ca-user-cert-del caadmin <cert ID>
-----
-
-Import the new admin certificate to the admin user record:
-
-----
-$ cat admin.crt | pki-server ca-user-cert-add caadmin
-----
+See link:Renewing-Admin-Certificate-using-PKI-NSS-CLI[Renewing Admin Certificate using PKI NSS CLI].
 
 = See Also =
 
