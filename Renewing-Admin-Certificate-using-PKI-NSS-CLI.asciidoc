@@ -16,7 +16,39 @@ This page describes the process to renew the admin certificate using `pki nss` C
 
 * CA must be link:Configuring-CA-with-Random-Serial-Numbers-v3[configured with RSNv3].
 
-= Generating New Admin Certificate Request =
+= Removing Existing Admin Certificate =
+
+== Removing Existing Admin Certificate from Admin User Record ==
+
+To find the existing admin certificate in the admin user record:
+
+----
+$ pki-server ca-user-cert-find caadmin
+----
+
+To remove the certificate from the admin user record:
+
+----
+$ pki-server ca-user-cert-del caadmin <cert ID>
+----
+
+== Remove Existing Admin Certificate from PKI CLI ==
+
+To find the existing admin certificate in PKI CLI:
+
+----
+$ pki nss-cert-find
+----
+
+To remove the certificate and its key from PKI CLI:
+
+----
+$ certutil -F -d ~/.dogtag/nssdb -n caadmin
+----
+
+= Creating New Admin Certificate =
+
+== Generating New Certificate Request ==
 
 To generate a new admin certificate request:
 
@@ -27,7 +59,7 @@ $ pki nss-cert-request \
     --csr admin.csr
 ----
 
-= Importing Certificate Request into CA Database =
+== Importing Certificate Request into CA Database ==
 
 To import the new admin certificate request into CA database:
 
@@ -39,9 +71,9 @@ $ pki-server ca-cert-request-import \
 
 It should generate a new request ID.
 
-= Issuing New Admin Certificate =
+== Issuing New Certificate ==
 
-To issue a new admin certificate using the CA signing certificate:
+To issue a new admin certificate:
 
 ----
 $ pki-server \
@@ -52,7 +84,9 @@ $ pki-server \
     > admin.crt
 ----
 
-= Importing New Admin Certificate into CA Database =
+== Importing New Certificate into CA Database ==
+
+To import the new admin certificate into CA database:
 
 ----
 $ pki-server ca-cert-import \
@@ -61,21 +95,7 @@ $ pki-server ca-cert-import \
     --request <request ID>
 ----
 
-= Removing Existing Admin Certificate from Admin User Record =
-
-To find the existing admin certificate in the admin user record:
-
-----
-$ pki-server ca-user-cert-find caadmin
-----
-
-To remove the existing admin certificate from the admin user record:
-
-----
-$ pki-server ca-user-cert-del caadmin <cert ID>
-----
-
-= Importing New Admin Certificate into Admin User Record =
+== Importing New Certificate into Admin User Record ==
 
 Import the new admin certificate to the admin user record:
 
@@ -83,21 +103,7 @@ Import the new admin certificate to the admin user record:
 $ cat admin.crt | pki-server ca-user-cert-add caadmin
 ----
 
-= Remove Existing Admin Certificate from PKI CLI =
-
-To find the existing admin certificate in PKI CLI's NSS database:
-
-----
-$ pki nss-cert-find
-----
-
-To remove the existing admin certificate and key:
-
-----
-$ certutil -F -d ~/.dogtag/nssdb -n caadmin
-----
-
-= Importing New Admin Certificate into PKI CLI =
+== Importing New Certificate into PKI CLI ==
 
 To import the new admin certificate into PKI CLI:
 
