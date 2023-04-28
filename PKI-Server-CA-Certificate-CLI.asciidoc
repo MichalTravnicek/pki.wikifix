@@ -14,16 +14,18 @@ To create a certificate from a certificate request in CA:
 $ pki-server ca-cert-create \
     --request <ID> \
     --profile <filename> \
-    --type <type> \
-    --key-id <ID> \
-    --serial <serial>
+    [--type <type>] \
+    [--key-id <ID>] \
+    [--serial <number>]
 ----
 
 where:
 
+* The `--request` parameter specifies the request ID.
 * The `--profile` parameter specifies the filename of the bootstrap profile in `/etc/pki/pki-tomcat/ca` without the path (e.g. `serverCert.profile`).
 * The `--type` parameter specifies whether the certificate to be created is self-signed (i.e. `selfsign`) or signed by another certificate (i.e. `local`).
 * The `--key-id` parameter specifies the key to be used for self-signed certificate.
+* The `--serial` parameter specifies an optional serial number for the new certificate. If the serial number is not specified and the certificate ID generator is configured to `random`, a new random serial number will be generated automatically.
 
 *Availability:* Since PKI 11.3.
 
