@@ -1,3 +1,5 @@
+= Generating Certificate Request with New Key =
+
 To generate a certificate request with a new key:
 
 ----
@@ -10,6 +12,8 @@ $ openssl req \
     -out testuser.csr
 ----
 
+= Generating Certificate Request with Existing Key =
+
 To generate a certificate request with an existing key:
 
 ----
@@ -19,4 +23,41 @@ $ openssl req \
     -nodes \
     -subj "/UID=testuser/DC=example/DC=com" \
     -out testuser.csr
+----
+
+= Generating Certificate Request with SAN Extension =
+
+To generate a certificate request with a SAN extension, specify the extension in a configuration file (e.g. `sslserver.conf`):
+
+----
+[ req ]
+req_extensions     = req_ext
+
+[ req_ext ]
+subjectAltName     = @alt_names
+
+[alt_names]
+DNS.1              = www.example.com
+DNS.2              = www.example.org
+----
+
+then generate the certificate request as follows:
+
+----
+$ openssl req \
+    -new \
+    -newkey rsa:2048 \
+    -nodes \
+    -keyout sslserver.key \
+    -subj "/" \
+    -out sslserver.csr \
+    -config sslserver.conf
+----
+
+= Verifying Certificate Request =
+
+To verify the certificate request:
+
+----
+$ openssl req -text -noout -in <filename>
 ----
