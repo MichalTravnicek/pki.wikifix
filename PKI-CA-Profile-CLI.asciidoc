@@ -80,41 +80,9 @@ output.o1.class_id=certOutputImpl
 
 See link:Exporting-Certificate-Profile[Exporting Certificate Profile].
 
-= Creating Certificate Profile =
+= Adding Certificate Profile =
 
-To create a new certificate profile, prepare a new profile configuration file or export and modify an existing one.
-
-Then submit the new configuration to the server with pki ca-profile-add command.
-
-== Creating Certificate Profile in XML format ==
-
-In XML format, the new profile ID must be specified as follows:
-
-----
-<Profile ... id="newProfile">
-    ...
-</Profile>
-----
-
-To create the new profile:
-
-----
-$ pki -n caadmin ca-profile-add newProfile.xml
-----
-
-== Creating Certificate Profile in Raw Format ==
-
-In raw format, the new profile ID must be specified as follows:
-
-----
-profileId=newProfile
-----
-
-To create the new profile:
-
-----
-$ pki -n caadmin ca-profile-add newProfile.cfg --raw
-----
+See link:Adding-Certificate-Profile[Adding Certificate Profile].
 
 = Modifying Certificate Profile =
 
