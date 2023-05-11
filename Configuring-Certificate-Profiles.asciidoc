@@ -68,10 +68,10 @@ Profile authentication is configured using the `auth.instance_id` parameter. Sup
 To add a SAN extension, add the following parameters:
 
 ----
-policyset.<profile>.<number>.constraint.class_id=noConstraintImpl
-policyset.<profile>.<number>.constraint.name=No Constraint
-policyset.<profile>.<number>.constraint.subjAltNameExtCritical=false
-policyset.<profile>.<number>.default.class_id=userExtensionDefaultImpl
-policyset.<profile>.<number>.default.name=User Supplied Extension Default
-policyset.<profile>.<number>.default.params.userExtOID=2.5.29.17
+policyset.<policy>.<number>.constraint.class_id=noConstraintImpl
+policyset.<policy>.<number>.constraint.name=No Constraint
+policyset.<policy>.<number>.constraint.subjAltNameExtCritical=false
+policyset.<policy>.<number>.default.class_id=userExtensionDefaultImpl
+policyset.<policy>.<number>.default.name=User Supplied Extension Default
+policyset.<policy>.<number>.default.params.userExtOID=2.5.29.17
 ----
