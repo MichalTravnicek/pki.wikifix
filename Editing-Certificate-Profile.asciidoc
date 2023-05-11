@@ -1,0 +1,9 @@
+*Note:* A certificate profile must be link:Disabling-Certificate-Profile[disabled] before it can be modified. Once the modification is complete, the profile can be link:Enabling-Certificate-Profile[reenabled].
+
+For convenience, a certificate profile can be visually edited in raw format (without downloading the configuration file manually) with the following command:
+
+----
+$ pki -n caadmin ca-profile-edit <profile ID>
+----
+
+This command will automatically download the profile configuration in raw format and open it with a vi text editor. When the editor is closed, the edited profile configuration will be used to update the profile on the server.
