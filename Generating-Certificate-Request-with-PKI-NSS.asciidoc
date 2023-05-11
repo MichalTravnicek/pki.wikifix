@@ -24,7 +24,7 @@ To create a certificate request with a new RSA key:
 ----
 $ pki nss-cert-request \
     --subject "CN=$HOSTNAME" \
-    --ext sslserver.conf \
+    --ext /usr/share/pki/server/certs/sslserver.conf \
     --csr sslserver.csr
 ----
 
@@ -40,7 +40,7 @@ To create a certificate request with a new EC key:
 $ pki nss-cert-request \
     --key-type EC \
     --subject "CN=$HOSTNAME" \
-    --ext sslserver.conf \
+    --ext /usr/share/pki/server/certs/sslserver.conf \
     --csr sslserver.csr
 ----
 
@@ -56,7 +56,7 @@ To create a certificate request with an existing RSA/EC key:
 $ pki nss-cert-request \
     --key-id <key ID> \
     --subject "CN=$HOSTNAME" \
-    --ext sslserver.conf \
+    --ext /usr/share/pki/server/certs/sslserver.conf \
     --csr sslserver.csr
 ----
 
