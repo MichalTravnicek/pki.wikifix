@@ -6,4 +6,11 @@ For convenience, a certificate profile can be visually edited in raw format (wit
 $ pki -n caadmin ca-profile-edit <profile ID>
 ----
 
-This command will automatically download the profile configuration in raw format and open it with a vi text editor. When the editor is closed, the edited profile configuration will be used to update the profile on the server.
+This command will automatically download the profile configuration in raw format and open it with the default text editor.
+To use a specific editor:
+
+----
+$ EDITOR=<editor> pki -n caadmin ca-profile-edit <profile ID>
+----
+
+When the editor is closed, the edited profile configuration will be used to update the profile on the server.
