@@ -1,3 +1,5 @@
+= Editing Certificate Profile Remotely =
+
 *Note:* A certificate profile must be link:Disabling-Certificate-Profile[disabled] before it can be modified. Once the modification is complete, the profile can be link:Enabling-Certificate-Profile[reenabled].
 
 For convenience, a certificate profile can be visually edited in raw format (without exporting and reimporting the configuration file) with the following command:
@@ -14,3 +16,8 @@ $ EDITOR=<editor> pki -n caadmin ca-profile-edit <profile ID>
 ----
 
 When the editor is closed, the edited profile configuration will be used to update the profile on the server.
+
+= Editing Certificate Profile Locally =
+
+If the profiles are stored in local files (instead of in LDAP), the files can be edited directly,
+but the server must be restarted before the changes will take effect.
