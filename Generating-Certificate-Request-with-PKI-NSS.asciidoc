@@ -17,9 +17,9 @@ cps_policy.CPS.1       = http://cps.example.com
 
 See also link:PKI-NSS-Certificate-Extensions[PKI NSS Certificate Extensions].
 
-= Creating Certificate Request with RSA Key =
+= Creating Basic Certificate Request =
 
-To create a certificate request with a new RSA key:
+To create a basic certificate request:
 
 ----
 $ pki nss-cert-request \
@@ -28,7 +28,7 @@ $ pki nss-cert-request \
     --csr sslserver.csr
 ----
 
-The request will be stored in `sslserver.csr`.
+By default it will create a new RSA key. The request will be stored in `sslserver.csr`.
 
 **Availability:** Since PKI 10.9.
 
@@ -63,6 +63,20 @@ $ pki nss-cert-request \
 The request will be stored in `sslserver.csr`.
 
 **Availability:** Since PKI 10.9.
+
+= Creating Certificate Request with SAN Extension =
+
+To create a certificate request with SAN extension:
+
+----
+$ pki nss-cert-request \
+    --subject "CN=$HOSTNAME" \
+    --ext /usr/share/pki/server/certs/sslserver.conf \
+    --subjectAltName "critical, DNS:www.example.com, DNS:pki.example.com" \
+    --csr sslserver.csr
+----
+
+**Availability:** Since PKI 11.5.
 
 = See Also =
 
