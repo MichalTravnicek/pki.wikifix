@@ -17,10 +17,24 @@ When the PKI server is started, the OCSP subsystem will generate a signing info 
 The OCSP_SIGNING_INFO indicates which key is used to sign OCSP responses.
 
 ----
-[AuditEvent=OCSP_SIGNING_INFO][SubjectID=$System$][Outcome=Success][SKI=B4:D3:3D:4A:94:D7:A8:AD:65:E2:2B:F1:C5:49:EF:7B:2B:D5:62:93] OCSP signing info
+[AuditEvent=OCSP_SIGNING_INFO][SubjectID=$System$][Outcome=Success][SKI=B4:D3:3D
+:4A:94:D7:A8:AD:65:E2:2B:F1:C5:49:EF:7B:2B:D5:62:93] OCSP signing info
 ----
 
 = OCSP Events =
+
+== CONFIG_OCSP_PROFILE ==
+
+CONFIG_OCSP_PROFILE event will be generated when OCSP configuration is updated.
+
+For example, open OCSP Console, go to Configuration -> Online Certificate Status Manager -> Revocation Info Stores, select `defStore`, then click Edit/View. Make some changes, then click OK. The server will generate the following logs:
+
+----
+[AuditEvent=CONFIG_OCSP_PROFILE][SubjectID=ocspadmin][Outcome=Success][ParamName
+ValPairs=Scope;;ocspStoresRules+Operation;;OP_MODIFY+Resource;;defStore+includeN
+extUpdate;;false+byName;;true+implName;;com.netscape.cms.ocsp.DefStore+notFoundA
+sGood;;true] OCSP profile configuration parameter(s) change
+----
 
 == OCSP_ADD_CA_REQUEST ==
 
@@ -31,8 +45,11 @@ OCSP_ADD_CA_REQUEST_PROCESSED event will be generated when an add CA request to 
 For example, go to OCSP Web UI, click '''Add Certificate Authority''', enter the CA certificate, then click '''Add'''. The server will generate the following logs:
 
 ----
-[AuditEvent=OCSP_ADD_CA_REQUEST][SubjectID=ocspadmin][Outcome=Success][CA=MIID...S6I=] request to add a CA for OCSP Responder
-[AuditEvent=OCSP_ADD_CA_REQUEST_PROCESSED][SubjectID=ocspadmin][Outcome=Success][CASubjectDN=CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE] Add CA for OCSP Responder
+[AuditEvent=OCSP_ADD_CA_REQUEST][SubjectID=ocspadmin][Outcome=Success][CA=MIID..
+.S6I=] request to add a CA for OCSP Responder
+[AuditEvent=OCSP_ADD_CA_REQUEST_PROCESSED][SubjectID=ocspadmin][Outcome=Success]
+[CASubjectDN=CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE] Add CA for OCSP 
+Responder
 ----
 
 == OCSP_REMOVE_CA_REQUEST ==
@@ -46,8 +63,12 @@ OCSP_REMOVE_CA_REQUEST_PROCESSED_FAILURE event will be generated when a remove C
 For example, go to OCSP Web UI, click '''List Certificate Authorities''', click '''Remove CA''', then click '''OK'''. The server will generate the following logs:
 
 ----
-[AuditEvent=OCSP_REMOVE_CA_REQUEST][SubjectID=ocspadmin][Outcome=Success][CASubjectDN=CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE] request to remove a CA from OCSP Responder
-[AuditEvent=OCSP_REMOVE_CA_REQUEST_PROCESSED_SUCCESS][SubjectID=ocspadmin][Outcome=Success][CASubjectDN=CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE] Remove CA for OCSP Responder is successful
+[AuditEvent=OCSP_REMOVE_CA_REQUEST][SubjectID=ocspadmin][Outcome=Success][CASubj
+ectDN=CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE] request to remove a CA 
+from OCSP Responder
+[AuditEvent=OCSP_REMOVE_CA_REQUEST_PROCESSED_SUCCESS][SubjectID=ocspadmin][Outco
+me=Success][CASubjectDN=CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE] Remov
+e CA for OCSP Responder is successful
 ----
 
 In PKI 10.5 the OCSP_REMOVE_CA_REQUEST_PROCESSED_SUCCESS and OCSP_REMOVE_CA_REQUEST_PROCESSED_FAILURE events are merged into OCSP_REMOVE_CA_REQUEST_PROCESSED event.
@@ -73,19 +94,22 @@ CertStatus=Good
 The server will generate the following log when the OCSP response generation is complete:
 
 ----
-[AuditEvent=OCSP_GENERATION][SubjectID=$NonRoleUser$][Outcome=Success] OCSP response generation
+[AuditEvent=OCSP_GENERATION][SubjectID=$NonRoleUser$][Outcome=Success] OCSP resp
+onse generation
 ----
 
 If the OCSP response generation fails, the server will log the failure reason:
 
 ----
-[AuditEvent=OCSP_GENERATION][SubjectID=$NonRoleUser$][Outcome=Failure][FailureReason=<reason>] OCSP response generation
+[AuditEvent=OCSP_GENERATION][SubjectID=$NonRoleUser$][Outcome=Failure][FailureRe
+ason=<reason>] OCSP response generation
 ----
 
 For example, if the CA has not published the CRL, the following log will be generated:
 
 ----
-[AuditEvent=OCSP_GENERATION][SubjectID=$NonRoleUser$][Outcome=Failure][FailureReason=Missing CRL data] OCSP response generation
+[AuditEvent=OCSP_GENERATION][SubjectID=$NonRoleUser$][Outcome=Failure][FailureRe
+ason=Missing CRL data] OCSP response generation
 ----
 
 See also link:CA-Audit-Events[OCSP_GENERATION in CA Audit Events].
