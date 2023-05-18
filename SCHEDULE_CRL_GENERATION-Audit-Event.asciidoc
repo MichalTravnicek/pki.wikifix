@@ -1,0 +1,15 @@
+Since version 10.4.x CA will generate a `SCHEDULE_CRL_GENERATION` event when the CRL generation is scheduled manually.
+
+For example, use the Web UI to update the CRL. The server will generate the following log immediately:
+
+----
+[AuditEvent=SCHEDULE_CRL_GENERATION][SubjectID=<username>][Outcome=Success] sche
+dule for CRL generation
+----
+
+If the scheduling fails, the server will log the failure reason:
+
+----
+[AuditEvent=SCHEDULE_CRL_GENERATION][SubjectID=<username>][Outcome=Failure][Fail
+ureReason=<reason>] schedule for CRL generation
+----
