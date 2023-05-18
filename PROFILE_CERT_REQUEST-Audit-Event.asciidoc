@@ -1,0 +1,22 @@
+The `PROFILE_CERT_REQUEST` audit event is generated when a profile certificate request is made (before approval process).
+
+Properties:
+
+* `SubjectID` must be the UID of user that triggered this event (if CMC enrollment requests signed by an agent, `SubjectID` should be that of the agent)
+* `CertSubject` must be the certificate subject name of the certificate request
+* `ReqID` must be the certificate request ID
+* `ProfileID` must be one of the certificate profiles defined by the administrator
+
+For example, use PKI CLI to submit certificate request:
+
+----
+$ pki client-cert-request UID=testuser
+----
+
+The server will generate the following audit logs:
+
+----
+[AuditEvent=PROFILE_CERT_REQUEST][SubjectID=$NonRoleUser$][Outcome=Success][ReqI
+D=7][ProfileID=caUserCert][CertSubject=UID=testuser] certificate request made wi
+th certificate profiles
+----
