@@ -152,33 +152,7 @@ See link:ROLE_ASSUME-Audit-Event[ROLE_ASSUME Audit Event].
 
 == CONFIG_ROLE ==
 
-This event is triggered when configuring role information (anything under users/groups) add/remove/edit a role, etc).
-
-Properties:
-
-* `ParamNameValPairs` must be a `name;;value` pair (where name and value are separated by the delimiter `;;`) separated by `+` (if more than one `name;;value` pair) of config params changed
-
-For example, use CLI to add a member to a group:
-
-----
-$ pki -n caadmin ca-group-member-add Administrators testuser
-----
-
-The server will generate the following logs:
-
-----
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success] access session establish success
-[AuditEvent=AUTH_SUCCESS][SubjectID=caadmin][Outcome=Success][AuthMgr=certUserDBAuthMgr] authentication success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=caadmin][Outcome=Success][aclResource=certServer.ca.account][Op=login][Info=AccountResource.login] authorization success
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success] access session establish success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=caadmin][Outcome=Success][aclResource=certServer.ca.groups][Op=execute][Info=GroupResource.addGroupMember] authorization success
-[AuditEvent=CONFIG_ROLE][SubjectID=caadmin][Outcome=Success][ParamNameValPairs=Scope;;members+Operation;;OP_ADD+Resource;;Administrators+user;;testuser] role configuration parameter(s) change
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success] access session establish success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=caadmin][Outcome=Success][aclResource=certServer.ca.account][Op=logout][Info=AccountResource.logout] authorization success
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-----
+See link:CONFIG_ROLE-Audit-Event[CONFIG_ROLE Audit Event].
 
 == CONFIG_SIGNED_AUDIT ==
 
