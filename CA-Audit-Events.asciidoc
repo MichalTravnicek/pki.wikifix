@@ -73,46 +73,11 @@ See link:DELTA_CRL_PUBLISHING-Audit-Event[DELTA_CRL_PUBLISHING Audit Event].
 
 == FULL_CRL_GENERATION ==
 
-Since version 10.4.x the PKI Server will generate a `FULL_CRL_GENERATION` event when the full CRL generation is complete.
-
-For example, use the Web UI to update the CRL. The server will generate the following log when the full CRL generation is complete:
-
-----
-[AuditEvent=FULL_CRL_GENERATION][SubjectID=$System$][Outcome=Success][CRLnum=<CR
-L number>] Full CRL generation
-----
-
-If noCRLIfNoRevokedCert is true and there is no revoked certificates, the server will generate the following log:
-
-----
-[AuditEvent=FULL_CRL_GENERATION][SubjectID=$System$][Outcome=Success][Info=No Re
-voked Certificates] Full CRL generation
-----
-
-If the full CRL generation fails, the server will log the failure reason:
-
-----
-[AuditEvent=FULL_CRL_GENERATION][SubjectID=$System$][Outcome=Failure][FailureRea
-son=<reason>] Full CRL generation
-----
+See link:FULL_CRL_GENERATION-Audit-Event[FULL_CRL_GENERATION Audit Event].
 
 == FULL_CRL_PUBLISHING ==
 
-Since version 10.4.x the PKI Server will generate a `FULL_CRL_PUBLISHING` event when the full CRL publishing is complete.
-
-For example, use the Web UI to update the CRL. The server will generate the following log when the full CRL publishing is complete:
-
-----
-[AuditEvent=FULL_CRL_PUBLISHING][SubjectID=$System$][Outcome=Success][CRLnum=<CR
-L number>] Full CRL publishing
-----
-
-If the full CRL publishing fails, the server will log the failure reason:
-
-----
-[AuditEvent=FULL_CRL_PUBLISHING][SubjectID=$System$][Outcome=Failure][CRLnum=<CR
-L number>][FailureReason=<reason>] Full CRL publishing
-----
+See link:FULL_CRL_PUBLISHING-Audit-Event[FULL_CRL_PUBLISHING Audit Event].
 
 == CRL_RETRIEVAL ==
 
