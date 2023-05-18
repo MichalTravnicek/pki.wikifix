@@ -65,46 +65,11 @@ See link:SCHEDULE_CRL_GENERATION-Audit-Event[SCHEDULE_CRL_GENERATION Audit Event
 
 == DELTA_CRL_GENERATION ==
 
-Since version 10.4.x the PKI Server will generate a `DELTA_CRL_GENERATION` event when the delta CRL generation is complete.
-
-For example, enable delta CRL, use the Web UI to update the CRL. The server will generate the following log when the delta CRL generation is complete:
-
-----
-[AuditEvent=DELTA_CRL_GENERATION][SubjectID=$System$][Outcome=Success][CRLnum=<C
-RL number>] Delta CRL generation
-----
-
-If noCRLIfNoRevokedCert is true and there is no revoked certificates, the server will generate the following log:
-
-----
-[AuditEvent=DELTA_CRL_GENERATION][SubjectID=$System$][Outcome=Success][Info=No R
-evoked Certificates] Delta CRL generation
-----
-
-If the delta CRL generation fails, the server will log the failure reason:
-
-----
-[AuditEvent=DELTA_CRL_GENERATION][SubjectID=$System$][Outcome=Failure][FailureRe
-ason=<reason>] Delta CRL generation
-----
+See link:DELTA_CRL_GENERATION-Audit-Event[DELTA_CRL_GENERATION Audit Event].
 
 == DELTA_CRL_PUBLISHING ==
 
-Since version 10.4.x the PKI Server will generate a `DELTA_CRL_PUBLISHING` event when the delta CRL publishing is complete.
-
-For example, enable delta CRL, use the Web UI to update the CRL. The server will generate the following log when the delta CRL publishing is complete:
-
-----
-[AuditEvent=DELTA_CRL_PUBLISHING][SubjectID=$System$][Outcome=Success][CRLnum=<C
-RL number>] Delta CRL publishing
-----
-
-If the delta CRL publishing fails, the server will log the failure reason:
-
-----
-[AuditEvent=DELTA_CRL_PUBLISHING][SubjectID=$System$][Outcome=Failure][CRLnum=<C
-RL number>][FailureReason=<reason>] Delta CRL publishing
-----
+See link:DELTA_CRL_PUBLISHING-Audit-Event[DELTA_CRL_PUBLISHING Audit Event].
 
 == FULL_CRL_GENERATION ==
 
