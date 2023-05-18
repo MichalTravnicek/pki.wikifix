@@ -1,0 +1,54 @@
+The `ROLE_ASSUME` audit event is generate when user assumes a role (in current CS that's when one accesses a role port).
+
+Properties:
+
+* `Role` must be be one of the valid roles, by default: `Administrators`, `Certificate Manager Agents`, and `Auditors`. Note that customized role names can be used once configured.
+
+For example, start PKI Console and login as admin user. The server will generate the following logs:
+
+----
+[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.
+34.78.30][SubjectID=][Outcome=Success] access session establish success
+[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.
+34.78.30][SubjectID=][Outcome=Success] access session establish success
+[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.
+34.78.30][SubjectID=][Outcome=Success] access session establish success
+[AuditEvent=AUTH_SUCCESS][SubjectID=caadmin][Outcome=Success][AuthMgr=passwdUser
+DBAuthMgr] authentication success
+[AuditEvent=AUTH_SUCCESS][SubjectID=caadmin][Outcome=Success][AuthMgr=passwdUser
+DBAuthMgr] authentication success
+[AuditEvent=AUTHZ_SUCCESS][SubjectID=caadmin][Outcome=Success][aclResource=certS
+erver.log.configuration][Op=read] authorization success
+[AuditEvent=ROLE_ASSUME][SubjectID=caadmin][Outcome=Success][Role=Certificate Ma
+nager Agents, Administrators, Security Domain Administrators, Enterprise CA Admi
+nistrators, Enterprise KRA Administrators, Enterprise OCSP Administrators, Enter
+prise TKS Administrators, Enterprise RA Administrators, Enterprise TPS Administr
+ators] assume privileged role
+[AuditEvent=AUTH_SUCCESS][SubjectID=caadmin][Outcome=Success][AuthMgr=passwdUser
+DBAuthMgr] authentication success
+[AuditEvent=AUTHZ_SUCCESS][SubjectID=caadmin][Outcome=Success][aclResource=certS
+erver.general.configuration][Op=read] authorization success
+[AuditEvent=ROLE_ASSUME][SubjectID=caadmin][Outcome=Success][Role=Certificate Ma
+nager Agents, Administrators, Security Domain Administrators, Enterprise CA Admi
+nistrators, Enterprise KRA Administrators, Enterprise OCSP Administrators, Enter
+prise TKS Administrators, Enterprise RA Administrators, Enterprise TPS Administr
+ators] assume privileged role
+[AuditEvent=AUTH_SUCCESS][SubjectID=caadmin][Outcome=Success][AuthMgr=passwdUser
+DBAuthMgr] authentication success
+[AuditEvent=AUTHZ_SUCCESS][SubjectID=caadmin][Outcome=Success][aclResource=certS
+erver.ca.configuration][Op=read] authorization success
+[AuditEvent=ROLE_ASSUME][SubjectID=caadmin][Outcome=Success][Role=Certificate Ma
+nager Agents, Administrators, Security Domain Administrators, Enterprise CA Admi
+nistrators, Enterprise KRA Administrators, Enterprise OCSP Administrators, Enter
+prise TKS Administrators, Enterprise RA Administrators, Enterprise TPS Administr
+ators] assume privileged role
+[AuditEvent=AUTH_SUCCESS][SubjectID=caadmin][Outcome=Success][AuthMgr=passwdUser
+DBAuthMgr] authentication success
+[AuditEvent=AUTHZ_SUCCESS][SubjectID=caadmin][Outcome=Success][aclResource=certS
+erver.general.configuration][Op=read] authorization success
+[AuditEvent=ROLE_ASSUME][SubjectID=caadmin][Outcome=Success][Role=Certificate Ma
+nager Agents, Administrators, Security Domain Administrators, Enterprise CA Admi
+nistrators, Enterprise KRA Administrators, Enterprise OCSP Administrators, Enter
+prise TKS Administrators, Enterprise RA Administrators, Enterprise TPS Administr
+ators] assume privileged role
+----
