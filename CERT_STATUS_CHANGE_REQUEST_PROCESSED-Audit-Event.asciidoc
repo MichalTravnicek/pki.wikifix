@@ -1,0 +1,15 @@
+The `CERT_STATUS_CHANGE_REQUEST_PROCESSED` audit event is generated after the completion of certificate status change (revoked, expired, on-hold, off-hold).
+
+For example, execute the following command to put a certificate on-hold:
+
+----
+$ pki -n caadmin ca-cert-hold 0x4 --force
+----
+
+The server will generate the following logs:
+
+----
+[AuditEvent=CERT_STATUS_CHANGE_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Suc
+cess][ReqID=9][CertSerialNum=0x4][RequestType=on-hold][RevokeReasonNum=6][Approv
+al=complete] certificate status change request processed
+----
