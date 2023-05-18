@@ -202,18 +202,7 @@ erification
 
 == CONFIG_CRL_PROFILE ==
 
-CONFIG_CRL_PROFILE event will be generated when CRL configuration is updated.
-
-For example, open CA console, go to Configuration -> Certificate Manager -> CRL Issuing Points -> Master CRL -> Updates. Make some changes, then click Save. The server will generate the following logs:
-
-----
-[AuditEvent=CONFIG_CRL_PROFILE][SubjectID=caadmin][Outcome=Success][ParamNameVal
-Pairs=Scope;;crl+Operation;;OP_MODIFY+Resource;;MasterCRL+enableCRLUpdates;;true
-+updateSchema;;1+extendedNextUpdate;;true+alwaysUpdate;;false+enableDailyUpdates
-;;true+dailyUpdates;;1:00+enableUpdateInterval;;true+autoUpdateInterval;;241+nex
-tUpdateGracePeriod;;242+nextAsThisUpdateExtension;;243] CRL profile configuratio
-n parameter(s) change
-----
+See link:CONFIG_CRL_PROFILE-Audit-Event[CONFIG_CRL_PROFILE Audit Event].
 
 == SCHEDULE_CRL_GENERATION ==
 
