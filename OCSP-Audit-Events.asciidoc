@@ -25,16 +25,7 @@ The OCSP_SIGNING_INFO indicates which key is used to sign OCSP responses.
 
 == CONFIG_OCSP_PROFILE ==
 
-CONFIG_OCSP_PROFILE event will be generated when OCSP configuration is updated.
-
-For example, open OCSP Console, go to Configuration -> Online Certificate Status Manager -> Revocation Info Stores, select `defStore`, then click Edit/View. Make some changes, then click OK. The server will generate the following logs:
-
-----
-[AuditEvent=CONFIG_OCSP_PROFILE][SubjectID=ocspadmin][Outcome=Success][ParamName
-ValPairs=Scope;;ocspStoresRules+Operation;;OP_MODIFY+Resource;;defStore+includeN
-extUpdate;;false+byName;;true+implName;;com.netscape.cms.ocsp.DefStore+notFoundA
-sGood;;true] OCSP profile configuration parameter(s) change
-----
+See link:CONFIG_OCSP_PROFILE-Audit-Event[CONFIG_OCSP_PROFILE Audit Event].
 
 == OCSP_ADD_CA_REQUEST ==
 
