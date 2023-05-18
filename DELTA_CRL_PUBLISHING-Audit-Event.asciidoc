@@ -1,0 +1,16 @@
+Since version 10.4.x CA will generate a `DELTA_CRL_PUBLISHING` event when the delta CRL publishing is complete.
+
+For example, enable delta CRL, use the Web UI to update the CRL.
+The server will generate the following log when the delta CRL publishing is complete:
+
+----
+[AuditEvent=DELTA_CRL_PUBLISHING][SubjectID=$System$][Outcome=Success][CRLnum=<C
+RL number>] Delta CRL publishing
+----
+
+If the delta CRL publishing fails, the server will log the failure reason:
+
+----
+[AuditEvent=DELTA_CRL_PUBLISHING][SubjectID=$System$][Outcome=Failure][CRLnum=<C
+RL number>][FailureReason=<reason>] Delta CRL publishing
+----
