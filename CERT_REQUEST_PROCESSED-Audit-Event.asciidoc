@@ -1,0 +1,96 @@
+= Overview =
+
+The `CERT_REQUEST_PROCESSED` audit event is generated when a certificate request has just been through the approval process.
+
+Properties:
+
+* `SubjectID` must be the UID of the agent who approves, rejects, or cancels the certificate request
+* `ReqID` must be the request ID
+* `InfoName` must be value `certificate` (in case of approval), `rejectReason` (in case of rejection), or `cancelReason` (in case of cancelation)
+* `InfoValue` must contain the certificate (in case of success), a rejection reason in text, or a cancelation reason in text
+
+= Case 1: Approved request =
+
+Use PKI CLI to approve a certificate request:
+
+----
+$ pki -n caadmin ca-cert-request-review 7 --action approve
+----
+
+In PKI 10.4.5 or later the server will generate a log with the certificate serial number:
+
+----
+[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Success][ReqID=7]
+[CertSerialNum=7] certificate request succeeded
+----
+
+Prior to 10.4.5 the server will generate a log with the base64-encoded certificate data:
+
+----
+[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Success][ReqID=7]
+[InfoName=certificate][InfoValue=MIIDBD...] certificate request processed
+----
+
+See also:
+
+* link:https://github.com/dogtagpki/pki/issues/2959[Ticket #2959: Missing authority ID in LWCA signing audit events.]
+
+= Case 2: Rejected request =
+
+Use PKI CLI to reject a certificate request:
+
+----
+$ pki -n caadmin ca-cert-request-review 7 --action reject
+----
+
+In PKI 10.4.5 or later the server will generate a log with [Outcome=Failure]:
+
+----
+[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Failure][ReqID=7]
+[InfoName=rejectReason][InfoValue=<null>] certificate request processed
+----
+
+Prior to PKI 10.4.5 the server will generate a log with [Outcome=Success]:
+
+----
+[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Success][ReqID=7]
+[InfoName=rejectReason][InfoValue=<null>] certificate request processed
+----
+
+= Case 3: Canceled request =
+
+Use PKI CLI to cancel a certificate request:
+
+----
+$ pki -n caadmin ca-cert-request-review 7 --action cancel
+----
+
+In PKI 10.4.5 or later the server will generate a log with [Outcome=Failure]:
+
+----
+[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Failure][ReqID=7]
+[InfoName=cancelReason][InfoValue=<null>] certificate request processed
+----
+
+Prior to 10.4.5 the server will generate the a log with [Outcome=Success]:
+
+----
+[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Success][ReqID=7]
+[InfoName=cancelReason][InfoValue=<null>] certificate request processed
+----
+
+= Case 4: Invalid request =
+
+Use PKI CLI to submit an invalid certificate request:
+
+----
+$ pki client-cert-request UID=testuser --profile caServerCert
+----
+
+The server will generate the following logs:
+
+----
+[AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=$NonRoleUser$][Outcome=Failure][Re
+qID=7][InfoName=rejectReason][InfoValue=Request 7 Rejected - Subject Name Not Ma
+tched UID=testuser] certificate request processed
+----
