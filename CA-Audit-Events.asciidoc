@@ -43,26 +43,11 @@ See link:CERT_REQUEST_PROCESSED-Audit-Event[CERT_REQUEST_PROCESSED Audit Event].
 
 == CERT_STATUS_CHANGE_REQUEST ==
 
-`CERT_STATUS_CHANGE_REQUEST` event is generated when a certificate status change request (e.g. revocation) is made (before approval process).
+See link:CERT_STATUS_CHANGE_REQUEST-Audit-Event[CERT_STATUS_CHANGE_REQUEST Audit Event].
 
-`CERT_STATUS_CHANGE_REQUEST_PROCESSED` event is generated when certificate status is changed (revoked, expired, on-hold, off-hold).
+== CERT_STATUS_CHANGE_REQUEST_PROCESSED ==
 
-For example, execute the following command to put a certificate on-hold:
-
-----
-$ pki -n caadmin ca-cert-hold 0x4 --force
-----
-
-The server will generate the following logs:
-
-----
-[AuditEvent=CERT_STATUS_CHANGE_REQUEST][SubjectID=caadmin][Outcome=Success][ReqI
-D=9][CertSerialNum=0x4][RequestType=on-hold] certificate revocation/unrevocation
- request made
-[AuditEvent=CERT_STATUS_CHANGE_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Suc
-cess][ReqID=9][CertSerialNum=0x4][RequestType=on-hold][RevokeReasonNum=6][Approv
-al=complete] certificate status change request processed
-----
+See link:CERT_STATUS_CHANGE_REQUEST_PROCESSED-Audit-Event[CERT_STATUS_CHANGE_REQUEST_PROCESSED Audit Event].
 
 == CMC_SIGNED_REQUEST_SIG_VERIFY ==
 
