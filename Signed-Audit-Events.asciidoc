@@ -369,45 +369,7 @@ The server will generate the following logs:
 
 == RANDOM_GENERATION ==
 
-Since version 10.5 a `RANDOM_GENERATION` event will be generated for any random number generated on the server (including link:Random-Certificate-Serial-Numbers[Random Certificate Serial Numbers]). The event will include the information about the caller of the random number generator and the size of the random number in bytes.
-
-By default only failed events will be logged. To log all events, change the link:Signed-Audit-Event-Filters[filter] in CS.cfg as follows:
-
-----
-log.instance.SignedAudit.filters.RANDOM_GENERATION=(Outcome=*)
-----
-
-then restart the server.
-
-For example, submit a certificate request with this command:
-
-----
-$ pki -c Secret.123 client-cert-request uid=testuser
-----
-
-Then approve the request with this command:
-
-----
-$ pki -n caadmin ca-cert-request-review 7 --action approve
-----
-
-During the approval process the server will generate an 8-byte nonce, which generated from two 4-byte random numbers, so there will be two `RANDOM_GENERATION` events:
-
-----
-[AuditEvent=RANDOM_GENERATION][SubjectID=caadmin][Outcome=Success][Info=Caller;;com.netscape.cms.servlet.cert.CertRequestDAO.reviewRequest(CertRequestDAO.java:151)+Size;;4] Random number generation
-[AuditEvent=RANDOM_GENERATION][SubjectID=caadmin][Outcome=Success][Info=Caller;;com.netscape.cms.servlet.cert.CertRequestDAO.reviewRequest(CertRequestDAO.java:151)+Size;;4] Random number generation
-----
-
-The Info attribute contains parameters separated by `+`, and each parameter consists of name-value pair separated with `;;`. So the above `Info` contains:
-
-* `Caller`: `com.netscape.cms.servlet.cert.CertRequestDAO.reviewRequest(CertRequestDAO.java:151)`
-* `Size`: `4`
-
-If link:Random-Certificate-Serial-Numbers[Random Certificate Serial Numbers] is enabled, there will be an additional `RANDOM_GENERATION` event:
-
-----
-[AuditEvent=RANDOM_GENERATION][SubjectID=caadmin][Outcome=Success][Info=Caller;;com.netscape.cmscore.dbs.CertificateRepository.getRandomNumber(CertificateRepository.java:192)+Size;;4] Random number generation
-----
+See link:RANDOM_GENERATION-Audit-Event[RANDOM_GENERATION Audit Event].
 
 = See Also =
 
