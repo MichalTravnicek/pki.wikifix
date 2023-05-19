@@ -30,56 +30,15 @@ Event properties:
 
 == CONFIG_TOKEN_GENERAL ==
 
-This event is triggered when the general TPS configuration is updated.
-
-----
-[AuditEvent=CONFIG_TOKEN_GENERAL][SubjectID=tpsadmin][Outcome=Success][Service=C
-onfigService.updateConfig[ParamNameValPairs=+applet._000;;######################
-###################+applet._001;;# applet information+applet._002;;# SAF Key:+ap
-plet._003;;# applet.aid.cardmgr_instance=A0000001510000+applet._004;;# Stock RSA
-,KeyRecover applet : 1.4.54de790f.ijc+applet._005;;# Beta RSA/KeyRecovery/GP211/
-SCP02 applet : 1.5.558cdcff.ijc+applet._006;;# Use GP211 applet only with SCP02 
-card+applet._007;;#########################################+applet.aid.cardmgr_i
-nstance;;A0000000030000+applet.aid.netkey_file;;627601FF0000+applet.aid.netkey_i
-nstance;;627601FF000000+applet.aid.netkey_old_file;;A000000001+applet.aid.netkey
-_old_instance;;A00000000101+applet.delete_old;;true+applet.so_pin;;000000000000+
-channel._000;;#########################################+channel._001;;# channel.
-encryption:+channel._002;;#+channel._003;;#   - enable encryption for all operat
-ion commands to token+channel._004;;#   - default is true+channel._005;;#  chann
-el.blocksize=224+channel._006;;#  channel.defKeyVersion=0+channel._007;;#  chann
-el.defKeyIndex=0+channel._008;;#+channel._009;;#  Config the size of memory mana
-ged memory in the applet+channel._010;;#  Default is 5000, try not go get close 
-to the instanceSize+channel._011;;#  which defaults to 18000:+channel._012;;#+ch
-annel._013;;#  * channel.instanceSize=18000+channel._014;;#  * channel.appletMem
-orySize=5000+channel._015;;#########################################+channel.blo
-cksize;;224+channel.defKeyIndex;;0+channel.defKeyVersion;;0+channel.encryption;;
-true+failover.pod.enable;;false+general.applet_ext;;ijc+general.pwlength.min;;12
-+general.search.sizelimit.default;;100+general.search.sizelimit.max;;2000+genera
-l.search.timelimit.default;;10+general.search.timelimit.max;;10+general.verifyPr
-oof;;1][Info=null] TPS token configuration parameter(s) change
-----
+* link:CONFIG_TOKEN_GENERAL-Audit-Event[CONFIG_TOKEN_GENERAL]
 
 == CONFIG_TOKEN_PROFILE ==
 
-This event is triggered when a token profile configuration is updated.
-
-----
-[AuditEvent=CONFIG_TOKEN_PROFILE][SubjectID=tpsadmin][Outcome=Success][Service=P
-rofileService.updateProfile][ProfileID=cfuTestProfile5][ParamNameValPairs=+op.en
-roll.cfuTestProfile5.entry0;;value0+op.enroll.cfuTestProfile5.entry1;;value1][In
-fo=null] token profile configuration parameter(s) change
-----
+* link:CONFIG_TOKEN_PROFILE-Audit-Event[CONFIG_TOKEN_PROFILE]
 
 == CONFIG_TOKEN_MAPPING_RESOLVER ==
 
-This event is triggered when a token mapping resolver configuration is updated.
-
-----
-[AuditEvent=CONFIG_TOKEN_MAPPING_RESOLVER][SubjectID=tpsadmin][Outcome=Success][
-Service=ProfileMappingService.removeProfileMapping][MappingResolverID=cfu4mappin
-gResolver][ParamNameValPairs=][Info=null] token mapping resolver configuration p
-arameter(s) change
-----
+* link:CONFIG_TOKEN_MAPPING_RESOLVER-Audit-Event[CONFIG_TOKEN_MAPPING_RESOLVER]
 
 == CONFIG_TOKEN_AUTHENTICATOR ==
 
