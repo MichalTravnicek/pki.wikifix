@@ -1,0 +1,47 @@
+= Overview =
+
+The `CONFIG_SIGNED_AUDIT` audit event is generated when configuring signed audit logging.
+
+* `ParamNameValPairs` must be a `name;;value` pair (where name and value are separated by the delimiter `;;`) separated by `+` (if more than one `name;;value` pair) of config params changed
+
+= Examples =
+
+Use CLI to disable audit:
+
+----
+$ pki -n caadmin ca-audit-mod --action disable
+----
+
+The server will generate the following logs:
+
+----
+[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.
+34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=E
+XAMPLE][Outcome=Success] access session establish success
+[AuditEvent=AUTH_SUCCESS][SubjectID=caadmin][Outcome=Success][AuthMgr=certUserDB
+AuthMgr] authentication success
+[AuditEvent=AUTHZ_SUCCESS][SubjectID=caadmin][Outcome=Success][aclResource=certS
+erver.ca.account][Op=login][Info=AccountResource.login] authorization success
+[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=10.34.78.30][ServerIP=10.34.78.3
+0][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE]
+[Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
+[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.
+34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=E
+XAMPLE][Outcome=Success] access session establish success
+[AuditEvent=AUTHZ_SUCCESS][SubjectID=caadmin][Outcome=Success][aclResource=certS
+erver.log.configuration][Op=modify][Info=AuditResource.changeAuditStatus] author
+ization success
+[AuditEvent=CONFIG_SIGNED_AUDIT][SubjectID=caadmin][Outcome=Success][ParamNameVa
+lPairs=+Action;;disable] signed audit configuration parameter(s) change
+[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=10.34.78.30][ServerIP=10.34.78.3
+0][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE]
+[Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
+[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.
+34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=E
+XAMPLE][Outcome=Success] access session establish success
+[AuditEvent=AUTHZ_SUCCESS][SubjectID=caadmin][Outcome=Success][aclResource=certS
+erver.ca.account][Op=logout][Info=AccountResource.logout] authorization success
+[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=10.34.78.30][ServerIP=10.34.78.3
+0][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE]
+[Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
+----
