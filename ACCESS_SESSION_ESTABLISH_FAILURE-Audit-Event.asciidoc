@@ -1,0 +1,37 @@
+= Overview =
+
+The `ACCESS_SESSION_ESTABLISH_FAILURE` audit event is generated when PKI client failed to establish a secure connection to PKI server.
+
+Properties:
+
+* `ClientIP`: Client's IP address
+* `ServerIP`: Server's IP address
+* `SubjectID`: Client certificate's subject DN if known
+* `Outcome`: `Failure`
+* `Info`: Failure reason
+** See link:https://github.com/dogtagpki/jss/blob/master/org/mozilla/jss/ssl/SSLAlertDescription.java[SSLAlertDescription.java]
+
+*Note:* In PKI 10.5 this event is renamed to `ACCESS_SESSION_ESTABLISH`.
+
+= Examples =
+
+Configure CLI to use a cipher that is disabled on the server:
+
+----
+SSL_CIPHERS="TLS_RSA_WITH_AES_128_CBC_SHA256"
+SSL_DEFAULT_CIPHERS="false"
+----
+
+Then execute a CLI command that uses SSL:
+
+----
+$ pki -n caadmin ca-user-find
+----
+
+The operation will fail and the server will generate the following log:
+
+----
+[AuditEvent=ACCESS_SESSION_ESTABLISH_FAILURE][ClientIP=10.34.78.30][ServerIP=10.
+34.78.30][SubjectID=][Outcome=Failure][Info=HANDSHAKE_FAILURE] access session es
+tablish failure
+----
