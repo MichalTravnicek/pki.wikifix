@@ -182,35 +182,7 @@ See link:ACCESS_SESSION_ESTABLISH-Audit-Event[ACCESS_SESSION_ESTABLISH Audit Eve
 
 == ACCESS_SESSION_TERMINATED ==
 
-This event is triggered when the secure connection between PKI client and PKI server is terminated.
-
-Properties:
-
-* `ClientIP`: Client's IP address
-* `ServerIP`: Server's IP address
-* `SubjectID`: Client certificate's subject DN
-* `Outcome`: Success
-
-For example, use CLI to authenticate as admin user:
-
-----
-$ pki -n caadmin ca-user-find
-----
-
-The server will generate the following logs:
-
-----
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success] access session establish success
-[AuditEvent=AUTH_SUCCESS][SubjectID=caadmin][Outcome=Success][AuthMgr=certUserDBAuthMgr] authentication success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=caadmin][Outcome=Success][aclResource=certServer.ca.account][Op=login][Info=AccountResource.login] authorization success
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success] access session establish success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=caadmin][Outcome=Success][aclResource=certServer.ca.users][Op=execute][Info=UserResource.findUsers] authorization success
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success] access session establish success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=caadmin][Outcome=Success][aclResource=certServer.ca.account][Op=logout][Info=AccountResource.logout] authorization success
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-----
+See link:ACCESS_SESSION_TERMINATED-Audit-Event[ACCESS_SESSION_TERMINATED Audit Event].
 
 = Outbound Connection Events =
 
