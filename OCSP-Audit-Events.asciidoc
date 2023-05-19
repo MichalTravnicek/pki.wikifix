@@ -25,44 +25,19 @@ The OCSP_SIGNING_INFO indicates which key is used to sign OCSP responses.
 
 == CONFIG_OCSP_PROFILE ==
 
-See link:CONFIG_OCSP_PROFILE-Audit-Event[CONFIG_OCSP_PROFILE Audit Event].
+* link:CONFIG_OCSP_PROFILE-Audit-Event[CONFIG_OCSP_PROFILE]
 
 == OCSP_ADD_CA_REQUEST ==
 
-OCSP_ADD_CA_REQUEST event will be generated when a CA is attempted to be added to the OCSP Responder.
-
-OCSP_ADD_CA_REQUEST_PROCESSED event will be generated when an add CA request to the OCSP Responder is processed.
-
-For example, go to OCSP Web UI, click '''Add Certificate Authority''', enter the CA certificate, then click '''Add'''. The server will generate the following logs:
-
-----
-[AuditEvent=OCSP_ADD_CA_REQUEST][SubjectID=ocspadmin][Outcome=Success][CA=MIID..
-.S6I=] request to add a CA for OCSP Responder
-[AuditEvent=OCSP_ADD_CA_REQUEST_PROCESSED][SubjectID=ocspadmin][Outcome=Success]
-[CASubjectDN=CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE] Add CA for OCSP 
-Responder
-----
+* link:OCSP_ADD_CA_REQUEST-Audit-Event[OCSP_ADD_CA_REQUEST]
+* link:OCSP_ADD_CA_REQUEST_PROCESSED-Audit-Event[OCSP_ADD_CA_REQUEST_PROCESSED]
 
 == OCSP_REMOVE_CA_REQUEST ==
 
-OCSP_REMOVE_CA_REQUEST event will be generated when a CA is attempted to be removed from the OCSP Responder.
-
-OCSP_REMOVE_CA_REQUEST_PROCESSED_SUCCESS event will be generated when a remove CA request to the OCSP Responder is processed successfully.
-
-OCSP_REMOVE_CA_REQUEST_PROCESSED_FAILURE event will be generated when a remove CA request to the OCSP Responder is processed and failed.
-
-For example, go to OCSP Web UI, click '''List Certificate Authorities''', click '''Remove CA''', then click '''OK'''. The server will generate the following logs:
-
-----
-[AuditEvent=OCSP_REMOVE_CA_REQUEST][SubjectID=ocspadmin][Outcome=Success][CASubj
-ectDN=CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE] request to remove a CA 
-from OCSP Responder
-[AuditEvent=OCSP_REMOVE_CA_REQUEST_PROCESSED_SUCCESS][SubjectID=ocspadmin][Outco
-me=Success][CASubjectDN=CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE] Remov
-e CA for OCSP Responder is successful
-----
-
-In PKI 10.5 the OCSP_REMOVE_CA_REQUEST_PROCESSED_SUCCESS and OCSP_REMOVE_CA_REQUEST_PROCESSED_FAILURE events are merged into OCSP_REMOVE_CA_REQUEST_PROCESSED event.
+* link:OCSP_REMOVE_CA_REQUEST-Audit-Event[OCSP_REMOVE_CA_REQUEST]
+* link:OCSP_REMOVE_CA_REQUEST_PROCESSED_SUCCESS-Audit-Event[OCSP_REMOVE_CA_REQUEST_PROCESSED_SUCCESS]
+* link:OCSP_REMOVE_CA_REQUEST_PROCESSED_FAILURE-Audit-Event[OCSP_REMOVE_CA_REQUEST_PROCESSED_FAILURE]
+* link:OCSP_REMOVE_CA_REQUEST_PROCESSED-Audit-Event[OCSP_REMOVE_CA_REQUEST_PROCESSED]
 
 == OCSP_GENERATION ==
 
