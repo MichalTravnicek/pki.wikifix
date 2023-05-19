@@ -1,0 +1,25 @@
+= Overview =
+
+The `SYMKEY_GENERATION_REQUEST` audit event is generated when a request to generate a symmetric key is received.
+
+Properties:
+
+* `SubjectID`: UID of user requesting the key generation 
+* `Outcome`: success/failure
+* `GenerationRequestID`: ID of request on KRA request queue
+* `ClientKeyID`: user provided client key identifier
+
+= Examples =
+
+Use PKI CLI to generate a symmetric key:
+
+----
+$ pki -n kraadmin kra-key-generate "my_symkey9" --key-algorithm AES --key-size 128 --usages encrypt,decrypt
+----
+
+The server will generate the following logs:
+
+----
+[AuditEvent=SYMKEY_GENERATION_REQUEST][SubjectID=kraadmin][Outcome=Success][Gene
+rationRequestID=330][ClientKeyID=my_symkey9] symkey generation request made
+----
