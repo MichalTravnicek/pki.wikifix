@@ -1,8 +1,80 @@
+= Overview =
+
+The `SECURITY_DATA_RECOVERY_REQUEST_PROCESSED` audit event is generated when an approved key recovery request is processed.
+
 Properties:
 
 * `SubjectID`: UID of agent that is recovering the key
-* `Outcome`: Success/ Failure
+* `Outcome`: Success/Failure
 * `RecoveryID`: ID of recovery request
 * `KeyID`: ID of key being retrieved.
 * `FailureReason`: Null if successful.
 * `RecoveryAgents`: list of agents who have approved the recovery request.
+
+= Examples =
+
+== Using Web UI ==
+
+These are the logs created when the key is retrieved as a PKCS #12 file from the KRA UI.
+ 
+----
+[AuditEvent=SECURITY_DATA_RECOVERY_REQUEST_PROCESSED][SubjectID=kraadmin][Outcom
+e=Success][RecoveryID=316][KeyID=157][FailureReason=null][RecoveryAgents=kraadmi
+n,kraadmin] security data recovery request processed
+[AuditEvent=SECURITY_DATA_EXPORT_KEY][SubjectID=kraadmin][Outcome=Success][Recov
+eryID=316][KeyID=null][Info=null][PubKey=null] security data retrieval request
+----
+
+== Using PKI CLI ==
+
+Use PKI CLI to retrieve a key by request ID:
+
+----
+$ pki -n kraadmin kra-key-retrieve --requestID  0x13f
+----
+
+The server will generate the following logs:
+
+----
+[AuditEvent=SECURITY_DATA_RECOVERY_REQUEST_PROCESSED][SubjectID=kraadmin][Outcom
+e=Success][RecoveryID=319][KeyID=156][FailureReason=KeyService.getKey:;keyID=156
+;requestID=319;synchronous=false;ephemeral=false][RecoveryAgents=kraadmin,kraadm
+in] security data recovery request processed
+[AuditEvent=SECURITY_DATA_EXPORT_KEY][SubjectID=kraadmin][Outcome=Success][Recov
+eryID=319][KeyID=156][Info=KeyService.getKey:;keyID=156;requestID=319;synchronou
+s=false;ephemeral=false][PubKey=null] security data retrieval request
+----
+
+Use PKI CLI to retrieve a key directly:
+
+----
+$ pki -n kraadmin kra-key-retrieve --keyID 0x9c
+----
+
+----
+[AuditEvent=SECURITY_DATA_RECOVERY_REQUEST][SubjectID=kraadmin][Outcome=Success]
+[RecoveryID=320][DataID=156][PubKey=null] security data recovery request made
+[AuditEvent=SECURITY_DATA_RECOVERY_REQUEST_PROCESSED][SubjectID=kraadmin][Outcom
+e=Success][RecoveryID=320][KeyID=156][FailureReason=KeyService.getKey:;keyID=156
+;requestID=320;synchronous=true;ephemeral=false][RecoveryAgents=kraadmin] securi
+ty data recovery request processed
+[AuditEvent=SECURITY_DATA_EXPORT_KEY][SubjectID=kraadmin][Outcome=Success][Recov
+eryID=320][KeyID=156][Info=KeyService.getKey:;keyID=156;requestID=320;synchronou
+s=true;ephemeral=false][PubKey=null] security data retrieval request
+----
+
+Same example - this time with ephemeral requests enabled.
+ 
+----
+[AuditEvent=SECURITY_DATA_RECOVERY_REQUEST][SubjectID=kraadmin][Outcome=Success]
+[RecoveryID=14954844711196918][DataID=156][PubKey=null] security data recovery r
+equest made
+[AuditEvent=SECURITY_DATA_RECOVERY_REQUEST_PROCESSED][SubjectID=kraadmin][Outcom
+e=Success][RecoveryID=14954844711196918][KeyID=156][FailureReason=KeyService.get
+Key:;keyID=156;requestID=14954844711196918;synchronous=true;ephemeral=true][Reco
+veryAgents=kraadmin] security data recovery request processed
+[AuditEvent=SECURITY_DATA_EXPORT_KEY][SubjectID=kraadmin][Outcome=Success][Recov
+eryID=14954844711196918][KeyID=156][Info=KeyService.getKey:;keyID=156;requestID=
+14954844711196918;synchronous=true;ephemeral=true][PubKey=null] security data re
+trieval request
+----
