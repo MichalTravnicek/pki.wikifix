@@ -5,3 +5,10 @@ Properties:
 * `RecoveryID`: ID of recovery request
 * `Info`: Information about the request, including failure reason if the request fails.
 * `PubKey`: public key associated with the export
+
+If the key is recovered from the UI, `Info` will not be populated (except for failure cases).
+For a request through the REST API, `Info` such as the following may be seen:
+
+----
+Info=KeyService.getKey:;keyID=156;requestID=319;synchronous=false;ephemeral=false
+----
