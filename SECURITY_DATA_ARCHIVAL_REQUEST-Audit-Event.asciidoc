@@ -1,3 +1,5 @@
+= Overview =
+
 Properties:
 
 * `SubjectID`: UID of agent that initiated the request.
@@ -6,3 +8,18 @@ Properties:
 * `RequestId`: ID for the archival request created in the KRA (could be ephemeral).
 * `ClientKeyID`: The client key ID that was passed in by the client to identify the secret.
 
+= Examples =
+
+Use the PKI CLI to archive a passphrase:
+
+----
+$ pki -n caadmin kra-key-archive --clientKeyID "my_pass4" --passphrase "goodbye cruel world!"
+----
+
+The server will generate the following logs:
+
+----
+[AuditEvent=SECURITY_DATA_ARCHIVAL_REQUEST][SubjectID=kraadmin][Outcome=Success]
+[ArchivalRequestID=null][RequestId=1495][ClientKeyID=my_pass4] security data arc
+hival request made
+----
