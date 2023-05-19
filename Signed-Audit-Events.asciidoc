@@ -20,32 +20,11 @@ See link:AUTH_SUCCESS-Audit-Event[AUTH_SUCCESS Audit Event].
 
 == AUTH_FAIL ==
 
-This event is triggered when authentication fails (in case of SSL-client auth, only webserver env can pick up the SSL violation; CS authMgr can pick up certificate mis-match, so this event is used).
-
-Properties:
-
-* `Outcome` should always be `Failure` in this event (obviously, if authentication failed, you won't have a valid `SubjectID`, so in this case, `SubjectID` should be `$Unidentified$`)
-* `AuthMgr` must be the authentication manager instance name that did this authentication
-* `AttemptedCred` must be the credential attempted and failed
-
-For example, start PKI console and login with a wrong password. The server will generate the following logs:
-
-----
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=][Outcome=Success] access session establish success
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=][Outcome=Success] access session establish success
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=][Outcome=Success] access session establish success
-[AuditEvent=AUTH_FAIL][SubjectID=$Unidentified$][Outcome=Failure][AuthMgr=passwdUserDBAuthMgr][AttemptedCred=caadmin] authentication failure
-[AuditEvent=AUTH_FAIL][SubjectID=$Unidentified$][Outcome=Failure][AuthMgr=passwdUserDBAuthMgr][AttemptedCred=caadmin] authentication failure
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-----
-
-In PKI 10.5 this event is renamed to `AUTH`.
+See link:AUTH_FAIL-Audit-Event[AUTH_FAIL Audit Event].
 
 == AUTH ==
 
-In PKI 10.5 the `AUTH_SUCCESS` and `AUTH_FAIL` events have been merged into `AUTH` event.
+See link:AUTH-Audit-Event[AUTH Audit Event].
 
 = Authorization Events =
 
