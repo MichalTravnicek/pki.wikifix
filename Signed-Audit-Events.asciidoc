@@ -16,35 +16,7 @@ See also link:https://www.dogtagpki.org/wiki/PKI_Server_Audit_Events_Design[PKI 
 
 == AUTH_SUCCESS ==
 
-This event is triggered when authentication succeeded.
-
-Properties:
-
-* `Outcome` should always be `Success` in this event
-* `AuthMgr` must be the authentication manager instance name that did this authentication
-
-For example, use CLI to authenticate as admin user:
-
-----
-$ pki -n caadmin ca-user-find
-----
-
-The server will generate the following logs:
-
-----
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success] access session establish success
-[AuditEvent=AUTH_SUCCESS][SubjectID=caadmin][Outcome=Success][AuthMgr=certUserDBAuthMgr] authentication success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=caadmin][Outcome=Success][aclResource=certServer.ca.account][Op=login][Info=AccountResource.login] authorization success
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success] access session establish success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=caadmin][Outcome=Success][aclResource=certServer.ca.users][Op=execute][Info=UserResource.findUsers] authorization success
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success] access session establish success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=caadmin][Outcome=Success][aclResource=certServer.ca.account][Op=logout][Info=AccountResource.logout] authorization success
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-----
-
-In PKI 10.5 this event is renamed to `AUTH`.
+See link:AUTH_SUCCESS-Audit-Event[AUTH_SUCCESS Audit Event].
 
 == AUTH_FAIL ==
 
