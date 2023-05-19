@@ -170,75 +170,15 @@ See link:CONFIG_TRUSTED_PUBLIC_KEY-Audit-Event[CONFIG_TRUSTED_PUBLIC_KEY Audit E
 
 == ACCESS_SESSION_ESTABLISH_SUCCESS ==
 
-This event is triggered when PKI client managed to establish a secure connection to PKI server successfully.
-
-Properties:
-
-* `ClientIP`: Client's IP address
-* `ServerIP`: Server's IP address
-* `SubjectID`: Client certificate's subject DN
-* `Outcome`: `Success`
-
-For example, use CLI to authenticate as admin user:
-
-----
-$ pki -n caadmin ca-user-find
-----
-
-The server will generate the following logs:
-
-----
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success] access session establish success
-[AuditEvent=AUTH_SUCCESS][SubjectID=caadmin][Outcome=Success][AuthMgr=certUserDBAuthMgr] authentication success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=caadmin][Outcome=Success][aclResource=certServer.ca.account][Op=login][Info=AccountResource.login] authorization success
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success] access session establish success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=caadmin][Outcome=Success][aclResource=certServer.ca.users][Op=execute][Info=UserResource.findUsers] authorization success
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success] access session establish success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=caadmin][Outcome=Success][aclResource=certServer.ca.account][Op=logout][Info=AccountResource.logout] authorization success
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-----
-
-In PKI 10.5 this event is renamed to `ACCESS_SESSION_ESTABLISH`.
+See link:ACCESS_SESSION_ESTABLISH_SUCCESS-Audit-Event[ACCESS_SESSION_ESTABLISH_SUCCESS Audit Event].
 
 == ACCESS_SESSION_ESTABLISH_FAILURE ==
 
-This event is triggered when PKI client failed to establish a secure connection to PKI server.
-
-Properties:
-
-* `ClientIP`: Client's IP address
-* `ServerIP`: Server's IP address
-* `SubjectID`: Client certificate's subject DN if known
-* `Outcome`: `Failure`
-* `Info`: Failure reason
-** See link:https://github.com/dogtagpki/jss/blob/master/org/mozilla/jss/ssl/SSLAlertDescription.java[SSLAlertDescription.java]
-
-For example, configure CLI to use a cipher that is disabled on the server:
-
-----
-SSL_CIPHERS="TLS_RSA_WITH_AES_128_CBC_SHA256"
-SSL_DEFAULT_CIPHERS="false"
-----
-
-Then execute a CLI command that uses SSL:
-
-----
-$ pki -n caadmin ca-user-find
-----
-
-The operation will fail and the server will generate the following log:
-
-----
-[AuditEvent=ACCESS_SESSION_ESTABLISH_FAILURE][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=][Outcome=Failure][Info=HANDSHAKE_FAILURE] access session establish failure
-----
-
-In PKI 10.5 this event is renamed to `ACCESS_SESSION_ESTABLISH`.
+See link:ACCESS_SESSION_ESTABLISH_FAILURE-Audit-Event[ACCESS_SESSION_ESTABLISH_FAILURE Audit Event].
 
 == ACCESS_SESSION_ESTABLISH ==
 
-In PKI 10.5 the `ACCESS_SESSION_ESTABLISH_SUCCESS` and `ACCESS_SESSION_ESTABLISH_FAIL` events are merged into `ACCESS_SESSION_ESTABLISH` event.
+See link:ACCESS_SESSION_ESTABLISH-Audit-Event[ACCESS_SESSION_ESTABLISH Audit Event].
 
 == ACCESS_SESSION_TERMINATED ==
 
