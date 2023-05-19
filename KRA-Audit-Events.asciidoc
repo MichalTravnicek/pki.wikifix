@@ -275,47 +275,10 @@ Same example - this time with ephemeral requests enabled.
 
 = Key Generation Events =
 
-== Symmetric Keys:  REST API ==
+== Symmetric Keys ==
 
-Generated when a symmetric key is requested to be generated from the CLI.
-
-SYMKEY_GENERATION_REQUEST:
-
-* SubjectID: UID of user requesting the key generation 
-* Outcome: success/failure
-* GenerationRequestID: ID of request on KRA request queue
-* ClientKeyID: user provided client key identifier
-
-SYMKEY_GENERATION_REQUEST:
-
-* SubjectID: UID of user requesting the key generation 
-* Outcome: success/failure
-* GenerationRequestID: ID of request on KRA request queue
-* ClientKeyID: user provided client key identifier
-* KeyID: ID of the key generated
-* FailureReason: reason for failure (if failed)
- 
-For example:
-
-----
-$ pki -d alias -c redhat123 -n "PKI Administrator for example.com" key-generate "my_symkey9" --key-algorithm AES --key-size 128 --usages encrypt,decrypt
-----
-
-----
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=192.168.0.2][ServerIP=192.168.0.2][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=example.com Security Domain][Outcome=Success] access session establish success
-[AuditEvent=AUTH_SUCCESS][SubjectID=kraadmin][Outcome=Success][AuthMgr=certUserDBAuthMgr] authentication success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=kraadmin][Outcome=Success][aclResource=certServer.kra.account][Op=login][Info=AccountResource.login] authorization success
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=192.168.0.2][ServerIP=192.168.0.2][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=example.com Security Domain][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=$Unidentified$][Outcome=Success][aclResource=null][Op=null][Info=ACL mapping not found; OK:SystemCertResource.getTransportCert] authorization success
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=192.168.0.2][ServerIP=192.168.0.2][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=example.com Security Domain][Outcome=Success] access session establish success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=kraadmin][Outcome=Success][aclResource=certServer.kra.keyrequests][Op=execute][Info=KeyRequestResource.submitRequest] authorization success
-[AuditEvent=SYMKEY_GENERATION_REQUEST_PROCESSED][SubjectID=kraadmin][Outcome=Success][GenerationRequestID=330][ClientKeyID=my_symkey9][KeyID=164][FailureReason=None] symkey generation request processed
-[AuditEvent=SYMKEY_GENERATION_REQUEST][SubjectID=kraadmin][Outcome=Success][GenerationRequestID=330][ClientKeyID=my_symkey9] symkey generation request made
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=192.168.0.2][ServerIP=192.168.0.2][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=example.com Security Domain][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=192.168.0.2][ServerIP=192.168.0.2][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=example.com Security Domain][Outcome=Success] access session establish success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=kraadmin][Outcome=Success][aclResource=certServer.kra.account][Op=logout][Info=AccountResource.logout] authorization success
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=192.168.0.2][ServerIP=192.168.0.2][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=example.com Security Domain][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-----
+* link:SYMKEY_GENERATION_REQUEST-Audit-Event[SYMKEY_GENERATION_REQUEST]
+* link:SYMKEY_GENERATION_REQUEST_PROCESSED-Audit-Event[SYMKEY_GENERATION_REQUEST_PROCESSED]
 
 == Asymmetric Keys ==
 
