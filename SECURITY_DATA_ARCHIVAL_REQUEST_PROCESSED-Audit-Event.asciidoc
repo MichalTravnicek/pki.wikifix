@@ -1,3 +1,5 @@
+= Overview =
+
 Properties:
 
 * `SubjectID`: UID of agent that initiated the request.
@@ -8,3 +10,19 @@ Properties:
 * `KeyID`: Key record that was created for the archival.
 * `FailureReason`: Reason for failure (or None if success).
 * `PubKey`: Public key associated with the archival. This is only relevant when archiving a private key, and will only be set when the key is archived through the CA connector.
+
+= Examples =
+
+Use the PKI CLI to archive a passphrase:
+
+----
+$ pki -n caadmin kra-key-archive --clientKeyID "my_pass4" --passphrase "goodbye cruel world!"
+----
+
+The server will generate the following logs:
+
+----
+[AuditEvent=SECURITY_DATA_ARCHIVAL_REQUEST_PROCESSED][SubjectID=kraadmin][Outcom
+e=Success][ArchivalRequestID=null][RequestId=1495][ClientKeyID=my_pass4][KeyID=1
+62][FailureReason=None][PubKey=null] security data archival request processed
+----
