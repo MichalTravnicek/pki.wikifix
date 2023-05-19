@@ -30,70 +30,15 @@ See link:AUTH-Audit-Event[AUTH Audit Event].
 
 == AUTHZ_SUCCESS ==
 
-This event is triggered when authorization is successful.
-
-Properties:
-
-* `Outcome` must be `Success` for this event
-* `aclResource` must be the ACL resource ID as defined in ACL resource list
-* `Op` must be one of the operations as defined with the ACL statement, e.g. `read` for an ACL statement containing `(read,write)`
-
-For example, use CLI to authenticate as admin user:
-
-----
-$ pki -n caadmin ca-user-find
-----
-
-The server will generate the following logs:
-
-----
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success] access session establish success
-[AuditEvent=AUTH_SUCCESS][SubjectID=caadmin][Outcome=Success][AuthMgr=certUserDBAuthMgr] authentication success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=caadmin][Outcome=Success][aclResource=certServer.ca.account][Op=login][Info=AccountResource.login] authorization success
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success] access session establish success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=caadmin][Outcome=Success][aclResource=certServer.ca.users][Op=execute][Info=UserResource.findUsers] authorization success
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success] access session establish success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=caadmin][Outcome=Success][aclResource=certServer.ca.account][Op=logout][Info=AccountResource.logout] authorization success
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-----
-
-In PKI 10.5 this event is renamed to `AUTHZ`.
+See link:AUTHZ_SUCCESS-Audit-Event[AUTHZ_SUCCESS Audit Event].
 
 == AUTHZ_FAIL ==
 
-This event is triggered when authorization has failed.
-
-Properties:
-
-* `Outcome` must be `Failure` for this event
-* `aclResource` must be the ACL resource ID as defined in ACL resource list
-* `Op` must be one of the operations as defined with the ACL statement, e.g. `read` for an ACL statement containing `(read,write)`
-
-For example, execute the following command:
-
-----
-$ pki -n caadmin ca-audit-file-find
-----
-
-The server will generate the following logs:
-
-----
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success] access session establish success
-[AuditEvent=AUTH_SUCCESS][SubjectID=caadmin][Outcome=Success][AuthMgr=certUserDBAuthMgr] authentication success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=caadmin][Outcome=Success][aclResource=certServer.ca.account][Op=login][Info=AccountResource.login] authorization success
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success] access session establish success
-[AuditEvent=AUTHZ_FAIL][SubjectID=caadmin][Outcome=Failure][aclResource=certServer.log.content.signedAudit][Op=read][Info=Authorization Error] authorization failure
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=10.34.78.30][ServerIP=10.34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-----
-
-In PKI 10.5 this event is renamed to `AUTHZ`.
+See link:AUTHZ_FAIL-Audit-Event[AUTHZ_FAIL Audit Event].
 
 == AUTHZ ==
 
-In PKI 10.5 the `AUTHZ_SUCCESS` and `AUTHZ_FAIL` events have been merged into `AUTHZ` event.
+See link:AUTHZ-Audit-Event[AUTHZ Audit Event].
 
 == ROLE_ASSUME ==
 
