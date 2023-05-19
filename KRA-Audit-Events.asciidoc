@@ -83,51 +83,7 @@ See link:SECURITY_DATA_RECOVERY_REQUEST-Audit-Event[SECURITY_DATA_RECOVERY_REQUE
 
 == SECURITY_DATA_RECOVERY_REQUEST_STATE_CHANGE ==
 
-Occurs when the state of a recovery request is changed, for example by having an agent approve the request either through the UI or through the CLI.
-
-Properties:
-
-* SubjectID: agent who is performing the action
-* Outcome: success/ failure
-* RecoveryID: ID of recovery request
-* Operation: operation (approve, cancel etc.)
-
-For example, approving a request through the CLI.
-
-----
-$ pki -d alias -c redhat123 -n "PKI Administrator for example.com" key-request-review --action approve 0x13e
-----
-
-----
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=192.168.0.2][ServerIP=192.168.0.2][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=example.com Security Domain][Outcome=Success] access session establish success
-[AuditEvent=AUTH_SUCCESS][SubjectID=kraadmin][Outcome=Success][AuthMgr=certUserDBAuthMgr] authentication success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=kraadmin][Outcome=Success][aclResource=certServer.kra.account][Op=login][Info=AccountResource.login] authorization success
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=192.168.0.2][ServerIP=192.168.0.2][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=example.com Security Domain][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=$Unidentified$][Outcome=Success][aclResource=null][Op=null][Info=ACL mapping not found; OK:SystemCertResource.getTransportCert] authorization success
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=192.168.0.2][ServerIP=192.168.0.2][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=example.com Security Domain][Outcome=Success] access session establish success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=kraadmin][Outcome=Success][aclResource=certServer.kra.keyrequests][Op=execute][Info=KeyRequestResource.approveRequest] authorization success
-[AuditEvent=SECURITY_DATA_RECOVERY_REQUEST_STATE_CHANGE][SubjectID=kraadmin][Outcome=Success][RecoveryID=319][Operation=approve] security data recovery request state change
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=192.168.0.2][ServerIP=192.168.0.2][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=example.com Security Domain][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=192.168.0.2][ServerIP=192.168.0.2][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=example.com Security Domain][Outcome=Success] access session establish success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=kraadmin][Outcome=Success][aclResource=certServer.kra.keyrequests][Op=execute][Info=KeyRequestResource.getRequestInfo] authorization success
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=192.168.0.2][ServerIP=192.168.0.2][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=example.com Security Domain][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=192.168.0.2][ServerIP=192.168.0.2][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=example.com Security Domain][Outcome=Success] access session establish success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=kraadmin][Outcome=Success][aclResource=certServer.kra.account][Op=logout][Info=AccountResource.logout] authorization success
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=192.168.0.2][ServerIP=192.168.0.2][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=example.com Security Domain][Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-----
-
-Here are the logs created when a request is approved from the UI.
-
-----
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=192.168.0.2][ServerIP=192.168.0.2][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=example.com Security Domain][Outcome=Success] access session establish success
-[AuditEvent=AUTH_SUCCESS][SubjectID=kraadmin][Outcome=Success][AuthMgr=certUserDBAuthMgr] authentication success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=kraadmin][Outcome=Success][aclResource=certServer.kra.request][Op=read] authorization success
-[AuditEvent=ROLE_ASSUME][SubjectID=kraadmin][Outcome=Success][Role=Data Recovery Manager Agents, Administrators] assume privileged role
-[AuditEvent=AUTH_SUCCESS][SubjectID=kraadmin][Outcome=Success][AuthMgr=certUserDBAuthMgr] authentication success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=kraadmin][Outcome=Success][aclResource=certServer.kra.key][Op=recover] authorization success
-[AuditEvent=ROLE_ASSUME][SubjectID=kraadmin][Outcome=Success][Role=Data Recovery Manager Agents, Administrators] assume privileged role
-[AuditEvent=SECURITY_DATA_RECOVERY_REQUEST_STATE_CHANGE][SubjectID=kraadmin][Outcome=Success][RecoveryID=324][Operation=approve] security data recovery request state change
-----
+See link:SECURITY_DATA_RECOVERY_REQUEST_STATE_CHANGE-Audit-Event[SECURITY_DATA_RECOVERY_REQUEST_STATE_CHANGE].
 
 == SECURITY_DATA_RECOVERY_REQUEST_PROCESSED,  SECURITY_DATA_EXPORT_KEY ==
 
