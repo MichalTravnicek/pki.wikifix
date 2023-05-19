@@ -1,10 +1,14 @@
+= Overview =
+
 The `CONFIG_ROLE` audit event is generated when configuring role information (anything under users/groups) add/remove/edit a role, etc).
 
 Properties:
 
 * `ParamNameValPairs` must be a `name;;value` pair (where name and value are separated by the delimiter `;;`) separated by `+` (if more than one `name;;value` pair) of config params changed
 
-For example, use CLI to add a member to a group:
+= Examples =
+
+Use CLI to add a member to a group:
 
 ----
 $ pki -n caadmin ca-group-member-add Administrators testuser
