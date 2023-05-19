@@ -6,7 +6,9 @@ The `CONFIG_SIGNED_AUDIT` audit event is generated when configuring signed audit
 
 = Examples =
 
-Use CLI to disable audit:
+== Using PKI CLI ==
+
+Use PKI CLI to disable audit:
 
 ----
 $ pki -n caadmin ca-audit-mod --action disable
@@ -15,33 +17,33 @@ $ pki -n caadmin ca-audit-mod --action disable
 The server will generate the following logs:
 
 ----
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.
-34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=E
-XAMPLE][Outcome=Success] access session establish success
-[AuditEvent=AUTH_SUCCESS][SubjectID=caadmin][Outcome=Success][AuthMgr=certUserDB
-AuthMgr] authentication success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=caadmin][Outcome=Success][aclResource=certS
-erver.ca.account][Op=login][Info=AccountResource.login] authorization success
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=10.34.78.30][ServerIP=10.34.78.3
-0][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE]
-[Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.
-34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=E
-XAMPLE][Outcome=Success] access session establish success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=caadmin][Outcome=Success][aclResource=certS
-erver.log.configuration][Op=modify][Info=AuditResource.changeAuditStatus] author
-ization success
 [AuditEvent=CONFIG_SIGNED_AUDIT][SubjectID=caadmin][Outcome=Success][ParamNameVa
 lPairs=+Action;;disable] signed audit configuration parameter(s) change
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=10.34.78.30][ServerIP=10.34.78.3
-0][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE]
-[Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
-[AuditEvent=ACCESS_SESSION_ESTABLISH_SUCCESS][ClientIP=10.34.78.30][ServerIP=10.
-34.78.30][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=E
-XAMPLE][Outcome=Success] access session establish success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=caadmin][Outcome=Success][aclResource=certS
-erver.ca.account][Op=logout][Info=AccountResource.logout] authorization success
-[AuditEvent=ACCESS_SESSION_TERMINATED][ClientIP=10.34.78.30][ServerIP=10.34.78.3
-0][SubjectID=CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE]
-[Outcome=Success][Info=CLOSE_NOTIFY] access session terminated
+----
+
+== Using PKI Console ==
+
+Open PKI Console, go to *Configuration* -> *Log* -> *Log Event Listener Management*. Select `SignedAudit`, click *Edit/View*, change something, then click *OK*.
+
+The server will generate the following logs:
+
+----
+[AuditEvent=CONFIG_SIGNED_AUDIT][SubjectID=caadmin][Outcome=Success][ParamNameVa
+lPairs=Scope;;logRule+Operation;;OP_MODIFY+Resource;;SignedAudit+level;;Informat
+ion+rolloverInterval;;Monthly+flushInterval;;10+mandatory.events;;<null>+bufferS
+ize;;512+maxFileSize;;2000+fileName;;/var/lib/pki/pki-tomcat/logs/ca/signedAudit
+/ca_audit+enable;;true+signedAuditCertNickname;;<null>+implName;;file+type;;sign
+edAudit+logSigning;;false+events;;ACCESS_SESSION_ESTABLISH,ACCESS_SESSION_TERMIN
+ATED,AUDIT_LOG_SIGNING,AUDIT_LOG_STARTUP,AUTH,AUTHORITY_CONFIG,AUTHZ,CERT_PROFIL
+E_APPROVAL,CERT_REQUEST_PROCESSED,CERT_SIGNING_INFO,CERT_STATUS_CHANGE_REQUEST,C
+ERT_STATUS_CHANGE_REQUEST_PROCESSED,CLIENT_ACCESS_SESSION_ESTABLISH,CLIENT_ACCES
+S_SESSION_TERMINATED,CMC_REQUEST_RECEIVED,CMC_RESPONSE_SENT,CMC_SIGNED_REQUEST_S
+IG_VERIFY,CMC_USER_SIGNED_REQUEST_SIG_VERIFY,CONFIG_ACL,CONFIG_AUTH,CONFIG_CERT_
+PROFILE,CONFIG_CRL_PROFILE,CONFIG_ENCRYPTION,CONFIG_ROLE,CONFIG_SERIAL_NUMBER,CO
+NFIG_SIGNED_AUDIT,CONFIG_TRUSTED_PUBLIC_KEY,CRL_SIGNING_INFO,DELTA_CRL_GENERATIO
+N,FULL_CRL_GENERATION,KEY_GEN_ASYMMETRIC,LOG_PATH_CHANGE,OCSP_GENERATION,OCSP_SI
+GNING_INFO,PROFILE_CERT_REQUEST,PROOF_OF_POSSESSION,RANDOM_GENERATION,ROLE_ASSUM
+E,SCHEDULE_CRL_GENERATION,SECURITY_DOMAIN_UPDATE,SELFTESTS_EXECUTION,SERVER_SIDE
+_KEYGEN_REQUEST,SERVER_SIDE_KEYGEN_REQUEST_PROCESSED] signed audit configuration
+ parameter(s) change
 ----
