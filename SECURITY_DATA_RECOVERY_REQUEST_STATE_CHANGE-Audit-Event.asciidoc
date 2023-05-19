@@ -1,0 +1,38 @@
+= Overview =
+
+The `SECURITY_DATA_RECOVERY_REQUEST_STATE_CHANGE` audit event is generated when the state of a recovery request is changed, for example by having an agent approve the request.
+
+Properties:
+
+* `SubjectID`: agent who is performing the action
+* `Outcome`: success/ failure
+* `RecoveryID`: ID of recovery request
+* `Operation`: operation (approve, cancel etc.)
+
+= Examples =
+
+= Using PKI CLI =
+
+Use PKI CLI to approve a request:
+
+----
+$ pki -n kraadmin kra-key-request-review --action approve 0x13e
+----
+
+The server will generate the following logs:
+
+----
+[AuditEvent=SECURITY_DATA_RECOVERY_REQUEST_STATE_CHANGE][SubjectID=kraadmin][Out
+come=Success][RecoveryID=319][Operation=approve] security data recovery request 
+state change
+----
+
+= Using Web UI =
+
+Here are the logs created when a request is approved from the UI.
+
+----
+[AuditEvent=SECURITY_DATA_RECOVERY_REQUEST_STATE_CHANGE][SubjectID=kraadmin][Out
+come=Success][RecoveryID=324][Operation=approve] security data recovery request 
+state change
+----
