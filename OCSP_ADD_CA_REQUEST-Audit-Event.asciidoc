@@ -1,0 +1,15 @@
+= Overview =
+
+The `OCSP_ADD_CA_REQUEST` audit event is be generated when a CA is attempted to be added to the OCSP Responder.
+
+= Examples =
+
+Open OCSP Web UI, click *Add Certificate Authority*, enter the CA certificate, then click *Add*.
+
+The server will generate the following logs:
+
+----
+[AuditEvent=OCSP_ADD_CA_REQUEST][SubjectID=ocspadmin][Outcome=Success][CA=MIID..
+.S6I=] request to add a CA for OCSP Responder
+----
+
