@@ -188,48 +188,7 @@ The server will generate the following logs:
 
 == CONFIG_TRUSTED_PUBLIC_KEY ==
 
-This event is triggered when:
-
-* *Manage Certificate* is used to edit the trustness of certificates and deletion of certificates
-* *Certificate Setup Wizard* is used to import CA certificates into the certificate database (Although CrossCertificatePairs are stored within internaldb, audit them as well)
-
-Properties:
-
-* `ParamNameValPairs` must be a `name;;value` pair (where name and value are separated by the delimiter `;;`) separated by `+` (if more than one `name;;value` pair) of config params changed
-
-For example, run PKI Console and execute the following operations:
-
-* Click System Keys and Certificates
-* Click Add
-* Click Next
-* Select Trusted CA Certificate Chain
-* Click Next
-* Select The certificate is located in the text are below
-* Paste a CA Certificate
-* Click Next
-* Click Next
-
-----
-[AuditEvent=CONFIG_TRUSTED_PUBLIC_KEY][SubjectID=caadmin][Outcome=Success][ParamNameValPairs=Scope;;installCert+Operation;;OP_MODIFY+Resource;;trustedCACert+pkcs10;;-----BEGIN CERTIFICATE-----
-MIIDFTCCAf2gAwIBAgICWakwDQYJKoZIhvcNAQELBQAwMzEQMA4GA1UEChMHRVhB
-TVBMRTEfMB0GA1UEAxMWQ0EgU2lnbmluZyBDZXJ0aWZpY2F0ZTAeFw0xNzA0MjYx
-NzQzMjRaFw0xNzA3MjYxNzQzMjRaMDMxEDAOBgNVBAoTB0VYQU1QTEUxHzAdBgNV
-BAMTFkNBIFNpZ25pbmcgQ2VydGlmaWNhdGUwggEiMA0GCSqGSIb3DQEBAQUAA4IB
-DwAwggEKAoIBAQDOlxlvYGfx1xGD9ZUMu1smdVJFbpvt+oQ6Sfk6S0fUgNe+vsr/
-SYVGKvCAFPp+94I70auxFFO3XQhfn3ZKohfuOt1rGLPwYIx3sS4ldU6wWENGYZLi
-qA8yQJEGBldql7OKVfC0WCHkKS9b3BJBVqogz7BnO86nxN3g3cmzzWKSAt2Rp5jm
-YJT/Lr4xm5vKWtq+rdiDmc36LJ8Wi23tAfUyWoOodBxfYQBMPUGLMA7EaQwWm8oe
-vd7wljq3AsX4AWwdBPvsi9QvnSZKpSMZIJj94lSE6O0R3CkHWR0ZNVoBj/XpDqm2
-I8ygswbObUeLzTnOJzs8rStvKf4/hNgD0rn/AgMBAAGjMzAxMBEGCWCGSAGG+EIB
-AQQEAwIABzAPBgNVHRMBAf8EBTADAQH/MAsGA1UdDwQEAwICBDANBgkqhkiG9w0B
-AQsFAAOCAQEAp1SAHv6qoWd30vEHSVLJwh/RKFh60Dj4ON29KtiploCxiwZk9tZa
-Klca+xbtEhK2pVV8UmiUzkbnqNpWB58i1bxoPP316En0DyqjTRodInKt5Y9Jpn89
-OuL3o+hTYuQtkQqWknkqxpQi/rbzwEeqEfDcLOLPWbhp4yQXFZySJJPPMSsl0vNN
-64ZJdmbzS0/1lNb86aHzoeBUvEwAcHCqnoN5/vXCk0P/DAImIXwugP2cjKH8V8DX
-ZEbIOznWyNmNq5gqSIYwt2RUREf6NUjXWWzayrVL2hBq90ukFtMuSf/Pka/Uk3HC
-MtQfIFm9RMdb8mdpQxqikxQ49G7pHT+zYA==
------END CERTIFICATE-----+nickname;;<null>+pathname;;<null>+serverRoot;;<null>+serverID;;instanceID] certificate database configuration
-----
+See link:CONFIG_TRUSTED_PUBLIC_KEY-Audit-Event[CONFIG_TRUSTED_PUBLIC_KEY Audit Event].
 
 = Access Session Events =
 
