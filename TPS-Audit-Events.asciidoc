@@ -28,48 +28,12 @@ Event properties:
 
 = TPS Configuration Events =
 
-== CONFIG_TOKEN_GENERAL ==
-
 * link:CONFIG_TOKEN_GENERAL-Audit-Event[CONFIG_TOKEN_GENERAL]
-
-== CONFIG_TOKEN_PROFILE ==
-
 * link:CONFIG_TOKEN_PROFILE-Audit-Event[CONFIG_TOKEN_PROFILE]
-
-== CONFIG_TOKEN_MAPPING_RESOLVER ==
-
 * link:CONFIG_TOKEN_MAPPING_RESOLVER-Audit-Event[CONFIG_TOKEN_MAPPING_RESOLVER]
-
-== CONFIG_TOKEN_AUTHENTICATOR ==
-
-This event is triggered when a token authenticator configuration is updated.
-
-----
-[AuditEvent=CONFIG_TOKEN_AUTHENTICATOR][SubjectID=tpsadmin][Outcome=Success][OP=
-AuthenticatorService.changeStatus][Authenticator=ldap2][ParamNameValPairs=+Statu
-s;;Disabled+Action;;disable+authenticatorID;;ldap2][Info=null] token authenticat
-or configuration parameter(s) change
-----
-
-== CONFIG_TOKEN_CONNECTOR ==
-
-This event is triggered when a token connector configuration is updated.
-
-----
-[AuditEvent=CONFIG_TOKEN_CONNECTOR][SubjectID=tpsadmin][Outcome=Success][OP=Conn
-ectorService.changeStatus][Connector=tks1][ParamNameValPairs=+Status;;Enabled+Ac
-tion;;enable][Info=null] token connector configuration parameter(s) change
-----
-
-== CONFIG_TOKEN_RECORD ==
-
-This event is triggered when a token record is updated.
-
-----
-[AuditEvent=CONFIG_TOKEN_RECORD][SubjectID=tpsadmin][Outcome=Success][OP=TokenSe
-rvice.removeToken][TokenID=33333333333333333333][ParamNameValPairs=][Info=null] 
-token record configuration parameter(s) change
-----
+* link:CONFIG_TOKEN_AUTHENTICATOR-Audit-Event[CONFIG_TOKEN_AUTHENTICATOR]
+* link:CONFIG_TOKEN_CONNECTOR-Audit-Event[CONFIG_TOKEN_CONNECTOR]
+* link:CONFIG_TOKEN_RECORD-Audit-Event[CONFIG_TOKEN_RECORD]
 
 = Token Events =
 
