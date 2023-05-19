@@ -1,0 +1,13 @@
+= Overview =
+
+The `CONFIG_AUTH` audit event is generated when configuring the authentication in any PKI subsystem.
+
+= Examples =
+
+Open PKI Console, go to *Configuration* -> *Authentication* -> *Authentication Instance*, click *Add*, select a plugin (e.g. `AgentCertAuth`), click *Next*, enter an instance ID (e.g. `test`), then click *OK*. The server will generate the following logs:
+
+----
+[AuditEvent=CONFIG_AUTH][SubjectID=caadmin][Outcome=Success][ParamNameValPairs=S
+cope;;instance+Operation;;OP_ADD+Resource;;test+implName;;AgentCertAuth] authent
+ication configuration parameter(s) change
+----
