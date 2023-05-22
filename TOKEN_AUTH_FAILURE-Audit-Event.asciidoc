@@ -1,0 +1,13 @@
+The `TOKEN_AUTH_FAILURE` audit event is generated when authentication failed.
+
+* `Outcome` should always be `failure` in this event
+* When authentication failed, `AttemptedID` is logged instead of `SubjectID`, as in the event of `TOKEN_AUTH_FAILURE`
+* `AuthMgr` must be the authentication manager instance name that did this authentication
+
+= Examples =
+
+----
+[AuditEvent=TOKEN_AUTH_FAILURE][IP={0}][AttemptedID={1}][CUID={2}][MSN={3}][Outc
+ome={4}][OP={5}][tokenType={6}][AppletVersion={7}][AuthMgr={8}] token authentica
+tion failure
+----
