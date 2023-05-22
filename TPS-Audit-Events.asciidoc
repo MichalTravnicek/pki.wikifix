@@ -76,47 +76,45 @@ Events:
 
 = Token Authentication Events =
 
-== TOKEN_AUTH_FAILURE ==
-
-This event is triggered when authentication failed.
-
-* `Outcome` should always be `failure` in this event
-* When authentication failed, `AttemptedID` is logged instead of `SubjectID`, as in the event of `TOKEN_AUTH_FAILURE`
-* `AuthMgr` must be the authentication manager instance name that did this authentication
-
-----
-[AuditEvent=TOKEN_AUTH_FAILURE][IP={0}][AttemptedID={1}][CUID={2}][MSN={3}][Outcome={4}][OP={5}][tokenType={6}][AppletVersion={7}][AuthMgr={8}] token authentication failure
-----
-
-== TOKEN_AUTH_SUCCESS ==
-
-This event is triggered when authentication succeeded.
-
-* `Outcome` should always be `success` in this event
-* `AuthMgr` must be the authentication manager instance name that did this authentication
-
-----
-[AuditEvent=TOKEN_AUTH_SUCCESS][IP={0}][SubjectID={1}][CUID={2}][MSN={3}][Outcome={4}][OP={5}][tokenType={6}][AppletVersion={7}][AuthMgr={8}] token authentication success
-----
+* link:TOKEN_AUTH_FAILURE-Audit-Event[TOKEN_AUTH_FAILURE]
+* link:TOKEN_AUTH_SUCCESS-Audit-Event[TOKEN_AUTH_SUCCESS]
 
 = Examples =
 
 == Token Format ==
 
 ----
-[AuditEvent=TOKEN_OP_REQUEST][IP=a.b.c.d][CUID=A10192030405018001C0][MSN=01%02%03%04%][Outcome=success][OP=format][AppletVersion=0.0.6fbbc105] token op request made
-[AuditEvent=TOKEN_AUTH_SUCCESS][IP=a.b.c.d][SubjectID=user1a][CUID=A10192030405018001C0][MSN=01%02%03%04%][Outcome=success][OP=format][tokenType=tokenKey][AppletVersion=0.0.6fbbc105][AuthMgr=ldap1] token authentication success
-[AuditEvent=TOKEN_APPLET_UPGRADE_SUCCESS][IP=a.b.c.d][SubjectID=user1a][CUID=A10192030405018001C0][MSN=01%02%03%04%][Outcome=success][KeyVersion=0101][oldAppletVersion=0.0.6fbbc105][newAppletVersion=1.4.54de790f][Info=null] token applet upgrade success
-[AuditEvent=TOKEN_FORMAT_SUCCESS][IP=a.b.c.d][SubjectID=user1a][CUID=A10192030405018001C0][MSN=01%02%03%04%][Outcome=success][tokenType=tokenKey][AppletVersion=0.0.6fbbc105][KeyVersion=0101][Info=null] token op format success
+[AuditEvent=TOKEN_OP_REQUEST][IP=a.b.c.d][CUID=A10192030405018001C0][MSN=01%02%0
+3%04%][Outcome=success][OP=format][AppletVersion=0.0.6fbbc105] token op request 
+made
+[AuditEvent=TOKEN_AUTH_SUCCESS][IP=a.b.c.d][SubjectID=user1a][CUID=A101920304050
+18001C0][MSN=01%02%03%04%][Outcome=success][OP=format][tokenType=tokenKey][Apple
+tVersion=0.0.6fbbc105][AuthMgr=ldap1] token authentication success
+[AuditEvent=TOKEN_APPLET_UPGRADE_SUCCESS][IP=a.b.c.d][SubjectID=user1a][CUID=A10
+192030405018001C0][MSN=01%02%03%04%][Outcome=success][KeyVersion=0101][oldApplet
+Version=0.0.6fbbc105][newAppletVersion=1.4.54de790f][Info=null] token applet upg
+rade success
+[AuditEvent=TOKEN_FORMAT_SUCCESS][IP=a.b.c.d][SubjectID=user1a][CUID=A1019203040
+5018001C0][MSN=01%02%03%04%][Outcome=success][tokenType=tokenKey][AppletVersion=
+0.0.6fbbc105][KeyVersion=0101][Info=null] token op format success
 ----
 
 == Token Enrollment ==
 
 ----
-[AuditEvent=TOKEN_OP_REQUEST][IP=a.b.c.d][CUID=A10192030405018001C0][MSN=01%02%03%04%][Outcome=success][OP=enroll][AppletVersion=0.0.6fbbc105] token op request made
-[AuditEvent=TOKEN_AUTH_SUCCESS][IP=a.b.c.d][SubjectID=user1a][CUID=A10192030405018001C0][MSN=01%02%03%04%][Outcome=success][OP=enroll][tokenType=userKey][AppletVersion=0.0.6fbbc105][AuthMgr=ldap1] token authentication success
-[AuditEvent=TOKEN_APPLET_UPGRADE_SUCCESS][IP=a.b.c.d][SubjectID=user1a][CUID=A10192030405018001C0][MSN=01%02%03%04%][Outcome=success][KeyVersion=0101][oldAppletVersion=0.0.6fbbc105][newAppletVersion=1.4.54de790f][Info=null] token applet upgrade success
-[AuditEvent=TOKEN_CERT_ENROLLMENT][IP=a.b.c.d][SubjectID=user1a][CUID=A10192030405018001C0][Outcome=success][tokenType=userKey][KeyVersion=0101][Serial=131][CA_ID=ca1][Info=null] token certificate enrollment request made
+[AuditEvent=TOKEN_OP_REQUEST][IP=a.b.c.d][CUID=A10192030405018001C0][MSN=01%02%0
+3%04%][Outcome=success][OP=enroll][AppletVersion=0.0.6fbbc105] token op request 
+made
+[AuditEvent=TOKEN_AUTH_SUCCESS][IP=a.b.c.d][SubjectID=user1a][CUID=A101920304050
+18001C0][MSN=01%02%03%04%][Outcome=success][OP=enroll][tokenType=userKey][Applet
+Version=0.0.6fbbc105][AuthMgr=ldap1] token authentication success
+[AuditEvent=TOKEN_APPLET_UPGRADE_SUCCESS][IP=a.b.c.d][SubjectID=user1a][CUID=A10
+192030405018001C0][MSN=01%02%03%04%][Outcome=success][KeyVersion=0101][oldApplet
+Version=0.0.6fbbc105][newAppletVersion=1.4.54de790f][Info=null] token applet upg
+rade success
+[AuditEvent=TOKEN_CERT_ENROLLMENT][IP=a.b.c.d][SubjectID=user1a][CUID=A101920304
+05018001C0][Outcome=success][tokenType=userKey][KeyVersion=0101][Serial=131][CA_
+ID=ca1][Info=null] token certificate enrollment request made
 ----
 
 == Token Find ==
@@ -130,24 +128,37 @@ $ pki -n caadmin tps-token-find
 The command will generate the following logs:
 
 ----
-[AuditEvent=AUTH_SUCCESS][SubjectID=tpsadmin][Outcome=Success][AuthMgr=certUserDBAuthMgr] authentication success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=tpsadmin][Outcome=Success][aclResource=certServer.tps.account][Op=login][Info=AccountResource.login] authorization success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=tpsadmin][Outcome=Success][aclResource=certServer.tps.tokens][Op=read][Info=TokenResource.findTokens] authorization success
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=tpsadmin][Outcome=Success][aclResource=certServer.tps.account][Op=logout][Info=AccountResource.logout] authorization success
+[AuditEvent=AUTH_SUCCESS][SubjectID=tpsadmin][Outcome=Success][AuthMgr=certUserD
+BAuthMgr] authentication success
+[AuditEvent=AUTHZ_SUCCESS][SubjectID=tpsadmin][Outcome=Success][aclResource=cert
+Server.tps.account][Op=login][Info=AccountResource.login] authorization success
+[AuditEvent=AUTHZ_SUCCESS][SubjectID=tpsadmin][Outcome=Success][aclResource=cert
+Server.tps.tokens][Op=read][Info=TokenResource.findTokens] authorization success
+[AuditEvent=AUTHZ_SUCCESS][SubjectID=tpsadmin][Outcome=Success][aclResource=cert
+Server.tps.account][Op=logout][Info=AccountResource.logout] authorization succes
+s
 ----
 
 == Modifying Profile Mapping ==
 
 ----
-[AuditEvent=AUTHZ_SUCCESS][SubjectID=tpsadmin][Outcome=Success][aclResource=certServer.tps.profile-mappings][Op=modify][Info=ProfileMappingResource.updateProfileMapping] authorization success
+[AuditEvent=AUTHZ_SUCCESS][SubjectID=tpsadmin][Outcome=Success][aclResource=cert
+Server.tps.profile-mappings][Op=modify][Info=ProfileMappingResource.updateProfil
+eMapping] authorization success
 ----
 
 == Pin Reset ==
 
 ----
-[AuditEvent=TOKEN_OP_REQUEST][IP=a.b.c.d][CUID=A10192030405018001C0][MSN=01%02%03%04%][Outcome=success][OP=pinReset][AppletVersion=0.0.6fbbc105] token op request made
-[AuditEvent=TOKEN_AUTH_SUCCESS][IP=a.b.c.d][SubjectID=user1a][CUID=A10192030405018001C0][MSN=01%02%03%04%][Outcome=success][OP=pinReset][tokenType=userKey][AppletVersion=0.0.6fbbc105][AuthMgr=ldap1] token authentication success
-[AuditEvent=TOKEN_PIN_RESET_SUCCESS][IP=a.b.c.d][SubjectID=user1a][CUID=A10192030405018001C0][Outcome=success][AppletVersion=userKey][KeyVersion=0101] token op pin reset success
+[AuditEvent=TOKEN_OP_REQUEST][IP=a.b.c.d][CUID=A10192030405018001C0][MSN=01%02%0
+3%04%][Outcome=success][OP=pinReset][AppletVersion=0.0.6fbbc105] token op reques
+t made
+[AuditEvent=TOKEN_AUTH_SUCCESS][IP=a.b.c.d][SubjectID=user1a][CUID=A101920304050
+18001C0][MSN=01%02%03%04%][Outcome=success][OP=pinReset][tokenType=userKey][Appl
+etVersion=0.0.6fbbc105][AuthMgr=ldap1] token authentication success
+[AuditEvent=TOKEN_PIN_RESET_SUCCESS][IP=a.b.c.d][SubjectID=user1a][CUID=A1019203
+0405018001C0][Outcome=success][AppletVersion=userKey][KeyVersion=0101] token op 
+pin reset success
 ----
 
 == ExternalReg ==
@@ -155,23 +166,55 @@ The command will generate the following logs:
 Example audit messages for an externalReg enrollment request with user entries tokenType: delegateISEtoken certstoadd: 63,ca1,9,kra1 (That's two cert enrollments and one "recovery"):
 
 ----
-[AuditEvent=TOKEN_OP_REQUEST][IP=a.b.c.d][CUID=A10192030405028001C0][MSN=01%02%03%04%][Outcome=success][OP=enroll][AppletVersion=0.0.6fbbc105] token op request made
-[AuditEvent=TOKEN_AUTH_SUCCESS][IP=a.b.c.d][SubjectID=user2a][CUID=A10192030405028001C0][MSN=01%02%03%04%][Outcome=success][OP=enroll][tokenType=null][AppletVersion=0.0.6fbbc105][AuthMgr=ldap1] token authentication success
-[AuditEvent=TOKEN_APPLET_UPGRADE_SUCCESS][IP=a.b.c.d][SubjectID=user2a][CUID=A10192030405028001C0][MSN=01%02%03%04%][Outcome=success][KeyVersion=0101][oldAppletVersion=0.0.6fbbc105][newAppletVersion=1.4.54de790f][Info=null] token applet upgrade success
-[AuditEvent=TOKEN_CERT_ENROLLMENT][IP=a.b.c.d][SubjectID=user2a][CUID=A10192030405028001C0][Outcome=success][tokenType=delegateISEtoken][KeyVersion=0101][Serial=128][CA_ID=ca1][Info=null] token certificate enrollment request made
-[AuditEvent=TOKEN_CERT_ENROLLMENT][IP=a.b.c.d][SubjectID=user2a][CUID=A10192030405028001C0][Outcome=success][tokenType=delegateISEtoken][KeyVersion=0101][Serial=129][CA_ID=ca1][Info=null] token certificate enrollment request made
-[AuditEvent=TOKEN_KEY_RECOVERY][IP=a.b.c.d][SubjectID=user2a][CUID=A10192030405028001C0][Outcome=success][tokenType=delegateISEtoken][KeyVersion=0101][Serial=63][CA_ID=ca1][KRA_ID=kra1][Info=null] token certificate/key recovery request made 0.http-bio-8080-exec-2 - [15/Feb/2016:16:03:39 PST] [14] [6] [AuditEvent=TOKEN_CERT_RETRIEVAL][IP=a.b.c.d][SubjectID=user2a][CUID=A10192030405028001C0][Outcome=success][tokenType=delegateISEtoken][KeyVersion=0101][Serial=63][CA_ID=ca1][Info=null] token certificate retrieval request made
+[AuditEvent=TOKEN_OP_REQUEST][IP=a.b.c.d][CUID=A10192030405028001C0][MSN=01%02%0
+3%04%][Outcome=success][OP=enroll][AppletVersion=0.0.6fbbc105] token op request 
+made
+[AuditEvent=TOKEN_AUTH_SUCCESS][IP=a.b.c.d][SubjectID=user2a][CUID=A101920304050
+28001C0][MSN=01%02%03%04%][Outcome=success][OP=enroll][tokenType=null][AppletVer
+sion=0.0.6fbbc105][AuthMgr=ldap1] token authentication success
+[AuditEvent=TOKEN_APPLET_UPGRADE_SUCCESS][IP=a.b.c.d][SubjectID=user2a][CUID=A10
+192030405028001C0][MSN=01%02%03%04%][Outcome=success][KeyVersion=0101][oldApplet
+Version=0.0.6fbbc105][newAppletVersion=1.4.54de790f][Info=null] token applet upg
+rade success
+[AuditEvent=TOKEN_CERT_ENROLLMENT][IP=a.b.c.d][SubjectID=user2a][CUID=A101920304
+05028001C0][Outcome=success][tokenType=delegateISEtoken][KeyVersion=0101][Serial
+=128][CA_ID=ca1][Info=null] token certificate enrollment request made
+[AuditEvent=TOKEN_CERT_ENROLLMENT][IP=a.b.c.d][SubjectID=user2a][CUID=A101920304
+05028001C0][Outcome=success][tokenType=delegateISEtoken][KeyVersion=0101][Serial
+=129][CA_ID=ca1][Info=null] token certificate enrollment request made
+[AuditEvent=TOKEN_KEY_RECOVERY][IP=a.b.c.d][SubjectID=user2a][CUID=A101920304050
+28001C0][Outcome=success][tokenType=delegateISEtoken][KeyVersion=0101][Serial=63
+][CA_ID=ca1][KRA_ID=kra1][Info=null] token certificate/key recovery request made
+ 0.http-bio-8080-exec-2 - [15/Feb/2016:16:03:39 PST] [14] [6] [AuditEvent=TOKEN_
+CERT_RETRIEVAL][IP=a.b.c.d][SubjectID=user2a][CUID=A10192030405028001C0][Outcome
+=success][tokenType=delegateISEtoken][KeyVersion=0101][Serial=63][CA_ID=ca1][Inf
+o=null] token certificate retrieval request made
 ----
 
 == Formatting an active token that causes revocation ==
 
 ----
-[AuditEvent=TOKEN_OP_REQUEST][IP=a.b.c.d][CUID=A10192030405018001C0][MSN=01%02%03%04%][Outcome=success][OP=format][AppletVersion=0.0.6fbbc105] token op request made
-[AuditEvent=TOKEN_AUTH_SUCCESS][IP=a.b.c.d][SubjectID=user1a][CUID=A10192030405018001C0][MSN=01%02%03%04%][Outcome=success][OP=format][tokenType=tokenKey][AppletVersion=0.0.6fbbc105][AuthMgr=ldap1] token authentication success
-[AuditEvent=TOKEN_APPLET_UPGRADE_SUCCESS][IP=a.b.c.d][SubjectID=user1a][CUID=A10192030405018001C0][MSN=01%02%03%04%][Outcome=success][KeyVersion=0101][oldAppletVersion=0.0.6fbbc105][newAppletVersion=1.4.54de790f][Info=null] token applet upgrade success
-[AuditEvent=TOKEN_FORMAT_SUCCESS][IP=a.b.c.d][SubjectID=user1a][CUID=A10192030405018001C0][MSN=01%02%03%04%][Outcome=success][tokenType=tokenKey][AppletVersion=0.0.6fbbc105][KeyVersion=0101][Info=null] token op format success
-[AuditEvent=TOKEN_CERT_STATUS_CHANGE_REQUEST][IP=a.b.c.d][SubjectID=user1a][CUID=A10192030405018001C0][Outcome=0][tokenType=tokenKey][CertSerialNum=131][RequestType=revoke][RevokeReasonNum=0][CA_ID=ca1][Info=null] token certificate revocation/unrevocation request made
-[AuditEvent=TOKEN_CERT_STATUS_CHANGE_REQUEST][IP=a.b.c.d][SubjectID=user1a][CUID=A10192030405018001C0][Outcome=0][tokenType=tokenKey][CertSerialNum=132][RequestType=revoke][RevokeReasonNum=0][CA_ID=ca1][Info=null] token certificate revocation/unrevocation request made
+[AuditEvent=TOKEN_OP_REQUEST][IP=a.b.c.d][CUID=A10192030405018001C0][MSN=01%02%0
+3%04%][Outcome=success][OP=format][AppletVersion=0.0.6fbbc105] token op request 
+made
+[AuditEvent=TOKEN_AUTH_SUCCESS][IP=a.b.c.d][SubjectID=user1a][CUID=A101920304050
+18001C0][MSN=01%02%03%04%][Outcome=success][OP=format][tokenType=tokenKey][Apple
+tVersion=0.0.6fbbc105][AuthMgr=ldap1] token authentication success
+[AuditEvent=TOKEN_APPLET_UPGRADE_SUCCESS][IP=a.b.c.d][SubjectID=user1a][CUID=A10
+192030405018001C0][MSN=01%02%03%04%][Outcome=success][KeyVersion=0101][oldApplet
+Version=0.0.6fbbc105][newAppletVersion=1.4.54de790f][Info=null] token applet upg
+rade success
+[AuditEvent=TOKEN_FORMAT_SUCCESS][IP=a.b.c.d][SubjectID=user1a][CUID=A1019203040
+5018001C0][MSN=01%02%03%04%][Outcome=success][tokenType=tokenKey][AppletVersion=
+0.0.6fbbc105][KeyVersion=0101][Info=null] token op format success
+[AuditEvent=TOKEN_CERT_STATUS_CHANGE_REQUEST][IP=a.b.c.d][SubjectID=user1a][CUID
+=A10192030405018001C0][Outcome=0][tokenType=tokenKey][CertSerialNum=131][Request
+Type=revoke][RevokeReasonNum=0][CA_ID=ca1][Info=null] token certificate revocati
+on/unrevocation request made
+[AuditEvent=TOKEN_CERT_STATUS_CHANGE_REQUEST][IP=a.b.c.d][SubjectID=user1a][CUID
+=A10192030405018001C0][Outcome=0][tokenType=tokenKey][CertSerialNum=132][Request
+Type=revoke][RevokeReasonNum=0][CA_ID=ca1][Info=null] token certificate revocati
+on/unrevocation request made
 ----
 
 == Format with invalid symkey required version ==
@@ -183,8 +226,14 @@ op.format.tokenKey.update.symmetricKeys.requiredVersion=2
 ----
 
 ----
-[AuditEvent=TOKEN_KEY_CHANGEOVER_REQUIRED][IP=a.b.c.d][SubjectID=user1a][CUID=A10192030405018001C0][MSN=01%02%03%04%][Outcome=na][tokenType=tokenKey][AppletVersion=0.0.6fbbc105][oldKeyVersion=0101][newKeyVersion=02%01%][Info=null] token key changeover required
-[AuditEvent=TOKEN_KEY_CHANGEOVER_FAILURE][IP=a.b.c.d][SubjectID=user1a][CUID=A10192030405018001C0][MSN=01%02%03%04%][Outcome=failure][tokenType=tokenKey][AppletVersion=0.0.6fbbc105][oldKeyVersion=null][newKeyVersion=02%01%][Info=TPSEngine.computeSessionKey: invalid returned status: 1] token key changeover failure
+[AuditEvent=TOKEN_KEY_CHANGEOVER_REQUIRED][IP=a.b.c.d][SubjectID=user1a][CUID=A1
+0192030405018001C0][MSN=01%02%03%04%][Outcome=na][tokenType=tokenKey][AppletVers
+ion=0.0.6fbbc105][oldKeyVersion=0101][newKeyVersion=02%01%][Info=null] token key
+ changeover required
+[AuditEvent=TOKEN_KEY_CHANGEOVER_FAILURE][IP=a.b.c.d][SubjectID=user1a][CUID=A10
+192030405018001C0][MSN=01%02%03%04%][Outcome=failure][tokenType=tokenKey][Applet
+Version=0.0.6fbbc105][oldKeyVersion=null][newKeyVersion=02%01%][Info=TPSEngine.c
+omputeSessionKey: invalid returned status: 1] token key changeover failure
 ----
 
 = See Also =
