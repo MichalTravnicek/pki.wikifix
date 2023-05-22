@@ -1,0 +1,14 @@
+= Overview =
+
+The `TOKEN_AUTH_SUCCESS` audit event is generated when authentication succeeded.
+
+* `Outcome` should always be `success` in this event
+* `AuthMgr` must be the authentication manager instance name that did this authentication
+
+= Examples =
+
+----
+[AuditEvent=TOKEN_AUTH_SUCCESS][IP={0}][SubjectID={1}][CUID={2}][MSN={3}][Outcom
+e={4}][OP={5}][tokenType={6}][AppletVersion={7}][AuthMgr={8}] token authenticati
+on success
+----
