@@ -55,33 +55,12 @@ Properties:
 * `CA_ID`: CA id as defined in TPS CS.cfg
 * `KRA_ID`: KRA id as defined in TPS CS.cfg
 
-== TOKEN_CERT_ENROLLMENT ==
+Events:
 
-See link:TOKEN_CERT_ENROLLMENT-Audit-Event[TOKEN_CERT_ENROLLMENT].
-
-== TOKEN_CERT_RENEWAL ==
-
-See link:TOKEN_CERT_RENEWAL-Audit-Event[TOKEN_CERT_RENEWAL].
-
-== TOKEN_CERT_RETRIEVAL ==
-
-This event is used for TPS when token certificate retrieval request is made.
-
-----
-[AuditEvent=TOKEN_CERT_RETRIEVAL][IP={0}][SubjectID={1}][CUID={2}][Outcome={3}][tokenType={4}][KeyVersion={5}][Serial={6}][CA_ID={7}][Info={8}] token certificate retrieval request made
-----
-
-== TOKEN_CERT_STATUS_CHANGE_REQUEST ==
-
-This event is used when a token certificate status change request (e.g. revocation) is made.
-
-* `CUID` must be the last token that the certificate was associated with
-* `CertSerialNum` must be the serial number (in decimal) of the certificate to be revoked
-* `RequestType` must be `revoke`, `on-hold`, `off-hold`
-
-----
-[AuditEvent=TOKEN_CERT_STATUS_CHANGE_REQUEST][IP={0}][SubjectID={1}][CUID={2}][Outcome={3}][tokenType={4}][CertSerialNum={5}][RequestType={6}][RevokeReasonNum={7}][CA_ID={8}][Info={9}] token certificate revocation/unrevocation request made
-----
+* link:TOKEN_CERT_ENROLLMENT-Audit-Event[TOKEN_CERT_ENROLLMENT]
+* link:TOKEN_CERT_RENEWAL-Audit-Event[TOKEN_CERT_RENEWAL]
+* link:TOKEN_CERT_RETRIEVAL-Audit-Event[TOKEN_CERT_RETRIEVAL]
+* link:TOKEN_CERT_STATUS_CHANGE_REQUEST-Audit-Event[TOKEN_CERT_STATUS_CHANGE_REQUEST]
 
 = Token PIN Events =
 
