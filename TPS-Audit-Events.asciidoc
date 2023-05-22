@@ -44,7 +44,7 @@ Event properties:
 * link:TOKEN_APPLET_UPGRADE_FAILURE-Audit-Event[TOKEN_APPLET_UPGRADE_FAILURE]
 * link:TOKEN_STATE_CHANGE-Audit-Event[TOKEN_STATE_CHANGE]
 
-= TPS Certificate Events =
+= Token Certificate Events =
 
 Properties:
 
@@ -69,37 +69,10 @@ Events:
 
 = Token Key Events =
 
-== TOKEN_KEY_RECOVERY ==
-
-This event is triggered when token certificate key recovery request is made.
-
-----
-[AuditEvent=TOKEN_KEY_RECOVERY][IP={0}][SubjectID={1}][CUID={2}][Outcome={3}][tokenType={4}][KeyVersion={5}][Serial={6}][CA_ID={7}][KRA_ID={8}][Info={9}] token certificate/key recovery request made
-----
-
-== TOKEN_KEY_CHANGEOVER_REQUIRED ==
-
-This event is triggered when token key changeover is required.
-
-----
-[AuditEvent=TOKEN_KEY_CHANGEOVER_REQUIRED][IP={0}][SubjectID={1}][CUID={2}][MSN={3}][Outcome={4}][tokenType={5}][AppletVersion={6}][oldKeyVersion={7}][newKeyVersion={8}][Info={9}] token key changeover required
-----
-
-== TOKEN_KEY_CHANGEOVER_SUCCESS ==
-
-This event is triggered when token key changeover succeeded.
-
-----
-[AuditEvent=TOKEN_KEY_CHANGEOVER_SUCCESS][IP={0}][SubjectID={1}][CUID={2}][MSN={3}][Outcome={4}][tokenType={5}][AppletVersion={6}][oldKeyVersion={7}][newKeyVersion={8}][Info={9}] token key changeover success
-----
-
-== TOKEN_KEY_CHANGEOVER_FAILURE ==
-
-This event is triggered when token key changeover failed.
-
-----
-[AuditEvent=TOKEN_KEY_CHANGEOVER_FAILURE][IP={0}][SubjectID={1}][CUID={2}][MSN={3}][Outcome={4}][tokenType={5}][AppletVersion={6}][oldKeyVersion={7}][newKeyVersion={8}][Info={9}] token key changeover failure
-----
+* link:TOKEN_KEY_RECOVERY-Audit-Event[TOKEN_KEY_RECOVERY]
+* link:TOKEN_KEY_CHANGEOVER_REQUIRED-Audit-Event[TOKEN_KEY_CHANGEOVER_REQUIRED]
+* link:TOKEN_KEY_CHANGEOVER_SUCCESS-Audit-Event[TOKEN_KEY_CHANGEOVER_SUCCESS]
+* link:TOKEN_KEY_CHANGEOVER_FAILURE-Audit-Event[TOKEN_KEY_CHANGEOVER_FAILURE]
 
 = Token Authentication Events =
 
