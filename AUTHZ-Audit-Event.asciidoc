@@ -1,1 +1,43 @@
+= Overview =
+
+The `AUTHZ` audit event is generated when authorization succeeds or fails.
+
+Properties:
+
+* `Outcome`: `Success` or `Failure`
+* `aclResource` must be the ACL resource ID as defined in ACL resource list
+* `Op` must be one of the operations as defined with the ACL statement, e.g. `read` for an ACL statement containing `(read,write)`
+
 In PKI 10.5 the `AUTHZ_SUCCESS` and `AUTHZ_FAIL` events have been merged into `AUTHZ` event.
+
+= Examples =
+
+== Successful Authorization ==
+
+Use PKI CLI  as an admin user to access the users:
+
+----
+$ pki -n caadmin ca-user-find
+----
+
+The server will generate the following logs:
+
+----
+[AuditEvent=AUTHZ][SubjectID=caadmin][Outcome=Success][aclResource=certServer.ca
+.users][Op=execute][Info=UserResource.findUsers] authorization success
+----
+
+== Failed Authorization ==
+
+Use PKI CLI as a non-admin user to access the users:
+
+----
+$ pki -u testuser -w Secret.123 ca-user-find
+----
+
+The server will generate the following logs:
+
+----
+[AuditEvent=AUTHZ][SubjectID=testuser][Outcome=Failure][aclResource=certServer.c
+a.users][Op=execute][Info=Authorization Error] authorization failure
+----
