@@ -9,6 +9,8 @@ Properties:
 
 = Examples =
 
+== Adding CA Certificate Chain ==
+
 Use PKI Console to add a trusted CA certificate chain:
 
 * Go to *Configuration* -> *System Keys and Certificates* -> *CA Certificates*
@@ -41,4 +43,38 @@ OuL3o+hTYuQtkQqWknkqxpQi/rbzwEeqEfDcLOLPWbhp4yQXFZySJJPPMSsl0vNN
 ZEbIOznWyNmNq5gqSIYwt2RUREf6NUjXWWzayrVL2hBq90ukFtMuSf/Pka/Uk3HC
 MtQfIFm9RMdb8mdpQxqikxQ49G7pHT+zYA==
 -----END CERTIFICATE-----+nickname;;<null>+pathname;;<null>+serverRoot;;<null>+serverID;;instanceID] certificate database configuration
+----
+
+== Trusting CA Certificate Chain ==
+
+* Go to *Configuration* -> *System Keys and Certificates* -> *CA Certificates*
+* Select an untrusted CA certificate
+* Click *Edit*
+* Click *Yes*
+
+The server will generate the following logs:
+
+----
+[AuditEvent=CONFIG_TRUSTED_PUBLIC_KEY][SubjectID=caadmin][Outcome=Success][Param
+NameValPairs=Scope;;rootTrustBit+Operation;;OP_MODIFY+Resource;;RS_ID_CONFIG+nic
+kName;;internal:CA Signing Certificate - EXAMPLE+serialNumber;;33359937118835104
+1398503430217059004129+issuerName;;CN=CA Signing Certificate,OU=pki-tomcat,O=EXA
+MPLE+trustbit;;trust] certificate database configuration
+----
+
+== Untrusting CA Certificate Chain ==
+
+* Go to *Configuration* -> *System Keys and Certificates* -> *CA Certificates*
+* Select a trusted CA certificate
+* Click *Edit*
+* Click *Yes*
+
+The server will generate the following logs:
+
+----
+[AuditEvent=CONFIG_TRUSTED_PUBLIC_KEY][SubjectID=caadmin][Outcome=Success][Param
+NameValPairs=Scope;;rootTrustBit+Operation;;OP_MODIFY+Resource;;RS_ID_CONFIG+nic
+kName;;internal:CA Signing Certificate - EXAMPLE+serialNumber;;33359937118835104
+1398503430217059004129+issuerName;;CN=CA Signing Certificate,OU=pki-tomcat,O=EXA
+MPLE+trustbit;;untrust] certificate database configuration
 ----
