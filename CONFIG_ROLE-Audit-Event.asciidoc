@@ -8,6 +8,23 @@ Properties:
 
 = Examples =
 
+== Adding User ==
+
+Use PKI CLI to add a user:
+
+----
+$ pki -n caadmin ca-user-add testuser --fullName "Test User" --password Secret.123
+----
+
+The server will generate the following logs:
+
+----
+[AuditEvent=CONFIG_ROLE][SubjectID=caadmin][Outcome=Success][ParamNameValPairs=S
+cope;;users+Operation;;OP_ADD+Resource;;testuser+password;;********+phone;;<null
+>+state;;<null>+userType;;<null>+fullname;;Test User+email;;<null>] role configu
+ration parameter(s) change
+----
+
 == Adding Group Member ==
 
 Use PKI CLI to add a member to a group:
