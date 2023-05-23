@@ -1,1 +1,45 @@
+= Overview =
+
+The `AUTH` audit event is generated when authentication succeeds or fails. In case of SSL client authentication, only webserver env can pick up the SSL violation; CS authMgr can pick up certificate mis-match, so this event is used.
+
+Properties:
+
+* `Outcome`: `Success` or `Failure`
+* `SubjectID`: subject ID or `$Unidentified$` in case of failure
+* `AuthMgr`: the authentication manager instance name that handle the authentication
+* `AttemptedCred`: the credential attempted and failed
+
 In PKI 10.5 the `AUTH_SUCCESS` and `AUTH_FAIL` events have been merged into `AUTH` event.
+
+= Examples =
+
+== Successful Authentication ==
+
+Use PKI CLI to authenticate with the correct password:
+
+----
+$ pki -u caadmin -w Secret.123 ca-user-find
+----
+
+The server will generate the following logs:
+
+----
+[AuditEvent=AUTH][SubjectID=caadmin][Outcome=Success][AuthMgr=passwdUserDBAuthMg
+r] authentication success
+----
+
+== Failed Authentication ==
+
+Use PKI CLI to authenticate with a wrong password:
+
+----
+$ pki -u caadmin -w wrong ca-user-find
+----
+
+The server will generate the following logs:
+
+----
+[AuditEvent=AUTH][SubjectID=$Unidentified$][Outcome=Failure][AuthMgr=passwdUserD
+BAuthMgr][AttemptedCred=caadmin] authentication failure
+----
+
