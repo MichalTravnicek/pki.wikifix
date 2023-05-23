@@ -1,1 +1,55 @@
-In PKI 10.5 the `ACCESS_SESSION_ESTABLISH_SUCCESS` and `ACCESS_SESSION_ESTABLISH_FAIL` events are merged into `ACCESS_SESSION_ESTABLISH` event.
+= Overview =
+
+The `ACCESS_SESSION_ESTABLISH` audit event is generated when PKI client managed to establish a secure connection to PKI server successfully.
+
+Properties:
+
+* `ClientIP`: Client's IP address
+* `ServerIP`: Server's IP address
+* `SubjectID`: Client certificate's subject DN
+* `Outcome`: `Success` or `Failure`
+* `Info`: Failure reason
+** See link:https://github.com/dogtagpki/jss/blob/master/org/mozilla/jss/ssl/SSLAlertDescription.java[SSLAlertDescription.java]
+
+In PKI 10.5 the `ACCESS_SESSION_ESTABLISH_SUCCESS` and `ACCESS_SESSION_ESTABLISH_FAILURE` events are merged into `ACCESS_SESSION_ESTABLISH` event.
+
+= Examples =
+
+== Successful Connection ==
+
+Use PKI CLI to connect to the server:
+
+----
+$ pki -n caadmin ca-user-find
+----
+
+The server will generate the following logs:
+
+----
+[AuditEvent=ACCESS_SESSION_ESTABLISH][ClientIP=--][ServerIP=--][SubjectID=CN=PKI
+ Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success] a
+ccess session establish success
+----
+
+== Failed Connection ==
+
+Configure PKI CLI to use a cipher that is disabled on the server:
+
+----
+SSL_CIPHERS="TLS_RSA_WITH_AES_128_CBC_SHA256"
+SSL_DEFAULT_CIPHERS="false"
+----
+
+Then use PKI CLI to connect to the server:
+
+----
+$ pki -n caadmin ca-user-find
+----
+
+The operation will fail and the server will generate the following log:
+
+----
+[AuditEvent=ACCESS_SESSION_ESTABLISH_FAILURE][ClientIP=10.34.78.30][ServerIP=10.
+34.78.30][SubjectID=][Outcome=Failure][Info=HANDSHAKE_FAILURE] access session es
+tablish failure
+----
