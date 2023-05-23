@@ -1,0 +1,25 @@
+= Overview =
+
+The `CONFIG_ACL` audit event is generated when the Access Control List is modified.
+
+= Examples =
+
+Use PKI Console to modify the Access Control List:
+
+* Go to *Configuration* -> *Access Control List* -> *Access Control List*
+* Select one of the resources
+* Click *Edit*
+* Make some changes
+* Click *OK*
+
+The server will generate the following logs:
+
+----
+[AuditEvent=CONFIG_ACL][SubjectID=caadmin][Outcome=Success][ParamNameValPairs=Sc
+ope;;acls+Operation;;OP_MODIFY+Resource;;certServer.acl.configuration+aci;;allow
+ (read) group="Administrators" || group="Certificate Manager Agents" || group="R
+egistration Manager Agents" || group="Auditors";allow (modify) group="Administra
+tors"+desc;;Administrators, agents and auditors are allowed to read ACL configur
+ation but only administrators allowed to modify+rights;;modify,read] ACL configu
+ration parameter(s) change
+----
