@@ -9,7 +9,7 @@ The UpdateCRL service can be used to force the update of the CRL.
 
 = Response =
 
-== XML Response ==
+== Forcing CRL Update ==
 
 ----
 $ curl \
@@ -17,13 +17,55 @@ $ curl \
     --cert-type P12 \
     --cert ~/.dogtag/pki-tomcat/ca_admin_cert.p12:Secret.123 \
     -sk \
-    https://localhost.localdomain:8443/ca/agent/ca/updateCRL \
+    https://$HOSTNAME:8443/ca/agent/ca/updateCRL \
     | xmllint --format -
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <xml>
   <header>
     <crlIssuingPoint>MasterCRL</crlIssuingPoint>
     <crlUpdate>Scheduled</crlUpdate>
+  </header>
+  <fixed/>
+  <records/>
+</xml>
+----
+
+== Forcing CRL Update with Future thisUpdate ==
+
+----
+$ curl \
+    --cert-type P12 \
+    --cert ~/.dogtag/pki-tomcat/ca_admin_cert.p12:Secret.123 \
+    -sk \
+    -d "crlIssuingPoint=MasterCRL&signatureAlgorithm=SHA256withRSA&waitForUpdate=true&clearCRLCache=true&customFutureThisUpdateDateValue=2020:9:22:13:0:0&xml=true" \
+    https://$HOSTNAME:8443/ca/agent/ca/updateCRL \
+    | xmllint --format -
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xml>
+  <header>
+    <crlIssuingPoint>MasterCRL</crlIssuingPoint>
+    <time>47</time>
+  </header>
+  <fixed/>
+  <records/>
+</xml>
+----
+
+== Forcing CRL Update and Cancel Future thisUpdate ==
+
+----
+$ curl \
+    --cert-type P12 \
+    --cert /root/.dogtag/pki-tomcat/ca_admin_cert.p12:Secret.123 \
+    -sk \
+    -d "crlIssuingPoint=MasterCRL&signatureAlgorithm=SHA256withRSA&waitForUpdate=true&clearCRLCache=true&cancelCurCustomFutureThisUpdateValue=true&xml=true" \
+    https://$HOSTNAME:8443/ca/agent/ca/updateCRL \
+    | xmllint --format -
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xml>
+  <header>
+    <crlIssuingPoint>MasterCRL</crlIssuingPoint>
+    <time>52</time>
   </header>
   <fixed/>
   <records/>
