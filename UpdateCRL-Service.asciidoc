@@ -37,7 +37,7 @@ $ curl \
     --cert-type P12 \
     --cert ~/.dogtag/pki-tomcat/ca_admin_cert.p12:Secret.123 \
     -sk \
-    -d "crlIssuingPoint=MasterCRL&signatureAlgorithm=SHA256withRSA&waitForUpdate=true&clearCRLCache=true&customFutureThisUpdateDateValue=2020:9:22:13:0:0&xml=true" \
+    -d "crlIssuingPoint=MasterCRL&waitForUpdate=true&clearCRLCache=true&customFutureThisUpdateDateValue=2020:9:22:13:0:0&xml=true" \
     https://$HOSTNAME:8443/ca/agent/ca/updateCRL \
     | xmllint --format -
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -58,7 +58,7 @@ $ curl \
     --cert-type P12 \
     --cert /root/.dogtag/pki-tomcat/ca_admin_cert.p12:Secret.123 \
     -sk \
-    -d "crlIssuingPoint=MasterCRL&signatureAlgorithm=SHA256withRSA&waitForUpdate=true&clearCRLCache=true&cancelCurCustomFutureThisUpdateValue=true&xml=true" \
+    -d "crlIssuingPoint=MasterCRL&waitForUpdate=true&clearCRLCache=true&cancelCurCustomFutureThisUpdateValue=true&xml=true" \
     https://$HOSTNAME:8443/ca/agent/ca/updateCRL \
     | xmllint --format -
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
