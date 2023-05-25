@@ -78,6 +78,12 @@ To install link:SoftHSM[SoftHSM] module into an NSS database:
 $ modutil -dbdir nssdb -add softhsm -libfile /usr/lib64/pkcs11/libsofthsm2.so -force
 ----
 
+To install NSS PEM module into an NSS database:
+
+----
+$ modutil -dbdir nssdb -add nss-pem -libfile /usr/lib64/libnsspem.so -force
+----
+
 = Removing NSS Module =
 
 To delete a module from an NSS database:
