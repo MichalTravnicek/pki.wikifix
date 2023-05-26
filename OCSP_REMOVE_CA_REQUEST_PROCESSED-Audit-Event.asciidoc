@@ -3,3 +3,20 @@
 The `OCSP_REMOVE_CA_REQUEST_PROCESSED` audit event is generated when a remove CA request to the OCSP Responder is processed.
 
 *Note:* In PKI 10.5 the `OCSP_REMOVE_CA_REQUEST_PROCESSED_SUCCESS` and `OCSP_REMOVE_CA_REQUEST_PROCESSED_FAILURE` events are replaced by `OCSP_REMOVE_CA_REQUEST_PROCESSED` event.
+
+= Examples =
+
+Use OCSP Web UI to remove a CA from OCSP:
+
+* Click *List Certificate Authorities*
+* Click *Remove CA*.
+* Click *OK*.
+
+The server will generate the following logs:
+
+----
+[AuditEvent=OCSP_REMOVE_CA_REQUEST_PROCESSED_SUCCESS][SubjectID=ocspadmin][Outco
+me=Success][CASubjectDN=CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE] Remov
+e CA for OCSP Responder is successful
+----
+
