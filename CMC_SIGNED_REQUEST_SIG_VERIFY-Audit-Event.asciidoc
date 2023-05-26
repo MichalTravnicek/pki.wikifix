@@ -1,3 +1,5 @@
+= Overview =
+
 The `CMC_SIGNED_REQUEST_SIG_VERIFY` audit event is generated when CMC (agent-pre-signed) certificate requests or revocation requests are submitted and signature is verified.
 
 Properties:
@@ -7,7 +9,9 @@ Properties:
 * `CertSubject` must be the certificate subject name of the certificate request
 * `SignerInfo` reflects the person who actually signs the CMC request
 
-For example, prepare a root CA and link:https://github.com/dogtagpki/pki/blob/master/docs/installation/ca/Installing_CA_with_External_CA_Signing_Certificate.md[install a subordinate CA with external CA signing certificate].
+= Examples =
+
+Prepare a root CA and link:https://github.com/dogtagpki/pki/blob/master/docs/installation/ca/Installing_CA_with_External_CA_Signing_Certificate.md[install a subordinate CA with external CA signing certificate].
 Use CMC on the root CA to issue the subordinate CA signing certificate.
 The root CA will generate the following log:
 
