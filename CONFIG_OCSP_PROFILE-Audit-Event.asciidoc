@@ -4,7 +4,15 @@ The `CONFIG_OCSP_PROFILE` audit event is generated when the OCSP configuration i
 
 = Examples =
 
-Open OCSP Console, go to *Configuration* -> *Online Certificate Status Manager* -> *Revocation Info Stores*, select `defStore`, then click *Edit/View*. Make some changes, then click *OK*. The server will generate the following logs:
+Use OCSP Console to change OCSP configuration:
+
+* Go to *Configuration* -> *Online Certificate Status Manager* -> *Revocation Info Stores*.
+* Select `defStore`.
+* Click *Edit/View*.
+* Make some changes.
+* Click *OK*.
+
+The server will generate the following logs:
 
 ----
 [AuditEvent=CONFIG_OCSP_PROFILE][SubjectID=ocspadmin][Outcome=Success][ParamName
@@ -12,4 +20,3 @@ ValPairs=Scope;;ocspStoresRules+Operation;;OP_MODIFY+Resource;;defStore+includeN
 extUpdate;;false+byName;;true+implName;;com.netscape.cms.ocsp.DefStore+notFoundA
 sGood;;true] OCSP profile configuration parameter(s) change
 ----
-
