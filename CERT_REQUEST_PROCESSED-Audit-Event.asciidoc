@@ -9,7 +9,9 @@ Properties:
 * `InfoName` must be value `certificate` (in case of approval), `rejectReason` (in case of rejection), or `cancelReason` (in case of cancelation)
 * `InfoValue` must contain the certificate (in case of success), a rejection reason in text, or a cancelation reason in text
 
-= Approved Requests =
+= Examples =
+
+== Approved Requests ==
 
 Use PKI CLI to approve a certificate request:
 
@@ -35,7 +37,7 @@ See also:
 
 * link:https://github.com/dogtagpki/pki/issues/2959[Ticket #2959: Missing authority ID in LWCA signing audit events.]
 
-= Rejected Requests =
+== Rejected Requests ==
 
 Use PKI CLI to reject a certificate request:
 
@@ -57,7 +59,7 @@ Prior to PKI 10.4.5 the server will generate a log with [Outcome=Success]:
 [InfoName=rejectReason][InfoValue=<null>] certificate request processed
 ----
 
-= Canceled Requests =
+== Canceled Requests ==
 
 Use PKI CLI to cancel a certificate request:
 
@@ -79,7 +81,7 @@ Prior to 10.4.5 the server will generate the a log with [Outcome=Success]:
 [InfoName=cancelReason][InfoValue=<null>] certificate request processed
 ----
 
-= Invalid Requests =
+== Invalid Requests ==
 
 Use PKI CLI to submit an invalid certificate request:
 
