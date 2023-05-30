@@ -61,7 +61,7 @@ See also link:https://www.systutorials.com/docs/linux/man/5-softhsm2.conf[sofths
 
 = Configuring Permissions for PKI Tokens =
 
-By default the SoftHSM file permissions are configured as follows:
+By default SoftHSM tokens are stored in a folder owned by `ods` user and group:
 
 ----
 $ ls -ld /var/lib/softhsm
@@ -70,17 +70,10 @@ $ ls -ld /var/lib/softhsm/tokens
 drwxrwx--T. 2 ods ods 4096 Nov  5  2018 /var/lib/softhsm/tokens
 ----
 
-To allow PKI server (which by default runs as `pkiuser`) to access SoftHSM files:
+To let PKI server (which runs as `pkiuser`) access SoftHSM tokens, add `pkiuser` into `ods` group:
 
 ----
 $ usermod pkiuser -a -G ods
-----
-
-or:
-
-----
-$ chmod 755 /var/lib/softhsm
-$ chmod 1777 /var/lib/softhsm/tokens
 ----
 
 = Creating Storage for PKI Tokens =
