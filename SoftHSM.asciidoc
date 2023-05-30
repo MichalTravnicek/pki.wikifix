@@ -59,7 +59,7 @@ The configuration file is located at:
 
 See also link:https://www.systutorials.com/docs/linux/man/5-softhsm2.conf[softhsm2.conf (5)].
 
-= Granting Permission to PKI System User =
+= Configuring Permissions for PKI Tokens =
 
 By default the SoftHSM file permissions are configured as follows:
 
@@ -83,23 +83,23 @@ $ chmod 755 /var/lib/softhsm
 $ chmod 1777 /var/lib/softhsm/tokens
 ----
 
-= Creating User-specific Tokens =
+= Creating Storage for PKI Tokens =
 
-As pkiuser, prepare a folder for user-specific tokens:
+As `pkiuser`, prepare a folder for PKI tokens:
 
 ----
 $ mkdir -p /home/pkiuser/.config/softhsm2/tokens
 ----
 
-Specify user-specific token folder in `/home/pkiuser/.config/softhsm2/softhsm2.conf`:
+Specify PKI token folder in `/home/pkiuser/.config/softhsm2/softhsm2.conf`:
 
 ----
 directories.tokendir = /home/pkiuser/.config/softhsm2/tokens
 ----
 
-= Listing Tokens =
+= Listing PKI Tokens =
 
-To list SoftHSM tokens for the current user:
+To list SoftHSM tokens for `pkiuser`:
 
 ----
 $ runuser -u pkiuser -- softhsm2-util --show-slots
@@ -122,9 +122,9 @@ Slot 0
         Label:                                        
 ----
 
-= Creating Token =
+= Creating PKI Token =
 
-To create a SoftHSM token for the current user:
+To create a SoftHSM token for `pkiuser`:
 
 ----
 $ runuser -u pkiuser -- \
@@ -133,7 +133,7 @@ $ runuser -u pkiuser -- \
 
 The token will be created in `/var/lib/softhsm/tokens` folder.
 
-= Deleting Token =
+= Deleting PKI Token =
 
 To remove a token:
 
