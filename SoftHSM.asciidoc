@@ -22,21 +22,25 @@ $ modutil -nocertdb -list
 Listing of PKCS #11 Modules
 -----------------------------------------------------------
   1. NSS Internal PKCS #11 Module
-	   uri: pkcs11:library-manufacturer=Mozilla%20Foundation;library-description=NSS%20Internal%20Crypto%20Services;library-version=3.43
+	   uri: pkcs11:library-manufacturer=Mozilla%20Foundation;library-descrip
+tion=NSS%20Internal%20Crypto%20Services;library-version=3.43
 	 slots: 2 slots attached
 	status: loaded
 
 	 slot: NSS Internal Cryptographic Services
 	token: NSS Generic Crypto Services
-	  uri: pkcs11:token=NSS%20Generic%20Crypto%20Services;manufacturer=Mozilla%20Foundation;serial=0000000000000000;model=NSS%203
+	  uri: pkcs11:token=NSS%20Generic%20Crypto%20Services;manufacturer=Mozil
+la%20Foundation;serial=0000000000000000;model=NSS%203
 
 	 slot: NSS User Private Key and Certificate Services
 	token: NSS Certificate DB
-	  uri: pkcs11:token=NSS%20Certificate%20DB;manufacturer=Mozilla%20Foundation;serial=0000000000000000;model=NSS%203
+	  uri: pkcs11:token=NSS%20Certificate%20DB;manufacturer=Mozilla%20Founda
+tion;serial=0000000000000000;model=NSS%203
 
   2. p11-kit-proxy
 	library name: p11-kit-proxy.so
-	   uri: pkcs11:library-manufacturer=PKCS%2311%20Kit;library-description=PKCS%2311%20Kit%20Proxy%20Module;library-version=1.1
+	   uri: pkcs11:library-manufacturer=PKCS%2311%20Kit;library-description=
+PKCS%2311%20Kit%20Proxy%20Module;library-version=1.1
 	 slots: 1 slot attached
 	status: loaded
 
@@ -123,7 +127,8 @@ Slot 0
 To create a SoftHSM token for the current user:
 
 ----
-$ runuser -u pkiuser -- softhsm2-util --init-token --label HSM --so-pin Secret.HSM --pin Secret.HSM --free
+$ runuser -u pkiuser -- \
+    softhsm2-util --init-token --label HSM --so-pin Secret.HSM --pin Secret.HSM --free
 ----
 
 The token will be created in `/var/lib/softhsm/tokens` folder.
@@ -133,7 +138,8 @@ The token will be created in `/var/lib/softhsm/tokens` folder.
 To remove a token:
 
 ----
-$ runuser -u pkiuser -- softhsm2-util --delete-token --token HSM
+$ runuser -u pkiuser -- \
+    softhsm2-util --delete-token --token HSM
 ----
 
 Alternatively:
