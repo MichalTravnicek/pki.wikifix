@@ -26,7 +26,7 @@ In PKI 10.4.5 or later the server will generate a log with the certificate seria
 [CertSerialNum=7] certificate request succeeded
 ----
 
-Prior to 10.4.5 the server will generate a log with the base64-encoded certificate data:
+Prior to 10.4.5 the server will generate an event with the base64-encoded certificate data:
 
 ----
 [AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Success][ReqID=7]
@@ -52,7 +52,7 @@ In PKI 10.4.5 or later the server will generate a log with [Outcome=Failure]:
 [InfoName=rejectReason][InfoValue=<null>] certificate request processed
 ----
 
-Prior to PKI 10.4.5 the server will generate a log with [Outcome=Success]:
+Prior to PKI 10.4.5 the server will generate an event with [Outcome=Success]:
 
 ----
 [AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Success][ReqID=7]
@@ -74,7 +74,7 @@ In PKI 10.4.5 or later the server will generate a log with [Outcome=Failure]:
 [InfoName=cancelReason][InfoValue=<null>] certificate request processed
 ----
 
-Prior to 10.4.5 the server will generate the a log with [Outcome=Success]:
+Prior to 10.4.5 the server will generate the an event with [Outcome=Success]:
 
 ----
 [AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Success][ReqID=7]
@@ -89,7 +89,7 @@ Use PKI CLI to submit an invalid certificate request:
 $ pki client-cert-request UID=testuser --profile caServerCert
 ----
 
-The server will generate the following logs:
+The server will generate the following events:
 
 ----
 [AuditEvent=CERT_REQUEST_PROCESSED][SubjectID=$NonRoleUser$][Outcome=Failure][Re
