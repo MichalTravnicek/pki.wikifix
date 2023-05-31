@@ -20,21 +20,21 @@ CertID.serialNumber=1
 CertStatus=Good
 ----
 
-The server will generate the following log when the OCSP response generation is complete:
+The server will generate the following event when the OCSP response generation is complete:
 
 ----
 [AuditEvent=OCSP_GENERATION][SubjectID=$NonRoleUser$][Outcome=Success] OCSP resp
 onse generation
 ----
 
-If the OCSP response generation fails, the server will log the failure reason:
+If the OCSP response generation fails, the server will generate an event with the failure reason:
 
 ----
 [AuditEvent=OCSP_GENERATION][SubjectID=$NonRoleUser$][Outcome=Failure][FailureRe
 ason=<reason>] OCSP response generation
 ----
 
-For example, if the CA internal OCSP responder is disabled, the following log will be generated:
+For example, if the CA internal OCSP responder is disabled, the following event will be generated:
 
 ----
 [AuditEvent=OCSP_GENERATION][SubjectID=$NonRoleUser$][Outcome=Failure][FailureRe
@@ -57,21 +57,21 @@ CertID.serialNumber=1
 CertStatus=Good
 ----
 
-The server will generate the following log when the OCSP response generation is complete:
+The server will generate the following event when the OCSP response generation is complete:
 
 ----
 [AuditEvent=OCSP_GENERATION][SubjectID=$NonRoleUser$][Outcome=Success] OCSP resp
 onse generation
 ----
 
-If the OCSP response generation fails, the server will log the failure reason:
+If the OCSP response generation fails, the server will generate an event with the failure reason:
 
 ----
 [AuditEvent=OCSP_GENERATION][SubjectID=$NonRoleUser$][Outcome=Failure][FailureRe
 ason=<reason>] OCSP response generation
 ----
 
-For example, if the CA has not published the CRL, the following log will be generated:
+For example, if the CA has not published the CRL, the following event will be generated:
 
 ----
 [AuditEvent=OCSP_GENERATION][SubjectID=$NonRoleUser$][Outcome=Failure][FailureRe
