@@ -14,7 +14,6 @@ Use OCSP Web UI to remove a CA from OCSP:
 * Click *Agent Services*
 * Click *List Certificate Authorities*
 * Click *Remove CA*.
-* Click *OK*.
 
 The server will generate the following logs:
 
@@ -22,5 +21,24 @@ The server will generate the following logs:
 [AuditEvent=OCSP_REMOVE_CA_REQUEST_PROCESSED_SUCCESS][SubjectID=ocspadmin][Outco
 me=Success][CASubjectDN=CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE] Remov
 e CA for OCSP Responder is successful
+----
+
+== Failed Operation ==
+
+Use OCSP Web UI to remove a non-existent CA from OCSP:
+
+* Open https://pki.example.com:8443/ocsp
+* Click *Agent Services*
+* Click *List Certificate Authorities*
+* Open the same page in another browser window.
+* Click *Remove CA* in one window.
+* Click *Remove CA* for the same CA in the other window.
+
+The server will generate the following logs:
+
+----
+[AuditEvent=OCSP_REMOVE_CA_REQUEST_PROCESSED][SubjectID=ocspadmin][Outcome=Failu
+re][CASubjectDN=CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE] Remove CA for
+ OCSP Responder has failed
 ----
 
