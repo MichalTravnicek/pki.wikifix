@@ -1,0 +1,20 @@
+= Overview =
+
+The `CONFIG_DRM` audit event is generated when the configuration in KRA subsystem is updated.
+This includes key recovery scheme, change of any secret component.
+
+= Examples =
+
+Use KRA Console to change KRA configuration:
+
+* Go to *Configuration* -> *Data Recovery Manager* -> *General Settings*.
+* Make some changes.
+* Click *Save*.
+
+The server will generate the following logs:
+
+----
+[AuditEvent=CONFIG_DRM][SubjectID=kraadmin][Outcome=Success][ParamNameValPairs=S
+cope;;general+Operation;;OP_MODIFY+Resource;;RS_ID_CONFIG+noOfRequiredRecoveryAg
+ents;;2] DRM configuration parameter(s) change
+----
