@@ -4,14 +4,14 @@ The `OCSP_SIGNING_INFO` audit event is generated when CA or OCSP subsystem is st
 
 = Examples =
 
-For host CA in CA subsystem, the log will look like the following:
+For host CA in CA subsystem, the event will look like the following:
 
 ----
 [AuditEvent=OCSP_SIGNING_INFO][SubjectID=$System$][Outcome=Success][SKI=B4:D3:3D
 :4A:94:D7:A8:AD:65:E2:2B:F1:C5:49:EF:7B:2B:D5:62:93] OCSP signing info
 ----
 
-For lightweight sub-CA in CA subsystem, the log will include the authority ID:
+For lightweight sub-CA in CA subsystem, the event will include the authority ID:
 
 ----
 [AuditEvent=OCSP_SIGNING_INFO][SubjectID=$System$][Outcome=Success][SKI=5C:A8:93
@@ -19,7 +19,7 @@ For lightweight sub-CA in CA subsystem, the log will include the authority ID:
 a68-b752-2679b2a40962] OCSP signing info
 ----
 
-For OCSP subsystem, the log will look like the following:
+For OCSP subsystem, the event will look like the following:
 
 ----
 [AuditEvent=OCSP_SIGNING_INFO][SubjectID=$System$][Outcome=Success][SKI=B4:D3:3D
