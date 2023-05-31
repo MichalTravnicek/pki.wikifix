@@ -4,10 +4,14 @@ The `OCSP_ADD_CA_REQUEST_PROCESSED` audit event is generated when an add CA requ
 
 = Examples =
 
-Use OCSP Web UI to add a CA to OCSP:
+== Successful Operation ==
 
+Use OCSP Web UI to add a valid CA certificate:
+
+* Open https://pki.example.com:8443/ocsp/services
+* Click *Agent Services*
 * Click *Add Certificate Authority*.
-* Enter the CA certificate.
+* Enter a valid CA certificate in PEM format.
 * Click *Add*.
 
 The server will generate the following logs:
@@ -16,4 +20,21 @@ The server will generate the following logs:
 [AuditEvent=OCSP_ADD_CA_REQUEST_PROCESSED][SubjectID=ocspadmin][Outcome=Success]
 [CASubjectDN=CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE] Add CA for OCSP 
 Responder
+----
+
+== Failed Operation ==
+
+Use OCSP Web UI to add an invalid CA certificate:
+
+* Open https://pki.example.com:8443/ocsp/services
+* Click *Agent Services*
+* Click *Add Certificate Authority*.
+* Do not enter anything.
+* Click *Add*.
+
+The server will generate the following logs:
+
+----
+[AuditEvent=OCSP_ADD_CA_REQUEST_PROCESSED][SubjectID=ocspadmin][Outcome=Failure]
+[CASubjectDN=<null>] Add CA for OCSP Responder
 ----
