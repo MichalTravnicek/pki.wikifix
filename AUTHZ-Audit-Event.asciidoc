@@ -20,7 +20,7 @@ Use PKI CLI  as an admin user to access the users:
 $ pki -n caadmin ca-user-find
 ----
 
-The server will generate the following logs:
+The server will generate the following events:
 
 ----
 [AuditEvent=AUTHZ][SubjectID=caadmin][Outcome=Success][aclResource=certServer.ca
@@ -35,7 +35,7 @@ Use PKI CLI as a non-admin user to access the users:
 $ pki -u testuser -w Secret.123 ca-user-find
 ----
 
-The server will generate the following logs:
+The server will generate the following events:
 
 ----
 [AuditEvent=AUTHZ][SubjectID=testuser][Outcome=Failure][aclResource=certServer.c
