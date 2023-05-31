@@ -1,10 +1,10 @@
 The `CRL_SIGNING_INFO` audit event is generated when CA is started to indicate which key is used to sign CRLs.
 
-For the host CA, the log will not include an authority ID:
+For the host CA, the event will not include an authority ID:
 
 ----
 [AuditEvent=CRL_SIGNING_INFO][SubjectID=$System$][Outcome=Success][SKI=5C:A8:93:
 F7:73:08:0D:41:A6:99:89:34:F9:BE:F1:6E:0D:7C:D4:21] CRL signing info
 ----
 
-Lightweight sub-CA does not support CRL, so no `CRL_SIGNING_INFO` log will be generated for the CA.
+Lightweight sub-CA does not support CRL, so no `CRL_SIGNING_INFO` event will be generated for the CA.
