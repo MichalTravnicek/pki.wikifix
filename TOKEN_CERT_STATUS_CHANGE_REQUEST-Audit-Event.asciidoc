@@ -3,8 +3,10 @@
 The `TOKEN_CERT_STATUS_CHANGE_REQUEST` audit event is generated when a token certificate status change request (e.g. revocation) is made.
 
 * `CUID` must be the last token that the certificate was associated with
+* `TokenType`: TPS profile name
 * `CertSerialNum` must be the serial number (in decimal) of the certificate to be revoked
 * `RequestType` must be `revoke`, `on-hold`, `off-hold`
+* `CA_ID`: CA id as defined in TPS CS.cfg
 
 = Examples =
 
