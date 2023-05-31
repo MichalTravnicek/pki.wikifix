@@ -1,0 +1,73 @@
+= Overview =
+
+The `CONFIG_SERIAL_NUMBER` audit event is generated when configuring serial number ranges (e.g. during cloning) for the legacy sequential serial number or RSNv3.
+
+= Examples =
+
+== CA Cloning ==
+
+Install the primary CA, then clone it into a secondary CA, then clone the secondary CA into a tertiary CA.
+
+The primary CA will have the following events:
+
+----
+[AuditEvent=CONFIG_SERIAL_NUMBER][SubjectID=caadmin][Outcome=Success][ParamNameV
+alPairs=source;;updateNumberRange+type;;request+beginNumber;;9990001+endNumber;;
+10000000] serial number range update
+[AuditEvent=CONFIG_SERIAL_NUMBER][SubjectID=caadmin][Outcome=Success][ParamNameV
+alPairs=source;;updateNumberRange+type;;serialNo+beginNumber;;fff0001+endNumber;
+;10000000] serial number range update
+[AuditEvent=CONFIG_SERIAL_NUMBER][SubjectID=caadmin][Outcome=Success][ParamNameV
+alPairs=source;;updateNumberRange+type;;replicaId+beginNumber;;96+endNumber;;100
+] serial number range update
+----
+
+The secondary CA will have the following events:
+
+----
+[AuditEvent=CONFIG_SERIAL_NUMBER][SubjectID=caadmin][Outcome=Success][ParamNameV
+alPairs=source;;updateNumberRange+type;;request+beginNumber;;9990001+endNumber;;
+10000000] serial number range update
+[AuditEvent=CONFIG_SERIAL_NUMBER][SubjectID=caadmin][Outcome=Success][ParamNameV
+alPairs=source;;updateNumberRange+type;;serialNo+beginNumber;;fff0001+endNumber;
+;10000000] serial number range update
+[AuditEvent=CONFIG_SERIAL_NUMBER][SubjectID=caadmin][Outcome=Success][ParamNameV
+alPairs=source;;updateNumberRange+type;;replicaId+beginNumber;;1095+endNumber;;1
+099] serial number range update
+----
+
+The tertiary CA will not have these events.
+
+== KRA Cloning ==
+
+Install the primary KRA, then clone it into a secondary KRA, then clone the secondary KRA into a tertiary KRA.
+
+The primary KRA will have the following events:
+
+----
+[AuditEvent=CONFIG_SERIAL_NUMBER][SubjectID=caadmin][Outcome=Success][ParamNameV
+alPairs=source;;updateNumberRange+type;;request+beginNumber;;9990001+endNumber;;
+10000000] serial number range update
+[AuditEvent=CONFIG_SERIAL_NUMBER][SubjectID=caadmin][Outcome=Success][ParamNameV
+alPairs=source;;updateNumberRange+type;;serialNo+beginNumber;;fff0001+endNumber;
+;10000000] serial number range update
+[AuditEvent=CONFIG_SERIAL_NUMBER][SubjectID=caadmin][Outcome=Success][ParamNameV
+alPairs=source;;updateNumberRange+type;;replicaId+beginNumber;;96+endNumber;;100
+] serial number range update
+----
+
+The secondary KRA will have the following events:
+
+----
+[AuditEvent=CONFIG_SERIAL_NUMBER][SubjectID=caadmin][Outcome=Success][ParamNameV
+alPairs=source;;updateNumberRange+type;;request+beginNumber;;9990001+endNumber;;
+10000000] serial number range update
+[AuditEvent=CONFIG_SERIAL_NUMBER][SubjectID=caadmin][Outcome=Success][ParamNameV
+alPairs=source;;updateNumberRange+type;;serialNo+beginNumber;;fff0001+endNumber;
+;10000000] serial number range update
+[AuditEvent=CONFIG_SERIAL_NUMBER][SubjectID=caadmin][Outcome=Success][ParamNameV
+alPairs=source;;updateNumberRange+type;;replicaId+beginNumber;;1095+endNumber;;1
+099] serial number range update
+----
+
+The tertiary KRA will not have these events.
