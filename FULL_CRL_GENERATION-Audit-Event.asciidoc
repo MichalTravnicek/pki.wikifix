@@ -12,14 +12,14 @@ The server will generate the following log when the full CRL generation is compl
 L number>] Full CRL generation
 ----
 
-If `noCRLIfNoRevokedCert` is true and there is no revoked certificates, the server will generate the following log:
+If `noCRLIfNoRevokedCert` is true and there is no revoked certificates, the server will generate the following events:
 
 ----
 [AuditEvent=FULL_CRL_GENERATION][SubjectID=$System$][Outcome=Success][Info=No Re
 voked Certificates] Full CRL generation
 ----
 
-If the full CRL generation fails, the server will log the failure reason:
+If the full CRL generation fails, the server will generate an event with the failure reason:
 
 ----
 [AuditEvent=FULL_CRL_GENERATION][SubjectID=$System$][Outcome=Failure][FailureRea
