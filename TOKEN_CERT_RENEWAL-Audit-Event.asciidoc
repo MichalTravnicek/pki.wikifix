@@ -2,6 +2,17 @@
 
 The `TOKEN_CERT_RENEWAL` audit event is generated when token certificate renewal request is made.
 
+Properties:
+
+* `CUID`: card unique ID
+* `MSN`: manufacturer serial number
+* `TokenType`: TPS profile name
+* `Serial`: serial number in decimal
+* `CA_ID`: CA id as defined in TPS CS.cfg
+* `KRA_ID`: KRA id as defined in TPS CS.cfg
+
+= Examples =
+
 ----
 [AuditEvent=TOKEN_CERT_RENEWAL][IP={0}][SubjectID={1}][CUID={2}][Outcome={3}][to
 kenType={4}][KeyVersion={5}][Serial={6}][CA_ID={7}][Info={8}] token certificate 
