@@ -1,0 +1,168 @@
+= Certificate Usages =
+
+* `CheckAllUsages`
+* `SSLServer`
+* `SSLServerWithStepUp`
+* `SSLClient`
+* `SSLCA`
+* `AnyCA`
+* `StatusResponder`
+* `ObjectSigner`
+* `UserCertImport`
+* `ProtectedObjectSigner`
+* `VerifyCA`
+* `EmailSigner`
+* `EmailRecipient`
+
+= OIDs =
+
+* link:http://www.alvestrand.no/objectid/2.5.29.15.html[2.5.29.15 - Key Usage]
+* link:http://www.alvestrand.no/objectid/2.5.29.37.html[2.5.29.37 - Extended key usage]
+* link:http://www.alvestrand.no/objectid/1.3.6.1.5.5.7.3.html[1.3.6.1.5.5.7.3 - id-kp, arc for extended key purpose OIDS]:
+** link:http://www.alvestrand.no/objectid/1.3.6.1.5.5.7.3.1.html[1.3.6.1.5.5.7.3.1 - id_kp_serverAuth]
+** link:http://www.alvestrand.no/objectid/1.3.6.1.5.5.7.3.2.html[1.3.6.1.5.5.7.3.2 - id_kp_clientAuth]
+
+= System Certificate Usages =
+
+The system certificate usages are defined in the CS.cfg in the following parameter:
+
+* `<subsystem>.cert.<cert>.certusage`
+
+For example:
+
+ ca.cert.signing.certusage=SSLCA
+ ca.cert.ocsp_signing.certusage=StatusResponder
+ ca.cert.sslserver.certusage=SSLServer
+ ca.cert.subsystem.certusage=SSLClient
+ ca.cert.audit_signing.certusage=ObjectSigner
+
+The default values are defined below.
+
+== CA ==
+
+|===
+| Subsystem | Certificate | Usages
+
+| ca
+| signing
+| SSLCA
+
+| ca
+| ocsp_signing
+| StatusResponder
+
+| ca
+| sslserver
+| SSLServer
+
+| ca
+| subsystem
+| SSLClient
+
+| ca
+| audit_signing
+| ObjectSigner
+|===
+
+== KRA ==
+
+|===
+| Subsystem | Certificate | Usages
+
+| kra
+| transport
+| SSLClient
+
+| kra
+| storage
+| SSLClient
+
+| kra
+| sslserver
+| SSLServer
+
+| kra
+| subsystem
+| SSLClient
+
+| kra
+| audit_signing
+| ObjectSigner
+|===
+
+== OCSP ==
+
+|===
+| Subsystem | Certificate | Usages
+
+| ocsp
+| signing
+| StatusResponder
+
+| ocsp
+| sslserver
+| SSLServer
+
+| ocsp
+| subsystem
+| SSLClient
+
+| ocsp
+| audit_signing
+| ObjectSigner
+|===
+
+== TKS ==
+
+|===
+| Subsystem | Certificate | Usages
+
+| tks
+| sslserver
+| SSLServer
+
+| tks
+| subsystem
+| SSLClient
+
+| tks
+| audit_signing
+| ObjectSigner
+|===
+
+== TPS ==
+
+|===
+| Subsystem | Certificate | Usages
+
+| tps
+| sslserver
+| SSLServer
+
+| tps
+| subsystem
+| SSLClient
+
+| tps
+| audit_signing
+| ObjectSigner
+|===
+
+= Validating System Certificate =
+
+To validate a system certificate on the server, specify the subsystem name and the certificate ID:
+
+----
+$ pki-server cert-validate ca_signing
+----
+
+The system certificate will be validated against the corresponding usage above.
+
+= Validating Client Certificate =
+
+To validate a certificate in the client NSS database, specify the nickname and the usage in the following command:
+
+----
+$ pki client-cert-validate caadmin --certusage SSLClient
+Certificate is valid
+----
