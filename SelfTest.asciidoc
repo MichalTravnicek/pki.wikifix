@@ -1,0 +1,118 @@
+= Configuration =
+
+The selftest configuration is stored in `/etc/pki/pki-tomcat/ca/CS.cfg`:
+
+== Selftest instances ==
+
+----
+selftests.container.instance.CAPresence=com.netscape.cms.selftests.ca.CAPresence
+selftests.container.instance.CAValidity=com.netscape.cms.selftests.ca.CAValidity
+selftests.container.instance.SystemCertsVerification=com.netscape.cms.selftests.common.SystemCertsVerification
+selftests.container.order.onDemand=CAPresence:critical, SystemCertsVerification:critical, CAValidity:critical
+selftests.container.order.startup=CAPresence:critical, SystemCertsVerification:critical
+selftests.plugin.CAPresence.CaSubId=ca
+selftests.plugin.CAValidity.CaSubId=ca
+selftests.plugin.SystemCertsVerification.SubId=ca
+----
+
+See also link:https://github.com/dogtagpki/pki/blob/master/base/server/cmscore/src/com/netscape/cmscore/selftests/SelfTestOrderedInstance.java[SelfTestOrderedInstance.java]
+
+== Enabling/Disabling selftest ==
+
+You can disable self test using the command:
+
+----
+$ pki-server selftest-disable [Selftest ID] [--subsystem <subsystem>]
+----
+
+You can also disable a selftest manually on startup by removing the selftest from `selftests.container.order.startup`.
+
+You can re-enable self tests using the command:
+
+----
+$ pki-server selftest-enable [Selftest ID] [--subsystem <subsystem>]
+----
+
+You can also enable a selftest manually on startup by adding the selftest to `selftests.container.order.startup`.
+
+Values for [test-name] currently supported can be viewed using:
+
+----
+$ pki -n caadmin kra-selftest-find # For KRA subsystem
+$ pki -n caadmin ca-selftest-find  # For CA subsystem
+----
+
+*Note:* `[Selftest ID]` and `--subsystem` are optional parameters. If executed without these options, *ALL tests* for *ALL subsystems* is changed respectively.
+
+== Logger ==
+
+----
+selftests.container.logger.bufferSize=512
+selftests.container.logger.class=com.netscape.cms.logging.RollingLogFile
+selftests.container.logger.enable=true
+selftests.container.logger.expirationTime=0
+selftests.container.logger.fileName=/var/log/pki/pki-tomcat/logs/ca/selftests.log
+selftests.container.logger.flushInterval=5
+selftests.container.logger.level=1
+selftests.container.logger.maxFileSize=2000
+selftests.container.logger.register=false
+selftests.container.logger.rolloverInterval=2592000
+selftests.container.logger.type=transaction
+----
+
+= Running Selftests =
+
+== Automatic execution on startup ==
+
+Each subsystem will execute the selftests during startup. If any of the selftests fails (e.g. expired certificate), the subsystem will be disabled automatically to avoid inconsistent subsystem behavior.
+
+Prior to 10.4, the subsystem can be re-enabled with the following command:
+
+----
+$ pki-server subsystem-enable kra
+-----------------------
+Subsystem "kra" enabled
+-----------------------
+  Subsystem ID: kra
+  Instance ID: pki-tomcat
+  Enabled: True
+----
+
+Since 10.4 the subsystem will be automatically re-enabled on startup. If necessary, the auto-enable functionality can be disabled by adding this parameter into `/etc/pki/pki.conf`:
+
+----
+PKI_SERVER_AUTO_ENABLE_SUBSYSTEMS="false"
+----
+
+== Running selftests remotely ==
+
+Dogtag 10.3 provides an interface to execute the selftests remotely on the server:
+
+----
+$ pki -n caadmin ca-selftest-run
+  Selftest ID: CAPresence
+  Status: PASSED
+
+  Selftest ID: SystemCertsVerification
+  Status: PASSED
+
+  Selftest ID: CAValidity
+  Status: PASSED
+-------------------
+Selftests completed
+-------------------
+----
+
+== Running selftests locally ==
+
+Some of the selftests can be run locally on the server without the server running by executing the following commands:
+
+----
+$ certutil -V -d /var/lib/pki/pki-tomcat/alias -n "caSigningCert cert-pki-tomcat CA" -u L
+$ certutil -V -d /var/lib/pki/pki-tomcat/alias -n "ocspSigningCert cert-pki-tomcat CA" -u O
+$ certutil -V -d /var/lib/pki/pki-tomcat/alias -n "Server-Cert cert-pki-tomcat" -u V
+$ certutil -V -d /var/lib/pki/pki-tomcat/alias -n "subsystemCert cert-pki-tomcat" -u C
+$ certutil -V -d /var/lib/pki/pki-tomcat/alias -n "auditSigningCert cert-pki-tomcat CA" -u J
+----
+
+In the future there will be a CLI to run the selftests locally (link:https://github.com/dogtagpki/pki/issues/2271[Issue #2271]).
