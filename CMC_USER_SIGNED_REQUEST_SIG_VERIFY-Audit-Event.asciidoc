@@ -2,4 +2,11 @@
 
 The `CMC_USER_SIGNED_REQUEST_SIG_VERIFY` audit event is generated when CMC (user-signed or self-signed) certificate requests or revocation requests are submitted and signature is verified.
 
+By default only failed events will be logged.
+To log all events, change the link:Signed-Audit-Event-Filters[filter] in the `CS.cfg` as follows:
+
+----
+log.instance.SignedAudit.filters.CMC_USER_SIGNED_REQUEST_SIG_VERIFY=(Outcome=*)
+----
+
 = Examples =
