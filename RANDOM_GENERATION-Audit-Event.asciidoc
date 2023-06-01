@@ -1,3 +1,5 @@
+= Overview =
+
 Since version 10.5 a `RANDOM_GENERATION` audit event will be generated for any random number generated on the server (including link:Random-Certificate-Serial-Numbers[Random Certificate Serial Numbers]).
 The event will include the information about the caller of the random number generator and the size of the random number in bytes.
 
@@ -10,7 +12,9 @@ log.instance.SignedAudit.filters.RANDOM_GENERATION=(Outcome=*)
 
 then restart the server.
 
-For example, submit a certificate request with this command:
+= Examples =
+
+Submit a certificate request with this command:
 
 ----
 $ pki client-cert-request uid=testuser
