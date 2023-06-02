@@ -21,8 +21,8 @@ $ podman pull quay.io/dogtagpki/pki-server
 To create the systemd service, execute the following command:
 
 ----
-$ ln -sf /usr/lib/systemd/system/pki-server-container.service
-    /etc/systemd/system/pki-server-container.service
+$ ln -sf /usr/lib/systemd/system/pki-server.service
+    /etc/systemd/system/pki-server.service
 ----
 
 Then execute:
@@ -36,7 +36,7 @@ $ systemctl daemon-reload
 To start the systemd service, execute the following command:
 
 ----
-$ systemctl start pki-server-container.service
+$ systemctl start pki-server.service
 ----
 
 It should start `pki-server` container:
@@ -52,7 +52,7 @@ CONTAINER ID  IMAGE                                ...     NAMES
 To monitor the systemd service:
 
 ----
-$ journalctl -fu pki-server-container.service
+$ journalctl -fu pki-server.service
 ----
 
 To monitor the container:
@@ -66,7 +66,7 @@ $ podman logs -f pki-server
 To stop the systemd service, execute the following command:
 
 ----
-$ systemctl stop pki-server-container.service
+$ systemctl stop pki-server.service
 ----
 
 It should stop `pki-server` container.
@@ -76,7 +76,7 @@ It should stop `pki-server` container.
 To remove the systemd service, execute the following command:
 
 ----
-$ rm -f /etc/systemd/system/pki-server-container.service
+$ rm -f /etc/systemd/system/pki-server.service
 ----
 
 Then execute:
