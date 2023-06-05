@@ -6,9 +6,9 @@ It assumes that:
 
 * Issuance protection certificate has been link:Creating-Issuance-Protection-Certificate[created].
 
-= Generating Shared Token =
+= Generating CMC Shared Token =
 
-To generate a shared token:
+To generate a CMC shared token:
 
 ----
 $ CMCSharedToken \
@@ -25,9 +25,9 @@ The token will be encrypted with issuance protection's public key and stored int
 $ SHARED_TOKEN=$(sed -e :a -e 'N;s/\n//;ba' testuser.b64)
 ----
 
-= Assigning Shared Token to User =
+= Assigning CMC Shared Token to User =
 
-To assign the shared token to a user, add the `extensibleObject` object class and the `shrTok` attribute into the LDAP user:
+To assign the CMC shared token to a user, add the `extensibleObject` object class and the `shrTok` attribute into the LDAP user:
 
 ----
 $ ldapmodify \
