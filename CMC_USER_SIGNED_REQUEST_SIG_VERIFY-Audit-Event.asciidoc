@@ -1,6 +1,6 @@
 = Overview =
 
-The `CMC_USER_SIGNED_REQUEST_SIG_VERIFY` audit event is generated when CMC (user-signed or self-signed) certificate requests or revocation requests are submitted and signature is verified.
+The `CMC_USER_SIGNED_REQUEST_SIG_VERIFY` audit event is generated when CMC (user-signed or self-signed) a certificate enrollment or revocation request is submitted and the signature is verified.
 
 By default only failed events will be logged.
 To log all events, change the link:Signed-Audit-Event-Filters[filter] in the `CS.cfg` as follows:
@@ -11,9 +11,24 @@ log.instance.SignedAudit.filters.CMC_USER_SIGNED_REQUEST_SIG_VERIFY=(Outcome=*)
 
 = Examples =
 
+For exampe, use CMC to submit a certificate enrollment request:
+
+* Install CA.
+* Remove `log.instance.SignedAudit.filters.CMC_USER_SIGNED_REQUEST_SIG_VERIFY` from `CS.cfg`.
+* link:Creating-Issuance-Protection-Certificate[Create] issuance protection certificate.
+* link:Configuring-CMC-Shared-Token-Authentication[Configure] CMC shared token authentication.
+* link:Generating-CMC-Shared-Token[Generate] CMC shared token.
+* link:Issuing-User-Certificate-with-CMC-Shared-Token[Issue] certificate with CMC shared token.
+
+The server will generate the following event:
+
 ----
 [AuditEvent=CMC_USER_SIGNED_REQUEST_SIG_VERIFY][SubjectID=CN=PKI Administrator,E
 =caadmin@example.com,OU=pki-tomcat,O=EXAMPLE][Outcome=Success][ReqType=enrollmen
 t][CertSubject=UID=testuser][SignerInfo=$Unidentified$] User signed CMC request 
 signature verification success
 ----
+
+= See Also =
+
+* link:https://github.com/dogtagpki/pki/blob/master/.github/workflows/ca-shared-token-test.yml[ca-shared-token-test.yml]
