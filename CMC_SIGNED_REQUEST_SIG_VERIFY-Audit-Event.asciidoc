@@ -1,6 +1,6 @@
 = Overview =
 
-The `CMC_SIGNED_REQUEST_SIG_VERIFY` audit event is generated when CMC (agent-pre-signed) certificate requests or revocation requests are submitted and signature is verified.
+The `CMC_SIGNED_REQUEST_SIG_VERIFY` audit event is generated when a CMC (agent-pre-signed) certificate enrollment or revocation request is submitted and signature is verified.
 
 Properties:
 
@@ -10,7 +10,7 @@ Properties:
 * `SignerInfo` reflects the person who actually signs the CMC request
 
 By default only failed events will be logged.
-To log all events, change the link:Signed-Audit-Event-Filters[filter] in the `CS.cfg` as follows:
+To log all events, remove the following line from the `CS.cfg`:
 
 ----
 log.instance.SignedAudit.filters.CMC_SIGNED_REQUEST_SIG_VERIFY=(Outcome=*)
@@ -18,8 +18,11 @@ log.instance.SignedAudit.filters.CMC_SIGNED_REQUEST_SIG_VERIFY=(Outcome=*)
 
 = Examples =
 
-Install a root CA, update the filter to log all `CMC_SIGNED_REQUEST_SIG_VERIFY` events, then link:https://github.com/dogtagpki/pki/blob/master/docs/installation/ca/Installing_CA_with_External_CA_Signing_Certificate.md[install a subordinate CA with external CA signing certificate].
-Use CMC on the root CA to issue the subordinate CA signing certificate.
+Use CMC to issue subordinate CA certificates:
+
+* Install a root CA.
+* Remove `log.instance.SignedAudit.filters.CMC_SIGNED_REQUEST_SIG_VERIFY` parameter from `CS.cfg`.
+* link:https://github.com/dogtagpki/pki/blob/master/docs/installation/ca/Installing_CA_with_External_CA_Signing_Certificate.md[Install] a subordinate CA with external CA signing certificate. Use CMC on the root CA to issue the subordinate CA signing certificate.
 
 The root CA will generate the following events:
 
