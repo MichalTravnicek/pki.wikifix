@@ -3,7 +3,7 @@
 The `CMC_USER_SIGNED_REQUEST_SIG_VERIFY` audit event is generated when CMC (user-signed or self-signed) a certificate enrollment or revocation request is submitted and the signature is verified.
 
 By default only failed events will be logged.
-To log all events, remove the following line from the `CS.cfg`:
+To log all events, remove the following parameter from `CS.cfg`:
 
 ----
 log.instance.SignedAudit.filters.CMC_USER_SIGNED_REQUEST_SIG_VERIFY=(Outcome=*)
@@ -14,7 +14,7 @@ log.instance.SignedAudit.filters.CMC_USER_SIGNED_REQUEST_SIG_VERIFY=(Outcome=*)
 For exampe, submit a certificate enrollment request with CMC shared token:
 
 * Install CA.
-* Remove `log.instance.SignedAudit.filters.CMC_USER_SIGNED_REQUEST_SIG_VERIFY` from `CS.cfg`.
+* Remove `log.instance.SignedAudit.filters.CMC_USER_SIGNED_REQUEST_SIG_VERIFY` parameter from `CS.cfg`.
 * link:Creating-Issuance-Protection-Certificate[Create] issuance protection certificate.
 * link:Configuring-CMC-Shared-Token-Authentication[Configure] CMC shared token authentication.
 * link:Generating-CMC-Shared-Token[Generate] CMC shared token.
