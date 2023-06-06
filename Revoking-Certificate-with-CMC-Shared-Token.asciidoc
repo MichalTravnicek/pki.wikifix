@@ -10,7 +10,7 @@ It assumes that:
 
 = Creating CMC Request =
 
-To create a CMC request prepare a CMCRequest configuration file (e.g. `/usr/share/pki/tools/examples/cmc/testuser-cmc-revocation-request.cfg`) and store the certificate serial number in the `revRequest.serial` property:
+To create a CMC request prepare a CMCRequest configuration file (e.g. link:https://github.com/edewata/pki/blob/cmc/base/tools/examples/cmc/testuser-cmc-revocation-request.cfg[/usr/share/pki/tools/examples/cmc/testuser-cmc-revocation-request.cfg]) and store the certificate serial number in the `revRequest.serial` property:
 
 ----
 $ cp \
@@ -30,7 +30,7 @@ $ CMCRequest testuser-cmc-revocation-request.cfg
 
 = Submitting CMC Request =
 
-To submit the CMC request prepare an `HttpClient` configuration file (e.g. `/usr/share/pki/tools/examples/cmc/testuser-cmc-revocation-submit.cfg`), then execute the following command:
+To submit the CMC request prepare an `HttpClient` configuration file (e.g. link:https://github.com/edewata/pki/blob/cmc/base/tools/examples/cmc/testuser-cmc-revocation-submit.cfg[/usr/share/pki/tools/examples/cmc/testuser-cmc-revocation-submit.cfg]), then execute the following command:
 
 ----
 $ HttpClient testuser-cmc-revocation-submit.cfg
