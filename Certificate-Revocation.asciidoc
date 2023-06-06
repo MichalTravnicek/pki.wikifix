@@ -1,1 +1,31 @@
+= Overview =
+
+A CA agent can revoke, hold, or release a certificate.
+
+= Revoking a Certificate =
+
+To revoke a certificate permanently, execute the following command:
+
+----
+$ pki <agent authentication> ca-cert-revoke <certificate ID>
+----
+
+= Holding a Certificate =
+
+To revoke a certificate temporarily (i.e. hold), execute the following command:
+
+----
+$ pki <agent authentication> ca-cert-hold <certificate ID>
+----
+
+= Releasing a Certificate =
+
+To release a certificate that has been held:
+
+----
+$ pki <agent authentication> ca-cert-release-hold <certificate ID>
+----
+
+= See Also =
+
 * link:Revoking-Certificate-with-CMC-Shared-Token[Revoking Certificate with CMC Shared Token]
