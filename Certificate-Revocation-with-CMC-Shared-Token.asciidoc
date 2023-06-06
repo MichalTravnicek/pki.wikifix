@@ -1,0 +1,38 @@
+= Configuring Shared Token for Revocation =
+
+Store the shared token in the certificate record:
+
+----
+$ ldapmodify \
+    -H ldap://ds.example.com:3389 \
+    -x \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    << EOF
+dn: cn=<decimal serial number>,ou=certificateRepository,ou=ca,dc=ca,dc=pki,dc=example,dc=com
+changetype: modify
+add: metaInfo
+metaInfo: revShrTok:<base64-encoded shared token>
+-
+EOF
+----
+
+= Creating CMC Request =
+
+To create a CMC request prepare a CMCRequest configuration file (e.g. `/usr/share/pki/tools/examples/cmc/testuser-cmc-revocation-request.cfg`) and store the certificate serial number in the `revRequest.serial` property:
+
+----
+$ cp \
+    /usr/share/pki/tools/examples/cmc/testuser-cmc-revocation-request.cfg \
+    testuser-cmc-revocation-request.cfg
+
+$ sed -i \
+    -e "s/^\(revRequest.serial\)=.*/\1=<serial number>/" \
+    testuser-cmc-revocation-request.cfg
+----
+
+Then execute the following command:
+
+----
+$ CMCRequest testuser-cmc-revocation-request.cfg
+----
