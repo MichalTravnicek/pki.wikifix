@@ -1,21 +1,10 @@
-= Configuring Shared Token =
+= Overview =
 
-Store the shared token in the certificate record:
+This page describes the process to revoke a certificate using CMC shared token.
 
-----
-$ ldapmodify \
-    -H ldap://ds.example.com:3389 \
-    -x \
-    -D "cn=Directory Manager" \
-    -w Secret.123 \
-    << EOF
-dn: cn=<decimal serial number>,ou=certificateRepository,ou=ca,dc=ca,dc=pki,dc=example,dc=com
-changetype: modify
-add: metaInfo
-metaInfo: revShrTok:<base64-encoded shared token>
--
-EOF
-----
+It assumes that:
+
+* The CA admin has link:Generating-CMC-Shared-Token-for-Certificate-Revocation[generated] a CMC shared token for revoking the certificate.
 
 = Creating CMC Request =
 
@@ -54,3 +43,7 @@ $ CMCResponse \
     -d /root/.dogtag/nssdb \
     -i testuser.cmc-revocation-response
 ----
+
+= See Also =
+
+* link:CMC-Examples---User-Signed-CMC-Revocation-Request[CMC Examples - User Signed CMC Revocation Request]
