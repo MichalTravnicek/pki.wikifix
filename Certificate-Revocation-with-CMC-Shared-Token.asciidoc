@@ -36,3 +36,21 @@ Then execute the following command:
 ----
 $ CMCRequest testuser-cmc-revocation-request.cfg
 ----
+
+= Submitting CMC Request =
+
+To submit the CMC request prepare an `HttpClient` configuration file (e.g. `/usr/share/pki/tools/examples/cmc/testuser-cmc-revocation-submit.cfg`), then execute the following command:
+
+----
+$ HttpClient testuser-cmc-revocation-submit.cfg
+----
+
+= Processing CMC Response =
+
+To process the CMC response:
+
+----
+$ CMCResponse \
+    -d /root/.dogtag/nssdb \
+    -i testuser.cmc-revocation-response
+----
