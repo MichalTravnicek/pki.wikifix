@@ -22,7 +22,7 @@ $ CMCSharedToken \
 The token will be encrypted with issuance protection's public key and stored into `testuser.b64` in Base64 format. To convert the value into a single line:
 
 ----
-$ SHARED_TOKEN=$(sed -e :a -e 'N;s/\n//;ba' testuser.b64)
+$ SHARED_TOKEN=$(sed -e :a -e 'N;s/\r\n//;ba' testuser.b64)
 ----
 
 = Assigning CMC Shared Token to Certificate =
