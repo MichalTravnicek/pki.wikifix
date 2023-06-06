@@ -1,0 +1,48 @@
+= Overview =
+
+This page describe the process to generate a CMC shared token for link:Revoking-Certificate-with-CMC-Shared-Token[revoking a certificate].
+
+It assumes that:
+
+* Issuance protection certificate has been link:Creating-Issuance-Protection-Certificate[created].
+
+= Generating CMC Shared Token =
+
+To generate a CMC shared token:
+
+----
+$ CMCSharedToken \
+    -d /etc/pki/pki-tomcat/alias \
+    -p Secret.123 \
+    -n ca_issuance_protection \
+    -s <token> \
+    -o testuser.b64
+----
+
+The token will be encrypted with issuance protection's public key and stored into `testuser.b64` in Base64 format. To convert the value into a single line:
+
+----
+$ SHARED_TOKEN=$(sed -e :a -e 'N;s/\n//;ba' testuser.b64)
+----
+
+= Assigning CMC Shared Token to Certificate =
+
+To assign the CMC shared token to a certificate, store the token under `revShrTok` property in the `metaInfo` attribute of the certificate record in LDAP:
+
+----
+$ ldapmodify \
+    -H ldap://ds.example.com:3389 \
+    -x \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    << EOF
+dn: cn=<decimal serial number>,ou=certificateRepository,ou=ca,dc=ca,dc=pki,dc=example,dc=com
+changetype: modify
+add: metaInfo
+metaInfo: revShrTok:$SHARED_TOKEN
+EOF
+----
+
+= See Also =
+
+* link:PKI-10.5-CMC-Shared-Token[PKI 10.5 CMC Shared Token]
