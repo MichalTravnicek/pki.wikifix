@@ -4,16 +4,28 @@ The `CERT_STATUS_CHANGE_REQUEST_PROCESSED` audit event is generated after the co
 
 = Examples =
 
-Execute the following command to put a certificate on-hold:
+== Successful Operation ==
 
-----
-$ pki -n caadmin ca-cert-hold 0x4 --force
-----
+link:Revoking-Certificate-with-CMC-Shared-Token[Revoke] a certificate with a valid CMC shared token:
 
 The server will generate the following events:
 
 ----
-[AuditEvent=CERT_STATUS_CHANGE_REQUEST_PROCESSED][SubjectID=caadmin][Outcome=Suc
-cess][ReqID=9][CertSerialNum=0x4][RequestType=on-hold][RevokeReasonNum=6][Approv
-al=complete] certificate status change request processed
+[AuditEvent=CERT_STATUS_CHANGE_REQUEST_PROCESSED][SubjectID=UID=testuser,OU=peop
+le,DC=example,DC=com][Outcome=Success][ReqID=9][CertSerialNum=8][RequestType=rev
+oke][RevokeReasonNum=Unspecified][Approval=complete] certificate status change r
+equest processed
+----
+
+== Failed Operation ==
+
+link:Revoking-Certificate-with-CMC-Shared-Token[Revoke] a certificate with an invalid CMC shared token:
+
+The CA will generate the following events:
+
+----
+[AuditEvent=CERT_STATUS_CHANGE_REQUEST_PROCESSED][SubjectID=<null>][Outcome=Fail
+ure][ReqID=<null>][CertSerialNum=8][RequestType=revoke][RevokeReasonNum=Unspecif
+ied][Approval=rejected][Info= shared secret not found] certificate status change
+ request processed
 ----
