@@ -11,11 +11,11 @@ For older versions, see:
 The certificate requests can be submitted to a PKI CA with the following commands:
 
 ----
-$ pki -U <CA URL> ca-cert-request-submit --profile caUserCert --csr-file ocsp_admin.csr --subject uid=ocspadmin
 $ pki -U <CA URL> ca-cert-request-submit --profile caSignedLogCert --csr-file ocsp_audit_signing.csr
 $ pki -U <CA URL> ca-cert-request-submit --profile caOCSPCert --csr-file ocsp_signing.csr
 $ pki -U <CA URL> ca-cert-request-submit --profile caServerCert --csr-file ocsp_sslserver.csr
 $ pki -U <CA URL> ca-cert-request-submit --profile caSubsystemCert --csr-file ocsp_subsystem.csr
+$ pki -U <CA URL> ca-cert-request-submit --profile AdminCert --csr-file ocsp_admin.csr
 ----
 
 = Approving Certificate Requests =
