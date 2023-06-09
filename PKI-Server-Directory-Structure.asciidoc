@@ -1,12 +1,17 @@
 = Overview =
 
-This page describes the directory structure of a PKI server instance.
+PKI server supports the following directory structures:
 
-= Default Directory Structure =
+* `pki-tomcatd`: This directory structure is used to run PKI server in Fedora's Tomcat which follows the link:http://www.pathname.com/fhs/[Filesystem Hierarchy Standard].
+* `tomcat`: This directory structure is used to run PKI server in generic Tomcat environment. This directory structure is still under development.
 
-By default PKI server is installed with the following directory structure.
+If not specified, PKI server will use `pki-tomcatd` by default.
 
-Configuration files are stored under `/etc/pki/<instance>`:
+= `pki-tomcatd` Directory Structure =
+
+With `pki-tomcatd` directory structure, the files are stored in multiple directories.
+
+The configuration files are stored under `/etc/pki/<instance>`:
 
 ----
 + /etc/pki/<instance>
@@ -16,7 +21,7 @@ Configuration files are stored under `/etc/pki/<instance>`:
   + <subsystem>
 ----
 
-Server files are stored under `/var/lib/pki/<instance>`:
+The server files are stored under `/var/lib/pki/<instance>`:
 
 ----
 + /var/lib/pki/<instance>
@@ -33,7 +38,7 @@ Server files are stored under `/var/lib/pki/<instance>`:
   + <subsystem>
 ----
 
-Log files are stored under `/var/lib/pki/<instance>`:
+The log files are stored under `/var/lib/pki/<instance>`:
 
 ----
 + /var/log/pki/<instance>
@@ -50,18 +55,16 @@ Log files are stored under `/var/lib/pki/<instance>`:
 
 The systemd unit file is stored at `/etc/systemd/system/pki-tomcatd.target.wants/pki-tomcatd@<instance>.service` which is a link to link:https://github.com/dogtagpki/pki/blob/master/base/server/share/lib/systemd/system/pki-tomcatd%40.service[/usr/lib/systemd/system/pki-tomcatd@.service].
 
-Registry files are stored under `/etc/sysconfig/pki/tomcat/<instance>`:
+The registry files are stored under `/etc/sysconfig/pki/tomcat/<instance>`:
 
 ----
 + /etc/sysconfig/pki/tomcat/<instance>
   + <subsystem>
 ----
 
-= Tomcat Directory Structure =
+= `tomcat` Directory Structure =
 
-Certain PKI subsystems can be installed with standard Tomcat directory structure. In the future it might be possible to install all subsystems with this directory structure.
-
-All files are stored under `/var/lib/tomcats/<instance>`:
+With `tomcat` directory structure, all files are stored under a single directory (e.g. `/var/lib/tomcats/<instance>`):
 
 ----
 + /var/lib/tomcats/<instance>
