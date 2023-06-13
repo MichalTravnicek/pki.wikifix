@@ -1,16 +1,19 @@
-= Retrieving Archived Key with Default Parameters =
+= Overview =
 
-By default key retrieval will be done with randomly generated security parameters.
+This page describes the process to retrieve a key or passphrase already link:Archiving-Key-in-KRA[archived] in KRA.
+
+By default the retrieval will use randomly generated security parameters.
+To retrieve with specific security parameters see link:PKI-KRA-Key-Retrieve-Java-API[PKI KRA Key Retrieve Java API].
+
+= Retrieving Archived Key =
 
 To retrieve a key and store it into a file:
 
 ----
-$ pki -n caadmin kra-key-retrieve --keyID 0x1 --output-data private.key
+$ pki -n caadmin kra-key-retrieve --keyID 0x79b13ade36da728cf9400f659e84e417 --output-data private.key
 ------------------------
 Retrieve Key Information
 ------------------------
-  Key Algorithm: RSA
-  Key Size: 1024
   Nonce data: rYkeh4Rb+MI=
   Output: private.key
 ----
@@ -18,12 +21,10 @@ Retrieve Key Information
 To retrieve a key and display it on the screen:
 
 ----
-$ pki -n caadmin kra-key-retrieve --keyID 0x1
+$ pki -n caadmin kra-key-retrieve --keyID 0x79b13ade36da728cf9400f659e84e417
 ------------------------
 Retrieve Key Information
 ------------------------
-  Key Algorithm: RSA
-  Key Size: 1024
   Nonce data: rYkeh4Rb+MI=
   Actual archived data: MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBALTyleypbSGRnb8+
 P/BItA74mTdLX4eFY+fKE4hraeOV4ts+4M9qfry/FJkbMq3dpIpsxuMmGclbHEUQ
@@ -41,6 +42,33 @@ m09uLdioohLoKrfp0gdqyiEnCXWX08PwenuU+VsQOVx80nw5S1M+nnFHK4KO+Zsi
 xc8DHiXQl0lyXD0=
 ----
 
-= Retrieving Archived Key with Custom Parameters =
+= Retrieving Passphrase =
 
-See link:PKI-KRA-Key-Retrieve-Java-API[PKI KRA Key Retrieve Java API].
+To retrieve a passphrase and store it into a file:
+
+----
+$ pki -n caadmin kra-key-retrieve --keyID 0x00ef325cf2f3a96d85b606eb7d085376dd --output-data secret.txt
+------------------------
+Retrieve Key Information
+------------------------
+  Nonce data: 5GbhZgyFsaOOcXT203uosQ==
+  Output: secret.txt
+----
+
+To retrieve a passphrase and display it on the screen:
+
+----
+$ pki -n caadmin kra-key-retrieve --keyID 0x00ef325cf2f3a96d85b606eb7d085376dd
+------------------------
+Retrieve Key Information
+------------------------
+  Nonce data: 5GbhZgyFsaOOcXT203uosQ==
+  Actual archived data: U2VjcmV0LjEyMw==
+----
+
+The passphrase can be decoded with the following command:
+
+----
+$ echo "U2VjcmV0LjEyMw==" | base64 -d
+Secret.123
+----
