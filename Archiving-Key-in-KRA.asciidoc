@@ -10,15 +10,17 @@ To archive a binary data:
 
 ----
 $ pki -n caadmin kra-key-archive \
-    --clientKeyID testkey \
-    --input-data private.key
+    --clientKeyID data \
+    --input-data data.bin
 ------------------------
 Archival request details
 ------------------------
-  Request ID: 0x1
-  Key ID: 0x1
+  Request ID: 0xe8a04029b85754300eea95e9abe88e8d
+  Key ID: 0x79b13ade36da728cf9400f659e84e417
   Type: securityDataEnrollment
   Status: complete
+  Creation Time: Tue Jun 13 16:26:05 CDT 2023
+  Modification Time: Tue Jun 13 16:26:05 CDT 2023
 ----
 
 = Archiving Passphrase =
@@ -27,15 +29,17 @@ To archive a passphrase:
 
 ----
 $ pki -n caadmin kra-key-archive \
-    --clientKeyID testkey \
-    --passphrase secret
+    --clientKeyID password \
+    --passphrase Secret.123
 ------------------------
 Archival request details
 ------------------------
-  Request ID: 0x1
-  Key ID: 0x1
+  Request ID: 0xb28dfaa00f33ce85823c9a2693f8a5f
+  Key ID: 0x00ef325cf2f3a96d85b606eb7d085376dd
   Type: securityDataEnrollment
   Status: complete
+  Creation Time: Tue Jun 13 16:23:47 CDT 2023
+  Modification Time: Tue Jun 13 16:23:48 CDT 2023
 ----
 
 = Archiving Pre-encrypted Secret =
