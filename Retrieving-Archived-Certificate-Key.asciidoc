@@ -4,14 +4,14 @@ This page describes the process to retrieve archived certificate key.
 
 = Listing Archived Certificate Key =
 
-To find the archived certificate keys, execute the following command:
+The key of a certificate can be found by searching by the certificate's subject DN:
 
 ----
-$ pki -n caadmin kra-key-find
+$ pki -n caadmin kra-key-find --owner UID=testuser
 ----------------
 1 key(s) matched
 ----------------
-  Key ID: 0x1
+  Key ID: 0x00879c1911ea0da66540c305928c77834c
   Algorithm: 1.2.840.113549.1.1.1
   Size: 1024
   Owner: UID=testuser
@@ -25,7 +25,7 @@ Number of entries returned 1
 To retrieve the archived certificate key, execute the following command and specify the key ID:
 
 ----
-$ pki -n caadmin kra-key-retrieve --keyID 0x1
+$ pki -n caadmin kra-key-retrieve --keyID 0x00879c1911ea0da66540c305928c77834c
 ------------------------
 Retrieve Key Information
 ------------------------
