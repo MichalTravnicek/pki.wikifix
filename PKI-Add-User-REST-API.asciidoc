@@ -1,4 +1,4 @@
-= Request
+= Request =
 
 * Path: `/<subsystem>/rest/admin/users`
 * Method: `POST`
@@ -7,10 +7,10 @@
 * Content: None
 * Success code: `200`
 
-= Source
+= Source =
 https://github.com/dogtagpki/pki/blob/894293a6b00b0151120cc08f9eb508764ed24e34/base/server/src/main/java/org/dogtagpki/server/rest/UserService.java#L269-L407[UserService.addUser()]
 
-= Examples
+= Examples =
 
 .CA Example
 [%collapsible]
@@ -21,18 +21,17 @@ $ curl \
   -X POST \
   -H "Content-Type:application/json" \
   -H "Accept: application/json" \
-  -d '{"id":"testuser","fullName":"Test User","email":"testuser@example.com","phone":"1234567890","state":"1","userID":"Foo","password":"barbarbar"}' \
+  -d '{"UserID":"testuser","FullName":"Test User","Email":"testuser@example.com","phone":"1234567890","state":"1","password":"barbarbar"}' \
   --user caadmin:Secret.123 \
   -s https://localhost.localdomain:8443/ca/rest/admin/users | python -m json.tool
 {
-    "id": "Foo",
-    "userID": "Foo",
+    "UserID": "testuser",
     "fullName": "Test User",
-    "email": "testuser@example.com",
+    "Email": "testuser@example.com",
     "phone": "1234567890",
     "state": "1",
     "link": {
-        "href": "https://localhost.localdomain:8443/ca/rest/admin/users/Foo",
+        "href": "https://localhost.localdomain:8443/ca/rest/admin/users/testuser",
         "rel": "self"
     }
 }
@@ -44,7 +43,7 @@ $ curl \
   -X POST \
   -H "Content-Type:application/json" \
   -H "Accept: application/json" \
-  -d '{"id":"testuser","fullName":"Test User","email":"testuser@example.com","phone":"1234567890","state":"1","userID":"Foo","password":"barbarbar"}' \
+  -d '{"UserID":"testuser","FullName":"Test User","Email":"testuser@example.com","phone":"1234567890","state":"1","password":"barbarbar"}' \
   --user caadmin:Secret.123 \
   -s https://localhost.localdomain:8443/ca/rest/admin/users | python -m json.tool
 {
@@ -67,10 +66,10 @@ $ curl \
   -X POST \
   -H "Content-Type:application/json" \
   -H "Accept: application/json" \
-  -d '{"id":"testuserkra","fullName":"Test User","email":"testuser@example.com","password":"12345","phone":"1234567890","state":"1","userID":"doo","password":"barbarbar"}' \
+  -d '{"UserID":"testuser","FullName":"Test User","Email":"testuser@example.com","password":"12345","phone":"1234567890","state":"1","password":"barbarbar"}' \
   --user kraadmin:Secret.123 \
   -s https://localhost.localdomain:8443/kra/rest/admin/users
-{"id":"doo","userID":"doo","fullName":"Test User","email":"testuser@example.com","phone":"1234567890","state":"1","link":{"href":"https://localhost.localdomain:8443/kra/rest/admin/users/doo","rel":"self"}}
+{"UserID":"testuser","FullName":"Test User","Email":"testuser@example.com","phone":"1234567890","state":"1","link":{"href":"https://localhost.localdomain:8443/kra/rest/admin/users/testuser","rel":"self"}}
 ----
 ====
 
@@ -83,10 +82,10 @@ $ curl \
   -X POST \
   -H "Content-Type:application/json" \
   -H "Accept: application/json" \
-  -d '{"id":"testuser","fullName":"Test User","email":"testuser@example.com","password":"12345","phone":"1234567890","state":"1","userID":"doo","password":"barbarbar"}' \
+  -d '{"UserID":"testuser","FullName":"Test User","Email":"testuser@example.com","password":"12345","phone":"1234567890","state":"1","password":"barbarbar"}' \
   --user ocspadmin:Secret.123 \
   -s https://localhost.localdomain:8443/ocsp/rest/admin/users
-{"id":"doo","userID":"doo","fullName":"Test User","email":"testuser@example.com","phone":"1234567890","state":"1","link":{"href":"https://localhost.localdomain:8443/ocsp/rest/admin/users/doo","rel":"self"}}
+{"UserID":"testuser","FullName":"Test User","Email":"testuser@example.com","phone":"1234567890","state":"1","link":{"href":"https://localhost.localdomain:8443/ocsp/rest/admin/users/testuser","rel":"self"}}
 ----
 ====
 
@@ -99,12 +98,13 @@ $ curl \
   -X POST \
   -H "Content-Type:application/json" \
   -H "Accept: application/json" \
-  -d '{"id":"testuser","fullName":"Test User","email":"testuser@example.com","password":"12345","phone":"1234567890","state":"1","userID":"doo","password":"barbarbar"}' \
+  -d '{"UserID":"testuser","FullName":"Test User","Email":"testuser@example.com","password":"12345","phone":"1234567890","state":"1","password":"barbarbar"}' \
   --user tksadmin:Secret.123 \
   -s https://localhost.localdomain:8443/tks/rest/admin/users
-{"id":"doo","userID":"doo","fullName":"Test User","email":"testuser@example.com","phone":"1234567890","state":"1","link":{"href":"https://localhost.localdomain:8443/tks/rest/admin/users/doo","rel":"self"}}
+{"UserID":"testuser","FullName":"Test User","Email":"testuser@example.com","phone":"1234567890","state":"1","link":{"href":"https://localhost.localdomain:8443/tks/rest/admin/users/testuser","rel":"self"}}
 ----
 ====
 
-= See also
+= See also =
+
 The TPS subsystem has a different add user process documented link:PKI-TPS-Add-User-REST-API[here].
