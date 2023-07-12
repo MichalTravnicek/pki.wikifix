@@ -2,13 +2,13 @@
 
 By default the CI will perform the tests using link:https://copr.fedorainfracloud.org/coprs/g/pki/master[@pki/master] repository. Sometimes it's necessary to perform the tests using a different repository (e.g. to test dependency changes).
 
-Prior to PKI 11.5 the repository can be configured by creating a GitHub secret called `BASE64_REPO` to store the base64-encoded value of the test repository name. To reset the test repository simply remove the secret.
+Prior to PKI 11.4 the repository can be configured by creating a GitHub secret called `BASE64_REPO` to store the base64-encoded value of the test repository name. To reset the test repository simply remove the secret.
 
-In PKI 11.5 or later the repository can be configured by creating a GitHub variable called `COPR_REPO` to store the repository name. To reset the test repository simply remove the variable.
+In PKI 11.4 or later the repository can be configured by creating a GitHub variable called `COPR_REPO` to store the repository name. To reset the test repository simply remove the variable.
 
 = Configuring Test Repository =
 
-For example, to test using link:https://copr.fedorainfracloud.org/coprs/edewata/pki[edewata/pki] repository prior to PKI 11.5, base-64 encode the repository name with the following command:
+For example, to test using link:https://copr.fedorainfracloud.org/coprs/edewata/pki[edewata/pki] repository prior to PKI 11.4, base-64 encode the repository name with the following command:
 
 ----
 $ echo "edewata/pki" | base64
@@ -23,7 +23,7 @@ Then create the secret:
 * Enter the base64-encoded value as the secret value.
 * Click *Add secret*.
 
-In PKI 11.5 or later create a variable:
+In PKI 11.4 or later create a variable:
 
 * Go to *Settings* -> *Secrets and variables* -> *Actions* -> *Variables*.
 * Click *New repository variable*.
@@ -37,13 +37,13 @@ Sometimes old versions of packages in COPR can get selected instead of the test 
 
 = Resetting Test Repository =
 
-To reset the test repository prior to PKI 11.5, remove the secret:
+To reset the test repository prior to PKI 11.4, remove the secret:
 
 * Go to *Settings* -> *Secrets and variables* -> *Actions* -> *Secrets*.
 * Click *Remove* next to `BASE64_REPO`.
 * Click *Yes, remove this secret*.
 
-To reset the test repository prior in PKI 11.5 or later, remove the variable:
+To reset the test repository prior in PKI 11.4 or later, remove the variable:
 
 * Go to *Settings* -> *Secrets and variables* -> *Actions* -> *Variables*.
 * Click *Remove* next to `COPR_REPO`.
