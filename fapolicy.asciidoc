@@ -1,0 +1,11 @@
+= Rules =
+
+Rules are stored in `/etc/fapolicyd/rules.d` folder. The rules for each PKI server are defined in `61-pki-<instance>.rules` file:
+
+----
+allow perm=open dir=/usr/lib/jvm/ : dir=/var/lib/pki/<instance>/work/Catalina/localhost/
+----
+
+= See Also =
+
+* link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/9/html/security_hardening/assembly_blocking-and-allowing-applications-using-fapolicyd_security-hardening[RHEL 9: Blocking and allowing applications using fapolicyd]
