@@ -1,9 +1,9 @@
 = Rules =
 
-The rules for each PKI server are defined in `/etc/fapolicyd/rules.d/61-pki-<instance>.rules`:
+The rules for each PKI server are defined in link:https://github.com/dogtagpki/pki/blob/master/base/server/etc/fapolicy.rules[/usr/share/pki/server/etc/fapolicy.rules] and deployed into `/etc/fapolicyd/rules.d/61-pki-<instance>.rules`:
 
 ----
-allow perm=open dir=/usr/lib/jvm/ : dir=/var/lib/pki/<instance>/work/Catalina/localhost/
+allow perm=open dir=/usr/lib/jvm/ : dir=/var/lib/pki/<instance>/work/
 ----
 
 = See Also =
