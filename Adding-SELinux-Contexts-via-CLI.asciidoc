@@ -1,0 +1,8 @@
+= Adding SELinux Contexts via CLI =
+
+----
+$ semanage fcontext -a -t pki_tomcat_etc_rw_t -r s0 "/etc/pki/pki-tomcat(/.*)?"
+$ semanage fcontext -a -t pki_tomcat_cert_t -r s0 "/etc/pki/pki-tomcat/alias(/.*)?"
+$ semanage fcontext -a -t pki_tomcat_var_lib_t -r s0 "/var/lib/pki/pki-tomcat(/.*)?"
+$ semanage fcontext -a -t pki_tomcat_log_t -r s0 "/var/log/pki/pki-tomcat(/.*)?"
+----
