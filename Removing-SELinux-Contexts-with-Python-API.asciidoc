@@ -1,0 +1,24 @@
+----
+import selinux
+import seobject
+
+if not selinux.is_selinux_enabled() or not seobject:
+    return
+
+transaction = seobject.semanageRecords('targeted')
+transaction.start()
+
+ports = seobject.portRecords(transaction)
+ports.delete('8005', 'tcp')
+ports.delete('8009', 'tcp')
+ports.delete('8443', 'tcp')
+ports.delete('8080', 'tcp')
+
+fcontexts = seobject.fcontextRecords(transaction)
+fcontexts.delete('/var/log/pki/pki-tomcat(/.*)?', '')
+fcontexts.delete('/var/lib/pki/pki-tomcat(/.*)?', '')
+fcontexts.delete('/etc/pki/pki-tomcat/alias(/.*)?', '')
+fcontexts.delete('/etc/pki/pki-tomcat(/.*)?', '')
+
+transaction.finish()
+----
