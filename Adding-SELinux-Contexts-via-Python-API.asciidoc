@@ -1,0 +1,26 @@
+Python SELinux is available from the following libraries:
+
+* libselinux-python
+* policycoreutils-python
+
+----
+import selinux
+import seobject
+
+if not selinux.is_selinux_enabled() or not seobject:
+    return
+
+trans = seobject.semanageRecords('targeted')
+trans.start()
+
+fcon = seobject.fcontextRecords()
+fcon.add('/var/lib/pki/pki-tomcat(/.*)?', 'pki_tomcat_var_lib_t', '', 's0', '')
+fcon.add('/var/log/pki/pki-tomcat(/.*)?', 'pki_tomcat_log_t', '', 's0', '')
+fcon.add('/etc/pki/pki-tomcat(/.*)?', 'pki_tomcat_etc_rw_t', '', 's0', '')
+fcon.add('/etc/pki/pki-tomcat/alias(/.*)?', 'pki_tomcat_cert_t', ', 's0', '')
+
+port_records = seobject.portRecords()
+port_records.add(port, 'tcp', 's0', 'http_port_t')
+
+trans.finish()
+----
