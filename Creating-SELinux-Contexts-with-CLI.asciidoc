@@ -1,6 +1,24 @@
+= Creating File Contexts =
+
 ----
 $ semanage fcontext -a -t pki_tomcat_etc_rw_t -r s0 "/etc/pki/pki-tomcat(/.*)?"
 $ semanage fcontext -a -t pki_tomcat_cert_t -r s0 "/etc/pki/pki-tomcat/alias(/.*)?"
 $ semanage fcontext -a -t pki_tomcat_var_lib_t -r s0 "/var/lib/pki/pki-tomcat(/.*)?"
 $ semanage fcontext -a -t pki_tomcat_log_t -r s0 "/var/log/pki/pki-tomcat(/.*)?"
+----
+
+= Creating HTTP Port Contexts =
+
+----
+$ semanage port -a -t http_port_t -p tcp 8080
+$ semanage port -a -t http_port_t -p tcp 8443
+$ semanage port -a -t http_port_t -p tcp 8009
+$ semanage port -a -t http_port_t -p tcp 8005
+----
+
+= Creating LDAP Port Contexts =
+
+----
+$ semanage port -a -t ldap_port_t -p tcp 389
+$ semanage port -a -t ldap_port_t -p tcp 636
 ----
