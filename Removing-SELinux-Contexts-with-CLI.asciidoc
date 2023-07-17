@@ -1,6 +1,24 @@
+= Removing File Contexts =
+
 ----
 $ semanage fcontext -d "/var/log/pki/pki-tomcat(/.*)?"
 $ semanage fcontext -d "/var/lib/pki/pki-tomcat(/.*)?"
 $ semanage fcontext -d "/etc/pki/pki-tomcat/alias(/.*)?"
 $ semanage fcontext -d "/etc/pki/pki-tomcat(/.*)?"
+----
+
+= Removing HTTP Port Contexts =
+
+----
+$ semanage port -d -t http_port_t -p tcp 8005
+$ semanage port -d -t http_port_t -p tcp 8009
+$ semanage port -d -t http_port_t -p tcp 8443
+$ semanage port -d -t http_port_t -p tcp 8080
+----
+
+= Removing LDAP Port Contexts =
+
+----
+$ semanage port -d -t ldap_port_t -p tcp 636
+$ semanage port -d -t ldap_port_t -p tcp 389
 ----
