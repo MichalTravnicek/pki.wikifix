@@ -1,0 +1,28 @@
+= Overview =
+
+The `pki-server instance-externalcert` commands can be used to manage external certificates.
+
+= Configuration =
+
+The external certificate configuration is stored in `/etc/pki/pki-tomcat/external_certs.conf`:
+
+----
+0.nickname=third_party_ca
+0.token=internal
+----
+
+= Adding External Certificate =
+
+----
+$ pki-server instance-externalcert-add \
+    --cert-file third_party_ca.crt \
+    --trust-args=CT,C,C \
+    --nickname third_party_ca
+----
+
+= Removing External Certificate =
+
+----
+$ pki-server instance-externalcert-del \
+    --nickname third_party_ca
+----
