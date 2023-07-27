@@ -1,0 +1,52 @@
+= Overview =
+
+link:https://pypi.org/project/asn1editor[asn1editor] is a generic editor to view and edit ASN.1 encoded data.
+
+= Prerequisites =
+
+----
+$ dnf install gtk3-devel
+----
+
+= Installing asn1editor =
+
+Download link:https://files.pythonhosted.org/packages/62/93/2e7deed671df2b517818669acbe8633ce38339ba46161e2a259829d8208c/asn1editor-0.7.2-py3-none-any.whl[asn1editor-0.7.2-py3-none-any.whl] from link:https://pypi.org/project/asn1editor/#files[this page], then execute the following command:
+
+----
+$ pip install asn1editor-0.7.2-py3-none-any.whl 
+Defaulting to user installation because normal site-packages is not writeable
+Processing ./asn1editor-0.7.2-py3-none-any.whl
+Collecting asn1tools>=0.153.0 (from asn1editor==0.7.2)
+  Using cached asn1tools-0.166.0-py3-none-any.whl
+Collecting wxpython>=4.1.0 (from asn1editor==0.7.2)
+  Using cached wxPython-4.2.1.tar.gz (73.7 MB)
+  Installing build dependencies ... done
+  Getting requirements to build wheel ... done
+  Preparing metadata (pyproject.toml) ... done
+Requirement already satisfied: pyparsing>=3.0.6 in /usr/lib/python3.11/site-packages (from asn1tools>=0.153.0->asn1editor==0.7.2) (3.0.9)
+Requirement already satisfied: bitstruct in /root/.local/lib/python3.11/site-packages (from asn1tools>=0.153.0->asn1editor==0.7.2) (8.17.0)
+Requirement already satisfied: pillow in /usr/lib64/python3.11/site-packages (from wxpython>=4.1.0->asn1editor==0.7.2) (9.2.0)
+Requirement already satisfied: six in /usr/lib/python3.11/site-packages (from wxpython>=4.1.0->asn1editor==0.7.2) (1.16.0)
+Requirement already satisfied: numpy in /usr/lib64/python3.11/site-packages (from wxpython>=4.1.0->asn1editor==0.7.2) (1.22.0)
+Building wheels for collected packages: wxpython
+  Building wheel for wxpython (pyproject.toml) ... done
+  Created wheel for wxpython: filename=wxPython-4.2.1-cp311-cp311-linux_x86_64.whl size=146419620 sha256=cce719d80c2aabea1e1d55c540fdd4e59cac387bc59648a669684b56e912c751
+  Stored in directory: /root/.cache/pip/wheels/47/56/e2/3029fc67c00478b2ecc3a07f4315db447ef1d7abf0dc44516b
+Successfully built wxpython
+Installing collected packages: wxpython, asn1tools, asn1editor
+  WARNING: The scripts helpviewer, img2png, img2py, img2xpm, pycrust, pyshell, pyslices, pyslicesshell, pywxrc, wxdemo, wxdocs and wxget are installed in '/root/.local/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+  WARNING: The script asn1tools is installed in '/root/.local/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+  WARNING: The script asn1editor is installed in '/root/.local/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.
+Successfully installed asn1editor-0.7.2 asn1tools-0.166.0 wxpython-4.2.1
+----
+
+= Running asn1editor =
+
+To run `asn1editor`:
+
+----
+$ ~/.local/bin/asn1editor
+----
