@@ -16,7 +16,13 @@ Approve the request with the following command:
 $ pki -n caadmin ca-cert-request-review <request ID> --action approve
 ----
 
-Retrieve the certificate with the following commands:
+Retrieve the certificate with the following command:
+
+----
+$ pki ca-cert-export <certificate ID> --output-file sslserver.crt
+----
+
+or the following command in older PKI versions:
 
 ----
 $ pki ca-cert-show <certificate ID> --output sslserver.crt
