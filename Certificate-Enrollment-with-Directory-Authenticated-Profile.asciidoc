@@ -1,10 +1,21 @@
+= Overview =
+
+This page describes the process to enroll a certificate using a directory-authenticated profile (e.g. `caDirUserCert`).
+
+= Prerequisites =
+
+* Prepare a DS instance with users for authentication using password.
+* The profile has been link:Configuring-Directory-Authenticated-Certificate-Profiles[configured] to authenticate against the DS.
+
 = Simplified Process =
 
-Execute the following command to submit the enrollment request. It will prompt for the LDAP password:
+Execute the following command to submit the enrollment request for a user in DS (e.g. `testuser`). It will prompt for the user's DS password:
 
 ----
-$ pki -U https://$HOSTNAME:8443 -c Secret.123 client-cert-request \
-    --profile caDirUserCert --username testuser --password
+$ pki client-cert-request \
+    --profile caDirUserCert \
+    --username testuser \
+    --password
 Password: ********
 -----------------------------
 Submitted certificate request
@@ -20,7 +31,7 @@ The certificate will be issued immediately.
 
 = Manual Process =
 
-link:Generating-Certificate-Request[Generate] a CSR:
+link:Generating-Certificate-Request[Generate] a CSR for `UID=<username>`:
 
 ----
 $ PKCS10Client -d ~/.dogtag/nssdb -p Secret.123 -a rsa -l 1024 -o testuser.csr \
@@ -106,7 +117,7 @@ QA==
 Submit the request:
 
 ----
-$ pki -U https://$HOSTNAME:8443 -c Secret.123 ca-cert-request-submit testuser.xml
+$ pki ca-cert-request-submit testuser.xml
 -----------------------------
 Submitted certificate request
 -----------------------------
@@ -124,7 +135,7 @@ The certificate will be issued immediately.
 Import the new certificate into the client's NSS database by providing a new nickname and the serial number:
 
 ----
-$ pki -c Secret.123 client-cert-import testuser --serial 0xc
+$ pki client-cert-import testuser --serial 0xc
 -------------------------------
 Imported certificate "testuser"
 -------------------------------
@@ -133,7 +144,7 @@ Imported certificate "testuser"
 Verify with the following command:
 
 ----
-$ pki -c Secret.123 client-cert-find
+$ pki client-cert-find
 ----------------------
 2 certificate(s) found
 ----------------------
