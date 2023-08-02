@@ -2,18 +2,21 @@
 
 This document describes how to configure directory-authenticated certificate profiles:
 
-* `caDirUserCert`: Dual-Use User Certificate Enrollment
-* `caECDirUserCert`: Dual-Use ECC User Certificate Enrollment
-* `caDirUserRenewal`: User Certificate Self-Renewal
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caDirUserCert.cfg[caDirUserCert]: Dual-Use User Certificate Enrollment
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caECDirUserCert.cfg[caECDirUserCert]: Dual-Use ECC User Certificate Enrollment
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caDirUserRenewal.cfg[caDirUserRenewal]: User Certificate Self-Renewal
 
-It assumes that the CA is already installed.
+= Prerequisites =
 
-= Preparing LDAP Server =
-
-Make sure the LDAP server has a user with a password:
+Make sure the LDAP server has users for authentication with passwords, for example:
 
 ----
 $ ldapadd -H ldap://$HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 << EOF
+dn: ou=People,dc=example,dc=com
+objectclass: top
+objectclass: organizationalUnit
+ou: People
+
 dn: uid=testuser,ou=People,dc=example,dc=com
 objectClass: person
 objectClass: organizationalPerson
@@ -56,6 +59,12 @@ auths.instance.UserDirEnrollment.ldap.ldapauth.bindPWPrompt=internaldb
 auths.instance.UserDirEnrollment.ldap.ldapconn.host=pki.example.com
 auths.instance.UserDirEnrollment.ldap.ldapconn.port=389
 auths.instance.UserDirEnrollment.ldap.ldapconn.secureConn=false
+----
+
+The `UidPwdDirAuth` plugin is defined as follows in the `CS.cfg`:
+
+----
+auths.impl.UidPwdDirAuth.class=com.netscape.cms.authentication.UidPwdDirAuthentication
 ----
 
 Customize the profile (e.g. `/var/lib/pki/pki-tomcat/ca/profiles/ca/caDirUserCert.cfg`) as needed. To simplify testing the validity range can be changed to 30 days:
