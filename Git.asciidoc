@@ -199,3 +199,61 @@ To push a local branch to a remote repository with a different name:
 ----
 $ git push <repo> <local branch>:<remote branch>
 ----
+
+= Tags =
+
+To list tags:
+
+----
+$ git tag
+----
+
+To list tag messages:
+
+----
+$ git tag -l -n1
+----
+
+To create a tag:
+
+----
+$ git tag <name> [<branch/commit>] [-m "<message>"]
+----
+
+To push a tag:
+
+----
+$ git push origin <name>
+----
+
+To fetch tags:
+
+----
+$ git fetch --tags
+----
+
+To delete a tag:
+
+----
+$ git tag -d <name>
+----
+
+To delete a remote tag:
+
+----
+$ git push --delete origin <name>
+----
+
+= Archive =
+
+To create a tarball:
+
+----
+$ git archive --format=tar.gz --prefix <prefix>/ -o <output> <commit>
+----
+
+To verify the tarball:
+
+----
+$ tar tvf <output>
+----
