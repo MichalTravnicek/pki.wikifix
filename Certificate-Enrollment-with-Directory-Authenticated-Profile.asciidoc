@@ -241,13 +241,13 @@ The certificate will be issued immediately.
 
 = Retrieving Certificate =
 
-The certificate can be retrieved with the following command:
+Once issued, the certificate can be retrieved with the following command:
 
 ----
 $ pki ca-cert-export <certificate ID> --output-file testuser.crt
 ----
 
-and imported into NSS database with the following command:
+If necessary, the certificate can be imported into NSS database with the following command:
 
 ----
 $ pki nss-cert-import testuser --cert testuser.crt
