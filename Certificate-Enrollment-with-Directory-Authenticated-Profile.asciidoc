@@ -4,12 +4,13 @@ This page describes the process to enroll a certificate using a directory-authen
 
 = Prerequisites =
 
-* Prepare a DS instance with users for authentication using password.
-* The profile has been link:Configuring-Directory-Authenticated-Certificate-Profiles[configured] to authenticate against the DS.
+* link:Configuring-Directory-Authenticated-Certificate-Profiles[Configure] a profile to authenticate against users in DS.
 
-= Simplified Process =
+= Enrollment using pki client-cert-request =
 
-Execute the following command to submit the enrollment request for a user in DS (e.g. `testuser`). It will prompt for the user's DS password:
+The `pki client-cert-request` command can be used to generate a key in an NSS database (default: `~/.dogtag/nssdb`), create a certificate request, then submit it to the CA.
+
+To enroll a certificate for a user in DS, specify the username (e.g. `testuser`) in the following command, and it will prompt for the LDAP password:
 
 ----
 $ pki client-cert-request \
@@ -29,44 +30,46 @@ Submitted certificate request
 
 The certificate will be issued immediately.
 
-= Manual Process =
+= Enrollment using XML Request =
 
-link:Generating-Certificate-Request[Generate] a CSR for `UID=<username>`:
+The enrollment can also be done manually using an XML request.
 
-----
-$ PKCS10Client -d ~/.dogtag/nssdb -p Secret.123 -a rsa -l 1024 -o testuser.csr \
-    -n "UID=testuser"
-PKCS10Client: Debug: got token.
-PKCS10Client: Debug: thread token set.
-PKCS10Client: token Internal Key Storage Token logged in...
-PKCS10Client: key pair generated.
-PKCS10Client: pair.getPublic() called.
-PKCS10Client: CertificationRequestInfo() created.
-PKCS10Client: CertificationRequest created.
-PKCS10Client: calling Utils.b64encode.
-PKCS10Client: b64encode completes.
------BEGIN NEW CERTIFICATE REQUEST-----
-MIIBfTCB5wIBADAaMRgwFgYKCZImiZPyLGQBARMIdGVzdHVzZXIwgZ8wDQYJKoZI
-hvcNAQEBBQADgY0AMIGJAoGBAPEcxFJBu2lNmIS+MNaZKO43h0dIhKZWZ8wEomQc
-tc9guIUGM5eFU+psj6n0XQCPMIVRe7mrzYHF8mlwAp416P5/97g9U6JOKkTXc5ia
-HVE1JRhykHiQ17Lp7Y6xXxfe6xKAXDoLOPJ4fNdadtbVeIGjudWktjgwh5CQBXsA
-GFP5AgMBAAGgJDAiBggrBgEFBQcHFzEWBBTmaclfLv+kkK5z5kTMP54dlnecUDAN
-BgkqhkiG9w0BAQQFAAOBgQAXrm979HwcG63Z64u+aybYrfOgyWxQ4kTtCA+NKYge
-HC6Z/mlb10J/wggOzrHUbE4IFyjbBo2k1FKe8zYcXIB6Ok5Z0TXueR1zKcb8hE35
-o9dkH2sGJsSqMLN8NRyY5QeqOKmtaX8pm1aPhJ0wkvOYou52YqJdq6LF9KXmBGOH
-hA==
+First, link:Generating-Certificate-Request[generate] a certificate request with subject DN `UID=<username>` and store it into a file (e.g. `testuser.csr`).
 
------END NEW CERTIFICATE REQUEST-----
-PKCS10Client: done. Request written to file: testuser.csr
-----
-
-Get the request template:
+Then retrieve the template for the XML request for the profile:
 
 ----
-$ pki ca-cert-request-profile-show caDirUserCert --output testuser.xml
+$ pki ca-cert-request-profile-show caDirUserCert --output request.xml
 ----
 
-Edit the request file:
+Insert the username of the DS user with the following command:
+
+----
+$ xmlstarlet edit --inplace \
+    -s "/CertEnrollmentRequest/Attributes" --type elem --name "Attribute" -v "testuser" \
+    -i "/CertEnrollmentRequest/Attributes/Attribute[not(@name)]" -t attr -n "name" -v "uid" \
+    request.xml
+----
+
+Insert the password of the DS user with the following command:
+
+----
+$ xmlstarlet edit --inplace \
+    -s "/CertEnrollmentRequest/Attributes" --type elem --name "Attribute" -v "Secret.123" \
+    -i "/CertEnrollmentRequest/Attributes/Attribute[not(@name)]" -t attr -n "name" -v "pwd" \
+    request.xml
+----
+
+Insert CSR with the following command:
+
+----
+$ xmlstarlet edit --inplace \
+    -u "/CertEnrollmentRequest/Input/Attribute[@name='cert_request']/Value" \
+    -v "$(cat testuser.csr)" \
+    request.xml
+----
+
+The final XML request should look like the following:
 
 ----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -75,24 +78,11 @@ Edit the request file:
         <Attribute name="uid">testuser</Attribute>
         <Attribute name="pwd">Secret.123</Attribute>
     </Attributes>
-    <ProfileID>caDirUserCert</ProfileID>
-    <Renewal>false</Renewal>
-    <SerialNumber></SerialNumber>
-    <RemoteHost></RemoteHost>
-    <RemoteAddress></RemoteAddress>
-    <Input id="i1">
-        <ClassID>keyGenInputImpl</ClassID>
-        <Name>Key Generation</Name>
-        <Attribute name="cert_request_type">
-            <Value>pkcs10</Value>
-            <Descriptor>
-                <Syntax>keygen_request_type</Syntax>
-                <Description>Key Generation Request Type</Description>
-            </Descriptor>
-        </Attribute>
+    ...
+    <Input ...>
+        ...
         <Attribute name="cert_request">
-            <Value>
------BEGIN NEW CERTIFICATE REQUEST-----
+            <Value>-----BEGIN CERTIFICATE REQUEST-----
 MIIBfTCB5wIBADAaMRgwFgYKCZImiZPyLGQBARMIdGVzdHVzZXIwgZ8wDQYJKoZI
 hvcNAQEBBQADgY0AMIGJAoGBALvbVD1U6nzYh61tjjKC24mBqeKjABpEpl5CqyrT
 guX5PtHdrlOUbWOro8vNzXMWccm3IVEgJHTQyQdxenIkIGcwMXu9XlwI6zph1UaT
@@ -102,22 +92,17 @@ BgkqhkiG9w0BAQQFAAOBgQBeVpuaZ1Sr1tHznU/0xSQ3OvEd3poJ0mk44KRYFdwu
 NbeZaGtvhYFwLfQH0mMOWrzvrh0a2eXWC8z51iuqvNJCHDX+rUGIYpZH8mtY3jMp
 8mlDWClrcpAdmJTj0ztFggmBd0Zvl4EqPqp0SY5YYLxwEwcKXT/g8bDdS5UM68hq
 QA==
-
------END NEW CERTIFICATE REQUEST-----
-            </Value>
-            <Descriptor>
-                <Syntax>keygen_request</Syntax>
-                <Description>Key Generation Request</Description>
-            </Descriptor>
+-----END CERTIFICATE REQUEST-----</Value>
+            ...
         </Attribute>
     </Input>
 </CertEnrollmentRequest>
 ----
 
-Submit the request:
+Then submit the request with the following command:
 
 ----
-$ pki ca-cert-request-submit testuser.xml
+$ pki ca-cert-request-submit request.xml
 -----------------------------
 Submitted certificate request
 -----------------------------
@@ -130,15 +115,20 @@ Submitted certificate request
 
 The certificate will be issued immediately.
 
-= Importing Certificate =
+= Retrieving Certificate =
 
-Import the new certificate into the client's NSS database by providing a new nickname and the serial number:
+To retrieve the certificate into a file:
 
 ----
-$ pki client-cert-import testuser --serial 0xc
--------------------------------
-Imported certificate "testuser"
--------------------------------
+$ pki ca-cert-export <certificate ID> --output-file <filename>
+----
+
+= Importing Certificate =
+
+To import the certificate into NSS database:
+
+----
+$ pki client-cert-import <nickname> --serial <certificate ID>
 ----
 
 Verify with the following command:
