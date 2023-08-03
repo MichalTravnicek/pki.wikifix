@@ -124,6 +124,7 @@ Submitted certificate request
   Request Status: complete
   Operation Result: success
   Certificate ID: 0x38cd6cff97a6c6190ef3dafef763497
+  ...
 ----
 
 The certificate will be issued immediately.
@@ -149,25 +150,29 @@ $ curl \
 Insert the username of the DS user with the following command:
 
 ----
-$ jq '.Attributes.Attribute[.Attributes.Attribute|length] |= . + { "name": "uid", "value": "testuser" }' request.json | sponge request.json
+$ jq '.Attributes.Attribute[.Attributes.Attribute|length] |= . + { "name": "uid", "value": "testuser" }' \
+    request.json | sponge request.json
 ----
 
 Insert the password of the DS user with the following command:
 
 ----
-$ jq '.Attributes.Attribute[.Attributes.Attribute|length] |= . + { "name": "pwd", "value": "Secret.123" }' request.json | sponge request.json
+$ jq '.Attributes.Attribute[.Attributes.Attribute|length] |= . + { "name": "pwd", "value": "Secret.123" }' \
+    request.json | sponge request.json
 ----
 
 Insert the request type with the following command:
 
 ----
-$ jq '( .Input[].Attribute[] | select(.name=="cert_request_type") ).Value |= "pkcs10"' request.json | sponge request.json
+$ jq '( .Input[].Attribute[] | select(.name=="cert_request_type") ).Value |= "pkcs10"' \
+    request.json | sponge request.json
 ----
 
 Insert the CSR with the following command:
 
 ----
-$ jq --rawfile cert_request testuser.csr '( .Input[].Attribute[] | select(.name=="cert_request") ).Value |= $cert_request' request.json | sponge request.json
+$ jq --rawfile cert_request testuser.csr '( .Input[].Attribute[] | select(.name=="cert_request") ).Value |= $cert_request' \
+    request.json | sponge request.json
 ----
 
 The final JSON request should look like the following:
