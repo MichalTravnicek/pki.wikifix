@@ -40,9 +40,24 @@ $ ldapsearch \
     "(objectClass=*)"
 ----
 
-= Configuring Directory-Authenticated Profile =
+= Configuring caDirUserCert Profile =
 
-By default the directory-authenticated profiles (e.g. `/var/lib/pki/pki-tomcat/ca/profiles/ca/caDirUserCert.cfg`) are configured with `UserDirEnrollment` authentication manager:
+The `caDirUserCert` profile is stored in `/var/lib/pki/pki-tomcat/ca/profiles/ca/caDirUserCert.cfg`.
+
+By default the profile is disabled. To enable the profile update the following parameter:
+
+----
+enable=true
+----
+
+By default the certificate will be valid for 180 days. For testing the validity range can be shortened, e.g. to 5 minutes:
+
+----
+policyset.userCertSet.2.default.params.range=5
+policyset.userCertSet.2.default.params.rangeUnit=minute
+----
+
+By default the profile is configured with `UserDirEnrollment` authentication manager:
 
 ----
 auth.instance_id=UserDirEnrollment
@@ -61,19 +76,13 @@ auths.instance.UserDirEnrollment.ldap.ldapconn.port=389
 auths.instance.UserDirEnrollment.ldap.ldapconn.secureConn=false
 ----
 
-The `UidPwdDirAuth` plugin is already defined in the `CS.cfg`:
+The `UidPwdDirAuth` authentication plugin is already defined in the `CS.cfg`:
 
 ----
 auths.impl.UidPwdDirAuth.class=com.netscape.cms.authentication.UidPwdDirAuthentication
 ----
 
-Customize the profile (e.g. `/var/lib/pki/pki-tomcat/ca/profiles/ca/caDirUserCert.cfg`) as needed. To simplify testing the validity range can be changed to 30 days:
-
-----
-policyset.userCertSet.2.default.params.range=30
-----
-
-Restart PKI server:
+Finally, restart PKI server:
 
 ----
 $ systemctl restart pki-tomcatd@pki-tomcat.service
