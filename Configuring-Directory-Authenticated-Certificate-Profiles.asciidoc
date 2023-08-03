@@ -18,7 +18,6 @@ dn: ou=people,dc=example,dc=com
 objectclass: top
 objectclass: organizationalUnit
 ou: people
-add: aci
 aci: (target = "ldap:///ou=people,dc=example,dc=com")
  (targetattr=objectClass||dc||ou||uid||cn||sn||givenName)
  (version 3.0; acl "Allow anyone to read and search basic attributes"; allow (search, read) userdn = "ldap:///anyone";)
