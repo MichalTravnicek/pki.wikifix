@@ -8,7 +8,7 @@ This document describes how to configure directory-authenticated certificate pro
 
 = Prerequisites =
 
-Make sure the LDAP server has users for authentication with passwords, for example:
+Prepare a DS instance with users for authentication using passwords, for example:
 
 ----
 $ ldapadd -H ldap://$HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 << EOF
@@ -28,7 +28,7 @@ userPassword: Secret.123
 EOF
 ----
 
-Verify using the following command:
+Verify the authentication using the following command:
 
 ----
 $ ldapsearch \
@@ -40,7 +40,7 @@ $ ldapsearch \
     "(objectClass=*)"
 ----
 
-= Configuring PKI Server =
+= Configuring Directory-Authenticated Profile =
 
 By default the directory-authenticated profiles (e.g. `/var/lib/pki/pki-tomcat/ca/profiles/ca/caDirUserCert.cfg`) are configured with `UserDirEnrollment` authentication manager:
 
