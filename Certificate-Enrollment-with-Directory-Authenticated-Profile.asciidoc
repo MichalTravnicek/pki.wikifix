@@ -146,7 +146,29 @@ $ curl \
     | python -m json.tool > request.json
 ----
 
-Insert the username and password of the DS user, the request type, and the CSR into the request.
+Insert the username and password of the DS user with the following command:
+
+----
+$ jq '.Attributes.Attribute[.Attributes.Attribute|length] |= . + { "name": "uid", "value": "testuser" }' request.json | sponge request.json
+----
+
+Insert the password of the DS user with the following command:
+
+----
+$ jq '.Attributes.Attribute[.Attributes.Attribute|length] |= . + { "name": "pwd", "value": "Secret.123" }' request.json | sponge request.json
+----
+
+Insert the request type with the following command:
+
+----
+$ jq '( .Input[].Attribute[] | select(.name=="cert_request_type") ).Value |= "pkcs10"' request.json | sponge request.json
+----
+
+Insert the CSR with the following command:
+
+----
+$ jq --rawfile cert_request testuser.csr '( .Input[].Attribute[] | select(.name=="cert_request") ).Value |= $cert_request' request.json | sponge request.json
+----
 
 The final JSON request should look like the following:
 
@@ -204,14 +226,12 @@ $ curl \
             "requestID": "0xfd5377c93db8f0ed016de1d688e27f7e",
             "requestType": "enrollment",
             "requestStatus": "complete",
-            "requestURL": "https://fedora:8443/ca/rest/336728073123547772143591885293897285502",
-            "creationTime": 1691032903874,
-            "modificationTime": 1691032903950,
+            ...,
             "certId": "0x784127bb5291d998224a9426aea15c2b",
-            "certURL": "https://fedora:8443/ca/rest/159845664645189693735986242452612799531",
+            ...,
             "certRequestType": "pkcs10",
             "operationResult": "success",
-            "requestId": "0xfd5377c93db8f0ed016de1d688e27f7e"
+            ...
         }
     ]
 }
