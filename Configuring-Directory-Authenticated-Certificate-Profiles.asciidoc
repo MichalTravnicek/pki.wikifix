@@ -8,16 +8,25 @@ This document describes how to configure directory-authenticated certificate pro
 
 = Prerequisites =
 
-Prepare a DS instance with users for authentication using passwords, for example:
+Prepare a publicly accessible subtree in the DS that contains users.
+Each user must be able to authenticate using a password.
+For example:
 
 ----
 $ ldapadd -H ldap://$HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 << EOF
-dn: ou=People,dc=example,dc=com
+dn: ou=people,dc=example,dc=com
 objectclass: top
 objectclass: organizationalUnit
-ou: People
+ou: people
+add: aci
+aci: (target = "ldap:///ou=people,dc=example,dc=com")
+ (targetattr=objectClass||dc||ou||uid||cn||sn||givenName)
+ (version 3.0; acl "Allow anyone to read and search basic attributes"; allow (search, read) userdn = "ldap:///anyone";)
+aci: (target = "ldap:///ou=people,dc=example,dc=com")
+ (targetattr=*)
+ (version 3.0; acl "Allow anyone to read and search itself"; allow (search, read) userdn = "ldap:///self";)
 
-dn: uid=testuser,ou=People,dc=example,dc=com
+dn: uid=testuser,ou=people,dc=example,dc=com
 objectClass: person
 objectClass: organizationalPerson
 objectClass: inetOrgPerson
