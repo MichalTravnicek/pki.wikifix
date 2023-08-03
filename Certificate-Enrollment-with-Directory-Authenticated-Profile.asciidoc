@@ -146,7 +146,7 @@ $ curl \
     | python -m json.tool > request.json
 ----
 
-Insert the username and password of the DS user with the following command:
+Insert the username of the DS user with the following command:
 
 ----
 $ jq '.Attributes.Attribute[.Attributes.Attribute|length] |= . + { "name": "uid", "value": "testuser" }' request.json | sponge request.json
