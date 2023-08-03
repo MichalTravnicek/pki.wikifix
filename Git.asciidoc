@@ -257,3 +257,41 @@ To verify the tarball:
 ----
 $ tar tvf <output>
 ----
+
+= Logs =
+
+To view one-line logs:
+
+----
+$ git log --pretty=oneline --abbrev-commit --no-decorate
+----
+
+To view one-line logs since a certain tag:
+
+----
+$ git log --pretty=oneline --abbrev-commit --no-decorate v10.5.6..DOGTAG_10_5_BRANCH
+----
+
+= Cleaning Local Repository =
+
+----
+$ git clean -dxf
+----
+
+= Migration =
+
+----
+$ git clone --mirror <old URL>
+$ cd <repo>
+$ git remote add new-origin <new URL>
+$ git push new-origin --mirror
+----
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/Using_Git[Using Git]
+* link:https://www.dogtagpki.org/wiki/Mercurial[Mercurial]
+* link:https://www.dogtagpki.org/wiki/Versioning_Scheme[Versioning Scheme]
+* link:https://www.dogtagpki.org/wiki/GitHub[GitHub]
+* link:https://www.dogtagpki.org/wiki/Subversion[Subversion]
+* link:https://www.opentechguides.com/how-to/article/git/177/git-sync-repos.html[How to keep two Git repositories in sync]
