@@ -138,38 +138,46 @@ Prepare a JSON request in a file (e.g. `request.json`). The request should look 
 
 ----
 {
-    "ProfileID" : "caDirUserCert",
-    "Renewal" : false,
-    "RemoteHost" : "",
-    "RemoteAddress" : "",
-    "Input" : [ {
-        "Name" : "Key Generation",
-        "ConfigAttribute" : [ ],
-        "Attribute" : [ {
-            "name" : "cert_request_type",
-            "Value" : "pkcs10",
-            "Descriptor" : {
-                "Syntax" : "keygen_request_type",
-                "Description" : "Key Generation Request Type"
+    "ProfileID": "caDirUserCert",
+    "Renewal": false,
+    "RemoteHost": "",
+    "RemoteAddress": "",
+    "Input": [
+        {
+            "Name": "Key Generation",
+            "ConfigAttribute": [],
+            "Attribute": [
+                {
+                    "name": "cert_request_type",
+                    "Value": "pkcs10",
+                    "Descriptor": {
+                        "Syntax": "keygen_request_type",
+                        "Description": "Key Generation Request Type"
+                    }
+                },
+                {
+                    "name": "cert_request",
+                    "Value": "-----BEGIN CERTIFICATE REQUEST-----\nMIICnjCCAYYCAQAwWTETMBEGCgmSJomT8ixkARkWA2NvbTEXMBUGCgmSJomT8ixkARkWB2V4YW1w\r\nbGUxDzANBgNVBAsMBnBlb3BsZTEYMBYGCgmSJomT8ixkAQEMCHRlc3R1c2VyMIIBIjANBgkqhkiG\r\n9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtRip472Jza92YAPnCZ6vyF32QGC+hpPnLbJv9kXRHWCVIHnM\r\nJ/Ifxa8MGitf3jqsy7pZMwW4MJwPMa4ai2jwE4u14dOVH4NMxjwM+IuEbWVbyenMS3HO1vCpo49X\r\nmwZbL3wvM83UJgd89l6qtqY5t9vmgzixDB83cxsoIQBXK2MiBl6ndn5lMP2CPdtF6vRt6CVOneN6\r\nu/nBlLv4FFJUDYep5fVLz8HvaQhcApa3/rIMxf1L919Eu+gj6WfvbW/vk+UM6UswoRQSgTr2Yl4n\r\nZyqt7H0c8wOsEqkESKrCvZYiBC8rMOgYJ2uoBGJBjvXXAFo6Br1OvVOSB/h+oJtq2wIDAQABoAAw\r\nDQYJKoZIhvcNAQELBQADggEBAIF8nUIwYPjPLDd61XO7Ai5uA5NhzHj/QIL25KdzSuDguURSsLMQ\r\nX4APwvCvmS77VL6wqrKx3yRoND3JhoU8WZ619vrpb76WXgs0Zm8zO8YigTbAJiFIak3BU6H+2wdX\r\nOhPSFZjdAdx4rY/qt2HwpkiJhuh1SkbboW8pKWwOeJmpPEc7GzzGxz/BcxfuAGg7FAwJTFFQWnZu\r\nrsN6Sls1sdkp7DFm+kA5IhVkv2IL9Pqc5IJoqvGAwrz/vBGGm5gZS/stEadHwBPdOHjK/3htWfwh\r\nQ7M9P7pkGWo/D1hTox//hpO29Lxxx6drmxVJpA4PAQLXtcd91EKkkYPEFBKv/pc=\r\n-----END CERTIFICATE REQUEST-----",
+                    "Descriptor": {
+                        "Syntax": "keygen_request",
+                        "Description": "Key Generation Request"
+                    }
+                }
+            ]
+        }
+    ],
+    "Output": [],
+    "Attributes": {
+        "Attribute": [
+            {
+                "name": "uid",
+                "value": "testuser"
+            },
+            {
+                "name": "pwd",
+                "value": "Secret.123"
             }
-        }, {
-            "name" : "cert_request",
-            "Value" : "-----BEGIN CERTIFICATE REQUEST-----\nMIICnjCCAYYCAQAwWTETMBEGCgmSJomT8ixkARkWA2NvbTEXMBUGCgmSJomT8ixkARkWB2V4YW1w\r\nbGUxDzANBgNVBAsMBnBlb3BsZTEYMBYGCgmSJomT8ixkAQEMCHRlc3R1c2VyMIIBIjANBgkqhkiG\r\n9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtRip472Jza92YAPnCZ6vyF32QGC+hpPnLbJv9kXRHWCVIHnM\r\nJ/Ifxa8MGitf3jqsy7pZMwW4MJwPMa4ai2jwE4u14dOVH4NMxjwM+IuEbWVbyenMS3HO1vCpo49X\r\nmwZbL3wvM83UJgd89l6qtqY5t9vmgzixDB83cxsoIQBXK2MiBl6ndn5lMP2CPdtF6vRt6CVOneN6\r\nu/nBlLv4FFJUDYep5fVLz8HvaQhcApa3/rIMxf1L919Eu+gj6WfvbW/vk+UM6UswoRQSgTr2Yl4n\r\nZyqt7H0c8wOsEqkESKrCvZYiBC8rMOgYJ2uoBGJBjvXXAFo6Br1OvVOSB/h+oJtq2wIDAQABoAAw\r\nDQYJKoZIhvcNAQELBQADggEBAIF8nUIwYPjPLDd61XO7Ai5uA5NhzHj/QIL25KdzSuDguURSsLMQ\r\nX4APwvCvmS77VL6wqrKx3yRoND3JhoU8WZ619vrpb76WXgs0Zm8zO8YigTbAJiFIak3BU6H+2wdX\r\nOhPSFZjdAdx4rY/qt2HwpkiJhuh1SkbboW8pKWwOeJmpPEc7GzzGxz/BcxfuAGg7FAwJTFFQWnZu\r\nrsN6Sls1sdkp7DFm+kA5IhVkv2IL9Pqc5IJoqvGAwrz/vBGGm5gZS/stEadHwBPdOHjK/3htWfwh\r\nQ7M9P7pkGWo/D1hTox//hpO29Lxxx6drmxVJpA4PAQLXtcd91EKkkYPEFBKv/pc=\r\n-----END CERTIFICATE REQUEST-----",
-            "Descriptor" : {
-                "Syntax" : "keygen_request",
-                "Description" : "Key Generation Request"
-            }
-        } ]
-    } ],
-    "Output" : [ ],
-    "Attributes" : {
-        "Attribute" : [ {
-            "name" : "uid",
-            "value" : "testuser"
-        }, {
-            "name" : "pwd",
-            "value" : "Secret.123"
-        } ]
+        ]
     }
 }
 ----
