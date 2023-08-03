@@ -8,7 +8,7 @@ This page describes the process to enroll a certificate using a directory-authen
 
 = Enrollment using pki client-cert-request =
 
-The `pki client-cert-request` command can be used to generate a key in an NSS database (default: `~/.dogtag/nssdb`), create a certificate request, then submit it to the CA.
+The `pki client-cert-request` command can be used to generate a key in NSS database (default: `~/.dogtag/nssdb`), create a certificate request, then submit it to the CA.
 
 To enroll a certificate for a user in DS, specify the username (e.g. `testuser`) in the following command, and it will prompt for the LDAP password:
 
@@ -130,16 +130,14 @@ The certificate will be issued immediately.
 
 = Retrieving Certificate =
 
-To retrieve the certificate into a file:
+The certificate can be retrieved with the following command:
 
 ----
-$ pki ca-cert-export 0x38cd6cff97a6c6190ef3dafef763497 --output-file <filename>
+$ pki ca-cert-export <certificate ID> --output-file testuser.crt
 ----
 
-= Importing Certificate =
-
-To import the certificate into NSS database:
+and imported into NSS database with the following command:
 
 ----
-$ pki client-cert-import testuser --serial 0x38cd6cff97a6c6190ef3dafef763497
+$ pki nss-cert-import testuser --cert testuser.crt
 ----
