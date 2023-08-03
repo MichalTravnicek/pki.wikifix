@@ -1,0 +1,201 @@
+= Overview =
+
+This page describes commonly used `git` commands.
+
+= Pulling Changes =
+
+To pull the latest changes:
+
+----
+$ git pull
+----
+
+= Branches =
+
+To checkout an existing branch:
+
+----
+$ git checkout <branch>
+----
+
+To create a new branch from HEAD:
+
+----
+$ git checkout -b <branch>
+----
+
+To create a tracking branch:
+
+----
+$ git checkout -b <branch> <repository>/<branch>
+----
+
+To configure the current branch to track a remote branch:
+
+----
+$ git branch -u <repository>/<branch>
+----
+
+To delete a remote branch:
+
+----
+$ git push <repository> --delete <branch>
+----
+
+To compare files from different branches with GUI tool:
+
+----
+$ git config --global diff.tool meld
+$ git difftool <branch1>:<file1> <branch2>:<file2>
+----
+
+To list recently modified branches:
+
+----
+$ git for-each-ref --sort=-committerdate refs/heads/ | less
+----
+
+= Stashing Changes =
+
+To stash uncommitted changes:
+
+----
+$ git stash
+----
+
+To list stash entries:
+
+----
+$ git stash list
+----
+
+To show the stash content:
+
+----
+$ git stash show -p <stash ID>
+----
+
+To restore uncommitted changes:
+
+----
+$ git stash pop
+----
+
+= Committing Changes =
+
+To create an empty commit:
+
+----
+$ git commit --allow-empty
+----
+
+To amend the changes:
+
+----
+$ git commit --amend --no-edit
+----
+
+To amend the author:
+
+----
+$ git commit --amend --author="Author Name <email@address.com>" --no-edit
+----
+
+To amend the date:
+
+----
+$ git commit --amend --date="$(date -R)" --no-edit
+----
+
+= Cherry-Picking Changes =
+
+To cherry-pick all new changes in a branch into master:
+
+----
+$ git checkout master
+$ git cherry-pick master..mybranch
+----
+
+To checkout a file from another branch
+
+----
+$ git checkout <branch> <path>
+----
+
+= Generating a Patch =
+
+To generate a patch file for the last commit:
+
+----
+$ git format-patch -1
+----
+
+To generate a patch file for a specific commit:
+
+----
+$ git format-patch -1 <commit>
+----
+
+To generate patch files for each commit since a tag:
+
+----
+$ git format-patch <tag>
+----
+
+To generate a single patch file for all commits since a tag:
+
+----
+$ git format-patch --stdout <tag> > <patch>
+----
+
+= Applying a Patch =
+
+To apply a patch:
+
+----
+$ git am <path to patch>
+----
+
+If it fails due to conflict, try 3-way merge:
+
+----
+$ git am -3
+----
+
+If it still fails, check the failed files with the following command:
+
+----
+$ git status
+----
+
+Fix the file manually, then add the fixed file:
+
+----
+$ git add <path to file>
+----
+
+Then continue the commit:
+
+----
+$ git am --continue
+----
+
+Confirm the commit with the following command:
+
+----
+$ git log
+----
+
+= Pushing Changes =
+
+To push a local branch to a remote repository:
+
+----
+$ git push <repo> <local branch>
+----
+
+To push a local branch to a remote repository with a different name:
+
+----
+$ git push <repo> <local branch>:<remote branch>
+----
