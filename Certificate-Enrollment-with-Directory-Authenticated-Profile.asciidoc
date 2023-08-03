@@ -60,7 +60,16 @@ $ xmlstarlet edit --inplace \
     request.xml
 ----
 
-Insert CSR with the following command:
+Insert the request type with the following command:
+
+----
+$ xmlstarlet edit --inplace \
+    -u "/CertEnrollmentRequest/Input/Attribute[@name='cert_request_type']/Value" \
+    -v "pkcs10" \
+    request.xml
+----
+
+Insert the CSR with the following command:
 
 ----
 $ xmlstarlet edit --inplace \
@@ -81,6 +90,10 @@ The final XML request should look like the following:
     ...
     <Input ...>
         ...
+        <Attribute name="cert_request_type">
+            <Value>pkcs10</Value>
+            ...
+        </Attribute>
         <Attribute name="cert_request">
             <Value>-----BEGIN CERTIFICATE REQUEST-----
 MIIBfTCB5wIBADAaMRgwFgYKCZImiZPyLGQBARMIdGVzdHVzZXIwgZ8wDQYJKoZI
@@ -106,11 +119,11 @@ $ pki ca-cert-request-submit request.xml
 -----------------------------
 Submitted certificate request
 -----------------------------
-  Request ID: 16
+  Request ID: 0xbd818f1a0b348e172076a9be00ad4196
   Type: enrollment
   Request Status: complete
   Operation Result: success
-  Certificate ID: 0xc
+  Certificate ID: 0x38cd6cff97a6c6190ef3dafef763497
 ----
 
 The certificate will be issued immediately.
@@ -120,7 +133,7 @@ The certificate will be issued immediately.
 To retrieve the certificate into a file:
 
 ----
-$ pki ca-cert-export <certificate ID> --output-file <filename>
+$ pki ca-cert-export 0x38cd6cff97a6c6190ef3dafef763497 --output-file <filename>
 ----
 
 = Importing Certificate =
@@ -128,26 +141,5 @@ $ pki ca-cert-export <certificate ID> --output-file <filename>
 To import the certificate into NSS database:
 
 ----
-$ pki client-cert-import <nickname> --serial <certificate ID>
-----
-
-Verify with the following command:
-
-----
-$ pki client-cert-find
-----------------------
-2 certificate(s) found
-----------------------
-  Serial Number: 0x1
-  Nickname: CA Signing Certificate - EXAMPLE
-  Subject DN: CN=CA Signing Certificate,O=EXAMPLE
-  Issuer DN: CN=CA Signing Certificate,O=EXAMPLE
-
-  Serial Number: 0xc
-  Nickname: testuser
-  Subject DN: UID=testuser,OU=People,DC=example,DC=com
-  Issuer DN: CN=CA Signing Certificate,O=EXAMPLE
-----------------------------
-Number of entries returned 2
-----------------------------
+$ pki client-cert-import testuser --serial 0x38cd6cff97a6c6190ef3dafef763497
 ----
