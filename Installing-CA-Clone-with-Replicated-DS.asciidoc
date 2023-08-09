@@ -13,7 +13,7 @@ This page describes the process to install CA clone with existing DS instance wh
 
 = Exporting System Certificates from Primary CA =
 
-Export the system certificates, keys, and CSRs from primary CA with the following commands:
+Export the system certificates and keys from primary CA with the following commands:
 
 ----
 $ pki-server ca-clone-prepare \
@@ -21,7 +21,13 @@ $ pki-server ca-clone-prepare \
     --pkcs12-password Secret.123
 
 $ pki-server cert-export ca_signing \
-    --cert-file ca_signing.crt \
+    --cert-file ca_signing.crt
+----
+
+Optionally, the CSRs for the above certificates can be exported as well with the following commands:
+
+----
+$ pki-server cert-export ca_signing \
     --csr-file ca_signing.csr
 
 $ pki-server cert-export ca_ocsp_signing \
@@ -54,13 +60,21 @@ $ pkispawn \
     -D pki_cert_chain_path=ca_signing.crt \
     -D pki_clone_pkcs12_path=ca-certs.p12 \
     -D pki_clone_pkcs12_password=Secret.123 \
-    -D pki_ca_signing_csr_path=ca_signing.csr \
-    -D pki_ocsp_signing_csr_path=ca_ocsp_signing.csr \
-    -D pki_audit_signing_csr_path=ca_audit_signing.csr \
-    -D pki_subsystem_csr_path=subsystem.csr \
     -D pki_ds_url=ldap://secondaryds.example.com:389 \
     -D pki_ds_setup=False \
     -D pki_cert_id_generator=random \
     -D pki_request_id_generator=random \
     -v
+----
+
+If the CSRs are available, they can be specified with the following parameters:
+
+----
+$ pkispawn \
+    ... \
+    -D pki_ca_signing_csr_path=ca_signing.csr \
+    -D pki_ocsp_signing_csr_path=ca_ocsp_signing.csr \
+    -D pki_audit_signing_csr_path=ca_audit_signing.csr \
+    -D pki_subsystem_csr_path=subsystem.csr \
+    ...
 ----
