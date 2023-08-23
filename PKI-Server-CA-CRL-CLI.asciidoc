@@ -31,10 +31,10 @@ $ pki-server ca-crl-ip-show MasterCRL
   Enable: true
   Allow Extensions: true
   Always Update: false
-  Auto Update Interval: 240
+  Auto Update Interval (minutes): 240
   CA Certs Only: false
-  Cache Update Interval: 15
-  Unexpected Exception Wait Time: 30
+  Cache Update Interval (minutes): 15
+  Unexpected Exception Wait Time (minutes): 30
   Unexpected Exception Loop Max: 10
   Daily Updates: 1:00
   Enable CRL Cache: true
@@ -45,8 +45,8 @@ $ pki-server ca-crl-ip-show MasterCRL
   Enable Update Interval: true
   Extended Next Update: true
   Include Expired Certs: false
-  Min Update Interval: 0
-  Next Update Grace Period: 0
+  Min Update Interval (minutes): 0
+  Next Update Grace Period (minutes): 0
   Publish On Start: false
   Save Memory: false
   Signing Algorithm: SHA256withRSA
@@ -64,4 +64,4 @@ $ pki-server ca-crl-ip-mod \
     MasterCRL
 ----
 
-See also link:Configuring-CRL[Configuring-CRL].
+See also link:Configuring-CRL[Configuring CRL].
