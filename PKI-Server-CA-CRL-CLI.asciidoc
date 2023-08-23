@@ -52,3 +52,14 @@ $ pki-server ca-crl-ip-show MasterCRL
   Signing Algorithm: SHA256withRSA
   Update Schema: 1
 ----
+
+= Modifying CRL Issuing Point Configuration =
+
+----
+$ pki-server ca-crl-ip-mod \
+    --desc "Master CRL" \
+    --class com.example.ca.CRLIssuingPoint \
+    --enable false \
+    -DautoUpdateInterval=5 \
+    MasterCRL
+----
