@@ -1,0 +1,25 @@
+= Overview =
+
+The `pki-server ocsp-crl-*` commands provide an interface to manage the CRL configuration in OCSP.
+
+= Listing CRL Issuing Points =
+
+----
+$ pki-server ocsp-crl-issuingpoint-find
+  CRL Issuing Point ID: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  CA Subject DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  CA Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  CRL Number: -1
+  CRL Size: 0
+  Delta CRL Number: 0
+  Delta CRL Size: -1
+  This Update: Tue Aug 22 21:00:00 CDT 2023
+  Next Update: Wed Aug 23 01:00:00 CDT 2023
+  First Unsaved: -2
+----
+
+= Adding CRL Issuing Point =
+
+----
+$ pki-server ocsp-crl-issuingpoint-add --cert-chain cert_chain.pem
+----
