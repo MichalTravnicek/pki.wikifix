@@ -51,7 +51,7 @@ Then restart the server.
 
 = Global Certificate Revocation Checking =
 
-Each PKI instance can be configured to use a global certificate revocation checking. The configuration is located in `/var/lib/pki/pki-tomcat/conf/server.xml`. See link:https://www.dogtagpki.org/wiki/Tomcat_JSS[Tomcat JSS]. This functionality requires a separate OCSP responder.
+Each PKI instance can be configured to use a global certificate revocation checking. The configuration is located in `/var/lib/pki/pki-tomcat/conf/server.xml`. See link:https://github.com/dogtagpki/tomcatjss[Tomcat JSS]. This functionality requires a separate OCSP responder.
 
 When the global certificate revocation checking is enabled all certificate validations in the server instance will be performed against the specified OCSP responder. This includes system certificate validations during server startup and client certificate validations on incoming SSL connections.
 
@@ -264,7 +264,7 @@ Re-run the test command on the KRA, it should work again.
 
 * link:OCSP-Responder[OCSP Responder]
 * link:https://www.dogtagpki.org/wiki/CRL[CRL]
-* link:https://www.dogtagpki.org/wiki/Tomcat_JSS[Tomcat JSS]
+* link:https://github.com/dogtagpki/tomcatjss[Tomcat JSS]
 * link:https://access.redhat.com/documentation/en-US/Red_Hat_Certificate_System/8.1/html/Admin_Guide/revocation-checking.html[Enabling Revocation Checking]
 * link:https://github.com/dogtagpki/pki/issues/1697[Ticket #1697: Inconsistent cert revocation checking]
 * link:https://github.com/dogtagpki/pki/issues/1745[Ticket #1745: Steps for enabling ocsp checking for DRM does not give the expected results]
