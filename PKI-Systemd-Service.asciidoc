@@ -1,4 +1,8 @@
-= Unit Files =
+= Overview =
+
+Systemd can be used to run PKI server in the background as a Linux service.
+
+= Systemd Unit Files =
 
 Templates:
 
@@ -12,9 +16,9 @@ Targets:
 * link:https://github.com/dogtagpki/pki/blob/master/base/server/share/lib/systemd/system/pki-tomcatd-nuxwdog.target[/usr/lib/systemd/system/pki-tomcatd-nuxwdog.target]
 * /etc/systemd/system/pki-tomcatd-nuxwdog.target.wants
 
-= Default Systemd Service =
+= Regular Systemd Service =
 
-Each PKI instance will have a systemd service. By default the system service will be defined in
+When installed, each PKI instance will have a regular systemd service. The systemd service is defined at:
 
 * /etc/systemd/system/pki-tomcatd.target.wants/pki-tomcatd@pki-tomcat.service
 
