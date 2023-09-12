@@ -1,0 +1,119 @@
+= Overview =
+
+This document describes how to use `certbot`.
+
+= Installation =
+
+To install `certbot` on Fedora:
+
+----
+$ dnf install certbot
+----
+
+= CA Certificate =
+
+certbot does not work with untrusted self-signed CA certificate. As a workaround, use plain HTTP, e.g.:
+
+----
+$ certbot certonly --standalone \
+    --server http://pki.demo.dogtagpki.org/acme/directory \
+    ...
+----
+
+Alternatively, install the self-signed CA certificate, e.g.:
+
+----
+$ cp ca_signing.crt /etc/pki/ca-trust/source/anchors
+$ update-ca-trust
+----
+
+See link:https://docs.fedoraproject.org/en-US/quick-docs/using-shared-system-certificates/[Using Shared System Certificates].
+
+= Certificate Enrollment =
+
+== Certificate enrollment with HTTP-01 ==
+
+To request a certificate with automatic `http-01` validation:
+
+----
+$ certbot certonly --standalone \
+    --server https://pki.demo.dogtagpki.org/acme/directory \
+    -d server.example.com \
+    --register-unsafely-without-email \
+    --agree-tos
+----
+
+To request a certificate with manual `http-01` validation:
+
+----
+$ certbot certonly --manual \
+    --server https://pki.demo.dogtagpki.org/acme/directory \
+    -d server.example.com \
+    --register-unsafely-without-email \
+    --agree-tos
+----
+
+== Certificate enrollment with DNS-01 ==
+
+To request a certificate with manual `dns-01` validation:
+
+----
+$ certbot certonly --manual \
+    --server https://pki.demo.dogtagpki.org/acme/directory  \
+    -d server.example.com \
+    --preferred-challenges dns \
+    --register-unsafely-without-email \
+    --agree-tos
+----
+
+To request a multi-domain certificate:
+
+----
+$ certbot certonly --manual \
+    --server https://pki.demo.dogtagpki.org/acme/directory \
+    -d example.com \
+    -d www.example.com \
+    -d server.example.com \
+    --register-unsafely-without-email \
+    --agree-tos
+----
+
+To request a wildcard certificate:
+
+----
+$ certbot certonly --manual \
+    --server https://pki.demo.dogtagpki.org/acme/directory \
+    -d *.example.com \
+    --register-unsafely-without-email \
+    --agree-tos
+----
+
+== Certificate Storage ==
+
+The results will be stored in:
+
+* certificate: `/etc/letsencrypt/live/example.com/fullchain.pem`
+* private key: `/etc/letsencrypt/live/example.com/privkey.pem`
+
+= Renewing a Certificate =
+
+To renew a certificate with manual `dns-01` validation:
+
+----
+$ certbot certonly --manual -d example.com --preferred-challenges dns
+----
+
+= Removing a Certificate =
+
+----
+$ certbot delete --cert-name $HOSTNAME
+----
+
+= See Also =
+
+* link:https://github.com/dogtagpki/pki/blob/master/docs/user/acme/Using_PKI_ACME_Responder_with_Certbot.md[Using PKI ACME Responder with Certbot]
+* link:https://certbot.eff.org/[Certbot]
+* link:https://certbot.eff.org/docs/[Certbot Docs]
+* link:https://github.com/dogtagpki/pki/wiki/ACME-Clients[ACME Clients]
+* link:https://github.com/ppKrauss/certbot-faq/blob/master/README.md[certbot Fast-Guide]
+* link:https://www.dogtagpki.org/wiki/Nginx[Nginx]
