@@ -1,0 +1,78 @@
+= Overview =
+
+This page describes the process to install TPS with an existing DS backend (e.g. userRoot).
+
+= Preparing DS Instance =
+
+Add a PKI top-level entry in the default DS backend with the following command:
+
+<pre>
+$ ldapadd -x -D "cn=Directory Manager" -w Secret.123 << EOF
+dn: dc=pki,dc=example,dc=com
+objectClass: domain
+dc: pki
+EOF
+</pre>
+
+= Installing TPS =
+
+Prepare a deployment configuration file (e.g. tps.cfg):
+
+<pre>
+[DEFAULT]
+pki_server_database_password=Secret.123
+
+[TPS]
+pki_admin_cert_file=/root/.dogtag/pki-tomcat/ca_admin.cert
+pki_admin_email=tpsadmin@example.com
+pki_admin_name=tpsadmin
+pki_admin_nickname=tpsadmin
+pki_admin_password=Secret.123
+pki_admin_uid=tpsadmin
+
+pki_client_database_password=Secret.123
+pki_client_database_purge=False
+pki_client_pkcs12_password=Secret.123
+
+pki_ds_base_dn=dc=tps,dc=pki,dc=example,dc=com
+pki_ds_database=userRoot
+pki_ds_create_new_db=False
+pki_ds_password=Secret.123
+
+pki_security_domain_name=EXAMPLE
+pki_security_domain_user=caadmin
+pki_security_domain_password=Secret.123
+
+pki_audit_signing_nickname=tps_audit_signing
+pki_sslserver_nickname=sslserver
+pki_subsystem_nickname=subsystem
+</pre>
+
+To begin the installation, execute the following command:
+
+<pre>
+$ pkispawn -f tps.cfg -s TPS
+</pre>
+
+= Verification =
+
+Verify that TPS is running with the following command:
+
+<pre>
+$ pki -d ~/.dogtag/pki-tomcat/ca/alias -c Secret.123 -n caadmin tps-user-show tpsadmin
+---------------
+User "tpsadmin"
+---------------
+  User ID: tpsadmin
+  Full name: tpsadmin
+  Email: tpsadmin@example.com
+  Type: adminType
+  State: 1
+  TPS Profiles:
+    All Profiles
+</pre>
+
+= References =
+
+* [https://www.dogtagpki.org/wiki/PKI_10_Installation PKI 10 Installation]
+* [https://github.com/dogtagpki/389-ds-base/wiki/Managing-DS-Backends Managing DS Backends]
