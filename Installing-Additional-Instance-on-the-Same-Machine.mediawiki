@@ -1,0 +1,23 @@
+By default PKI subsystems will be installed in '''pki-tomcat''' instance using the following ports:
+
+* HTTP port: 8080
+* HTTPS port: 8443
+* AJP port: 8009
+* Tomcat management port: 8005
+
+To install an additional instance on the same machine, those parameters need to be changed to avoid conflicts.
+
+For example, specify the following parameters in addition to the normal installation configuration:
+
+ [DEFAULT]
+ pki_instance_name=<font color="red">pki-tomcat2</font>
+ pki_http_port=<font color="red">18080</font>
+ pki_https_port=<font color="red">18443</font>
+ 
+ [Tomcat]
+ pki_ajp_port=<font color="red">18009</font>
+ pki_tomcat_server_port=<font color="red">18005</font>
+
+= See Also =
+
+* [https://www.dogtagpki.org/wiki/PKI_10_Installation PKI 10 Installation]
