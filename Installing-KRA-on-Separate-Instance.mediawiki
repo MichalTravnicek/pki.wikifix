@@ -1,0 +1,70 @@
+= Overview =
+
+This page describes the process to install KRA joining a security domain running on a different instance, possibly on a different host.
+
+= Exporting Certificate Chain =
+
+== Dogtag 10.2 or older ==
+
+The remote KRA will download the certificate chain automatically.
+
+== Dogtag 10.3 or newer ==
+
+Dogtag 10.3 provides an optional offline mechanism to export the certificate chain and transfer it to the host that will run KRA before the installation begins.
+
+Export the certificate chain with this command:
+
+<pre>
+$ pki-server ca-cert-chain-export --pkcs12-file pki-server.p12 --pkcs12-password Secret.123
+</pre>
+
+Copy the pki-server.p12 to the host that will run KRA.
+
+= Exporting Admin Certificate =
+
+The security domain's admin certificate is stored in /root/.dogtag/pki-tomcat/ca_admin.cert. Copy this file to the host that will run KRA.
+
+= Installing Remote KRA =
+
+Create a deployment configuration file:
+
+<pre>
+[KRA]
+pki_admin_cert_file=ca_admin.cert
+pki_admin_email=kraadmin@example.com
+pki_admin_name=kraadmin
+pki_admin_nickname=kraadmin
+pki_admin_password=Secret.123
+pki_admin_uid=kraadmin
+
+pki_client_database_password=Secret.123
+pki_client_database_purge=False
+pki_client_pkcs12_password=Secret.123
+
+pki_clone_pkcs12_password=Secret.123
+
+pki_ds_base_dn=dc=kra,dc=example,dc=com
+pki_ds_database=kra
+pki_ds_password=Secret.123
+
+pki_security_domain_hostname=pki.example.com
+pki_security_domain_name=EXAMPLE
+pki_security_domain_user=caadmin
+pki_security_domain_password=Secret.123
+
+pki_token_password=Secret.123
+
+# Dogtag 10.3 only
+pki_server_pkcs12_path=pki-server.p12
+pki_server_pkcs12_password=Secret.123
+</pre>
+
+To begin the installation:
+
+<pre>
+$ pkispawn -v -f kra.cfg -s KRA
+</pre>
+
+= See Also =
+
+* [https://www.dogtagpki.org/wiki/PKI_10_Installation PKI 10 Installation]
