@@ -1,0 +1,91 @@
+= Overview =
+
+This page describes the process to install CA in two steps:
+* installation
+* configuration
+
+Between these steps the files that have been deployed into the instance/subsystem folder can be customized.
+
+= Step 1 =
+
+== PKI 10.3.x or older ==
+
+Prepare a deployment configuration file and enable the pki_skip_configration parameter, for example:
+
+<pre>
+[CA]
+pki_admin_email=caadmin@example.com
+pki_admin_name=caadmin
+pki_admin_nickname=caadmin
+pki_admin_password=Secret.123
+pki_admin_uid=caadmin
+
+pki_client_database_password=Secret.123
+pki_client_database_purge=False
+pki_client_pkcs12_password=Secret.123
+
+pki_ds_base_dn=dc=ca,dc=example,dc=com
+pki_ds_database=ca
+pki_ds_password=Secret.123
+
+pki_security_domain_name=EXAMPLE
+pki_token_password=Secret.123
+
+pki_skip_configuration=True
+</pre>
+
+Then execute:
+
+<pre>
+$ pkispawn -f ca.cfg -s CA
+</pre>
+
+== PKI 10.4.x or newer ==
+
+Prepare a deployment configuration file and run pkispawn with the --skip-configuration option:
+
+<pre>
+$ pkispawn -f ca.cfg -s CA --skip-configuration
+</pre>
+
+= Step 2 =
+
+== PKI 10.3.x or older ==
+
+Reuse the same deployment configuration file but set the pki_skip_installation parameter, for example:
+
+<pre>
+[CA]
+pki_admin_email=caadmin@example.com
+pki_admin_name=caadmin
+pki_admin_nickname=caadmin
+pki_admin_password=Secret.123
+pki_admin_uid=caadmin
+
+pki_client_database_password=Secret.123
+pki_client_database_purge=False
+pki_client_pkcs12_password=Secret.123
+
+pki_ds_base_dn=dc=ca,dc=example,dc=com
+pki_ds_database=ca
+pki_ds_password=Secret.123
+
+pki_security_domain_name=EXAMPLE
+pki_token_password=Secret.123
+
+pki_skip_installation=True
+</pre>
+
+Then execute:
+
+<pre>
+$ pkispawn -f ca.cfg -s CA
+</pre>
+
+== PKI 10.4.x or newer ==
+
+Reuse the same deployment configuration file then run pkispawn with the --skip-installation option:
+
+<pre>
+$ pkispawn -f ca.cfg -s CA --skip-installation
+</pre>
