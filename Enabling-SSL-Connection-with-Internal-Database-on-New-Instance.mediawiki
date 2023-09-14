@@ -1,0 +1,296 @@
+= Overview =
+
+This document describes the process to enable SSL connection with the internal database on a new PKI instance.
+
+<font color="red">'''WARNING:'''</font> The NSS database does not support concurrent modification. To prevent database corruption, make sure all processes using the NSS database (e.g. DS or PKI server) are stopped before generating certificate requests, importing certificates, or removing certificates.
+
+For existing PKI instance, see [https://www.dogtagpki.org/wiki/Enabling_SSL_Connection_with_Internal_Database_on_Existing_Instance Enabling SSL Connection with Internal Database on Existing Instance].
+
+= Generating Temporary DS Certificate =
+
+If the DS has been [https://github.com/dogtagpki/pki/wiki/DS-Installation installed] but the PKI CA has not been installed, SSL can be enabled in the DS using a temporary self-signed certificate. Once the CA has been installed, the temporary self-signed certificate can be replaced with a permanent one issued by the CA.
+
+== Initializing NSS database ==
+
+Make sure the DS is stopped:
+
+ $ systemctl stop dirsrv@<font color="red">pki-tomcat</font>.service
+
+Store Directory Manager's password in password.txt:
+
+ $ echo <font color="red">Secret.123</font> > /etc/dirsrv/slapd-<font color="red">pki-tomcat</font>/password.txt
+ $ chown <font color="red">nobody.nobody</font> /etc/dirsrv/slapd-<font color="red">pki-tomcat</font>/password.txt
+ $ chmod 400 /etc/dirsrv/slapd-<font color="red">pki-tomcat</font>/password.txt
+
+Store Directory Manager's password in pin.txt:
+
+ $ echo "Internal (Software) Token:<font color="red">Secret.123</font>" > /etc/dirsrv/slapd-<font color="red">pki-tomcat</font>/pin.txt
+ $ chown <font color="red">nobody.nobody</font> /etc/dirsrv/slapd-<font color="red">pki-tomcat</font>/pin.txt
+ $ chmod 400 /etc/dirsrv/slapd-<font color="red">pki-tomcat</font>/pin.txt
+
+Set the NSS database password:
+
+ $ certutil -W -d /etc/dirsrv/slapd-<font color="red">pki-tomcat</font> -f /etc/dirsrv/slapd-<font color="red">pki-tomcat</font>/password.txt
+
+== Generating DS certificate with NSS ==
+
+A temporary self-signed DS certificate can be [https://github.com/dogtagpki/pki/wiki/Creating-Self-Signed-SSL-Server-Certificate-with-NSS generated] using NSS with the following command:
+
+ $ openssl rand -out /etc/dirsrv/slapd-<font color="red">pki-tomcat</font>/noise.bin 2048
+ $ certutil -S \
+  -x \
+  -d /etc/dirsrv/slapd-<font color="red">pki-tomcat</font> \
+  -f /etc/dirsrv/slapd-<font color="red">pki-tomcat</font>/password.txt \
+  -z /etc/dirsrv/slapd-<font color="red">pki-tomcat</font>/noise.bin \
+  -n "<font color="red">DS Certificate</font>" \
+  -s "CN=<font color="red">server.example.com</font>" \
+  -t "CT,C,C" \
+  -m $RANDOM \
+  -k rsa \
+  -g 2048 \
+  -Z SHA256 \
+  --keyUsage certSigning,keyEncipherment
+
+Export the certificate with the following command:
+
+ $ certutil -L -d /etc/dirsrv/slapd-<font color="red">pki-tomcat</font> -n "DS Certificate" -a > ds.crt
+
+== Generating DS certificate with OpenSSL ==
+
+Alternatively, a self-signed DS certificate can be [https://github.com/dogtagpki/pki/wiki/Creating-Self-Signed-SSL-Server-Certificate-with-OpenSSL generated] using OpenSSL with the following command:
+
+ $ openssl req -newkey rsa:2048 -keyout ds.key -nodes -x509 -out ds.crt -subj "/CN=$HOSTNAME" -days 365
+
+Import the DS certificate and key into a PKCS #12 file:
+
+ $ openssl pkcs12 -export -in ds.crt -inkey ds.key -out ds.p12 -name "<font color="red">DS Certificate</font>" 
+   -passout file:/etc/dirsrv/slapd-<font color="red">pki-tomcat</font>/password.txt
+
+Import the PKCS #12 file into the NSS database:
+
+ $ pk12util -i ds.p12 -d /etc/dirsrv/slapd-<font color="red">pki-tomcat</font> \
+   -k /etc/dirsrv/slapd-<font color="red">pki-tomcat</font>/password.txt \
+   -w /etc/dirsrv/slapd-<font color="red">pki-tomcat</font>/password.txt
+
+Set the trust flags for the DS certificate:
+
+ $ certutil -M -d /etc/dirsrv/slapd-<font color="red">pki-tomcat</font> -n "<font color="red">DS Certificate</font>" -t "CT,C,C"
+
+== Verification ==
+
+Verify the DS certificate is self-signed:
+
+ $ certutil -L -d /etc/dirsrv/slapd-<font color="red">pki-tomcat</font> -n "DS Certificate"
+ 
+ Issuer: "CN=<font color="red">server.example.com</font>"
+ Subject: "CN=<font color="red">server.example.com</font>"
+
+= Enabling Secure Connection in DS =
+
+== Configuring SSL ==
+
+Make sure the DS is started:
+
+ $ systemctl start dirsrv@<font color="red">pki-tomcat</font>.service
+
+Enable secure connection with the following command:
+
+ $ ldapmodify -x -D "cn=Directory Manager" -w <font color="red">Secret.123</font> << EOF
+ dn: cn=config
+ changetype: modify
+ replace: nsslapd-security
+ nsslapd-security: on
+ 
+ dn: cn=RSA,cn=encryption,cn=config
+ changetype: add
+ objectclass: top
+ objectclass: nsEncryptionModule
+ cn: RSA
+ nsSSLPersonalitySSL: <font color="red">DS Certificate</font>
+ nsSSLToken: internal (software)
+ nsSSLActivation: on
+ EOF
+
+To use a different secure port:
+
+ $ ldapmodify -x -D "cn=Directory Manager" -w <font color="red">Secret.123</font> << EOF
+ dn: cn=config
+ changetype: modify
+ replace: nsslapd-secureport
+ nsslapd-secureport: 7902
+ EOF
+
+Then add the SELinux policy:
+
+ $ /usr/sbin/semanage port -a -t ldap_port_t -p tcp 7902
+
+Optionally, disable insecure connection with the following command:
+
+ $ ldapmodify -x -D "cn=Directory Manager" -w <font color="red">Secret.123</font> << EOF
+ dn: cn=config
+ changetype: modify
+ replace: nsslapd-allow-anonymous-access
+ nsslapd-allow-anonymous-access: rootdse
+ -
+ replace: nsslapd-minssf
+ nsslapd-minssf: 56
+ -
+ replace: nsslapd-require-secure-binds
+ nsslapd-require-secure-binds: on
+ -
+ EOF
+
+Restart the DS server:
+
+ $ systemctl restart dirsrv@<font color="red">pki-tomcat</font>.service
+
+== Verification ==
+
+Verify in DS error log (/var/log/dirsrv/slapd-pki-tomcat/errors) that the DS started succesfully with SSL:
+
+<pre>
+[30/Jun/2016:00:23:31 +0200] - SSL alert: Security Initialization: Enabling default cipher set.
+[30/Jun/2016:00:23:31 +0200] - SSL alert: Configured NSS Ciphers
+[30/Jun/2016:00:23:31 +0200] - SSL alert:       TLS_ECDHE_PSK_WITH_AES_128_GCM_SHA256: enabled
+[30/Jun/2016:00:23:31 +0200] - SSL alert:       TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256: enabled
+[30/Jun/2016:00:23:31 +0200] - SSL alert:       TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256: enabled
+[30/Jun/2016:00:23:31 +0200] - SSL alert:       TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256: enabled
+[30/Jun/2016:00:23:31 +0200] - SSL alert:       TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256: enabled
+[30/Jun/2016:00:23:31 +0200] - SSL alert:       TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA: enabled
+[30/Jun/2016:00:23:31 +0200] - SSL alert:       TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA: enabled
+[30/Jun/2016:00:23:31 +0200] - SSL alert:       TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA: enabled
+[30/Jun/2016:00:23:31 +0200] - SSL alert:       TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256: enabled
+[30/Jun/2016:00:23:31 +0200] - SSL alert:       TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256: enabled
+[30/Jun/2016:00:23:31 +0200] - SSL alert:       TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA: enabled
+[30/Jun/2016:00:23:31 +0200] - SSL alert:       TLS_DHE_RSA_WITH_AES_128_GCM_SHA256: enabled
+[30/Jun/2016:00:23:31 +0200] - SSL alert:       TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256: enabled
+[30/Jun/2016:00:23:31 +0200] - SSL alert:       TLS_DHE_RSA_WITH_AES_128_CBC_SHA: enabled
+[30/Jun/2016:00:23:31 +0200] - SSL alert:       TLS_DHE_DSS_WITH_AES_128_CBC_SHA: enabled
+[30/Jun/2016:00:23:31 +0200] - SSL alert:       TLS_DHE_RSA_WITH_AES_128_CBC_SHA256: enabled
+[30/Jun/2016:00:23:31 +0200] - SSL alert:       TLS_DHE_RSA_WITH_AES_256_CBC_SHA: enabled
+[30/Jun/2016:00:23:31 +0200] - SSL alert:       TLS_DHE_DSS_WITH_AES_256_CBC_SHA: enabled
+[30/Jun/2016:00:23:31 +0200] - SSL alert:       TLS_DHE_RSA_WITH_AES_256_CBC_SHA256: enabled
+[30/Jun/2016:00:23:31 +0200] - SSL alert:       TLS_RSA_WITH_AES_128_GCM_SHA256: enabled
+[30/Jun/2016:00:23:31 +0200] - SSL alert:       TLS_RSA_WITH_AES_128_CBC_SHA: enabled
+[30/Jun/2016:00:23:31 +0200] - SSL alert:       TLS_RSA_WITH_AES_128_CBC_SHA256: enabled
+[30/Jun/2016:00:23:31 +0200] - SSL alert:       TLS_RSA_WITH_AES_256_CBC_SHA: enabled
+[30/Jun/2016:00:23:31 +0200] - SSL alert:       TLS_RSA_WITH_AES_256_CBC_SHA256: enabled
+[30/Jun/2016:00:23:31 +0200] SSL Initialization - Configured SSL version range: min: TLS1.0, max: TLS1.2
+[30/Jun/2016:00:23:31 +0200] - 389-Directory/1.3.4.11 B2016.166.1911 starting up
+</pre>
+
+Verify SSL connection with mozldap-tools and NSS database:
+
+ $ /usr/lib64/mozldap/ldapsearch -Z -h $HOSTNAME -p 636 \
+   -D "cn=Directory Manager" -w <font color="red">Secret.123</font> \
+   -P /etc/dirsrv/slapd-<font color="red">pki-tomcat</font> \
+   -b "<font color="red">dc=example,dc=com</font>" -s base "(objectClass=*)"
+
+or with openldap-clients and DS certificate:
+
+ $ LDAPTLS_CACERT=ds.crt \
+   ldapsearch -H ldaps://$HOSTNAME:636 \
+   -x -D "cn=Directory Manager" -w <font color="red">Secret.123</font> \
+   -b "<font color="red">dc=example,dc=com</font>" -s base "(objectClass=*)"
+
+or with openldap-clients and NSS databsae:
+
+ $ LDAPTLS_CACERTDIR=/etc/dirsrv/slapd-<font color="red">pki-tomcat</font> \
+   ldapsearch -H ldaps://$HOSTNAME:636 \
+   -x -D "cn=Directory Manager" -w <font color="red">Secret.123</font> \
+   -b "<font color="red">dc=example,dc=com</font>" -s base "(objectClass=*)"
+
+= Installing PKI with Secure DS Connection =
+
+See [[Installation with Secure Database Connection]].
+
+= Replacing DS Certificate =
+
+This section describes the process to replace the DS certificate in the DS. This process can be used to replace the temporary self-signed DS certificate with a permanent DS certificate issued by the newly installed CA, or to replace an old DS certificate with a new one.
+
+== Generating new DS certificate ==
+
+Make sure the DS is stopped before accessing the NSS database:
+
+ $ systemctl stop dirsrv@<font color="red">pki-tomcat</font>.service
+
+Generate a certificate request for the new DS certificate:
+
+ $ PKCS10Client -d /etc/dirsrv/slapd-<font color="red">pki-tomcat</font> -p <font color="red">Secret.123</font> -a rsa -l 2048 -o ds.csr -n "CN=$HOSTNAME"
+
+Restart the DS to allow the CA to process the request:
+
+ $ systemctl start dirsrv@<font color="red">pki-tomcat</font>.service
+
+Submit the request for a new DS certificate signed by the CA:
+
+ $ pki -d /etc/dirsrv/slapd-<font color="red">pki-tomcat</font> ca-cert-request-submit --profile caServerCert --csr-file ds.csr
+
+After approval, download the new DS certificate (this will be needed later):
+
+ $ pki cert-show <serial number> --output ds.crt
+
+Download the CA certificate as well (this will also be needed later):
+
+ $ pki cert-show <serial number> --output ca.crt
+
+== Installing new DS certificate in DS ==
+
+Make sure the DS is stopped:
+
+ $ systemctl stop dirsrv@<font color="red">pki-tomcat</font>.service
+
+Delete the old DS certificate:
+
+ $ certutil -F -d /etc/dirsrv/slapd-<font color="red">pki-tomcat</font> -f /etc/dirsrv/slapd-<font color="red">pki-tomcat</font>/password.txt -n "DS Certificate"
+
+Import the CA certificate downloaded earlier:
+
+ $ pki -d /etc/dirsrv/slapd-<font color="red">pki-tomcat</font> -C /etc/dirsrv/slapd-<font color="red">pki-tomcat</font>/password.txt \
+   client-cert-import "CA Certificate" --ca-cert ca.crt
+
+Import the new DS certificate downloaded earlier:
+
+ $ pki -d /etc/dirsrv/slapd-<font color="red">pki-tomcat</font> -C /etc/dirsrv/slapd-<font color="red">pki-tomcat</font>/password.txt \
+   client-cert-import "DS Certificate" --cert ds.crt
+
+Restart DS:
+
+ $ systemctl start dirsrv@<font color="red">pki-tomcat</font>.service
+
+== Removing old DS certificate from PKI ==
+
+Stop PKI server:
+
+ $ systemctl stop pki-tomcatd@<font color="red">pki-tomcat</font>.service
+
+Remove the old DS certificate:
+
+ $ certutil -D -d /var/lib/pki/<font color="red">pki-tomcat</font>/alias/ -n "DS Certificate"
+
+Restart PKI server:
+
+ $ systemctl start pki-tomcatd@<font color="red">pki-tomcat</font>.service
+
+== Verification ==
+
+Verify the new DS certificate signed by the CA is installed in DS NSS database:
+
+ $ certutil -L -d /etc/dirsrv/slapd-<font color="red">pki-tomcat</font> -n "DS Certificate"
+ 
+ Issuer: "CN=CA Signing Certificate,O=<font color="red">EXAMPLE</font>"
+ Subject: "CN=<font color="red">server.example.com</font>"
+
+Verify the old DS certificate no longer exists in PKI NSS database:
+
+ $ certutil -L -d /var/lib/pki/<font color="red">pki-tomcat</font>/alias
+
+Verify PKI can connect to DS using the new DS certificate:
+
+ $ pki cert-find
+
+= See Also =
+
+* [https://github.com/dogtagpki/pki/wiki/Configuring-Connection-to-Internal-Database PKI LDAP Connection]
+* [https://www.dogtagpki.org/wiki/SSL SSL]
+* [https://github.com/dogtagpki/pki/wiki/Enabling-SSL-Connection-with-Internal-Database Enabling SSL Connection with Internal Database]
