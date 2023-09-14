@@ -1,0 +1,211 @@
+= Overview =
+
+This document describes the process to enable SSL connection with internal database on existing PKI instance.
+
+<font color="red">'''WARNING:'''</font> The NSS database does not support concurrent modification. To prevent database corruption, make sure all processes using the NSS database (e.g. DS or PKI server) are stopped before generating certificate requests, importing certificates, or removing certificates.
+
+For new PKI instance, see [https://github.com/dogtagpki/pki/wiki/Enabling-SSL-Connection-with-Internal-Database-on-New-Instance Enabling SSL Connection with Internal Database on New Instance].
+
+= Enabling Secure Connection in DS =
+
+== Initializing NSS database ==
+
+Make sure the DS is stopped:
+
+ $ systemctl stop dirsrv@<font color="red">localhost</font>.service
+
+Store Directory Manager's password in pwdfile.txt:
+
+ $ echo <font color="red">Secret.123</font> > /etc/dirsrv/slapd-<font color="red">localhost</font>/pwdfile.txt
+ $ chown <font color="red">nobody.nobody</font> /etc/dirsrv/slapd-<font color="red">localhost</font>/pwdfile.txt
+ $ chmod 400 /etc/dirsrv/slapd-<font color="red">localhost</font>/pwdfile.txt
+
+Store Directory Manager's password in pin.txt:
+
+ $ echo "Internal (Software) Token:<font color="red">Secret.123</font>" > /etc/dirsrv/slapd-<font color="red">localhost</font>/pin.txt
+ $ chown <font color="red">nobody.nobody</font> /etc/dirsrv/slapd-<font color="red">localhost</font>/pin.txt
+ $ chmod 400 /etc/dirsrv/slapd-<font color="red">localhost</font>/pin.txt
+
+Set the NSS database password:
+
+ $ certutil -W -d /etc/dirsrv/slapd-<font color="red">localhost</font> -f /etc/dirsrv/slapd-<font color="red">localhost</font>/pwdfile.txt
+
+== Generating DS Certificate with PKI ==
+
+Generate a certificate request for the new DS certificate:
+
+ $ PKCS10Client -d /etc/dirsrv/slapd-<font color="red">localhost</font> -p <font color="red">Secret.123</font> -a rsa -l 2048 -o ds.csr -n "CN=$HOSTNAME"
+
+Restart the DS to allow the CA to process the request:
+
+ $ systemctl start dirsrv@<font color="red">localhost</font>.service
+
+Submit the request for a new DS certificate signed by the CA:
+
+ $ pki -d /etc/dirsrv/slapd-<font color="red">localhost</font> ca-cert-request-submit --profile caServerCert --csr-file ds.csr
+
+After approval, download the new DS certificate (this will be needed later):
+
+ $ pki cert-show <serial number> --output ds.crt
+
+Download the CA certificate as well (this will also be needed later):
+
+ $ pki cert-show <serial number> --output ca.crt
+
+== Installing DS certificate in DS ==
+
+Make sure the DS is stopped:
+
+ $ systemctl stop dirsrv@<font color="red">localhost</font>.service
+
+Import the CA certificate downloaded earlier:
+
+ $ pki -d /etc/dirsrv/slapd-<font color="red">localhost</font> -C /etc/dirsrv/slapd-<font color="red">localhost</font>/pwdfile.txt \
+   client-cert-import "CA Certificate" --ca-cert ca.crt
+
+Import the new DS certificate downloaded earlier:
+
+ $ pki -d /etc/dirsrv/slapd-<font color="red">localhost</font> -C /etc/dirsrv/slapd-<font color="red">localhost</font>/pwdfile.txt \
+   client-cert-import "DS Certificate" --cert ds.crt
+
+Verify the import:
+
+ $ certutil -L -d /etc/dirsrv/slapd-<font color="red">localhost</font>
+ 
+ Certificate Nickname                                         Trust Attributes
+                                                              SSL,S/MIME,JAR/XPI
+ 
+ CA Certificate                                               CT,C,C
+ DS Certificate                                               u,u,u
+
+== Configuring SSL ==
+
+Make sure the DS is started:
+
+ $ systemctl start dirsrv@<font color="red">localhost</font>.service
+
+Enable secure connection with the following command:
+
+ $ ldapmodify -x -D "cn=Directory Manager" -w <font color="red">Secret.123</font> << EOF
+ dn: cn=config
+ changetype: modify
+ replace: nsslapd-security
+ nsslapd-security: on
+ 
+ dn: cn=RSA,cn=encryption,cn=config
+ changetype: add
+ objectclass: top
+ objectclass: nsEncryptionModule
+ cn: RSA
+ nsSSLPersonalitySSL: DS Certificate
+ nsSSLToken: internal (software)
+ nsSSLActivation: on
+ EOF
+
+Optionally, disable insecure connection with the following command:
+
+ $ ldapmodify -x -D "cn=Directory Manager" -w <font color="red">Secret.123</font> << EOF
+ dn: cn=config
+ changetype: modify
+ replace: nsslapd-allow-anonymous-access
+ nsslapd-allow-anonymous-access: rootdse
+ -
+ replace: nsslapd-minssf
+ nsslapd-minssf: 56
+ -
+ replace: nsslapd-require-secure-binds
+ nsslapd-require-secure-binds: on
+ -
+ EOF
+
+Restart the DS server:
+
+ $ systemctl restart dirsrv@<font color="red">localhost</font>.service
+
+== Verification ==
+
+Verify in DS error log (/var/log/dirsrv/slapd-localhost/errors) that the DS started succesfully with SSL:
+
+<pre>
+INFO - Security Initialization - SSL info: Enabling default cipher set.
+INFO - Security Initialization - SSL info: Configured NSS Ciphers
+INFO - Security Initialization - SSL info:     TLS_AES_128_GCM_SHA256: enabled
+INFO - Security Initialization - SSL info:     TLS_CHACHA20_POLY1305_SHA256: enabled
+INFO - Security Initialization - SSL info:     TLS_AES_256_GCM_SHA384: enabled
+INFO - Security Initialization - SSL info:     TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256: enabled
+INFO - Security Initialization - SSL info:     TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256: enabled
+INFO - Security Initialization - SSL info:     TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256: enabled
+INFO - Security Initialization - SSL info:     TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256: enabled
+INFO - Security Initialization - SSL info:     TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA: enabled
+INFO - Security Initialization - SSL info:     TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA: enabled
+INFO - Security Initialization - SSL info:     TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA: enabled
+INFO - Security Initialization - SSL info:     TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256: enabled
+INFO - Security Initialization - SSL info:     TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256: enabled
+INFO - Security Initialization - SSL info:     TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA: enabled
+INFO - Security Initialization - SSL info:     TLS_DHE_RSA_WITH_AES_128_GCM_SHA256: enabled
+INFO - Security Initialization - SSL info:     TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256: enabled
+INFO - Security Initialization - SSL info:     TLS_DHE_RSA_WITH_AES_128_CBC_SHA: enabled
+INFO - Security Initialization - SSL info:     TLS_DHE_DSS_WITH_AES_128_CBC_SHA: enabled
+INFO - Security Initialization - SSL info:     TLS_DHE_RSA_WITH_AES_128_CBC_SHA256: enabled
+INFO - Security Initialization - SSL info:     TLS_DHE_RSA_WITH_AES_256_CBC_SHA: enabled
+INFO - Security Initialization - SSL info:     TLS_DHE_DSS_WITH_AES_256_CBC_SHA: enabled
+INFO - Security Initialization - SSL info:     TLS_DHE_RSA_WITH_AES_256_CBC_SHA256: enabled
+INFO - Security Initialization - SSL info:     TLS_RSA_WITH_AES_128_GCM_SHA256: enabled
+INFO - Security Initialization - SSL info:     TLS_RSA_WITH_AES_128_CBC_SHA: enabled
+INFO - Security Initialization - SSL info:     TLS_RSA_WITH_AES_128_CBC_SHA256: enabled
+INFO - Security Initialization - SSL info:     TLS_RSA_WITH_AES_256_CBC_SHA: enabled
+INFO - Security Initialization - SSL info:     TLS_RSA_WITH_AES_256_CBC_SHA256: enabled
+INFO - Security Initialization - slapd_ssl_init2 - Configured SSL version range: min: TLS1.0, max: TLS1.3
+INFO - main - 389-Directory/1.3.7.8 B2017.324.1651 starting up
+...
+INFO - slapd_daemon - slapd started.  Listening on All Interfaces port 389 for LDAP requests
+INFO - slapd_daemon - Listening on All Interfaces port 636 for LDAPS requests
+</pre>
+
+Verify SSL connection with mozldap-tools and NSS database:
+
+ $ /usr/lib64/mozldap/ldapsearch -Z -h $HOSTNAME -p 636 \
+   -D "cn=Directory Manager" -w <font color="red">Secret.123</font> \
+   -P /etc/dirsrv/slapd-<font color="red">localhost</font> \
+   -b "<font color="red">dc=example,dc=com</font>" -s base "(objectClass=*)"
+
+or with openldap-clients and DS certificate:
+
+ $ LDAPTLS_CACERT=ca.crt \
+   ldapsearch -H ldaps://$HOSTNAME:636 \
+   -x -D "cn=Directory Manager" -w <font color="red">Secret.123</font> \
+   -b "<font color="red">dc=example,dc=com</font>" -s base "(objectClass=*)"
+
+or with openldap-clients and NSS databsae:
+
+ $ LDAPTLS_CACERTDIR=/etc/dirsrv/slapd-<font color="red">localhost</font> \
+   ldapsearch -H ldaps://$HOSTNAME:636 \
+   -x -D "cn=Directory Manager" -w <font color="red">Secret.123</font> \
+   -b "<font color="red">dc=example,dc=com</font>" -s base "(objectClass=*)"
+
+= Enabling Secure DS Connection in PKI =
+
+Configure PKI server to use SSL by editing /var/lib/pki/<font color="red">pki-tomcat</font>/<subsystem>/conf/CS.cfg:
+
+ internaldb.ldapconn.host=<font color="red">server.example.com</font>
+ internaldb.ldapconn.port=636
+ internaldb.ldapconn.secureConn=true
+
+Restart PKI server:
+
+ $ systemctl restart pki-tomcatd@<font color="red">pki-tomcat</font>.service
+
+Verify in DS access log (/var/log/dirsrv/slapd-localhost/access) that PKI server is connecting using SSL:
+
+ [29/Jun/2016:23:20:40 +0200] conn=36 fd=64 slot=64 SSL connection from <font color="red">server.example.com</font> to <font color="red">server.example.com</font>
+ [29/Jun/2016:23:20:40 +0200] conn=36 TLS1.2 128-bit AES
+
+Verify PKI server can communicate with the DS with the following command:
+
+ $ pki ca-cert-find
+
+= See Also =
+
+* [https://github.com/dogtagpki/pki/wiki/Configuring-Connection-to-Internal-Database PKI LDAP Connection]
+* [https://github.com/dogtagpki/pki/wiki/SSL SSL]
+* [https://github.com/dogtagpki/pki/wiki/Enabling-SSL-Connection-with-Internal-Database Enabling SSL Connection with Internal Database]
