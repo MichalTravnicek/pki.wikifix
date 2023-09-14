@@ -1,0 +1,134 @@
+= Overview =
+
+This page describes the process to install OCSP with existing certificates in PKI 10.6 or later. In this scenario, the OCSP uses an external CA to issue the OCSP system certificates. The OCSP will join the CA's security domain.
+
+The installation process consists multiple steps:
+* Initializing installation
+** Creating initial configuration files
+** Creating empty NSS database
+* Generating keys, CSRs, and certificates
+* Finalizing installation
+
+= Preparing for Installation =
+
+Prepare a deployment configuration file for step 1 (e.g. ocsp-step1.cfg):
+
+<pre>
+[OCSP]
+pki_admin_email=ocspadmin@example.com
+pki_admin_name=ocspadmin
+pki_admin_nickname=ocspadmin
+pki_admin_password=Secret.123
+pki_admin_uid=ocspadmin
+
+pki_client_database_password=Secret.123
+pki_client_database_purge=False
+pki_client_pkcs12_password=Secret.123
+
+pki_ds_base_dn=dc=ocsp,dc=example,dc=com
+pki_ds_database=ocsp
+pki_ds_password=Secret.123
+
+pki_security_domain_name=EXAMPLE
+pki_security_domain_user=caadmin
+pki_security_domain_password=Secret.123
+
+pki_token_password=Secret.123
+
+pki_external=True
+pki_external_step_two=False
+
+pki_ocsp_signing_nickname=ocsp_signing
+pki_subsystem_nickname=subsystem
+pki_sslserver_nickname=sslserver
+pki_audit_signing_nickname=ocsp_audit_signing
+</pre>
+
+'''Note:''' Do not specify the paths to store the CSR files so that pkispawn will not generate the keys and CSRs.
+
+Optionally, specify the HSM parameters:
+
+<pre>
+pki_hsm_enable=True
+pki_hsm_libfile=/opt/nfast/toolkits/pkcs11/libcknfast.so
+pki_hsm_modulename=nfast
+</pre>
+
+Then execute the following command:
+
+<pre>
+$ pkispawn -f ocsp-step1.cfg -s OCSP
+</pre>
+
+It will create an empty NSS database in /etc/pki/pki-tomcat/alias.
+
+= Exporting Existing Certificates =
+
+== Exporting OCSP Certificates ==
+	
+Follow [https://www.dogtagpki.org/wiki/Exporting_OCSP_Certificates this procedure] to export OCSP certificates.
+
+If the existing OCSP has certificate chain, export it into a file (see [https://github.com/dogtagpki/pki/wiki/NSS-Database#Exporting_Certificate_Chain Exporting Certificate Chain]):
+
+ $ certutil -L -d /var/lib/pki/<font color="red">pki-tomcat</font>/alias -n "<font color="red">external</font>" -a > external.crt
+
+Transfer the certificates and the certificate chain to the host where the new OCSP will be installed.
+
+== Exporting OCSP CSRs ==
+
+Follow [https://www.dogtagpki.org/wiki/Exporting_OCSP_CSRs this procedure] to export OCSP CSRs.
+
+Transfer the CSRs to the host where the new OCSP will be installed.
+
+= Completing Installation =
+
+Prepare a deployment configuration for step 2 (e.g. ocsp-step2.cfg) by copying it from step 1 (i.e. ocsp-step1.cfg) and make the following changes.
+
+Specify step 2 with the following parameter:
+
+<pre>
+pki_external_step_two=True
+</pre>
+
+Specify the CSRs with the following parameters:
+
+<pre>
+pki_ocsp_signing_csr_path=ocsp_signing.csr
+pki_subsystem_csr_path=subsystem.csr
+pki_sslserver_csr_path=sslserver.csr
+pki_audit_signing_csr_path=ocsp_audit_signing.csr
+pki_admin_csr_path=ocsp_admin.csr
+</pre>
+
+Specify the certificates with the following parameters:
+
+<pre>
+pki_ocsp_signing_cert_path=ocsp_signing.crt
+pki_subsystem_cert_path=subsystem.crt
+pki_sslserver_cert_path=sslserver.crt
+pki_audit_signing_cert_path=ocsp_audit_signing.crt
+pki_admin_cert_path=ocsp_admin.crt
+</pre>
+
+Each certificate file can contain either a single PEM certificate or a PKCS #7 certificate chain.
+
+If all of the above certificate files contain single certificates, the CA signing certificate and/or the certificate chain can be specified with the following parameters:
+
+<pre>
+pki_ca_signing_nickname=ca_signing
+pki_ca_signing_cert_path=ca_signing.crt
+pki_cert_chain_nickname=cert_chain
+pki_cert_chain_path=cert_chain.p7b
+</pre>
+
+The CA signing certificate and the certificate chain file can contain either a single certificate or a PKCS #7 certificate chain as well.
+
+Finally, execute the following command:
+
+<pre>
+$ pkispawn -f ocsp-step2.cfg -s OCSP
+</pre>
+
+= See Also =
+
+* [https://www.dogtagpki.org/wiki/PKI_10_Installation PKI 10 Installation]
