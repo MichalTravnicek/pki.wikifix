@@ -1,0 +1,284 @@
+= Overview =
+
+This is a general migration procedure useful for pretty much
+any migration - and in particular for migrations prior to
+RHCS 9.1.  After 9.1, there are tools and mechanisms available
+to do this migration more simply and with less manual steps.
+
+The basic idea is to create a new instance - with new system certificates
+and keys - but then to replace that instance's certificates and keys with
+those from the old instance.
+
+The exception to this will be the server certificate which must
+have a subject name that is of the form cn=hostname, and which is
+probably going to be different in the old and new instances.  In
+this case, we will generate a server cert for the new instance on
+the OLD instance, and swap out the server cert.
+
+Finally, the data in the internal database from the old system will
+be migrated to the new instance using the LDAP commands and utilities.
+
+= Migration Procedure =
+
+Here are the basic steps:
+
+A. On the old instance:
+
+1. Issue a server certificate for the new instance.
+
+To do this, create a new NSS database, generate the CSR and submit to the
+old CA.  Issue the certificate, and store the certificate and
+key in a PKCS#12 file.  The nickname used for the certificate should be the same as
+the nickname to be used for the server certificate in the new server.  To simplify
+things, I made it different from the nickname for the server certificate on the old
+server.
+
+   mkdir -p /tmp/serverdb
+   cd /tmp/serverdb
+   certutil -N -d .
+   certutil -R -d . -s "cn=host2.example.com" -Z "SHA256" -a -o "server.csr"
+   (submit to old CA and get new cert and store as ascii in server.crt)
+   certutil -A -d . -n "Server-Cert cert pki-ca host2.example.com" -t "u,u,u" -a -i server.crt
+   pk12util -o servercert.p12 -n "Server-Cert cert pki-ca host2.example.com" -d .
+
+2. Back up the old instance's data.  The database name can be found from the old instance's CS.cfg.  In the commands below, the output is written to /tmp because the commands run as the database user.
+
+   cd /usr/lib64/dirsrv/slapd-host1-CA
+   DB=`grep internaldb.database /etc/pki-ca/CS.cfg |awk -F= '{print $2}'`
+   ./db2ldif -n "$DB" -a /tmp/old_ca.ldif
+   
+3. Back up the old instances certificate database and password.
+
+   tar chzvf /tmp/nssdb.tar.gz -C /var/lib/pki-ca/alias .
+   grep internal= /var/lib/pki-ca/conf/password.conf | awk -F= '{print $2;}' > /tmp/internal.txt
+
+4. Back up the old instance's CS.cfg
+
+   cp /etc/pki-ca/CS.cfg /tmp/old_ca.CS.cfg
+
+5. Transfer the server cert PKCS#12 file, the backed up database and password, the backed up certificate database and the old CS.cfg to the new instance.
+
+B. On the new instance:
+
+1. Modify the shared CS.cfg template at /usr/share/pki/ca/conf/CS.cfg
+to specify the starting point for the certificate serial number
+and request numbers.
+
+We want to select the start of the serial and request numbers such that there are no duplicated numbers once the old data is imported. To see which serial numbers to use, I looked at the old CA's agent interface and listed both certificates and request numbers. Assuming the serial numbers are not being assigned randomly, you want a value that is larger than the last number that was issued. For safety sake, I left a bit of a gap between the last issued and the start range. Note that certificate serial numbers are in hex and should be specified without the '0x' prefix. Request numbers are decimals.
+
+In the commands below, we modify the starting certificate and request serial numbers to 0x30 and 50 respectively.
+
+  cp /usr/share/pki/ca/conf/CS.cfg /usr/share/pki/ca/conf/CS.cfg.orig
+  sed -i 's/dbs.beginRequestNumber=1/dbs.beginRequestNumber=50/' /usr/share/pki/ca/conf/CS.cfg
+  sed -i 's/dbs.beginSerialNumber=1/dbs.beginSerialNumber=30/' /usr/share/pki/ca/conf/CS.cfg
+
+As these template files can be used to create other instances, they should be reverted to their original form once your instance has been migrated.
+
+2. Create a pkispawn configuration file.  Make sure the following
+is specified:-
+
+   a) The baseDN for the new instance should be the same as the old instance.
+   b) The nicknames for the system certificates -- all of them --
+      the signing, ocsp signing, subsystem, audit signing -- except the server cert -
+      should match the old ones exactly.  The algorithm and key values should be the
+      same too.  The subject names should be the same too.
+      
+      The nickname, algorithm and key and subject name for the server cert should
+      be the same as the server cert you generated on the old instance in step A1 above.
+      
+      Here is a sample pkispawn config file:
+
+      [DEFAULT]
+      pki_instance_name=pki-tomcat
+      pki_admin_password=redhat123
+      pki_client_pkcs12_password=redhat123
+      pki_ds_password=redhat123
+      pki_ds_ldap_port=389
+      
+      [CA]
+      pki_ds_base_dn=dc=host2.example.com-pki-ca
+      pki_ds_database=host2.example.com-pki-ca
+      pki_ssl_server_nickname=Server-Cert cert-pki-ca host2.example.com
+      pki_ssl_server_subject_dn=CN=host2.example.com
+      pki_subsystem_nickname=subsystemCert cert-pki-ca
+      pki_subsystem_subject_dn=CN=CA Subsystem Certificate,OU=pki-ca,o=example.com
+      pki_ca_signing_nickname=caSigningCert cert-pki-ca
+      pki_ca_signing_subject_dn=CN=Certificate Authority,OU=pki-ca, o=example.com
+      pki_ocsp_signing_nickname=ocspSigningCert cert-pki-ca
+      pki_ocsp_signing_subject_dn=CN=OCSP Signing Certificate,OU=pki-ca,o=example.com 
+      pki_audit_signing_nickname=auditSigningCert cert-pki-ca
+      pki_audit_signing_subject_dn=CN=CA Audit Signing Certificate,OU=pki-ca,o= example.com
+
+3. Create a new instance using this config file.
+
+   pkispawn -s CA -i config.cfg
+
+4. Stop the new instance.
+
+   systemctl stop pki-tomcatd@pki-tomcat.service
+
+5. Replace the nssdb with the old one.  Make sure that the right password is in password.conf.
+
+   rm /var/lib/pki/pki-tomcat/alias/*
+   cd /var/lib/pki/pki-tomcat/alias/
+   tar -xvzf ~/old_ca/nssdb.tar.gz .
+   NSSPASS=`cat ~/old_ca/internal.txt`
+   sed -i "s/internal=.*/internal=${NSSPASS}/" /etc/pki/pki-tomcat/password.conf
+
+6. Replace the server cert (unless you're using the same hostname as the old
+system) using the server cert that you generated on the old server and
+transferred using a PKCS#12 file.
+
+   (First delete the old server cert)
+   certutil -d /var/lib/pki/pki-tomcat/alias -D -n "nickname for old server cert"
+   
+   (Now add the new server cert and key)
+   pk12util -d /var/lib/pki/pki-tomcat/alias -i servercert.p12
+
+7. Fix up the CS.cfg using the values in the old CS.cfg.  The values that need to be replaced
+here are simply those corresponding to the system certificates:
+
+   ca.audit_signing.cert
+   ca.audit_signing.certreq
+   cloning.audit_signing.privkey.id
+   cloning.audit_signing.pubkey.exponent
+   cloning.audit_signing.pubkey.modulus
+   
+   (and the same for the other system certs, except for the server cert)
+
+I have written a short Python script to help with this task.
+
+ <nowiki>
+#!/usr/bin/python
+# Authors:
+#     Ade Lee <alee@redhat.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+# Copyright (C) 2016 Red Hat, Inc.
+# All rights reserved.
+#
+
+from __future__ import absolute_import
+import getopt
+import shutil
+import sys
+
+import pki
+
+property_keys = [
+    "ca.audit_signing.cert",
+    "ca.audit_signing.certreq",
+    "cloning.audit_signing.privkey.id",
+    "cloning.audit_signing.pubkey.exponent",
+    "cloning.audit_signing.pubkey.modulus",
+    "ca.signing.cert",
+    "ca.signing.certreq",
+    "cloning.signing.privkey.id",
+    "cloning.signing.pubkey.exponent",
+    "cloning.signing.pubkey.modulus",
+    "ca.ocsp_signing.cert",
+    "ca.ocsp_signing.certreq",
+    "cloning.ocsp_signing.privkey.id",
+    "cloning.ocsp_signing.pubkey.exponent",
+    "cloning.ocsp_signing.pubkey.modulus",
+    "ca.subsystem.cert",
+    "ca.subsystem.certreq",
+    "cloning.subsystem.privkey.id",
+    "cloning.subsystem.pubkey.exponent",
+    "cloning.subsystem.pubkey.modulus"
+]
+
+
+def print_usage():
+    print 'migrate_cs.py --old <old file> --new <new_file> --out <out_file>'
+    sys.exit(1)
+
+
+def migrate(old_file, out_file):
+    old_properties = pki.PropertyFile(old_file)
+    old_properties.read()
+
+    new_properties = pki.PropertyFile(out_file)
+    new_properties.read()
+
+    for prop_key in property_keys:
+        prop_value = old_properties.get(prop_key)
+        if prop_value is None:
+            continue
+
+        new_properties.set(prop_key, prop_value)
+
+    new_properties.write()
+
+
+def main():
+    try:
+        opts, args = getopt.getopt(sys.argv[1:],"h",["old=","new=","out="])
+    except getopt.GetoptError:
+        print_usage()
+
+    for opt, arg in opts:
+        if opt == '-h':
+            print_usage()
+        elif opt == "--old":
+            old_file = arg
+        elif opt == "--new":
+            new_file = arg
+        elif opt == "--out":
+            out_file = arg
+
+    print 'Old CS.cfg file is ', old_file
+    print 'New CS.cfg file is ', new_file
+    print 'Output file is ', out_file
+
+    shutil.copy(new_file, out_file)
+    migrate(old_file, out_file)
+
+if __name__ == "__main__":
+    main()
+</nowiki>
+
+Execute this as follows:
+
+  cp /etc/pki/pki-tomcat/ca/CS.cfg /etc/pki/pki-tomcat/ca/CS.cfg.bak
+  python migrate_cs.py --old old_ca_CS.cfg --new /etc/pki/pki-tomcat/ca/CS.cfg --out new_CS.cfg
+  cp new_CS.cfg /etc/pki/pki-tomcat/ca/CS.cfg
+
+8. Restore the old directory server data.  Detailed instructions are provided here - 
+https://github.com/dogtagpki/pki/wiki/Migrating-CA-using-Existing-CA-Mechanism#Import_the_old_data_into_the_new_CA_database
+These instructions include a detailed explanation of the output you are likely to encounter.
+
+9.  Restore users to their proper groups.  As mentioned in the import instructions above, users may need to be re-added to groups
+as required.  In order to do this, one needs to either use ldapmodify commands, or log into the pkiconsole using the newly created
+caadmin user's password.
+
+Note that it will not be possible to use this user's certificate to make a TLS/SSL connection either through the web or through the
+pki command line because that user's certificate was issued by the pkispawn-generated CA signing certificate (which we have already discarded).
+
+Once at least one of the old admin users has been restored to the admin group, however, we can use that admin user's certificate to
+make connections to the web UI and pki CLI.
+
+10. In my case, there were no customized UI, profiles or plugins. These should be added either by copying in the required files or by using the console.
+
+11. The subsystem user does not have the right certificate.  It has the subsystem certificate that was generated during pkispawn (and then discarded).
+Fix this using the console or using the pki command line.
+
+12. Restart the CA.
+
+    systemctl restart pki-tomcatd@pki-tomcat.service
+
+= See Also =
+
+* [https://www.dogtagpki.org/wiki/Migration Migration]
