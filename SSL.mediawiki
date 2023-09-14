@@ -1,0 +1,312 @@
+= Overview =
+
+This page describes the SSL configuration used by PKI. The SSL configuration is stored in /var/lib/pki/<font color="red">pki-tomcat</font>/conf/server.xml as part of [https://github.com/dogtagpki/tomcatjss Tomcat JSS] configuration.
+
+= Default SSL Configuration =
+
+By default PKI will use the following SSL configuration.
+
+== General configuration ==
+
+* Strict ciphers: true
+* Client certificate authentication: want
+* server cert nickname file: /var/lib/pki/pki-tomcat/conf/serverCertNick.conf
+* password file: /var/lib/pki/pki-tomcat/conf/password.conf
+* password class: org.apache.tomcat.util.net.jss.PlainPasswordFile
+* NSS database: /var/lib/pki/pki-tomcat/alias
+
+== OCSP ==
+
+* OCSP: enabled
+* OCSP responder URL: http://$HOSTNAME:9080/ca/ocsp
+* OCSP responder certificate: ocspSigningCert cert-pki-ca
+* Cache size: 1000
+* Minimum cache entry duration: 60 seconds
+* Maximum cache entry duration: 120 seconds
+* Timeout: 10 seconds
+
+== SSL options ==
+
+* SSL2: disabled
+* SSL3: disabled
+* TLS: enabled
+
+Note: If the SSL range ciphers parameters are defined, the SSL options parameters will be ignored.
+
+== SSL2 ciphers ==
+
+Disabled:
+
+* SSL2_RC4_128_WITH_MD5
+* SSL2_RC4_128_EXPORT40_WITH_MD5
+* SSL2_RC2_128_CBC_WITH_MD5
+* SSL2_RC2_128_CBC_EXPORT40_WITH_MD5
+* SSL2_DES_64_CBC_WITH_MD5
+* SSL2_DES_192_EDE3_CBC_WITH_MD5
+
+Enabled: none
+
+== SSL3 ciphers ==
+
+Disabled:
+
+* SSL3_FORTEZZA_DMS_WITH_NULL_SHA
+* SSL3_FORTEZZA_DMS_WITH_RC4_128_SHA
+* SSL3_RSA_EXPORT_WITH_RC4_40_MD5
+* SSL3_RSA_WITH_DES_CBC_SHA
+* SSL3_RSA_EXPORT_WITH_RC2_CBC_40_MD5
+* SSL3_FORTEZZA_DMS_WITH_FORTEZZA_CBC_SHA
+* SSL_RSA_FIPS_WITH_DES_CBC_SHA
+* SSL3_RSA_WITH_NULL_MD5
+* TLS_RSA_EXPORT1024_WITH_RC4_56_SHA
+* TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA
+
+Enabled:
+
+* SSL3_RSA_WITH_RC4_128_SHA
+* SSL3_RSA_WITH_3DES_EDE_CBC_SHA
+* SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA
+* TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+
+== TLS ciphers ==
+
+Disabled:
+
+* TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA
+* TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA
+* TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA
+* TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA
+* TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+* TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
+
+Enabled:
+
+* TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA
+* TLS_ECDH_RSA_WITH_AES_128_CBC_SHA
+* TLS_ECDH_RSA_WITH_AES_256_CBC_SHA
+* TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+* TLS_RSA_WITH_3DES_EDE_CBC_SHA
+* TLS_RSA_WITH_AES_128_CBC_SHA
+* TLS_RSA_WITH_AES_256_CBC_SHA
+* TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA
+* TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
+* TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA
+* TLS_DHE_DSS_WITH_AES_128_CBC_SHA
+* TLS_DHE_DSS_WITH_AES_256_CBC_SHA
+* TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA
+* TLS_DHE_RSA_WITH_AES_128_CBC_SHA
+* TLS_DHE_RSA_WITH_AES_256_CBC_SHA
+
+== SSL version range for stream protocols ==
+
+Minimum: tls1_1 (tls1_0 -> tls1_1 per https://pagure.io/dogtagpki/issue/2855)
+
+Maximum: tls1_2
+
+Valid values: ssl3, tls1_0, tls1_1, tls1_2
+
+== SSL version range for datagram protocols ==
+
+Minimum: tls1_1
+
+Maximum: tls1_2
+
+Valid values: tls1_1, tls1_2
+
+== SSL range ciphers ==
+
+== RSA Servers ==
+
+This list defines the SSL ciphers for the above SSL version ranges. This parameter overrides the SSL options parameters above for non-ECC ciphers.
+
+Disabled:
+
+* TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA
+* TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA
+* TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA
+* TLS_ECDH_RSA_WITH_AES_128_CBC_SHA
+* TLS_ECDH_RSA_WITH_AES_256_CBC_SHA
+* TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA
+* TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256
+* TLS_ECDH_RSA_WITH_AES_128_GCM_SHA256
+* TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+* TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA
+* TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
+* TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA
+* TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA
+* TLS_DHE_DSS_WITH_AES_128_CBC_SHA
+* TLS_DHE_DSS_WITH_AES_256_CBC_SHA
+* TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA
+* TLS_DHE_DSS_WITH_AES_128_GCM_SHA256
+* TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256
+* TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+* TLS_RSA_WITH_AES_128_GCM_SHA256
+* TLS_RSA_WITH_3DES_EDE_CBC_SHA (enabled -> disabled per https://pagure.io/dogtagpki/issue/2821)
+
+Enabled:
+
+* TLS_DHE_RSA_WITH_AES_128_CBC_SHA (disabled -> enabled per https://pagure.io/dogtagpki/issue/2855)
+* TLS_DHE_RSA_WITH_AES_128_CBC_SHA256 (disabled -> enabled per https://pagure.io/dogtagpki/issue/2855)
+* TLS_DHE_RSA_WITH_AES_128_GCM_SHA256 (disabled -> enabled per https://pagure.io/dogtagpki/issue/2855)
+* TLS_DHE_RSA_WITH_AES_256_CBC_SHA (disabled -> enabled per https://pagure.io/dogtagpki/issue/2855)
+* TLS_DHE_RSA_WITH_AES_256_CBC_SHA256 (disabled -> enabled per https://pagure.io/dogtagpki/issue/2855)
+* TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA (disabled -> enabled per https://pagure.io/dogtagpki/issue/2952)
+* TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256 (disabled -> enabled per https://pagure.io/dogtagpki/issue/2952)
+* TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 (disabled -> enabled per https://pagure.io/dogtagpki/issue/2952)
+* TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA (disabled -> enabled per https://pagure.io/dogtagpki/issue/2952)
+* TLS_RSA_WITH_AES_128_CBC_SHA (may need to remain enabled in order to talk to the LDAP server during pkispawn installation/configuration)
+* TLS_RSA_WITH_AES_128_CBC_SHA256 (disabled -> enabled per https://pagure.io/dogtagpki/issue/2855)
+* TLS_RSA_WITH_AES_256_CBC_SHA (may need to remain enabled in order to talk to the LDAP server during pkispawn installation/configuration)
+* TLS_RSA_WITH_AES_256_CBC_SHA256 (disabled -> enabled per https://pagure.io/dogtagpki/issue/2855)
+
+== ECC Servers ==
+
+Similarly, the following list defines the SSL ciphers for the above SSL version ranges for ECC ciphers.
+
+Disabled:
+
+* TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA
+* TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA
+* TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA
+* TLS_ECDH_RSA_WITH_AES_128_CBC_SHA
+* TLS_ECDH_RSA_WITH_AES_256_CBC_SHA
+* TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA
+* TLS_RSA_WITH_3DES_EDE_CBC_SHA
+* TLS_RSA_WITH_AES_128_CBC_SHA
+* TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA
+* TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA
+* TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+* TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA
+* TLS_DHE_DSS_WITH_AES_128_CBC_SHA
+* TLS_DHE_DSS_WITH_AES_256_CBC_SHA
+* TLS_DHE_DSS_WITH_AES_128_GCM_SHA256
+* TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA
+* TLS_DHE_RSA_WITH_AES_128_CBC_SHA
+* TLS_DHE_RSA_WITH_AES_256_CBC_SHA
+* TLS_DHE_RSA_WITH_AES_128_CBC_SHA256
+* TLS_DHE_RSA_WITH_AES_256_CBC_SHA256
+* TLS_DHE_RSA_WITH_AES_128_GCM_SHA256
+* TLS_RSA_WITH_AES_128_CBC_SHA256
+* TLS_RSA_WITH_AES_128_GCM_SHA256
+* TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
+* TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
+* TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+
+Enabled:
+
+* TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
+* TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256
+* TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+* TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+* TLS_RSA_WITH_AES_256_CBC_SHA
+* TLS_RSA_WITH_AES_256_CBC_SHA256
+
+= sslget Command-Line Tool =
+Disabled:
+* TLS_AES_256_GCM_SHA384                    	(not FIPS)
+* TLS_CHACHA20_POLY1305_SHA256              	(not FIPS)
+* TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA         	(3DES)
+* TLS_DHE_DSS_WITH_AES_128_CBC_SHA256       	(disabled by default)
+* TLS_DHE_DSS_WITH_AES_128_GCM_SHA256       	(disabled by default)
+* TLS_DHE_DSS_WITH_AES_256_CBC_SHA256       	(disabled by default)
+* TLS_DHE_DSS_WITH_AES_256_GCM_SHA384       	(disabled by default)
+* TLS_DHE_DSS_WITH_CAMELLIA_128_CBC_SHA     	(disabled by default)
+* TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA     	(disabled by default)
+* TLS_DHE_DSS_WITH_DES_CBC_SHA              	(disabled by default)
+* TLS_DHE_DSS_WITH_RC4_128_SHA              	(disabled by default)
+* TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA         	(3DES)
+* TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA     	(disabled by default)
+* TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA     	(disabled by default)
+* TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256 	(not FIPS)
+* TLS_DHE_RSA_WITH_DES_CBC_SHA              	(disabled by default)
+* TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA      	(disabled by default)
+* TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA       	(disabled by default)
+* TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA       	(disabled by default)
+* TLS_ECDH_ECDSA_WITH_NULL_SHA              	(disabled by default)
+* TLS_ECDH_ECDSA_WITH_RC4_128_SHA           	(disabled by default)
+* TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA     	(3DES)
+* TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256	(not FIPS)
+* TLS_ECDHE_ECDSA_WITH_NULL_SHA             	(disabled by default)
+* TLS_ECDHE_ECDSA_WITH_RC4_128_SHA          	(disabled by default)
+* TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA       	(3DES)
+* TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256	(not FIPS)
+* TLS_ECDHE_RSA_WITH_NULL_SHA               	(disabled by default)
+* TLS_ECDHE_RSA_WITH_RC4_128_SHA            	(disabled by default)
+* TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA        	(disabled by default)
+* TLS_ECDH_RSA_WITH_AES_128_CBC_SHA         	(disabled by default)
+* TLS_ECDH_RSA_WITH_AES_256_CBC_SHA         	(disabled by default)
+* TLS_ECDH_RSA_WITH_NULL_SHA                	(disabled by default)
+* TLS_ECDH_RSA_WITH_RC4_128_SHA             	(disabled by default)
+* TLS_RSA_WITH_3DES_EDE_CBC_SHA             	(3DES)
+* TLS_RSA_WITH_CAMELLIA_128_CBC_SHA         	(disabled by default)
+* TLS_RSA_WITH_CAMELLIA_256_CBC_SHA         	(disabled by default)
+* TLS_RSA_WITH_DES_CBC_SHA                  	(disabled by default)
+* TLS_RSA_WITH_NULL_MD5                     	(disabled by default)
+* TLS_RSA_WITH_NULL_SHA256                  	(disabled by default)
+* TLS_RSA_WITH_NULL_SHA                     	(disabled by default)
+* TLS_RSA_WITH_RC4_128_MD5                  	(disabled by default)
+* TLS_RSA_WITH_RC4_128_SHA                  	(disabled by default)
+* TLS_RSA_WITH_SEED_CBC_SHA                 	(disabled by default)
+Enabled:
+* TLS_AES_128_GCM_SHA256                    
+* TLS_DHE_DSS_WITH_AES_128_CBC_SHA          
+* TLS_DHE_DSS_WITH_AES_256_CBC_SHA          
+* TLS_DHE_RSA_WITH_AES_128_CBC_SHA          
+* TLS_DHE_RSA_WITH_AES_128_CBC_SHA256       
+* TLS_DHE_RSA_WITH_AES_128_GCM_SHA256       
+* TLS_DHE_RSA_WITH_AES_256_CBC_SHA          
+* TLS_DHE_RSA_WITH_AES_256_CBC_SHA256       
+* TLS_DHE_RSA_WITH_AES_256_GCM_SHA384       
+* TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA      
+* TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256   
+* TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256   
+* TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA      
+* TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384   
+* TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384   
+* TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA        
+* TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256     
+* TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256     
+* TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA        
+* TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384     
+* TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384     
+* TLS_RSA_WITH_AES_128_CBC_SHA              
+* TLS_RSA_WITH_AES_128_CBC_SHA256           
+* TLS_RSA_WITH_AES_128_GCM_SHA256           
+* TLS_RSA_WITH_AES_256_CBC_SHA              
+* TLS_RSA_WITH_AES_256_CBC_SHA256           
+* TLS_RSA_WITH_AES_256_GCM_SHA384
+
+= FIPS SSL Configuration =
+
+See [https://www.dogtagpki.org/wiki/FIPS_SSL_Configuration FIPS SSL Configuration].
+
+= Customizing SSL Configuration =
+
+== During Installation ==
+
+During installation the installer will use the default SSL configuration. Under certain circumstances (e.g. in FIPS mode) the default SSL configuration may not work. To customize the SSL configuration during installation use the two-step installation:
+
+* [https://github.com/dogtagpki/pki/wiki/Two-Step-Installation Two-Step Installation]
+* [https://github.com/dogtagpki/pki/wiki/Configuring-TLS-Cipher-List Configuring TLS Cipher List]
+
+== After Installation ==
+
+After installation the SSL settings can be customized directly in /var/lib/pki/<font color="red">pki-tomcat</font>/conf/server.xml.
+
+= Troubleshooting =
+
+* [https://www.dogtagpki.org/wiki/Sslscan sslscan]
+* [https://github.com/dogtagpki/nss/wiki/NSS-Tools NSS Tools]
+
+= References =
+
+* [https://www.dogtagpki.org/wiki/SSL_Protocol SSL Protocol]
+* [https://www.dogtagpki.org/wiki/NSS NSS]
+* [https://www.dogtagpki.org/wiki/Tomcat_SSL_Configuration Tomcat SSL Configuration]
+* [https://github.com/dogtagpki/tomcatjss Tomcat JSS]
+* [https://github.com/dogtagpki/pki/wiki/PKI-Environment-Variables PKI Environment Variables]
+* [https://github.com/dogtagpki/pki/wiki/Enabling-SSL-Connection-with-Internal-Database Enabling SSL Connection with Internal Database]
+* [https://www.dogtagpki.org/wiki/FIPS FIPS]
+* [https://bugzilla.redhat.com/show_bug.cgi?id=871171 Bug 871171 - Provide Tomcat support for TLS v1.1 and TLS v1.2 (Tomcatjss)]
+* [https://bugzilla.redhat.com/show_bug.cgi?id=1382066 Bug 1382066 - Problems with FIPS mode]
+* [https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-4 TLS Cipher Suite Registry]
