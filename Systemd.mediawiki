@@ -1,0 +1,128 @@
+= Service =
+
+To list services:
+
+<pre>
+$ systemctl list-units --type=service
+</pre>
+
+To start a service:
+
+<pre>
+$ systemctl start <name>.service
+</pre>
+
+To stop a service:
+
+<pre>
+$ systemctl stop <name>.service
+</pre>
+
+To check service status:
+
+<pre>
+$ systemctl status <name>.service
+</pre>
+
+To reload systemd configuration:
+
+<pre>
+$ systemctl daemon-reload
+</pre>
+
+= Journal =
+
+The global systemd journal configuration is located at /etc/systemd/journald.conf.
+
+To restrict the journal size to 100 MB:
+
+<pre>
+[Journal]
+SystemMaxUse=100M
+</pre>
+
+Then restart the systemd journal service:
+
+<pre>
+$ systemctl restart systemd-journald
+</pre>
+
+To view systemd journal for a PKI instance:
+
+<pre>
+$ journalctl -u pki-tomcatd@<instance>.service
+</pre>
+
+To clear systemd journals except for the last 2 days:
+
+<pre>
+$ journalctl --vacuum-time=2d
+</pre>
+
+To clear systemd journals except for the last 100 MB:
+
+<pre>
+$ journalctl --vacuum-size=100M
+</pre>
+
+= Password =
+
+<pre>
+$ systemd-ask-password --keyname=nssdb --accept-cached "NSS database password:"
+NSS database password: **********
+Secret.123
+</pre>
+
+<pre>
+$ keyctl search @u user nssdb @s
+576612158
+</pre>
+
+<pre>
+$ keyctl print %user:nssdb
+Secret.123
+</pre>
+
+= Notifications =
+
+To notify that the service is ready:
+
+<pre>
+$ systemd-notify --pid=<PID> --ready
+</pre>
+
+= Troubleshooting =
+
+If PKI service fails to start with the following error:
+
+<pre>
+Starting PKI Tomcat Server pki-tomcat...
+pki-tomcatd@pki-tomcat.service: Failed to determine user credentials: No such process
+pki-tomcatd@pki-tomcat.service: Failed at step USER spawning /usr/sbin/pki-server: No such process
+pki-tomcatd@pki-tomcat.service: Control process exited, code=exited, status=217/USER
+pki-tomcatd@pki-tomcat.service: Failed with result 'exit-code'.
+Failed to start PKI Tomcat Server pki-tomcat.
+</pre>
+
+execute the following command:
+
+<pre>
+$ systemctl daemon-reexec
+</pre>
+
+= References =
+
+* [https://www.freedesktop.org/software/systemd/man/systemd.service.html systemd.service]
+* [https://www.digitalocean.com/community/tutorials/understanding-systemd-units-and-unit-files Understanding Systemd Units and Unit Files]
+* [https://www.digitalocean.com/community/tutorials/how-to-use-systemctl-to-manage-systemd-services-and-units How To Use Systemctl to Manage Systemd Services and Units]
+* [http://fedoraproject.org/wiki/Packaging:Systemd Packaging:Systemd]
+* [https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/System_Administrators_Guide/sect-Managing_Services_with_systemd-Targets.html RHEL 7 - System Administrator's Guide - Working with systemd Targets]
+* [https://coreos.com/os/docs/latest/using-environment-variables-in-systemd-units.html Using environment variables in systemd units]
+* [https://www.dogtagpki.org/wiki/DS_Systemd DS Systemd]
+* [https://www.dogtagpki.org/wiki/Tomcat_Systemd Tomcat Systemd]
+* [https://github.com/dogtagpki/pki/wiki/PKI-Systemd-Service PKI Systemd Service]
+* [https://www.dogtagpki.org/wiki/Nuxwdog Nuxwdog]
+* [https://www.dogtagpki.org/wiki/Keyring Keyring]
+* [https://www.digitalocean.com/community/tutorials/understanding-systemd-units-and-unit-files Understanding Systemd Units and Unit Files]
+* [https://www.freedesktop.org/software/systemd/man/systemd-notify.html systemd-notify]
+* [https://www.freedesktop.org/software/systemd/man/sd_notify.html sd_notify]
