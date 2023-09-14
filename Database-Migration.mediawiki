@@ -1,0 +1,99 @@
+= Exporting PKI Database =
+
+Use db2ldif to export PKI database:
+
+<pre>
+$ db2ldif -Z pki-tomcat -U -n ca -a /tmp/ca.ldif
+</pre>
+
+= Importing PKI Database =
+
+== Fixing LDIF file ==
+
+Newer DS server might have more restrictive attribute syntax. Edit /tmp/ca.ldif and perform the following changes:
+* remove blank attributes (e.g. telephoneNumber)
+* capitalize DomainManager and Clone attributes
+
+== Creating DS instance ==
+
+Use the same settings to create the new DS instance:
+
+<pre>
+$ setup-ds.pl --silent --\
+        General.FullMachineName=$HOSTNAME\
+        General.SuiteSpotUserID=nobody\
+        General.SuiteSpotGroup=nobody\
+        slapd.ServerPort=389\
+        slapd.ServerIdentifier=pki-tomcat\
+        slapd.Suffix=dc=example,dc=com\
+        slapd.RootDN="cn=Directory Manager"\
+        slapd.RootDNPwd=Secret.123
+</pre>
+
+== Importing PKI schema ==
+
+<pre>
+$ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 -f /usr/share/pki/server/conf/schema.ldif
+</pre>
+
+== Applying PKI configuration changes ==
+
+<pre>
+$ ldapmodify -x -D "cn=Directory Manager" -w Secret.123 -f /usr/share/pki/server/conf/database.ldif
+</pre>
+
+== Creating DS backend ==
+
+<pre>
+$ ldapadd -x -D "cn=Directory Manager" -w Secret.123 << EOF
+dn: cn=ca,cn=ldbm database,cn=plugins,cn=config
+objectClass: top
+objectClass: nsBackendInstance
+objectClass: extensibleObject
+cn: ca
+nsslapd-suffix: dc=ca,dc=example,dc=com
+EOF
+</pre>
+
+== Creating suffix mapping entry ==
+
+<pre>
+$ ldapadd -x -D "cn=Directory Manager" -w Secret.123 << EOF
+dn: cn=dc\3Dca\2Cdc\3Dexample\2Cdc\3Dcom,cn=mapping tree,cn=config
+objectClass: top
+objectClass: extensibleObject
+objectClass: nsMappingTree
+cn: dc=ca,dc=example,dc=com
+nsslapd-backend: ca
+nsslapd-state: backend
+EOF
+</pre>
+
+== Stopping DS instance ==
+
+<pre>
+$ systemctl stop dirsrv@pki-tomcat.service
+</pre>
+
+== Importing PKI database ==
+
+<pre>
+$ ldif2db -Z pki-tomcat -n ca -i /tmp/ca.ldif
+</pre>
+
+== Starting DS instance ==
+
+<pre>
+$ systemctl start dirsrv@pki-tomcat.service
+</pre>
+
+== Verification ==
+
+<pre>
+$ ldapsearch -x -D "cn=Directory Manager" -w Secret.123 -b "dc=ca,dc=example,dc=com"
+</pre>
+
+= See Also =
+
+* [https://www.dogtagpki.org/wiki/PKI_LDAP PKI LDAP]
+* [https://www.dogtagpki.org/wiki/Migration Migration]
