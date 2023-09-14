@@ -1,0 +1,213 @@
+= Displaying DNS Records =
+
+To display DNS records on default DNS server:
+
+<pre>
+$ nslookup -type=SRV _ldap._tcp.example.com
+$ dig SRV _ldap._tcp.example.com
+$ dig SRV _ldap._tcp.example.com +short
+</pre>
+
+To display DNS records on local DNS server:
+
+<pre>
+$ dig _kerberos.example.com TXT @localhost
+$ dig _ldap._tcp.example.com SRV @localhost
+</pre>
+
+= DNSMasq =
+
+To restart DNSMasq:
+
+<pre>
+$ systemctl restart dnsmasq.service
+</pre>
+
+= Examples =
+
+== ACME ==
+
+<pre>
+_acme-challenge.example.com.        IN TXT "<value>"
+</pre>
+
+== LDAP ==
+
+<pre>
+_ldap._tcp.example.com.             IN SRV 0 100 389 ldap.example.com.
+</pre>
+
+See also [https://www.dogtagpki.org/wiki/LDAP LDAP].
+
+== Kerberos ==
+
+<pre>
+_kerberos                           IN TXT EXAMPLE.COM
+
+_kerberos._tcp.EXAMPLE.COM.         IN SRV 0 100  88 kdc.example.com.
+_kerberos._udp.EXAMPLE.COM.         IN SRV 0 100  88 kdc.example.com.
+_kerberos-master._tcp.EXAMPLE.COM.  IN SRV 0 100  88 kdc.example.com.
+_kerberos-master._udp.EXAMPLE.COM.  IN SRV 0 100  88 kdc.example.com.
+_kerberos-adm._tcp.EXAMPLE.COM.     IN SRV 0 100 749 kdc.example.com.
+_kerberos-adm._udp.EXAMPLE.COM.     IN SRV 0 100 749 kdc.example.com.
+_kpasswd._tcp.EXAMPLE.COM.          IN SRV 0 100 464 kdc.example.com.
+_kpasswd._udp.EXAMPLE.COM.          IN SRV 0 100 464 kdc.example.com.
+</pre>
+
+See also [https://www.dogtagpki.org/wiki/Kerberos Kerberos].
+
+== Samba ==
+
+<pre>
+gc._msdcs                           IN CNAME samba.example.com.
+_gc._tcp                            IN SRV 0 100 3268 samba.example.com.
+_ldap._tcp.gc._msdcs                IN SRV 0 100 389 samba.example.com.
+</pre>
+
+= Installing Bind =
+
+<pre>
+$ dnf -y install bind bind-utils
+</pre>
+
+= Configuring Bind Logging =
+
+Prepare the log folder:
+
+<pre>
+$ mkdir /var/log/named
+$ chown named.named /var/log/named
+</pre>
+
+Edit /etc/named.conf as follows:
+
+<pre>
+logging {
+    channel default_file {
+        file "/var/log/named/default.log" versions 3 size 5m;
+        severity dynamic;
+        print-time yes;
+    };
+    channel general_file {
+        file "/var/log/named/general.log" versions 3 size 5m;
+        severity dynamic;
+        print-time yes;
+    };
+    channel database_file {
+        file "/var/log/named/database.log" versions 3 size 5m;
+        severity dynamic;
+        print-time yes;
+    };
+    channel security_file {
+        file "/var/log/named/security.log" versions 3 size 5m;
+        severity dynamic;
+        print-time yes;
+    };
+    channel config_file {
+        file "/var/log/named/config.log" versions 3 size 5m;
+        severity dynamic;
+        print-time yes;
+    };
+    channel resolver_file {
+        file "/var/log/named/resolver.log" versions 3 size 5m;
+        severity dynamic;
+        print-time yes;
+    };
+    channel xfer-in_file {
+        file "/var/log/named/xfer-in.log" versions 3 size 5m;
+        severity dynamic;
+        print-time yes;
+    };
+    channel xfer-out_file {
+        file "/var/log/named/xfer-out.log" versions 3 size 5m;
+        severity dynamic;
+        print-time yes;
+    };
+    channel notify_file {
+        file "/var/log/named/notify.log" versions 3 size 5m;
+        severity dynamic;
+        print-time yes;
+    };
+    channel client_file {
+        file "/var/log/named/client.log" versions 3 size 5m;
+        severity dynamic;
+        print-time yes;
+    };
+    channel unmatched_file {
+        file "/var/log/named/unmatched.log" versions 3 size 5m;
+        severity dynamic;
+        print-time yes;
+    };
+    channel queries_file {
+        file "/var/log/named/queries.log" versions 3 size 5m;
+        severity dynamic;
+        print-time yes;
+    };
+    channel network_file {
+        file "/var/log/named/network.log" versions 3 size 5m;
+        severity dynamic;
+        print-time yes;
+    };
+    channel update_file {
+        file "/var/log/named/update.log" versions 3 size 5m;
+        severity dynamic;
+        print-time yes;
+    };
+    channel dispatch_file {
+        file "/var/log/named/dispatch.log" versions 3 size 5m;
+        severity dynamic;
+        print-time yes;
+    };
+    channel dnssec_file {
+        file "/var/log/named/dnssec.log" versions 3 size 5m;
+        severity dynamic;
+        print-time yes;
+    };
+    channel lame-servers_file {
+        file "/var/log/named/lame-servers.log" versions 3 size 5m;
+        severity dynamic;
+        print-time yes;
+    };
+
+    category default { default_file; };
+    category general { general_file; };
+    category database { database_file; };
+    category security { security_file; };
+    category config { config_file; };
+    category resolver { resolver_file; };
+    category xfer-in { xfer-in_file; };
+    category xfer-out { xfer-out_file; };
+    category notify { notify_file; };
+    category client { client_file; };
+    category unmatched { unmatched_file; };
+    category queries { queries_file; };
+    category network { network_file; };
+    category update { update_file; };
+    category dispatch { dispatch_file; };
+    category dnssec { dnssec_file; };
+    category lame-servers { lame-servers_file; };
+};
+</pre>
+
+= Starting Bind Service =
+
+To start Bind:
+
+<pre>
+$ systemctl start named
+</pre>
+
+To stop Bind:
+
+<pre>
+$ systemctl stop named
+</pre>
+
+= See Also =
+
+* [http://www.rjsystems.nl/en/2100-dns-discovery-kerberos.php DNS discovery for MIT Kerberos V]
+* [https://tools.ietf.org/html/rfc2782 RFC 2782 - A DNS RR for specifying the location of services (DNS SRV)]
+* [https://github.com/dogtagpki/pki/wiki/ACME-Responder ACME Responder]
+* [https://github.com/dogtagpki/acme-dns/wiki acme-dns]
+* [https://fedoramagazine.org/how-to-setup-a-dns-server-with-bind/ How to setup a DNS server with bind]
+* [https://en.wikipedia.org/wiki/Sender_Policy_Framework SPF]
