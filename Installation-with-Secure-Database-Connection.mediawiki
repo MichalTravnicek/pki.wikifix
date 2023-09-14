@@ -1,0 +1,33 @@
+= PKI 10.7 or Newer =
+
+* [https://github.com/dogtagpki/pki/blob/master/docs/installation/ca/Installing_CA_with_Secure_Database_Connection.md Installing CA with Secure Database Connection]
+* [https://github.com/dogtagpki/pki/blob/master/docs/installation/kra/Installing_KRA_with_Secure_Database_Connection.md Installing KRA with Secure Database Connection]
+* [https://github.com/dogtagpki/pki/blob/master/docs/installation/ocsp/Installing_OCSP_with_Secure_Database_Connection.md Installing OCSP with Secure Database Connection]
+* [https://github.com/dogtagpki/pki/blob/master/docs/installation/tks/Installing_TKS_with_Secure_Database_Connection.md Installing TKS with Secure Database Connection]
+* [https://github.com/dogtagpki/pki/blob/master/docs/installation/tps/Installing_TPS_with_Secure_Database_Connection.md Installing TPS with Secure Database Connection]
+
+= PKI 10.6 or Older =
+
+To install a new PKI subsystem using secure DS connection, add the following parameters into the deployment configuration file:
+
+ pki_ds_secure_connection=True
+ pki_ds_hostname=<font color="red">server.example.com</font>
+ pki_ds_ldaps_port=636
+ pki_ds_secure_connection_ca_nickname=<font color="red">ds_signing</font>
+ pki_ds_secure_connection_ca_pem_file=<font color="red">ds_signing.crt</font>
+
+The DS certificate will be imported into PKI's NSS database with the specified nickname.
+
+Verify in DS access log (/var/log/dirsrv/slapd-pki-tomcat/access) that PKI server is connecting using SSL:
+
+ [29/Jun/2016:23:20:40 +0200] conn=36 fd=64 slot=64 SSL connection from <font color="red">server.example.com</font> to <font color="red">server.example.com</font>
+ [29/Jun/2016:23:20:40 +0200] conn=36 TLS1.2 128-bit AES
+
+Verify PKI server can communicate with the DS with the following command:
+
+ $ pki ca-cert-find
+
+= See Also =
+
+* [https://www.dogtagpki.org/wiki/PKI_10_Installation PKI 10 Installation]
+* [https://github.com/dogtagpki/pki/wiki/Enabling-SSL-Connection-with-Internal-Database-on-New-Instance Enabling SSL Connection with Internal Database on New Instance]
