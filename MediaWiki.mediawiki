@@ -1,0 +1,165 @@
+= Prerequisites =
+
+MediaWiki requires the following PHP version (see [https://www.mediawiki.org/wiki/Compatibility#PHP compatibility list]):
+* PHP 5.3: MediaWiki 1.13 - 1.26
+* PHP 5.4: MediaWiki 1.17 - 1.26
+* PHP 5.5: MediaWiki 1.18 -
+* PHP 5.6: MediaWiki 1.23 -
+* PHP 7.0: MediaWiki 1.27 -
+
+= Installation =
+
+MediaWiki can be downloaded as follows:
+
+<pre>
+$ git clone https://github.com/wikimedia/mediawiki.git
+$ cd mediawiki
+$ git checkout -b REL1_25 origin/REL1_25
+</pre>
+
+Since version 1.24 the skin has to be cloned separately:
+
+<pre>
+$ cd skins
+$ rm .gitignore
+$ git clone https://github.com/wikimedia/mediawiki-skins-MonoBook --branch REL1_25 --single-branch MonoBook
+$ cd MonoBook
+$ rm -rf .git
+</pre>
+
+Since version 1.27 the skin has to be updated from submodule:
+
+<pre>
+$ git submodule update --init -- skins/MonoBook
+</pre>
+
+To merge the submodule:
+
+<pre>
+$ mv skins/MonoBook skins/MonoBook.tmp
+$ git submodule deinit -f -- skins/MonoBook
+$ rm -rf .git/modules/skins/MonoBook
+$ rm -rf skins/MonoBook
+$ rm -rf skins/.gitignore
+$ mv skins/MonoBook.tmp skins/MonoBook
+</pre>
+
+Then modify LocalSettings.php to load the skin:
+
+<pre>
+wfLoadSkin( 'MonoBook' );
+</pre>
+
+See also:
+* [https://www.mediawiki.org/wiki/Download_from_Git Download from Git]
+* [http://www.mediawiki.org/wiki/Manual:Installation_guide Manual:Installation_guide]
+* [https://www.mediawiki.org/wiki/Manual:Installing_MediaWiki Manual:Installing_MediaWiki]
+
+= Configuration =
+
+Open http://server.example.com and follow the instruction. Download and install LocalSettings.php.
+
+== Base URL ==
+
+Base URL is configured as follows:
+
+<pre>
+$wgServer = "//".$_SERVER[HTTP_HOST];
+</pre>
+
+== Database Connection ==
+
+Database connection is configured as follows:
+
+<pre>
+$wgDBtype = "mysql";
+$wgDBserver = $_ENV['OPENSHIFT_MYSQL_DB_HOST'].":".$_ENV['OPENSHIFT_MYSQL_DB_PORT'];
+$wgDBname = $_ENV['OPENSHIFT_APP_NAME'];
+$wgDBuser = $_ENV['OPENSHIFT_MYSQL_DB_USERNAME'];
+$wgDBpassword = $_ENV['OPENSHIFT_MYSQL_DB_PASSWORD'];
+</pre>
+
+= Customization =
+
+== Sidebar ==
+
+Edit [https://www.mediawiki.org/wiki/Manual:Interface/Sidebar MediaWiki:Sidebar], enter:
+
+<pre>
+* SEARCH
+* navigation
+** mainpage|Home
+** PKI_Documentation|Documentation
+** PKI_FAQ|FAQ
+** PKI_Users|Users
+** PKI_Developers|Developers
+** PKI_Download|Download
+** PKI_Bugs|Bugs
+** recentchanges-url|recentchanges
+* TOOLBOX
+* LANGUAGES
+</pre>
+
+See also [https://www.mediawiki.org/wiki/Manual:Interface/Sidebar MediaWiki:Sidebar].
+
+== Elements ==
+
+* content
+* p-cactions
+* p-personal
+* p-logo
+* p-navigation
+* p-search
+* p-tb
+
+= Maintenance =
+
+== Locking ==
+
+To lock wiki add the following lines into LocalSettings.php:
+
+<pre>
+$wgReadOnly = 'This wiki is currently under maintenance.';
+</pre>
+
+To unlock wiki restore the original LocalSettings.php.
+
+See also:
+* [https://www.mediawiki.org/wiki/Manual:Lock_the_database Lock the database]
+* [https://www.mediawiki.org/wiki/Manual:$wgReadOnly Manual:$wgReadOnly].
+* [https://www.mediawiki.org/wiki/Manual:$wgReadOnlyFile Manual:$wgReadOnlyFile].
+
+== Upgrading ==
+
+To upgrade wiki:
+
+<pre>
+$ cd maintenance
+$ php update.php
+</pre>
+
+See also [https://www.mediawiki.org/wiki/Manual:Update.php Update.php].
+
+== Database Cleanup ==
+
+To list users:
+
+<pre>
+mysql> select user_id, user_name, user_email from user order by user_name;
+</pre>
+
+To list user groups:
+
+<pre>
+mysql> select user_name, user_email, ug_group from user left join user_groups on user_id = ug_user order by user_name;
+</pre>
+
+= See Also =
+
+* [http://www.mediawiki.org/wiki/Manual:Upgrading MediaWiki: Upgrading]
+* [https://github.com/openshift-quickstart/mediawiki-example Installing MediaWiki on OpenShift]
+* [[MediaWiki-on-Docker|Docker]]
+* [https://github.com/dogtagpki/kubernetes/wiki/OpenShift OpenShift]
+* [https://www.dogtagpki.org/wiki/Apache_HTTP_Server Apache HTTP Server]
+* [https://www.dogtagpki.org/wiki/PHP PHP]
+* [https://www.dogtagpki.org/wiki/Markdown Markdown]
