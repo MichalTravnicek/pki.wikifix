@@ -53,10 +53,30 @@ $ systemctl enable mysqld
 $ mysql -u root
 ----
 
+# Locking/Unlocking MySQL Database
+
+To lock a database:
+
+----
+$ mysql -u root <database>
+mysql> flush tables with read lock;
+mysql> set global read_only = ON;
+mysql> exit;
+----
+
+To unlock a database:
+
+----
+$ mysql -u root <database>
+mysql> set global read_only = OFF;
+mysql> unlock tables;
+mysql> exit;
+----
+
 # Backing Up MySQL Database
 
 ----
-$ mysqldump -u root -p <database> > backup.sql
+$ mysqldump -u root <database> > backup.sql
 ----
 
 # Restoring MySQL Database
