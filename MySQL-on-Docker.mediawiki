@@ -1,0 +1,85 @@
+= Pulling Docker Image =
+
+<pre>
+$ docker pull mysql
+</pre>
+
+= Running MySQL Server =
+
+To run MySQL server in background:
+
+<pre>
+$ docker run \
+ --name mysql-server \
+ --privileged \
+ -e MYSQL_ROOT_PASSWORD=Secret.123 \
+ -v $PWD/data:/mnt/data \
+ -d \
+ mysql
+</pre>
+
+The above command maps $PWD/data into /mnt/data to allow container to access files on the host machine.
+
+To access the container:
+
+<pre>
+$ docker exec -ti mysql-server bash
+</pre>
+
+= Running MySQL Client =
+
+To run MySQL client within MySQL server container:
+
+<pre>
+$ docker exec -ti mysql-server mysql -h 127.0.0.1 -u root -p
+</pre>
+
+To run generic client in a separate container linked to the MySQL server container:
+
+<pre>
+$ docker run --link mysql-server:mysql <command>
+</pre>
+
+The client container will have environment variables which can be used to connect to the MySQL server:
+
+* MYSQL_ENV_MYSQL_ROOT_PASSWORD=Secret.123
+* MYSQL_ENV_MYSQL_MAJOR=5.5
+* MYSQL_ENV_MYSQL_VERSION=5.5.58
+* MYSQL_ENV_GOSU_VERSION=1.7
+* MYSQL_NAME=/vibrant_euler/mysql
+* MYSQL_PORT_3306_TCP_PROTO=tcp
+* MYSQL_PORT=tcp://172.17.0.2:3306
+* MYSQL_PORT_3306_TCP=tcp://172.17.0.2:3306
+* MYSQL_PORT_3306_TCP_PORT=3306
+* MYSQL_PORT_3306_TCP_ADDR=172.17.0.2
+
+To run MySQL client in a separate container linked to the MySQL server container:
+
+<pre>
+$ docker run -it --link mysql-server:mysql --rm mysql \
+  sh -c 'exec mysql -h"$MYSQL_PORT_3306_TCP_ADDR" -P"$MYSQL_PORT_3306_TCP_PORT" -uroot -p"$MYSQL_ENV_MYSQL_ROOT_PASSWORD"'
+</pre>
+
+Note: there are no spaces after -h, -P, -u, and -p in the above command.
+
+= Creating Database =
+
+To create database:
+
+<pre>
+$ docker exec -ti mysql-server \
+ mysql -h 127.0.0.1 --password=Secret.123 -e "create database <name>"
+</pre>
+
+To import a file stored in $PWD/data:
+
+<pre>
+$ docker exec -ti mysql-server \
+ mysql <name> -h 127.0.0.1 --password=Secret.123 -e "source /mnt/data/$FILENAME"
+</pre>
+
+= See Also =
+
+* [https://www.dogtagpki.org/wiki/Docker Docker]
+* [https://hub.docker.com/_/mysql/ MySQL Docker Repository]
+* [https://docs.fedoraproject.org/en-US/quick-docs/installing-mysql-mariadb/ Installing MySQL/MariaDB]
