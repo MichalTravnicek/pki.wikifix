@@ -49,8 +49,22 @@ $ systemctl enable mysqld
 
 # Connecting to MySQL Server
 
+To connect to a local MySQL server:
+
 ----
 $ mysql -u root
+----
+
+To set up SSH tunnel:
+
+----
+$ ssh -N -L 3306:127.0.0.1:3306 <username>@<hostname>
+----
+
+To set up a port forwarding for OpenShift:
+
+----
+$ oc port-forward <pod> 3306
 ----
 
 # Locking/Unlocking MySQL Database
