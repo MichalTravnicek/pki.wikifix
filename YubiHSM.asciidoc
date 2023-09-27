@@ -4,6 +4,39 @@
 $ dnf install yubihsm-connector yubihsm-shell
 ----
 
+= YubiHSM Connector Configuration =
+
+The configuration is located at `/etc/yubihsm-connector.yaml`:
+----
+# Certificate (X.509)
+#cert: ""
+#
+# Certificate key
+#key: ""
+#
+# Listening address. Defaults to "127.0.0.1:12345".
+#listen: "127.0.0.1:12345"
+#
+# Device serial in case of multiple devices
+#serial: ""
+#
+# Log to syslog/eventlog. Defaults to "false".
+#syslog: "false"
+----
+
+= Starting YubiHSM Connector Service =
+
+----
+$ systemctl start yubihsm-connector
+----
+
+= Accessing YubiHSM =
+
+----
+$ yubihsm-shell
+yubihsm>
+----
+
 = See Also =
 
 * link:https://github.com/Yubico/yubihsm-connector[Yubico/yubihsm-connector]
