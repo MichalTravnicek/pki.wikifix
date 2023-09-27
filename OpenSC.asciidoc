@@ -1,0 +1,35 @@
+= Installation =
+
+----
+$ dnf install opensc
+----
+
+= Configuration =
+
+The configuration is located at `/etc/opensc.conf`:
+
+----
+app default {
+        # debug = 3;
+        # debug_file = opensc-debug.txt;
+        framework pkcs15 {
+                use_file_caching = public;
+        }
+        reader_driver pcsc {
+                # The pinpad is disabled by default,
+                # because of many broken readers out there
+                enable_pinpad = false;
+        }
+}
+# the pkcs15-init is used for card initialization when the file caching
+# brings more trouble than use so disable that:
+app pkcs15-init {
+        framework pkcs15 {
+                use_file_caching = false;
+        }
+}
+----
+
+= See Also =
+
+* link:https://github.com/OpenSC/OpenSC[OpenSC/OpenSC]
