@@ -1,5 +1,7 @@
 = Installing YubiHSM Tools =
 
+To install YubiHSM tools and library:
+
 ----
 $ dnf install yubihsm-connector yubihsm-shell
 ----
@@ -38,11 +40,39 @@ To verify:
 $ elinks -dump http://127.0.0.1:12345/connector/status
 ----
 
-= Starting YubiHSM Shell =
+= Connecting with YubiHSM Shell =
 
 ----
 $ yubihsm-shell
 yubihsm>
+----
+
+= Connecting with OpenSC =
+
+To display general token information:
+
+----
+$ pkcs11-tool --module /usr/lib64/pkcs11/yubihsm_pkcs11.so --pin 0001password --show-info
+Cryptoki version 2.40
+Manufacturer     Yubico (www.yubico.com)
+Library          YubiHSM PKCS#11 Library (ver 2.40)
+Using slot 0 with a present token (0x0)
+----
+
+To list slots with tokens:
+
+----
+$ pkcs11-tool --module /usr/lib64/pkcs11/yubihsm_pkcs11.so --pin 0001password --list-token-slots
+Available slots:
+Slot 0 (0x0): YubiHSM Connector localhost
+  token label        : YubiHSM
+  token manufacturer : Yubico (www.yubico.com)
+  token model        : YubiHSM
+  token flags        : login required, rng, token initialized, PIN initialized
+  hardware version   : 2.20
+  firmware version   : 2.20
+  serial num         : XXXXXXXX
+  pin min/max        : 12/68
 ----
 
 = Creating NSS Database with YubiHSM =
@@ -84,7 +114,7 @@ $ modutil -dbdir $HOME/.dogtag/nssdb -list
 ...
 ----
 
-= Generating a Key in YubiHSM =
+= Generating NSS Key in YubiHSM =
 
 To generate a key:
 
