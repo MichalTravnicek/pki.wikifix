@@ -37,6 +37,39 @@ $ yubihsm-shell
 yubihsm>
 ----
 
+= Installing YubiHSM Module in NSS Database =
+
+Prepare an NSS database. For example, the following command will create an NSS database in `$HOME/.dogtag/nssdb`:
+
+----
+$ pki nss-create --force
+----
+
+To install YubiHSM module:
+
+----
+$ export YUBIHSM_PKCS11_CONF=$HOME/.dogtag/nssdb/yubihsm_pkcs11.conf
+$ echo "connector = http://127.0.0.1:12345" > $YUBIHSM_PKCS11_CONF
+$ modutil -dbdir $HOME/.dogtag/nssdb -nocertdb -add yubihsm2 -libfile /usr/lib64/pkcs11/yubihsm_pkcs11.so -force
+----
+
+To verify the module:
+
+----
+$ modutil -dbdir $HOME/.dogtag/nssdb -list
+...
+  2. yubihsm2
+	library name: /usr/lib64/pkcs11/yubihsm_pkcs11.so
+	   uri: pkcs11:library-manufacturer=Yubico%20(www.yubico.com);library-description=YubiHSM%20PKCS%2311%20Library;library-version=2.40
+	 slots: 1 slot attached
+	status: loaded
+
+	 slot: YubiHSM Connector localhost
+	token: 
+	  uri: pkcs11:
+...
+----
+
 = See Also =
 
 * link:https://github.com/Yubico/yubihsm-connector[Yubico/yubihsm-connector]
