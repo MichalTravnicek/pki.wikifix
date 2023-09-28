@@ -114,7 +114,7 @@ $ modutil -dbdir $HOME/.dogtag/nssdb -list
 ...
 ----
 
-= Generating NSS Key in YubiHSM =
+= Generating Key in YubiHSM =
 
 To generate a key:
 
@@ -129,6 +129,50 @@ $ pki --token YubiHSM -f password.conf nss-key-find
   Key ID: 0xc12dff6adeaf89e62e6d1cbb45d3af0d406a7fd1
   Type: RSA
   Algorithm: RSA
+----
+
+= Creating Certificate Request with Key in YubiHSM =
+
+To create a certificate request:
+
+----
+$ pki --token YubiHSM -f password.conf nss-cert-request \
+    --key-id 0xc12dff6adeaf89e62e6d1cbb45d3af0d406a7fd1 \
+    --subject "CN=Certificate Authority" \
+    --ext /usr/share/pki/server/certs/ca_signing.conf \
+    --csr ca.csr
+----
+
+To verify:
+
+----
+$ openssl req -text -noout -in ca.csr
+----
+
+= Issuing Certificate with Key in YubiHSM =
+
+----
+$ pki --token YubiHSM -f password.conf nss-cert-issue \
+    --csr ca.csr \
+    --cert ca.crt
+----
+
+To verify:
+
+----
+$ openssl x509 -text -noout -in ca.crt
+----
+
+= Importing Certificate into YubiHSM (Not Working Yet) =
+
+----
+$ pki --token YubiHSM -f password.conf nss-cert-import --cert ca.crt YubiHSM:ca
+----
+
+To verify:
+
+----
+$ pki --token YubiHSM -f password.conf nss-cert-find
 ----
 
 = See Also =
