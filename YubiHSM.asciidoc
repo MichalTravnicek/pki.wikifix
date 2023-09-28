@@ -45,12 +45,18 @@ $ yubihsm-shell
 yubihsm>
 ----
 
-= Installing YubiHSM Module in NSS Database =
+= Enabling YubiHSM in NSS Database =
 
-Prepare an NSS database. For example, the following command will create an NSS database in `$HOME/.dogtag/nssdb`:
+Prepare an NSS database. For example, the following command will create an NSS database without password in `$HOME/.dogtag/nssdb`:
 
 ----
 $ pki nss-create --force
+----
+
+Prepare a password file (e.g. `password.conf`):
+
+----
+hardware-YubiHSM=0001password
 ----
 
 To install YubiHSM module:
@@ -76,6 +82,23 @@ $ modutil -dbdir $HOME/.dogtag/nssdb -list
 	token: 
 	  uri: pkcs11:
 ...
+----
+
+= Generating a Key in YubiHSM =
+
+To generate a key:
+
+----
+$ pki --token YubiHSM -f password.conf nss-key-create
+----
+
+To verify:
+
+----
+$ pki --token YubiHSM -f password.conf nss-key-find
+  Key ID: 0xc12dff6adeaf89e62e6d1cbb45d3af0d406a7fd1
+  Type: RSA
+  Algorithm: RSA
 ----
 
 = See Also =
