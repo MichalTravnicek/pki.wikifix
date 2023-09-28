@@ -1,10 +1,10 @@
-= Installation =
+= Installing YubiHSM Tools =
 
 ----
 $ dnf install yubihsm-connector yubihsm-shell
 ----
 
-= YubiHSM Connector Configuration =
+= Configuring YubiHSM Connector =
 
 The configuration is located at `/etc/yubihsm-connector.yaml`:
 ----
@@ -38,16 +38,16 @@ To verify:
 $ elinks -dump http://127.0.0.1:12345/connector/status
 ----
 
-= Accessing YubiHSM =
+= Starting YubiHSM Shell =
 
 ----
 $ yubihsm-shell
 yubihsm>
 ----
 
-= Enabling YubiHSM in NSS Database =
+= Creating NSS Database with YubiHSM =
 
-Prepare an NSS database. For example, the following command will create an NSS database without password in `$HOME/.dogtag/nssdb`:
+Create an NSS database. For example, the following command will create an NSS database without password in `$HOME/.dogtag/nssdb`:
 
 ----
 $ pki nss-create --force
@@ -79,8 +79,8 @@ $ modutil -dbdir $HOME/.dogtag/nssdb -list
 	status: loaded
 
 	 slot: YubiHSM Connector localhost
-	token: 
-	  uri: pkcs11:
+	token: YubiHSM
+	  uri: pkcs11:token=YubiHSM;manufacturer=Yubico%20(www.yubico.com);serial=XXXXXXXX;model=YubiHSM
 ...
 ----
 
