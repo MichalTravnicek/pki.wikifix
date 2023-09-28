@@ -140,33 +140,33 @@ $ pki --token YubiHSM -f password.conf nss-cert-request \
     --key-id 0xc12dff6adeaf89e62e6d1cbb45d3af0d406a7fd1 \
     --subject "CN=Certificate Authority" \
     --ext /usr/share/pki/server/certs/ca_signing.conf \
-    --csr ca.csr
+    --csr ca_signing.csr
 ----
 
 To verify:
 
 ----
-$ openssl req -text -noout -in ca.csr
+$ openssl req -text -noout -in ca_signing.csr
 ----
 
 = Issuing Certificate with Key in YubiHSM =
 
 ----
 $ pki --token YubiHSM -f password.conf nss-cert-issue \
-    --csr ca.csr \
-    --cert ca.crt
+    --csr ca_signing.csr \
+    --cert ca_signing.crt
 ----
 
 To verify:
 
 ----
-$ openssl x509 -text -noout -in ca.crt
+$ openssl x509 -text -noout -in ca_signing.crt
 ----
 
 = Importing Certificate into YubiHSM (Not Working Yet) =
 
 ----
-$ pki --token YubiHSM -f password.conf nss-cert-import --cert ca.crt YubiHSM:ca
+$ pki --token YubiHSM -f password.conf nss-cert-import --cert ca_signing.crt YubiHSM:ca_signing
 ----
 
 To verify:
