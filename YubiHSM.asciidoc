@@ -26,10 +26,17 @@ The configuration is located at `/etc/yubihsm-connector.yaml`:
 
 = Starting YubiHSM Connector Service =
 
+To start the connector:
+
 ----
 $ systemctl start yubihsm-connector
 ----
 
+To verify:
+
+----
+$ elinks -dump http://127.0.0.1:12345/connector/status
+----
 
 = Accessing YubiHSM =
 
