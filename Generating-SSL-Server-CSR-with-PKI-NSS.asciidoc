@@ -1,6 +1,6 @@
-= Generating CSR =
+= Configuring CSR Extensions =
 
-To create a certificate request, prepare a certificate extension configuration (e.g. link:https://github.com/dogtagpki/pki/blob/master/base/server/certs/sslserver.conf[/usr/share/pki/server/certs/sslserver.conf]):
+To create a CSR with extensions, prepare the CSR extension configuration file (e.g. link:https://github.com/dogtagpki/pki/blob/master/base/server/certs/sslserver.conf[/usr/share/pki/server/certs/sslserver.conf]):
 
 ----
 basicConstraints       = critical, CA:FALSE
@@ -15,16 +15,29 @@ cps_policy.id          = 1.3.6.1.4.1.44947.1.1.1
 cps_policy.CPS.1       = http://cps.example.com
 ----
 
-Then execute the following command:
+= Generating CSR =
 
 ----
 $ pki nss-cert-request \
-    --subject "CN=$HOSTNAME" \
+    --subject "CN=server.example.com" \
     --ext /usr/share/pki/server/certs/sslserver.conf \
     --csr sslserver.csr
 ----
 
 Availability: PKI 10.9
+
+= Generating CSR with SAN Extension =
+
+Prior to PKI 11.5 the SAN extension needs to be specified in the CSR extension configuration file.
+Since PKI 11.5 the SAN extension can be specified as a CLI parameter:
+
+----
+$ pki nss-cert-request \
+    --subject "CN=server.example.com" \
+    --ext /usr/share/pki/server/certs/sslserver.conf \
+    --subjectAltName "critical, DNS:www.example.com" \
+    --csr sslserver.csr
+----
 
 = See Also =
 
