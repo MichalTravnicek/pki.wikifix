@@ -1,0 +1,33 @@
+= Overview =
+
+This service can be used to get the CA certificate chain.
+
+= Request =
+
+* Method: `GET`
+* Path: `/ca/ee/ca/getCertChain`
+
+= Response =
+
+The certificate chain will be returned in the following JSON response:
+
+----
+{
+    "Response": {
+        "Status": "0",
+        "ChainBase64": <base64-encoded cert chain>
+    }
+}
+----
+
+= Example =
+
+----
+$ curl -s http://localhost:8080/ca/ee/ca/getCertChain | python -m json.tool
+{
+    "Response": {
+        "Status": "0",
+        "ChainBase64": "MIIE..oTEA"
+    }
+}
+----
