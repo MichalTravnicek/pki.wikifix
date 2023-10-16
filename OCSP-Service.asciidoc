@@ -1,0 +1,35 @@
+= Request =
+
+== GET Request ==
+
+* *Operation*: `GET /ca/ocsp/<request>` or `GET /ocsp/ee/ocsp/<request>`
+
+== POST Request ==
+
+* *Operation*: `POST /ca/ocsp` or `POST /ocsp/ee/ocsp`
+* *Content*: OCSP request
+
+= Response =
+
+Export the CA signing certificate with the following command:
+
+----
+$ pki-server cert-export ca_signing --cert-file ca_signing.crt
+----
+
+Send the OCSP request with the following command:
+
+----
+$ openssl ocsp \
+    -url http://pki.example.com:8080/ca/ocsp \
+    -CAfile ca_signing.crt \
+    -issuer ca_signing.crt \
+    -serial 0xf156f31055120c215fab6d8347a7a9e1
+Response verify OK
+0xf156f31055120c215fab6d8347a7a9e1: good
+	This Update: Oct 16 20:42:29 2023 GMT
+----
+
+= See Also =
+
+* link:https://www.ietf.org/rfc/rfc2560.txt[RFC 2560]
