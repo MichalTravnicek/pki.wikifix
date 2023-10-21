@@ -1,0 +1,32 @@
+= Overview =
+
+This service can be used for certificate enrollment and renewal.
+
+= Enrollment =
+
+== Request ==
+
+* **Operation:** `POST /ca/ee/ca/profileSubmit`
+* **Parameters:**
+** `renewal`: `false`
+** `profileId`: profile ID
+** `authorityId`: authority ID
+** `cert_request_type`: `pkcs10`, `crmf`, `cmc`, `keygen`
+** `cert_request`: CSR
+** `requestor_name`: requestor
+** `xmlOutput`: XML output (`true` or `false`)
+
+== Response ==
+
+= Renewal =
+
+== Request ==
+
+* **Operation:** `POST /ca/ee/ca/profileSubmit`
+* **Parameters:**
+** `renewal`: `true`
+** `profileId`: profile ID
+** `serial_num`: serial number
+** `xmlOutput`: XML output (`true` or `false`)
+
+== Response ==
