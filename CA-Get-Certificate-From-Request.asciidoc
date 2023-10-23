@@ -1,0 +1,24 @@
+= Request =
+
+* **Operation:** `GET /ca/ee/ca/getCertFromRequest`
+* **Parameters:**
+** `requestId`: Request ID
+** `importCert`: Import certificate: `true`, `false`
+** `xml`: XML output: `true`, `false`
+
+= Response =
+
+== XML Response ==
+
+----
+<xml>
+    <header>
+        <requestId>...</requestId>
+        <noCertImport>...</noCertImport>
+        <certtype>...</certtype>
+        <emailCert>...</emailCert>
+    </header>
+    <fixed>
+    </fixed>
+</xml>
+----
