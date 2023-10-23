@@ -1,0 +1,79 @@
+= Request =
+
+* **Operation:** `POST /ca/agent/ca/profileReview`
+* **Parameters:**
+** `requestId`: Request ID
+** `xml`: XML output (`true` or `false`)
+
+= Response =
+
+== XML Response ==
+
+----
+<xml>
+    <output>
+        <set>
+            <nonce>...</nonce>
+            <requestId>...</requestId>
+            <requestType>...</requestType>
+            <requestStatus>...</requestStatus>
+            <requestOwner>...</requestOwner>
+            <requestCreationTime>...</requestCreationTime>
+            <requestModificationTime>...</requestModificationTime>
+            <profileId>...</profileId>
+            <profileApprovedBy>...</profileApprovedBy>
+            <profileSetId>...</profileSetId>
+            <profileIsVisible>...</profileIsVisible>
+            <profileName>...</profileName>
+            <profileDesc>...</profileDesc>
+            <profileRemoteHost>...</profileRemoteHost>
+            <profileRemoteAddr>...</profileRemoteAddr>
+            <requestNotes>...</requestNotes>
+            <record>
+                <list>
+                    <set>
+                        <policyId>...</policyId>
+                        <defDesc>...</defDesc>
+                        <defList>
+                            <list>
+                                <set>
+                                    <defId>...</defId>
+                                    <defSyntax>...</defSyntax>
+                                    <defConstraint>...</defConstraint>
+                                    <defName>...</defName>
+                                    <defVal>...</defVal>
+                                </set>
+                            </list>
+                        </defList>
+                        <conDesc>...</conDesc>
+                    </set>
+                </list>
+            </record>
+            <errorCode>...</errorCode>
+            <errorReason>...</errorReason>
+            <inputList>
+                <list>
+                    <set>
+                        <inputId>...</inputId>
+                        <inputSyntax>...</inputSyntax>
+                        <inputConstraint>...</inputConstraint>
+                        <inputName>...</inputName>
+                        <inputVal>...</inputVal>
+                    </set>
+                </list>
+            </inputList>
+            <outputList>
+                <list>
+                    <set>
+                        <outputId>...</outputId>
+                        <outputSyntax>...</outputSyntax>
+                        <outputConstraint>...</outputConstraint>
+                        <outputName>...</outputName>
+                        <outputVal>...</outputVal>
+                    </set>
+                </list>
+            </outputList>
+        </set>
+    </output>
+</xml>
+----
