@@ -1,0 +1,32 @@
+= Request =
+
+* **Operation:** `POST /ca/ee/ca/profileList`
+* **Parameters:**
+** `xml`: XML output (`true` or `false`)
+
+= Response =
+
+== XML Response ==
+
+----
+<xml>
+    <output>
+        <set>
+            <errorCode>...</errorCode>
+            <errorReason>...</errorReason>
+            <record>
+                <list>
+                    <set>
+                        <profileIsEnable>...</profileIsEnable>
+                        <profileEnableBy>...</profileEnableBy>
+                        <profileId>...</profileId>
+                        <profileIsVisible>...</profileIsVisible>
+                        <profileName>...</profileName>
+                        <profileDesc>...</profileDesc>
+                    </set>
+                </list>
+            </record>
+        </set>
+    </output>
+</xml>
+----
