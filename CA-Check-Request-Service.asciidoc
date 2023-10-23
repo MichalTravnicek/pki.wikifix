@@ -1,0 +1,35 @@
+= Request =
+
+* **Operation:** `POST /ca/ee/ca/checkRequest`
+* **Parameters:**
+** `requestId`: Request ID
+** `format`: Format: `id` (default), `cmc`
+** `queryPending`: Base64-encoded CMC Query Pending
+** `importCert`: Import certificate
+** `xml`: XML output: `true`, `false`
+
+= Response =
+
+== XML Response ==
+
+----
+<xml>
+    <header>
+        <authority>...</authority>
+        <requestId>...</requestId>
+        <status>...</status>
+        <createdOn>...</createdOn>
+        <updatedOn>...</updatedOn>
+        <requestNotes>...</requestNotes>
+        <pkcs7ChainBase64>...</pkcs7ChainBase64>
+        <cmcFullEnrollmentResponse>...</cmcFullEnrollmentResponse>
+    </header>
+    <fixed>
+    </fixed>
+    <records>
+        <record>
+            <serialNumber>...</serialNumber>
+        </record>
+    </records>
+</xml>
+----
