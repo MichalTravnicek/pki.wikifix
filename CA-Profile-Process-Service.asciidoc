@@ -1,0 +1,38 @@
+= Request =
+
+* **Operation:** `POST /ca/agent/ca/profileProcess`
+* **Parameters:**
+** `requestId`: Request ID
+** `op`: Operation (`assign`, `approve`, `reject`, `cancel`, `update`, `validate`, `unassign`)
+** `xml`: XML output (`true` or `false`)
+
+= Response =
+
+== XML Response ==
+
+----
+<xml>
+    <output>
+        <set>
+            <errorCode>...</errorCode>
+            <errorReason>...</errorReason>
+            <op>...</op>
+            <requestId>...</requestId>
+            <requestStatus>...</requestStatus>
+            <requestType>...</requestType>
+            <profileId>...</profileId>
+            <outputList>
+                <list>
+                    <set>
+                        <outputId>...</outputId>
+                        <outputSyntax>...</outputSyntax>
+                        <outputConstraint>...</outputConstraint>
+                        <outputName>...</outputName>
+                        <outputVal>...</outputVal>
+                    </set>
+                </list>
+            </outputList>
+        </set>
+    </output>
+</xml>
+----
