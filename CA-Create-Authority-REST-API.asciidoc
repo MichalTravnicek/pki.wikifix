@@ -1,8 +1,11 @@
 = Request =
 
 * **Operation:** `POST /ca/rest/authorities`
+* **Headers:**
+** `Content-Type`: `application/json`
+** `Accept`: `application/json`
 * **Authentication:** required
-* **Content:**
+* **Content:** JSON-encoded `AuthorityData`
 
 = Response =
 
@@ -12,11 +15,20 @@ $ curl \
     -s \
     --json @- \
     --cookie cookies \
-    https://localhost.localdomain:8443/ca/rest/authorities << EOF
+    https://localhost.localdomain:8443/ca/rest/authorities << EOF | python -m json.tool
 {
     "parentID": "b6c33f78-74ce-4ce8-9368-132778770572",
     "dn": "CN=Certificate Authority,O=EXAMPLE"
 }
 EOF
-
+{
+    "isHostAuthority": false,
+    "id": "803ff016-8e45-4d82-aa36-df23f314ae31",
+    "parentID": "b6c33f78-74ce-4ce8-9368-132778770572",
+    "issuerDN": "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE",
+    "serial": 231720180661936730755301252292421572298,
+    "dn": "CN=Certificate Authority,O=EXAMPLE",
+    "enabled": true,
+    "ready": true
+}
 ----
