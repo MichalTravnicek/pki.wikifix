@@ -36,7 +36,12 @@ The PKI ACME Login operation will authenticate the user, establish a session on 
 [%collapsible]
 ====
 ----
-$ curl -s --request POST -u admin:Secret.123 https://pki.demo.dogtagpki.org/acme/login | python -m json.tool
+$ curl \
+    -s \
+    --request POST \
+    -u admin:Secret.123 \
+    --cookie-jar cookies \
+    https://pki.demo.dogtagpki.org/acme/login | python -m json.tool
 {
     "Attributes": {
         "Attribute": []
