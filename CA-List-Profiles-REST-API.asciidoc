@@ -1,0 +1,40 @@
+= Request =
+
+* **Method:** `GET`
+* **Path:** `/ca/rest/profiles`
+* **Authentication:** required
+* **Query Parameters:**
+** `start`: Page start
+** `size`: Page size
+** `visible`: Return visible profiles: none, `true`, `false`
+** `enable`: Return enabled profiles: none, `true`, `false`
+** `enableBy`: Return profiles enabled by specified user
+
+= Response =
+
+----
+{
+    "total": 90,
+    "entries": [
+        {
+            "profileURL": "https://pki.example.com:8443/ca/rest/profiles/acmeServerCert",
+            "profileId": "acmeServerCert",
+            "profileName": "ACME Server Certificate Enrollment",
+            "profileDescription": "This certificate profile is for enrolling server certificates via ACME protocol.",
+            "profileVisible": true,
+            "profileEnable": true,
+            "profileEnableBy": "admin"
+        },
+        ...
+        {
+            "profileURL": "https://pki.example.com:8443/ca/rest/profiles/caSignedLogCert",
+            "profileId": "caSignedLogCert",
+            "profileName": "(deprecated; use caAuditSigningCert) Manual Log Signing Certificate Enrollment",
+            "profileDescription": "(deprecated; use caAuditSigningCert) This profile is for enrolling audit log signing certificates",
+            "profileVisible": false,
+            "profileEnable": true,
+            "profileEnableBy": "admin"
+        }
+    ]
+}
+----
