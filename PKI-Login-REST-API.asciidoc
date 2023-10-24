@@ -17,11 +17,12 @@ https://github.com/dogtagpki/pki/blob/e3cf3373074fc0ec7e4ecd110c9f4b1c4570e5de/b
 ====
 ----
 $ curl \
-  -k \
-  -s \
-  -H "Accept: application/json" \
-  --user caadmin:Secret.123 \
-  https://localhost.localdomain:8443/ca/rest/account/login | python -m json.tool
+    -k \
+    -s \
+    -H "Accept: application/json" \
+    --user caadmin:Secret.123 \
+    --cookie-jar cookies \
+    https://localhost.localdomain:8443/ca/rest/account/login | python -m json.tool
 {
     "Attributes": {
         "Attribute": []
@@ -51,11 +52,12 @@ $ curl \
 ====
 ----
 $ curl \
-  -k \
-  -s \
-  -H "Accept: application/xml" \
-  --user caadmin:Secret.123 \
-  https://localhost.localdomain:8443/ca/rest/account/login | xmllint --format -
+    -k \
+    -s \
+    -H "Accept: application/xml" \
+    --user caadmin:Secret.123 \
+    --cookie-jar cookies \
+    https://localhost.localdomain:8443/ca/rest/account/login | xmllint --format -
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <Account id="caadmin">
   <Attributes/>
@@ -83,11 +85,12 @@ $ curl \
 ====
 ----
 $ curl \
-  -k \
-  -s \
-  -H "Accept: application/json" \
-  --user kraadmin:Secret.123 \
-  https://localhost.localdomain:8443/kra/rest/account/login | python -m json.tool
+    -k \
+    -s \
+    -H "Accept: application/json" \
+    --user kraadmin:Secret.123 \
+    --cookie-jar cookies \
+    https://localhost.localdomain:8443/kra/rest/account/login | python -m json.tool
 {
     "Attributes": {
         "Attribute": []
@@ -112,11 +115,12 @@ $ curl \
 ====
 ----
 $ curl \
-  -k \
-  -s \
-  -H "Accept: application/json" \
-  --user ocspadmin:Secret.123 \
-  https://localhost.localdomain:8443/ocsp/rest/account/login | python -m json.tool
+    -k \
+    -s \
+    -H "Accept: application/json" \
+    --user ocspadmin:Secret.123 \
+    --cookie-jar cookies \
+    https://localhost.localdomain:8443/ocsp/rest/account/login | python -m json.tool
 {
     "Attributes": {
         "Attribute": []
@@ -141,11 +145,12 @@ $ curl \
 ====
 ----
 $ curl \
-  -k \
-  -s \
-  -H "Accept: application/json" \
-  --user tksadmin:Secret.123 \
-  https://localhost.localdomain:8443/tks/rest/account/login | python -m json.tool
+    -k \
+    -s \
+    -H "Accept: application/json" \
+    --user tksadmin:Secret.123 \
+    --cookie-jar cookies \
+    https://localhost.localdomain:8443/tks/rest/account/login | python -m json.tool
 {
     "Attributes": {
         "Attribute": []
@@ -170,11 +175,12 @@ $ curl \
 ====
 ----
 $ curl \
-  -k \
-  -s \
-  -H "Accept: application/json" \
-  --user tpsadmin:Secret.123 \
-  https://localhost.localdomain:8443/tps/rest/account/login | python -m json.tool
+    -k \
+    -s \
+    -H "Accept: application/json" \
+    --user tpsadmin:Secret.123 \
+    --cookie-jar cookies \
+    https://localhost.localdomain:8443/tps/rest/account/login | python -m json.tool
 {
     "Attributes": {
         "Attribute": [
