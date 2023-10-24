@@ -12,39 +12,6 @@
 
 = Response =
 
-To authenticate:
-
-----
-$ curl \
-    -k \
-    -s \
-    -H "Accept: application/json" \
-    --user caadmin:Secret.123 \
-    --cookie-jar cookies \
-    https://localhost.localdomain:8443/ca/rest/account/login | python -m json.tool
-{
-    "id": "caadmin",
-    "FullName": "caadmin",
-    "Email": "caadmin@example.com",
-    "Roles": [
-        "Administrators",
-        "Certificate Manager Agents",
-        "Enterprise CA Administrators",
-        "Enterprise KRA Administrators",
-        "Enterprise OCSP Administrators",
-        "Enterprise RA Administrators",
-        "Enterprise TKS Administrators",
-        "Enterprise TPS Administrators",
-        "Security Domain Administrators"
-    ],
-    "Attributes": {
-        "Attribute": []
-    }
-}
-----
-
-To list the profiles:
-
 ----
 $ curl \
     -k \
