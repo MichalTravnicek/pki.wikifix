@@ -11,6 +11,7 @@ $ curl \
     -s \
     -X POST \
     -H "Accept: application/json" \
+    --cookie cookies \
     https://localhost.localdomain:8443/ca/rest/authorities/b6c33f78-74ce-4ce8-9368-132778770572/disable | python -m json.tool
 {
     "isHostAuthority": true,
