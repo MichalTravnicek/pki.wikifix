@@ -20,7 +20,7 @@ $ curl \
     -s \
     -H "Accept: application/json" \
     --user caadmin:Secret.123 \
-    --cookie-jar cookie \
+    --cookie-jar cookies \
     https://localhost.localdomain:8443/ca/rest/account/login | python -m json.tool
 {
     "id": "caadmin",
@@ -50,7 +50,7 @@ $ curl \
     -k \
     -s \
     -H "Accept: application/json" \
-    --cookie cookie \
+    --cookie cookies \
     https://localhost.localdomain:8443/ca/rest/profiles | python -m json.tool
 {
     "total": 90,
