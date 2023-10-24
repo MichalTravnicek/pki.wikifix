@@ -12,12 +12,51 @@
 
 = Response =
 
+To authenticate:
+
 ----
+$ curl \
+    -k \
+    -s \
+    -H "Accept: application/json" \
+    --user caadmin:Secret.123 \
+    --cookie-jar cookie \
+    https://localhost.localdomain:8443/ca/rest/account/login | python -m json.tool
+{
+    "id": "caadmin",
+    "FullName": "caadmin",
+    "Email": "caadmin@example.com",
+    "Roles": [
+        "Administrators",
+        "Certificate Manager Agents",
+        "Enterprise CA Administrators",
+        "Enterprise KRA Administrators",
+        "Enterprise OCSP Administrators",
+        "Enterprise RA Administrators",
+        "Enterprise TKS Administrators",
+        "Enterprise TPS Administrators",
+        "Security Domain Administrators"
+    ],
+    "Attributes": {
+        "Attribute": []
+    }
+}
+----
+
+To list the profiles:
+
+----
+$ curl \
+    -k \
+    -s \
+    -H "Accept: application/json" \
+    --cookie cookie \
+    https://localhost.localdomain:8443/ca/rest/profiles | python -m json.tool
 {
     "total": 90,
     "entries": [
         {
-            "profileURL": "https://pki.example.com:8443/ca/rest/profiles/acmeServerCert",
+            "profileURL": "https://localhost.localdomain:8443/ca/rest/profiles/acmeServerCert",
             "profileId": "acmeServerCert",
             "profileName": "ACME Server Certificate Enrollment",
             "profileDescription": "This certificate profile is for enrolling server certificates via ACME protocol.",
@@ -27,7 +66,7 @@
         },
         ...
         {
-            "profileURL": "https://pki.example.com:8443/ca/rest/profiles/caSignedLogCert",
+            "profileURL": "https://localhost.localdomain:8443/ca/rest/profiles/caSignedLogCert",
             "profileId": "caSignedLogCert",
             "profileName": "(deprecated; use caAuditSigningCert) Manual Log Signing Certificate Enrollment",
             "profileDescription": "(deprecated; use caAuditSigningCert) This profile is for enrolling audit log signing certificates",
