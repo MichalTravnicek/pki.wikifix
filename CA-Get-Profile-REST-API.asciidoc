@@ -12,10 +12,16 @@
 
 = Response =
 
-.JSON Response
+.JSON
 [%collapsible]
 ====
 ----
+$ curl \
+    -k \
+    -s \
+    -H "Accept: application/json" \
+    --cookie cookies \
+    https://localhost.localdomain:8443/ca/rest/profiles/caUserCert | python -m json.tool
 {
     "id": "caUserCert",
     "classId": "caEnrollImpl",
@@ -141,10 +147,16 @@
 ----
 ====
 
-.Raw Response
+.Raw
 [%collapsible]
 ====
 ----
+$ curl \
+    -k \
+    -s \
+    -H "Accept: application/json" \
+    --cookie cookies \
+    https://localhost.localdomain:8443/ca/rest/profiles/caUserCert/raw
 auth.class_id=
 classId=caEnrollImpl
 desc=This certificate profile is for enrolling user certificates.
