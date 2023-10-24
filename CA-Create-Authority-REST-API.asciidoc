@@ -1,0 +1,22 @@
+= Request =
+
+* **Operation:** `POST /ca/rest/authorities`
+* **Authentication:** required
+* **Content:**
+
+= Response =
+
+----
+$ curl \
+    -k \
+    -s \
+    --json @- \
+    --cookie cookies \
+    https://localhost.localdomain:8443/ca/rest/authorities << EOF
+{
+    "parentID": "b6c33f78-74ce-4ce8-9368-132778770572",
+    "dn": "CN=Certificate Authority,O=EXAMPLE"
+}
+EOF
+
+----
