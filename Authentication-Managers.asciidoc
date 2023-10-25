@@ -1,3 +1,95 @@
+= Default Authentication Managers =
+
+The following authentication managers are defined in CA’s CS.cfg by default:
+
+----
+auths.instance.TokenAuth.pluginName=TokenAuth
+auths.instance.AgentCertAuth.agentGroup=Certificate Manager Agents
+auths.instance.AgentCertAuth.pluginName=AgentCertAuth
+auths.instance.CMCAuth.pluginName=CMCAuth
+auths.instance.CMCUserSignedAuth.pluginName=CMCUserSignedAuth
+auths.instance.raCertAuth.agentGroup=Registration Manager Agents
+auths.instance.raCertAuth.pluginName=AgentCertAuth
+auths.instance.flatFileAuth.pluginName=FlatFileAuth
+auths.instance.flatFileAuth.fileName=[pki_instance_path]/conf/ca/flatfile.txt
+auths.instance.SSLclientCertAuth.pluginName=SSLclientCertAuth
+auths.instance.SessionAuthentication.pluginName=SessionAuthentication
+----
+
+The following authentication managers are defined in KRA’s CS.cfg by default:
+
+----
+auths.instance.AgentCertAuth.agentGroup=Certificate Manager Agents
+auths.instance.AgentCertAuth.pluginName=AgentCertAuth
+auths.instance.TokenAuth.pluginName=TokenAuth
+----
+
+The following authentication managers are defined in OCSP’s CS.cfg by default:
+
+----
+auths.instance.AgentCertAuth.agentGroup=Certificate Manager Agents
+auths.instance.AgentCertAuth.pluginName=AgentCertAuth
+auths.instance.TokenAuth.pluginName=TokenAuth
+----
+
+The following authentication managers are defined in TKS’s CS.cfg by default:
+
+----
+auths.instance.AgentCertAuth.agentGroup=Certificate Manager Agents
+auths.instance.AgentCertAuth.pluginName=AgentCertAuth
+auths.instance.TokenAuth.pluginName=TokenAuth
+----
+
+The following authentication managers are defined in TPS’s CS.cfg by default:
+
+----
+auths.instance.AgentCertAuth.agentGroup=Certificate Manager Agents
+auths.instance.AgentCertAuth.pluginName=AgentCertAuth
+auths.instance.TokenAuth.pluginName=TokenAuth
+auths.instance.ldap1.authCredName=uid
+auths.instance.ldap1.ui.retries=3
+auths.instance.ldap1.ui.title.en=LDAP Authentication
+auths.instance.ldap1.ui.description.en=This authenticates user against the LDAP directory.
+auths.instance.ldap1.ui.id.UID.description.en=LDAP User ID
+auths.instance.ldap1.ui.id.UID.name.en=LDAP User ID
+auths.instance.ldap1.ui.id.UID.credMap.authCred=uid
+auths.instance.ldap1.ui.id.UID.credMap.msgCred.extlogin=UID
+auths.instance.ldap1.ui.id.UID.credMap.msgCred.login=screen_name
+auths.instance.ldap1.ui.id.PASSWORD.description.en=LDAP Password
+auths.instance.ldap1.ui.id.PASSWORD.name.en=LDAP Password
+auths.instance.ldap1.ui.id.PASSWORD.credMap.authCred=pwd
+auths.instance.ldap1.ui.id.PASSWORD.credMap.msgCred.extlogin=PASSWORD
+auths.instance.ldap1.ui.id.PASSWORD.credMap.msgCred.login=password
+auths.instance.ldap1.dnpattern=
+auths.instance.ldap1.ldapByteAttributes=
+auths.instance.ldap1.ldapStringAttributes._000=#################################
+auths.instance.ldap1.ldapStringAttributes._001=# For isExternalReg
+auths.instance.ldap1.ldapStringAttributes._002=#   attributes will be available as
+auths.instance.ldap1.ldapStringAttributes._003=#       $<attribute>$
+auths.instance.ldap1.ldapStringAttributes._004=#   attributes example:
+auths.instance.ldap1.ldapStringAttributes._005=#mail,cn,uid,enrollmenttype,certsToAdd,tokenCUID,registrationtype,tokenType,firstname,lastname,exec-edipi,exec-mail
+auths.instance.ldap1.ldapStringAttributes._006=#################################
+auths.instance.ldap1.ldapStringAttributes=mail,cn,uid,enrollmenttype,certsToAdd,tokenCUID,registrationtype,tokenType,firstname,lastname,exec-edipi,exec-mail
+auths.instance.ldap1.ldap.basedn=[LDAP_ROOT]
+auths.instance.ldap1.externalReg.attributes=certsToAdd,tokenCUID,enrollmenttype,registrationtype,tokenType
+auths.instance.ldap1.externalReg.certs.recoverAttributeName=certsToAdd
+auths.instance.ldap1.externalReg.cuidAttributeName=tokenCUID
+auths.instance.ldap1.externalReg.registrationTypeAttributeName=registrationtype
+auths.instance.ldap1.externalReg.tokenTypeAttributeName=tokenType
+auths.instance.ldap1.ldap.maxConns=15
+auths.instance.ldap1.ldap.minConns=3
+auths.instance.ldap1.ldap.ldapauth.authtype=BasicAuth
+auths.instance.ldap1.ldap.ldapauth.bindDN=
+auths.instance.ldap1.ldap.ldapauth.bindPWPrompt=ldap1
+auths.instance.ldap1.ldap.ldapauth.clientCertNickname=subsystemCert cert-[pki_instance_name]
+auths.instance.ldap1.ldap.ldapconn.host=localhost
+auths.instance.ldap1.ldap.ldapconn.port=389
+auths.instance.ldap1.ldap.ldapconn.secureConn=false
+auths.instance.ldap1.ldap.ldapconn.version=3
+auths.instance.ldap1.pluginName=UidPwdDirAuth
+auths.instance.SSLclientCertAuth.pluginName=SSLclientCertAuth
+----
+
 = AgentCertAuthentication =
 
 = CertUserDBAuthentication =
