@@ -64,22 +64,7 @@ auths.impl.UidPwdPinDirAuth.class=com.netscape.cms.authentication.UidPwdPinDirAu
 = Configuring Authentication Plugins =
 
 ----
-auths.impl.<name>.class=<class>
-----
-
-= Instances =
-
-----
-auths.instance.TokenAuth.pluginName=TokenAuth
-auths.instance.AgentCertAuth.agentGroup=Certificate Manager Agents
-auths.instance.AgentCertAuth.pluginName=AgentCertAuth
-auths.instance.CMCUserSignedAuth.pluginName=CMCUserSignedAuth
-auths.instance.raCertAuth.agentGroup=Registration Manager Agents
-auths.instance.raCertAuth.pluginName=AgentCertAuth
-auths.instance.flatFileAuth.pluginName=FlatFileAuth
-auths.instance.flatFileAuth.fileName=[PKI_INSTANCE_PATH]/conf/[PKI_SUBSYSTEM_TYPE]/flatfile.txt
-auths.instance.SSLclientCertAuth.pluginName=SSLclientCertAuth
-auths.instance.SessionAuthentication.pluginName=SessionAuthentication
+auths.impl.<plugin name>.class=<plugin class>
 ----
 
 = Revocation Checking =
@@ -94,4 +79,5 @@ auths.revocationChecking.validityInterval=120
 
 = See Also =
 
+* link:Authentication-Managers[Authentication Managers]
 * link:PKI-Server-CA-Authentication-Plugin-CLI[PKI Server CA Authentication Plugin CLI]
