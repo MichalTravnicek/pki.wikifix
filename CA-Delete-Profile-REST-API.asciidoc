@@ -1,8 +1,18 @@
 = Request =
 
 * **Operation:** `DELETE /ca/rest/profiles/<id>`
+* **Authentication:** required
 
 = Response =
 
 * **Code:** `204`
 * **Content:** None
+
+----
+$ curl \
+    -k \
+    -s \
+    -X DELETE \
+    --cookie cookies \
+    https://localhost.localdomain:8443/ca/rest/profiles/test
+----
