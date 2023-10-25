@@ -1,10 +1,20 @@
 = Request =
 
 * **Operation:** `POST /ca/rest/profiles/<id>`
-* **Parameter:**
+* **Query Parameter:**
 ** `action`: `enable`
+* **Content:** None
 
 = Response =
 
 * **Code:** `204`
 * **Content:** None
+
+----
+$ curl \
+    -k \
+    -s \
+    -X POST \
+    --cookie cookies \
+    https://localhost.localdomain:8443/ca/rest/profiles/test?action=enable
+----
