@@ -104,7 +104,19 @@ See also link:https://github.com/dogtagpki/pki/blob/master/base/server/cmscore/s
 
 = CMC Shared Token Authentication =
 
-See link:Configuring-CMC-Shared-Token-Authentication[Configuring CMC Shared Token Authentication].
+----
+auths.instance.SharedToken.pluginName=SharedToken
+auths.instance.SharedToken.ldap.basedn=ou=people,dc=example,dc=com
+auths.instance.SharedToken.ldap.ldapauth.authtype=BasicAuth
+auths.instance.SharedToken.ldap.ldapauth.bindDN="cn=Directory Manager"
+auths.instance.SharedToken.ldap.ldapauth.bindPWPrompt="Rule SharedToken"
+auths.instance.SharedToken.ldap.ldapconn.host=ds.example.com
+auths.instance.SharedToken.ldap.ldapconn.port=3389
+auths.instance.SharedToken.ldap.ldapconn.secureConn=false
+auths.instance.SharedToken.shrTokAttr=shrTok
+----
+
+See also link:Configuring-CMC-Shared-Token-Authentication[Configuring CMC Shared Token Authentication].
 
 = DirBasedAuthentication =
 
