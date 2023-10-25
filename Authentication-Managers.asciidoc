@@ -90,7 +90,12 @@ auths.instance.ldap1.pluginName=UidPwdDirAuth
 auths.instance.SSLclientCertAuth.pluginName=SSLclientCertAuth
 ----
 
-= AgentCertAuthentication =
+= Agent Certificate Authentication =
+
+----
+auths.instance.<instance name>.pluginName=AgentCertAuth
+auths.instance.<instance name>.agentGroup=Certificate Manager Agents
+----
 
 = CertUserDBAuthentication =
 
@@ -105,15 +110,15 @@ See also link:https://github.com/dogtagpki/pki/blob/master/base/server/cmscore/s
 = CMC Shared Token Authentication =
 
 ----
-auths.instance.SharedToken.pluginName=SharedToken
-auths.instance.SharedToken.ldap.basedn=ou=people,dc=example,dc=com
-auths.instance.SharedToken.ldap.ldapauth.authtype=BasicAuth
-auths.instance.SharedToken.ldap.ldapauth.bindDN="cn=Directory Manager"
-auths.instance.SharedToken.ldap.ldapauth.bindPWPrompt="Rule SharedToken"
-auths.instance.SharedToken.ldap.ldapconn.host=ds.example.com
-auths.instance.SharedToken.ldap.ldapconn.port=3389
-auths.instance.SharedToken.ldap.ldapconn.secureConn=false
-auths.instance.SharedToken.shrTokAttr=shrTok
+auths.instance.<instance name>.pluginName=SharedToken
+auths.instance.<instance name>.ldap.basedn=ou=people,dc=example,dc=com
+auths.instance.<instance name>.ldap.ldapauth.authtype=BasicAuth
+auths.instance.<instance name>.ldap.ldapauth.bindDN="cn=Directory Manager"
+auths.instance.<instance name>.ldap.ldapauth.bindPWPrompt="Rule SharedToken"
+auths.instance.<instance name>.ldap.ldapconn.host=ds.example.com
+auths.instance.<instance name>.ldap.ldapconn.port=3389
+auths.instance.<instance name>.ldap.ldapconn.secureConn=false
+auths.instance.<instance name>.shrTokAttr=shrTok
 ----
 
 See also link:Configuring-CMC-Shared-Token-Authentication[Configuring CMC Shared Token Authentication].
@@ -121,14 +126,14 @@ See also link:Configuring-CMC-Shared-Token-Authentication[Configuring CMC Shared
 = DirBasedAuthentication =
 
 ----
-auths.instance.UserDirEnrollment.pluginName=UidPwdDirAuth
-auths.instance.UserDirEnrollment.ldap.basedn=dc=example,dc=com
-auths.instance.UserDirEnrollment.ldap.ldapauth.authtype=BasicAuth
-auths.instance.UserDirEnrollment.ldap.ldapauth.bindDN=cn=Directory Manager
-auths.instance.UserDirEnrollment.ldap.ldapauth.bindPWPrompt=internaldb
-auths.instance.UserDirEnrollment.ldap.ldapconn.host=pki.example.com
-auths.instance.UserDirEnrollment.ldap.ldapconn.port=389
-auths.instance.UserDirEnrollment.ldap.ldapconn.secureConn=false
+auths.instance.<instance name>.pluginName=UidPwdDirAuth
+auths.instance.<instance name>.ldap.basedn=dc=example,dc=com
+auths.instance.<instance name>.ldap.ldapauth.authtype=BasicAuth
+auths.instance.<instance name>.ldap.ldapauth.bindDN=cn=Directory Manager
+auths.instance.<instance name>.ldap.ldapauth.bindPWPrompt=internaldb
+auths.instance.<instance name>.ldap.ldapconn.host=pki.example.com
+auths.instance.<instance name>.ldap.ldapconn.port=389
+auths.instance.<instance name>.ldap.ldapconn.secureConn=false
 ----
 
 See link:Configuring-Directory-Authenticated-Certificate-Profiles[Configuring Directory-Authenticated Certificate Profiles].
@@ -150,11 +155,11 @@ See link:Configuring-Directory-Authenticated-Certificate-Profiles[Configuring Di
 == FlatFileAuth ==
 
 ----
-auths.instance.flatFileAuth.pluginName=FlatFileAuth
-auths.instance.flatFileAuth.authAttributes=PWD
-auths.instance.flatFileAuth.deferOnFailure=true
-auths.instance.flatFileAuth.fileName=/var/lib/pki/pki-tomcat/conf/ca/flatfile.txt
-auths.instance.flatFileAuth.keyAttributes=UID
+auths.instance.<instance name>.pluginName=FlatFileAuth
+auths.instance.<instance name>.authAttributes=PWD
+auths.instance.<instance name>.deferOnFailure=true
+auths.instance.<instance name>.fileName=/var/lib/pki/pki-tomcat/conf/ca/flatfile.txt
+auths.instance.<instance name>.keyAttributes=UID
 ----
 
 = See Also =
