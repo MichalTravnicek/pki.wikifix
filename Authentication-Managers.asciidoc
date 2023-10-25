@@ -123,7 +123,7 @@ auths.instance.<instance name>.shrTokAttr=shrTok
 
 See also link:Configuring-CMC-Shared-Token-Authentication[Configuring CMC Shared Token Authentication].
 
-= DirBasedAuthentication =
+= Directory-based Authentication =
 
 ----
 auths.instance.<instance name>.pluginName=UidPwdDirAuth
@@ -134,6 +134,50 @@ auths.instance.<instance name>.ldap.ldapauth.bindPWPrompt=internaldb
 auths.instance.<instance name>.ldap.ldapconn.host=pki.example.com
 auths.instance.<instance name>.ldap.ldapconn.port=389
 auths.instance.<instance name>.ldap.ldapconn.secureConn=false
+----
+
+----
+auths.instance.<instance name>.pluginName=UidPwdDirAuth
+auths.instance.<instance name>.ldap.maxConns=15
+auths.instance.<instance name>.ldap.minConns=3
+auths.instance.<instance name>.ldap.ldapauth.authtype=BasicAuth
+auths.instance.<instance name>.ldap.ldapauth.bindDN=
+auths.instance.<instance name>.ldap.ldapauth.bindPWPrompt=ldap1
+auths.instance.<instance name>.ldap.ldapauth.clientCertNickname=subsystemCert cert-[pki_instance_name]
+auths.instance.<instance name>.ldap.ldapconn.host=localhost
+auths.instance.<instance name>.ldap.ldapconn.port=389
+auths.instance.<instance name>.ldap.ldapconn.secureConn=false
+auths.instance.<instance name>.ldap.ldapconn.version=3
+auths.instance.<instance name>.authCredName=uid
+auths.instance.<instance name>.ui.retries=3
+auths.instance.<instance name>.ui.title.en=LDAP Authentication
+auths.instance.<instance name>.ui.description.en=This authenticates user against the LDAP directory.
+auths.instance.<instance name>.ui.id.UID.description.en=LDAP User ID
+auths.instance.<instance name>.ui.id.UID.name.en=LDAP User ID
+auths.instance.<instance name>.ui.id.UID.credMap.authCred=uid
+auths.instance.<instance name>.ui.id.UID.credMap.msgCred.extlogin=UID
+auths.instance.<instance name>.ui.id.UID.credMap.msgCred.login=screen_name
+auths.instance.<instance name>.ui.id.PASSWORD.description.en=LDAP Password
+auths.instance.<instance name>.ui.id.PASSWORD.name.en=LDAP Password
+auths.instance.<instance name>.ui.id.PASSWORD.credMap.authCred=pwd
+auths.instance.<instance name>.ui.id.PASSWORD.credMap.msgCred.extlogin=PASSWORD
+auths.instance.<instance name>.ui.id.PASSWORD.credMap.msgCred.login=password
+auths.instance.<instance name>.dnpattern=
+auths.instance.<instance name>.ldapByteAttributes=
+auths.instance.<instance name>.ldapStringAttributes._000=#################################
+auths.instance.<instance name>.ldapStringAttributes._001=# For isExternalReg
+auths.instance.<instance name>.ldapStringAttributes._002=#   attributes will be available as
+auths.instance.<instance name>.ldapStringAttributes._003=#       $<attribute>$
+auths.instance.<instance name>.ldapStringAttributes._004=#   attributes example:
+auths.instance.<instance name>.ldapStringAttributes._005=#mail,cn,uid,enrollmenttype,certsToAdd,tokenCUID,registrationtype,tokenType,firstname,lastname,exec-edipi,exec-mail
+auths.instance.<instance name>.ldapStringAttributes._006=#################################
+auths.instance.<instance name>.ldapStringAttributes=mail,cn,uid,enrollmenttype,certsToAdd,tokenCUID,registrationtype,tokenType,firstname,lastname,exec-edipi,exec-mail
+auths.instance.<instance name>.ldap.basedn=[LDAP_ROOT]
+auths.instance.<instance name>.externalReg.attributes=certsToAdd,tokenCUID,enrollmenttype,registrationtype,tokenType
+auths.instance.<instance name>.externalReg.certs.recoverAttributeName=certsToAdd
+auths.instance.<instance name>.externalReg.cuidAttributeName=tokenCUID
+auths.instance.<instance name>.externalReg.registrationTypeAttributeName=registrationtype
+auths.instance.<instance name>.externalReg.tokenTypeAttributeName=tokenType
 ----
 
 See link:Configuring-Directory-Authenticated-Certificate-Profiles[Configuring Directory-Authenticated Certificate Profiles].
