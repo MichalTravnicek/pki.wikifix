@@ -120,6 +120,17 @@ See also link:Configuring-CMC-Shared-Token-Authentication[Configuring CMC Shared
 
 = DirBasedAuthentication =
 
+----
+auths.instance.UserDirEnrollment.pluginName=UidPwdDirAuth
+auths.instance.UserDirEnrollment.ldap.basedn=dc=example,dc=com
+auths.instance.UserDirEnrollment.ldap.ldapauth.authtype=BasicAuth
+auths.instance.UserDirEnrollment.ldap.ldapauth.bindDN=cn=Directory Manager
+auths.instance.UserDirEnrollment.ldap.ldapauth.bindPWPrompt=internaldb
+auths.instance.UserDirEnrollment.ldap.ldapconn.host=pki.example.com
+auths.instance.UserDirEnrollment.ldap.ldapconn.port=389
+auths.instance.UserDirEnrollment.ldap.ldapconn.secureConn=false
+----
+
 See link:Configuring-Directory-Authenticated-Certificate-Profiles[Configuring Directory-Authenticated Certificate Profiles].
 
 = HashAuthentication =
