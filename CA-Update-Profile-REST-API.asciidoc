@@ -3,11 +3,150 @@
 == JSON Request ==
 
 * **Operation:** `PUT /ca/rest/profiles/<id>`
-* **Content:**
+* **Authentication:** required
+* **Content:** `ProfileData` in JSON format
 
 == Raw Request ==
 
 * **Operation:** `PUT /ca/rest/profiles/<id>/raw`
-* **Content:**
+* **Authentication:** required
+* **Content:** `ProfileData` in raw format
 
 = Response =
+
+== JSON Response ==
+
+* **Code:** `200`
+* **Content:** `ProfileData` in JSON format
+
+----
+$ curl \
+    -k \
+    -s \
+    -X PUT \
+    --json @- \
+    --cookie cookies \
+    https://localhost.localdomain:8443/ca/rest/profiles/test < test.cfg | python -m json.tool
+{
+    "id": "test",
+    "classId": "caEnrollImpl",
+    "name": "Manual User Dual-Use Certificate Enrollment",
+    "description": "This certificate profile is for enrolling user certificates.",
+    "enabled": true,
+    "visible": false,
+    "enabledBy": "admin",
+    "authzAcl": "",
+    "renewal": false,
+    "inputs": [
+        {
+            "id": "i1",
+            "ClassID": "keyGenInputImpl",
+            "Name": "Key Generation",
+            "ConfigAttribute": [],
+            "Attribute": [
+                {
+                    "name": "cert_request_type",
+                    "Descriptor": {
+                        "Syntax": "keygen_request_type",
+                        "Description": "Key Generation Request Type"
+                    }
+                },
+                ...
+            ]
+        },
+        {
+            "id": "i2",
+            "ClassID": "subjectNameInputImpl",
+            "Name": "Subject Name",
+            "ConfigAttribute": [],
+            "Attribute": [
+                {
+                    "name": "sn_uid",
+                    "Descriptor": {
+                        "Syntax": "string",
+                        "Description": "UID"
+                    }
+                },
+                ...
+            ]
+        },
+        {
+            "id": "i3",
+            "ClassID": "submitterInfoInputImpl",
+            "Name": "Requestor Information",
+            "ConfigAttribute": [],
+            "Attribute": [
+                {
+                    "name": "requestor_name",
+                    "Descriptor": {
+                        "Syntax": "string",
+                        "Description": "Requestor Name"
+                    }
+                },
+                ...
+            ]
+        }
+    ],
+    "outputs": [
+        {
+            "id": "o1",
+            "name": "Certificate Output",
+            "classId": "certOutputImpl",
+            "attributes": [
+                {
+                    "name": "pretty_cert",
+                    "Descriptor": {
+                        "Syntax": "pretty_print",
+                        "Description": "Certificate Pretty Print"
+                    }
+                },
+                ...
+            ]
+        }
+    ],
+    "policySets": {
+        "userCertSet": [
+            {
+                "id": "1",
+                "def": {
+                    "name": "Subject Name Default",
+                    "classId": "userSubjectNameDefaultImpl",
+                    "text": "This default populates a User-Supplied Certificate Subject Name to the request.",
+                    "attributes": [
+                        {
+                            "name": "name",
+                            "Descriptor": {
+                                "Syntax": "string",
+                                "Description": "Subject Name"
+                            }
+                        }
+                    ],
+                    "params": [
+                        {
+                            "name": "useSysEncoding",
+                            "value": ""
+                        }
+                    ]
+                },
+                "constraint": {
+                    "name": "Subject Name Constraint",
+                    "text": "This constraint accepts the subject name that matches UID=.*",
+                    "classId": "subjectNameConstraintImpl",
+                    "constraints": [
+                        {
+                            "name": "pattern",
+                            "descriptor": {
+                                "Syntax": "string",
+                                "Description": "Subject Name Pattern"
+                            },
+                            "value": "UID=.*"
+                        }
+                    ]
+                }
+            },
+            ...
+        ]
+    },
+    "xmloutput": false
+}
+----
