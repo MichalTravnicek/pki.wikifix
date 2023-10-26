@@ -1,0 +1,83 @@
+= Checking Current Certificate =
+
+To check the current SSL server certificate:
+
+----
+$ pki-server cert-show sslserver
+  Cert ID: sslserver
+  Nickname: sslserver
+  Token: internal
+  Serial Number: 0x235131ac57d6dc14706338af68fce2b6
+  Subject DN: CN=fedora,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Not Valid Before: Wed Oct 25 15:39:35 2023
+  Not Valid After: Tue Oct 14 15:39:35 2025
+  Trust Flags: u,u,u
+----
+
+= Submitting Renewal Request =
+
+To submit a renewal request:
+
+----
+$ pki ca-cert-request-submit --profile caManualRenewal --serial 0x235131ac57d6dc14706338af68fce2b6 --renewal
+-----------------------------
+Submitted certificate request
+-----------------------------
+  Request ID: 0x139860c571ad8a59dc5375fe344f5432
+  Type: renewal
+  Request Status: pending
+  Operation Result: success
+  Creation Time: Thu Oct 26 17:28:13 CDT 2023
+  Modification Time: Thu Oct 26 17:28:13 CDT 2023
+----
+
+= Approving Renewal Request =
+
+To approve the renewal request:
+
+----
+$ pki -n caadmin ca-cert-request-approve 0x139860c571ad8a59dc5375fe344f5432
+---------------------------------------------------------------
+Approved certificate request 0x139860c571ad8a59dc5375fe344f5432
+---------------------------------------------------------------
+  Request ID: 0x139860c571ad8a59dc5375fe344f5432
+  Type: renewal
+  Request Status: complete
+  Operation Result: success
+  Certificate ID: 0x4e62aba6ad321857fcc93c20be4ee4c5
+  Creation Time: Thu Oct 26 17:28:13 CDT 2023
+  Modification Time: Thu Oct 26 17:29:56 CDT 2023
+----
+
+= Retrieving New Certificate =
+
+To retrieve the new SSL server certificate:
+
+----
+$ pki ca-cert-export 0x4e62aba6ad321857fcc93c20be4ee4c5 --output sslserver.crt
+----
+
+= Installing New Certificate =
+
+To install the new SSL server certificate:
+
+----
+$ pki-server subsystem-cert-update ca sslserver --cert sslserver.crt
+----
+
+To check the new SSL server certificate:
+
+----
+$ pki-server cert-show sslserver
+  Cert ID: sslserver
+  Nickname: sslserver
+  Token: internal
+  Serial Number: 0x4e62aba6ad321857fcc93c20be4ee4c5
+  Subject DN: CN=fedora,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Not Valid Before: Thu Oct 26 17:28:13 2023
+  Not Valid After: Wed Oct 15 17:28:13 2025
+  Trust Flags: u,u,u
+----
+
