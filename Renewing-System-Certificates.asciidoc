@@ -18,7 +18,7 @@ Also note that the renewal procedure requires a running CA. If the expired syste
 
 This document describes the renewal procedure using CLI in PKI 10.x. In PKI 9.x the renewal procedure needs to be done using legacy servlet interface, but it still follows the same general idea.
 
-= Identifying Certificates to Renew =
+= Checking Current Certificates =
 
 First, identify the serial numbers of the certificates that are about to expire. This can be done with the following command:
 
@@ -75,7 +75,14 @@ $ pki-server subsystem-cert-find ca
 
 For PKI 10.3 or earlier, see link:PKI-10.3-Identifying-Certificates-to-Renew[PKI 10.3 Identifying Certificates to Renew].
 
-= Submitting Renewal Requests =
+= Renewing SSL Server Certificate =
+
+If the SSL server certificate used by the CA service has already expired, it needs to be renewed first before renewing other certificates.
+See link:Renewing-SSL-Server-Certificate[Renewing SSL Server Certificate].
+
+= Renewing Other Certificates =
+
+== Submitting Renewal Requests ==
 
 For each expiring system certificate, submit a renewal request using the serial number.
 Each renewal request will generate a request ID.
@@ -83,7 +90,6 @@ This can be done with the following commands:
 
 ----
 $ pki ca-cert-request-submit --profile caManualRenewal --serial 0x2  --renewal  # OCSP signing
-$ pki ca-cert-request-submit --profile caManualRenewal --serial 0x3  --renewal  # SSL server
 $ pki ca-cert-request-submit --profile caManualRenewal --serial 0x4  --renewal  # subsystem
 $ pki ca-cert-request-submit --profile caManualRenewal --serial 0x5  --renewal  # audit signing
 ----
@@ -92,12 +98,11 @@ For PKI 10.3 or earlier, see link:PKI-10.3-Submitting-Renewal-Requests[PKI 10.3 
 
 See also link:Submitting-Certificate-Renewal-Request[Submitting Certificate Renewal Request].
 
-= Approving Renewal Requests =
+== Approving Renewal Requests ==
 
 As the CA agent, approve each renewal request using the request ID:
 
 ----
-$ pki -n caadmin -c Secret.123 ca-cert-request-review 7 --action approve
 $ pki -n caadmin -c Secret.123 ca-cert-request-review 8 --action approve
 $ pki -n caadmin -c Secret.123 ca-cert-request-review 9 --action approve
 $ pki -n caadmin -c Secret.123 ca-cert-request-review 10 --action approve
@@ -107,20 +112,19 @@ Each approval will generate a new certificate with a new serial number.
 
 See also link:Handling-Certificate-Request[Handling Certificate Request].
 
-= Retrieving Renewed Certificates =
+== Retrieving New Certificates ==
 
 Download the renewed certificates into files using the new serial numbers:
 
 ----
-$ pki ca-cert-show 0x7 --output ca_ocsp_signing.crt
-$ pki ca-cert-show 0x8 --output sslserver.crt
+$ pki ca-cert-show 0x8 --output ca_ocsp_signing.crt
 $ pki ca-cert-show 0x9 --output subsystem.crt
 $ pki ca-cert-show 0xa --output ca_audit_signing.crt
 ----
 
 See also link:Retrieving-Certificate[Retrieving Certificate].
 
-= Updating System Certificates =
+== Installing New Certificates ==
 
 The new certificates need to be imported into the NSS database and the copy of the certificates in the CS.cfg need to be updated as well. While NSS should be able to handle multiple certificates (both old and new) in the NSS database it is recommended that the old one is removed. To prevent NSS database or CS.cfg corruption, shutdown the server before making the changes.
 
@@ -134,7 +138,6 @@ Update the NSS database and CS.cfg with the following commands:
 
 ----
 $ pki-server subsystem-cert-update ca ocsp_signing --cert ca_ocsp_signing.crt
-$ pki-server subsystem-cert-update ca sslserver --cert sslserver.crt
 $ pki-server subsystem-cert-update ca subsystem --cert subsystem.crt
 $ pki-server subsystem-cert-update ca audit_signing --cert ca_audit_signing.crt
 ----
@@ -142,7 +145,7 @@ $ pki-server subsystem-cert-update ca audit_signing --cert ca_audit_signing.crt
 Finally, restart the server:
 
 ----
-$ systemctl start pki-tomcatd@pki-tomcat.service
+$ pki-server restart --wait
 ----
 
 For PKI 10.3 or earlier, see link:PKI-10.3-Updating-System-Certificates[PKI 10.3 Updating System Certificates].
