@@ -19,11 +19,49 @@ $ pki-server cert-show sslserver
   Trust Flags: u,u,u
 ----
 
-= Online Renewal Procedure =
- 
-The online renewal procedure can be used if the SSL server certificate used by the CA service is still valid, so the CA service can be used to issue a new SSL certificate for the CA service itself or for other PKI services.
+= Creating Temporary SSL Server Certificate =
 
-First, submit a renewal request:
+If the current SSL server certificate used by the CA service has already expired, the CA itself might no longer be accessible or stop working completely, so it cannot be used to renew certificates including the expired SSL server certificate itself. In this case a temporary (short-lived) SSL server certificate needs to be created to restore the CA service. Once the renewals are complete, the temporary certificate can be replaced with the permanent one.
+
+To create a temporary SSL server certificate execute the following command:
+
+----
+$ pki-server cert-create sslserver --temp
+----
+
+The certificate will be stored in `/etc/pki/<instance>/certs/sslserver.crt`.
+
+Next, delete the current SSL server certificate in PKI server's NSS database:
+
+----
+$ pki-server cert-del sslserver
+----
+
+Then import the temporary certificate into the NSS database:
+
+----
+$ pki-server cert-import sslserver
+----
+
+If the CA has other expired system certificates, disable the selftests temporarily:
+
+----
+$ pki-server selftest-disable
+----
+
+Finally, restart PKI server with the temporary certificate:
+
+----
+$ pki-server restart --wait
+----
+
+Continue to the next section.
+
+= Creating Permanent SSL Server Certificate =
+
+If the current SSL server certificate used by the CA service is still valid, or a temporary certificate has been created as described in the previous section, the CA service can be used to issue a permanent SSL server certificate for the CA service itself or for other instances.
+
+To submit a renewal request execute the following command:
 
 ----
 $ pki ca-cert-request-submit \
@@ -41,10 +79,10 @@ Submitted certificate request
   Modification Time: Thu Oct 26 17:28:13 CDT 2023
 ----
 
-Next, approve the renewal request:
+Next, as a CA agent approve the renewal request:
 
 ----
-$ pki -n caadmin ca-cert-request-approve 0x139860c571ad8a59dc5375fe344f5432
+$ pki -n caadmin ca-cert-request-approve 0x139860c571ad8a59dc5375fe344f5432 --force
 ---------------------------------------------------------------
 Approved certificate request 0x139860c571ad8a59dc5375fe344f5432
 ---------------------------------------------------------------
@@ -57,25 +95,25 @@ Approved certificate request 0x139860c571ad8a59dc5375fe344f5432
   Modification Time: Thu Oct 26 17:29:56 CDT 2023
 ----
 
-Retrieve the new SSL server certificate:
+Retrieve the new certificate:
 
 ----
-$ pki ca-cert-export 0x4e62aba6ad321857fcc93c20be4ee4c5 --output sslserver.crt
+$ pki ca-cert-export 0x4e62aba6ad321857fcc93c20be4ee4c5 --output-file sslserver.crt
 ----
 
-Then install the new SSL server certificate:
+Delete the current/temporary certificate:
 
 ----
-$ pki-server subsystem-cert-update ca sslserver --cert sslserver.crt
+$ pki-server cert-del sslserver
 ----
 
-Finally, restart PKI server in order to use the new certificate:
+Then install the new certificate:
 
 ----
-$ pki-server restart --wait
+$ pki-server cert-import sslserver --cert sslserver.crt
 ----
 
-Check the new SSL server certificate:
+Check the new certificate with the following command:
 
 ----
 $ pki-server cert-show sslserver
@@ -90,34 +128,14 @@ $ pki-server cert-show sslserver
   Trust Flags: u,u,u
 ----
 
-= Offline Renewal Procedure =
-
-The offline renewal procedure needs to be used if the current SSL server certificate used by the CA service has already expired so the service might not be accessible anymore.
-
-Use this procedure to create a temporary SSL server certificate (which will be short-lived and not stored in CA database) to restore the CA service, then use the online renewal procedure to create the permanent certificate.
-
-First, create a temporary SSL server certificate which will be stored in `/etc/pki/<instance>/certs/sslserver.crt`.
+If the CA has no more expired system certificates, restore the selftests with the following command:
 
 ----
-$ pki-server cert-create sslserver --temp
+$ pki-server selftest-enable
 ----
 
-Next, delete the current SSL server certificate in PKI server's NSS database:
-
-----
-$ pki-server cert-del sslserver
-----
-
-Then import the temporary certificate into the NSS database:
-
-----
-$ pki-server cert-import sslserver
-----
-
-Finally, restart PKI server in order to use the temporary certificate:
+Finally, restart PKI server with the following command:
 
 ----
 $ pki-server restart --wait
 ----
-
-Follow the online renewal procedure to create the permanent certificate.
