@@ -23,54 +23,52 @@ This document describes the renewal procedure using CLI in PKI 10.x. In PKI 9.x 
 First, identify the serial numbers of the certificates that are about to expire. This can be done with the following command:
 
 ----
-$ pki-server subsystem-cert-find ca
------------------
-5 entries matched
------------------
+$ pki-server cert-find
   Cert ID: signing
   Nickname: ca_signing
   Token: Internal Key Storage Token
-  Serial number: 0x1
-  Issuer: CN=CA Signing Certificate, OU=pki-tomcat, O=EXAMPLE
-  Subject: CN=CA Signing Certificate, OU=pki-tomcat, O=EXAMPLE
-  Not valid before: 2016-12-06 12:49:43
-  Not valid after: 2036-12-06 12:49:43
+  Serial Number: 0x1
+  Subject DN: CN=CA Signing Certificate, OU=pki-tomcat, O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate, OU=pki-tomcat, O=EXAMPLE
+  Not Valid Before: 2016-12-06 12:49:43
+  Not Valid After: 2036-12-06 12:49:43
 
   Cert ID: ocsp_signing
   Nickname: ca_ocsp_signing
   Token: Internal Key Storage Token
-  Serial number: 0x2
-  Issuer: CN=CA Signing Certificate, OU=pki-tomcat, O=EXAMPLE
-  Subject: CN=CA OCSP Signing Certificate, OU=pki-tomcat, O=EXAMPLE
-  Not valid before: 2016-12-06 12:49:43
-  Not valid after: 2018-11-26 12:49:43
+  Serial Number: 0x2
+  Subject DN: CN=CA OCSP Signing Certificate, OU=pki-tomcat, O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate, OU=pki-tomcat, O=EXAMPLE
+  Not Valid Before: 2016-12-06 12:49:43
+  Not Valid After: 2018-11-26 12:49:43
 
   Cert ID: sslserver
   Nickname: sslserver
   Token: Internal Key Storage Token
-  Serial number: 0x3
-  Issuer: CN=CA Signing Certificate, OU=pki-tomcat, O=EXAMPLE
-  Subject: CN=vm-058-091.abc.idm.lab.eng.brq.redhat.com, OU=pki-tomcat, O=EXAMPLE
-  Not valid before: 2016-12-06 12:49:44
-  Not valid after: 2018-11-26 12:49:44
+  Serial Number: 0x3
+  Subject DN: CN=Subsystem Certificate, OU=pki-tomcat, O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate, OU=pki-tomcat, O=EXAMPLE
+  Subject DN: CN=vm-058-091.abc.idm.lab.eng.brq.redhat.com, OU=pki-tomcat, O=EXAMPLE
+  Not Valid Before: 2016-12-06 12:49:44
+  Not Valid After: 2018-11-26 12:49:44
 
   Cert ID: subsystem
   Nickname: subsystem
   Token: Internal Key Storage Token
-  Serial number: 0x4
-  Issuer: CN=CA Signing Certificate, OU=pki-tomcat, O=EXAMPLE
-  Subject: CN=Subsystem Certificate, OU=pki-tomcat, O=EXAMPLE
-  Not valid before: 2016-12-06 12:49:44
-  Not valid after: 2018-11-26 12:49:44
+  Serial Number: 0x4
+  Subject DN: CN=Subsystem Certificate, OU=pki-tomcat, O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate, OU=pki-tomcat, O=EXAMPLE
+  Not Valid Before: 2016-12-06 12:49:44
+  Not Valid After: 2018-11-26 12:49:44
 
   Cert ID: audit_signing
   Nickname: ca_audit_signing
   Token: Internal Key Storage Token
-  Serial number: 0x5
-  Issuer: CN=CA Signing Certificate, OU=pki-tomcat, O=EXAMPLE
-  Subject: CN=CA Audit Signing Certificate, OU=pki-tomcat, O=EXAMPLE
-  Not valid before: 2016-12-06 12:49:44
-  Not valid after: 2018-11-26 12:49:44
+  Serial Number: 0x5
+  Subject DN: CN=CA Audit Signing Certificate, OU=pki-tomcat, O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate, OU=pki-tomcat, O=EXAMPLE
+  Not Valid Before: 2016-12-06 12:49:44
+  Not Valid After: 2018-11-26 12:49:44
 ----
 
 For PKI 10.3 or earlier, see link:PKI-10.3-Identifying-Certificates-to-Renew[PKI 10.3 Identifying Certificates to Renew].
@@ -103,9 +101,9 @@ See also link:Submitting-Certificate-Renewal-Request[Submitting Certificate Rene
 As the CA agent, approve each renewal request using the request ID:
 
 ----
-$ pki -n caadmin -c Secret.123 ca-cert-request-review 8 --action approve
-$ pki -n caadmin -c Secret.123 ca-cert-request-review 9 --action approve
-$ pki -n caadmin -c Secret.123 ca-cert-request-review 10 --action approve
+$ pki -n caadmin ca-cert-request-review 8 --action approve
+$ pki -n caadmin ca-cert-request-review 9 --action approve
+$ pki -n caadmin ca-cert-request-review 10 --action approve
 ----
 
 Each approval will generate a new certificate with a new serial number.
@@ -114,32 +112,32 @@ See also link:Handling-Certificate-Request[Handling Certificate Request].
 
 == Retrieving New Certificates ==
 
-Download the renewed certificates into files using the new serial numbers:
+Retrieve the renewed certificates into files using the new serial numbers:
 
 ----
-$ pki ca-cert-show 0x8 --output ca_ocsp_signing.crt
-$ pki ca-cert-show 0x9 --output subsystem.crt
-$ pki ca-cert-show 0xa --output ca_audit_signing.crt
+$ pki ca-cert-export 0x8 --output-file ca_ocsp_signing.crt
+$ pki ca-cert-export 0x9 --output-file subsystem.crt
+$ pki ca-cert-export 0xa --output-file ca_audit_signing.crt
 ----
 
 See also link:Retrieving-Certificate[Retrieving Certificate].
 
 == Installing New Certificates ==
 
-The new certificates need to be imported into the NSS database and the copy of the certificates in the CS.cfg need to be updated as well. While NSS should be able to handle multiple certificates (both old and new) in the NSS database it is recommended that the old one is removed. To prevent NSS database or CS.cfg corruption, shutdown the server before making the changes.
-
-First, shutdown the server:
+Remove the current certificates with the following commands:
 
 ----
-$ systemctl stop pki-tomcatd@pki-tomcat.service
+$ pki-server cert-del ca_ocsp_signing
+$ pki-server cert-del subsystem
+$ pki-server cert-del ca_audit_signing
 ----
 
-Update the NSS database and CS.cfg with the following commands:
+Import the new certificates with the following commands:
 
 ----
-$ pki-server subsystem-cert-update ca ocsp_signing --cert ca_ocsp_signing.crt
-$ pki-server subsystem-cert-update ca subsystem --cert subsystem.crt
-$ pki-server subsystem-cert-update ca audit_signing --cert ca_audit_signing.crt
+$ pki-server cert-import ca_ocsp_signing --input ca_ocsp_signing.crt
+$ pki-server cert-import subsystem --input subsystem.crt
+$ pki-server cert-import ca_audit_signing --input ca_audit_signing.crt
 ----
 
 Finally, restart the server:
