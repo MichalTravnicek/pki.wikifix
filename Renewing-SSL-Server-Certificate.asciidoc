@@ -33,7 +33,7 @@ $ pki-server cert-create sslserver --temp
 
 The certificate will be stored in `/etc/pki/<instance>/certs/sslserver.crt`.
 
-Next, delete the current SSL server certificate in PKI server's NSS database:
+Next, delete the current SSL server certificate from the server's NSS database:
 
 ----
 $ pki-server cert-del sslserver
@@ -45,16 +45,24 @@ Then import the temporary certificate into the NSS database:
 $ pki-server cert-import sslserver
 ----
 
-If the CA has other expired system certificates, disable the selftests temporarily before restarting the server:
+Finally, restart the server with the temporary certificate:
+
+----
+$ pki-server restart --wait
+----
+
+Once the CA is up, proceed to create the permanent SSL server certificate to replace the temporary certificate.
+
+**Note:** If the CA has other expired system certificates, it might be necessary to disable the selftests before restarting the server:
 
 ----
 $ pki-server selftest-disable
 ----
 
-Finally, restart the server with the temporary certificate:
+Once all system certificates are renewed, the selftests can be restored with the following command:
 
 ----
-$ pki-server restart --wait
+$ pki-server selftest-enable
 ----
 
 = Creating Permanent SSL Server Certificate =
@@ -102,7 +110,7 @@ Next, retrieve the new certificate from the CA:
 $ pki ca-cert-export 0x4e62aba6ad321857fcc93c20be4ee4c5 --output-file sslserver.crt
 ----
 
-Delete the current/temporary certificate from PKI server's NSS database:
+Delete the current/temporary certificate from the server's NSS database:
 
 ----
 $ pki-server cert-del sslserver
@@ -127,12 +135,6 @@ $ pki-server cert-show sslserver
   Not Valid Before: Thu Oct 26 17:28:13 2023
   Not Valid After: Wed Oct 15 17:28:13 2025
   Trust Flags: u,u,u
-----
-
-If the CA has no more expired system certificates, restore the selftests with the following command before restarting the server:
-
-----
-$ pki-server selftest-enable
 ----
 
 Finally, restart the server with the following command:
