@@ -82,7 +82,7 @@ Submitted certificate request
 Next, as a CA agent approve the renewal request:
 
 ----
-$ pki -n caadmin ca-cert-request-approve 0x139860c571ad8a59dc5375fe344f5432 --force
+$ pki <CA agent authentication> ca-cert-request-approve 0x139860c571ad8a59dc5375fe344f5432 --force
 ---------------------------------------------------------------
 Approved certificate request 0x139860c571ad8a59dc5375fe344f5432
 ---------------------------------------------------------------
@@ -95,7 +95,10 @@ Approved certificate request 0x139860c571ad8a59dc5375fe344f5432
   Modification Time: Thu Oct 26 17:29:56 CDT 2023
 ----
 
-Retrieve the new certificate:
+The CA agent can authenticate using a client certificate or a username and password.
+If necessary, the password can be link:Resetting-User-Password[reset] by the system administrator.
+
+Next, retrieve the new certificate:
 
 ----
 $ pki ca-cert-export 0x4e62aba6ad321857fcc93c20be4ee4c5 --output-file sslserver.crt
