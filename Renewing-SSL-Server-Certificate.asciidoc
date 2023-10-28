@@ -43,23 +43,23 @@ Then import the temporary certificate into the NSS database:
 $ pki-server cert-import sslserver
 ----
 
-If the CA has other expired system certificates, disable the selftests temporarily:
+If the CA has other expired system certificates, disable the selftests temporarily before restarting the server:
 
 ----
 $ pki-server selftest-disable
 ----
 
-Finally, restart PKI server with the temporary certificate:
+Finally, restart the server with the temporary certificate:
 
 ----
 $ pki-server restart --wait
 ----
 
-Continue to the next section.
+Continue to the next section to create the permanent certificate.
 
 = Creating Permanent SSL Server Certificate =
 
-If the current SSL server certificate used by the CA service is still valid, or a temporary certificate has been created as described in the previous section, the CA service can be used to issue a permanent SSL server certificate for the CA service itself or for other instances.
+If the current SSL server certificate used by the CA service is still valid, or if a temporary certificate was created since the current one has already expired, the CA service can be used to renew the certificate (i.e. create a permanent certificate).
 
 To submit a renewal request execute the following command:
 
