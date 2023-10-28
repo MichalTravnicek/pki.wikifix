@@ -1,6 +1,10 @@
 = Overview =
 
-This page describes the process to renew an SSL server certificate used by PKI server.
+This page describes the process to renew an SSL server certificate used by a PKI server instance.
+
+For an instance that has a CA, if the current SSL server certificate used by the instance has already expired, the server itself might not start or might not be accessible, so the CA cannot be used to renew certificates including the expired SSL server certificate itself. In this case create a temporary (short-lived) SSL server certificate to restore the CA, then use the CA to create the permanent certificate.
+
+For an instance that does not have a CA, use the CA (on another instance) to create a new permanent SSL server certificate.
 
 = Checking Current Certificate =
 
@@ -20,8 +24,6 @@ $ pki-server cert-show sslserver
 ----
 
 = Creating Temporary SSL Server Certificate =
-
-If the current SSL server certificate used by the CA service has already expired, the CA itself might no longer be accessible or stop working completely, so it cannot be used to renew certificates including the expired SSL server certificate itself. In this case a temporary (short-lived) SSL server certificate needs to be created to restore the CA service. Once the renewals are complete, the temporary certificate can be replaced with the permanent one.
 
 To create a temporary SSL server certificate execute the following command:
 
@@ -55,13 +57,9 @@ Finally, restart the server with the temporary certificate:
 $ pki-server restart --wait
 ----
 
-Continue to the next section to create the permanent certificate.
-
 = Creating Permanent SSL Server Certificate =
 
-If the current SSL server certificate used by the CA service is still valid, or if a temporary certificate was created since the current one has already expired, the CA service can be used to renew the certificate, creating a new permanent certificate.
-
-To submit a renewal request execute the following command:
+To create a permanent certificate, submit a renewal request to the CA by executing the following command:
 
 ----
 $ pki ca-cert-request-submit \
@@ -98,19 +96,19 @@ Approved certificate request 0x139860c571ad8a59dc5375fe344f5432
 The CA agent can authenticate using a client certificate or a username and password.
 If necessary, the password can be link:Resetting-User-Password[reset] by the system administrator.
 
-Next, retrieve the new certificate:
+Next, retrieve the new certificate from the CA:
 
 ----
 $ pki ca-cert-export 0x4e62aba6ad321857fcc93c20be4ee4c5 --output-file sslserver.crt
 ----
 
-Delete the current/temporary certificate from NSS database:
+Delete the current/temporary certificate from PKI server's NSS database:
 
 ----
 $ pki-server cert-del sslserver
 ----
 
-Then import the new certificate into PKI server's NSS database:
+Then import the new certificate into the NSS database:
 
 ----
 $ pki-server cert-import sslserver --import sslserver.crt
