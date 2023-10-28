@@ -1,0 +1,98 @@
+= Overview =
+
+This page describes the process to renew a subsystem certificate for a PKI server.
+
+= Checking Current Certificate =
+
+To check the current subsystem certificate:
+
+----
+$ pki-server cert-show subsystem
+  Cert ID: subsystem
+  Nickname: subsystem
+  Token: internal
+  Serial Number: 0x54fd496f49dafea6b6e534acf21205b3
+  Subject DN: CN=Subsystem Certificate,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Not Valid Before: Wed Oct 25 15:39:38 2023
+  Not Valid After: Tue Oct 14 15:39:38 2025
+  Trust Flags: u,u,u
+----
+
+= Renewal Procedure =
+
+To renew a subsystem certificate, submit a renewal request to the CA by executing the following command:
+
+----
+$ pki ca-cert-request-submit \
+    --profile caManualRenewal \
+    --serial 0x54fd496f49dafea6b6e534acf21205b3 \
+    --renewal
+-----------------------------
+Submitted certificate request
+-----------------------------
+  Request ID: 0xd3b1a4085592dcb66a8d22e0941b9940
+  Type: renewal
+  Request Status: pending
+  Operation Result: success
+  Creation Time: Fri Oct 27 23:20:04 CDT 2023
+  Modification Time: Fri Oct 27 23:20:04 CDT 2023
+----
+
+Next, as a CA agent approve the renewal request:
+
+----
+$ pki <CA agent authentication> ca-cert-request-approve 0xd3b1a4085592dcb66a8d22e0941b9940 --force
+---------------------------------------------------------------
+Approved certificate request 0xd3b1a4085592dcb66a8d22e0941b9940
+---------------------------------------------------------------
+  Request ID: 0xd3b1a4085592dcb66a8d22e0941b9940
+  Type: renewal
+  Request Status: complete
+  Operation Result: success
+  Certificate ID: 0xc231c2f8d7a34670c196fae567f1492b
+  Creation Time: Fri Oct 27 23:20:04 CDT 2023
+  Modification Time: Fri Oct 27 23:21:20 CDT 2023
+----
+
+The CA agent can authenticate using a client certificate or a username and password.
+If necessary, the password can be link:Resetting-User-Password[reset] by the system administrator.
+
+Next, retrieve the new certificate from the CA:
+
+----
+$ pki ca-cert-export 0xc231c2f8d7a34670c196fae567f1492b --output-file subsystem.crt
+----
+
+Delete the current/temporary certificate from the server's NSS database:
+
+----
+$ pki-server cert-del subsystem
+----
+
+Then import the new certificate into the NSS database:
+
+----
+$ pki-server cert-import subsystem --input subsystem.crt
+----
+
+Check the new certificate with the following command:
+
+----
+$ pki-server cert-show subsystem
+  Cert ID: subsystem
+  Nickname: subsystem
+  Token: internal
+  Serial Number: 0xc231c2f8d7a34670c196fae567f1492b
+  Subject DN: CN=Subsystem Certificate,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Not Valid Before: Fri Oct 27 23:20:04 2023
+  Not Valid After: Thu Oct 16 23:20:04 2025
+  Trust Flags: u,u,u
+----
+
+Finally, restart the server with the following command:
+
+----
+$ pki-server restart --wait
+----
