@@ -1,10 +1,10 @@
 = Overview =
 
-This page describes the process to renew an SSL server certificate used by a PKI server instance.
+This page describes the process to manually renew an SSL server certificate used by a PKI server.
 
-For an instance that has a CA, if the current SSL server certificate used by the instance has already expired, the server itself might not start or might not be accessible, so the CA cannot be used to renew certificates including the expired SSL server certificate itself. In this case create a temporary (short-lived) SSL server certificate to restore the CA, then use the CA to create the permanent certificate.
+For a server that has a CA, if the current SSL server certificate used by the server has already expired, the server itself might not start or might not be accessible, so the CA cannot be used to renew certificates including the expired SSL server certificate itself. In this case create a temporary (short-lived) SSL server certificate to restore the CA, then use the CA to create the permanent certificate.
 
-For an instance that does not have a CA, use the CA (on another instance) to create a new permanent SSL server certificate.
+For a server that does not have a CA, use the CA (on another server) to create a new permanent SSL server certificate.
 
 = Checking Current Certificate =
 
@@ -25,7 +25,7 @@ $ pki-server cert-show sslserver
 
 = Creating Temporary SSL Server Certificate =
 
-To create a temporary SSL server certificate execute the following command:
+To create a temporary SSL server certificate for CA execute the following command:
 
 ----
 $ pki-server cert-create sslserver --temp
@@ -51,9 +51,9 @@ Finally, restart the server with the temporary certificate:
 $ pki-server restart --wait
 ----
 
-Once the CA is up, proceed to create the permanent SSL server certificate to replace the temporary certificate.
+Once the server is up, proceed to create the permanent SSL server certificate to replace the temporary certificate.
 
-**Note:** If the CA has other expired system certificates, it might be necessary to disable the selftests before restarting the server:
+**Note:** If the server has other expired system certificates, it might be necessary to disable the selftests before restarting the server:
 
 ----
 $ pki-server selftest-disable
@@ -67,7 +67,7 @@ $ pki-server selftest-enable
 
 = Creating Permanent SSL Server Certificate =
 
-To create a permanent certificate, submit a renewal request to the CA by executing the following command:
+To create a permanent SSL server certificate for any subsystem, submit a renewal request to the CA by executing the following command:
 
 ----
 $ pki ca-cert-request-submit \
