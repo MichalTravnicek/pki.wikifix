@@ -91,7 +91,6 @@ This can be done with the following commands:
 
 ----
 $ pki ca-cert-request-submit --profile caManualRenewal --serial 0x2  --renewal  # OCSP signing
-$ pki ca-cert-request-submit --profile caManualRenewal --serial 0x4  --renewal  # subsystem
 $ pki ca-cert-request-submit --profile caManualRenewal --serial 0x5  --renewal  # audit signing
 ----
 
@@ -104,7 +103,6 @@ See also link:Submitting-Certificate-Renewal-Request[Submitting Certificate Rene
 As the CA agent, approve each renewal request using the request ID:
 
 ----
-$ pki -n caadmin ca-cert-request-review 8 --action approve
 $ pki -n caadmin ca-cert-request-review 9 --action approve
 $ pki -n caadmin ca-cert-request-review 10 --action approve
 ----
@@ -119,7 +117,6 @@ Retrieve the renewed certificates into files using the new serial numbers:
 
 ----
 $ pki ca-cert-export 0x8 --output-file ca_ocsp_signing.crt
-$ pki ca-cert-export 0x9 --output-file subsystem.crt
 $ pki ca-cert-export 0xa --output-file ca_audit_signing.crt
 ----
 
@@ -131,7 +128,6 @@ Remove the current certificates with the following commands:
 
 ----
 $ pki-server cert-del ca_ocsp_signing
-$ pki-server cert-del subsystem
 $ pki-server cert-del ca_audit_signing
 ----
 
@@ -139,7 +135,6 @@ Import the new certificates with the following commands:
 
 ----
 $ pki-server cert-import ca_ocsp_signing --input ca_ocsp_signing.crt
-$ pki-server cert-import subsystem --input subsystem.crt
 $ pki-server cert-import ca_audit_signing --input ca_audit_signing.crt
 ----
 
