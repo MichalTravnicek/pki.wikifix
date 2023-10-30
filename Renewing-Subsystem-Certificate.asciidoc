@@ -91,12 +91,32 @@ $ pki-server cert-show subsystem
   Trust Flags: u,u,u
 ----
 
-= Updating Subsystem User =
+= Updating Subsystem User Certificate =
 
-Use `pki-server <subsystem>-user-cert-del` to delete the old subsystem certificate,
-then use `pki-server <subsystem>-user-cert-add` to add the new subsystem certificate.
-See link:PKI-Server-Subsystem-User-Certificate-CLI[PKI Server Subsystem User Certificate CLI].
+To check the certificate currently assigned to the subsystem user:
+
+----
+$ pki-server ca-user-cert-find CA-pki.example.com-8443
+  Cert ID: <cert ID>
+  Version: 2
+  Serial Number: 0x54fd496f49dafea6b6e534acf21205b3
+  Issuer: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Subject: CN=Subsystem Certificate,OU=pki-tomcat,O=EXAMPLE
+----
+
+To delete the current certificate:
+
+----
+$ pki-server ca-user-cert-del CA-pki.example.com-8443 "<cert ID>"
+----
+
+To add the new certificate:
+
+----
+$ pki-server ca-user-cert-add CA-pki.example.com-8443 --cert subsystem.crt
+----
 
 = See Also =
 
 * link:Renewing-System-Certificates[Renewing System Certificates]
+* link:PKI-Server-Subsystem-User-Certificate-CLI[PKI Server Subsystem User Certificate CLI]
