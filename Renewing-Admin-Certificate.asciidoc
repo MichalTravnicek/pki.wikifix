@@ -87,8 +87,34 @@ $ pki nss-cert-show caadmin
   Trust Flags: u,u,u
 ----
 
+= Updating Admin User Certificate =
+
+To check the certificate currently assigned to the admin user:
+
+----
+$ pki-server ca-user-cert-find caadmin
+  Cert ID: <cert ID>
+  Version: 2
+  Serial Number: 0x65300604f7b25fed959105e2ea23c099
+  Issuer: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Subject: CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPL
+----
+
+To delete the current certificate:
+
+----
+$ pki-server ca-user-cert-del caadmin "<cert ID>"
+----
+
+To add the new certificate:
+
+----
+$ pki-server ca-user-cert-add caadmin --cert caadmin.crt
+----
+
 = See Also =
 
 * link:Renewing-Admin-Certificate-with-RSNv3[Renewing Admin Certificate with RSNv3]
 * link:Renewing-Admin-Certificate-using-pki-server-cert-fix[Renewing Admin Certificate using pki-server cert-fix]
 * link:Renewing-Admin-Certificate-using-CMSGateway[Renewing Admin Certificate using CMSGateway]
+* link:PKI-Server-Subsystem-User-Certificate-CLI[PKI Server Subsystem User Certificate CLI]
