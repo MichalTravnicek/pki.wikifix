@@ -16,11 +16,13 @@ Note that the default PKI user certificate also has a shorter validity range.
 
 Also note that the renewal procedure requires a running CA. If the expired system certificate was issued by a CA running on the same server, the server might fail to start and the certificate cannot be renewed since the CA is not available. If that happens, the system date needs to be moved back to a time where all system certificates were still valid before starting the renewal process.
 
-This document describes the renewal procedure using CLI in PKI 10.x. In PKI 9.x the renewal procedure needs to be done using legacy servlet interface, but it still follows the same general idea.
+This document describes the renewal procedure using CLI in PKI 10 or later. In PKI 9 the renewal procedure needs to be done using legacy servlet interface, but it still follows the same general idea.
 
-= Checking Current Certificates =
+For PKI 10.3 or earlier, see link:PKI-10.3-Updating-System-Certificates[PKI 10.3 Updating System Certificates].
 
-First, identify the serial numbers of the certificates that are about to expire. This can be done with the following command:
+= Checking System Certificate Statuses =
+
+First, identify the system certificates that are about to expire or have already expired with the following command:
 
 ----
 $ pki-server cert-find
@@ -72,70 +74,57 @@ $ pki-server cert-find
 
 For PKI 10.3 or earlier, see link:PKI-10.3-Identifying-Certificates-to-Renew[PKI 10.3 Identifying Certificates to Renew].
 
-= Renewing SSL Server Certificate =
+= Checking CA Status =
 
-If the SSL server certificate used by the CA service has already expired, it needs to be renewed first before renewing other certificates.
-See link:Renewing-SSL-Server-Certificate[Renewing SSL Server Certificate].
+In order to renew the system certificates the CA must be running.
 
-= Renewing Subsystem Certificate =
-
-See link:Renewing-Subsystem-Certificate[Renewing Subsystem Certificate].
-
-= Renewing Other Certificates =
-
-== Submitting Renewal Requests ==
-
-For each expiring system certificate, submit a renewal request using the serial number.
-Each renewal request will generate a request ID.
-This can be done with the following commands:
+To verify the CA:
 
 ----
-$ pki ca-cert-request-submit --profile caManualRenewal --serial 0x2  --renewal  # OCSP signing
-$ pki ca-cert-request-submit --profile caManualRenewal --serial 0x5  --renewal  # audit signing
+$ pki ca-cert-find
 ----
 
-For PKI 10.3 or earlier, see link:PKI-10.3-Submitting-Renewal-Requests[PKI 10.3 Submitting Renewal Requests].
-
-See also link:Submitting-Certificate-Renewal-Request[Submitting Certificate Renewal Request].
-
-== Approving Renewal Requests ==
-
-As the CA agent, approve each renewal request using the request ID:
+If the SSL server certificate of the CA itself has already expired, disable the selftests with following command:
 
 ----
-$ pki -n caadmin ca-cert-request-review 9 --action approve
-$ pki -n caadmin ca-cert-request-review 10 --action approve
+$ pki-server selftest-disable
 ----
 
-Each approval will generate a new certificate with a new serial number.
+Then create a temporary SSL server certificate to bring up the CA temporarily.
 
-See also link:Handling-Certificate-Request[Handling Certificate Request].
+= Checking CA Agent Access =
 
-== Retrieving New Certificates ==
+In order to renew the system certificates the CA admin/agent must be able to authenticate either using a client certificate or a username and password.
 
-Retrieve the renewed certificates into files using the new serial numbers:
-
-----
-$ pki ca-cert-export 0x8 --output-file ca_ocsp_signing.crt
-$ pki ca-cert-export 0xa --output-file ca_audit_signing.crt
-----
-
-See also link:Retrieving-Certificate[Retrieving Certificate].
-
-== Installing New Certificates ==
-
-Remove the current certificates with the following commands:
+To verify the client certificate:
 
 ----
-$ pki-server cert-del ca_ocsp_signing
-$ pki-server cert-del ca_audit_signing
+$ pki -n caadmin ca-user-show caadmin
 ----
 
-Import the new certificates with the following commands:
+If the client certificate does not work, use the username and password to renew the system certificates and the client certificate as well.
+
+To verify the username and password:
 
 ----
-$ pki-server cert-import ca_ocsp_signing --input ca_ocsp_signing.crt
-$ pki-server cert-import ca_audit_signing --input ca_audit_signing.crt
+$ pki -u caadmin -w Secret.123 ca-user-show caadmin
+----
+
+If the password does not work, link:Resetting-User-Password[reset] the password.
+
+= Renewing System Certificates =
+
+* link:Renewing-SSL-Server-Certificate[Renewing SSL Server Certificate]
+* link:Renewing-Subsystem-Certificate[Renewing Subsystem Certificate]
+* link:Renewing-OCSP-Signing-Certificate[Renewing OCSP Signing Certificate]
+* link:Renewing-Audit-Signing-Certificate[Renewing Audit Signing Certificate]
+
+= Restarting the Server =
+
+Once all system certificates are renewed, reenable the selftests:
+
+----
+$ pki-server selftest-enable
 ----
 
 Finally, restart the server:
@@ -143,5 +132,3 @@ Finally, restart the server:
 ----
 $ pki-server restart --wait
 ----
-
-For PKI 10.3 or earlier, see link:PKI-10.3-Updating-System-Certificates[PKI 10.3 Updating System Certificates].
