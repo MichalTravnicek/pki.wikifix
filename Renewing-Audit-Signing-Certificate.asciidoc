@@ -1,0 +1,98 @@
+= Overview =
+
+This page describes the process to renew an audit signing certificate for a PKI server.
+
+= Checking Current Certificate =
+
+To check the current audit signing certificate:
+
+----
+$ pki-server cert-show ca_audit_signing
+  Cert ID: audit_signing
+  Nickname: ca_audit_signing
+  Token: internal
+  Serial Number: 0xc4f010c9e1f5f808738d308cdd9944ae
+  Subject DN: CN=CA Audit Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Not Valid Before: Wed Oct 25 15:39:41 2023
+  Not Valid After: Tue Oct 14 15:39:41 2025
+  Trust Flags: u,u,Pu
+----
+
+= Renewal Procedure =
+
+To renew the audit signing certificate, submit a renewal request to the CA by executing the following command:
+
+----
+$ pki ca-cert-request-submit \
+    --profile caManualRenewal \
+    --serial 0xc4f010c9e1f5f808738d308cdd9944ae \
+    --renewal
+-----------------------------
+Submitted certificate request
+-----------------------------
+  Request ID: 0xd9e0f8427c485dfc3a6aebccad08a317
+  Type: renewal
+  Request Status: pending
+  Operation Result: success
+  Creation Time: Mon Oct 30 09:42:07 CDT 2023
+  Modification Time: Mon Oct 30 09:42:07 CDT 2023
+----
+
+Next, as a CA agent approve the renewal request:
+
+----
+$ pki <CA agent authentication> ca-cert-request-approve 0xd9e0f8427c485dfc3a6aebccad08a317 --force
+---------------------------------------------------------------
+Approved certificate request 0xd9e0f8427c485dfc3a6aebccad08a317
+---------------------------------------------------------------
+  Request ID: 0xd9e0f8427c485dfc3a6aebccad08a317
+  Type: renewal
+  Request Status: complete
+  Operation Result: success
+  Certificate ID: 0xaea1e43c2c16856e995501478fff57b3
+  Creation Time: Mon Oct 30 09:42:07 CDT 2023
+  Modification Time: Mon Oct 30 09:43:52 CDT 2023
+----
+
+The CA agent can authenticate using a client certificate or a username and password.
+If necessary, the password can be link:Resetting-User-Password[reset] by the system administrator.
+
+Next, retrieve the new certificate from the CA:
+
+----
+$ pki ca-cert-export 0xaea1e43c2c16856e995501478fff57b3 --output-file ca_audit_signing.crt
+----
+
+Delete the current certificate from the server's NSS database:
+
+----
+$ pki-server cert-del ca_audit_signing
+----
+
+Then import the new certificate into the NSS database:
+
+----
+$ pki-server cert-import ca_audit_signing --input ca_audit_signing.crt
+----
+
+Check the new certificate with the following command:
+
+----
+$ pki-server cert-show ca_audit_signing
+  Cert ID: audit_signing
+  Nickname: ca_audit_signing
+  Token: internal
+  Serial Number: 0xaea1e43c2c16856e995501478fff57b3
+  Subject DN: CN=CA Audit Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Not Valid Before: Mon Oct 30 09:42:07 2023
+  Not Valid After: Sun Oct 19 09:42:07 2025
+  Trust Flags: u,u,Pu
+----
+
+Finally, restart the server with the following command:
+
+----
+$ pki-server restart --wait
+----
