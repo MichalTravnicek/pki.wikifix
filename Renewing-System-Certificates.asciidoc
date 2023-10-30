@@ -22,7 +22,7 @@ For PKI 10.3 or earlier, see link:PKI-10.3-Updating-System-Certificates[PKI 10.3
 
 = Checking System Certificate Statuses =
 
-First, identify the system certificates that are about to expire or have already expired with the following command:
+To identify the system certificates that are about to expire or have already expired, execute the following command:
 
 ----
 $ pki-server cert-find
@@ -84,13 +84,17 @@ To verify the CA:
 $ pki ca-cert-find
 ----
 
-If the SSL server certificate of the CA itself has already expired, disable the selftests with following command:
+If the CA is no longer working since the SSL server certificate of the CA itself has already expired, link:Creating-Temporary-SSL-Server-Certificate[create a temporary SSL server certificate], disable the selftests with following command:
 
 ----
 $ pki-server selftest-disable
 ----
 
-Then create a temporary SSL server certificate to bring up the CA temporarily.
+Then restart the server:
+
+----
+$ pki-server restart --wait
+----
 
 = Checking CA Agent Access =
 
@@ -110,7 +114,7 @@ To verify the username and password:
 $ pki -u caadmin -w Secret.123 ca-user-show caadmin
 ----
 
-If the password does not work, link:Resetting-User-Password[reset] the password.
+If the password does not work, link:Resetting-User-Password[reset the password].
 
 = Renewing System Certificates =
 
