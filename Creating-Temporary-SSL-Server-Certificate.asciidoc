@@ -1,6 +1,23 @@
 = Overview =
 
-This page describes the process to create a temporary SSL server certificate for a CA.
+This page describes the process to create a temporary SSL server certificate for a PKI server that hosts the CA itself.
+
+= Checking Current Certificate =
+
+To check the current SSL server certificate:
+
+----
+$ pki-server cert-show sslserver
+  Cert ID: sslserver
+  Nickname: sslserver
+  Token: internal
+  Serial Number: 0x235131ac57d6dc14706338af68fce2b6
+  Subject DN: CN=pki.example.com,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Not Valid Before: Wed Oct 25 15:39:35 2023
+  Not Valid After: Tue Oct 14 15:39:35 2025
+  Trust Flags: u,u,u
+----
 
 = Enrollment Procedure =
 
