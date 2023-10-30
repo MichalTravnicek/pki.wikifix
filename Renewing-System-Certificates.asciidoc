@@ -74,17 +74,17 @@ $ pki-server cert-find
 
 For PKI 10.3 or earlier, see link:PKI-10.3-Identifying-Certificates-to-Renew[PKI 10.3 Identifying Certificates to Renew].
 
-= Checking CA Status =
+= Checking CA Subsystem Status =
 
-In order to renew the system certificates the CA must be running.
+In order to renew the system certificates the CA subsystem must be running.
 
-To verify the CA:
+To verify the CA subsystem:
 
 ----
 $ pki ca-cert-find
 ----
 
-If the CA is no longer working since the SSL server certificate of the CA itself has already expired, link:Creating-Temporary-SSL-Server-Certificate[create a temporary SSL server certificate], disable the selftests with following command:
+If the CA subsystem is no longer working since the SSL server certificate of the CA itself has already expired, link:Creating-Temporary-SSL-Server-Certificate[create a temporary SSL server certificate], disable the selftests with following command:
 
 ----
 $ pki-server selftest-disable
@@ -95,6 +95,8 @@ Then restart the server:
 ----
 $ pki-server restart --wait
 ----
+
+Later follow the regular link:Renewing-SSL-Server-Certificate[renewal procedure] to issue the actual the SSL server certificate.
 
 = Checking CA Agent Access =
 
