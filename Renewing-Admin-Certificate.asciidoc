@@ -1,3 +1,94 @@
+= Overview =
+
+This page describes the process to renew an admin certificate for a PKI subsystem.
+
+= Checking Current Certificate =
+
+To check the current admin certificate:
+
+----
+$ pki nss-cert-show caadmin
+  Nickname: caadmin
+  Serial Number: 0x65300604f7b25fed959105e2ea23c099
+  Subject DN: CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Not Valid Before: Wed Oct 25 15:39:48 CDT 2023
+  Not Valid After: Tue Oct 14 15:39:48 CDT 2025
+  Trust Flags: u,u,u
+----
+
+= Renewal Procedure =
+
+To renew the admin certificate, submit a renewal request to the CA by executing the following command:
+
+----
+$ pki ca-cert-request-submit \
+    --profile caManualRenewal \
+    --serial 0x65300604f7b25fed959105e2ea23c099 \
+    --renewal
+-----------------------------
+Submitted certificate request
+-----------------------------
+  Request ID: 0x6b3e97b6c226e66847282faedba2cdda
+  Type: renewal
+  Request Status: pending
+  Operation Result: success
+  Creation Time: Mon Oct 30 11:35:44 CDT 2023
+  Modification Time: Mon Oct 30 11:35:44 CDT 2023
+----
+
+Next, as a CA admin/agent approve the renewal request:
+
+----
+$ pki <authentication> ca-cert-request-approve 0x6b3e97b6c226e66847282faedba2cdda --force
+---------------------------------------------------------------
+Approved certificate request 0x6b3e97b6c226e66847282faedba2cdda
+---------------------------------------------------------------
+  Request ID: 0x6b3e97b6c226e66847282faedba2cdda
+  Type: renewal
+  Request Status: complete
+  Operation Result: success
+  Certificate ID: 0x26558d3ff93956f27777b191e1aea788
+  Creation Time: Mon Oct 30 11:35:44 CDT 2023
+  Modification Time: Mon Oct 30 11:36:21 CDT 2023
+----
+
+If the client certificate is still valid, the authentication can be done using the client certificate, otherwise it can be done using the username and password.
+If necessary, the password can be link:Resetting-User-Password[reset] by the system administrator.
+
+Next, retrieve the new certificate from the CA:
+
+----
+$ pki ca-cert-export 0x26558d3ff93956f27777b191e1aea788 --output-file caadmin.crt
+----
+
+Delete the current certificate from the client's NSS database:
+
+----
+$ certutil -D -d $HOME/.dogtag/nssdb -n caadmin
+----
+
+Then import the new certificate into the NSS database:
+
+----
+$ pki nss-cert-import caadmin --cert caadmin.crt
+----
+
+Verify the new certificate with the following command:
+
+----
+$ pki nss-cert-show caadmin
+  Nickname: caadmin
+  Serial Number: 0x26558d3ff93956f27777b191e1aea788
+  Subject DN: CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Not Valid Before: Mon Oct 30 11:35:44 CDT 2023
+  Not Valid After: Tue Oct 29 11:35:44 CDT 2024
+  Trust Flags: u,u,u
+----
+
+= See Also =
+
 * link:Renewing-Admin-Certificate-with-RSNv3[Renewing Admin Certificate with RSNv3]
 * link:Renewing-Admin-Certificate-using-pki-server-cert-fix[Renewing Admin Certificate using pki-server cert-fix]
 * link:Renewing-Admin-Certificate-using-CMSGateway[Renewing Admin Certificate using CMSGateway]
