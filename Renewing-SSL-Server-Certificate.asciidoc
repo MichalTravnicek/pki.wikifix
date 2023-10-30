@@ -19,9 +19,9 @@ $ pki-server cert-show sslserver
   Trust Flags: u,u,u
 ----
 
-= Creating Permanent SSL Server Certificate =
+= Renewal Procedure =
 
-To create a permanent SSL server certificate for any subsystem, submit a renewal request to the CA by executing the following command:
+To renew the SSL server certificate, submit a renewal request to the CA by executing the following command:
 
 ----
 $ pki ca-cert-request-submit \
@@ -64,7 +64,7 @@ Next, retrieve the new certificate from the CA:
 $ pki ca-cert-export 0x4e62aba6ad321857fcc93c20be4ee4c5 --output-file sslserver.crt
 ----
 
-Delete the current/temporary certificate from the server's NSS database:
+Delete the current certificate from the server's NSS database:
 
 ----
 $ pki-server cert-del sslserver
@@ -76,7 +76,7 @@ Then import the new certificate into the NSS database:
 $ pki-server cert-import sslserver --input sslserver.crt
 ----
 
-Check the new certificate with the following command:
+Verify the new certificate with the following command:
 
 ----
 $ pki-server cert-show sslserver
