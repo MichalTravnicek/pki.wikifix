@@ -76,7 +76,7 @@ Then import the new certificate into the NSS database:
 $ pki-server cert-import ca_audit_signing --input ca_audit_signing.crt
 ----
 
-Check the new certificate with the following command:
+Verify the new certificate with the following command:
 
 ----
 $ pki-server cert-show ca_audit_signing
@@ -89,12 +89,6 @@ $ pki-server cert-show ca_audit_signing
   Not Valid Before: Mon Oct 30 09:42:07 2023
   Not Valid After: Sun Oct 19 09:42:07 2025
   Trust Flags: u,u,Pu
-----
-
-Finally, restart the server with the following command:
-
-----
-$ pki-server restart --wait
 ----
 
 = See Also =
