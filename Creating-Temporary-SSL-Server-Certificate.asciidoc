@@ -1,0 +1,25 @@
+= Overview =
+
+This page describes the process to create a temporary SSL server certificate for a CA.
+
+= Enrollment Procedure =
+
+To create a temporary certificate execute the following command:
+
+----
+$ pki-server cert-create sslserver --temp
+----
+
+The certificate will be stored in `/etc/pki/<instance>/certs/sslserver.crt`.
+
+Next, delete the current SSL server certificate from the server's NSS database:
+
+----
+$ pki-server cert-del sslserver
+----
+
+Then import the temporary certificate into the NSS database:
+
+----
+$ pki-server cert-import sslserver
+----
