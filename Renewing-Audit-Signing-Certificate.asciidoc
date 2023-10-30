@@ -39,10 +39,10 @@ Submitted certificate request
   Modification Time: Mon Oct 30 09:42:07 CDT 2023
 ----
 
-Next, as a CA agent approve the renewal request:
+Next, as a CA admin/agent approve the renewal request:
 
 ----
-$ pki <CA agent authentication> ca-cert-request-approve 0xd9e0f8427c485dfc3a6aebccad08a317 --force
+$ pki <authentication> ca-cert-request-approve 0xd9e0f8427c485dfc3a6aebccad08a317 --force
 ---------------------------------------------------------------
 Approved certificate request 0xd9e0f8427c485dfc3a6aebccad08a317
 ---------------------------------------------------------------
@@ -55,7 +55,7 @@ Approved certificate request 0xd9e0f8427c485dfc3a6aebccad08a317
   Modification Time: Mon Oct 30 09:43:52 CDT 2023
 ----
 
-The CA agent can authenticate using a client certificate or a username and password.
+The CA admin/agent can authenticate using a client certificate or a username and password.
 If necessary, the password can be link:Resetting-User-Password[reset] by the system administrator.
 
 Next, retrieve the new certificate from the CA:
