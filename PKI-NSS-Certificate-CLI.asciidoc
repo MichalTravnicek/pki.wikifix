@@ -70,12 +70,15 @@ To export a certificate from NSS database:
 $ pki nss-cert-export <nickname>
 ----
 
-= Delete Certificate from NSS Database =
+= Removing Certificate from NSS Database =
 
-To delete a certificate from NSS database:
+To remove a certificate from the internal token in NSS database:
 
 ----
 $ pki nss-cert-del <nickname>
 ----
+
+To remove a certificate from HSM, prepend the nickname with the token name: `<token>:<nickname>`.
+To remove the key of the certificate, specify a `--remove-key` option.
 
 **Availability:** Since PKI 11.5.
