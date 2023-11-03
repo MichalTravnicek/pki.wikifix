@@ -9,3 +9,18 @@ $ pki-server sd-create --name <name>
 ----
 $ pki-server sd-subsystem-find
 ----
+
+= Adding Security Domain Subsystem =
+
+----
+$ pki-server sd-subsystem-add "CA pki.example.com 8443" \
+    --subsystem CA \
+    --hostname pki.example.com \
+    --secure-port 8443
+----
+
+= Removing Security Domain Subsystem =
+
+----
+$ pki-server sd-subsystem-del "CA pki.example.com 8443"
+----
