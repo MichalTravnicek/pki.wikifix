@@ -14,8 +14,6 @@ In order for the server to operate properly all of these certificates must be va
 
 Note that the default PKI user certificate also has a shorter validity range.
 
-Also note that the renewal procedure requires a running CA. If the expired system certificate was issued by a CA running on the same server, the server might fail to start and the certificate cannot be renewed since the CA is not available. If that happens, the system date needs to be moved back to a time where all system certificates were still valid before starting the renewal process.
-
 This document describes the renewal procedure using CLI in PKI 10 or later. In PKI 9 the renewal procedure needs to be done using legacy servlet interface, but it still follows the same general idea.
 
 For PKI 10.3 or earlier, see link:PKI-10.3-Updating-System-Certificates[PKI 10.3 Updating System Certificates].
