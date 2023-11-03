@@ -1,7 +1,9 @@
 = Creating Security Domain =
 
 ----
-$ pki-server sd-create --name <name>
+$ pki-server ca-config-set securitydomain.select new
+$ pki-server ca-config-set securitydomain.name EXAMPLE
+$ pki-server sd-create
 ----
 
 = Listing Security Domain Subsystems =
