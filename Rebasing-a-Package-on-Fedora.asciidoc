@@ -186,19 +186,19 @@ $ git push origin f35
 
 = Creating the Build =
 
-Before creating the build, create a BuildRoot override for all dependencies that have been built but not yet released. For example, if the new PKI 11.0.0-beta1 depends on JSS 5.0.0-beta1, then execute the following commands:
+Before creating the build, create a side tag:
 
 ```
-$ bodhi overrides save jss-5.0.0-0.4.beta1.fc35
-$ koji wait-repo f35-build --build=jss-5.0.0-0.4.beta1.fc35
+$ fedpkg request-side-tag
+Side tag 'f40-build-side-77104' (id 77104) created.
+$ koji wait-repo f40-build-side-77104
 ```
-
-*Note:* The BuildRoot override is not required for Rawhide.
 
 Then start the build with the following command:
 
+
 ```
-$ fedpkg build
+$ fedpkg build --target=f40-build-side-77104
 ```
 
 If there's a problem with the build, fix it in the upstream branch and start over, or add a patch.
