@@ -186,7 +186,7 @@ $ git push origin f35
 
 = Creating the Build =
 
-Before creating the build, create a side tag:
+Before creating the build, create a side tag (this is required to build multiple dependent packages):
 
 ```
 $ fedpkg request-side-tag
@@ -227,7 +227,7 @@ jss-5.0.0-0.4.beta1.fc35
 The builds then will be added into Fedora updates testing repository.
 Once the update receives enough Karma points, the builds will be released into Fedora stable repository.
 
-*Note:* The Bodhi update is not required for Rawhide.
+*Note:* The Bodhi update is not required for Rawhide in case of a single pacakge but it is required if a side-tag is used.
 
 = See Also =
 
