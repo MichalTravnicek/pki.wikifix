@@ -141,20 +141,7 @@ $ pki client-cert-show newcaadmin --client-cert newcaadmin.pem
 
 = Recovering CA Admin Certificate =
 
-If all admin certificates for a given instance have been lost,
-execute the following steps to generate a new admin certificate:
-
-* Stop PKI server
-* Edit `CS.cfg`:
-
-----
-ca.Policy.enable=true
-cmsgateway.enableAdminEnroll=true
-----
-
-* Restart PKI server
-* Go to https://$HOSTNAME:8443/ca/admin/ca/adminEnroll.html
-* Verify the new admin certificate by navigating to: https://$HOSTNAME:8443/ca/agent/ca/
+See link:Renewing-Admin-Certificate-using-CMSGateway[Renewing Admin Certificate using CMSGateway].
 
 = See Also =
 
