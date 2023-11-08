@@ -23,8 +23,7 @@ $ pki-server stop --wait
 
 == Backing Up PKI Server ==
 
-It is advised to back up PKI server so that it can be restored if necessary.
-See link:Backing-Up-PKI-Server[Backing Up PKI Server].
+It is highly recommended to link:Backing-Up-PKI-Server[back up] PKI server and DS in case RSNv3 does not work as expected.
 
 == Configuring Certificate Request ID Generator ==
 
@@ -80,14 +79,14 @@ $ pki-server start --wait
 
 WARNING: The recovery procedure has not been fully tested.
 
-In case RSNv3 does not work as expected, follow this procedure to recover:
+In case RSNv3 does not work as expected, use the following procedure to recover:
 
 * Stop PKI server.
 * Restore the `CS.cfg` from the backup.
+* Remove new certificates created with RSNv3 from user records in DS.
 * Remove new certificate records created with with RSNv3 from DS.
 * Remove new certificate request records created with with RSNv3 from DS.
-* Remove certificates created with with RSNv3 from user records in DS.
 * Restart PKI server
 * Revoke new certificates created with with RSNv3.
 
-If the above procedure does not work, link:Restoring-PKI-Server[restore] PKI server from the backup.
+If the above procedure does not work, link:Restoring-PKI-Server[restore] PKI server and DS from the backup.
