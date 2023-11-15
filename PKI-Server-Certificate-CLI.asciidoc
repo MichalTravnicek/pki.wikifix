@@ -135,7 +135,11 @@ The enrollment request will be stored in `/etc/pki/<instance>/certs/<cert ID>.cs
 
 == Creating Permanent Certificate ==
 
-To create self-signed certificate:
+The `pki-server cert-create` can be used to create a system certificate using PKI server's NSS database directly with RSNv3 serial numbers so it can be used before the CA subsystem is created or while the server is down.
+
+**Note:** Do not use this command with legacy serial number generators (i.e. sequential or RSNv1).
+
+To create a self-signed CA signing certificate:
 
 ----
 $ pki-server cert-create \
@@ -143,7 +147,7 @@ $ pki-server cert-create \
     ca_signing
 ----
 
-To issue a certificate signed by a CA certificate:
+To issue a certificate signed by the CA signing certificate:
 
 ----
 $ pki-server cert-create \
@@ -158,7 +162,9 @@ To sign with a key in HSM, specify `--token <name>` option.
 
 == Creating Temporary Certificate ==
 
-To create temporary certificate:
+The `pki-server cert-create` can be used to create a temporary SSL server certificate in case the existing one has already expired.
+
+To create temporary certificate with the same serial number:
 
 ----
 $ pki-server cert-create <cert ID> --temp
