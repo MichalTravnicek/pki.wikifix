@@ -125,21 +125,38 @@ $ pki-server cert-request \
     ca_signing
 ----
 
-To generate a new key pair in HSM and an enrollment request:
-
-----
-$ pki-server cert-request \
-    --token HSM \
-    --subject "CN=CA Signing Certificate" \
-    --ext /usr/share/pki/server/certs/ca_signing.conf \
-    ca_signing
-----
+To store the key pair in HSM, specify `--token <name>` option.
 
 The enrollment request will be stored in `/etc/pki/<instance>/certs/<cert ID>.csr`.
 
 **Availability:** Since PKI 11.5.
 
 = Creating System Certificate =
+
+== Creating Permanent Certificate ==
+
+To create self-signed certificate:
+
+----
+$ pki-server cert-create \
+    --ext /usr/share/pki/server/certs/ca_signing.conf \
+    ca_signing
+----
+
+To issue a certificate signed by a CA certificate:
+
+----
+$ pki-server cert-create \
+    --issuer ca_signing \
+    --ext /usr/share/pki/server/certs/ca_signing.conf \
+    sslserver
+----
+
+To sign with a key in HSM, specify `--token <name>` option.
+
+**Availability:** Since PKI 11.5
+
+== Creating Temporary Certificate ==
 
 To create temporary certificate:
 
@@ -153,11 +170,7 @@ To create temporary certificate with specific serial number:
 $ pki-server cert-create <cert ID> --temp --serial <serial>
 ----
 
-To rekey permanent certificate (not supported yet):
-
-----
-$ pki-server cert-create <cert ID>
-----
+== Renewing Certificate ==
 
 To renew permanent certificate:
 
