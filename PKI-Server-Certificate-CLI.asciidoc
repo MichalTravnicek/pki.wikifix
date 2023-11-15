@@ -190,13 +190,21 @@ By default the new certificate will be stored in `/etc/pki/<instance>/certs/<cer
 
 = Importing System Certificate =
 
-The following command can be used to import new certificate into the NSS database and update the copy of the certificate in the `CS.cfg` in all subsystems in the instance:
+The following command can be used to import a certificate into the NSS database.
+
+**Note:** Prior to PKI 11.5 a copy of the certificate will be stored in the `CS.cfg` as well. In PKI 11.5 or later the certificate will no longer be stored in the `CS.cfg`.
+
+To import a certificate into internal NSS token:
 
 ----
 $ pki-server cert-import <cert ID>
 ----
 
 By default it will import the certificate from `/etc/pki/<instance>/certs/<cert ID>.crt`. An optional `--input <file>` parameter can be used to specify a different input file.
+
+To import the certificate into HSM, specify `--token <name>` option.
+
+By default it will import the certificate with the nickname specified in `CS.cfg` of the subsystem. If the subsystem does not exist yet, it will use the cert ID as the nickname. To change the nickname, specify `--nickname <nickname>` option.
 
 = Exporting System Certificate =
 
