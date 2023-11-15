@@ -162,18 +162,20 @@ To sign with a key in HSM, specify `--token <name>` option.
 
 == Creating Temporary Certificate ==
 
-The `pki-server cert-create` can be used to create a temporary SSL server certificate in case the existing one has already expired.
+The `pki-server cert-create` can be used to create a temporary SSL server certificate to restore the CA subsystem in case the existing certificate has already expired.
+
+**Note:** The temporary certificate needs to be replaced with the permanent one once the CA subsystem is restored.
 
 To create temporary certificate with the same serial number:
 
 ----
-$ pki-server cert-create <cert ID> --temp
+$ pki-server cert-create sslserver --temp
 ----
 
 To create temporary certificate with specific serial number:
 
 ----
-$ pki-server cert-create <cert ID> --temp --serial <serial>
+$ pki-server cert-create sslserver --temp --serial <serial>
 ----
 
 == Renewing Certificate ==
