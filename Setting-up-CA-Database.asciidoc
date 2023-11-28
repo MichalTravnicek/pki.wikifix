@@ -111,6 +111,14 @@ Verify that `nsTaskExitCode` is `0`.
 
 = Adding CA VLV Indexes =
 
+== Adding CA VLV Indexes with PKI tools ==
+
+----
+$ pki-server ca-db-vlv-add
+----
+
+== Adding CA VLV Indexes with LDAP tools ==
+
 ----
 $ sed \
     -e 's/{instanceId}/pki-tomcat/g' \
@@ -126,6 +134,14 @@ $ ldapadd \
 ----
 
 = Rebuilding CA VLV Indexes =
+
+== Rebuilding CA VLV Indexes with PKI tools ==
+
+----
+$ pki-server ca-db-vlv-reindex
+----
+
+== Rebuilding CA VLV Indexes with LDAP tools ==
 
 Start the rebuild task with the following commands:
 
