@@ -1,10 +1,19 @@
 = Overview =
 
-NOTE: This page is still under construction.
-
 This page describes the process to set up an admin user to manage the CA.
 
 = Adding Admin User =
+
+== Adding admin user with PKI tools ==
+
+----
+$ pki-server ca-user-add \
+    --full-name Administrator \
+    --type adminType \
+    caadmin
+----
+
+== Adding admin user with LDAP tools ==
 
 ----
 $ ldapadd \
@@ -27,6 +36,16 @@ EOF
 ----
 
 = Assigning Admin Certificate to Admin User =
+
+== Assigning admin certificate with PKI tools =
+
+----
+$ pki-server ca-user-cert-add \
+    --cert admin.crt \
+    caadmin
+----
+
+== Assigning admin certificate with LDAP tools =
 
 Convert the admin certificate to DER format:
 
@@ -70,7 +89,23 @@ userCertificate:< file:admin.der
 EOF
 ----
 
-= Adding Admin User into CA Groups =
+= Assigning Roles to Admin User =
+
+== Assigning roles with PKI tools =
+
+----
+$ pki-server ca-user-role-add caadmin "Certificate Manager Agents"
+$ pki-server ca-user-role-add caadmin "Administrators"
+$ pki-server ca-user-role-add caadmin "Security Domain Administrators"
+$ pki-server ca-user-role-add caadmin "Enterprise CA Administrators"
+$ pki-server ca-user-role-add caadmin "Enterprise KRA Administrators"
+$ pki-server ca-user-role-add caadmin "Enterprise RA Administrators"
+$ pki-server ca-user-role-add caadmin "Enterprise TKS Administrators"
+$ pki-server ca-user-role-add caadmin "Enterprise OCSP Administrators"
+$ pki-server ca-user-role-add caadmin "Enterprise TPS Administrators"
+----
+
+== Assigning roles with LDAP tools =
 
 ----
 $ ldapmodify \
