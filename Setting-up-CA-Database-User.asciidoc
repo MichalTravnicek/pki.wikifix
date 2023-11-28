@@ -4,7 +4,7 @@ This page describes the process to set up a user to access the CA database in DS
 
 = Adding Database User =
 
-To add a database user with PKI tools:
+== Adding database user with PKI tools ==
 
 ----
 $ pki-server ca-user-add \
@@ -13,7 +13,7 @@ $ pki-server ca-user-add \
     pkidbuser
 ----
 
-To add a database user with OpenLDAP tools:
+== Adding database user with LDAP tools ==
 
 ----
 $ ldapadd \
@@ -35,7 +35,7 @@ EOF
 
 = Assigning Subsystem Certificate to Database User =
 
-To assign subsystem certificate to the database user with PKI tools:
+== Assigning subsystem certificate with PKI tools ==
 
 ----
 $ pki-server ca-user-cert-add \
@@ -43,7 +43,7 @@ $ pki-server ca-user-cert-add \
     pkidbuser
 ----
 
-To assign subsystem certificate to the database user with OpenSSL/OpenLDAP tools:
+== Assigning subsystem certificate with LDAP tools ==
 
 Convert the subsystem certificate to DER format:
 
@@ -90,16 +90,16 @@ userCertificate:< file:subsystem.der
 EOF
 ----
 
-= Adding Database User into CA Groups =
+= Assigning Roles to Database User =
 
-To add the database user into CA groups with PKI tools:
+== Assigning roles with PKI tools ==
 
 ----
 $ pki-server ca-user-role-add pkidbuser "Subsystem Group"
 $ pki-server ca-user-role-add pkidbuser "Certificate Manager Agents"
 ----
 
-To add the database user into CA groups with OpenLDAP tools:
+== Assigning roles with LDAP tools ==
 
 ----
 $ ldapmodify \
@@ -120,16 +120,16 @@ uniqueMember: uid=pkidbuser,ou=people,dc=ca,dc=pki,dc=example,dc=com
 EOF
 ----
 
-= Granting Database User Access to CA Database =
+= Granting Database Access to Database User =
 
-To grant the database user access to CA database with PKI tools:
+== Granting database access with PKI tools ==
 
 ----
 $ pki-server ca-db-access-grant \
     uid=pkidbuser,ou=people,dc=ca,dc=pki,dc=example,dc=com
 ----
 
-To grant the database user access to CA database with OpenLDAP tools:
+== Granting CA database access with LDAP tools ==
 
 ----
 $ sed \
