@@ -37,7 +37,7 @@ EOF
 
 = Assigning Admin Certificate to Admin User =
 
-== Assigning admin certificate with PKI tools =
+== Assigning admin certificate with PKI tools ==
 
 ----
 $ pki-server ca-user-cert-add \
@@ -45,7 +45,7 @@ $ pki-server ca-user-cert-add \
     caadmin
 ----
 
-== Assigning admin certificate with LDAP tools =
+== Assigning admin certificate with LDAP tools ==
 
 Convert the admin certificate to DER format:
 
@@ -91,7 +91,7 @@ EOF
 
 = Assigning Roles to Admin User =
 
-== Assigning roles with PKI tools =
+== Assigning roles with PKI tools ==
 
 ----
 $ pki-server ca-user-role-add caadmin "Certificate Manager Agents"
@@ -105,7 +105,7 @@ $ pki-server ca-user-role-add caadmin "Enterprise OCSP Administrators"
 $ pki-server ca-user-role-add caadmin "Enterprise TPS Administrators"
 ----
 
-== Assigning roles with LDAP tools =
+== Assigning roles with LDAP tools ==
 
 ----
 $ ldapmodify \
