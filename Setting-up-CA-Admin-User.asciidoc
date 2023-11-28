@@ -20,15 +20,15 @@ $ ldapadd \
     -H ldap://$HOSTNAME \
     -D "cn=Directory Manager" \
     -w Secret.123 << EOF
-dn: uid=admin,ou=people,dc=ca,dc=pki,dc=example,dc=com
+dn: uid=caadmin,ou=people,dc=ca,dc=pki,dc=example,dc=com
 objectClass: person
 objectClass: organizationalPerson
 objectClass: inetOrgPerson
 objectClass: cmsuser
-cn: admin
-sn: admin
-uid: admin
-mail: admin@example.com
+cn: caadmin
+sn: caadmin
+uid: caadmin
+mail: caadmin@example.com
 userPassword: Secret.123
 userState: 1
 userType: adminType
@@ -78,7 +78,7 @@ $ ldapmodify \
     -H ldap://$HOSTNAME \
     -D "cn=Directory Manager" \
     -w Secret.123 << EOF
-dn: uid=admin,ou=people,dc=ca,dc=pki,dc=example,dc=com
+dn: uid=caadmin,ou=people,dc=ca,dc=pki,dc=example,dc=com
 changetype: modify
 add: description
 description: 2;<decimal serial number>;CN=CA Signing Certificate;CN=Administrator
@@ -115,55 +115,55 @@ $ ldapmodify \
 dn: cn=Administrators,ou=groups,dc=ca,dc=pki,dc=example,dc=com
 changetype: modify
 add: uniqueMember
-uniqueMember: uid=admin,ou=people,dc=ca,dc=pki,dc=example,dc=com
+uniqueMember: uid=caadmin,ou=people,dc=ca,dc=pki,dc=example,dc=com
 -
 
 dn: cn=Certificate Manager Agents,ou=groups,dc=ca,dc=pki,dc=example,dc=com
 changetype: modify
 add: uniqueMember
-uniqueMember: uid=admin,ou=people,dc=ca,dc=pki,dc=example,dc=com
+uniqueMember: uid=caadmin,ou=people,dc=ca,dc=pki,dc=example,dc=com
 -
 
 dn: cn=Security Domain Administrators,ou=groups,dc=ca,dc=pki,dc=example,dc=com
 changetype: modify
 add: uniqueMember
-uniqueMember: uid=admin,ou=people,dc=ca,dc=pki,dc=example,dc=com
+uniqueMember: uid=caadmin,ou=people,dc=ca,dc=pki,dc=example,dc=com
 -
 
 dn: cn=Enterprise CA Administrators,ou=groups,dc=ca,dc=pki,dc=example,dc=com
 changetype: modify
 add: uniqueMember
-uniqueMember: uid=admin,ou=people,dc=ca,dc=pki,dc=example,dc=com
+uniqueMember: uid=caadmin,ou=people,dc=ca,dc=pki,dc=example,dc=com
 -
 
 dn: cn=Enterprise KRA Administrators,ou=groups,dc=ca,dc=pki,dc=example,dc=com
 changetype: modify
 add: uniqueMember
-uniqueMember: uid=admin,ou=people,dc=ca,dc=pki,dc=example,dc=com
+uniqueMember: uid=caadmin,ou=people,dc=ca,dc=pki,dc=example,dc=com
 -
 
 dn: cn=Enterprise RA Administrators,ou=groups,dc=ca,dc=pki,dc=example,dc=com
 changetype: modify
 add: uniqueMember
-uniqueMember: uid=admin,ou=people,dc=ca,dc=pki,dc=example,dc=com
+uniqueMember: uid=caadmin,ou=people,dc=ca,dc=pki,dc=example,dc=com
 -
 
 dn: cn=Enterprise TKS Administrators,ou=groups,dc=ca,dc=pki,dc=example,dc=com
 changetype: modify
 add: uniqueMember
-uniqueMember: uid=admin,ou=people,dc=ca,dc=pki,dc=example,dc=com
+uniqueMember: uid=caadmin,ou=people,dc=ca,dc=pki,dc=example,dc=com
 -
 
 dn: cn=Enterprise OCSP Administrators,ou=groups,dc=ca,dc=pki,dc=example,dc=com
 changetype: modify
 add: uniqueMember
-uniqueMember: uid=admin,ou=people,dc=ca,dc=pki,dc=example,dc=com
+uniqueMember: uid=caadmin,ou=people,dc=ca,dc=pki,dc=example,dc=com
 -
 
 dn: cn=Enterprise TPS Administrators,ou=groups,dc=ca,dc=pki,dc=example,dc=com
 changetype: modify
 add: uniqueMember
-uniqueMember: uid=admin,ou=people,dc=ca,dc=pki,dc=example,dc=com
+uniqueMember: uid=caadmin,ou=people,dc=ca,dc=pki,dc=example,dc=com
 -
 EOF
 ----
