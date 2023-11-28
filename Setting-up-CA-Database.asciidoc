@@ -5,7 +5,9 @@ NOTE: This page is still under construction.
 This document describes the process to set up CA database using DS.
 It assumes that the DS database has been installed as described in link:DS-Installation[DS Installation].
 
-= Configuring DS Database =
+= Initializing CA Database =
+
+== Configuring DS database ==
 
 ----
 $ ldapadd \
@@ -15,7 +17,7 @@ $ ldapadd \
     -f /usr/share/pki/server/database/ds/config.ldif
 ----
 
-= Adding PKI Schema =
+== Configuring DS schema ==
 
 ----
 $ ldapmodify \
@@ -25,7 +27,7 @@ $ ldapmodify \
     -f /usr/share/pki/server/database/ds/schema.ldif
 ----
 
-= Adding CA Base Entry =
+== Adding DS Base Entry ==
 
 ----
 $ ldapadd \
@@ -38,7 +40,7 @@ dc: ca
 EOF
 ----
 
-= Adding CA Database Entries =
+== Adding CA Database Entries ==
 
 ----
 $ sed \
@@ -52,7 +54,7 @@ $ ldapadd \
     -f create.ldif
 ----
 
-= Adding CA ACL Resources =
+== Adding ACL Resources ==
 
 ----
 $ sed \
@@ -66,7 +68,15 @@ $ ldapadd \
     -f acl.ldif
 ----
 
-= Adding CA Search Indexes =
+= Adding Search Indexes =
+
+== Adding Search Indexes with PKI tools ==
+
+----
+$ pki-server ca-db-index-add
+----
+
+== Adding Search Indexes with LDAP tools ==
 
 ----
 $ sed \
@@ -80,7 +90,15 @@ $ ldapadd \
     -f index.ldif
 ----
 
-= Rebuilding CA Search Indexes =
+= Rebuilding Search Indexes =
+
+== Rebuilding Search Indexes with PKI tools ==
+
+----
+$ pki-server ca-db-index-rebuild
+----
+
+== Rebuilding Search Indexes with LDAP tools ==
 
 Start the rebuild task with the following commands:
 
