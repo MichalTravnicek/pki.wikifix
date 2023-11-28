@@ -79,6 +79,16 @@ $ pki-server <subsystem>-db-info
   aci: (targetattr != "aci")(version 3.0; aci "rootdse anon read access"; allow(read,search,compare) userdn="ldap:///anyone";)
 ----
 
+= Initializing Subsystem Database =
+
+----
+$ pki-server ca-db-init \
+    --setup-schema \
+    --create-base \
+    --create-containers \
+    --rebuild-indexes
+----
+
 = See Also =
 
 * link:PKI-Server-Subsystem-Database-Configuration-CLI[PKI Server Subsystem Database Configuration CLI]
