@@ -1,0 +1,26 @@
+= Overview =
+
+This page describes the process to set up a subsystem user.
+
+= Adding Subsystem User =
+
+----
+$ pki-server ca-user-add \
+    --full-name CA-pki.example.com-8443 \
+    --type agentType \
+    CA-pki.example.com-8443
+----
+
+= Assigning Subsystem Certificate to Subsystem User =
+
+----
+$ pki-server ca-user-cert-add \
+    --cert subsystem.crt \
+    CA-pki.example.com-8443
+----
+
+= Assigning Roles to Subsystem User =
+
+----
+$ pki-server ca-user-role-add CA-pki.example.com-8443 "Subsystem Group"
+----
