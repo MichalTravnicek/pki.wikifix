@@ -1,17 +1,18 @@
 = Creating Security Domain =
 
 ----
-$ pki-server ca-sd-create \
+$ pki-server sd-create \
     --name EXAMPLE
 ----
 
 = Adding Subsystem =
 
 ----
-$ pki-server ca-sd-subsystem-add \
+$ pki-server sd-subsystem-add \
     --subsystem CA \
     --hostname pki.example.com \
     --unsecure-port 8080 \
     --secure-port 8443 \
-    --domain-manager
+    --domain-manager \
+    "CA pki.example.com 8443"
 ----
