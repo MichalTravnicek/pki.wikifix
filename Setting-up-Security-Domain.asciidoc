@@ -1,4 +1,4 @@
-= Creating New Security Domain =
+= Creating Security Domain =
 
 ----
 $ pki-server sd-create \
@@ -17,7 +17,7 @@ $ pki-server sd-subsystem-add \
     "CA pki.example.com 8443"
 ----
 
-= Configuring New Security Domain =
+= Configuring Security Domain Manager =
 
 ----
 $ pki-server ca-config-set securitydomain.select new
@@ -31,7 +31,7 @@ $ pki-server ca-config-set securitydomain.flushinterval 86400000
 $ pki-server ca-config-set securitydomain.source ldap
 ----
 
-= Configuring Existing Security Domain =
+= Configuring Security Domain Client =
 
 ----
 $ pki-server ca-config-set securitydomain.select existing
