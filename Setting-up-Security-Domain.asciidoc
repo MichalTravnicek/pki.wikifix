@@ -1,11 +1,11 @@
-= Creating Security Domain =
+= Creating Security Domain Database =
 
 ----
 $ pki-server sd-create \
     --name EXAMPLE
 ----
 
-= Adding Subsystem =
+= Adding Subsystem into Security Domain Database =
 
 ----
 $ pki-server sd-subsystem-add \
@@ -17,7 +17,7 @@ $ pki-server sd-subsystem-add \
     "CA pki.example.com 8443"
 ----
 
-= Configuring Security Domain Manager =
+= Configuring Security Domain Service =
 
 ----
 $ pki-server ca-config-set securitydomain.select new
