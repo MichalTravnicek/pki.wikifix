@@ -30,3 +30,13 @@ $ pki-server ca-config-set securitydomain.checkinterval 300000
 $ pki-server ca-config-set securitydomain.flushinterval 86400000
 $ pki-server ca-config-set securitydomain.source ldap
 ----
+
+= Configuring Existing Security Domain =
+
+----
+$ pki-server ca-config-set securitydomain.select new
+$ pki-server ca-config-set securitydomain.name EXAMPLE
+$ pki-server ca-config-set securitydomain.host pki.example.com
+$ pki-server ca-config-set securitydomain.httpport 8080
+$ pki-server ca-config-set securitydomain.httpsadminport 8443
+----
