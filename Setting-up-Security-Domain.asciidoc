@@ -19,12 +19,12 @@ $ pki-server sd-subsystem-add \
 
 = Configuring Security Domain Service =
 
-To configure a subsystem to provide a security domain service:
+To configure a subsystem (e.g. CA) to provide a security domain service:
 
 ----
 $ pki-server ca-config-set securitydomain.select new
 $ pki-server ca-config-set securitydomain.name EXAMPLE
-$ pki-server ca-config-set securitydomain.host pki.example.com
+$ pki-server ca-config-set securitydomain.host ca.example.com
 $ pki-server ca-config-set securitydomain.httpport 8080
 $ pki-server ca-config-set securitydomain.httpsadminport 8443
 $ pki-server ca-config-set securitydomain.checkIP false
@@ -35,14 +35,14 @@ $ pki-server ca-config-set securitydomain.source ldap
 
 = Configuring Security Domain Member =
 
-To configure a subsystem to join a security domain:
+To configure a subsystem (e.g. KRA) to join the security domain (e.g. in CA):
 
 ----
-$ pki-server ca-config-set securitydomain.select existing
-$ pki-server ca-config-set securitydomain.name EXAMPLE
-$ pki-server ca-config-set securitydomain.host pki.example.com
-$ pki-server ca-config-set securitydomain.httpport 8080
-$ pki-server ca-config-set securitydomain.httpsadminport 8443
+$ pki-server kra-config-set securitydomain.select existing
+$ pki-server kra-config-set securitydomain.name EXAMPLE
+$ pki-server kra-config-set securitydomain.host ca.example.com
+$ pki-server kra-config-set securitydomain.httpport 8080
+$ pki-server kra-config-set securitydomain.httpsadminport 8443
 ----
 
 = See Also =
