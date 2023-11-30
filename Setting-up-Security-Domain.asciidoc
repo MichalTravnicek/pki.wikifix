@@ -1,4 +1,4 @@
-= Creating Security Domain =
+= Creating New Security Domain =
 
 ----
 $ pki-server sd-create \
@@ -15,4 +15,18 @@ $ pki-server sd-subsystem-add \
     --secure-port 8443 \
     --domain-manager \
     "CA pki.example.com 8443"
+----
+
+= Configuring New Security Domain =
+
+----
+$ pki-server ca-config-set securitydomain.select new
+$ pki-server ca-config-set securitydomain.name EXAMPLE
+$ pki-server ca-config-set securitydomain.host pki.example.com
+$ pki-server ca-config-set securitydomain.httpport 8080
+$ pki-server ca-config-set securitydomain.httpsadminport 8443
+$ pki-server ca-config-set securitydomain.checkIP false
+$ pki-server ca-config-set securitydomain.checkinterval 300000
+$ pki-server ca-config-set securitydomain.flushinterval 86400000
+$ pki-server ca-config-set securitydomain.source ldap
 ----
