@@ -1,25 +1,26 @@
-= Creating Security Domain =
+= Creating Security Domain Database =
 
 ----
 $ pki-server sd-create
 ----
 
-= Listing Security Domain Subsystems =
+= Listing Subsystems in Security Domain =
 
 ----
 $ pki-server sd-subsystem-find
 ----
 
-= Adding Security Domain Subsystem =
+= Adding Subsystem into Security Domain =
 
 ----
-$ pki-server sd-subsystem-add "CA pki.example.com 8443" \
+$ pki-server sd-subsystem-add \
     --subsystem CA \
     --hostname pki.example.com \
-    --secure-port 8443
+    --secure-port 8443 \
+    "CA pki.example.com 8443"
 ----
 
-= Removing Security Domain Subsystem =
+= Removing Subsystem from Security Domain =
 
 ----
 $ pki-server sd-subsystem-del "CA pki.example.com 8443"
