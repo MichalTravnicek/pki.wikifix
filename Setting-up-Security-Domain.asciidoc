@@ -22,7 +22,24 @@ $ pki-server ca-config-set securitydomain.flushinterval 86400000
 $ pki-server ca-config-set securitydomain.source ldap
 ----
 
-To register the subsystem into the security domain:
+To remotely register the subsystem into the security domain:
+
+----
+$ pki \
+    -d /etc/pki/pki-tomcat/alias \
+    -d /etc/pki/pki-tomcat/password.conf \
+    -U https://ca.example.com:8443
+    securitydomain-join \
+    --install-token <token> \
+    --type CA \
+    --hostname ca.example.com \
+    --secure-port 8443 \
+    --unsecure-port 8080 \
+    --domain-manager \
+    "CA kra.example.com 8443"
+----
+
+To locally register the subsystem into the security domain:
 
 ----
 $ pki-server sd-subsystem-add \
@@ -46,15 +63,30 @@ $ pki-server kra-config-set securitydomain.httpport 8080
 $ pki-server kra-config-set securitydomain.httpsadminport 8443
 ----
 
+To remotely register the subsystem into the security domain:
 
-To register the subsystem into the security domain:
+----
+$ pki \
+    -d /etc/pki/pki-tomcat/alias \
+    -d /etc/pki/pki-tomcat/password.conf \
+    -U https://ca.example.com:8443
+    securitydomain-join \
+    --install-token <token> \
+    --type KRA \
+    --hostname kra.example.com \
+    --secure-port 8443 \
+    --unsecure-port 8080 \
+    "KRA kra.example.com 8443"
+----
+
+To locally register the subsystem into the security domain:
 
 ----
 $ pki-server sd-subsystem-add \
     --subsystem KRA \
     --hostname kra.example.com \
-    --unsecure-port 8080 \
     --secure-port 8443 \
+    --unsecure-port 8080 \
     "KRA kra.example.com 8443"
 ----
 
