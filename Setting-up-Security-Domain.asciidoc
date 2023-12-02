@@ -1,25 +1,14 @@
 = Creating Security Domain Database =
 
-----
-$ pki-server sd-create \
-    --name EXAMPLE
-----
-
-= Adding Subsystem into Security Domain Database =
+To create a security domain database:
 
 ----
-$ pki-server sd-subsystem-add \
-    --subsystem CA \
-    --hostname pki.example.com \
-    --unsecure-port 8080 \
-    --secure-port 8443 \
-    --domain-manager \
-    "CA pki.example.com 8443"
+$ pki-server sd-create --name EXAMPLE
 ----
 
-= Configuring Security Domain Service =
+= Configuring Security Domain Manager =
 
-To configure a subsystem (e.g. CA) to provide a security domain service:
+To configure a subsystem (e.g. CA) to provide a security domain manager:
 
 ----
 $ pki-server ca-config-set securitydomain.select new
@@ -33,9 +22,21 @@ $ pki-server ca-config-set securitydomain.flushinterval 86400000
 $ pki-server ca-config-set securitydomain.source ldap
 ----
 
+To register the subsystem into the security domain:
+
+----
+$ pki-server sd-subsystem-add \
+    --subsystem CA \
+    --hostname pki.example.com \
+    --unsecure-port 8080 \
+    --secure-port 8443 \
+    --domain-manager \
+    "CA pki.example.com 8443"
+----
+
 = Configuring Security Domain Member =
 
-To configure a subsystem (e.g. KRA) to join the security domain (e.g. in CA):
+To configure a subsystem (e.g. KRA) as a security domain member:
 
 ----
 $ pki-server kra-config-set securitydomain.select existing
@@ -43,6 +44,18 @@ $ pki-server kra-config-set securitydomain.name EXAMPLE
 $ pki-server kra-config-set securitydomain.host ca.example.com
 $ pki-server kra-config-set securitydomain.httpport 8080
 $ pki-server kra-config-set securitydomain.httpsadminport 8443
+----
+
+
+To register the subsystem into the security domain:
+
+----
+$ pki-server sd-subsystem-add \
+    --subsystem KRA \
+    --hostname kra.example.com \
+    --unsecure-port 8080 \
+    --secure-port 8443 \
+    "KRA kra.example.com 8443"
 ----
 
 = See Also =
