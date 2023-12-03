@@ -1,4 +1,4 @@
-= Overview (Not Implemented) =
+= Overview (Not Yet Implemented) =
 
 The `pki-server <subsystem>-db-repl` commands can be used to manage subsystem database replication.
 
@@ -14,7 +14,9 @@ $ pki-server <subsystem>-db-repl-setup \
 = Adding Replication Manager =
 
 ----
-$ pki-server <subsystem>-db-repl-manager-add <name> --password <password>
+$ pki-server <subsystem>-db-repl-manager-add \
+    --password <password> \
+    <name>
 ----
 
 = Removing Replication Manager =
@@ -38,7 +40,7 @@ $ pki-server <subsystem>-db-repl-del
 = Adding Replication Agreement =
 
 ----
-$ pki-server <subsystem>-db-repl-agreement-add <name> \
+$ pki-server <subsystem>-db-repl-agmt-add <name> \
     --hostname <hostname> \
     --port <port> \
     --security <security> \
@@ -49,19 +51,13 @@ $ pki-server <subsystem>-db-repl-agreement-add <name> \
 = Removing Replication Agreement =
 
 ----
-$ pki-server <subsystem>-db-repl-agreement-del <name>
+$ pki-server <subsystem>-db-repl-agmt-del <name>
 ----
 
-= Starting Replication =
+= Initializing Replication Agreement =
 
 ----
-$ pki-server <subsystem>-db-repl-start
-----
-
-= Stopping Replication =
-
-----
-$ pki-server <subsystem>-db-repl-stop
+$ pki-server <subsystem>-db-repl-agmt-init
 ----
 
 = See Also =
