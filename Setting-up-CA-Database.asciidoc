@@ -15,7 +15,7 @@ $ pki-server ca-db-init
 
 == Initializing CA Database with LDAP tools ==
 
-To configuring DS database:
+To configure DS server:
 
 ----
 $ ldapadd \
@@ -25,7 +25,7 @@ $ ldapadd \
     -f /usr/share/pki/server/database/ds/config.ldif
 ----
 
-To configuring DS schema:
+To configure DS schema:
 
 ----
 $ ldapmodify \
@@ -35,7 +35,7 @@ $ ldapmodify \
     -f /usr/share/pki/server/database/ds/schema.ldif
 ----
 
-To adding the base entry:
+To add the base entry:
 
 ----
 $ ldapadd \
@@ -48,7 +48,7 @@ dc: ca
 EOF
 ----
 
-To adding the container entries:
+To add the container entries:
 
 ----
 $ sed \
@@ -62,7 +62,7 @@ $ ldapadd \
     -f create.ldif
 ----
 
-To adding ACL resources:
+To add ACL resources:
 
 ----
 $ sed \
