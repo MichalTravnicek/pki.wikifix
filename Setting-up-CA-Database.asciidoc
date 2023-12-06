@@ -1,13 +1,21 @@
 = Overview =
 
-NOTE: This page is still under construction.
-
 This document describes the process to set up CA database using DS.
 It assumes that the DS database has been installed as described in link:DS-Installation[DS Installation].
 
 = Initializing CA Database =
 
-== Configuring DS database ==
+== Initializing CA Database with PKI tools ==
+
+----
+$ pki-server ca-db-init
+----
+
+*Availability:* Since PKI 11.5
+
+== Initializing CA Database with LDAP tools ==
+
+To configuring DS database:
 
 ----
 $ ldapadd \
@@ -17,7 +25,7 @@ $ ldapadd \
     -f /usr/share/pki/server/database/ds/config.ldif
 ----
 
-== Configuring DS schema ==
+To configuring DS schema:
 
 ----
 $ ldapmodify \
@@ -27,7 +35,7 @@ $ ldapmodify \
     -f /usr/share/pki/server/database/ds/schema.ldif
 ----
 
-== Adding DS Base Entry ==
+To adding the base entry:
 
 ----
 $ ldapadd \
@@ -40,7 +48,7 @@ dc: ca
 EOF
 ----
 
-== Adding CA Database Entries ==
+To adding the container entries:
 
 ----
 $ sed \
@@ -54,7 +62,7 @@ $ ldapadd \
     -f create.ldif
 ----
 
-== Adding ACL Resources ==
+To adding ACL resources:
 
 ----
 $ sed \
