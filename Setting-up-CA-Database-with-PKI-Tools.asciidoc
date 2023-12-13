@@ -1,0 +1,40 @@
+= Overview =
+
+This page describes the process to set up a CA database using DS with PKI tools.
+It assumes that the DS database has been installed as described in link:DS-Installation[DS Installation].
+
+= Initializing CA Database =
+
+----
+$ pki-server ca-db-init
+----
+
+*Availability:* Since PKI 11.5
+
+= Adding Search Indexes =
+
+----
+$ pki-server ca-db-index-add
+----
+
+*Availability:* Since PKI 11.5
+
+= Rebuilding Search Indexes =
+
+----
+$ pki-server ca-db-index-rebuild
+----
+
+*Availability:* Since PKI 11.5
+
+= Adding CA VLV Indexes =
+
+----
+$ pki-server ca-db-vlv-add
+----
+
+= Rebuilding CA VLV Indexes =
+
+----
+$ pki-server ca-db-vlv-reindex
+----
