@@ -1,0 +1,151 @@
+= Initializing CA Database =
+
+To configure DS server:
+
+----
+$ ldapadd \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f /usr/share/pki/server/database/ds/config.ldif
+----
+
+To configure DS schema:
+
+----
+$ ldapmodify \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f /usr/share/pki/server/database/ds/schema.ldif
+----
+
+To add the base entry:
+
+----
+$ ldapadd \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 << EOF
+dn: dc=ca,dc=pki,dc=example,dc=com
+objectClass: dcObject
+dc: ca
+EOF
+----
+
+To add the container entries:
+
+----
+$ sed \
+    -e 's/{rootSuffix}/dc=ca,dc=pki,dc=example,dc=com/g' \
+    /usr/share/pki/ca/database/ds/create.ldif \
+    | tee create.ldif
+$ ldapadd \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f create.ldif
+----
+
+To add ACL resources:
+
+----
+$ sed \
+    -e 's/{rootSuffix}/dc=ca,dc=pki,dc=example,dc=com/g' \
+    /usr/share/pki/ca/database/ds/acl.ldif \
+    | tee acl.ldif
+$ ldapadd \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f acl.ldif
+----
+
+= Adding Search Indexes =
+
+----
+$ sed \
+    -e 's/{database}/userroot/g' \
+    /usr/share/pki/ca/database/ds/index.ldif \
+    | tee index.ldif
+$ ldapadd \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f index.ldif
+----
+
+= Rebuilding Search Indexes =
+
+Start the rebuild task with the following commands:
+
+----
+$ sed \
+    -e 's/{database}/userroot/g' \
+    /usr/share/pki/ca/database/ds/indextasks.ldif \
+    | tee indextasks.ldif
+$ ldapadd \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f indextasks.ldif
+----
+
+Wait for the task to complete:
+
+----
+$ ldapsearch \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -b "cn=index1160589770, cn=index, cn=tasks, cn=config" \
+    nsTaskExitCode
+----
+
+Verify that `nsTaskExitCode` is `0`.
+
+= Adding CA VLV Indexes =
+
+----
+$ sed \
+    -e 's/{instanceId}/pki-tomcat/g' \
+    -e 's/{database}/userroot/g' \
+    -e 's/{rootSuffix}/dc=ca,dc=pki,dc=example,dc=com/g' \
+    /usr/share/pki/ca/database/ds/vlv.ldif \
+    | tee vlv.ldif
+$ ldapadd \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f vlv.ldif
+----
+
+= Rebuilding CA VLV Indexes =
+
+Start the rebuild task with the following commands:
+
+----
+$ sed \
+    -e 's/{database}/userroot/g' \
+    -e 's/{instanceId}/pki-tomcat/g' \
+    /usr/share/pki/ca/database/ds/vlvtasks.ldif \
+    | tee vlvtasks.ldif
+$ ldapadd \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f vlvtasks.ldif
+----
+
+Wait for the task to complete:
+
+----
+$ ldapsearch \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -b "cn=index1160589769, cn=index, cn=tasks, cn=config" \
+    nsTaskExitCode
+----
+
+Verify that `nsTaskExitCode` is `0`.
