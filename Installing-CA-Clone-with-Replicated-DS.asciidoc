@@ -1,15 +1,14 @@
 = Overview =
 
-NOTE: This page is still under construction.
-
 This page describes the process to install CA clone with existing DS instance which has been set up as a replica of the DS instance used by the primary CA.
+
+*Availability:* Since PKI 11.5
 
 = Prerequisites =
 
 * A primary DS has been link:https://github.com/dogtagpki/pki/wiki/Installing-DS-Server[installed].
 * A primary CA has been link:https://github.com/dogtagpki/pki/blob/master/docs/installation/ca/Installing_CA.md[installed] using the primary DS.
 * A secondary DS has been link:https://github.com/dogtagpki/pki/wiki/Installing-DS-Server[installed].
-* Replication has been link:https://github.com/dogtagpki/389-ds-base/wiki/Configuring-DS-Replication[configured] between the primary DS and the secondary DS.
 
 = Exporting System Certificates from Primary CA =
 
@@ -38,6 +37,24 @@ $ pki-server cert-export ca_audit_signing \
 
 $ pki-server cert-export subsystem \
     --csr-file subsystem.csr
+----
+
+= Setting Up Secondary DS =
+
+First, link:https://github.com/dogtagpki/389-ds-base/wiki/Configuring-DS-Replication[configure] replication between the primary DS and the secondary DS.
+
+Then, create search indexes with the following commands:
+
+----
+$ pki-server ca-db-index-add
+$ pki-server ca-db-index-rebuild
+----
+
+Next, create VLV indexes with the following commands:
+
+----
+$ pki-server ca-db-vlv-add
+$ pki-server ca-db-vlv-reindex
 ----
 
 = Installing Secondary CA =
