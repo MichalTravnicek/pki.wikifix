@@ -1,0 +1,33 @@
+= Overview =
+
+NOTE: This page is still under development.
+
+This page describes the process to install CA with an existing DS instance (e.g. from backup).
+
+= Setting up DS =
+
+* link:Setting-up-CA-Database[Setting up CA Database]
+* link:Setting-up-CA-Database-User[Setting up CA Database User]
+* link:Setting-up-Security-Domain[Setting up Security Domain]
+* link:Setting-up-Subsystem-User[Setting up Subsystem User]
+* link:Setting-up-CA-Admin-User[Setting up CA Admin User]
+
+= Installing CA =
+
+Prepare a deployment configuration (e.g. `ca.cfg`) to deploy CA subsystem.
+
+A sample deployment configuration is available at link:https://github.com/dogtagpki/pki/blob/master/base/server/examples/installation/ca.cfg[/usr/share/pki/server/examples/installation/ca.cfg].
+
+To start the installation execute the following command:
+
+----
+$ pkispawn \
+    -f /usr/share/pki/server/examples/installation/ca.cfg \
+    -s CA \
+    -D pki_ds_url=ldap://ds.example.com:389 \
+    -D pki_ds_setup=False \
+    -D pki_share_db=True \
+    -D pki_security_domain_setup=False \
+    -D pki_admin_setup=False \
+    -v
+----
