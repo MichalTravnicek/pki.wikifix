@@ -10,7 +10,17 @@ This page describes the process to install CA clone with existing DS instance wh
 * A primary CA has been link:https://github.com/dogtagpki/pki/blob/master/docs/installation/ca/Installing_CA.md[installed] using the primary DS.
 * A secondary DS has been link:https://github.com/dogtagpki/pki/wiki/Installing-DS-Server[installed].
 
-= Exporting System Certificates from Primary CA =
+= Creating Secondary CA =
+
+Create the secondary CA with the following commands:
+
+----
+$ pki-server create
+$ pki-server nss-create
+$ pki-server ca-create
+----
+
+= Clone System Certificates and Keys =
 
 Export the system certificates and keys from primary CA with the following commands:
 
@@ -39,28 +49,65 @@ $ pki-server cert-export subsystem \
     --csr-file subsystem.csr
 ----
 
+Import the system certificates and keys into the secondary CA with the following command:
+
+----
+$ pki \
+    -d /etc/pki/pki-tomcat/alias \
+    -f /etc/pki/pki-tomcat/password.conf \
+    pkcs12-import \
+    --pkcs12 ca-certs.p12 \
+    --password Secret.123
+----
+
 = Setting up Secondary DS =
 
-First, link:https://github.com/dogtagpki/389-ds-base/wiki/Configuring-DS-Replication[configure] replication between the primary DS and the secondary DS.
+First, configure DS connection in the secondary CA with the following commands:
 
-Then, create search indexes with the following commands:
+----
+$ pki-server password-add \
+    --password Secret.123 \
+    internaldb
+
+$ pki-server ca-db-config-mod \
+    --hostname secondaryds.example.com \
+    --port 3389 \
+    --secure false \
+    --auth BasicAuth \
+    --bindDN "cn=Directory Manager" \
+    --bindPWPrompt internaldb \
+    --database ca \
+    --baseDN dc=ca,dc=pki,dc=example,dc=com \
+    --multiSuffix false \
+    --maxConns 15 \
+    --minConns 3
+----
+
+Create a DS backend with the following command:
+
+----
+$ pki-server ca-db-create
+----
+
+link:https://github.com/dogtagpki/389-ds-base/wiki/Configuring-DS-Replication[Configure] replication between the primary DS and the secondary DS.
+
+Once the schema and entries are replicated, create search indexes with the following commands:
 
 ----
 $ pki-server ca-db-index-add
 $ pki-server ca-db-index-rebuild
 ----
 
-Next, create VLV indexes with the following commands:
+Create VLV indexes with the following commands:
 
 ----
 $ pki-server ca-db-vlv-add
 $ pki-server ca-db-vlv-reindex
 ----
 
-= Installing Secondary CA =
+= Finalize Secondary CA Installation =
 
 Prepare a deployment configuration (e.g. `ca-clone.cfg`) to deploy CA subsystem clone.
-By default the subsystem will be deployed into a Tomcat instance called `pki-tomcat`.
 
 A sample deployment configuration is available at link:https://github.com/dogtagpki/pki/blob/master/base/server/examples/installation/ca-clone.cfg[/usr/share/pki/server/examples/installation/ca-clone.cfg].
 It assumes that the primary CA subsystem is running at https://primary.example.com:8443,
@@ -68,7 +115,7 @@ the CA signing certificate has been exported into `ca_signing.crt`,
 and the admin certificate and key have been exported into `ca_admin_cert.p12`.
 The PKCS #12 password is specified in the `pki_client_pkcs12_password` parameter.
 
-To start the installation execute the following command:
+To finalize the secondary CA installation execute the following command:
 
 ----
 $ pkispawn \
