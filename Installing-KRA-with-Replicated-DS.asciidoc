@@ -1,0 +1,131 @@
+= Overview =
+
+NOTE: This page is still under development.
+
+This page describes the process to install KRA clone with existing DS instance which has been set up as a replica of the DS instance used by the primary KRA.
+
+*Availability:* Since PKI 11.5
+
+= Prerequisites =
+
+* A primary DS has been link:https://github.com/dogtagpki/pki/wiki/Installing-DS-Server[installed].
+* A primary CA has been link:https://github.com/dogtagpki/pki/blob/master/docs/installation/ca/Installing_CA.md[installed] using the primary DS.
+* A primary KRA has been link:https://github.com/dogtagpki/pki/blob/master/docs/installation/kra/Installing_KRA.md[installed] using the primary DS.
+* A secondary DS has been link:https://github.com/dogtagpki/pki/wiki/Installing-DS-Server[installed].
+* A secondary CA has been link:https://github.com/dogtagpki/pki/wiki/Installing-CA-Clone-with-Replicated-DS[installed] using the secondary DS.
+
+= Creating Secondary KRA =
+
+Create the secondary KRA with the following commands:
+
+----
+$ pki-server kra-create
+----
+
+= Clone System Certificates and Keys =
+
+Export the system certificates and keys from primary KRA with the following commands:
+
+----
+$ pki-server kra-clone-prepare \
+    --pkcs12-file kra-certs.p12 \
+    --pkcs12-password Secret.123
+----
+
+Optionally, the CSRs for the above certificates can be exported as well with the following commands:
+
+----
+$ pki-server cert-export kra_storage \
+    --csr-file kra_storage.csr
+
+$ pki-server cert-export kra_transport \
+    --csr-file kra_transport.csr
+
+$ pki-server cert-export kra_audit_signing \
+    --csr-file kra_audit_signing.csr
+
+$ pki-server cert-export subsystem \
+    --csr-file subsystem.csr
+----
+
+Import the system certificates and keys into the secondary KRA with the following command:
+
+----
+$ pki \
+    -d /etc/pki/pki-tomcat/alias \
+    -f /etc/pki/pki-tomcat/password.conf \
+    pkcs12-import \
+    --pkcs12 kra-certs.p12 \
+    --password Secret.123
+----
+
+= Setting up Secondary DS =
+
+First, configure DS connection in the KRA CA with the following commands:
+
+----
+$ pki-server kra-db-config-mod \
+    --hostname secondaryds.example.com \
+    --port 3389 \
+    --secure false \
+    --auth BasicAuth \
+    --bindDN "cn=Directory Manager" \
+    --bindPWPrompt internaldb \
+    --database kra \
+    --baseDN dc=kra,dc=pki,dc=example,dc=com \
+    --multiSuffix false \
+    --maxConns 15 \
+    --minConns 3
+----
+
+Create a DS backend with the following command:
+
+----
+$ pki-server kra-db-create
+----
+
+link:https://github.com/dogtagpki/389-ds-base/wiki/Configuring-DS-Replication[Configure] replication between the primary DS and the secondary DS.
+
+Once the schema and entries are replicated, create search indexes with the following commands:
+
+----
+$ pki-server kra-db-index-add
+$ pki-server kra-db-index-rebuild
+----
+
+Create VLV indexes with the following commands:
+
+----
+$ pki-server kra-db-vlv-add
+$ pki-server kra-db-vlv-reindex
+----
+
+= Finalize Secondary KRA Installation =
+
+Prepare a deployment configuration (e.g. `kra-clone.cfg`) to deploy KRA subsystem clone.
+
+A sample deployment configuration is available at link:https://github.com/dogtagpki/pki/blob/master/base/server/examples/installation/kra-clone.cfg[/usr/share/pki/server/examples/installation/kra-clone.cfg].
+It assumes that the primary KRA subsystem is running at https://primary.example.com:8443.
+
+To finalize the secondary KRA installation execute the following command:
+
+----
+$ pkispawn \
+    -f /usr/share/pki/server/examples/installation/kra-clone.cfg \
+    -s KRA \
+    -D pki_cert_chain_path=ca_signing.crt \
+    -D pki_clone_pkcs12_path=kra-certs.p12 \
+    -D pki_clone_pkcs12_password=Secret.123 \
+    -D pki_ds_url=ldap://secondaryds.example.com:389 \
+    -D pki_ds_setup=False \
+    -v
+----
+
+If the CSRs are available, they can be specified with the following parameters:
+
+----
+    -D pki_kra_storage_csr_path=kra_storage.csr \
+    -D pki_kra_transport_csr_path=kra_transport.csr \
+    -D pki_audit_signing_csr_path=kra_audit_signing.csr \
+    -D pki_subsystem_csr_path=subsystem.csr \
+----
