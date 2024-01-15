@@ -1,0 +1,106 @@
+= Overview =
+
+This page describes the process to set up a user to access the CA database in DS with LDAP tools.
+
+= Adding Database User =
+
+----
+$ ldapadd \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 << EOF
+dn: uid=pkidbuser,ou=people,dc=ca,dc=pki,dc=example,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: cmsuser
+cn: pkidbuser
+sn: pkidbuser
+uid: pkidbuser
+userState: 1
+userType: agentType
+EOF
+----
+
+= Assigning Certificate to Database User =
+
+Convert the certificate to DER format:
+
+----
+$ openssl x509 -outform der -in subsystem.crt -out subsystem.der
+----
+
+Get the certificate serial number:
+
+----
+$ openssl x509 -text -noout -in subsystem.crt
+...
+        Serial Number:
+            5a:a7:13:f5:0f:8b:5e:77:ae:fe:58:7e:4f:d0:c7:da
+...
+----
+
+Convert it into decimal format:
+
+----
+$ python
+>>> int('5aa713f50f8b5e77aefe587e4fd0c7da', 16)
+120498037977510792098276151038707812314
+----
+
+Add the certificate into the user entry:
+
+----
+$ ldapmodify \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 << EOF
+dn: uid=pkidbuser,ou=people,dc=ca,dc=pki,dc=example,dc=com
+changetype: modify
+add: description
+description: 2;<decimal serial number>;CN=CA Signing Certificate;CN=Subsystem Certificate
+-
+add: seeAlso
+seeAlso: CN=Subsystem Certificate
+-
+add: userCertificate
+userCertificate:< file:subsystem.der
+-
+EOF
+----
+
+= Assigning Roles to Database User =
+
+----
+$ ldapmodify \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 << EOF
+dn: cn=Subsystem Group,ou=groups,dc=ca,dc=pki,dc=example,dc=com
+changetype: modify
+add: uniqueMember
+uniqueMember: uid=pkidbuser,ou=people,dc=ca,dc=pki,dc=example,dc=com
+-
+
+dn: cn=Certificate Manager Agents,ou=groups,dc=ca,dc=pki,dc=example,dc=com
+changetype: modify
+add: uniqueMember
+uniqueMember: uid=pkidbuser,ou=people,dc=ca,dc=pki,dc=example,dc=com
+-
+EOF
+----
+
+= Granting Database Access to Database User =
+
+----
+$ sed \
+    -e 's/{rootSuffix}/dc=example,dc=com/g' \
+    -e 's/{dbuser}/uid=pkidbuser,ou=people,dc=ca,dc=pki,dc=example,dc=com/g' \
+    /usr/share/pki/server/database/ds/db-access-grant.ldif \
+    | tee db-access-grant.ldif
+$ ldapadd \
+    -H ldap://$HOSTNAME \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f db-access-grant.ldif \
+----
