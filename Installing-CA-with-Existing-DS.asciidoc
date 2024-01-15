@@ -1,16 +1,38 @@
 = Overview =
 
-NOTE: This page is still under development.
+WARNING: This page is still under development.
 
 This page describes the process to install CA with an existing DS instance (e.g. from backup).
 
 *Availability:* Since PKI 11.5
 
-= Creating CA =
+= Creating CA Subsystem =
 
 ----
 $ pki-server create
 $ pki-server nss-create
+$ pki-server ca-create
+----
+
+= Configure Connection to CA Database =
+
+----
+$ pki-server password-add \
+    --password Secret.123 \
+    internaldb
+
+$ pki-server ca-db-config-mod \
+    --hostname ds.example.com \
+    --port 3389 \
+    --secure false \
+    --auth BasicAuth \
+    --bindDN "cn=Directory Manager" \
+    --bindPWPrompt internaldb \
+    --database userroot \
+    --baseDN dc=ca,dc=pki,dc=example,dc=com \
+    --multiSuffix false \
+    --maxConns 15 \
+    --minConns 3
 ----
 
 = Setting up System Certificates =
