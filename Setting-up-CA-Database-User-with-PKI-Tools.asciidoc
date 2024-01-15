@@ -1,0 +1,27 @@
+= Overview =
+
+This page describes the process to set up a user to access the CA database in DS with PKI tools.
+
+= Adding Database User =
+
+----
+$ pki-server ca-user-add \
+    --full-name pkidbuser \
+    --type agentType \
+    pkidbuser
+----
+
+= Assigning Subsystem Certificate to Database User =
+
+----
+$ pki-server ca-user-cert-add \
+    --cert /etc/pki/pki-tomcat/certs/subsystem.crt \
+    pkidbuser
+----
+
+= Granting Database Access to Database User =
+
+----
+$ pki-server ca-db-access-grant \
+    uid=pkidbuser,ou=people,dc=ca,dc=pki,dc=example,dc=com
+----
