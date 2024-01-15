@@ -7,33 +7,11 @@ The DS database could be set up manually or restored from a backup.
 
 *Availability:* Since PKI 11.5
 
-= Creating KRA Subsystem =
+= Setting up PKI Server =
 
 ----
 $ pki-server create
 $ pki-server nss-create
-$ pki-server kra-create
-----
-
-= Configure Connection to KRA Database =
-
-----
-$ pki-server password-add \
-    --password Secret.123 \
-    internaldb
-
-$ pki-server kra-db-config-mod \
-    --hostname ds.example.com \
-    --port 3389 \
-    --secure false \
-    --auth BasicAuth \
-    --bindDN "cn=Directory Manager" \
-    --bindPWPrompt internaldb \
-    --database userroot \
-    --baseDN dc=kra,dc=pki,dc=example,dc=com \
-    --multiSuffix false \
-    --maxConns 15 \
-    --minConns 3
 ----
 
 = Creating KRA Storage Certificate =
@@ -144,6 +122,33 @@ Store the `admin.crt`, then import it with the following command:
 $ pki nss-cert-import \
     --cert admin.crt \
     admin
+----
+
+
+= Creating KRA Subsystem =
+----
+$ pki-server kra-create
+----
+
+= Configure Connection to KRA Database =
+
+----
+$ pki-server password-add \
+    --password Secret.123 \
+    internaldb
+
+$ pki-server kra-db-config-mod \
+    --hostname ds.example.com \
+    --port 3389 \
+    --secure false \
+    --auth BasicAuth \
+    --bindDN "cn=Directory Manager" \
+    --bindPWPrompt internaldb \
+    --database userroot \
+    --baseDN dc=kra,dc=pki,dc=example,dc=com \
+    --multiSuffix false \
+    --maxConns 15 \
+    --minConns 3
 ----
 
 = Setting up KRA Database =
