@@ -48,8 +48,7 @@ $ pki-server cert-request \
 $ pki-server cert-create \
     --ext /usr/share/pki/server/certs/ca_signing.conf \
     ca_signing
-$ pki-server cert-import \
-    ca_signing
+$ pki-server cert-import ca_signing
 ----
 
 To create CA OCSP signing cert in server's NSS database:
@@ -63,8 +62,7 @@ $ pki-server cert-create \
     --issuer ca_signing \
     --ext /usr/share/pki/server/certs/ocsp_signing.conf \
     ca_ocsp_signing
-$ pki-server cert-import \
-    ca_ocsp_signing
+$ pki-server cert-import ca_ocsp_signing
 ----
 
 To create CA audit signing cert in server's NSS database:
@@ -78,8 +76,7 @@ $ pki-server cert-create \
     --issuer ca_signing \
     --ext /usr/share/pki/server/certs/audit_signing.conf \
     ca_audit_signing
-$ pki-server cert-import \
-    ca_audit_signing
+$ pki-server cert-import ca_audit_signing
 ----
 
 To create subsystem cert in server's NSS database
@@ -93,8 +90,7 @@ $ pki-server cert-create \
     --issuer ca_signing \
     --ext /usr/share/pki/server/certs/subsystem.conf \
     subsystem
-$ pki-server cert-import \
-    subsystem
+$ pki-server cert-import subsystem
 ----
 
 To create SSL server cert in server's NSS database:
@@ -108,8 +104,7 @@ $ pki-server cert-create \
     --issuer ca_signing \
     --ext /usr/share/pki/server/certs/sslserver.conf \
     sslserver
-$ pki-server cert-import \
-    sslserver
+$ pki-server cert-import sslserver
 ----
 
 = Setting up CA Database =
