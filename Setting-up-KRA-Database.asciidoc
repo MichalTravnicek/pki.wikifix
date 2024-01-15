@@ -1,0 +1,36 @@
+= Overview =
+
+This page describes the process to set up a KRA database using DS.
+It assumes that the DS database has been installed as described in link:DS-Installation[DS Installation].
+
+*Availability:* Since PKI 11.5
+
+= Initializing KRA Database =
+
+----
+$ pki-server kra-db-init
+----
+
+= Adding KRA Search Indexes =
+
+----
+$ pki-server kra-db-index-add
+----
+
+= Rebuilding KRA Search Indexes =
+
+----
+$ pki-server kra-db-index-rebuild
+----
+
+= Adding KRA VLV Indexes =
+
+----
+$ pki-server kra-db-vlv-add
+----
+
+= Rebuilding KRA VLV Indexes =
+
+----
+$ pki-server kra-db-vlv-reindex
+----
