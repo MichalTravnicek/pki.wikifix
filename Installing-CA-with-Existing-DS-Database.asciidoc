@@ -124,10 +124,17 @@ $ pki-server ca-create
 
 = Configure Connection to CA Database =
 
+To store DS password in `/etc/pki/pki-tomcat/password.conf`:
+
 ----
 $ pki-server password-add \
     --password Secret.123 \
     internaldb
+----
+
+To configure DS connection in `/etc/pki/pki-tomcat/ca/CS.cfg`:
+
+----
 $ pki-server ca-db-config-mod \
     --hostname ds.example.com \
     --port 3389 \
@@ -140,6 +147,23 @@ $ pki-server ca-db-config-mod \
     --multiSuffix false \
     --maxConns 15 \
     --minConns 3
+----
+
+To configure CA user/group subsystem:
+
+----
+$ pki-server ca-config-set usrgrp.ldap internaldb
+----
+
+To configure CA database subsystem:
+
+----
+$ pki-server ca-config-set dbs.ldap internaldb
+$ pki-server ca-config-set dbs.newSchemaEntryAdded true
+$ pki-server ca-config-set dbs.requestDN ou=ca,ou=requests
+$ pki-server ca-config-set dbs.request.id.generator random
+$ pki-server ca-config-set dbs.serialDN ou=certificateRepository,ou=ca
+$ pki-server ca-config-set dbs.cert.id.generator random
 ----
 
 = Setting up CA Database =
