@@ -170,6 +170,78 @@ $ pki-server ca-config-set dbs.cert.id.generator random
 
 See link:Setting-up-CA-Database[Setting up CA Database].
 
+= Importing CA Signing Certificate =
+
+----
+$ pki-server ca-cert-request-import \
+    --csr /etc/pki/pki-tomcat/certs/ca_signing.csr \
+    --profile /usr/share/pki/ca/conf/caCert.profile
+$ pki-server ca-cert-import \
+    --cert /etc/pki/pki-tomcat/certs/ca_signing.crt \
+    --profile /usr/share/pki/ca/conf/caCert.profile \
+    --request <request ID>
+----
+
+= Importing CA OCSP Signing Certificate =
+
+----
+$ pki-server ca-cert-request-import \
+    --csr /etc/pki/pki-tomcat/certs/ca_ocsp_signing.csr \
+    --profile /usr/share/pki/ca/conf/caOCSPCert.profile
+$ pki-server ca-cert-import \
+    --cert /etc/pki/pki-tomcat/certs/ca_ocsp_signing.crt \
+    --profile /usr/share/pki/ca/conf/caOCSPCert.profile \
+    --request <request ID>
+----
+
+= Importing CA Audit Signing Certificate =
+
+----
+$ pki-server ca-cert-request-import \
+    --csr /etc/pki/pki-tomcat/certs/ca_audit_signing.csr \
+    --profile /usr/share/pki/ca/conf/caAuditSigningCert.profile
+$ pki-server ca-cert-import \
+    --cert /etc/pki/pki-tomcat/certs/ca_audit_signing.crt \
+    --profile /usr/share/pki/ca/conf/caAuditSigningCert.profile \
+    --request <request ID>
+----
+
+= Importing Subsystem Certificate =
+
+----
+$ pki-server ca-cert-request-import \
+    --csr /etc/pki/pki-tomcat/certs/subsystem.csr \
+    --profile /usr/share/pki/ca/conf/rsaSubsystemCert.profile
+$ pki-server ca-cert-import \
+    --cert /etc/pki/pki-tomcat/certs/subsystem.crt \
+    --profile /usr/share/pki/ca/conf/rsaSubsystemCert.profile \
+    --request <request ID>
+----
+
+= Importing SSL Server Certificate =
+
+----
+$ pki-server ca-cert-request-import \
+    --csr /etc/pki/pki-tomcat/certs/sslserver.csr \
+    --profile /usr/share/pki/ca/conf/rsaServerCert.profile
+$ pki-server ca-cert-import \
+    --cert /etc/pki/pki-tomcat/certs/sslserver.crt \
+    --profile /usr/share/pki/ca/conf/rsaServerCert.profile \
+    --request <request ID>
+----
+
+= Importing Admin Certificate =
+
+----
+$ pki-server ca-cert-request-import \
+    --csr admin.csr \
+    --profile /usr/share/pki/ca/conf/rsaAdminCert.profile
+$ pki-server ca-cert-import \
+    --cert admin.crt \
+    --profile /usr/share/pki/ca/conf/rsaAdminCert.profile \
+    --request <request ID>
+----
+
 = Setting up CA Database User =
 
 See link:Setting-up-CA-Database-User[Setting up CA Database User].
