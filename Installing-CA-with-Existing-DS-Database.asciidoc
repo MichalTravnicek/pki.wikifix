@@ -16,7 +16,7 @@ $ pki-server nss-create
 
 = Creating CA Signing Certificate =
 
-To create CA signing cert in server's NSS database:
+To create CA signing certificate in server's NSS database:
 
 ----
 $ pki-server cert-request \
@@ -31,7 +31,7 @@ $ pki-server cert-import ca_signing
 
 = Creating CA OCSP Signing Certificate =
 
-To create CA OCSP signing cert in server's NSS database:
+To create CA OCSP signing certificate in server's NSS database:
 
 ----
 $ pki-server cert-request \
@@ -47,7 +47,7 @@ $ pki-server cert-import ca_ocsp_signing
 
 = Creating CA Audit Signing Certificate =
 
-To create CA audit signing cert in server's NSS database:
+To create CA audit signing certificate in server's NSS database:
 
 ----
 $ pki-server cert-request \
@@ -63,7 +63,7 @@ $ pki-server cert-import ca_audit_signing
 
 = Creating Subsystem Certificate =
 
-To create subsystem cert in server's NSS database
+To create subsystem certificate in server's NSS database
 
 ----
 $ pki-server cert-request \
@@ -79,7 +79,7 @@ $ pki-server cert-import subsystem
 
 = Creating SSL Server Certificate =
 
-To create SSL server cert in server's NSS database:
+To create SSL server certificate in server's NSS database:
 
 ----
 $ pki pki-server cert-request \
@@ -91,6 +91,29 @@ $ pki-server cert-create \
     --ext /usr/share/pki/server/certs/sslserver.conf \
     sslserver
 $ pki-server cert-import sslserver
+----
+
+= Creating Admin Certificate =
+
+To create admin certificate in client's NSS database:
+
+----
+$ pki \
+    nss-cert-request \
+    --subject "CN=Administrator" \
+    --ext /usr/share/pki/server/certs/admin.conf \
+    --csr admin.csr
+$ pki \
+    -d /etc/pki/pki-tomcat/alias \
+    nss-cert-issue \
+    --issuer ca_signing \
+    --csr admin.csr \
+    --ext /usr/share/pki/server/certs/admin.conf \
+    --cert admin.crt
+$ pki \
+    nss-cert-import \
+    --cert admin.crt \
+    caadmin
 ----
 
 = Creating CA Subsystem =
