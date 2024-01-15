@@ -2,7 +2,7 @@
 
 This page describes the process to set up a CA admin user with LDAP tools.
 
-= Adding Admin User =
+= Adding CA Admin User =
 
 ----
 $ ldapadd \
@@ -24,7 +24,7 @@ userType: adminType
 EOF
 ----
 
-= Assigning Admin Certificate to Admin User =
+= Assigning Admin Certificate to CA Admin User =
 
 Convert the admin certificate to DER format:
 
@@ -68,7 +68,7 @@ userCertificate:< file:admin.der
 EOF
 ----
 
-= Assigning Roles to Admin User =
+= Assigning Roles to CA Admin User =
 
 ----
 $ ldapmodify \
