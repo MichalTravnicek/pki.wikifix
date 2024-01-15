@@ -7,36 +7,14 @@ The DS database could be set up manually or restored from a backup.
 
 *Availability:* Since PKI 11.5
 
-= Creating CA Subsystem =
+= Setting up PKI Server =
 
 ----
 $ pki-server create
 $ pki-server nss-create
-$ pki-server ca-create
 ----
 
-= Configure Connection to CA Database =
-
-----
-$ pki-server password-add \
-    --password Secret.123 \
-    internaldb
-
-$ pki-server ca-db-config-mod \
-    --hostname ds.example.com \
-    --port 3389 \
-    --secure false \
-    --auth BasicAuth \
-    --bindDN "cn=Directory Manager" \
-    --bindPWPrompt internaldb \
-    --database userroot \
-    --baseDN dc=ca,dc=pki,dc=example,dc=com \
-    --multiSuffix false \
-    --maxConns 15 \
-    --minConns 3
-----
-
-= Setting up System Certificates =
+= Creating CA Signing Certificate =
 
 To create CA signing cert in server's NSS database:
 
@@ -50,6 +28,8 @@ $ pki-server cert-create \
     ca_signing
 $ pki-server cert-import ca_signing
 ----
+
+= Creating CA OCSP Signing Certificate =
 
 To create CA OCSP signing cert in server's NSS database:
 
@@ -65,6 +45,8 @@ $ pki-server cert-create \
 $ pki-server cert-import ca_ocsp_signing
 ----
 
+= Creating CA Audit Signing Certificate =
+
 To create CA audit signing cert in server's NSS database:
 
 ----
@@ -78,6 +60,8 @@ $ pki-server cert-create \
     ca_audit_signing
 $ pki-server cert-import ca_audit_signing
 ----
+
+= Creating Subsystem Certificate =
 
 To create subsystem cert in server's NSS database
 
@@ -93,6 +77,8 @@ $ pki-server cert-create \
 $ pki-server cert-import subsystem
 ----
 
+= Creating SSL Server Certificate =
+
 To create SSL server cert in server's NSS database:
 
 ----
@@ -107,13 +93,51 @@ $ pki-server cert-create \
 $ pki-server cert-import sslserver
 ----
 
+= Creating CA Subsystem =
+
+----
+$ pki-server ca-create
+----
+
+= Configure Connection to CA Database =
+
+----
+$ pki-server password-add \
+    --password Secret.123 \
+    internaldb
+$ pki-server ca-db-config-mod \
+    --hostname ds.example.com \
+    --port 3389 \
+    --secure false \
+    --auth BasicAuth \
+    --bindDN "cn=Directory Manager" \
+    --bindPWPrompt internaldb \
+    --database userroot \
+    --baseDN dc=ca,dc=pki,dc=example,dc=com \
+    --multiSuffix false \
+    --maxConns 15 \
+    --minConns 3
+----
+
 = Setting up CA Database =
 
-* link:Setting-up-CA-Database[Setting up CA Database]
-* link:Setting-up-CA-Database-User[Setting up CA Database User]
-* link:Setting-up-Security-Domain[Setting up Security Domain]
-* link:Setting-up-Subsystem-User[Setting up Subsystem User]
-* link:Setting-up-CA-Admin-User[Setting up CA Admin User]
+See link:Setting-up-CA-Database[Setting up CA Database].
+
+= Setting up CA Database User =
+
+See link:Setting-up-CA-Database-User[Setting up CA Database User].
+
+= Setting up Security Domain =
+
+See link:Setting-up-Security-Domain[Setting up Security Domain].
+
+= Setting up Subsystem User =
+
+See link:Setting-up-Subsystem-User[Setting up Subsystem User].
+
+= Setting up CA Admin User =
+
+See link:Setting-up-CA-Admin-User[Setting up CA Admin User].
 
 = Finishing CA Installation =
 
