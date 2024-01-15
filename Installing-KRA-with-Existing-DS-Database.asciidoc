@@ -38,6 +38,8 @@ $ pki-server kra-db-config-mod \
 
 = Creating KRA Storage Certificate =
 
+To generate a CSR for KRA storage certificate:
+
 ----
 $ pki-server cert-request \
     --subject "CN=DRM Storage Certificate" \
@@ -45,11 +47,16 @@ $ pki-server cert-request \
     kra_storage
 ----
 
+The `kra_storage.csr` can be found in `/etc/pki/pki-tomcat/certs`.
+Store the `kra_storage.crt` in the same directory, then import it with the following command:
+
 ----
 $ pki-server cert-import kra_storage
 ----
 
 = Creating KRA Transport Certificate =
+
+To generate a CSR for KRA transport certificate:
 
 ----
 $ pki-server cert-request \
@@ -58,11 +65,16 @@ $ pki-server cert-request \
       kra_transport
 ----
 
+The `kra_transport.csr` can be found in `/etc/pki/pki-tomcat/certs`.
+Store the `kra_transport.crt` in the same directory, then import it with the following command:
+
 ----
 $ pki-server cert-import kra_transport
 ----
 
-= Creating Audit Signing Certificate =
+= Creating KRA Audit Signing Certificate =
+
+To generate a CSR for KRA audit signing certificate:
 
 ----
 $ pki-server cert-request \
@@ -71,11 +83,16 @@ $ pki-server cert-request \
     kra_audit_signing
 ----
 
+The `kra_audit_signing.csr` can be found in `/etc/pki/pki-tomcat/certs`.
+Store the `kra_audit_signing.crt` in the same directory, then import it with the following command:
+
 ----
 $ pki-server cert-import kra_audit_signing
 ----
 
 = Creating Subsystem Certificate =
+
+To generate a CSR for subsystem certificate:
 
 ----
 $ pki-server cert-request \
@@ -84,11 +101,16 @@ $ pki-server cert-request \
     subsystem
 ----
 
+The `subsystem.csr` can be found in `/etc/pki/pki-tomcat/certs`.
+Store the `subsystem.crt` in the same directory, then import it with the following command:
+
 ----
 $ pki-server cert-import subsystem
 ----
 
 = Creating SSL Server Certificate =
+
+To generate a CSR for SSL server certificate:
 
 ----
 $ pki-server cert-request \
@@ -97,11 +119,16 @@ $ pki-server cert-request \
     sslserver
 ----
 
+The `sslserver.csr` can be found in `/etc/pki/pki-tomcat/certs`.
+Store the `sslserver.crt` in the same directory, then import it with the following command:
+
 ----
 $ pki-server cert-import sslserver
 ----
 
 = Creating Admin Certificate =
+
+To generate a CSR for admin certificate:
 
 ----
 $ pki nss-cert-request \
@@ -109,6 +136,9 @@ $ pki nss-cert-request \
     --ext /usr/share/pki/server/certs/admin.conf \
     --csr admin.csr
 ----
+
+The `admin.csr` can be found in the local directory.
+Store the `admin.crt`, then import it with the following command:
 
 ----
 $ pki nss-cert-import \
