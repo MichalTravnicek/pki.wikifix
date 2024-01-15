@@ -1,0 +1,116 @@
+= Overview =
+
+WARNING: This page is still under development.
+
+This page describes the process to install KRA with an existing DS instance (e.g. from backup).
+
+*Availability:* Since PKI 11.5
+
+= Creating KRA Subsystem =
+
+----
+$ pki-server create
+$ pki-server nss-create
+$ pki-server kra-create
+----
+
+= Configure Connection to KRA Database =
+
+----
+$ pki-server password-add \
+    --password Secret.123 \
+    internaldb
+
+$ pki-server kra-db-config-mod \
+    --hostname krads.example.com \
+    --port 3389 \
+    --secure false \
+    --auth BasicAuth \
+    --bindDN "cn=Directory Manager" \
+    --bindPWPrompt internaldb \
+    --database userroot \
+    --baseDN dc=kra,dc=pki,dc=example,dc=com \
+    --multiSuffix false \
+    --maxConns 15 \
+    --minConns 3
+----
+
+= Creating KRA Storage Certificate =
+
+----
+$ pki-server cert-request \
+    --subject "CN=DRM Storage Certificate" \
+    --ext /usr/share/pki/server/certs/kra_storage.conf \
+    kra_storage
+----
+
+----
+$ pki-server cert-import kra_storage
+----
+
+= Creating KRA Transport Certificate =
+
+----
+$ pki-server cert-request \
+      --subject "CN=DRM Transport Certificate" \
+      --ext /usr/share/pki/server/certs/kra_transport.conf \
+      kra_transport
+----
+
+----
+$ pki-server cert-import kra_transport
+----
+
+= Creating Audit Signing Certificate =
+
+----
+$ pki-server cert-request \
+    --subject "CN=Audit Signing Certificate" \
+    --ext /usr/share/pki/server/certs/audit_signing.conf \
+    kra_audit_signing
+----
+
+----
+$ pki-server cert-import kra_audit_signing
+----
+
+= Creating Subsystem Certificate =
+
+----
+$ pki-server cert-request \
+    --subject "CN=Subsystem Certificate" \
+    --ext /usr/share/pki/server/certs/subsystem.conf \
+    subsystem
+----
+
+----
+$ pki-server cert-import subsystem
+----
+
+= Creating SSL Server Certificate =
+
+----
+$ pki-server cert-request \
+    --subject "CN=kra.example.com" \
+    --ext /usr/share/pki/server/certs/sslserver.conf \
+    sslserver
+----
+
+----
+$ pki-server cert-import sslserver
+----
+
+= Creating Admin Certificate =
+
+----
+$ pki nss-cert-request \
+    --subject "CN=Administrator" \
+    --ext /usr/share/pki/server/certs/admin.conf \
+    --csr admin.csr
+----
+
+----
+$ pki nss-cert-import \
+    --cert admin.crt \
+    admin
+----
