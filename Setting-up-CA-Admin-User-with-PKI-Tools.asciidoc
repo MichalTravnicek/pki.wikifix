@@ -1,0 +1,34 @@
+= Overview =
+
+This page describes the process to set up a CA admin user with PKI tools.
+
+= Adding CA Admin User =
+
+----
+$ pki-server ca-user-add \
+    --full-name Administrator \
+    --type adminType \
+    caadmin
+----
+
+= Assigning Admin Certificate to CA Admin User =
+
+----
+$ pki-server ca-user-cert-add \
+    --cert admin.crt \
+    caadmin
+----
+
+= Assigning Roles to CA Admin User =
+
+----
+$ pki-server ca-user-role-add caadmin "Administrators"
+$ pki-server ca-user-role-add caadmin "Certificate Manager Agents"
+$ pki-server ca-user-role-add caadmin "Security Domain Administrators"
+$ pki-server ca-user-role-add caadmin "Enterprise CA Administrators"
+$ pki-server ca-user-role-add caadmin "Enterprise KRA Administrators"
+$ pki-server ca-user-role-add caadmin "Enterprise RA Administrators"
+$ pki-server ca-user-role-add caadmin "Enterprise TKS Administrators"
+$ pki-server ca-user-role-add caadmin "Enterprise OCSP Administrators"
+$ pki-server ca-user-role-add caadmin "Enterprise TPS Administrators"
+----
