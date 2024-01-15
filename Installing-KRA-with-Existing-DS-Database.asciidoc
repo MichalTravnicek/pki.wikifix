@@ -119,3 +119,23 @@ $ pki nss-cert-import \
 = Setting up KRA Database =
 
 * link:Setting-up-KRA-Database[Setting up KRA Database]
+
+= Finishing KRA Installation =
+
+Prepare a deployment configuration (e.g. `kra.cfg`) to deploy KRA subsystem.
+
+A sample deployment configuration is available at link:https://github.com/dogtagpki/pki/blob/master/base/server/examples/installation/kra.cfg[/usr/share/pki/server/examples/installation/kra.cfg].
+
+To finish KRA installation execute the following command:
+
+----
+$ pkispawn \
+    -f /usr/share/pki/server/examples/installation/kra.cfg \
+    -s KRA \
+    -D pki_ds_url=ldap://ds.example.com:389 \
+    -D pki_ds_setup=False \
+    -D pki_security_domain_uri=https://ca.example.com:8443 \
+    -D pki_issuing_ca_uri=https://ca.example.com:8443 \
+    -D pki_admin_setup=False \
+    -v
+----
