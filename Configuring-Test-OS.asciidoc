@@ -1,14 +1,37 @@
 = Overview =
 
-By default the CI will perform tests using latest Fedora version. Sometimes it's necessary to test against a different Fedora version.
+By default the CI will perform tests using latest Fedora version. Sometimes it's necessary to test against a different Fedora version (e.g. Rawhide) for development.
+
+In PKI 11.5 or later the test OS can be configured by creating a variable called `BASE_IMAGE` to store the base image (e.g. `registry.fedoraproject.org/fedora:rawhide`) of the test container. To reset the test OS simply remove the variable.
 
 Prior to PKI 11.5 the test OS can be configured by creating a GitHub secret called `BASE64_OS` to store the base64-encoded value of the Fedora version (e.g. `rawhide`). To reset the test OS simply remove the secret.
 
-In PKI 11.5 or later the test OS can be configured by creating a GitHub variable called `BASE_IMAGE` to store the base image (e.g. `registry.fedoraproject.org/fedora:rawhide`) of the test containers. To reset the test OS simply remove the variable.
-
 = Configuring Test OS =
 
-For example, to test against Fedora Rawhide prior to PKI 11.5, base-64 encode the Fedora version with the following command:
+== Configuring test OS for PKI 11.5 or newer ==
+
+To test against Fedora Rawhide on GitHub, create an Action variable:
+
+* Go to *Settings* -> *Secrets and variables* -> *Actions* -> *Variables*.
+* Click *New repository variable*.
+* Enter `BASE_IMAGE` as the variable name.
+* Enter `registry.fedoraproject.org/fedora:rawhide` as the variable value.
+* Click *Add variable*.
+
+To test against Fedora Rawhide on Azure DevOps, create a Pipeline variable:
+
+* Go to the project *Pipelines*.
+* Open a recently run pipeline.
+* Click *Edit*.
+* Click *Variables*.
+* Click *+*.
+* Enter `BASE_IMAGE` as the variable name.
+* Enter `registry.fedoraproject.org/fedora:rawhide` as the variable value.
+* Click *OK*.
+
+== Configuring test OS for older PKI versions ==
+
+To test against Fedora Rawhide on GitHub, base-64 encode the Fedora version with the following command:
 
 ----
 $ echo "rawhide" | base64
@@ -23,31 +46,36 @@ Then create the secret:
 * Enter the base64-encoded value as the secret value.
 * Click *Add secret*
 
-In PKI 11.5 or later create a variable:
-
-* Go to *Settings* -> *Secrets and variables* -> *Actions* -> *Variables*.
-* Click *New repository variable*.
-* Enter `BASE_IMAGE` as the variable name.
-* Enter `registry.fedoraproject.org/fedora:rawhide` as the variable value.
-* Click *Add variable*.
-
 = Before Testing =
 
-It is a good idea to delete any caches that may exist in your repo before starting:
+It might be a good idea to delete old GitHub caches before starting:
 
 * Go to *Actions* -> Click *Caches* in the left menu.
 * Delete caches as appropriate.
 
 = Resetting Test OS =
 
-To reset the test OS prior to PKI 11.5, remove the secret:
+== Resetting test OS for PKI 11.5 or newer ==
 
-* Go to *Settings* -> *Secrets*.
-* Click *Remove* next to `BASE64_OS`.
-* Click *Yes, remove this secret*.
-
-To reset the test OS in PKI 11.5 or later, remove the variable:
+To reset the test OS on GitHub, remove the variable:
 
 * Go to *Settings* -> *Secrets and variables* -> *Actions* -> *Variables*.
 * Click *Remove* next to `BASE_IMAGE`.
 * Click *Yes, remove this variable*.
+
+To reset the test OS in Azure DevOps, remove the variable:
+
+* Go to the project *Pipelines*.
+* Open a recently run pipeline.
+* Click *Edit*.
+* Click *Variables*.
+* Click the trash icon next to `BASE_IMAGE`.
+* Click *Save*.
+
+== Resetting test OS for older PKI versions ==
+
+To reset the test OS prior on GitHub, remove the secret:
+
+* Go to *Settings* -> *Secrets*.
+* Click *Remove* next to `BASE64_OS`.
+* Click *Yes, remove this secret*.
