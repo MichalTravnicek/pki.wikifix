@@ -6,6 +6,13 @@ In PKI 11.5 or later the test OS can be configured by creating a variable called
 
 Prior to PKI 11.5 the test OS can be configured by creating a GitHub secret called `BASE64_OS` to store the base64-encoded value of the Fedora version (e.g. `rawhide`). To reset the test OS simply remove the secret.
 
+= Deleting Old Caches =
+
+When changing the OS configuration, be sure to delete old GitHub caches such that the tests will run with the correct OS:
+
+* Go to *Actions* -> Click *Caches* in the left menu.
+* Delete caches as appropriate.
+
 = Configuring Test OS =
 
 == Configuring test OS for PKI 11.5 or newer ==
@@ -45,13 +52,6 @@ Then create the secret:
 * Enter `BASE64_OS` as the secret name.
 * Enter the base64-encoded value as the secret value.
 * Click *Add secret*
-
-= Before Testing =
-
-It might be a good idea to delete old GitHub caches before starting:
-
-* Go to *Actions* -> Click *Caches* in the left menu.
-* Delete caches as appropriate.
 
 = Resetting Test OS =
 
