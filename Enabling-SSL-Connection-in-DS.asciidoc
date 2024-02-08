@@ -7,6 +7,9 @@ created using link:PKI-NSS-CLI[PKI NSS CLI] commands.
 This page assumes that a DS instance named `localhost` already exists,
 it does not have certificates, and the SSL connection is disabled.
 
+*Note:* Newer DS versions have the certificates created and SSL connection enabled by default,
+so it's not necessary to follow the process described in this page.
+
 = Creating DS Signing Certificate =
 
 First, generate DS signing CSR with the following command:
@@ -49,6 +52,21 @@ To verify the DS signing certificate:
 
 ----
 $ certutil -L -d /etc/dirsrv/slapd-localhost -n Self-Signed-CA
+...
+    Certificate Trust Flags:
+        SSL Flags:
+            Valid CA
+            Trusted CA
+            User
+            Trusted Client CA
+        Email Flags:
+            Valid CA
+            Trusted CA
+            User
+        Object Signing Flags:
+            Valid CA
+            Trusted CA
+            User
 ----
 
 = Creating DS Server Certificate =
@@ -93,6 +111,14 @@ To verify the DS server certificate:
 
 ----
 $ certutil -L -d /etc/dirsrv/slapd-localhost -n Server-Cert
+...
+    Certificate Trust Flags:
+        SSL Flags:
+            User
+        Email Flags:
+            User
+        Object Signing Flags:
+            User
 ----
 
 = Enabling SSL Connection =
