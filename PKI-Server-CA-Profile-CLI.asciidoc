@@ -10,10 +10,18 @@ $ pki-server ca-profile-find
 
 = Modifying Certificate Profile =
 
+To make a profile invisible:
+
+----
+$ pki-server ca-profile-mod --visible false <profile ID>
+----
+
 To enable a profile:
 
 ----
 $ pki-server ca-profile-mod --enable true <profile ID>
 ----
+
+Be sure to restart the CA after making profile changes.
 
 *Availability:* Since PKI 11.5.
