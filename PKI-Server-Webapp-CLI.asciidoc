@@ -1,8 +1,8 @@
 = Overview =
 
-PKI 10.7 provides a CLI to manage webapps on PKI server.
+The `pki-server webapp` commands provides a mechanism to manage webapps on PKI server.
 
-= Listing Webapps =
+= Listing Deployed Webapps =
 
 ----
 $ pki-server webapp-find
@@ -22,6 +22,20 @@ $ pki-server webapp-find
   Document Base: /usr/share/pki/server/webapps/pki
 ----
 
+*Availability:* Since PKI 10.7.
+
+= Displaying Deployed Webapp =
+
+----
+$ pki-server webapp-find
+  Webapp ID: ROOT
+  Path: /
+  Descriptor: /etc/pki/pki-tomcat/Catalina/localhost/ROOT.xml
+  Document Base: /usr/share/pki/server/webapps/ROOT
+----
+
+*Availability:* Since PKI 11.5.
+
 = Deploying Webapp =
 
 To deploy the ROOT webapp:
@@ -40,8 +54,12 @@ $ pki-server webapp-deploy \
     pki
 ----
 
+*Availability:* Since PKI 10.7.
+
 = Undeploying Webapp =
 
 ----
 $ pki-server webapp-undeploy pki
 ----
+
+*Availability:* Since PKI 10.7.
