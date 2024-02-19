@@ -1,0 +1,93 @@
+
+= Authority Record =
+
+|===
+| LDAP Attribute | Description | Indexed | Searchable | Example
+
+| cn
+| Authority ID
+|
+|
+| 7786291b-227a-48d6-b667-df322afcad4f
+
+| authorityID
+| Authority ID
+|
+|
+| 7786291b-227a-48d6-b667-df322afcad4f
+
+| authorityDN
+| Authority DN
+|
+|
+| CN=Lightweight CA
+
+| authorityParentID
+| Authority parent ID
+|
+|
+| a8ae2879-2c22-4a1c-9066-0885ca332ca0
+
+| authorityParentDN
+| Authority parent DN
+|
+|
+| CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+
+| description
+| Description
+|
+|
+| Host authority
+
+| authorityEnabled
+| Authority enabled
+|
+|
+| TRUE
+
+| authorityKeyNickname
+| Authority key nickname
+|
+|
+| ca_signing
+
+| authorityKeyHost
+| Authority key host
+|
+|
+| pki.example.com:8443
+
+| authoritySerial
+| Authority serial number
+|
+|
+| 60411763618146188316076145926628421258
+|===
+
+= Examples =
+
+----
+dn: cn=a8ae2879-2c22-4a1c-9066-0885ca332ca0,ou=authorities,ou=ca,dc=ca,dc=pki,dc=example,dc=com
+objectClass: authority
+objectClass: top
+cn: a8ae2879-2c22-4a1c-9066-0885ca332ca0
+authorityID: a8ae2879-2c22-4a1c-9066-0885ca332ca0
+authorityDN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+description: Host authority
+authorityEnabled: TRUE
+authorityKeyNickname: ca_signing
+
+dn: cn=7786291b-227a-48d6-b667-df322afcad4f,ou=authorities,ou=ca,dc=ca,dc=pki,dc=example,dc=com
+objectClass: authority
+objectClass: top
+cn: 7786291b-227a-48d6-b667-df322afcad4f
+authorityID: 7786291b-227a-48d6-b667-df322afcad4f
+authorityDN: CN=Lightweight CA
+authorityParentID: a8ae2879-2c22-4a1c-9066-0885ca332ca0
+authorityParentDN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+authorityEnabled: TRUE
+authorityKeyNickname: ca_signing 7786291b-227a-48d6-b667-df322afcad4f
+authorityKeyHost: pki.example.com:8443
+authoritySerial: 60411763618146188316076145926628421258
+----
