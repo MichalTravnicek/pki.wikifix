@@ -110,21 +110,21 @@ $ git pull
 
 = Creating an Official Build =
 
-To create an official build:
+To create an official build without a side tag:
 
 ----
 $ centpkg build
 ----
 
-The official build will be created in https://kojihub.stream.rdu2.redhat.com. It will also trigger gating process and the result will be sent via email.
-
-To create an official build with side tag:
+To create an official build with a side tag:
 
 ----
 $ centpkg request-gated-side-tag
 $ centpkg build --target=<side tag>
 $ stream wait-repo <side tag>
 ----
+
+The official build will be created in https://kojihub.stream.centos.org. It will also trigger gating process and the result will be sent via email.
 
 = See Also =
 
