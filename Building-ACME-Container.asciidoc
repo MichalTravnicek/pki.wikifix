@@ -1,28 +1,26 @@
 = Overview =
 
-This page describes the procedure to build PKI ACME container.
+This page describes the procedure to build an ACME container.
 
-= Prerequisites =
+= Dockerfiles =
 
-To install Podman:
+There are two Dockerfiles for ACME container:
+
+* link:https://github.com/dogtagpki/pki/blob/master/Dockerfile[Dockerfile]: This is the preferred one since it is multi-stage so it can be faster to build and produce smaller images and also it is tested in CI.
+* link:https://github.com/dogtagpki/pki/blob/master/base/acme/Dockerfile[base/acme/Dockerfile]: This is less preferred since it is single-stage. It is provided to support image builders that do not support multi-stage Dockerfiles (e.g. Quay).
+
+= Building ACME Container Locally =
+
+To build the container using the multi-stage Dockerfile:
 
 ----
-$ dnf install podman
+$ podman build \
+    --target pki-acme \
+    -t pki-acme \
+    .
 ----
 
-To install Docker:
-
-----
-$ dnf install docker
-----
-
-= Dockerfile =
-
-The ACME Dockerfile is located at link:https://github.com/dogtagpki/pki/blob/master/base/acme/Dockerfile[base/acme/Dockerfile].
-
-= Building Container Image Locally =
-
-To build with Podman:
+To build the container using the single-stage Dockerfile:
 
 ----
 $ podman build \
@@ -31,16 +29,7 @@ $ podman build \
     .
 ----
 
-To build with Docker:
-
-----
-$ docker build \
-    -f base/acme/Dockerfile \
-    -t pki-acme \
-    .
-----
-
-= Pushing Container Image to Quay =
+To push the container to Quay:
 
 ----
 $ podman tag pki-acme:latest quay.io/<username>/pki-acme:latest
