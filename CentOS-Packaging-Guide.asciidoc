@@ -74,7 +74,7 @@ $ centpkg --release <main branch> srpm
 $ centpkg --release <main branch> scratch-build --srpm <path>
 ----
 
-The scratch build will be created in https://kojihub.stream.rdu2.redhat.com.
+The scratch build will be created in https://kojihub.stream.centos.org.
 
 = Creating a Merge Request =
 
@@ -89,13 +89,24 @@ $ git push <username> <branch>
 Now we create the merge request by first going to the centos-stream project page:
 
 The proper page to go to, to kick off this process is something like:
-https://gitlab.com/redhat/centos-stream/rpms/package-name ,
-where package-name is based on what project being worked on.
+`https://gitlab.com/redhat/centos-stream/rpms/<package-name>/`,
+where `<package-name>` is based on what project being worked on.
 
-
-Then click on 'Merge Requests' on the left hand side.
-From the merge request page, click "New Merge Request".
+Then click on *Merge Requests* on the left hand side.
+From the merge request page, click *New Merge Request*.
 Within this UI we can choose the various source and destination branches.
+
+To update multiple packages at the same time, request a side tag:
+
+----
+$ centpkg request-gated-side-tag
+----
+
+then specify the side tag in the merge request description:
+
+----
+side-tag: <side tag>
+----
 
 = Merging a Merge Request =
 
@@ -119,7 +130,6 @@ $ centpkg build
 To create an official build with a side tag:
 
 ----
-$ centpkg request-gated-side-tag
 $ centpkg build --target=<side tag>
 $ stream wait-repo <side tag>
 ----
