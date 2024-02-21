@@ -13,7 +13,7 @@ There are two Dockerfiles for CA container:
 
 = Building CA Container Locally =
 
-To build the CA container using the multi-stage Dockerfile:
+To build the container using the multi-stage Dockerfile:
 
 ----
 $ podman build \
@@ -22,7 +22,7 @@ $ podman build \
     .
 ----
 
-To build the CA container using the single-stage Dockerfile:
+To build the container using the single-stage Dockerfile:
 
 ----
 $ podman build \
@@ -38,9 +38,7 @@ $ podman tag pki-ca:latest quay.io/<username>/pki-ca:latest
 $ podman push quay.io/<username>/pki-ca:latest
 ----
 
-= Building CA Container on Quay =
-
-The repository on Quay can be configured to build the CA container automatically:
+= Configuring Autobuild on Quay =
 
 * Open https://quay.io/repository
 * Click a container repository (e.g. *dogtagpki/pki-ca*)
