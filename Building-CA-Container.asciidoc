@@ -2,15 +2,29 @@
 
 NOTE: This page is still under construction.
 
-This page describes the procedure to build a CA container with PKI 11.3 or later.
+This page describes the procedure to build a CA container with PKI 11.5 or later.
 
-= Dockerfile =
+= Dockerfiles =
 
-The CA Dockerfile is located at link:https://github.com/dogtagpki/pki/blob/master/base/ca/Dockerfile[base/ca/Dockerfile].
+There are two Dockerfiles for CA container:
+
+* link:https://github.com/dogtagpki/pki/blob/master/Dockerfile[Dockerfile]: This is the preferred one since it is multi-stage so it can be faster to build and produce smaller images and also it is tested in CI.
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/Dockerfile[base/ca/Dockerfile]: This is less preferred since it is single-stage. It is provided to support image builders that do not support multi-stage Dockerfiles (e.g. Quay).
 
 = Building CA Container Locally =
 
-To build the CA container locally:
+To build the CA container using the multi-stage Dockerfile:
+
+----
+$ podman build \
+    --build-arg COPR_REPO="" \
+    --build-arg BUILD_OPTS="" \
+    --target pki-ca \
+    -t pki-ca \
+    .
+----
+
+To build the CA container using the single-stage Dockerfile:
 
 ----
 $ podman build \
