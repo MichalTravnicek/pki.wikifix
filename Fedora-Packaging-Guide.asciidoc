@@ -148,10 +148,10 @@ To build a package with the side tag:
 $ fedpkg build --target <side tag>
 ----
 
-Wait for the repo to be created before building the next package:
+Wait for the new package to be available before building the next package:
 
 ----
-$ koji wait-repo <side tag>
+$ koji wait-repo --build <package NVR> <side tag>
 ----
 
 Once all packages are built, create an update in link:https://bodhi.fedoraproject.org[Bodhi] using the side tag.
