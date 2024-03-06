@@ -1,11 +1,17 @@
 = Overview =
 
-This page describes the process to install a KRA subsystem with existing system keys, CSRs, and certificates
-(which may come from an existing KRA) where the keys are stored in internal NSS token.
+This page describes the process to install a KRA subsystem with existing keys, CSRs, and certificates
+(which may be exported from an existing KRA) where the keys are stored in internal NSS token.
 
-= Preparing KRA Keys, CSRs, and Certificates =
+= Preparing Keys, CSRs, and Certificates =
 
-KRA system keys, CSRs, and certificates can be created as follows:
+Export the CA signing certificate with the following command:
+
+----
+$ pki-server cert-export ca_signing --cert-file ca_signing.crt
+----
+
+New KRA keys, CSRs, and certificates can be created as follows:
 
 * link:Generating-KRA-Storage-Certificate[Generating KRA Storage Certificate]
 * link:Generating-KRA-Transport-Certificate[Generating KRA Transport Certificate]
@@ -48,28 +54,37 @@ $ echo "-----END CERTIFICATE REQUEST-----" >> kra_audit_signing.csr
 = Installing KRA Subsystem =
 
 Prepare a file that contains the deployment configuration.
+A sample deployment configuration is available at link:../blob/master/base/server/examples/installation/kra.cfg[/usr/share/pki/server/examples/installation/kra.cfg].
+
+Specify the CA signing certificate with the following parameter:
+
+----
+pki_cert_chain_path=ca_signing.crt
+----
 
 Specify the existing keys and certificates in the PKCS #12 file with the following parameters:
 
 ----
-pki_pkcs12_path=kra-certs.p12
-pki_pkcs12_password=Secret.123
+pki_server_pkcs12_path=kra-certs.p12
+pki_server_pkcs12_password=Secret.123
 ----
 
 Specify the existing CSRs with the following parameters:
 
 ----
-pki_kra_storage_csr_path=kra_storage.csr
-pki_kra_transport_csr_path=kra_transport.csr
-pki_audit_signing_csr_path=ca_audit_signing.csr
+pki_storage_csr_path=kra_storage.csr
+pki_transport_csr_path=kra_transport.csr
+pki_audit_signing_csr_path=kra_audit_signing.csr
+----
+
+Specify the existing admin certificate and CSR with the following parameters:
+
+----
+pki_admin_cert_path=kra_admin.crt
+pki_admin_csr_path=kra_admin.csr
 ----
 
 Finally, execute the following command:
-
-```
-$ pkispawn -f kra.cfg -s KRA
-```
-Then execute the following command:
 
 ----
 $ pkispawn -f kra.cfg -s KRA
