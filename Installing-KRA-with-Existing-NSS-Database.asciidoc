@@ -1,0 +1,120 @@
+= Overview =
+
+This page describes the process to install a KRA subsystem with an existing NSS database that contains the keys, CSRs, and certificates.
+
+= Preparing NSS Database =
+
+Export the CA signing certificate with the following command:
+
+----
+$ pki-server cert-export ca_signing --cert-file ca_signing.crt
+----
+
+Create a new PKI server instance for KRA with NSS database with the following commands:
+
+----
+$ pki-server create
+$ pki-server nss-create --password Secret.123
+----
+
+New KRA keys, CSRs, and certificates can be created as follows:
+
+* link:Generating-KRA-Storage-Certificate[Generating KRA Storage Certificate]
+* link:Generating-KRA-Transport-Certificate[Generating KRA Transport Certificate]
+* link:Generating-Audit-Signing-Certificate[Generating Audit Signing Certificate]
+* link:Generating-Subsystem-Certificate[Generating Subsystem Certificate]
+* link:Generating-SSL-Server-Certificate[Generating SSL Server Certificate]
+* link:Generating-Admin-Certificate[Generating Admin Certificate]
+
+= Installing KRA Subsystem =
+
+Prepare a file that contains the deployment configuration.
+A sample deployment configuration is available at link:../blob/master/base/server/examples/installation/kra.cfg[/usr/share/pki/server/examples/installation/kra.cfg].
+
+Specify the CA signing certificate with the following parameter:
+
+----
+pki_cert_chain_path=ca_signing.crt
+----
+
+Specify the existing CSRs with the following parameters:
+
+----
+pki_storage_csr_path=kra_storage.csr
+pki_transport_csr_path=kra_transport.csr
+pki_audit_signing_csr_path=kra_audit_signing.csr
+pki_subsystem_csr_path=subsystem.csr
+pki_sslserver_csr_path=sslserver.csr
+----
+
+Specify the existing admin certificate and CSR with the following parameters:
+
+----
+pki_admin_cert_path=kra_admin.crt
+pki_admin_csr_path=kra_admin.csr
+----
+
+Finally, execute the following command:
+
+----
+$ pkispawn -f kra.cfg -s KRA
+----
+
+It will install KRA subsystem in a Tomcat instance (default is `pki-tomcat`) and create the following NSS databases:
+
+* server NSS database: `/etc/pki/pki-tomcat/alias`
+* admin NSS database: `~/.dogtag/pki-tomcat/kra/alias`
+
+= Verifying System Certificates =
+
+Verify that the server NSS database contains the following certificates:
+
+----
+$ certutil -L -d /etc/pki/pki-tomcat/alias
+
+Certificate Nickname                                         Trust Attributes
+                                                             SSL,S/MIME,JAR/XPI
+
+ca_signing                                                   CT,C,C
+kra_transport                                                u,u,u
+kra_storage                                                  u,u,u
+subsystem                                                    u,u,u
+kra_audit_signing                                            u,u,Pu
+sslserver                                                    u,u,u
+----
+
+= Verifying Admin Certificate =
+
+Prepare a client NSS database (e.g. `~/.dogtag/nssdb`):
+
+----
+$ pki client-init
+----
+
+Import the CA signing certificate:
+
+----
+$ pki client-cert-import ca_signing --ca-cert ca_signing.crt
+----
+
+Import admin key and certificate:
+
+----
+$ pki pkcs12-import \
+    --pkcs12 ~/.dogtag/pki-tomcat/ca_admin_cert.p12 \
+    --pkcs12-password Secret.123
+----
+
+Verify that the admin certificate can be used to access the KRA subsystem by executing the following command:
+
+----
+$ pki -n caadmin kra-user-show kraadmin
+---------------
+User "kraadmin"
+---------------
+  User ID: kraadmin
+  Full name: kraadmin
+  Email: kraadmin@example.com
+  Type: adminType
+  State: 1
+----
