@@ -3,9 +3,18 @@
 This page describes the process to install a KRA subsystem with existing system keys, CSRs, and certificates
 (which may come from an existing KRA) where the keys are stored in internal NSS token.
 
-= Preparing Existing System Keys, CSRs, Certificates =
+= Preparing KRA Keys, CSRs, and Certificates =
 
-The system keys and certificates can be exported from an existing KRA into a PKCS #12 file with the following command:
+KRA system keys, CSRs, and certificates can be created as follows:
+
+* link:Generating-KRA-Storage-Certificate[Generating KRA Storage Certificate]
+* link:Generating-KRA-Transport-Certificate[Generating KRA Transport Certificate]
+* link:Generating-Audit-Signing-Certificate[Generating Audit Signing Certificate]
+* link:Generating-Subsystem-Certificate[Generating Subsystem Certificate]
+* link:Generating-SSL-Server-Certificate[Generating SSL Server Certificate]
+* link:Generating-Admin-Certificate[Generating Admin Certificate]
+
+Alternatively, the keys and certificates can be exported from an existing KRA into a PKCS #12 file with the following command:
 
 ----
 $ pki -d /etc/pki/pki-tomcat/alias -f /etc/pki/pki-tomcat/password.conf pkcs12-export \
