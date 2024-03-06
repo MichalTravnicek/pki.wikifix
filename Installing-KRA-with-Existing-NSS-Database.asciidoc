@@ -1,10 +1,11 @@
 = Overview =
 
-This page describes the process to install a KRA subsystem with an existing NSS database that contains the keys, CSRs, and certificates.
+This page describes the process to install a KRA subsystem in PKI 11.6
+with an existing NSS database that contains the keys, CSRs, and certificates.
 
 = Preparing NSS Database =
 
-Export the CA signing certificate with the following command:
+Export the CA signing certificate from the CA with the following command:
 
 ----
 $ pki-server cert-export ca_signing --cert-file ca_signing.crt
@@ -14,7 +15,7 @@ Create a new PKI server instance for KRA with NSS database with the following co
 
 ----
 $ pki-server create
-$ pki-server nss-create --password Secret.123
+$ pki-server nss-create
 ----
 
 New KRA keys, CSRs, and certificates can be created as follows:
@@ -26,6 +27,8 @@ New KRA keys, CSRs, and certificates can be created as follows:
 * link:Generating-SSL-Server-Certificate[Generating SSL Server Certificate]
 * link:Generating-Admin-Certificate[Generating Admin Certificate]
 
+The CSRs should be stored in `/etc/pki/pki-tomcat/certs` folder.
+
 = Installing KRA Subsystem =
 
 Prepare a file that contains the deployment configuration.
@@ -35,16 +38,6 @@ Specify the CA signing certificate with the following parameter:
 
 ----
 pki_cert_chain_path=ca_signing.crt
-----
-
-Specify the existing CSRs with the following parameters:
-
-----
-pki_storage_csr_path=kra_storage.csr
-pki_transport_csr_path=kra_transport.csr
-pki_audit_signing_csr_path=kra_audit_signing.csr
-pki_subsystem_csr_path=subsystem.csr
-pki_sslserver_csr_path=sslserver.csr
 ----
 
 Specify the existing admin certificate and CSR with the following parameters:
