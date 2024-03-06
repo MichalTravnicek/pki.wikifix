@@ -1,0 +1,130 @@
+= Overview =
+
+This page describes the process to install a KRA subsystem with existing system keys, CSRs, and certificates
+(which may come from an existing KRA) where the keys are stored in internal NSS token.
+
+= Exporting Existing System Keys, CSRs, Certificates =
+
+Export the system keys and certificates from the existing KRA into a PKCS #12 file with the following command:
+
+----
+$ pki -d /etc/pki/pki-tomcat/alias -f /etc/pki/pki-tomcat/password.conf pkcs12-export \
+  --pkcs12 kra-certs.p12 \
+  --password Secret.123
+----
+
+To avoid conflicts with the existing KRA subsystem, the new KRA subsystem will use new SSL server and subsystem certificates,
+so they will not be included in the installation process.
+
+----
+$ pki pkcs12-cert-del --pkcs12-file kra-certs.p12 --pkcs12-password Secret.123 sslserver
+$ pki pkcs12-cert-del --pkcs12-file kra-certs.p12 --pkcs12-password Secret.123 subsystem
+----
+
+Export the CSRs from the existing KRA with the following commands:
+
+----
+$ echo "-----BEGIN CERTIFICATE REQUEST-----" > kra_storage.csr
+$ sed -n "/^kra.storage.certreq=/ s/^[^=]*=// p" < /etc/pki/pki-tomcat/kra/CS.cfg >> kra_storage.csr
+$ echo "-----END CERTIFICATE REQUEST-----" >> kra_storage.csr
+
+$ echo "-----BEGIN CERTIFICATE REQUEST-----" > kra_transport.csr
+$ sed -n "/^kra.transport.certreq=/ s/^[^=]*=// p" < /etc/pki/pki-tomcat/kra/CS.cfg >> kra_transport.csr
+$ echo "-----END CERTIFICATE REQUEST-----" >> kra_transport.csr
+
+$ echo "-----BEGIN CERTIFICATE REQUEST-----" > kra_audit_signing.csr
+$ sed -n "/^kra.audit_signing.certreq=/ s/^[^=]*=// p" < /etc/pki/pki-tomcat/kra/CS.cfg >> kra_audit_signing.csr
+$ echo "-----END CERTIFICATE REQUEST-----" >> kra_audit_signing.csr
+----
+
+= Starting KRA Subsystem Installation =
+
+Prepare a file that contains the deployment configuration.
+
+Then execute the following command:
+
+----
+$ pkispawn -f kra.cfg -s KRA
+----
+
+It will install KRA subsystem in a Tomcat instance (default is pki-tomcat) and create the following NSS databases:
+
+* server NSS database: `/etc/pki/pki-tomcat/alias`
+* admin NSS database: `~/.dogtag/pki-tomcat/kra/alias`
+
+Since there are no CSR path parameters specified, it will not generate KRA system and admin keys.
+
+Specify the existing keys and certificates in the PKCS #12 file with the following parameters:
+
+----
+pki_pkcs12_path=kra-certs.p12
+pki_pkcs12_password=Secret.123
+----
+
+Specify the existing CSRs with the following parameters:
+
+----
+pki_kra_storage_csr_path=kra_storage.csr
+pki_kra_transport_csr_path=kra_transport.csr
+pki_audit_signing_csr_path=ca_audit_signing.csr
+----
+
+Finally, execute the following command:
+
+```
+$ pkispawn -f kra.cfg -s KRA
+```
+
+= Verifying System Certificates =
+
+Verify that the server NSS database contains the following certificates:
+
+----
+$ certutil -L -d /etc/pki/pki-tomcat/alias
+
+Certificate Nickname                                         Trust Attributes
+                                                             SSL,S/MIME,JAR/XPI
+
+ca_signing                                                   CT,C,C
+kra_transport                                                u,u,u
+kra_storage                                                  u,u,u
+subsystem                                                    u,u,u
+kra_audit_signing                                            u,u,Pu
+sslserver                                                    u,u,u
+----
+
+= Verifying Admin Certificate =
+
+Prepare a client NSS database (e.g. ~/.dogtag/nssdb):
+
+----
+$ pki client-init
+----
+
+Import the CA signing certificate:
+
+----
+$ pki client-cert-import ca_signing --ca-cert ca_signing.crt
+----
+
+Import admin key and certificate:
+
+----
+$ pki pkcs12-import \
+    --pkcs12 ~/.dogtag/pki-tomcat/ca_admin_cert.p12 \
+    --pkcs12-password Secret.123
+----
+
+Verify that the admin certificate can be used to access the KRA subsystem by executing the following command:
+
+----
+$ pki -n caadmin kra-user-show kraadmin
+---------------
+User "kraadmin"
+---------------
+  User ID: kraadmin
+  Full name: kraadmin
+  Email: kraadmin@example.com
+  Type: adminType
+  State: 1
+----
