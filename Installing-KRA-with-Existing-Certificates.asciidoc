@@ -1,7 +1,8 @@
 = Overview =
 
-This page describes the process to install a KRA subsystem with existing keys, CSRs, and certificates
-(which may be exported from an existing KRA) where the keys are stored in internal NSS token.
+This page describes the process to install a KRA subsystem in PKI 11.6
+with existing keys, CSRs, and certificates stored in a PKCS #12 file
+which might be exported from an existing KRA.
 
 = Preparing Keys, CSRs, and Certificates =
 
@@ -19,6 +20,8 @@ New KRA keys, CSRs, and certificates can be created as follows:
 * link:Generating-Subsystem-Certificate[Generating Subsystem Certificate]
 * link:Generating-SSL-Server-Certificate[Generating SSL Server Certificate]
 * link:Generating-Admin-Certificate[Generating Admin Certificate]
+
+Then store the keys and certificates into a PKCS #12 file.
 
 Alternatively, the keys and certificates can be exported from an existing KRA into a PKCS #12 file with the following command:
 
