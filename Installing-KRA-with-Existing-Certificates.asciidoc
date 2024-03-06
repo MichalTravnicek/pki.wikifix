@@ -3,9 +3,9 @@
 This page describes the process to install a KRA subsystem with existing system keys, CSRs, and certificates
 (which may come from an existing KRA) where the keys are stored in internal NSS token.
 
-= Exporting Existing System Keys, CSRs, Certificates =
+= Preparing Existing System Keys, CSRs, Certificates =
 
-Export the system keys and certificates from the existing KRA into a PKCS #12 file with the following command:
+The system keys and certificates can be exported from an existing KRA into a PKCS #12 file with the following command:
 
 ----
 $ pki -d /etc/pki/pki-tomcat/alias -f /etc/pki/pki-tomcat/password.conf pkcs12-export \
@@ -13,15 +13,14 @@ $ pki -d /etc/pki/pki-tomcat/alias -f /etc/pki/pki-tomcat/password.conf pkcs12-e
   --password Secret.123
 ----
 
-To avoid conflicts with the existing KRA subsystem, the new KRA subsystem will use new SSL server and subsystem certificates,
-so they will not be included in the installation process.
+To avoid conflicts with the existing KRA subsystem, the SSL server and subsystem certificates can be removed from the PKCS #12 file:
 
 ----
 $ pki pkcs12-cert-del --pkcs12-file kra-certs.p12 --pkcs12-password Secret.123 sslserver
 $ pki pkcs12-cert-del --pkcs12-file kra-certs.p12 --pkcs12-password Secret.123 subsystem
 ----
 
-Export the CSRs from the existing KRA with the following commands:
+The CSRs can be exported from the existing KRA with the following commands:
 
 ----
 $ echo "-----BEGIN CERTIFICATE REQUEST-----" > kra_storage.csr
@@ -37,22 +36,9 @@ $ sed -n "/^kra.audit_signing.certreq=/ s/^[^=]*=// p" < /etc/pki/pki-tomcat/kra
 $ echo "-----END CERTIFICATE REQUEST-----" >> kra_audit_signing.csr
 ----
 
-= Starting KRA Subsystem Installation =
+= Installing KRA Subsystem =
 
 Prepare a file that contains the deployment configuration.
-
-Then execute the following command:
-
-----
-$ pkispawn -f kra.cfg -s KRA
-----
-
-It will install KRA subsystem in a Tomcat instance (default is pki-tomcat) and create the following NSS databases:
-
-* server NSS database: `/etc/pki/pki-tomcat/alias`
-* admin NSS database: `~/.dogtag/pki-tomcat/kra/alias`
-
-Since there are no CSR path parameters specified, it will not generate KRA system and admin keys.
 
 Specify the existing keys and certificates in the PKCS #12 file with the following parameters:
 
@@ -74,6 +60,16 @@ Finally, execute the following command:
 ```
 $ pkispawn -f kra.cfg -s KRA
 ```
+Then execute the following command:
+
+----
+$ pkispawn -f kra.cfg -s KRA
+----
+
+It will install KRA subsystem in a Tomcat instance (default is `pki-tomcat`) and create the following NSS databases:
+
+* server NSS database: `/etc/pki/pki-tomcat/alias`
+* admin NSS database: `~/.dogtag/pki-tomcat/kra/alias`
 
 = Verifying System Certificates =
 
@@ -95,7 +91,7 @@ sslserver                                                    u,u,u
 
 = Verifying Admin Certificate =
 
-Prepare a client NSS database (e.g. ~/.dogtag/nssdb):
+Prepare a client NSS database (e.g. `~/.dogtag/nssdb`):
 
 ----
 $ pki client-init
