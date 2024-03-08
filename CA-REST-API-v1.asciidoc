@@ -1,33 +1,46 @@
+= Overview =
+
+This page describes the services provided by CA REST API v1.
+
 = Certificate Services =
 
 |===
-| Path | Service
+| Path | Method | Service
 
 | `/ca/rest/certs`
+| `GET`
 | link:CA-List-Certificates-REST-API[List Certificates]
 
 | `/ca/rest/certs/search`
+| `POST`
 | link:CA-Search-Certificates-REST-API[Search Certificates]
 
 | `/ca/rest/certs/{id}`
+| `GET`
 | link:CA-Retrieve-Certificate-REST-API[Retrieve Certificate]
 
 | `/ca/rest/config/cert/signing`
+| `GET`
 | link:CA-Retrieve-Signing-Certificate-REST-API[Retrieve Signing Certificate]
 
 | `/ca/rest/config/cert/transport`
+| `GET`
 | link:CA-Retrieve-Transport-Certificate-REST-API[Retrieve Transport Certificate]
 
 | `/ca/rest/agent/certs/{id}`
+| `GET`
 | link:CA-Review-Certificate-REST-API[Review Certificate]
 
 | `/ca/rest/agent/certs/{id}/revoke`
+| `POST`
 | link:CA-Revoke-Certificate-REST-API[Revoke Certificate]
 
 | `/ca/rest/agent/certs/{id}/revoke-ca`
+| `POST`
 | link:CA-Revoke-Signing-Certificate-REST-API[Revoke Signing Certificate]
 
 | `/ca/rest/agent/certs/{id}/unrevoke`
+| `POST`
 | link:CA-Unrevoke-Certificate-REST-API[Unrevoke Certificate]
 
 |===
