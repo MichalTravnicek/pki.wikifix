@@ -142,30 +142,38 @@ This page describes the services provided by CA REST API v1.
 = Certificate Authority Services =
 
 |===
-| Path | Service
+| Path | Method | Service
 
-|
+| `/ca/rest/authorities`
+| `GET`
 | link:CA-List-Authorities-REST-API[List Certificate Authorities]
 
-|
+| `/ca/rest/authorities/{id}`
+| `GET`
 | link:CA-Get-Authority-REST-API[Get Certificate Authority]
 
-|
+| `/ca/rest/authorities/{id}/cert`
+| `GET`
 | link:CA-Get-Authority-Certificate-REST-API[Get Certificate Authority Certificate]
 
-|
+| `/ca/rest/authorities/{id}/chain`
+| `GET`
 | link:CA-Get-Authority-Certificate-Chain-REST-API[Get Certificate Authority Certificate Chain]
 
-|
+| `/ca/rest/authorities`
+| `POST`
 | link:CA-Create-Authority-REST-API[Create Certificate Authority]
 
-|
+| `/ca/rest/authorities/{id}/enable`
+| `POST`
 | link:CA-Enable-Authority-REST-API[Enable Certificate Authority]
 
-|
+| `/ca/rest/authorities/{id}/disable`
+| `POST`
 | link:CA-Disable-Authority-REST-API[Disable Certificate Authority]
 
-|
+| `/ca/rest/authorities/{id}`
+| `DELETE`
 | link:CA-Delete-Authority-REST-API[Delete Certificate Authority]
 
 |===
