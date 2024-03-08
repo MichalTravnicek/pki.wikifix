@@ -1,5 +1,78 @@
 = Overview =
 
-This page describes CA REST API v2.
+This page describes the services provided by CA REST API v2.
 
-WARNING: This feature is still under development. Do not use it for production.
+WARNING: This feature is still under development. The API might still change. Do not use it in production.
+
+= General Services =
+
+|===
+| Path | Method | Service
+
+| `/ca/v2/info`
+| `GET`
+| Get Info
+
+|===
+
+= Certificate Services =
+
+|===
+| Path | Method | Service
+
+| `/ca/v2/certs`
+| `GET`
+| List Certificates
+
+| `/ca/v2/certs`
+| `POST`
+| Search Certificates
+
+| `/ca/v2/certs/{id}`
+| `GET`
+| Get Certificate
+
+|===
+
+= Certificate Request Services =
+
+|===
+| Path | Method | Service
+
+| `/v2/agent/certrequests`
+| `GET`
+| List Certificate Requests
+
+| `/v2/agent/certrequests/{id}`
+| `GET`
+| Get Certificate Request
+
+| `/v2/agent/certrequests/{id}/approve`
+| `POST`
+| Approve Certificate Request
+
+| `/v2/agent/certrequests/{id}/reject`
+| `POST`
+| Reject Certificate Request
+
+| `/v2/agent/certrequests/{id}/cancel`
+| `POST`
+| Cancel Certificate Request
+
+| `/v2/agent/certrequests/{id}/update`
+| `POST`
+| Update Certificate Request
+
+| `/v2/agent/certrequests/{id}/validate`
+| `POST`
+| Validate Certificate Request
+
+| `/v2/agent/certrequests/{id}/assign`
+| `POST`
+| Assign Certificate Request
+
+| `/v2/agent/certrequests/{id}/unassign`
+| `POST`
+| Unassign Certificate Request
+
+|===
