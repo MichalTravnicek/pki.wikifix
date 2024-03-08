@@ -52,7 +52,8 @@ $ curl \
     -s \
     -H "Accept: application/pkcs7-mime" \
     -o - \
-    https://localhost.localdomain:8443/ca/rest/authorities/803ff016-8e45-4d82-aa36-df23f314ae31/chain | openssl pkcs7 -print_certs -inform der
+    https://localhost.localdomain:8443/ca/rest/authorities/803ff016-8e45-4d82-aa36-df23f314ae31/chain \
+    | openssl pkcs7 -print_certs -inform der
 subject=O = EXAMPLE, OU = pki-tomcat, CN = CA Signing Certificate
 issuer=O = EXAMPLE, OU = pki-tomcat, CN = CA Signing Certificate
 -----BEGIN CERTIFICATE-----
