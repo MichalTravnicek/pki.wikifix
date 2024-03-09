@@ -113,13 +113,13 @@ This page describes the services provided by CA REST API v1.
 | `GET`
 | link:CA-List-Profiles-REST-API[List Certificate Profiles]
 
-| `/ca/rest/profiles/{id}`
-| `GET`
-| link:CA-Get-Profile-REST-API[Get Certificate Profile]
-
 | `/ca/rest/profiles`
 | `POST`
 | link:CA-Create-Profile-REST-API[Create Certificate Profile]
+
+| `/ca/rest/profiles/{id}`
+| `GET`
+| link:CA-Get-Profile-REST-API[Get Certificate Profile]
 
 | `/ca/rest/profiles/{id}`
 | `PUT`
@@ -148,9 +148,17 @@ This page describes the services provided by CA REST API v1.
 | `GET`
 | link:CA-List-Authorities-REST-API[List Certificate Authorities]
 
+| `/ca/rest/authorities`
+| `POST`
+| link:CA-Create-Authority-REST-API[Create Certificate Authority]
+
 | `/ca/rest/authorities/{id}`
 | `GET`
 | link:CA-Get-Authority-REST-API[Get Certificate Authority]
+
+| `/ca/rest/authorities/{id}`
+| `DELETE`
+| link:CA-Delete-Authority-REST-API[Delete Certificate Authority]
 
 | `/ca/rest/authorities/{id}/cert`
 | `GET`
@@ -160,10 +168,6 @@ This page describes the services provided by CA REST API v1.
 | `GET`
 | link:CA-Get-Authority-Certificate-Chain-REST-API[Get Certificate Authority Certificate Chain]
 
-| `/ca/rest/authorities`
-| `POST`
-| link:CA-Create-Authority-REST-API[Create Certificate Authority]
-
 | `/ca/rest/authorities/{id}/enable`
 | `POST`
 | link:CA-Enable-Authority-REST-API[Enable Certificate Authority]
@@ -171,10 +175,6 @@ This page describes the services provided by CA REST API v1.
 | `/ca/rest/authorities/{id}/disable`
 | `POST`
 | link:CA-Disable-Authority-REST-API[Disable Certificate Authority]
-
-| `/ca/rest/authorities/{id}`
-| `DELETE`
-| link:CA-Delete-Authority-REST-API[Delete Certificate Authority]
 
 |===
 
