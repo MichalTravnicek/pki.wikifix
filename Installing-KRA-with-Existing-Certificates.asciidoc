@@ -5,13 +5,9 @@ with existing keys, CSRs, and certificates stored in a PKCS #12 file.
 
 *Availability:* Since PKI 11.6.
 
-= Preparing Keys, CSRs, and Certificates =
+= Preparing System Certificates =
 
-Export the CA signing certificate from the CA with the following command:
-
-----
-$ pki-server cert-export ca_signing --cert-file ca_signing.crt
-----
+Export the CA signing certificate from the CA into a file (e.g. `ca_signing.crt`). See link:Exporting-CA-System-Certificates[Exporting CA System Certificates].
 
 To export keys, CSRs, and certificates from an existing KRA instance, see link:Exporting-KRA-System-Certificates[Exporting KRA System Certificates].
 
@@ -22,16 +18,21 @@ For testing, new keys, CSRs, and certificates can be created as follows:
 * link:Generating-Audit-Signing-Certificate[Generating Audit Signing Certificate]
 * link:Generating-Subsystem-Certificate[Generating Subsystem Certificate]
 * link:Generating-SSL-Server-Certificate[Generating SSL Server Certificate]
-* link:Generating-Admin-Certificate[Generating Admin Certificate]
 
-Then store the keys and certificates into a PKCS #12 file (e.g. `kra-certs.p12`).
+Store the keys and certificates into a PKCS #12 file (e.g. `kra-certs.p12`).
 
-If the new KRA is being created on a machine with a different hostname, the subsystem and the SSL server certificates should not be included in the PKCS #12 file, or should be removed from the PKCS #12 file with the following commands:
+If the new KRA is being created on a different machine (i.e. migration), the subsystem and the SSL server certificates should not be included in the PKCS #12 file, or should be removed from the PKCS #12 file with the following commands:
 
 ----
 $ pki pkcs12-cert-del --pkcs12-file kra-certs.p12 --pkcs12-password Secret.123 sslserver
 $ pki pkcs12-cert-del --pkcs12-file kra-certs.p12 --pkcs12-password Secret.123 subsystem
 ----
+
+= Preparing Admin Certificate =
+
+Export the admin certificate with its key from the CA or KRA into a PKCS #12 file (e.g. `ca_admin_cert.p12`). See link:Default-CA-Admin[Default CA Admin].
+
+* link:Generating-Admin-Certificate[Generating Admin Certificate]
 
 = Installing KRA Subsystem =
 
@@ -64,7 +65,7 @@ pki_sslserver_csr_path=sslserver.csr
 Specify the existing admin certificate with the following parameter:
 
 ----
-pki_admin_cert_path=kra_admin.crt
+pki_admin_cert_path=admin.crt
 ----
 
 Finally, execute the following command:
@@ -114,7 +115,7 @@ Import admin key and certificate:
 
 ----
 $ pki pkcs12-import \
-    --pkcs12 ~/.dogtag/pki-tomcat/ca_admin_cert.p12 \
+    --pkcs12 ca_admin_cert.p12 \
     --pkcs12-password Secret.123
 ----
 
