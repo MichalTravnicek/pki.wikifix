@@ -4,6 +4,18 @@ This page describes the process to export CA system certificates, the keys, and 
 
 = Exporting Certificate Chain =
 
+To export the certificate chain into a certificate bundle:
+
+----
+$ pki \
+    -d /etc/pki/pki-tomcat/alias \
+    -f /etc/pki/pki-tomcat/password.conf \
+    nss-cert-export \
+    --output-file cert_chain.pem \
+    --with-chain \
+    ca_signing
+----
+
 To export the certificate chain into a PKCS #7 file:
 
 ----
@@ -15,9 +27,9 @@ $ pki \
     ca_signing
 ----
 
-= Exporting Certificates and Keys =
+= Exporting System Certificates and Keys =
 
-To export individual certificates without their keys into separate files execute the following commands:
+To export the system certificates without their keys into separate files execute the following commands:
 
 ----
 $ pki-server cert-export ca_signing --cert-file ca_signing.crt
@@ -27,7 +39,7 @@ $ pki-server cert-export subsystem --cert-file subsystem.crt
 $ pki-server cert-export sslserver --cert-file sslserver.crt
 ----
 
-To export the certificates with their keys into a PKCS #12 file execute the following command:
+To export the system certificates with their keys into a PKCS #12 file execute the following command:
 
 ----
 $ pki \
@@ -43,9 +55,9 @@ $ pki \
     sslserver
 ----
 
-= Exporting CSRs =
+= Exporting System CSRs =
 
-In PKI 11.5 or later the CSRs can be obtained directly from the `/etc/pki/pki-tomcat/certs` folder:
+In PKI 11.5 or later the system CSRs can be obtained directly from the `/etc/pki/pki-tomcat/certs` folder:
 
 * `ca_signing.csr`
 * `ca_ocsp_signing.csr`
@@ -53,7 +65,7 @@ In PKI 11.5 or later the CSRs can be obtained directly from the `/etc/pki/pki-to
 * `subsystem.csr`
 * `sslserver.csr`
 
-In older PKI versions the CSRs need to be exported with the following commands:
+In older PKI versions the system CSRs need to be exported with the following commands:
 
 ----
 $ echo "-----BEGIN CERTIFICATE REQUEST-----" > ca_signing.csr
