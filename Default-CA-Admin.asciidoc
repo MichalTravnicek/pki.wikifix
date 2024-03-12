@@ -20,6 +20,17 @@ After installing the CA, the admin certificate and key will be stored in the fol
 * `ca_admin_cert.p12`: PKCS #12 file containing the certificate and the key
 
 The PKCS #12 file is protected with a password specified in the `pki_client_pkcs12_password` parameter during installation.
+The certificate is stored in the PKCS #12 with the nickname specified in the `pki_admin_nickname` parameter during installation.
+
+If necessary, the certificate can also be obtained from the PKCS #12 file with the following command:
+
+----
+$ pki pkcs12-cert-export \
+    --pkcs12-file ~/.dogtag/pki-tomcat/ca_admin_cert.p12 \
+    --pkcs12-password Secret.123 \
+    --cert-file caadmin.crt \
+    caadmin
+----
 
 = Using Admin Certificate with PKI CLI =
 
