@@ -1,8 +1,7 @@
 = Overview =
 
 This page describes the process to install a KRA subsystem
-with existing keys, CSRs, and certificates stored in a PKCS #12 file
-which might be exported from an existing KRA.
+with existing keys, CSRs, and certificates stored in a PKCS #12 file.
 
 *Availability:* Since PKI 11.6.
 
@@ -14,7 +13,9 @@ Export the CA signing certificate from the CA with the following command:
 $ pki-server cert-export ca_signing --cert-file ca_signing.crt
 ----
 
-New KRA keys, CSRs, and certificates can be created as follows:
+To export the keys, CSRs, and certificates from an existing KRA instance, see link:Exporting-KRA-System-Certificates[Exporting KRA System Certificates].
+
+For testing, new KRA keys, CSRs, and certificates can be created as follows:
 
 * link:Generating-KRA-Storage-Certificate[Generating KRA Storage Certificate]
 * link:Generating-KRA-Transport-Certificate[Generating KRA Transport Certificate]
@@ -25,52 +26,11 @@ New KRA keys, CSRs, and certificates can be created as follows:
 
 Then store the keys and certificates into a PKCS #12 file.
 
-Alternatively, the keys and certificates can be exported from an existing KRA into a PKCS #12 file with the following command:
-
-----
-$ pki \
-    -d /etc/pki/pki-tomcat/alias \
-    -f /etc/pki/pki-tomcat/password.conf \
-    pkcs12-export \
-    --pkcs12 kra-certs.p12 \
-    --password Secret.123 \
-    kra_storage \
-    kra_transport \
-    kra_audit_signing \
-    subsystem \
-    sslserver
-----
-
-If the new KRA is being created on a machine with a different hostname, the subsystem and the SSL server certificates should excluded from above command, or removed from the PKCS #12 file with the following commands:
+If the new KRA is being created on a machine with a different hostname, the subsystem and the SSL server certificates should not be included in the PKCS #12 file, or should be removed from the PKCS #12 file with the following commands:
 
 ----
 $ pki pkcs12-cert-del --pkcs12-file kra-certs.p12 --pkcs12-password Secret.123 sslserver
 $ pki pkcs12-cert-del --pkcs12-file kra-certs.p12 --pkcs12-password Secret.123 subsystem
-----
-
-If the existing KRA is using PKI 11.5 later the CSRs can be obtained from the `/etc/pki/pki-tomcat/certs` folder.
-Otherwise, the CSRs can be exported with the following commands:
-
-----
-$ echo "-----BEGIN CERTIFICATE REQUEST-----" > kra_storage.csr
-$ sed -n "/^kra.storage.certreq=/ s/^[^=]*=// p" < /etc/pki/pki-tomcat/kra/CS.cfg >> kra_storage.csr
-$ echo "-----END CERTIFICATE REQUEST-----" >> kra_storage.csr
-
-$ echo "-----BEGIN CERTIFICATE REQUEST-----" > kra_transport.csr
-$ sed -n "/^kra.transport.certreq=/ s/^[^=]*=// p" < /etc/pki/pki-tomcat/kra/CS.cfg >> kra_transport.csr
-$ echo "-----END CERTIFICATE REQUEST-----" >> kra_transport.csr
-
-$ echo "-----BEGIN CERTIFICATE REQUEST-----" > kra_audit_signing.csr
-$ sed -n "/^kra.audit_signing.certreq=/ s/^[^=]*=// p" < /etc/pki/pki-tomcat/kra/CS.cfg >> kra_audit_signing.csr
-$ echo "-----END CERTIFICATE REQUEST-----" >> kra_audit_signing.csr
-
-$ echo "-----BEGIN CERTIFICATE REQUEST-----" > subsystem.csr
-$ sed -n "/^kra.subsystem.certreq=/ s/^[^=]*=// p" < /etc/pki/pki-tomcat/kra/CS.cfg >> subsystem.csr
-$ echo "-----END CERTIFICATE REQUEST-----" >> subsystem.csr
-
-$ echo "-----BEGIN CERTIFICATE REQUEST-----" > sslserver.csr
-$ sed -n "/^kra.sslserver.certreq=/ s/^[^=]*=// p" < /etc/pki/pki-tomcat/kra/CS.cfg >> sslserver.csr
-$ echo "-----END CERTIFICATE REQUEST-----" >> sslserver.csr
 ----
 
 = Installing KRA Subsystem =
