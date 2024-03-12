@@ -1,6 +1,6 @@
 = Overview =
 
-This page describes the process to install a KRA subsystem with existing certificates stored in a PKCS #12 file.
+This page describes the process to install a KRA subsystem with existing system certificates and keys stored in a PKCS #12 file.
 
 *Availability:* Since PKI 11.6.
 
@@ -79,10 +79,7 @@ Finally, execute the following command:
 $ pkispawn -f kra.cfg -s KRA
 ----
 
-It will install KRA subsystem in a Tomcat instance (default is `pki-tomcat`) and create the following NSS databases:
-
-* server NSS database: `/etc/pki/pki-tomcat/alias`
-* admin NSS database: `~/.dogtag/pki-tomcat/kra/alias`
+It will install KRA subsystem in a Tomcat instance (default is `pki-tomcat`) and create the server NSS database at `/etc/pki/pki-tomcat/alias`.
 
 = Verifying System Certificates =
 
