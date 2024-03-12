@@ -6,7 +6,7 @@ This page describes the process to install a KRA subsystem with existing certifi
 
 = Preparing Certificate Chain =
 
-Obtain the certificate chain from the CA (e.g. `ca_signing.crt`).
+Obtain the certificate chain from the CA (e.g. `cert_chain.pem`).
 See link:Exporting-CA-System-Certificates[Exporting CA System Certificates].
 
 = Preparing System Certificates =
@@ -47,7 +47,7 @@ A sample deployment configuration is available at link:../blob/master/base/serve
 Specify the certificate chain with the following parameter:
 
 ----
-pki_cert_chain_path=ca_signing.crt
+pki_cert_chain_path=cert_chain.pem
 ----
 
 Specify the certificates and their keys with the following parameters:
@@ -113,7 +113,10 @@ $ pki client-init
 Import the certificate chain:
 
 ----
-$ pki client-cert-import ca_signing --ca-cert ca_signing.crt
+$ pki nss-cert-import \
+    --cert cert_chain.pem \
+    --trust CT,C,C \
+    ca_signing
 ----
 
 Import admin key and certificate:
