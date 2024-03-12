@@ -13,9 +13,9 @@ Export the CA signing certificate from the CA with the following command:
 $ pki-server cert-export ca_signing --cert-file ca_signing.crt
 ----
 
-To export the keys, CSRs, and certificates from an existing KRA instance, see link:Exporting-KRA-System-Certificates[Exporting KRA System Certificates].
+To export keys, CSRs, and certificates from an existing KRA instance, see link:Exporting-KRA-System-Certificates[Exporting KRA System Certificates].
 
-For testing, new KRA keys, CSRs, and certificates can be created as follows:
+For testing, new keys, CSRs, and certificates can be created as follows:
 
 * link:Generating-KRA-Storage-Certificate[Generating KRA Storage Certificate]
 * link:Generating-KRA-Transport-Certificate[Generating KRA Transport Certificate]
@@ -24,7 +24,7 @@ For testing, new KRA keys, CSRs, and certificates can be created as follows:
 * link:Generating-SSL-Server-Certificate[Generating SSL Server Certificate]
 * link:Generating-Admin-Certificate[Generating Admin Certificate]
 
-Then store the keys and certificates into a PKCS #12 file.
+Then store the keys and certificates into a PKCS #12 file (e.g. `kra-certs.p12`).
 
 If the new KRA is being created on a machine with a different hostname, the subsystem and the SSL server certificates should not be included in the PKCS #12 file, or should be removed from the PKCS #12 file with the following commands:
 
