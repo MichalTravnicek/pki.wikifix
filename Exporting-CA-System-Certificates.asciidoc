@@ -1,0 +1,55 @@
+= Overview =
+
+This page describes the process to export CA system certificates, the keys, and the CSRs.
+
+= Exporting Certificates and Keys =
+
+To export certificates and keys into a PKCS #12 file execute the following command:
+
+----
+$ pki \
+    -d /etc/pki/pki-tomcat/alias \
+    -f /etc/pki/pki-tomcat/password.conf \
+    pkcs12-export \
+    --pkcs12 ca-certs.p12 \
+    --password Secret.123 \
+    ca_signing \
+    ca_ocsp_signing \
+    ca_audit_signing \
+    subsystem \
+    sslserver
+----
+
+= Exporting CSRs =
+
+In PKI 11.5 or later the CSRs can be obtained directly from the `/etc/pki/pki-tomcat/certs` folder:
+
+* `ca_signing.csr`
+* `ca_ocsp_signing.csr`
+* `ca_audit_signing.csr`
+* `subsystem.csr`
+* `sslserver.csr`
+
+In older PKI versions the CSRs need to be exported with the following commands:
+
+----
+$ echo "-----BEGIN CERTIFICATE REQUEST-----" > ca_signing.csr
+$ sed -n "/^ca.signing.certreq=/ s/^[^=]*=// p" < /etc/pki/pki-tomcat/ca/CS.cfg >> ca_signing.csr
+$ echo "-----END CERTIFICATE REQUEST-----" >> ca_signing.csr
+
+$ echo "-----BEGIN CERTIFICATE REQUEST-----" > ca_ocsp_signing.csr
+$ sed -n "/^ca.ocsp_signing.certreq=/ s/^[^=]*=// p" < /etc/pki/pki-tomcat/ca/CS.cfg >> ca_ocsp_signing.csr
+$ echo "-----END CERTIFICATE REQUEST-----" >> ca_ocsp_signing.csr
+
+$ echo "-----BEGIN CERTIFICATE REQUEST-----" > ca_audit_signing.csr
+$ sed -n "/^ca.audit_signing.certreq=/ s/^[^=]*=// p" < /etc/pki/pki-tomcat/ca/CS.cfg >> ca_audit_signing.csr
+$ echo "-----END CERTIFICATE REQUEST-----" >> ca_audit_signing.csr
+
+$ echo "-----BEGIN CERTIFICATE REQUEST-----" > subsystem.csr
+$ sed -n "/^ca.subsystem.certreq=/ s/^[^=]*=// p" < /etc/pki/pki-tomcat/kra/CS.cfg >> subsystem.csr
+$ echo "-----END CERTIFICATE REQUEST-----" >> subsystem.csr
+
+$ echo "-----BEGIN CERTIFICATE REQUEST-----" > sslserver.csr
+$ sed -n "/^ca.sslserver.certreq=/ s/^[^=]*=// p" < /etc/pki/pki-tomcat/kra/CS.cfg >> sslserver.csr
+$ echo "-----END CERTIFICATE REQUEST-----" >> sslserver.csr
+----
