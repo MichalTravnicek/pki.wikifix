@@ -35,21 +35,29 @@ For testing, new KRA system certificates can also be created as follows:
 
 The CSRs should be stored in `/etc/pki/pki-tomcat/certs` folder.
 
+= Preparing Admin Certificate =
+
+To install the new KRA subsystem obtain the admin certificate from the CA or the existing KRA subsystem (e.g. `admin.crt`).
+To access the new KRA subsystem obtain the admin certificate with its key in a PKCS #12 file (e.g. `ca_admin_cert.p12`).
+See link:Default-CA-Admin[Default CA Admin].
+
+For testing, a new admin certificate can also be created as follows:
+
 = Installing KRA Subsystem =
 
 Prepare a file that contains the deployment configuration.
 A sample deployment configuration is available at link:../blob/master/base/server/examples/installation/kra.cfg[/usr/share/pki/server/examples/installation/kra.cfg].
 
-Specify the CA signing certificate with the following parameter:
+Specify the certificate chain with the following parameter:
 
 ----
-pki_cert_chain_path=ca_signing.crt
+pki_cert_chain_path=cert_chain.pem
 ----
 
-Specify the existing admin certificate with the following parameter:
+Specify the admin certificate with the following parameter:
 
 ----
-pki_admin_cert_path=kra_admin.crt
+pki_admin_cert_path=admin.crt
 ----
 
 Finally, execute the following command:
@@ -58,10 +66,7 @@ Finally, execute the following command:
 $ pkispawn -f kra.cfg -s KRA
 ----
 
-It will install KRA subsystem in a Tomcat instance (default is `pki-tomcat`) and create the following NSS databases:
-
-* server NSS database: `/etc/pki/pki-tomcat/alias`
-* admin NSS database: `~/.dogtag/pki-tomcat/kra/alias`
+It will install KRA subsystem in a Tomcat instance (default is `pki-tomcat`) and use the server NSS database in `/etc/pki/pki-tomcat/alias`.
 
 = Verifying System Certificates =
 
