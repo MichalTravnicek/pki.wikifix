@@ -11,7 +11,7 @@ See link:Exporting-CA-System-Certificates[Exporting CA System Certificates].
 
 = Preparing NSS Database =
 
-Create a new PKI server instance with the following command:
+Create a new PKI server instance (default is `pki-tomcat`) with the following command:
 
 ----
 $ pki-server create
@@ -75,7 +75,7 @@ Finally, execute the following command:
 $ pkispawn -f kra.cfg -s KRA
 ----
 
-It will install KRA subsystem in a Tomcat instance (default is `pki-tomcat`) and use the server NSS database in `/etc/pki/pki-tomcat/alias`.
+It will install a KRA subsystem in the server instance and use the NSS database in `/etc/pki/pki-tomcat/alias`.
 
 = Verifying System Certificates =
 
