@@ -34,6 +34,13 @@ For testing, new KRA system certificates can also be created as follows:
 
 The CSRs should be stored in `/etc/pki/pki-tomcat/certs` folder.
 
+To migrate the existing KRA subsystem to a new machine, the existing subsystem and the SSL server certificates should not be added into the NSS database, or they should be removed from the NSS database with the following commands:
+
+----
+$ pki-server cert-del sslserver
+$ pki-server cert-del subsystem
+----
+
 = Preparing Admin Certificate =
 
 To install the new KRA subsystem obtain the admin certificate from the CA or the existing KRA subsystem (e.g. `admin.crt`).
