@@ -17,7 +17,13 @@ Create a new PKI server instance (default is `pki-tomcat`) with the following co
 $ pki-server create
 ----
 
-Move the existing NSS database into `/etc/pki/pki-tomcat/alias` and make sure that it is owned by `pkiuser` user and `pkiuser` group.
+Move the existing NSS database into `/etc/pki/pki-tomcat/alias` and store the password in `/etc/pki/pki-tomcat/password.conf` as follows:
+
+----
+internal=<password>
+----
+
+Make sure that the files and folders are owned by `pkiuser` user and `pkiuser` group.
 
 For testing, a new NSS database can be created in the server instance with the following command:
 
