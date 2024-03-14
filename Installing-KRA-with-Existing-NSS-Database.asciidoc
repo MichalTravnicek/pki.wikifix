@@ -17,14 +17,15 @@ Create a new PKI server instance with the following command:
 $ pki-server create
 ----
 
-Move the existing NSS database into `/etc/pki/pki-tomcat/alias`
-or create a new NSS database with the following command:
+Move the existing NSS database into `/etc/pki/pki-tomcat/alias` and make sure that it is owned by `pkiuser` user and `pkiuser` group.
+
+For testing, a new NSS database can be created with the following command:
 
 ----
 $ pki-server nss-create
 ----
 
-For testing, new KRA system certificates can also be created as follows:
+Then the KRA system certificates can be created as follows:
 
 * link:Generating-KRA-Storage-Certificate[Generating KRA Storage Certificate]
 * link:Generating-KRA-Transport-Certificate[Generating KRA Transport Certificate]
@@ -34,7 +35,7 @@ For testing, new KRA system certificates can also be created as follows:
 
 The CSRs should be stored in `/etc/pki/pki-tomcat/certs` folder.
 
-To migrate the existing KRA subsystem to a new machine, the existing subsystem and the SSL server certificates should not be added into the NSS database, or they should be removed from the NSS database with the following commands:
+To migrate an existing KRA subsystem to a new machine, the existing subsystem and the SSL server certificates should not be added into the NSS database, or they should be removed from the NSS database with the following commands:
 
 ----
 $ pki-server cert-del sslserver
