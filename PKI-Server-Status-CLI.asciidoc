@@ -1,4 +1,70 @@
-= Displaying Server Status =
+= Overview =
+
+The `pki-server status` command provides a way to check the status of PKI server and to show some basic configuration.
+
+= PKI 11.6 or Newer =
+
+----
+$ pki-server status
+  Instance ID: pki-tomcat
+  Active: True
+  Nuxwdog Enabled: False
+  Unsecure Port: 8080
+  Secure Port: 8443
+  Tomcat Port: 8005
+
+  CA Subsystem:
+    SD Manager:          True
+    SD Name:             EXAMPLE
+    SD Registration URL: https://pki.example.com:8443
+    Enabled:             True
+    Unsecure URL:        http://pki.example.com:8080/ca/ee/ca
+    Secure Agent URL:    https://pki.example.com:8443/ca/agent/ca
+    Secure EE URL:       https://pki.example.com:8443/ca/ee/ca
+    Secure Admin URL:    https://pki.example.com:8443/ca/services
+    PKI Console URL:     https://pki.example.com:8443/ca
+
+  KRA Subsystem:
+    SD Manager:          False
+    SD Name:             EXAMPLE
+    SD Registration URL: https://pki.example.com:8443
+    Enabled:             True
+    Secure Agent URL:    https://pki.example.com:8443/kra/agent/kra
+    Secure Admin URL:    https://pki.example.com:8443/kra/services
+    PKI Console URL:     https://pki.example.com:8443/kra
+
+  OCSP Subsystem:
+    SD Manager:          False
+    SD Name:             EXAMPLE
+    SD Registration URL: https://pki.example.com:8443
+    Enabled:             True
+    Unsecure URL:        http://pki.example.com:8080/ocsp/ee/ocsp/<ocsp request blob>
+    Secure Agent URL:    https://pki.example.com:8443/ocsp/agent/ocsp
+    Secure EE URL:       https://pki.example.com:8443/ocsp/ee/ocsp/<ocsp request blob>
+    Secure Admin URL:    https://pki.example.com:8443/ocsp/services
+    PKI Console URL:     https://pki.example.com:8443/ocsp
+
+  TKS Subsystem:
+    SD Manager:          False
+    SD Name:             EXAMPLE
+    SD Registration URL: https://pki.example.com:8443
+    Enabled:             True
+    Secure Agent URL:    https://pki.example.com:8443/tks/agent/tks
+    Secure Admin URL:    https://pki.example.com:8443/tks/services
+    PKI Console URL:     https://pki.example.com:8443/tks
+
+  TPS Subsystem:
+    SD Manager:          False
+    SD Name:             EXAMPLE
+    SD Registration URL: https://pki.example.com:8443
+    Enabled:             True
+    Unsecure URL:        http://pki.example.com:8080/tps
+    Unsecure PHONE HOME: http://pki.example.com:8080/tps/phoneHome
+    Secure URL:          https://pki.example.com:8443/tps
+    Secure PHONE HOME:   https://pki.example.com:8443/tps/phoneHome
+----
+
+= Older Versions =
 
 To display server status:
 
@@ -12,48 +78,48 @@ $ pki-server status
 
   CA Subsystem:
     Type:                Root CA (Security Domain)
-    SD Registration URL: https://localhost:8443
+    SD Registration URL: https://pki.example.com:8443
     Enabled:             True
-    Unsecure URL:        http://localhost:8080/ca/ee/ca
-    Secure Agent URL:    https://localhost:8443/ca/agent/ca
-    Secure EE URL:       https://localhost:8443/ca/ee/ca
-    Secure Admin URL:    https://localhost:8443/ca/services
-    PKI Console URL:     https://localhost:8443/ca
+    Unsecure URL:        http://pki.example.com:8080/ca/ee/ca
+    Secure Agent URL:    https://pki.example.com:8443/ca/agent/ca
+    Secure EE URL:       https://pki.example.com:8443/ca/ee/ca
+    Secure Admin URL:    https://pki.example.com:8443/ca/services
+    PKI Console URL:     https://pki.example.com:8443/ca
 
   KRA Subsystem:
     Type:                KRA
-    SD Registration URL: https://localhost:8443
+    SD Registration URL: https://pki.example.com:8443
     Enabled:             True
-    Secure Agent URL:    https://localhost:8443/kra/agent/kra
-    Secure Admin URL:    https://localhost:8443/kra/services
-    PKI Console URL:     https://localhost:8443/kra
+    Secure Agent URL:    https://pki.example.com:8443/kra/agent/kra
+    Secure Admin URL:    https://pki.example.com:8443/kra/services
+    PKI Console URL:     https://pki.example.com:8443/kra
 
   OCSP Subsystem:
     Type:                OCSP
-    SD Registration URL: https://localhost:8443
+    SD Registration URL: https://pki.example.com:8443
     Enabled:             True
-    Unsecure URL:        http://localhost:8080/ocsp/ee/ocsp/<ocsp request blob>
-    Secure Agent URL:    https://localhost:8443/ocsp/agent/ocsp
-    Secure EE URL:       https://localhost:8443/ocsp/ee/ocsp/<ocsp request blob>
-    Secure Admin URL:    https://localhost:8443/ocsp/services
-    PKI Console URL:     https://localhost:8443/ocsp
+    Unsecure URL:        http://pki.example.com:8080/ocsp/ee/ocsp/<ocsp request blob>
+    Secure Agent URL:    https://pki.example.com:8443/ocsp/agent/ocsp
+    Secure EE URL:       https://pki.example.com:8443/ocsp/ee/ocsp/<ocsp request blob>
+    Secure Admin URL:    https://pki.example.com:8443/ocsp/services
+    PKI Console URL:     https://pki.example.com:8443/ocsp
 
   TKS Subsystem:
     Type:                TKS
-    SD Registration URL: https://localhost:8443
+    SD Registration URL: https://pki.example.com:8443
     Enabled:             True
-    Secure Agent URL:    https://localhost:8443/tks/agent/tks
-    Secure Admin URL:    https://localhost:8443/tks/services
-    PKI Console URL:     https://localhost:8443/tks
+    Secure Agent URL:    https://pki.example.com:8443/tks/agent/tks
+    Secure Admin URL:    https://pki.example.com:8443/tks/services
+    PKI Console URL:     https://pki.example.com:8443/tks
 
   TPS Subsystem:
     Type:                TPS
-    SD Registration URL: https://localhost:8443
+    SD Registration URL: https://pki.example.com:8443
     Enabled:             True
-    Unsecure URL:        http://localhost:8080/tps
-    Unsecure PHONE HOME: http://localhost:8080/tps/phoneHome
-    Secure URL:          https://localhost:8443/tps
-    Secure PHONE HOME:   https://localhost:8443/tps/phoneHome
+    Unsecure URL:        http://pki.example.com:8080/tps
+    Unsecure PHONE HOME: http://pki.example.com:8080/tps/phoneHome
+    Secure URL:          https://pki.example.com:8443/tps
+    Secure PHONE HOME:   https://pki.example.com:8443/tps/phoneHome
 ----
 
 = Active =
