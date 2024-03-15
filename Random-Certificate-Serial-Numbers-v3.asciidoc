@@ -2,7 +2,7 @@
 
 This proposal introduces a new mechanism to generate fully random serial numbers for certificates, keys, and requests in PKI without range management. Currently PKI supports the following mechanisms to generate serial numbers:
 
-* range-based sequential serial numbers (this is the default)
+* range-based sequential serial numbers (this was the default prior to PKI 11.5)
 * link:Random-Certificate-Serial-Numbers-v1[range-based random serial numbers] (a.k.a. RSNv1)
 
 These mechanisms rely on distributing number ranges across the replicas to avoid collisions. Based on experience these mechanisms have caused a number of issues. Also, these mechanisms may not work well in cloud environment since generally containers are short-lived compared to traditional deployments.
