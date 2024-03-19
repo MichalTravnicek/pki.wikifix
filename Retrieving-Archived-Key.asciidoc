@@ -5,6 +5,40 @@ This page describes the process to retrieve a key or passphrase already link:Arc
 By default the retrieval will use randomly generated security parameters.
 To retrieve with specific security parameters see link:PKI-KRA-Key-Retrieve-Java-API[PKI KRA Key Retrieve Java API].
 
+By default the CLI will retrieve the latest transport certificate from the KRA.
+For efficiency, the transport certificate can be stored into the local NSS database,
+then the nickname can be specified using the `--transport <nickname>` parameter.
+
+= Retrieving Archived Certificate Key =
+
+To retrieve the key archived during certificate enrollment, prepare the request in a file (e.g. `request.json`):
+
+----
+{
+    "ClassName" : "com.netscape.certsrv.key.KeyRecoveryRequest",
+    "Attributes" : {
+        "Attribute" : [ {
+            "name" : "keyId",
+            "value" : "<key ID>"
+        }, {
+            "name" : "certificate",
+            "value" : "<base64-encoded certificate>"
+        }, {
+            "name" : "passphrase",
+            "value" : "<password for PKCS #12 file>"
+        } ]
+    }
+}
+----
+
+Then execute the following command:
+
+----
+$ pki -n caadmin kra-key-retrieve \
+    --input request.json \
+    --output-data archived.p12
+----
+
 = Retrieving Archived Key =
 
 To retrieve a key and store it into a file:
