@@ -92,3 +92,66 @@ extdata-result: 2
 requestType: recovery
 cn: 94847454507980301196091762688518657487
 ----
+
+== Symmetric key generation request ==
+
+----
+dn: cn=64159505574576639561408812812801878724,ou=kra,ou=requests,dc=kra,dc=pki,dc=example,dc=com
+objectClass: top
+objectClass: request
+objectClass: extensibleObject
+requestId: 3864159505574576639561408812812801878724
+requestState: complete
+dateOfCreate: 20240319000939Z
+dateOfModify: 20240319000939Z
+extdata-keygenusages: sign
+extdata-keygenalgorithm: AES
+extdata-transwrappedsessionkey: null
+extdata-strength: 256
+extdata-requesttype: symkeyGenRequest
+extdata-keygensize: 256
+extdata-requestversion: 1.0.0
+extdata-keyrecord: 90424714132443573452866290506742965666
+extdata-requestowner: kraadmin
+extdata-updatedby: kraadmin
+extdata-algorithm: AES
+extdata-dbstatus: UPDATED
+extdata-clientkeyid: testkey
+extdata-requeststatus: complete
+extdata-requestid: 64159505574576639561408812812801878724
+extdata-result: 1
+requestType: symkeyGenRequest
+cn: 64159505574576639561408812812801878724
+----
+
+== Asymmetric key generation request ==
+
+----
+dn: cn=310524494216473260627530750359168967149,ou=kra,ou=requests,dc=kra,dc=pki,dc=example,dc=com
+objectClass: top
+objectClass: request
+objectClass: extensibleObject
+requestId: 39310524494216473260627530750359168967149
+requestState: complete
+dateOfCreate: 20240319001621Z
+dateOfModify: 20240319001621Z
+extdata-keygenusages: null
+extdata-keygenalgorithm: RSA
+extdata-serialnumber: 196643718199962579936556285760282162665
+extdata-strength: 2048
+extdata-requesttype: asymkeyGenRequest
+extdata-keygensize: 2048
+extdata-requestversion: 1.0.0
+extdata-keyrecord: 196643718199962579936556285760282162665
+extdata-requestowner: kraadmin
+extdata-updatedby: kraadmin
+extdata-algorithm: RSA
+extdata-dbstatus: UPDATED
+extdata-clientkeyid: testkey
+extdata-requeststatus: complete
+extdata-requestid: 310524494216473260627530750359168967149
+extdata-result: 1
+requestType: asymkeyGenRequest
+cn: 310524494216473260627530750359168967149
+----
+
