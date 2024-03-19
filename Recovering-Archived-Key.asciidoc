@@ -1,4 +1,10 @@
-To recover an archived key:
+= Overview =
+
+In order to recover an archived key, a request needs to be submitted and approved first before the key can be retrieved from KRA.
+
+= Simplified Process =
+
+To submit a recovery request:
 
 ----
 $ pki -n caadmin kra-key-recover --keyID 1
@@ -11,7 +17,9 @@ Key Recovery Request Information
   Status: svc_pending
 ----
 
-Alternatively, prepare the request in a file using the recovery template, for example:
+= Manual Process =
+
+Alternatively, the request can be prepared in a file using the recovery template, for example:
 
 ----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -28,3 +36,7 @@ Then submit the request with the following command:
 ----
 $ pki -n caadmin kra-key-recover --input recoverKey.xml
 ----
+
+= See Also =
+
+* link:Handling-Key-Request[Handling Key Request]
