@@ -10,3 +10,85 @@ nextRange: 1000000001
 ----
 
 = Request Record =
+
+|===
+| LDAP Attribute | Description | Indexed | Searchable | Examples
+
+| cn
+| Serial number in decimal
+| Yes
+| Yes
+| 94847454507980301196091762688518657487
+
+| serialno
+| 2-digit length + serial number in decimal
+|
+|
+| 3894847454507980301196091762688518657487
+
+| requestType
+| Request type
+|
+|
+| netkeyKeygen, netkeyKeyRecovery, asymkeyGenRequest, symkeyGenRequest, archival, recovery
+
+| requestState
+| Request status
+|
+|
+| begin, pending, approved, svc_pending, canceled, rejected, complete
+|===
+
+= Examples =
+
+== Pending recovery request ==
+
+----
+dn: cn=94847454507980301196091762688518657487,ou=kra,ou=requests,dc=kra,dc=pki,dc=example,dc=com
+objectClass: top
+objectClass: request
+objectClass: extensibleObject
+requestId: 3894847454507980301196091762688518657487
+requestState: svc_pending
+dateOfCreate: 20240319024607Z
+dateOfModify: 20240319024607Z
+extdata-serialnumber: 35779142033966863150909375668561320944
+extdata-requesttype: recovery
+extdata-requestversion: 1.0.0
+extdata-requestowner: kraadmin
+extdata-updatedby: kraadmin
+extdata-dbstatus: UPDATED
+extdata-error: Invalid Key record
+extdata-requeststatus: svc_pending
+extdata-approvingagents: kraadmin
+extdata-requestid: 94847454507980301196091762688518657487
+extdata-result: 2
+requestType: recovery
+cn: 94847454507980301196091762688518657487
+----
+
+== Approved recovery request ==
+
+----
+dn: cn=94847454507980301196091762688518657487,ou=kra,ou=requests,dc=kra,dc=pki,dc=example,dc=com
+objectClass: top
+objectClass: request
+objectClass: extensibleObject
+requestId: 3894847454507980301196091762688518657487
+requestState: approved
+dateOfCreate: 20240319024607Z
+dateOfModify: 20240319024608Z
+extdata-serialnumber: 35779142033966863150909375668561320944
+extdata-requesttype: recovery
+extdata-requestversion: 1.0.0
+extdata-requestowner: kraadmin
+extdata-updatedby: kraadmin
+extdata-dbstatus: UPDATED
+extdata-error: Invalid Key record
+extdata-requeststatus: approved
+extdata-approvingagents: kraadmin,kraadmin
+extdata-requestid: 94847454507980301196091762688518657487
+extdata-result: 2
+requestType: recovery
+cn: 94847454507980301196091762688518657487
+----
