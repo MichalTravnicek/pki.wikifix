@@ -17,13 +17,13 @@ $ pki-server nuxwdog-enable
 ----
 
 If any of the system certificates reside on a cryptographic token other than the internal NSS database,
-you will see entries like this in `/etc/pki/pki-tomcat/password.conf`:
+you will see entries like this in `/var/lib/pki/pki-tomcat/conf/password.conf`:
 
 ----
 hardware-<token>=<password>
 ----
 
-In that case, add the following parameter to `/etc/pki/pki-tomcat/<subsystem>/CS.cfg`:
+In that case, add the following parameter to `/var/lib/pki/pki-tomcat/conf/<subsystem>/CS.cfg`:
 
 ----
 cms.tokenList=<token>
@@ -32,7 +32,7 @@ cms.tokenList=<token>
 Remove the password file or move it somewhere else:
 
 ----
-$ rm -f /etc/pki/pki-tomcat/password.conf
+$ rm -f /var/lib/pki/pki-tomcat/conf/password.conf
 ----
 
 Finally, restart the server with the following command:

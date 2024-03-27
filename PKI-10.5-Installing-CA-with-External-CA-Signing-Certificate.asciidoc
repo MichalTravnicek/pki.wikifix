@@ -50,7 +50,7 @@ Then execute the following command:
 $ pkispawn -f ca-external-step1.cfg -s CA
 ----
 
-It will create an NSS database in `/etc/pki/pki-tomcat/alias` and generate a CA certificate CSR in `ca_signing.csr`.
+It will create an NSS database in `/var/lib/pki/pki-tomcat/conf/alias` and generate a CA certificate CSR in `ca_signing.csr`.
 
 = Issuing CA Signing Certificate =
 
@@ -104,7 +104,7 @@ $ pkispawn -f ca-external-step2.cfg -s CA
 If the HSM is used, the internal token will have the following certificates:
 
 ----
-$ certutil -L -d /etc/pki/pki-tomcat/alias
+$ certutil -L -d /var/lib/pki/pki-tomcat/conf/alias
 
 Certificate Nickname                                         Trust Attributes
                                                              SSL,S/MIME,JAR/XPI
@@ -117,7 +117,7 @@ ca_audit_signing                                             ,,P
 and the HSM will have the following certificates:
 
 ----
-$ certutil -L -d /etc/pki/pki-tomcat/alias -h HSM -f password.txt
+$ certutil -L -d /var/lib/pki/pki-tomcat/conf/alias -h HSM -f password.txt
 
 Certificate Nickname                                         Trust Attributes
                                                              SSL,S/MIME,JAR/XPI

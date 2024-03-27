@@ -8,8 +8,8 @@ First, generate a certificate request in the CA's NSS database:
 
 ----
 $ pki \
-    -d /etc/pki/pki-tomcat/alias \
-    -f /etc/pki/pki-tomcat/password.conf \
+    -d /var/lib/pki/pki-tomcat/conf/alias \
+    -f /var/lib/pki/pki-tomcat/conf/password.conf \
     nss-cert-request \
     --subject "CN=CA Issuance Protection" \
     --csr ca_issuance_protection.csr
@@ -39,7 +39,7 @@ To convert the CMC response into PKCS #7 cert chain:
 
 ----
 $ CMCResponse \
-    -d /etc/pki/pki-tomcat/alias \
+    -d /var/lib/pki/pki-tomcat/conf/alias \
     -i ca_issuance_protection.cmc-response \
     -o ca_issuance_protection.p7b
 ----
@@ -52,8 +52,8 @@ To import the certificate into the CA's NSS database:
 
 ----
 $ pki \
-    -d /etc/pki/pki-tomcat/alias \
-    -f /etc/pki/pki-tomcat/password.conf \
+    -d /var/lib/pki/pki-tomcat/conf/alias \
+    -f /var/lib/pki/pki-tomcat/conf/password.conf \
     pkcs7-import \
     --pkcs7 ca_issuance_protection.p7b \
     ca_issuance_protection

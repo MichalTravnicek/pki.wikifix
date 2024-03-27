@@ -79,7 +79,7 @@ $ tar xvf pki-tomcat.tar.gz
 $ rm pki-tomcat.tar.gz
 </pre>
 
-Edit /data/etc/pki/pki-tomcat/ca/CS.cfg:
+Edit /data/var/lib/pki/pki-tomcat/conf/ca/CS.cfg:
 
 <pre>
 internaldb.ldapconn.host=ds.pki-demo.svc
@@ -98,7 +98,7 @@ EXPOSE 8080 8443
 RUN dnf install -y dnf-plugins-core && dnf copr enable -y edewata/pki
 RUN dnf install -y abrt-java-connector dogtag-pki && dnf clean all
 
-RUN ln -s /data/etc/pki/pki-tomcat /etc/pki/pki-tomcat && \
+RUN ln -s /data/var/lib/pki/pki-tomcat/conf /var/lib/pki/pki-tomcat/conf && \
     ln -s /data/etc/sysconfig/pki-tomcat /etc/sysconfig/pki-tomcat && \
     ln -s /data/etc/sysconfig/pki/tomcat/pki-tomcat /etc/sysconfig/pki/tomcat/pki-tomcat && \
     ln -s /data/etc/systemd/system/pki-tomcatd.target.wants/pki-tomcatd@pki-tomcat.service \
@@ -223,7 +223,7 @@ $ oc scale dc pki --replicas=1
 Generate a new CSR for the PKI service (e.g. pki.pki-demo.svc):
 
 <pre>
-$ cd /etc/pki/pki-tomcat/alias
+$ cd /var/lib/pki/pki-tomcat/conf/alias
 $ openssl rand -out noise.bin 2048
 $ echo Secret.123 > password.txt
 $ certutil -R \

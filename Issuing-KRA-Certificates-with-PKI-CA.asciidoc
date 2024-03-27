@@ -11,7 +11,7 @@ For older versions, see:
 The certificate requests can be submitted to an external PKI CA with the following commands:
 
 ----
-$ cd /etc/pki/pki-tomcat
+$ cd /var/lib/pki/pki-tomcat/conf
 $ pki -U <CA URL> ca-cert-request-submit --profile caStorageCert --csr-file kra_storage.csr
 $ pki -U <CA URL> ca-cert-request-submit --profile caTransportCert --csr-file kra_transport.csr
 $ pki -U <CA URL> ca-cert-request-submit --profile caSignedLogCert --csr-file kra_audit_signing.csr

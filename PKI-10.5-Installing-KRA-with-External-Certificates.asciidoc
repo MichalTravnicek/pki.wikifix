@@ -69,7 +69,7 @@ Then execute the following command:
 $ pkispawn -f kra-external-step1.cfg -s KRA
 ----
 
-It will create an NSS database in `/etc/pki/pki-tomcat/alias` and generate CSRs in the specified paths.
+It will create an NSS database in `/var/lib/pki/pki-tomcat/conf/alias` and generate CSRs in the specified paths.
 
 = Issuing Certificates =
 
@@ -128,7 +128,7 @@ $ pkispawn -f kra-external-step2.cfg -s KRA
 If HSM is used, the internal token should contain the following certificates:
 
 ----
-$ certutil -L -d /etc/pki/pki-tomcat/alias
+$ certutil -L -d /var/lib/pki/pki-tomcat/conf/alias
 
 Certificate Nickname                                         Trust Attributes
                                                              SSL,S/MIME,JAR/XPI
@@ -140,7 +140,7 @@ kra_audit_signing                                            ,,P
 The HSM should contain the following certificates:
 
 ----
-$ certutil -L -d /etc/pki/pki-tomcat/alias -h HSM -f password.txt
+$ certutil -L -d /var/lib/pki/pki-tomcat/conf/alias -h HSM -f password.txt
  
 Certificate Nickname                                         Trust Attributes
                                                              SSL,S/MIME,JAR/XPI

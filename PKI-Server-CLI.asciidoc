@@ -101,13 +101,13 @@ See also:
 Prior to executing the above commands export the CA signing certificate chain from the NSS database into individual certificate files, for example:
 
 ----
-$ certutil -L -d /etc/pki/pki-tomcat/alias -n ca_signing -a > /etc/pki/pki-tomcat/alias/ca_signing.crt
+$ certutil -L -d /var/lib/pki/pki-tomcat/conf/alias -n ca_signing -a > /var/lib/pki/pki-tomcat/conf/alias/ca_signing.crt
 ----
 
 Then execute the following command to generate the hash files for the certificate files:
 
 ----
-$ openssl rehash /etc/pki/pki-tomcat/alias
+$ openssl rehash /var/lib/pki/pki-tomcat/conf/alias
 ----
 
 == Workaround #2: Disable SSL LDAP Connection ==

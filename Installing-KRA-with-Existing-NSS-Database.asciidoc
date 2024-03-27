@@ -17,7 +17,7 @@ Create a new PKI server instance (default is `pki-tomcat`) with the following co
 $ pki-server create
 ----
 
-Move the existing NSS database into `/etc/pki/pki-tomcat/alias` and store the password in `/etc/pki/pki-tomcat/password.conf` as follows:
+Move the existing NSS database into `/var/lib/pki/pki-tomcat/conf/alias` and store the password in `/var/lib/pki/pki-tomcat/conf/password.conf` as follows:
 
 ----
 internal=<password>
@@ -39,7 +39,7 @@ Then the KRA system certificates can be created as follows:
 * link:Generating-Subsystem-Certificate[Generating Subsystem Certificate]
 * link:Generating-SSL-Server-Certificate[Generating SSL Server Certificate]
 
-The CSRs should be stored in `/etc/pki/pki-tomcat/certs` folder.
+The CSRs should be stored in `/var/lib/pki/pki-tomcat/conf/certs` folder.
 
 To migrate an existing KRA subsystem to a new machine, the existing subsystem and the SSL server certificates should not be added into the NSS database, or they should be removed from the NSS database with the following commands:
 
@@ -81,14 +81,14 @@ Finally, execute the following command:
 $ pkispawn -f kra.cfg -s KRA
 ----
 
-It will install a KRA subsystem in the server instance and use the NSS database in `/etc/pki/pki-tomcat/alias`.
+It will install a KRA subsystem in the server instance and use the NSS database in `/var/lib/pki/pki-tomcat/conf/alias`.
 
 = Verifying System Certificates =
 
 Verify that the server NSS database contains the following certificates:
 
 ----
-$ certutil -L -d /etc/pki/pki-tomcat/alias
+$ certutil -L -d /var/lib/pki/pki-tomcat/conf/alias
 
 Certificate Nickname                                         Trust Attributes
                                                              SSL,S/MIME,JAR/XPI

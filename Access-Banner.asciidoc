@@ -8,7 +8,7 @@ Since version 10.4 PKI Server can be configured with access banner (e.g. warning
 
 By default access banner is not installed, so no banner will be displayed when a client tries to access the server.
 
-To install banner, create `/etc/pki/pki-tomcat/banner.txt` containing a banner message, for example:
+To install banner, create `/var/lib/pki/pki-tomcat/conf/banner.txt` containing a banner message, for example:
 
 ----
 WARNING!
@@ -41,7 +41,7 @@ Since these files are shared, to change the session timeout first link:https://w
 
 In newer PKI 10.5 and PKI 10.6.9+ the session timeout is only defined in the Tomcat default webapp config:
 
-* Tomcat default webapp config: `/etc/pki/pki-tomcat/web.xml`
+* Tomcat default webapp config: `/var/lib/pki/pki-tomcat/conf/web.xml`
 
 To change the session timeout simply edit the above file and restart the server.
 

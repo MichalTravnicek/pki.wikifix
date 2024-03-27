@@ -8,7 +8,7 @@ It assumes that the secure connection to the internal database has been link:Ena
 Export PKI CA's signing certificate into a PEM file:
 
 ----
-$ certutil -L -d /etc/pki/pki-tomcat/alias -n "caSigningCert cert-pki-tomcat CA" -a > pkica.pem
+$ certutil -L -d /var/lib/pki/pki-tomcat/conf/alias -n "caSigningCert cert-pki-tomcat CA" -a > pkica.pem
 ----
 
 Import the PEM file into DS server's NSS database:
@@ -42,7 +42,7 @@ $ systemctl restart dirsrv@pki-tomcat.service
 Verify that the client certificate exists in PKI server's NSS database:
 
 ----
-$ certutil -L -d /etc/pki/pki-tomcat/alias -n "subsystemCert cert-pki-tomcat"
+$ certutil -L -d /var/lib/pki/pki-tomcat/conf/alias -n "subsystemCert cert-pki-tomcat"
 ----
 
 Verify with openldap-clients and PEM files:

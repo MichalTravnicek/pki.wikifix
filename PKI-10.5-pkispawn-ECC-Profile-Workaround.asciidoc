@@ -86,9 +86,9 @@ which will result in correct ECC certificates for Admin, Server, and Subsystem w
 
 The PKI ECC system profiles will be re-named to their RSA equivalent names in the PKI instance location:
 
-* `/usr/share/pki/ca/conf/ECadminCert.profile` => `/etc/pki/<instance>/ca/adminCert.profile`
-* `/usr/share/pki/ca/conf/ECserverCert.profile` => `/etc/pki/<instance>/ca/serverCert.profile`
-* `/usr/share/pki/ca/conf/ECsubsystemCert.profile` => `/etc/pki/<instance>/ca/subsystemCert.profile`
+* `/usr/share/pki/ca/conf/ECadminCert.profile` => `/var/lib/pki/<instance>/conf/ca/adminCert.profile`
+* `/usr/share/pki/ca/conf/ECserverCert.profile` => `/var/lib/pki/<instance>/conf/ca/serverCert.profile`
+* `/usr/share/pki/ca/conf/ECsubsystemCert.profile` => `/var/lib/pki/<instance>/conf/ca/subsystemCert.profile`
 
 Both the overriding names as well as the instance destination names will appear in the log files leading to potential confusion on whether or not the proper ECC profiles were utilized rather than their RSA profile counterparts.
 

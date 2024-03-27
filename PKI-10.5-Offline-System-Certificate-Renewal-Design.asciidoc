@@ -96,7 +96,7 @@ $ systemctl stop pki-tomcatd@pki-tomcat
 
 === Disable self tests ===
 
-You need to disable self tests so that the expired system checks are skipped and the server can startup. Remove the following line from `/etc/pki/pki-tomcat/ca/CS.cfg`
+You need to disable self tests so that the expired system checks are skipped and the server can startup. Remove the following line from `/var/lib/pki/pki-tomcat/conf/ca/CS.cfg`
 
 ----
 selftests.container.order.startup=CAPresence:critical, SystemCertsVerification:critical
@@ -277,7 +277,7 @@ See also link:Renewing-System-Certificates#Updating_System_Certificates[Updating
 
 == Enable self tests ==
 
-Now, enable self test for normal functioning of the server. Add back the following line to `/etc/pki/pki-tomcat/ca/CS.cfg`
+Now, enable self test for normal functioning of the server. Add back the following line to `/var/lib/pki/pki-tomcat/conf/ca/CS.cfg`
 
 ----
 selftests.container.order.startup=CAPresence:critical, SystemCertsVerification:critical

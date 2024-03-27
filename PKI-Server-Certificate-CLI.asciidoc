@@ -127,7 +127,7 @@ $ pki-server cert-request \
 
 To store the key pair in HSM, specify `--token <name>` option.
 
-The enrollment request will be stored in `/etc/pki/<instance>/certs/<cert ID>.csr`.
+The enrollment request will be stored in `/var/lib/pki/<instance>/conf/certs/<cert ID>.csr`.
 
 **Availability:** Since PKI 11.5.
 
@@ -186,7 +186,7 @@ To renew permanent certificate:
 $ pki-server cert-create <cert ID> --renew
 ----
 
-By default the new certificate will be stored in `/etc/pki/<instance>/certs/<cert ID>.crt`. An optional `--output <file>` parameter can be added to specify a different output file.
+By default the new certificate will be stored in `/var/lib/pki/<instance>/conf/certs/<cert ID>.crt`. An optional `--output <file>` parameter can be added to specify a different output file.
 
 = Importing System Certificate =
 
@@ -200,7 +200,7 @@ To import a certificate into internal NSS token:
 $ pki-server cert-import <cert ID>
 ----
 
-By default it will import the certificate from `/etc/pki/<instance>/certs/<cert ID>.crt`. An optional `--input <file>` parameter can be used to specify a different input file.
+By default it will import the certificate from `/var/lib/pki/<instance>/conf/certs/<cert ID>.crt`. An optional `--input <file>` parameter can be used to specify a different input file.
 
 To import the certificate into HSM, specify `--token <name>` option.
 

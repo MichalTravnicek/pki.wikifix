@@ -34,8 +34,8 @@ To join a security domain, obtain an installation token, then execute the follow
 
 ----
 $ pki \
-    -d /etc/pki/pki-tomcat/alias \
-    -f /etc/pki/pki-tomcat/password.conf \
+    -d /var/lib/pki/pki-tomcat/conf/alias \
+    -f /var/lib/pki/pki-tomcat/conf/password.conf \
     securitydomain-join \
     "KRA pki.example.com 8443" \
     --install-token <token> \
@@ -49,8 +49,8 @@ To leave a security domain, execute the following command with subsystem certifi
 
 ----
 $ pki \
-    -d /etc/pki/pki-tomcat/alias \
-    -f /etc/pki/pki-tomcat/password.conf \
+    -d /var/lib/pki/pki-tomcat/conf/alias \
+    -f /var/lib/pki/pki-tomcat/conf/password.conf \
     -n subsystem \
     securitydomain-leave \
     "KRA pki.example.com 8443" \

@@ -104,7 +104,7 @@ $ pki \
     --ext /usr/share/pki/server/certs/admin.conf \
     --csr admin.csr
 $ pki \
-    -d /etc/pki/pki-tomcat/alias \
+    -d /var/lib/pki/pki-tomcat/conf/alias \
     nss-cert-issue \
     --issuer ca_signing \
     --csr admin.csr \
@@ -124,7 +124,7 @@ $ pki-server ca-create
 
 = Configure Connection to CA Database =
 
-To store DS password in `/etc/pki/pki-tomcat/password.conf`:
+To store DS password in `/var/lib/pki/pki-tomcat/conf/password.conf`:
 
 ----
 $ pki-server password-add \
@@ -132,7 +132,7 @@ $ pki-server password-add \
     internaldb
 ----
 
-To configure DS connection in `/etc/pki/pki-tomcat/ca/CS.cfg`:
+To configure DS connection in `/var/lib/pki/pki-tomcat/conf/ca/CS.cfg`:
 
 ----
 $ pki-server ca-db-config-mod \
@@ -174,10 +174,10 @@ See link:Setting-up-CA-Database[Setting up CA Database].
 
 ----
 $ pki-server ca-cert-request-import \
-    --csr /etc/pki/pki-tomcat/certs/ca_signing.csr \
+    --csr /var/lib/pki/pki-tomcat/conf/certs/ca_signing.csr \
     --profile /usr/share/pki/ca/conf/caCert.profile
 $ pki-server ca-cert-import \
-    --cert /etc/pki/pki-tomcat/certs/ca_signing.crt \
+    --cert /var/lib/pki/pki-tomcat/conf/certs/ca_signing.crt \
     --profile /usr/share/pki/ca/conf/caCert.profile \
     --request <request ID>
 ----
@@ -186,10 +186,10 @@ $ pki-server ca-cert-import \
 
 ----
 $ pki-server ca-cert-request-import \
-    --csr /etc/pki/pki-tomcat/certs/ca_ocsp_signing.csr \
+    --csr /var/lib/pki/pki-tomcat/conf/certs/ca_ocsp_signing.csr \
     --profile /usr/share/pki/ca/conf/caOCSPCert.profile
 $ pki-server ca-cert-import \
-    --cert /etc/pki/pki-tomcat/certs/ca_ocsp_signing.crt \
+    --cert /var/lib/pki/pki-tomcat/conf/certs/ca_ocsp_signing.crt \
     --profile /usr/share/pki/ca/conf/caOCSPCert.profile \
     --request <request ID>
 ----
@@ -198,10 +198,10 @@ $ pki-server ca-cert-import \
 
 ----
 $ pki-server ca-cert-request-import \
-    --csr /etc/pki/pki-tomcat/certs/ca_audit_signing.csr \
+    --csr /var/lib/pki/pki-tomcat/conf/certs/ca_audit_signing.csr \
     --profile /usr/share/pki/ca/conf/caAuditSigningCert.profile
 $ pki-server ca-cert-import \
-    --cert /etc/pki/pki-tomcat/certs/ca_audit_signing.crt \
+    --cert /var/lib/pki/pki-tomcat/conf/certs/ca_audit_signing.crt \
     --profile /usr/share/pki/ca/conf/caAuditSigningCert.profile \
     --request <request ID>
 ----
@@ -210,10 +210,10 @@ $ pki-server ca-cert-import \
 
 ----
 $ pki-server ca-cert-request-import \
-    --csr /etc/pki/pki-tomcat/certs/subsystem.csr \
+    --csr /var/lib/pki/pki-tomcat/conf/certs/subsystem.csr \
     --profile /usr/share/pki/ca/conf/rsaSubsystemCert.profile
 $ pki-server ca-cert-import \
-    --cert /etc/pki/pki-tomcat/certs/subsystem.crt \
+    --cert /var/lib/pki/pki-tomcat/conf/certs/subsystem.crt \
     --profile /usr/share/pki/ca/conf/rsaSubsystemCert.profile \
     --request <request ID>
 ----
@@ -222,10 +222,10 @@ $ pki-server ca-cert-import \
 
 ----
 $ pki-server ca-cert-request-import \
-    --csr /etc/pki/pki-tomcat/certs/sslserver.csr \
+    --csr /var/lib/pki/pki-tomcat/conf/certs/sslserver.csr \
     --profile /usr/share/pki/ca/conf/rsaServerCert.profile
 $ pki-server ca-cert-import \
-    --cert /etc/pki/pki-tomcat/certs/sslserver.crt \
+    --cert /var/lib/pki/pki-tomcat/conf/certs/sslserver.crt \
     --profile /usr/share/pki/ca/conf/rsaServerCert.profile \
     --request <request ID>
 ----

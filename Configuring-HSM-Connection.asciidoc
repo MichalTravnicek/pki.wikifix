@@ -3,14 +3,14 @@
 To check HSM configuration in the NSS database:
 
 ----
-$ modutil -dbdir /etc/pki/pki-tomcat/alias -list
+$ modutil -dbdir /var/lib/pki/pki-tomcat/conf/alias -list
 ----
 
 To add nFast HSM module:
 
 ----
 $ modutil \
-    -dbdir /etc/pki/pki-tomcat/alias \
+    -dbdir /var/lib/pki/pki-tomcat/conf/alias \
     -nocertdb \
     -add nfast \
     -libfile /opt/nfast/toolkits/pkcs11/libcknfast.so \
@@ -21,7 +21,7 @@ To add LunaSA HSM module:
 
 ----
 $ modutil \
-    -dbdir /etc/pki/pki-tomcat/alias \
+    -dbdir /var/lib/pki/pki-tomcat/conf/alias \
     -nocertdb \
     -add lunasa \
     -libfile /usr/safenet/lunaclient/lib/libCryptoki2_64.so \
@@ -30,7 +30,7 @@ $ modutil \
 
 = Configuring HSM Password =
 
-The HSM password is stored in `/etc/pki/pki-tomcat/password.conf`:
+The HSM password is stored in `/var/lib/pki/pki-tomcat/conf/password.conf`:
 
 ----
 hardware-<token>=<password>
@@ -38,7 +38,7 @@ hardware-<token>=<password>
 
 = Configuring SSL Server Certificate with HSM =
 
-The configuration for SSL server certificate is stored in `/etc/pki/pki-tomcat/serverCertNick.conf`:
+The configuration for SSL server certificate is stored in `/var/lib/pki/pki-tomcat/conf/serverCertNick.conf`:
 
 ----
 <token>:sslserver
@@ -46,7 +46,7 @@ The configuration for SSL server certificate is stored in `/etc/pki/pki-tomcat/s
 
 = Configuring CA System Certificates with HSM =
 
-The configuration for CA system certificates is stored in `/etc/pki/pki-tomcat/ca/CS.cfg`:
+The configuration for CA system certificates is stored in `/var/lib/pki/pki-tomcat/conf/ca/CS.cfg`:
 
 ----
 ca.cert.audit_signing.nickname=<token>:ca_audit_signing

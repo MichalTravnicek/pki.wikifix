@@ -123,7 +123,7 @@ is specified:-
    cd /var/lib/pki/pki-tomcat/alias/
    tar -xvzf ~/old_ca/nssdb.tar.gz .
    NSSPASS=`cat ~/old_ca/internal.txt`
-   sed -i "s/internal=.*/internal=${NSSPASS}/" /etc/pki/pki-tomcat/password.conf
+   sed -i "s/internal=.*/internal=${NSSPASS}/" /var/lib/pki/pki-tomcat/conf/password.conf
 
 6. Replace the server cert (unless you're using the same hostname as the old
 system) using the server cert that you generated on the old server and
@@ -252,9 +252,9 @@ if __name__ == "__main__":
 
 Execute this as follows:
 
-  cp /etc/pki/pki-tomcat/ca/CS.cfg /etc/pki/pki-tomcat/ca/CS.cfg.bak
-  python migrate_cs.py --old old_ca_CS.cfg --new /etc/pki/pki-tomcat/ca/CS.cfg --out new_CS.cfg
-  cp new_CS.cfg /etc/pki/pki-tomcat/ca/CS.cfg
+  cp /var/lib/pki/pki-tomcat/conf/ca/CS.cfg /var/lib/pki/pki-tomcat/conf/ca/CS.cfg.bak
+  python migrate_cs.py --old old_ca_CS.cfg --new /var/lib/pki/pki-tomcat/conf/ca/CS.cfg --out new_CS.cfg
+  cp new_CS.cfg /var/lib/pki/pki-tomcat/conf/ca/CS.cfg
 
 8. Restore the old directory server data.  Detailed instructions are provided here - 
 https://github.com/dogtagpki/pki/wiki/Migrating-CA-using-Existing-CA-Mechanism#Import_the_old_data_into_the_new_CA_database

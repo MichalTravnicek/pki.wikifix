@@ -23,8 +23,8 @@ To use JSSE NIO connector, the SSL connector element in server.xml needs to conf
        sslProtocol="SSL"
        ...
        keystoreType="pkcs12"
-       keystoreFile="/etc/pki/pki-tomcat/keystore.p12"
-       keystorePassFile="/etc/pki/pki-tomcat/keystore.pwd"
+       keystoreFile="/var/lib/pki/pki-tomcat/conf/keystore.p12"
+       keystorePassFile="/var/lib/pki/pki-tomcat/conf/keystore.pwd"
        keyAlias="sslserver"
        trustManagerClassName="org.dogtagpki.tomcat.PKITrustManager"
        />
@@ -59,9 +59,9 @@ If Nuxwdog is enabled on the server, the server will no longer have the NSS data
 * Create a password file for PKCS #12 keystore
 
 ----
-$ pki password-generate > "/etc/pki/pki-tomcat/keystore.pwd"
-$ chown pkiuser.pkiuser "/etc/pki/pki-tomcat/keystore.pwd"
-$ chmod 0660 "/etc/pki/pki-tomcat/keystore.pwd"
+$ pki password-generate > "/var/lib/pki/pki-tomcat/conf/keystore.pwd"
+$ chown pkiuser.pkiuser "/var/lib/pki/pki-tomcat/conf/keystore.pwd"
+$ chmod 0660 "/var/lib/pki/pki-tomcat/conf/keystore.pwd"
 ----
 
 * Export SSL server certificate and key into PKCS #12 keystore
@@ -70,13 +70,13 @@ $ chmod 0660 "/etc/pki/pki-tomcat/keystore.pwd"
 $ pki-server cert-export \
     sslserver \
     --instance "pki-tomcat" \
-    --pkcs12-file "/etc/pki/pki-tomcat/keystore.p12" \
-    --pkcs12-password-file "/etc/pki/pki-tomcat/keystore.pwd" \
+    --pkcs12-file "/var/lib/pki/pki-tomcat/conf/keystore.p12" \
+    --pkcs12-password-file "/var/lib/pki/pki-tomcat/conf/keystore.pwd" \
     --friendly-name "sslserver" \
     --cert-encryption "PBE/SHA1/RC2-40" \
     --key-encryption "PBE/SHA1/DES3/CBC"
-$ chown pkiuser.pkiuser "/etc/pki/pki-tomcat/keystore.p12"
-$ chmod 0660 "/etc/pki/pki-tomcat/keystore.p12"
+$ chown pkiuser.pkiuser "/var/lib/pki/pki-tomcat/conf/keystore.p12"
+$ chmod 0660 "/var/lib/pki/pki-tomcat/conf/keystore.p12"
 ----
 
 This will only need to be done once, unless the certificate is renewed or rekeyed in the NSS database.

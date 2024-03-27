@@ -32,8 +32,8 @@ To remotely register the subsystem into the security domain:
 
 ----
 $ pki \
-    -d /etc/pki/pki-tomcat/alias \
-    -d /etc/pki/pki-tomcat/password.conf \
+    -d /var/lib/pki/pki-tomcat/conf/alias \
+    -d /var/lib/pki/pki-tomcat/conf/password.conf \
     -U https://ca.example.com:8443
     securitydomain-join \
     --install-token <token> \
@@ -73,8 +73,8 @@ To remotely register the subsystem into the security domain:
 
 ----
 $ pki \
-    -d /etc/pki/pki-tomcat/alias \
-    -d /etc/pki/pki-tomcat/password.conf \
+    -d /var/lib/pki/pki-tomcat/conf/alias \
+    -d /var/lib/pki/pki-tomcat/conf/password.conf \
     -U https://ca.example.com:8443
     securitydomain-join \
     --install-token <token> \

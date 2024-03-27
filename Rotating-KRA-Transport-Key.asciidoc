@@ -15,7 +15,7 @@ $ systemctl stop pki-tomcatd@pki-tomcat.service
 * Go to KRA's NSS database directory
 
 ----
-$ cd /etc/pki/pki-tomcat/alias
+$ cd /var/lib/pki/pki-tomcat/conf/alias
 ----
 
 * Create subdirectory
@@ -90,7 +90,7 @@ image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/TransportAppr
 * Go to KRA's NSS database directory
 
 ----
-$ cd /etc/pki/pki-tomcat/alias
+$ cd /var/lib/pki/pki-tomcat/conf/alias
 ----
 
 * Wait for agent approval of submitted request to retrieve certificate by checking request status on EE retrieval page
@@ -110,7 +110,7 @@ image::https://raw.githubusercontent.com/wiki/dogtagpki/pki/images/Transport9.pn
 * Go to KRA's NSS database directory
 
 ----
-$ cd /etc/pki/pki-tomcat/alias
+$ cd /var/lib/pki/pki-tomcat/conf/alias
 ----
 
 * Stop KRA
@@ -134,7 +134,7 @@ $ certutil -A \
 * Go to KRA's NSS database directory
 
 ----
-$ cd /etc/pki/pki-tomcat/alias
+$ cd /var/lib/pki/pki-tomcat/conf/alias
 ----
 
 * Stop KRA
@@ -174,7 +174,7 @@ Here is how to transfer new transport key and certificate to KRA clone:
 * Go to KRA's NSS database directory
 
 ----
-$ cd /etc/pki/pki-tomcat/alias
+$ cd /var/lib/pki/pki-tomcat/conf/alias
 ----
 
 * Stop KRA
@@ -211,7 +211,7 @@ $ pk12util -l transport.p12
 * Go to clone's NSS database directory
 
 ----
-$ cd /etc/pki/pki-tomcat/alias
+$ cd /var/lib/pki/pki-tomcat/conf/alias
 ----
 
 * Stop KRA clone
@@ -249,7 +249,7 @@ $ systemctl start pki-tomcatd@pki-tomcat.service
 * Go to KRA's NSS database directory
 
 ----
-$ cd /etc/pki/pki-tomcat/alias
+$ cd /var/lib/pki/pki-tomcat/conf/alias
 ----
 
 * Stop KRA

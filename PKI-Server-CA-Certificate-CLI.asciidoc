@@ -22,7 +22,7 @@ $ pki-server ca-cert-create \
 where:
 
 * The `--request` parameter specifies the request ID.
-* The `--profile` parameter specifies the filename of the bootstrap profile in `/etc/pki/pki-tomcat/ca` without the path (e.g. `serverCert.profile`).
+* The `--profile` parameter specifies the filename of the bootstrap profile in `/var/lib/pki/pki-tomcat/conf/ca` without the path (e.g. `serverCert.profile`).
 * The `--type` parameter specifies whether the certificate to be created is self-signed (i.e. `selfsign`) or signed by another certificate (i.e. `local`).
 * The `--key-id` parameter specifies the key to be used for self-signed certificate.
 * The `--serial` parameter specifies an optional serial number for the new certificate. If the serial number is not specified and the certificate ID generator is configured to `random`, a new random serial number will be generated automatically.
@@ -42,7 +42,7 @@ $ pki-server ca-cert-import \
 
 where:
 
-* The `--profile` parameter specifies the filename of the bootstrap profile in `/etc/pki/pki-tomcat/ca` without the path (e.g. `serverCert.profile`).
+* The `--profile` parameter specifies the filename of the bootstrap profile in `/var/lib/pki/pki-tomcat/conf/ca` without the path (e.g. `serverCert.profile`).
 
 *Availability:* Since PKI 11.3.
 

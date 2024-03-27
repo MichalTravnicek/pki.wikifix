@@ -9,13 +9,13 @@ By default the CLI will ask for the token password on the console. To use a pass
 To use this PKCS #11 utilities on an NSS database owned by a PKI server:
 
 ----
-$ pki -d /etc/pki/pki-tomcat/alias -f /etc/pki/pki-tomcat/password.conf <command>
+$ pki -d /var/lib/pki/pki-tomcat/conf/alias -f /var/lib/pki/pki-tomcat/conf/password.conf <command>
 ----
 
 By default the CLI will use the internal token. To use the PKCS #11 utilities with HSM, specify a `--token` parameter:
 
 ----
-$ pki -d /etc/pki/pki-tomcat/alias -f /etc/pki/pki-tomcat/password.conf --token HSM <command>
+$ pki -d /var/lib/pki/pki-tomcat/conf/alias -f /var/lib/pki/pki-tomcat/conf/password.conf --token HSM <command>
 ----
 
 = Certificate Management =
@@ -26,8 +26,8 @@ To list all certificates in a token:
 
 ----
 $ pki \
-    -d /etc/pki/pki-tomcat/alias \
-    -f /etc/pki/pki-tomcat/password.conf \
+    -d /var/lib/pki/pki-tomcat/conf/alias \
+    -f /var/lib/pki/pki-tomcat/conf/password.conf \
     --token HSM \
     pkcs11-cert-find
   Cert ID: HSM:ca_signing
@@ -67,8 +67,8 @@ To display a specific certificate in a token:
 
 ----
 $ pki \
-    -d /etc/pki/pki-tomcat/alias \
-    -f /etc/pki/pki-tomcat/password.conf \
+    -d /var/lib/pki/pki-tomcat/conf/alias \
+    -f /var/lib/pki/pki-tomcat/conf/password.conf \
     --token HSM \
     pkcs11-cert-show HSM:ca_signing
   Cert ID: HSM:ca_signing
@@ -82,8 +82,8 @@ $ pki \
 
 ----
 $ pki \
-    -d /etc/pki/pki-tomcat/alias \
-    -f /etc/pki/pki-tomcat/password.conf \
+    -d /var/lib/pki/pki-tomcat/conf/alias \
+    -f /var/lib/pki/pki-tomcat/conf/password.conf \
     --token HSM \
     pkcs11-cert-del HSM:ca_signing
 ----
@@ -96,8 +96,8 @@ To list all keys in a token:
 
 ----
 $ pki \
-    -d /etc/pki/pki-tomcat/alias \
-    -f /etc/pki/pki-tomcat/password.conf \
+    -d /var/lib/pki/pki-tomcat/conf/alias \
+    -f /var/lib/pki/pki-tomcat/conf/password.conf \
     --token HSM \
     pkcs11-key-find
   Key ID: HSM:8ee6ddc15bdec9b260d5f1b276fb416dd60cb805
@@ -127,8 +127,8 @@ To display a specific key in a token:
 
 ----
 $ pki \
-    -d /etc/pki/pki-tomcat/alias \
-    -f /etc/pki/pki-tomcat/password.conf \
+    -d /var/lib/pki/pki-tomcat/conf/alias \
+    -f /var/lib/pki/pki-tomcat/conf/password.conf \
     --token HSM \
     pkcs11-key-show HSM:8ee6ddc15bdec9b260d5f1b276fb416dd60cb805
   Key ID: HSM:8ee6ddc15bdec9b260d5f1b276fb416dd60cb805
@@ -140,8 +140,8 @@ $ pki \
 
 ----
 $ pki \
-    -d /etc/pki/pki-tomcat/alias \
-    -f /etc/pki/pki-tomcat/password.conf \
+    -d /var/lib/pki/pki-tomcat/conf/alias \
+    -f /var/lib/pki/pki-tomcat/conf/password.conf \
     --token HSM \
     pkcs11-key-del HSM:8ee6ddc15bdec9b260d5f1b276fb416dd60cb805
 ----

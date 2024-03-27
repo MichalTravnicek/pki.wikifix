@@ -53,8 +53,8 @@ Import the system certificates and keys into the secondary CA with the following
 
 ----
 $ pki \
-    -d /etc/pki/pki-tomcat/alias \
-    -f /etc/pki/pki-tomcat/password.conf \
+    -d /var/lib/pki/pki-tomcat/conf/alias \
+    -f /var/lib/pki/pki-tomcat/conf/password.conf \
     pkcs12-import \
     --pkcs12 ca-certs.p12 \
     --password Secret.123

@@ -46,8 +46,8 @@ $ pkispawn -v -f ca.cfg -s CA
 The NSS database should contain the following certificates:
 
 ----
-$ sed -n "/^internal=/ s/^[^=]*=// p" < /etc/pki/pki-tomcat/password.conf > password.txt
-$ certutil -L -d /etc/pki/pki-tomcat/alias
+$ sed -n "/^internal=/ s/^[^=]*=// p" < /var/lib/pki/pki-tomcat/conf/password.conf > password.txt
+$ certutil -L -d /var/lib/pki/pki-tomcat/conf/alias
 
 Certificate Nickname                                         Trust Attributes
                                                              SSL,S/MIME,JAR/XPI
@@ -64,7 +64,7 @@ ca_audit_signing                                             u,u,Pu
 The NSS database should contain the following keys:
 
 ----
-$ certutil -K -d /etc/pki/pki-tomcat/alias -f password.txt
+$ certutil -K -d /var/lib/pki/pki-tomcat/conf/alias -f password.txt
 < 0> rsa      f4e07b335299c96f0247a6f8dc049e8faa540209   ca_signing
 < 1> rsa      0bdf1085474b7542fa30908c2136c518fdedc615   ca_ocsp_signing
 < 2> rsa      39473f7309b3354d638940e55398cf500d8411f8   sslserver

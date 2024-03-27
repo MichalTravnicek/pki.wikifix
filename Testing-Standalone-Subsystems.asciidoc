@@ -54,7 +54,7 @@ $ pkispawn -s KRA -f /tmp/pki/kra_pass_one.cfg -vvv
 * Verify that the certificate requests have been generated and stored in `CS.cfg`:
 
 ----
-$ grep "\.certreq=" /etc/pki/standalone-kra/kra/CS.cfg
+$ grep "\.certreq=" /var/lib/pki/standalone-kra/conf/kra/CS.cfg
 kra.admin.certreq=MIICujCCAaICAQAwd . . .
 kra.audit_signing.certreq=MIICmjCCA . . .
 kra.sslserver.certreq=MIICmDCCAYACA . . .
@@ -66,14 +66,14 @@ kra.transport.certreq=MIICljCCAX4CA . . .
 * Verify that a value for `preop.cert.admin.dn` has been stored in `CS.cfg`:
 
 ----
-$ grep "preop.cert.admin.dn=" /etc/pki/standalone-kra/kra/CS.cfg
+$ grep "preop.cert.admin.dn=" /var/lib/pki/standalone-kra/conf/kra/CS.cfg
 preop.cert.admin.dn=cn=PKI Administrator,e=kraadmin@example.com,o=example.com Security Domain
 ----
 
 * Verify that the certificates contain the following values for Step 1 in `CS.cfg`:
 
 ----
-$ grep "\.cert=" /etc/pki/standalone-kra/kra/CS.cfg
+$ grep "\.cert=" /var/lib/pki/standalone-kra/conf/kra/CS.cfg
 kra.admin.cert=...paste certificate here...
 kra.audit_signing.cert=...paste certificate here...
 kra.sslserver.cert=...paste certificate here...
@@ -85,7 +85,7 @@ kra.transport.cert=...paste certificate here...
 * Verify that the certificate requests exist in CSR files for convenience:
 
 ----
-$ ls -1 /etc/pki/standalone-kra/*.csr
+$ ls -1 /var/lib/pki/standalone-kra/conf/*.csr
 kra_admin.csr
 kra_audit_signing.csr
 kra_sslserver.csr
@@ -98,40 +98,40 @@ kra_transport.csr
 
 * Submit each CSR to the appropriate Certificate Profile of the External CA configured above:
 ** Manual Administrator Certificate Enrollment
-*** `/etc/pki/standalone-kra/kra_admin.csr`
+*** `/var/lib/pki/standalone-kra/conf/kra_admin.csr`
 *** Subject Name: `cn=PKI Administrator,e=kraadmin@example.com,o=example.com Security Domain`
 ** Manual Log Signing Certificate Enrollment
-*** `/etc/pki/standalone-kra/kra_audit_signing.csr`
+*** `/var/lib/pki/standalone-kra/conf/kra_audit_signing.csr`
 ** Manual Server Certificate Enrollment
-*** `/etc/pki/standalone-kra/kra_sslserver.csr`
+*** `/var/lib/pki/standalone-kra/conf/kra_sslserver.csr`
 ** Manual Subsystem Certificate Enrollment
-*** `/etc/pki/standalone-kra/kra_subsystem.csr`
+*** `/var/lib/pki/standalone-kra/conf/kra_subsystem.csr`
 ** Manual Data Recovery Manager Storage Certificate Enrollment
-*** `/etc/pki/standalone-kra/kra_storage.csr`
+*** `/var/lib/pki/standalone-kra/conf/kra_storage.csr`
 ** Manual Data Recovery Manager Transport Certificate Enrollment
-*** `/etc/pki/standalone-kra/kra_transport.csr`
+*** `/var/lib/pki/standalone-kra/conf/kra_transport.csr`
 
 * Approve each CSR and obtain the following certificates from the External CA configured above and place them into the files identified below:
 ** `CN=CA Signing Certificate,O=example.com Security Domain`
-*** `/etc/pki/standalone-kra/external_ca.cert`
-*** `/etc/pki/standalone-kra/external_ca_chain.cert`
+*** `/var/lib/pki/standalone-kra/conf/external_ca.cert`
+*** `/var/lib/pki/standalone-kra/conf/external_ca_chain.cert`
 ** `CN=PKI Administrator,E=kraadmin@example.com,O=example.com Security Domain`
-*** `/etc/pki/standalone-kra/kra_admin.cert`
+*** `/var/lib/pki/standalone-kra/conf/kra_admin.cert`
 ** `CN=KRA Audit Signing Certificate,O=example.com Security Domain`
-*** `/etc/pki/standalone-kra/kra_audit_signing.cert`
+*** `/var/lib/pki/standalone-kra/conf/kra_audit_signing.cert`
 ** `CN=standalone-kra.example.com,O=example.com Security Domain`
-*** `/etc/pki/standalone-kra/kra_sslserver.cert`
+*** `/var/lib/pki/standalone-kra/conf/kra_sslserver.cert`
 ** `CN=KRA Subsystem Certificate,O=example.com Security Domain`
-*** `/etc/pki/standalone-kra/kra_subsystem.cert`
+*** `/var/lib/pki/standalone-kra/conf/kra_subsystem.cert`
 ** `CN=DRM Storage Certificate,O=example.com Security Domain`
-*** `/etc/pki/standalone-kra/kra_storage.cert`
+*** `/var/lib/pki/standalone-kra/conf/kra_storage.cert`
 ** `CN=DRM Transport Certificate,O=example.com Security Domain`
-*** `/etc/pki/standalone-kra/kra_transport.cert`
+*** `/var/lib/pki/standalone-kra/conf/kra_transport.cert`
 
 * Verify that the certificates exist in files for use by Stand-alone KRA (Step 2):
 
 ----
-$ ls -1 /etc/pki/standalone-kra/*.cert
+$ ls -1 /var/lib/pki/standalone-kra/conf/*.cert
 external_ca.cert
 external_ca_chain.cert
 kra_admin.cert
@@ -169,7 +169,7 @@ $ pkispawn -s KRA -f /tmp/pki/kra_pass_two.cfg -vvv
 * Verify that the certificates contain the following values for Step 2 in `CS.cfg`:
 
 ----
-$ grep "\.cert=" /etc/pki/standalone-kra/kra/CS.cfg
+$ grep "\.cert=" /var/lib/pki/standalone-kra/conf/kra/CS.cfg
 kra.admin.cert=MIID4DCCAsigAwIBAgIBF . . .
 kra.audit_signing.cert=MIIDcDCCAligA . . .
 kra.external_ca.cert=MIIDyjCCArKgAwI . . .

@@ -79,14 +79,14 @@ Finally, execute the following command:
 $ pkispawn -f kra.cfg -s KRA
 ----
 
-It will install KRA subsystem in a Tomcat instance (default is `pki-tomcat`) and create a server NSS database in `/etc/pki/pki-tomcat/alias`.
+It will install KRA subsystem in a Tomcat instance (default is `pki-tomcat`) and create a server NSS database in `/var/lib/pki/pki-tomcat/conf/alias`.
 
 = Verifying System Certificates =
 
 Verify that the server NSS database contains the following certificates:
 
 ----
-$ certutil -L -d /etc/pki/pki-tomcat/alias
+$ certutil -L -d /var/lib/pki/pki-tomcat/conf/alias
 
 Certificate Nickname                                         Trust Attributes
                                                              SSL,S/MIME,JAR/XPI

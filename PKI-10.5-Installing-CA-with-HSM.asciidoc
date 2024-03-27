@@ -128,7 +128,7 @@ Listing of PKCS #11 Modules
 The internal token should contain the following certificates:
 
 ----
-$ certutil -L -d /etc/pki/pki-tomcat/alias
+$ certutil -L -d /var/lib/pki/pki-tomcat/conf/alias
 
 Certificate Nickname                                         Trust Attributes
                                                              SSL,S/MIME,JAR/XPI
@@ -158,7 +158,7 @@ HSM:pki-tomcat/ca_audit_signing                              u,u,Pu
 The internal token should contain no following keys:
 
 ----
-$ certutil -K -d /etc/pki/pki-tomcat/alias -f password.txt
+$ certutil -K -d /var/lib/pki/pki-tomcat/conf/alias -f password.txt
 certutil: no keys found
 ----
 

@@ -72,7 +72,7 @@ $ OCSP="http://pki.example.com:8080/ca/ocsp"
 link:Generating-SSL-Server-CSR-with-NSS[Generate] an SSL server CSR in the internal token with the following commands:
 
 ----
-$ cd /etc/pki/pki-tomcat
+$ cd /var/lib/pki/pki-tomcat/conf
 $ mkdir -p certs
 $ openssl rand -out noise.bin 2048
 $ certutil -R \
@@ -117,23 +117,23 @@ $ echo -e "y\n${AKI}\n\n\n\n2\n7\n${OCSP}\n\n\n\n" | \
 * Select a serial number that do not conflict with existing certificates.
 * If Nuxwdog is not enabled, the HSM password should be available in the password.conf.
 
-If the server does not have a CA subsystem, submit the CSR to the issuing CA to obtain the SSL server certificate, then place it in `/etc/pki/pki-tomcat/certs/sslserver.crt`.
+If the server does not have a CA subsystem, submit the CSR to the issuing CA to obtain the SSL server certificate, then place it in `/var/lib/pki/pki-tomcat/conf/certs/sslserver.crt`.
 
 == Modify SSL server certificate configuration ==
 
-Remove the token name in `/etc/pki/pki-tomcat/serverCertNick.conf`:
+Remove the token name in `/var/lib/pki/pki-tomcat/conf/serverCertNick.conf`:
 
 ----
 sslserver
 ----
 
-Also remove the token name from the following parameter in `/etc/pki/pki-tomcat/<subsystem>/CS.cfg`:
+Also remove the token name from the following parameter in `/var/lib/pki/pki-tomcat/conf/<subsystem>/CS.cfg`:
 
 ----
 <subsystem>.cert.sslserver.nickname=sslserver
 ----
 
-Replace the token name in the following parameter in `/etc/pki/pki-tomcat/<subsystem>/CS.cfg` with internal token:
+Replace the token name in the following parameter in `/var/lib/pki/pki-tomcat/conf/<subsystem>/CS.cfg` with internal token:
 
 ----
 <subsystem>.sslserver.tokenname=Internal Key Storage Token
@@ -141,7 +141,7 @@ Replace the token name in the following parameter in `/etc/pki/pki-tomcat/<subsy
 
 == Install SSL server certificate ==
 
-Install the SSL server certificate in `/etc/pki/pki-tomcat/certs/sslserver.crt` into the internal token with the following command:
+Install the SSL server certificate in `/var/lib/pki/pki-tomcat/conf/certs/sslserver.crt` into the internal token with the following command:
 
 ----
 $ pki-server cert-import sslserver --instance "pki-tomcat"
@@ -155,9 +155,9 @@ from the internal token into a PKCS #12 file. Otherwise, skip to the next sectio
 Create a password file for PKCS #12 keystore:
 
 ----
-$ pki password-generate > "/etc/pki/pki-tomcat/keystore.pwd"
-$ chown pkiuser.pkiuser "/etc/pki/pki-tomcat/keystore.pwd"
-$ chmod 0660 "/etc/pki/pki-tomcat/keystore.pwd"
+$ pki password-generate > "/var/lib/pki/pki-tomcat/conf/keystore.pwd"
+$ chown pkiuser.pkiuser "/var/lib/pki/pki-tomcat/conf/keystore.pwd"
+$ chmod 0660 "/var/lib/pki/pki-tomcat/conf/keystore.pwd"
 ----
 
 Then export SSL server certificate and key into PKCS #12 keystore:
@@ -165,13 +165,13 @@ Then export SSL server certificate and key into PKCS #12 keystore:
 ----
 $ pki-server cert-export sslserver \
     --instance "pki-tomcat" \
-    --pkcs12-file "/etc/pki/pki-tomcat/keystore.p12" \
-    --pkcs12-password-file "/etc/pki/pki-tomcat/keystore.pwd" \
+    --pkcs12-file "/var/lib/pki/pki-tomcat/conf/keystore.p12" \
+    --pkcs12-password-file "/var/lib/pki/pki-tomcat/conf/keystore.pwd" \
     --friendly-name "sslserver" \
     --cert-encryption "PBE/SHA1/RC2-40" \
     --key-encryption "PBE/SHA1/DES3/CBC"
-$ chown pkiuser.pkiuser "/etc/pki/pki-tomcat/keystore.p12"
-$ chmod 0660 "/etc/pki/pki-tomcat/keystore.p12"
+$ chown pkiuser.pkiuser "/var/lib/pki/pki-tomcat/conf/keystore.p12"
+$ chmod 0660 "/var/lib/pki/pki-tomcat/conf/keystore.p12"
 ----
 
 = Restart PKI Server =

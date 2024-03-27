@@ -38,13 +38,13 @@ $ certutil -L -d /etc/dirsrv/slapd-localhost -n Self-Signed-CA -a > ca_signing.c
 To import the DS CA certificate:
 
 ----
-$ certutil -A -d /etc/pki/pki-tomcat/alias -n "ds-ca_signing" -i ca_signing.crt -t "CT,C,C"
+$ certutil -A -d /var/lib/pki/pki-tomcat/conf/alias -n "ds-ca_signing" -i ca_signing.crt -t "CT,C,C"
 ----
 
 To verify the import:
 
 ----
-$ certutil -L -d /etc/pki/pki-tomcat/alias
+$ certutil -L -d /var/lib/pki/pki-tomcat/conf/alias
 
 Certificate Nickname                                         Trust Attributes
                                                              SSL,S/MIME,JAR/XPI
@@ -118,7 +118,7 @@ $ pki -d /etc/dirsrv/slapd-localhost -C /etc/dirsrv/slapd-localhost/pwdfile.txt 
 To issue a server certificate for DS:
 
 ----
-$ pki -d /etc/pki/pki-tomcat/alias/ -f /etc/pki/pki-tomcat/password.conf \
+$ pki -d /var/lib/pki/pki-tomcat/conf/alias/ -f /var/lib/pki/pki-tomcat/conf/password.conf \
     nss-cert-issue \
     --issuer ca_signing \
     --csr ds-sslserver.csr \
