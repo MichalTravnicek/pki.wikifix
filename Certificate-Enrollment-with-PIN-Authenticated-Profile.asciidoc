@@ -134,3 +134,21 @@ $ curl \
 
 The certificate will be issued immediately.
 
+= Retrieving Certificate =
+
+Once issued, the certificate can be retrieved with the following command:
+
+----
+$ pki ca-cert-export <certificate ID> --output-file testuser.crt
+----
+
+If necessary, the certificate can be imported into NSS database with the following command:
+
+----
+$ pki nss-cert-import testuser --cert testuser.crt
+----
+
+= See Also =
+
+* link:PKI-CA-Retrieve-Certificate-Request-Template-REST-API[PKI CA Retrieve Certificate Request Template REST API]
+* link:PKI-CA-Submit-Certificate-Request-REST-API[PKI CA Submit Certificate Request REST API]
