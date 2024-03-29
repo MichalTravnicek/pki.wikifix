@@ -8,6 +8,33 @@ This page describes the process to enroll a certificate using a PIN-authenticate
 * Set up PINs for users in LDAP.
 * link:Configuring-Directory-Authenticated-Certificate-Profiles[Configure] a profile to authenticate against users in LDAP.
 
+= Enrollment using pki ca-cert-request-submit =
+
+The `pki ca-cert-request-submit` command can be used for certificate enrollment with PIN authentication.
+
+To enroll a certificate, specify the profile name, the CSR file, the username in the following command, and it will prompt for the password and the PIN:
+
+----
+$ pki client-cert-request \
+    --profile caDirPinUserCert \
+    --csr-file testuser.csr \
+    --username testuser \
+    --password \
+    --pin
+Password: ********
+PIN: ********
+-----------------------------
+Submitted certificate request
+-----------------------------
+  Request ID: 0xfd5377c93db8f0ed016de1d688e27f7e
+  Type: enrollment
+  Request Status: complete
+  Operation Result: success
+  Certificate ID: 0x784127bb5291d998224a9426aea15c2b
+----
+
+The certificate will be issued immediately.
+
 = Enrollment using JSON =
 
 The enrollment can also be done manually using JSON messages.
