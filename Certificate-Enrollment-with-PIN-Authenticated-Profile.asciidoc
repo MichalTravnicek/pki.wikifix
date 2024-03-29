@@ -7,3 +7,130 @@ This page describes the process to enroll a certificate using a PIN-authenticate
 * Set up users in LDAP.
 * Set up PINs for users in LDAP.
 * link:Configuring-Directory-Authenticated-Certificate-Profiles[Configure] a profile to authenticate against users in LDAP.
+
+= Enrollment using JSON =
+
+The enrollment can also be done manually using JSON messages.
+
+First, link:Generating-Certificate-Request[generate] a certificate request and store it into a file (e.g. `testuser.csr`).
+
+Then retrieve the template for the JSON request for the profile with the following command:
+
+----
+$ curl \
+    -k \
+    -s \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    https://$HOSTNAME:8443/ca/rest/certrequests/profiles/caDirPinUserCert \
+    | python -m json.tool > request.json
+----
+
+Insert the username of the LDAP user with the following command:
+
+----
+$ jq '.Attributes.Attribute[.Attributes.Attribute|length] |= . + { "name": "uid", "value": "testuser" }' \
+    request.json | sponge request.json
+----
+
+Insert the password of the LDAP user with the following command:
+
+----
+$ jq '.Attributes.Attribute[.Attributes.Attribute|length] |= . + { "name": "pwd", "value": "Secret.123" }' \
+    request.json | sponge request.json
+----
+
+Insert the PIN of the LDAP user with the following command:
+
+----
+$ jq --arg PIN "$PIN" '.Attributes.Attribute[.Attributes.Attribute|length] |= . + { "name": "pin", "value": $PIN }' \
+    request.json | sponge request.json
+----
+
+Insert the request type with the following command:
+
+----
+$ jq '( .Input[].Attribute[] | select(.name=="cert_request_type") ).Value |= "pkcs10"' \
+    request.json | sponge request.json
+----
+
+Insert the CSR with the following command:
+
+----
+$ jq --rawfile cert_request testuser.csr '( .Input[].Attribute[] | select(.name=="cert_request") ).Value |= $cert_request' \
+    request.json | sponge request.json
+----
+
+The final JSON request should look like the following:
+
+----
+{
+    ...,
+    "Input": [
+        {
+            ...,
+            "Attribute": [
+                {
+                    "name": "cert_request_type",
+                    "Value": "pkcs10",
+                    ...
+                },
+                {
+                    "name": "cert_request",
+                    "Value": "-----BEGIN CERTIFICATE REQUEST-----\nMIICnjCCAYYCAQAwWTETMBEGCgmSJomT8ixkARkWA2NvbTEXMBUGCgmSJomT8ixkARkWB2V4YW1w\r\nbGUxDzANBgNVBAsMBnBlb3BsZTEYMBYGCgmSJomT8ixkAQEMCHRlc3R1c2VyMIIBIjANBgkqhkiG\r\n9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtRip472Jza92YAPnCZ6vyF32QGC+hpPnLbJv9kXRHWCVIHnM\r\nJ/Ifxa8MGitf3jqsy7pZMwW4MJwPMa4ai2jwE4u14dOVH4NMxjwM+IuEbWVbyenMS3HO1vCpo49X\r\nmwZbL3wvM83UJgd89l6qtqY5t9vmgzixDB83cxsoIQBXK2MiBl6ndn5lMP2CPdtF6vRt6CVOneN6\r\nu/nBlLv4FFJUDYep5fVLz8HvaQhcApa3/rIMxf1L919Eu+gj6WfvbW/vk+UM6UswoRQSgTr2Yl4n\r\nZyqt7H0c8wOsEqkESKrCvZYiBC8rMOgYJ2uoBGJBjvXXAFo6Br1OvVOSB/h+oJtq2wIDAQABoAAw\r\nDQYJKoZIhvcNAQELBQADggEBAIF8nUIwYPjPLDd61XO7Ai5uA5NhzHj/QIL25KdzSuDguURSsLMQ\r\nX4APwvCvmS77VL6wqrKx3yRoND3JhoU8WZ619vrpb76WXgs0Zm8zO8YigTbAJiFIak3BU6H+2wdX\r\nOhPSFZjdAdx4rY/qt2HwpkiJhuh1SkbboW8pKWwOeJmpPEc7GzzGxz/BcxfuAGg7FAwJTFFQWnZu\r\nrsN6Sls1sdkp7DFm+kA5IhVkv2IL9Pqc5IJoqvGAwrz/vBGGm5gZS/stEadHwBPdOHjK/3htWfwh\r\nQ7M9P7pkGWo/D1hTox//hpO29Lxxx6drmxVJpA4PAQLXtcd91EKkkYPEFBKv/pc=\r\n-----END CERTIFICATE REQUEST-----",
+                    ...
+                }
+            ]
+        }
+    ],
+    ...,
+    "Attributes": {
+        "Attribute": [
+            {
+                "name": "uid",
+                "value": "testuser"
+            },
+            {
+                "name": "pwd",
+                "value": "Secret.123"
+            },
+            {
+                "name": "pin",
+                "value": "5yD9VI"
+            }
+        ]
+    }
+}
+----
+
+Then submit the request with the following command:
+
+----
+$ curl \
+    -k \
+    -s \
+    -X POST \
+    -d @request.json \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    https://$HOSTNAME:8443/ca/rest/certrequests | python -m json.tool
+{
+    "total": 1,
+    "entries": [
+        {
+            "requestID": "0xfd5377c93db8f0ed016de1d688e27f7e",
+            "requestType": "enrollment",
+            "requestStatus": "complete",
+            ...,
+            "certId": "0x784127bb5291d998224a9426aea15c2b",
+            ...,
+            "certRequestType": "pkcs10",
+            "operationResult": "success",
+            ...
+        }
+    ]
+}
+----
+
+The certificate will be issued immediately.
+
