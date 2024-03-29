@@ -4,13 +4,14 @@ This page describes the process to enroll a certificate using a directory-authen
 
 = Prerequisites =
 
-* link:Configuring-Directory-Authenticated-Certificate-Profiles[Configure] a profile to authenticate against users in DS.
+* Set up users in LDAP.
+* link:Configuring-Directory-Authenticated-Certificate-Profiles[Configure] a profile to authenticate against users in LDAP.
 
 = Enrollment using pki client-cert-request =
 
 The `pki client-cert-request` command can be used to generate a key in NSS database (default: `~/.dogtag/nssdb`), create a certificate request, then submit it to the CA.
 
-To enroll a certificate for a user in DS, specify the username (e.g. `testuser`) in the following command, and it will prompt for the LDAP password:
+To enroll a certificate for a user in LDAP, specify the username (e.g. `testuser`) in the following command, and it will prompt for the LDAP password:
 
 ----
 $ pki client-cert-request \
@@ -42,7 +43,7 @@ Then retrieve the template for the XML request for the profile with the followin
 $ pki ca-cert-request-profile-show caDirUserCert --output request.xml
 ----
 
-Insert the username of the DS user with the following command:
+Insert the username of the LDAP user with the following command:
 
 ----
 $ xmlstarlet edit --inplace \
@@ -51,7 +52,7 @@ $ xmlstarlet edit --inplace \
     request.xml
 ----
 
-Insert the password of the DS user with the following command:
+Insert the password of the LDAP user with the following command:
 
 ----
 $ xmlstarlet edit --inplace \
@@ -147,14 +148,14 @@ $ curl \
     | python -m json.tool > request.json
 ----
 
-Insert the username of the DS user with the following command:
+Insert the username of the LDAP user with the following command:
 
 ----
 $ jq '.Attributes.Attribute[.Attributes.Attribute|length] |= . + { "name": "uid", "value": "testuser" }' \
     request.json | sponge request.json
 ----
 
-Insert the password of the DS user with the following command:
+Insert the password of the LDAP user with the following command:
 
 ----
 $ jq '.Attributes.Attribute[.Attributes.Attribute|length] |= . + { "name": "pwd", "value": "Secret.123" }' \
