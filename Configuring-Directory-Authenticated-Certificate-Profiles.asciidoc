@@ -5,12 +5,10 @@ This document describes how to configure directory-authenticated certificate pro
 * link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caDirUserCert.cfg[caDirUserCert]: Directory-Authenticated User Dual-Use Certificate Enrollment
 * link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caECDirUserCert.cfg[caECDirUserCert]: Directory-Authenticated User ECC Certificate Enrollment
 * link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caDirUserRenewal.cfg[caDirUserRenewal]: Directory-Authenticated User Certificate Self-Renew profile
-* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caDirPinUserCert.cfg[caDirPinUserCert]: Directory-Pin-Authenticated User Dual-Use Certificate Enrollment
-* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caECDirPinUserCert.cfg[caECDirPinUserCert]: Directory-Pin-Authenticated User Dual-Use ECC Certificate Enrollment
 
 = Prerequisites =
 
-Prepare a publicly accessible subtree in the DS that contains users.
+Prepare a publicly accessible LDAP subtree that contains users.
 Each user must be able to authenticate using a password.
 For example:
 
@@ -20,10 +18,10 @@ dn: ou=people,dc=example,dc=com
 objectclass: top
 objectclass: organizationalUnit
 ou: people
-aci: (target = "ldap:///ou=people,dc=example,dc=com")
+aci: (target="ldap:///ou=people,dc=example,dc=com")
  (targetattr=objectClass||dc||ou||uid||cn||sn||givenName)
  (version 3.0; acl "Allow anyone to read and search basic attributes"; allow (search, read) userdn = "ldap:///anyone";)
-aci: (target = "ldap:///ou=people,dc=example,dc=com")
+aci: (target="ldap:///ou=people,dc=example,dc=com")
  (targetattr=*)
  (version 3.0; acl "Allow anyone to read and search itself"; allow (search, read) userdn = "ldap:///self";)
 
