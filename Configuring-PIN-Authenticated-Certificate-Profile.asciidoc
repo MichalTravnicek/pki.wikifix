@@ -46,3 +46,48 @@ $ ldapsearch \
     -b "dc=example,dc=com" \
     "(objectClass=*)"
 ----
+
+= Configuring caDirPinUserCert Profile =
+
+The `caDirPinUserCert` profile is stored in `/var/lib/pki/pki-tomcat/ca/profiles/ca/caDirPinUserCert.cfg`.
+
+By default the profile is disabled. To enable the profile update the following parameter:
+
+----
+enable=true
+----
+
+By default the certificate will be valid for 180 days. For testing the validity range can be shortened, e.g. to 5 minutes:
+
+----
+policyset.userCertSet.2.default.params.range=5
+policyset.userCertSet.2.default.params.rangeUnit=minute
+----
+
+By default the profile is configured with `PinDirEnrollment` authentication manager:
+
+----
+auth.instance_id=PinDirEnrollment
+----
+
+Add the `PinDirEnrollment` authentication manager into `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg`:
+
+----
+auths.instance.PinDirEnrollment.pluginName UidPwdPinDirAuth
+auths.instance.PinDirEnrollment.ldap.basedn ou=people,dc=example,dc=com
+auths.instance.PinDirEnrollment.ldap.ldapauth.authtype BasicAuth
+auths.instance.PinDirEnrollment.ldap.ldapconn.host pki.example.com
+auths.instance.PinDirEnrollment.ldap.ldapconn.port 389
+----
+
+The `UidPwdPinDirAuth` authentication plugin is already defined in the `CS.cfg`:
+
+----
+auths.impl.UidPwdPinDirAuth.class=com.netscape.cms.authentication.UidPwdPinDirAuthentication
+----
+
+Finally, restart CA subsystem:
+
+----
+$ pki-server ca-redeploy --wait
+----
