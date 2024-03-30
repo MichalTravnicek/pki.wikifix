@@ -73,11 +73,11 @@ auth.instance_id=PinDirEnrollment
 Add the `PinDirEnrollment` authentication manager into `/var/lib/pki/pki-tomcat/ca/conf/CS.cfg`:
 
 ----
-auths.instance.PinDirEnrollment.pluginName UidPwdPinDirAuth
-auths.instance.PinDirEnrollment.ldap.basedn ou=people,dc=example,dc=com
-auths.instance.PinDirEnrollment.ldap.ldapauth.authtype BasicAuth
-auths.instance.PinDirEnrollment.ldap.ldapconn.host pki.example.com
-auths.instance.PinDirEnrollment.ldap.ldapconn.port 389
+auths.instance.PinDirEnrollment.pluginName=UidPwdPinDirAuth
+auths.instance.PinDirEnrollment.ldap.basedn=ou=people,dc=example,dc=com
+auths.instance.PinDirEnrollment.ldap.ldapauth.authtype=BasicAuth
+auths.instance.PinDirEnrollment.ldap.ldapconn.host=pki.example.com
+auths.instance.PinDirEnrollment.ldap.ldapconn.port=389
 ----
 
 The `UidPwdPinDirAuth` authentication plugin is already defined in the `CS.cfg`:
