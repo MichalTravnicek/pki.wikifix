@@ -12,10 +12,12 @@ This page describes the process to enroll a certificate using a PIN-authenticate
 
 The `pki ca-cert-request-submit` command can be used for certificate enrollment with PIN authentication.
 
-To enroll a certificate, specify the profile name, the CSR file, the username in the following command, and it will prompt for the password and the PIN:
+First, link:Generating-Certificate-Request[generate] a certificate request and store it into a file (e.g. `testuser.csr`).
+
+Then specify the profile name, the CSR file, the username in the following command, and it will prompt for the password and the PIN:
 
 ----
-$ pki client-cert-request \
+$ pki ca-cert-request-submit \
     --profile caDirPinUserCert \
     --csr-file testuser.csr \
     --username testuser \
@@ -35,9 +37,11 @@ Submitted certificate request
 
 The certificate will be issued immediately.
 
-= Enrollment using JSON =
+*Availability:* Since PKI 11.6.
 
-The enrollment can also be done manually using JSON messages.
+= Enrollment using curl =
+
+The enrollment can also be done manually using `curl` command.
 
 First, link:Generating-Certificate-Request[generate] a certificate request and store it into a file (e.g. `testuser.csr`).
 
