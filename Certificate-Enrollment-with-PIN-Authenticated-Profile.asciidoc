@@ -74,7 +74,7 @@ $ jq '.Attributes.Attribute[.Attributes.Attribute|length] |= . + { "name": "pwd"
 Insert the PIN of the LDAP user with the following command:
 
 ----
-$ jq --arg PIN "$PIN" '.Attributes.Attribute[.Attributes.Attribute|length] |= . + { "name": "pin", "value": $PIN }' \
+$ jq '.Attributes.Attribute[.Attributes.Attribute|length] |= . + { "name": "pin", "value": "5yD9VI" }' \
     request.json | sponge request.json
 ----
 
