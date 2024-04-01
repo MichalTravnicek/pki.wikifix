@@ -1,0 +1,28 @@
+= Request =
+
+* **Path:** `/ca/rest/securityDomain/hosts`
+* **Method:** `GET`
+* **Authentication:** Not Required
+
+= Response =
+
+----
+$ curl \
+    -k \
+    -s \
+    https://localhost.localdomain:8443/ca/rest/securityDomain/hosts | python -m json.tool
+[
+    {
+        "id": "CA fedora 8443",
+        "Hostname": "fedora",
+        "Port": "8080",
+        "SecurePort": "8443",
+        "SecureEEClientAuthPort": "8443",
+        "SecureAgentPort": "8443",
+        "SecureAdminPort": "8443",
+        "Clone": "FALSE",
+        "SubsystemName": "CA fedora 8443",
+        "DomainManager": "TRUE"
+    }
+]
+----
