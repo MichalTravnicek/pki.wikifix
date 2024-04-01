@@ -1,0 +1,21 @@
+= Request =
+
+* **Path:** `/ca/rest/securityDomain/installToken`
+* **Method:** `GET`
+* **Authentication:** required
+* **Query Parameters:**
+** `hostname`: Hostname (must resolve to an IP address)
+** `subsystem`: Subsystem type (e.g. CA, KRA)
+
+= Response =
+
+----
+$ curl \
+    -k \
+    -s \
+    --cookie cookies \
+    "https://localhost.localdomain:8443/ca/rest/securityDomain/installToken?hostname=pki.example.com&subsystem=CA" | python -m json.tool
+{
+    "token": "1409886579209062320"
+}
+----
