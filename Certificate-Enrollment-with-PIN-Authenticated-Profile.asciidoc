@@ -7,14 +7,13 @@ This page describes the process to enroll a certificate using a PIN-authenticate
 = Prerequisites =
 
 * link:Configuring-PIN-Authenticated-Certificate-Profile[Configure] PIN-authenticated profile.
+* link:Generating-Certificate-Request[Generate] a certificate request and store it in a file (e.g. `testuser.csr`).
 
 = Enrollment using pki ca-cert-request-submit =
 
 The `pki ca-cert-request-submit` command can be used for certificate enrollment with PIN authentication.
 
-First, link:Generating-Certificate-Request[generate] a certificate request and store it into a file (e.g. `testuser.csr`).
-
-Then specify the profile name, the CSR file, the username in the following command, and it will prompt for the password and the PIN:
+Specify the profile name, the CSR file, the username in the following command, and it will prompt for the password and the PIN:
 
 ----
 $ pki ca-cert-request-submit \
@@ -41,9 +40,7 @@ The certificate will be issued immediately.
 
 The enrollment can also be done manually using `curl` command.
 
-First, link:Generating-Certificate-Request[generate] a certificate request and store it into a file (e.g. `testuser.csr`).
-
-Then retrieve the template for the JSON request for the profile with the following command:
+Retrieve the template for the JSON request for the profile with the following command:
 
 ----
 $ curl \
