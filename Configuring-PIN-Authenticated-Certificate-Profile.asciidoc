@@ -5,7 +5,7 @@ This document describes how to configure a PIN-authenticated certificate profile
 * link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caDirPinUserCert.cfg[caDirPinUserCert]: Directory-Pin-Authenticated User Dual-Use Certificate Enrollment
 * link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caECDirPinUserCert.cfg[caECDirPinUserCert]: Directory-Pin-Authenticated User Dual-Use ECC Certificate Enrollment
 
-= Set up Users and PIN Manager =
+= Setting up Users and PIN Manager =
 
 Prepare a publicly accessible LDAP subtree that contains users.
 Each user must be able to authenticate using a password.
@@ -44,7 +44,7 @@ userPassword: Secret.123
 EOF
 ----
 
-= Set up LDAP Schema and ACI =
+= Setting up LDAP Schema and ACI =
 
 Use `setpin` to set up the LDAP schema and ACI attributes:
 
@@ -61,7 +61,7 @@ $ sed \
 $ setpin optfile=setpin.conf
 ----
 
-= Generate User PINs =
+= Generating User PINs =
 
 Use `setpin` to generate PINs for all users:
 
