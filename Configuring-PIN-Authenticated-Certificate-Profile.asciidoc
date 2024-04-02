@@ -5,14 +5,23 @@ This document describes how to configure a PIN-authenticated certificate profile
 * link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caDirPinUserCert.cfg[caDirPinUserCert]: Directory-Pin-Authenticated User Dual-Use Certificate Enrollment
 * link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/profiles/ca/caECDirPinUserCert.cfg[caECDirPinUserCert]: Directory-Pin-Authenticated User Dual-Use ECC Certificate Enrollment
 
-= Prerequisites =
+= Set up Users and PIN Manager =
 
 Prepare a publicly accessible LDAP subtree that contains users.
 Each user must be able to authenticate using a password.
 For example:
 
 ----
-$ ldapadd -H ldap://$HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 << EOF
+$ ldapadd -H ldap://ds.example.com -x -D "cn=Directory Manager" -w Secret.123 << EOF
+dn: uid=pinmanager,dc=example,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: pinmanager
+cn: PIN Manager
+sn: Manager
+userPassword: Secret.123
+
 dn: ou=people,dc=example,dc=com
 objectclass: top
 objectclass: organizationalUnit
@@ -35,16 +44,42 @@ userPassword: Secret.123
 EOF
 ----
 
-Verify the authentication using the following command:
+= Set up LDAP Schema and ACI =
+
+Use `setpin` to set up the LDAP schema and ACI attributes:
 
 ----
-$ ldapsearch \
-    -H ldap://$HOSTNAME \
-    -x \
-    -D "uid=testuser,ou=people,dc=example,dc=com" \
-    -w Secret.123 \
-    -b "dc=example,dc=com" \
-    "(objectClass=*)"
+$ sed \
+    -e "s/^host=.*$/host=ds.example.com/" \
+    -e "s/^port=.*$/port=3389/" \
+    -e "s/^binddn=.*$/binddn=cn=Directory Manager/" \
+    -e "s/^bindpw=.*$/bindpw=Secret.123/" \
+    -e "s/^pinmanager=.*$/pinmanager=uid=pinmanager,dc=example,dc=com/" \
+    -e "s/^pinmanagerpwd=.*$/pinmanagerpwd=Secret.123/" \
+    -e "s/^basedn=.*$/basedn=ou=people,dc=example,dc=com/" \
+    /usr/share/pki/tools/setpin.conf > setpin.conf
+$ setpin optfile=setpin.conf
+----
+
+= Generate User PINs =
+
+Use `setpin` to generate PINs for all users:
+
+----
+$ sed -i "/^setup=/d" setpin.conf
+$ setpin \
+    filter="(objectClass=person)" \
+    optfile=setpin.conf \
+    output=setpin.out \
+    write
+----
+
+The PINs will be stored in `setpin.out` as follows:
+
+----
+dn:uid=testuser,ou=people,dc=example,dc=com
+pin:GIRbLe
+status:added
 ----
 
 = Configuring caDirPinUserCert Profile =
@@ -76,7 +111,7 @@ Add the `PinDirEnrollment` authentication manager into `/var/lib/pki/pki-tomcat/
 auths.instance.PinDirEnrollment.pluginName=UidPwdPinDirAuth
 auths.instance.PinDirEnrollment.ldap.basedn=ou=people,dc=example,dc=com
 auths.instance.PinDirEnrollment.ldap.ldapauth.authtype=BasicAuth
-auths.instance.PinDirEnrollment.ldap.ldapconn.host=pki.example.com
+auths.instance.PinDirEnrollment.ldap.ldapconn.host=ds.example.com
 auths.instance.PinDirEnrollment.ldap.ldapconn.port=389
 ----
 
