@@ -2,16 +2,14 @@
 
 NOTE: This page is still under construction.
 
-This document describes the process to deploy CA container on Podman with PKI 11.3 or later.
+This document describes the process to deploy CA container on Podman with PKI 11.6 or later.
 
 Current limitations:
 
-* Existing CA configuration files are not yet supported
-* CA replication is not yet supported (i.e. no scaling)
+* Replication is not yet supported (i.e. no scaling)
 * HSM is not yet supported
 * No security domain (i.e. other subsystems need to be set up manually)
 * Long startup time (due to certs import and instance creation)
-* DS must be running when the CA container is started
 
 = Creating Network =
 
@@ -68,6 +66,7 @@ $ podman run \
     --network=example \
     --network-alias=ca.example.com \
     -v $PWD/certs:/certs \
+    -v $PWD/data:/data \
     -p 8080:8080 \
     -p 8443:8443 \
     --privileged \
