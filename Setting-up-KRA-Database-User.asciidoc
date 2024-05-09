@@ -1,0 +1,27 @@
+= Overview =
+
+This page describes the process to set up a user to access the KRA database in DS with PKI tools.
+
+= Adding Database User =
+
+----
+$ pki-server kra-user-add \
+    --full-name pkidbuser \
+    --type agentType \
+    pkidbuser
+----
+
+= Assigning Certificate to Database User =
+
+----
+$ pki-server kra-user-cert-add \
+    --cert /var/lib/pki/pki-tomcat/conf/certs/subsystem.crt \
+    pkidbuser
+----
+
+= Granting Access to Database User =
+
+----
+$ pki-server kra-db-access-grant \
+    uid=pkidbuser,ou=people,dc=kra,dc=pki,dc=example,dc=com
+----
