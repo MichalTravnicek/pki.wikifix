@@ -61,10 +61,10 @@ Run the CA container with the following command:
 
 ----
 $ podman run \
-    --name=ca \
-    --hostname=ca.example.com \
-    --network=example \
-    --network-alias=ca.example.com \
+    --name ca \
+    --hostname ca.example.com \
+    --network example \
+    --network-alias ca.example.com \
     -v $PWD/certs:/certs \
     -v $PWD/data:/data \
     -p 8080:8080 \
