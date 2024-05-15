@@ -60,10 +60,10 @@ Run the KRA container with the following command:
 
 ----
 $ podman run \
-    --name=kra \
-    --hostname=kra.example.com \
-    --network=example \
-    --network-alias=kra.example.com \
+    --name kra \
+    --hostname kra.example.com \
+    --network example \
+    --network-alias kra.example.com \
     -v $PWD/certs:/certs \
     -v $PWD/data:/data \
     -p 8080:8080 \
