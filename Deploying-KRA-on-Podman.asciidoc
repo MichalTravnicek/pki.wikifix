@@ -66,9 +66,8 @@ $ podman run \
     --network-alias kra.example.com \
     -v $PWD/certs:/certs \
     -v $PWD/data:/data \
-    -p 8080:8080 \
-    -p 8443:8443 \
-    --privileged \
+    -e PKI_DS_URL=ldap://ds.example.com:3389 \
+    -e PKI_DS_PASSWORD=Secret.123 \
     -d \
     quay.io/dogtagpki/pki-kra:latest
 ----
