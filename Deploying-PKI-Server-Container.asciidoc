@@ -2,7 +2,7 @@
 
 NOTE: This page is still under construction.
 
-This document describes the process to deploy PKI server container with PKI 11.4 or later.
+This document describes the process to deploy PKI server container with PKI 11.6 or later.
 
 = Creating Network =
 
@@ -20,13 +20,10 @@ Run the PKI server container with the following command:
 
 ----
 $ podman run \
-    --name=pki-server \
+    --name=server \
     --hostname=pki.example.com \
     --network=example \
     --network-alias=pki.example.com \
-    -p 8080:8080 \
-    -p 8443:8443 \
-    --privileged \
     -d \
     quay.io/dogtagpki/pki-server:latest
 ----
@@ -34,7 +31,7 @@ $ podman run \
 Wait until the PKI server is running:
 
 ----
-$ podman logs -f pki-server
+$ podman logs -f server
 ----
 
 = See Also =
