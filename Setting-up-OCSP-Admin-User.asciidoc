@@ -1,0 +1,26 @@
+= Overview =
+
+This page describes the process to set up an OCSP admin user with PKI tools.
+
+= Adding OCSP Admin User =
+
+----
+$ pki-server ocsp-user-add \
+    --full-name Administrator \
+    --type adminType \
+    ocspadmin
+----
+
+= Assigning Certificate to OCSP Admin User =
+
+----
+$ pki-server ocsp-user-cert-add \
+    --cert admin.crt \
+    ocspadmin
+----
+
+= Assigning Roles to OCSP Admin User =
+
+----
+$ pki-server ocsp-user-role-add ocspadmin "Administrators"
+----
