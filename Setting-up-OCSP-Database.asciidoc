@@ -1,0 +1,36 @@
+= Overview =
+
+This page describes the process to set up an OCSP database using DS.
+It assumes that the DS database has been installed as described in link:DS-Installation[DS Installation].
+
+*Availability:* Since PKI 11.5
+
+= Initializing OCSP Database =
+
+----
+$ pki-server ocsp-db-init
+----
+
+= Adding OCSP Search Indexes =
+
+----
+$ pki-server ocsp-db-index-add
+----
+
+= Rebuilding OCSP Search Indexes =
+
+----
+$ pki-server ocsp-db-index-rebuild
+----
+
+= Adding OCSP VLV Indexes =
+
+----
+$ pki-server ocsp-db-vlv-add
+----
+
+= Rebuilding OCSP VLV Indexes =
+
+----
+$ pki-server ocsp-db-vlv-reindex
+----
