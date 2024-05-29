@@ -1,0 +1,53 @@
+= Overview =
+
+NOTE: This page is still under construction.
+
+This document describes the process to deploy CA container as a systemd service using PKI 11.6 or later.
+
+= Installing Podman =
+
+----
+$ dnf install -y podman
+----
+
+= Installing CA Container Image =
+
+----
+$ podman pull quay.io/dogtagpki/pki-ca
+----
+
+= Creating Systemd Service =
+
+To create the systemd service, execute the following command:
+
+----
+$ ln -sf /usr/share/containers/systemd/pki-server.service
+    /etc/containers/systemd/pki-ca.container
+----
+
+Then execute:
+
+----
+$ systemctl daemon-reload
+----
+
+= Starting Systemd Service =
+
+To start the systemd service, execute the following command:
+
+----
+$ systemctl start pki-ca.service
+----
+
+It should start `systemd-pki-ca` container:
+
+----
+$ podman ps
+CONTAINER ID  IMAGE                           ... NAMES
+1297a77a4a65  quay.io/dogtagpki/pki-ca:latest ... systemd-pki-ca
+----
+
+= See Also =
+
+* link:Deploying-CA-on-Podman[Deploying CA on Podman]
+
