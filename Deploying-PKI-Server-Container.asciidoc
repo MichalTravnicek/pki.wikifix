@@ -19,7 +19,8 @@ Alternatively, use an existing network.
 Prepare the following folders:
 
 * `certs` for installing pre-existing certificates
-* `data` for storing generated config files and log files
+* `conf` for storing config files
+* `logs` for storing log files
 
 = Deploying PKI Server Container =
 
@@ -32,7 +33,8 @@ $ podman run \
     --network=example \
     --network-alias=pki.example.com \
     -v $PWD/certs:/certs \
-    -v $PWD/data:/data \
+    -v $PWD/conf:/conf \
+    -v $PWD/logs:/logs \
     -d \
     quay.io/dogtagpki/pki-server:latest
 ----
