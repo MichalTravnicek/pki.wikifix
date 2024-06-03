@@ -66,7 +66,8 @@ $ podman run \
     --network example \
     --network-alias kra.example.com \
     -v $PWD/certs:/certs \
-    -v $PWD/data:/data \
+    -v $PWD/conf:/conf \
+    -v $PWD/logs:/logs \
     -e PKI_DS_URL=ldap://ds.example.com:3389 \
     -e PKI_DS_PASSWORD=Secret.123 \
     -d \
