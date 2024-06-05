@@ -21,11 +21,13 @@ $ podman network create example
 
 Alternatively, use an existing network.
 
-= Generating System Certificates =
+= Preparing Certificates =
 
-By default the CA container will create a new system certificates and admin certificate.
+Create a folder (e.g. `certs`) to store CA system certificates and admin certificate.
+This folder will be mapped into the `/certs` folder in the CA container.
 
-To deploy the CA container with existing certificates, prepare the following files:
+By default the CA container will create new certificates.
+To use existing certificates, store the certificates in the folder as follows:
 
 * `server.p12` which contains:
 ** `ca_signing` certificate and key (see link:Generating-CA-Signing-Certificate[Generating CA Signing Certificate])
@@ -43,12 +45,20 @@ To deploy the CA container with existing certificates, prepare the following fil
 * `sslserver.csr` certificate request
 * `admin.csr` certificate request
 
-Then store the files in a location that will be mapped to the `/certs` folder in the CA container.
-
 See also:
 
 * link:Generating-System-Certificates[Generating System Certificates]
 * link:PKI-PKCS12-CLI[PKI PKCS12 CLI]
+
+= Preparing Configuration Files =
+
+Create a folder (e.g. `conf`) to store Tomcat and CA configuration files.
+This folder will be mapped into the `/conf` folder in the CA container.
+
+= Preparing Logs Folder =
+
+Create a folder (e.g. `logs`) to store Tomcat and CA log files.
+This folder will be mapped into the `/logs` folder in the CA container.
 
 = Preparing CA Database =
 
