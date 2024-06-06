@@ -1,0 +1,144 @@
+= Overview
+
+This page describes the services provided by TPSREST API v1.
+
+== REST URL
+
+Each resource will have a unique URL which will be in the following pattern:
+
+* Single resource: `/tps/rest/<resource name>`
+* Collection of resources: `/tps/rest/<resource collection>/<resource ID>`
+
+== REST Operations
+
+The current TPS operations (eg. op=...) will be mapped into the following HTTP operations:
+
+* GET: searching resources or retrieving individual resource
+* POST: adding an object
+* PATCH: modifying an object
+* DELETE: removing an object
+
+All requests and responses will be sent in XML/JSON format.
+
+These operations will return HTTP 200 (OK) return code upon successful operation. One exception is a successful add operation will return HTTP 201 (Created) and the URL of the newly created resource. Normal application errors will return HTTP 4xx return code. Unexpected server error will return HTTP 5xx return code.
+
+Search operations may support paging. The server will return one page that contains a subset of the search result. The server will also return the total number of entries in the result. The client may request a specific page and also the number of entries per page.
+
+The add and modify operations will return the updated object back, similar to the result of a GET operation. This way the client does not need to send another request to get the object after performing an update.
+
+Some of the TPS operations will not be mapped into REST operations because the are purely used to generate the HTML page which is irrelevant for REST.
+
+.Deprecated doc pages to be removed - see link:PKI-REST-API[latest docs here]
+[%collapsible]
+====
+= Account Services
+
+* link:PKI-TPS-Login-REST-API[Login]
+* link:PKI-TPS-Logout-REST-API[Logout]
+
+= User Services
+
+* link:PKI-TPS-Search-Users-REST-API[Search Users]
+* link:PKI-TPS-Add-User-REST-API[Add User]
+* link:PKI-TPS-Get-User-REST-API[Get User]
+* link:PKI-TPS-Modify-User-REST-API[Modify User]
+* link:PKI-TPS-Remove-User-REST-API[Remove User]
+
+= User Certificate Services
+
+* link:PKI-TPS-List-User-Certificates-REST-API[List User Certificates]
+* link:PKI-TPS-Add-User-Certificate-REST-API[Add User Certificate]
+* link:PKI-TPS-Retrieve-User-Certificate-REST-API[Retrieve User Certificate]
+* link:PKI-TPS-Delete-User-Certificate-REST-API[Delete User Certificate]
+
+= User Roles Services
+
+* link:PKI-TPS-List-User-Roles-REST-API[List User Roles]
+* link:PKI-TPS-Add-User-Role-REST-API[Add User Role]
+* link:PKI-TPS-Delete-User-Role-REST-API[Delete User Role]
+
+= Group Services
+
+* link:PKI-TPS-List-Groups-REST-API[List Groups]
+* link:PKI-TPS-Retrieve-Group-REST-API[Retrieve Group]
+* link:PKI-TPS-Add-Group-REST-API[Add Group]
+* link:PKI-TPS-Modify-Group-REST-API[Modify Group]
+* link:PKI-TPS-Delete-Group-REST-API[Delete Group]
+
+= Group Member Services
+
+* link:PKI-TPS-List-Group-Members-REST-API[List Group Members]
+* link:PKI-TPS-Retrieve-Group-Member-REST-API[Retrieve Group Member]
+* link:PKI-TPS-Add-Group-Member-REST-API[Add Group Member]
+* link:PKI-TPS-Delete-Group-Member-REST-API[Delete Group Member]
+====
+= Token Services
+
+* link:PKI-TPS-Search-Tokens-REST-API[Search Tokens]
+* link:PKI-TPS-Add-Token-REST-API[Add Token]
+* link:PKI-TPS-Get-Token-REST-API[Get Token]
+* link:PKI-TPS-Modify-Token-REST-API[Modify Token]
+* link:PKI-TPS-Change-Token-State-REST-API[Change Token State]
+* link:PKI-TPS-Remove-Token-REST-API[Remove Token]
+
+= Certificate Services
+
+* link:PKI-TPS-Search-Certificates-REST-API[Search Certificates]
+* link:PKI-TPS-Get-Certificate-REST-API[Get Certificate]
+
+= Activity Services
+
+* link:PKI-TPS-Search-Activities-REST-API[Search Activities]
+
+= Self Test Services
+
+* link:PKI-TPS-Get-Self-Tests-REST-API[Get Self Tests]
+* link:PKI-TPS-Run-Self-Tests-REST-API[Run Self Tests]
+
+= Audit Services
+
+* link:PKI-TPS-Get-Audit-Configuration-REST-API[Get Audit Configuration]
+* link:PKI-TPS-Modify-Audit-Configuration-REST-API[Modify Audit Configuration]
+
+= Profile Services
+
+* link:PKI-TPS-Search-Profiles-REST-API[Search Profiles]
+* link:PKI-TPS-Add-Profile-REST-API[Add Profile]
+* link:PKI-TPS-Get-Profile-REST-API[Get Profile]
+* link:PKI-TPS-Modify-Profile-REST-API[Modify Profile]
+* link:PKI-TPS-Change-Profile-State-REST-API[Change Profile State]
+* link:PKI-TPS-Remove-Profile-REST-API[Remove Profile]
+
+= Profile Mapping Services
+
+* link:PKI-TPS-Search-Profile-Mappings-REST-API[Search Profile Mappings]
+* link:PKI-TPS-Add-Profile-Mapping-REST-API[Add Profile Mapping]
+* link:PKI-TPS-Get-Profile-Mapping-REST-API[Get Profile Mapping]
+* link:PKI-TPS-Modify-Profile-Mapping-REST-API[Modify Profile Mapping]
+* link:PKI-TPS-Remove-Profile-Mapping-REST-API[Remove Profile Mapping]
+
+= Connection Services
+
+* link:PKI-TPS-Search-Connections-REST-API[Search Connections]
+* link:PKI-TPS-Add-Connection-REST-API[Add Connection]
+* link:PKI-TPS-Get-Connection-REST-API[Get Connection]
+* link:PKI-TPS-Modify-Connection-REST-API[Modify Connection]
+* link:PKI-TPS-Remove-Connection-REST-API[Remove Connection]
+
+= Authenticator Services
+
+* link:PKI-TPS-Search-Authenticators-REST-API[Search Authenticators]
+* link:PKI-TPS-Add-Authenticator-REST-API[Add Authenticator]
+* link:PKI-TPS-Get-Authenticator-REST-API[Get Authenticator]
+* link:PKI-TPS-Modify-Authenticator-REST-API[Modify Authenticator]
+* link:PKI-TPS-Remove-Authenticator-REST-API[Remove Authenticator]
+
+= Configuration Services
+
+* link:PKI-TPS-Get-Configuration-REST-API[Get Configuration]
+* link:PKI-TPS-Modify-Configuration-REST-API[Modify Configuration]
+
+= See Also
+
+* link:PKI-REST-API-Design[PKI REST API Design]
+* link:Token-Processing-System[Token Processing System]
