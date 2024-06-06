@@ -74,12 +74,34 @@ Some of the TPS operations will not be mapped into REST operations because the a
 ====
 = Token Services
 
-* link:PKI-TPS-Search-Tokens-REST-API[Search Tokens]
-* link:PKI-TPS-Add-Token-REST-API[Add Token]
-* link:PKI-TPS-Get-Token-REST-API[Get Token]
-* link:PKI-TPS-Modify-Token-REST-API[Modify Token]
-* link:PKI-TPS-Change-Token-State-REST-API[Change Token State]
-* link:PKI-TPS-Remove-Token-REST-API[Remove Token]
+|===
+| Path | Method | Service
+
+| `/tps/rest/tokens`
+| `GET`
+| link:PKI-TPS-Search-Tokens-REST-API[Search Tokens]
+
+| `/tps/rest/tokens`
+| `POST`
+| link:PKI-TPS-Add-Token-REST-API[Add Token]
+
+| `/tps/rest/tokens/{id}`
+| `GET`
+| link:PKI-TPS-Get-Token-REST-API[Get Token]
+
+| `/tps/rest/tokens/{id}`
+| `PATCH`
+| link:PKI-TPS-Modify-Token-REST-API[Modify Token]
+
+| `/tps/rest/tokens/{id}`
+| `POST`
+| link:PKI-TPS-Change-Token-State-REST-API[Change Token State]
+
+| `/tps/rest/tokens/{id}`
+| `DELETE`
+| link:PKI-TPS-Remove-Token-REST-API[Remove Token]
+
+|===
 
 = Certificate Services
 
