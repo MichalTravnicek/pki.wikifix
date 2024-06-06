@@ -1,6 +1,6 @@
 = Overview
 
-This page describes the services provided by TPSREST API v1.
+This page describes the services provided by TPS REST API v1.
 
 == REST URL
 
@@ -105,8 +105,18 @@ Some of the TPS operations will not be mapped into REST operations because the a
 
 = Certificate Services
 
-* link:PKI-TPS-Search-Certificates-REST-API[Search Certificates]
-* link:PKI-TPS-Get-Certificate-REST-API[Get Certificate]
+|===
+| Path | Method | Service
+
+| `/tps/rest/certs`
+| `GET`
+| link:PKI-TPS-Search-Certificates-REST-API[Search Certificates]
+
+| `/tps/rest/certs/{id}`
+| `GET`
+| link:PKI-TPS-Get-Certificate-REST-API[Get Certificate]
+
+|===
 
 = Activity Services
 
@@ -122,8 +132,6 @@ Some of the TPS operations will not be mapped into REST operations because the a
 | Get Activity
 
 |===
-
-* 
 
 = Self Test Services
 
