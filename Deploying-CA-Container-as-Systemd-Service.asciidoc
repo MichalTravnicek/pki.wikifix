@@ -16,13 +16,36 @@ $ dnf install -y podman
 $ podman pull quay.io/dogtagpki/pki-ca
 ----
 
+= Preparing Shared Folders =
+
+* `/home/pkiuser/.dogtag/pki-ca/certs`
+* `/home/pkiuser/.dogtag/pki-ca/conf`
+* `/home/pkiuser/.dogtag/pki-ca/logs`
+
 = Creating Systemd Service =
 
-To create the systemd service, execute the following command:
+To create the systemd service, create `/etc/containers/systemd/pki-ca.container` with the following content:
 
 ----
-$ ln -sf /usr/share/containers/systemd/pki-server.service
-    /etc/containers/systemd/pki-ca.container
+[Unit]
+Description=PKI CA
+
+[Container]
+Image=pki-ca
+Network=host
+# run CA container as PKI user
+User=pkiuser
+Group=pkiuser
+# use shared folders in PKI home directory
+Volume=/home/pkiuser/.dogtag/pki-ca/certs:/certs
+Volume=/home/pkiuser/.dogtag/pki-ca/conf:/conf
+Volume=/home/pkiuser/.dogtag/pki-ca/logs:/logs
+# connect to DS container
+Environment=PKI_DS_URL=ldap://ds.example.com:3389
+Environment=PKI_DS_PASSWORD=Secret.123
+
+[Install]
+WantedBy=multi-user.target
 ----
 
 Then execute:
@@ -39,7 +62,7 @@ To start the systemd service, execute the following command:
 $ systemctl start pki-ca.service
 ----
 
-It should start `systemd-pki-ca` container:
+It should start a `systemd-pki-ca` container:
 
 ----
 $ podman ps
