@@ -2,7 +2,7 @@
 
 NOTE: This page is still under construction.
 
-This document describes the process to deploy CA container as a systemd service using PKI 11.6 or later.
+This document describes the process to deploy CA container as a rootless systemd service using PKI 11.6 or later.
 
 = Installing Podman =
 
@@ -10,7 +10,34 @@ This document describes the process to deploy CA container as a systemd service 
 $ dnf install -y podman
 ----
 
+= Enable Rootless Container =
+
+Execute the following commands as `root`:
+
+----
+$ setcap cap_setuid+ep /usr/bin/newuidmap
+$ setcap cap_setgid+ep /usr/bin/newgidmap
+$ usermod --add-subuids 100000-165535 --add-subgids 100000-165535 pkiuser
+$ loginctl enable-linger pkiuser
+----
+
+Execute the following commands as `pkiuser`:
+
+----
+$ mkdir -p $HOME/.config/containers
+$ cat > $HOME/.config/containers/storage.conf << EOF
+[storage]
+driver = "overlay"
+
+[storage.options.overlay]
+mount_program = "/usr/bin/fuse-overlayfs"
+EOF
+$ podman system info
+----
+
 = Installing CA Container Image =
+
+Execute the following commands as `pkiuser`:
 
 ----
 $ podman pull quay.io/dogtagpki/pki-ca
@@ -18,48 +45,59 @@ $ podman pull quay.io/dogtagpki/pki-ca
 
 = Preparing Shared Folders =
 
-* `/home/pkiuser/.dogtag/pki-ca/certs`
-* `/home/pkiuser/.dogtag/pki-ca/conf`
-* `/home/pkiuser/.dogtag/pki-ca/logs`
+Execute the following commands as `pkiuser`:
+
+----
+$ mkdir -p $HOME/.dogtag/pki-ca/certs
+$ mkdir -p $HOME/.dogtag/pki-ca/conf
+$ mkdir -p $HOME/.dogtag/pki-ca/logs
+----
 
 = Creating Systemd Service =
 
-To create the systemd service, create `/etc/containers/systemd/pki-ca.container` with the following content:
+Execute the following commands as `pkiuser`:
 
 ----
+$ mkdir -p $HOME/.config/containers/systemd
+$ cat > $HOME/.config/containers/systemd/pki-ca.container << EOF
 [Unit]
 Description=PKI CA
 
 [Container]
 Image=pki-ca
 Network=host
+
 # run CA container as PKI user
 User=pkiuser
 Group=pkiuser
+UserNS=keep-id
+
 # use shared folders in PKI home directory
-Volume=/home/pkiuser/.dogtag/pki-ca/certs:/certs
-Volume=/home/pkiuser/.dogtag/pki-ca/conf:/conf
-Volume=/home/pkiuser/.dogtag/pki-ca/logs:/logs
+Volume=$HOME/.dogtag/pki-ca/certs:/certs
+Volume=$HOME/.dogtag/pki-ca/conf:/conf
+Volume=$HOME/.dogtag/pki-ca/logs:/logs
+
 # connect to DS container
 Environment=PKI_DS_URL=ldap://ds.example.com:3389
 Environment=PKI_DS_PASSWORD=Secret.123
 
 [Install]
 WantedBy=multi-user.target
+EOF
 ----
 
-Then execute:
+Execute the following commands as `pkiuser`:
 
 ----
-$ systemctl daemon-reload
+$ systemctl --user daemon-reload
 ----
 
 = Starting Systemd Service =
 
-To start the systemd service, execute the following command:
+To start the systemd service, execute the following command as `pkiuser`:
 
 ----
-$ systemctl start pki-ca.service
+$ systemctl --user start pki-ca.service
 ----
 
 It should start a `systemd-pki-ca` container:
