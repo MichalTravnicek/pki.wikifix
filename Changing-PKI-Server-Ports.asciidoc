@@ -52,8 +52,7 @@ $ pki-server sd-subsystem-del "CA <hostname> <old HTTPS port>"
 To add the new subsystem registration:
 
 ----
-$ pki-server \
-    sd-subsystem-add \
+$ pki-server sd-subsystem-add \
     --subsystem CA \
     --hostname <hostname> \
     --unsecure-port <new HTTP port> \
@@ -65,13 +64,14 @@ $ pki-server \
 To add a new subsystem user:
 
 ----
-$ pki-server \
-    ca-user-add \
+$ pki-server ca-user-add \
     --full-name "CA-<hostname>-<new HTTP port>" \
     --type agentType \
     --state 1 \
     CA-<hostname>-<new HTTP port>
 ----
+
+In PKI 11.6 or later the user certificate can be specified with the `--cert <path>` option.
 
 To assign the subsystem certificate to the new subsystem user:
 
