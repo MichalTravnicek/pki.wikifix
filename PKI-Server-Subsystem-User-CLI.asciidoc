@@ -43,8 +43,13 @@ $ pki-server <subsystem>-user-show pkidbuser
 To add a subsystem user, specify the user ID, the full name, and the type:
 
 ----
-$ pki-server <subsystem>-user-add testuser --full-name "Test User" --type adminType
+$ pki-server <subsystem>-user-add \
+    --full-name "Test User" \
+    --type adminType \
+    testuser 
 ----
+
+In PKI 11.6 or later the user certificate can be specified with the `--cert <path>` option.
 
 = Modifying Subsystem User =
 
