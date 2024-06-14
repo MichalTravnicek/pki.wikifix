@@ -7,7 +7,7 @@ This document describes the process to deploy CA container as a rootless systemd
 = Installing Podman =
 
 ----
-$ dnf install -y podman
+$ dnf install -y podman fuse-overlayfs
 ----
 
 = Enable Rootless Container =
@@ -111,6 +111,7 @@ CONTAINER ID  IMAGE                           ... NAMES
 = See Also =
 
 * link:Deploying-CA-on-Podman[Deploying CA on Podman]
+* link:Deploying-PKI-Server-Container-as-Systemd-Service[Deploying PKI Server Container as Systemd Service]
 * link:https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html[podman-systemd.unit]
 * link:https://www.redhat.com/sysadmin/quadlet-podman[Make systemd better for Podman with Quadlet]
 * link:https://www.redhat.com/sysadmin/multi-container-application-podman-quadlet[Deploying a multi-container application using Podman and Quadlet]
