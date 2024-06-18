@@ -1,0 +1,29 @@
+= Overview =
+
+This page describes the process to set up a TKS admin user with PKI tools.
+
+= Adding TKS Admin User =
+
+----
+$ pki-server tks-user-add \
+    --full-name Administrator \
+    --type adminType \
+    ocspadmin
+----
+
+In PKI 11.6 or later the user certificate can be specified with the `--cert <path>` option.
+
+= Assigning Certificate to TKS Admin User =
+
+----
+$ pki-server tks-user-cert-add \
+    --cert admin.crt \
+    tksadmin
+----
+
+= Assigning Roles to TKS Admin User =
+
+----
+$ pki-server tks-user-role-add tksadmin "Administrators"
+$ pki-server tks-user-role-add tksadmin "Token Key Service Manager Agents"
+----
