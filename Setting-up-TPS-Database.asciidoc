@@ -1,0 +1,36 @@
+= Overview =
+
+This page describes the process to set up a TPS database using DS.
+It assumes that the DS database has been installed as described in link:DS-Installation[DS Installation].
+
+*Availability:* Since PKI 11.5
+
+= Initializing TPS Database =
+
+----
+$ pki-server tps-db-init
+----
+
+= Adding TPS Search Indexes =
+
+----
+$ pki-server tps-db-index-add
+----
+
+= Rebuilding TPS Search Indexes =
+
+----
+$ pki-server tps-db-index-rebuild
+----
+
+= Adding TPS VLV Indexes =
+
+----
+$ pki-server tps-db-vlv-add
+----
+
+= Rebuilding TPS VLV Indexes =
+
+----
+$ pki-server tps-db-vlv-reindex
+----
