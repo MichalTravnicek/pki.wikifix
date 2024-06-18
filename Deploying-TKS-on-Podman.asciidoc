@@ -1,0 +1,85 @@
+= Overview =
+
+NOTE: This page is still under construction.
+
+This document describes the process to deploy TKS container on Podman with PKI 11.6 or later.
+
+Current limitations:
+
+* Replication is not yet supported (i.e. no scaling)
+* HSM is not yet supported
+* No security domain (i.e. other subsystems need to be set up manually)
+* Long startup time (due to certs import and instance creation)
+
+= Creating Network =
+
+Create a network for the containers, for example:
+
+----
+$ podman network create example
+----
+
+Alternatively, use an existing network.
+
+= Generating System Certificates =
+
+To deploy the OCSP container, prepare the following files:
+
+* `server.p12` which contains:
+** `ca_signing` certificate (see link:Generating-CA-Signing-Certificate[Generating CA Signing Certificate])
+** `tks_audit_signing` certificate and key (see link:Generating-Audit-Signing-Certificate[Generating Audit Signing Certificate])
+** `subsystem` certificate and key (see link:Generating-Subsystem-Certificate[Generating Subsystem Certificate])
+** `sslserver` certificate and key (see link:Generating-SSL-Server-Certificate[Generating SSL Server Certificate])
+* `admin.p12` which contains:
+** `ca_signing` certificate (see link:Generating-CA-Signing-Certificate[Generating CA Signing Certificate])
+** `admin` certificate and key (see link:Generating-Admin-Certificate[Generating Admin Certificate])
+* `tks_audit_signing.csr` certificate request
+* `subsystem.csr` certificate request
+* `sslserver.csr` certificate request
+* `admin.csr` certificate request
+
+Then store the files in a location that will be mapped to the `/certs` folder in the TKS container.
+
+See also:
+
+* link:Generating-System-Certificates[Generating System Certificates]
+* link:PKI-PKCS12-CLI[PKI PKCS12 CLI]
+
+= Preparing TKS Database =
+
+* link:Setting-up-TKS-Database[Setting up TKS Database]
+* link:Setting-up-TKS-Database-User[Setting up TKS Database User] (optional)
+* link:Setting-up-TKS-Admin-User[Setting up TKS Admin User]
+
+= Deploying TKS Container =
+
+Run the TKS container with the following command:
+
+----
+$ podman run \
+    --name tks \
+    --hostname tks.example.com \
+    --network example \
+    --network-alias tks.example.com \
+    -v $PWD/certs:/certs \
+    -v $PWD/conf:/conf \
+    -v $PWD/logs:/logs \
+    -e PKI_DS_URL=ldap://ds.example.com:3389 \
+    -e PKI_DS_PASSWORD=Secret.123 \
+    -d \
+    quay.io/dogtagpki/pki-tks:latest
+----
+
+Wait until the TKS service is running:
+
+----
+$ podman logs -f tks
+----
+
+= Removing TKS Container =
+
+If the TKS container is no longer needed, it can be removed with the following command:
+
+----
+$ podman rm -f tks
+----
