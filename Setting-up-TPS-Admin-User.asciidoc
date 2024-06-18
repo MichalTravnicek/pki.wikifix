@@ -1,0 +1,30 @@
+= Overview =
+
+This page describes the process to set up a TPS admin user with PKI tools.
+
+= Adding TPS Admin User =
+
+----
+$ pki-server tps-user-add \
+    --full-name Administrator \
+    --type adminType \
+    tpsadmin
+----
+
+In PKI 11.6 or later the user certificate can be specified with the `--cert <path>` option.
+
+= Assigning Certificate to TPS Admin User =
+
+----
+$ pki-server tps-user-cert-add \
+    --cert admin.crt \
+    tpsadmin
+----
+
+= Assigning Roles to TPS Admin User =
+
+----
+$ pki-server tps-user-role-add tpsadmin "Administrators"
+$ pki-server tps-user-role-add tpsadmin "TPS Agents"
+$ pki-server tps-user-role-add tpsadmin "TPS Operators"
+----
