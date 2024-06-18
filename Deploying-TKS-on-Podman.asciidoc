@@ -30,13 +30,9 @@ To deploy the OCSP container, prepare the following files:
 ** `tks_audit_signing` certificate and key (see link:Generating-Audit-Signing-Certificate[Generating Audit Signing Certificate])
 ** `subsystem` certificate and key (see link:Generating-Subsystem-Certificate[Generating Subsystem Certificate])
 ** `sslserver` certificate and key (see link:Generating-SSL-Server-Certificate[Generating SSL Server Certificate])
-* `admin.p12` which contains:
-** `ca_signing` certificate (see link:Generating-CA-Signing-Certificate[Generating CA Signing Certificate])
-** `admin` certificate and key (see link:Generating-Admin-Certificate[Generating Admin Certificate])
 * `tks_audit_signing.csr` certificate request
 * `subsystem.csr` certificate request
 * `sslserver.csr` certificate request
-* `admin.csr` certificate request
 
 Then store the files in a location that will be mapped to the `/certs` folder in the TKS container.
 
@@ -44,6 +40,16 @@ See also:
 
 * link:Generating-System-Certificates[Generating System Certificates]
 * link:PKI-PKCS12-CLI[PKI PKCS12 CLI]
+
+= Preparing Configuration Files =
+
+Create a folder (e.g. `conf`) to store Tomcat and TKS configuration files.
+This folder will be mapped into the `/conf` folder in the TKS container.
+
+= Preparing Logs Folder =
+
+Create a folder (e.g. `logs`) to store Tomcat and TKS log files.
+This folder will be mapped into the `/logs` folder in the TKS container.
 
 = Preparing TKS Database =
 
