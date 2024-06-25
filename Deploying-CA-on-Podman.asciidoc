@@ -77,34 +77,12 @@ Wait until the CA service is running:
 $ podman logs -f ca
 ----
 
-= Additional Setup =
+= Setting up CA Database =
 
 * link:Setting-up-CA-Database[Setting up CA Database]
 * link:Setting-up-CA-Database-User[Setting up CA Database User] (optional)
-* link:Setting-up-CA-Admin-User[Setting up CA Admin User]
 
 = Accessing CA Service =
-
-== Local access ==
-
-The CA service can be accessed locally using the `pki` CLI within the CA container itself, for example:
-
-----
-$ podman exec ca pki info
-  Server URL: https://ca.example.com:8443
-  Server Version: 11.3.0
-----
-
-To perform administrative operations, use the `admin` certificate for authentication, for example:
-
-----
-$ podman exec ca pki \
-    -n admin \
-    ca-user-show \
-    admin
-----
-
-== Remote access ==
 
 To access the CA service remotely, retrieve the `ca_signing.crt` from the CA container, then install it on the client, for example:
 
@@ -125,6 +103,10 @@ $ podman exec client pki -U https://ca.example.com:8443 info
   Server URL: https://ca.example.com:8443
   Server Version: 11.3.0
 ----
+
+= Setting up CA Admin User =
+
+* link:Setting-up-CA-Admin-User[Setting up CA Admin User]
 
 To perform administrative operations, retrieve the `admin.p12` from the CA container, then install it on the client, for example:
 
