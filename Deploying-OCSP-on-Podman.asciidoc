@@ -21,7 +21,7 @@ $ podman network create example
 
 Alternatively, use an existing network.
 
-= Generating System Certificates =
+= Preparing Certificates =
 
 To deploy the OCSP container, prepare the following files:
 
@@ -64,10 +64,13 @@ Wait until the OCSP service is running:
 $ podman logs -f ocsp
 ----
 
-= Additional Setup =
+= Setting up OCSP Database =
 
 * link:Setting-up-OCSP-Database[Setting up OCSP Database]
 * link:Setting-up-OCSP-Database-User[Setting up OCSP Database User] (optional)
+
+= Setting up OCSP Admin User =
+
 * link:Setting-up-OCSP-Admin-User[Setting up OCSP Admin User]
 
 = Removing OCSP Container =
