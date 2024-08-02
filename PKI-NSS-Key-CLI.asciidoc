@@ -47,7 +47,35 @@ $ pki nss-key-find --nickname ca_signing
   Algorithm: RSA
 ----
 
-**Availability:** Since PKI 11.2.
+**Availability:** Since PKI 11.2
+
+= Displaying Key Details =
+
+To display key details:
+
+----
+$ pki nss-key-show --key-id 0x12e1587cf58ab6e16a5d8cf9682252a8bdf7a591
+  Key ID: 0x12e1587cf58ab6e16a5d8cf9682252a8bdf7a591
+  Type: RSA
+  Algorithm: RSA
+
+$ pki nss-key-show --key-id 0x64594734139b4006527bc57c8792d90333e4263c
+  Key ID: 0x64594734139b4006527bc57c8792d90333e4263c
+  Type: EC
+  Algorithm: EC
+
+$ pki nss-key-show --key-nickname shared-secret
+  Nickname: shared-secret
+  Type: AES
+  Algorithm: AES
+
+$ pki --token HSM nss-key-show --key-id 0x12e1587cf58ab6e16a5d8cf9682252a8bdf7a591
+  Key ID: 0x12e1587cf58ab6e16a5d8cf9682252a8bdf7a591
+  Type: RSA
+  Algorithm: RSA
+----
+
+**Availability:** Since PKI 11.6
 
 = Creating Key in NSS Database =
 
