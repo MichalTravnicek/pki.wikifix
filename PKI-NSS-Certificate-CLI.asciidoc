@@ -42,6 +42,19 @@ $ pki nss-cert-show caadmin --output-format json
 }
 ----
 
+To display info of a certificate identified using its binary data:
+
+----
+$ pki nss-cert-show --cert-file caadmin.crt
+  Nickname: caadmin
+  Serial Number: 0x844a78e9c0c7567b80da5343fb049110
+  Subject DN: CN=PKI Administrator,E=caadmin@example.com,OU=pki-tomcat,O=EXAMPLE
+  Issuer DN: CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE
+  Not Valid Before: Wed Aug 02 18:18:40 CDT 2023
+  Not Valid After: Tue Jul 22 18:18:40 CDT 2025
+  Trust Flags: u,u,u
+----
+
 = Generating Certificate Request in NSS Database =
 
 See link:Generating-Certificate-Request-with-PKI-NSS[Generating Certificate Request with PKI NSS].
