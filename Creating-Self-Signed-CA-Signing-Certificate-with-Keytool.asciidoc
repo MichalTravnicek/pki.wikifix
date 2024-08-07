@@ -1,0 +1,38 @@
+= Creating Self-Signed CA Signing Certificate =
+
+To generate a certificate with RSA key:
+
+----
+$ keytool \
+    -genkeypair \
+    -keystore keystore.p12 \
+    -storetype pkcs12 \
+    -storepass Secret.123 \
+    -alias ca_signing \
+    -dname "CN=CA Signing Certificate" \
+    -ext BasicConstraints=ca:true \
+    -ext KeyUsage=digitalSignature,nonRepudiation,keyCertSign,cRLSign \
+    -keyalg RSA \
+    -keypass Secret.123
+----
+
+To generate a certificate with ECC key:
+
+----
+$ keytool \
+    -genkeypair \
+    -keystore keystore.p12 \
+    -storetype pkcs12 \
+    -storepass Secret.123 \
+    -alias ca_signing \
+    -dname "CN=CA Signing Certificate" \
+    -ext BasicConstraints=ca:true \
+    -ext KeyUsage=digitalSignature,nonRepudiation,keyCertSign,cRLSign \
+    -keyalg EC \
+    -keypass Secret.123
+----
+
+= See Also =
+
+* link:Generating-SSL-Server-Certificate[Generating SSL Server Certificate]
+* link:https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html[The keytool Command]
