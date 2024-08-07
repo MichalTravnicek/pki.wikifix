@@ -27,3 +27,19 @@ $ keytool \
     -keyalg EC \
     -keypass Secret.123
 ```
+
+= Creating SSL Server CSR =
+
+```
+$ keytool \
+    -certreq \
+    -keystore keystore.p12 \
+    -storetype pkcs12 \
+    -storepass Secret.123 \
+    -alias sslserver \
+    -file sslserver.csr
+```
+
+= See Also =
+
+* link:Generating-SSL-Server-Certificate[Generating SSL Server Certificate]
