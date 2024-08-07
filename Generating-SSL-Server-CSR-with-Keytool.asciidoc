@@ -1,0 +1,29 @@
+= Generating SSL Server Key =
+
+To generate an RSA key:
+
+```
+$ keytool \
+    -genkeypair \
+    -keystore keystore.p12 \
+    -storetype pkcs12 \
+    -storepass Secret.123 \
+    -alias sslserver \
+    -dname "CN=$HOSTNAME" \
+    -keyalg RSA \
+    -keypass Secret.123
+```
+
+To generate an ECC key:
+
+```
+$ keytool \
+    -genkeypair \
+    -keystore keystore.p12 \
+    -storetype pkcs12 \
+    -storepass Secret.123 \
+    -alias sslserver \
+    -dname "CN=$HOSTNAME" \
+    -keyalg EC \
+    -keypass Secret.123
+```
