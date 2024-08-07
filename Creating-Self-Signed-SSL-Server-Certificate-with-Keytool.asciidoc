@@ -3,26 +3,28 @@
 To generate a certificate with RSA key:
 
 ----
-$ keytool -genkeypair \
+$ keytool \
+    -genkeypair \
     -keystore keystore.p12 \
     -storetype pkcs12 \
     -storepass Secret.123 \
     -alias sslserver \
-    -keyalg RSA \
     -dname "CN=$HOSTNAME" \
+    -keyalg RSA \
     -keypass Secret.123
 ----
 
 To generate a certificate with ECC key:
 
 ----
-$ keytool -genkeypair \
+$ keytool \
+    -genkeypair \
     -keystore keystore.p12 \
     -storetype pkcs12 \
     -storepass Secret.123 \
     -alias sslserver \
-    -keyalg EC \
     -dname "CN=$HOSTNAME" \
+    -keyalg EC \
     -keypass Secret.123
 ----
 
