@@ -1,0 +1,20 @@
+= Issuing SSL Server Certificate =
+
+```
+$ keytool \
+    -gencert \
+    -keystore ca_signing.p12 \
+    -storetype pkcs12 \
+    -storepass Secret.123 \
+    -alias ca_signing \
+    -ext KeyUsage:c=digitalSignature,nonRepudiation,keyEncipherment,dataEncipherment \
+    -ext ExtendedKeyUsage=serverAuth \
+    -rfc \
+    -infile sslserver.csr \
+    -outfile sslserver.crt
+```
+
+= See Also =
+
+* link:Generating-SSL-Server-Certificate[Generating SSL Server Certificate]
+* link:https://docs.oracle.com/en/java/javase/17/docs/specs/man/keytool.html[The keytool Command]
