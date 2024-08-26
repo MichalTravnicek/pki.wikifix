@@ -2,15 +2,23 @@
 
 The `pki nss-cert` commands can be used to manage certificates in an NSS database.
 
-= Listing Certificates in NSS Database =
+= Finding Certificates in NSS Database =
 
-To list certificates in NSS database:
+To find all certificates in NSS database:
 
 ----
 $ pki nss-cert-find
 ----
 
 **Availability:** Since PKI 11.1.
+
+To find certificates with a specific subject DN or issuer DN, specify the following options:
+
+----
+$ pki nss-cert-find --subject <DN> --issuer <DN>
+----
+
+**Availability:** Since PKI 11.6.
 
 = Displaying Certificate Info =
 
