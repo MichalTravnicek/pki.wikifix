@@ -3,13 +3,31 @@
 By default the CI will perform the tests using a DS from link:https://quay.io/repository/389ds/dirsrv[quay.io/389ds/dirsrv] container image.
 Sometimes it's necessary to perform the tests using a different database (e.g. using a DS from RPM packages).
 
-Prior to PKI 11.5 the test database can be configured by creating a GitHub secret called `BASE64_DATABASE` to store the base64-encoded value of the container image URL. To reset the test database simply remove the secret.
+In PKI 11.6 or later the test database can be configured by creating a GitHub variable called `DS_IMAGE` to store the container image URL. To reset the test database simply remove the variable.
 
-In PKI 11.5 or later the test database can be configured by creating a GitHub variable called `DB_IMAGE` to store the container image URL. To reset the test database simply remove the variable.
+In PKI 11.5 the test database can be configured by creating a GitHub variable called `DB_IMAGE` to store the container image URL. To reset the test database simply remove the variable.
+
+Prior to PKI 11.5 the test database can be configured by creating a GitHub secret called `BASE64_DATABASE` to store the base64-encoded value of the container image URL. To reset the test database simply remove the secret.
 
 = Configuring Test Database =
 
-For example, to configure the test database prior to PKI 11.5:
+In PKI 11.6 or later create a variable:
+
+* Go to *Settings* -> *Secrets and variables* -> *Actions* -> *Variables*.
+* Click *New repository variable*.
+* Enter `DS_IMAGE` as the variable name.
+* Enter the DS image (e.g. `edewata/dirsrv`) as the variable value.
+* Click *Add variable*.
+
+In PKI 11.5 create a variable:
+
+* Go to *Settings* -> *Secrets and variables* -> *Actions* -> *Variables*.
+* Click *New repository variable*.
+* Enter `DB_IMAGE` as the variable name.
+* Enter the database image (e.g. `edewata/dirsrv`) as the variable value.
+* Click *Add variable*.
+
+Prior to PKI 11.5 encode the database image (e.g. `edewata/dirsrv`) as follows:
 
 ----
 $ base64 << EOF
@@ -28,24 +46,22 @@ Then create the secret:
 * Enter the base64-encoded value as the secret value.
 * Click *Add secret*
 
-In PKI 11.5 or later create a variable:
+= Resetting Test Database =
+
+To reset the test database in PKI 11.6 or later, remove the variable:
 
 * Go to *Settings* -> *Secrets and variables* -> *Actions* -> *Variables*.
-* Click *New repository variable*.
-* Enter `DB_IMAGE` as the variable name.
-* Enter `edewata/dirsrv` as the variable value.
-* Click *Add variable*.
+* Click *Remove* next to `DS_IMAGE`.
+* Click *Yes, remove this variable*.
 
-= Resetting Test Database =
+To reset the test database in PKI 11.5, remove the variable:
+
+* Go to *Settings* -> *Secrets and variables* -> *Actions* -> *Variables*.
+* Click *Remove* next to `DB_IMAGE`.
+* Click *Yes, remove this variable*.
 
 To reset the test database prior to PKI 11.5, remove the secret:
 
 * Go to *Settings* -> *Secrets*.
 * Click *Remove* next to `BASE64_DATABASE`.
 * Click *Yes, remove this secret*.
-
-To reset the test database in PKI 11.5 or later, remove the variable:
-
-* Go to *Settings* -> *Secrets and variables* -> *Actions* -> *Variables*.
-* Click *Remove* next to `DB_IMAGE`.
-* Click *Yes, remove this variable*.
