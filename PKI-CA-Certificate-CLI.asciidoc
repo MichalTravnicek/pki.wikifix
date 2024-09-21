@@ -1,1 +1,100 @@
-This page has been moved to https://github.com/dogtagpki/pki/blob/master/docs/user/tools/Using-PKI-CA-Certificate-CLI.adoc.
+= PKI CA Certificate CLI =
+
+== Overview ==
+
+The `pki ca-cert` commands provide an interface to manage certificates and certificate requests in CA.
+
+To manage certificate profiles, see link:https://github.com/dogtagpki/pki/wiki/PKI-CA-Profile-CLI[PKI CA Profile CLI].
+
+To manage certificate requests, see link:https://github.com/dogtagpki/pki/wiki/PKI-CA-Certificate-Request-CLI[PKI CA Certificate Request CLI].
+
+== Listing Certificates ==
+
+To list all certificates:
+
+----
+$ pki ca-cert-find
+----
+
+To list certificates with specific status:
+
+----
+$ pki ca-cert-find --status VALID
+----
+
+To list certificates with specific name:
+
+----
+$ pki ca-cert-find --name "Subsystem Certificate"
+----
+
+== Displaying a Certificate ==
+
+To display a particular certificate:
+
+----
+$ pki ca-cert-show <certificate ID>
+----
+
+== Generating a Certificate Request ==
+
+To generate a certificate request, see link:Generating-Certificate-Request[Generating Certificate Request].
+
+== Submitting a Certificate Request ==
+
+To submit a certificate request, See also link:Submitting-Certificate-Request[Submitting Certificate Request].
+
+== Retrieving a Certificate ==
+
+To retrieve a certificate:
+
+----
+$ pki ca-cert-show <certificate ID> --encoded --output <filename>
+----
+
+== Revoking a Certificate ==
+
+Revoking, holding, or releasing certificates must be executed as a CA agent.
+
+To revoke a certificate:
+
+----
+$ pki <agent authentication> ca-cert-revoke <certificate ID>
+----
+
+To hold a certificate temporarily:
+
+----
+$ pki <agent authentication> ca-cert-hold <certificate ID>
+----
+
+To release a certificate that has been held:
+
+----
+$ pki <agent authentication> ca-cert-release-hold <certificate ID>
+----
+
+== Checking Certificate Status ==
+
+The `pki ca-cert-status` provides a simpler way to test OCSP request by downloading the issuer certificate automatically from the server. However, the proper OCSP request should be generated using the proper OCSP client with the issuer certificate already installed on the client.
+
+To check certificate status using the CA's internal OCSP responder:
+
+----
+$ pki ca-cert-status <certificate ID>
+----
+
+To check certificate status using other OCSP responder:
+
+----
+$ pki ca-cert-status <certificate ID> --ocsp http://$HOSTNAME:8080/ocsp/ee/ocsp
+----
+
+See also link:https://github.com/dogtagpki/pki/wiki/Using-OCSPClient[OCSPClient].
+
+== See Also ==
+
+* link:PKI-CA-Profile-CLI[PKI CA Profile CLI]
+* link:PKI-CA-Certificate-Request-CLI[PKI CA Certificate Request CLI]
+* link:PKI-User-Certificate-CLI[PKI User Certificate CLI]
+* link:https://github.com/dogtagpki/pki/blob/master/docs/user/tools/Using-PKI-CA-Certificate-CLI.adoc[Using PKI CA Certificate CLI]
