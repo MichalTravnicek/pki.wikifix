@@ -7,6 +7,28 @@ This page describes the process to enroll a certificate using a directory-authen
 * Set up users in LDAP.
 * link:Configuring-Directory-Authenticated-Certificate-Profiles[Configure] a profile to authenticate against users in LDAP.
 
+= Enrollment using pki ca-cert-issue =
+
+The `pki ca-cert-issue` command can be used for certificate enrollment with directory-authenticated profile.
+
+Specify the profile name, the CSR file, the username in the following command, and it will prompt for the password:
+
+----
+$ pki ca-cert-issue \
+    --profile caDirUserCert \
+    --csr-file testuser.csr \
+    --username testuser \
+    --password \
+    --output-file testuser.crt
+Password: ********
+----
+
+The password can also be specified with a `--password-file` option.
+
+The certificate will be issued immediately and stored into `testuser.crt`.
+
+**Availability:** Since PKI 11.6
+
 = Enrollment using pki client-cert-request =
 
 The `pki client-cert-request` command can be used to generate a key in NSS database (default: `~/.dogtag/nssdb`), create a certificate request, then submit it to the CA.
