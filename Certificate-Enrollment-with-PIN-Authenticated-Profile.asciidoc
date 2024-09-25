@@ -16,7 +16,7 @@ The `pki ca-cert-issue` command can be used for certificate enrollment with PIN 
 Specify the profile name, the CSR file, the username in the following command, and it will prompt for the password and the PIN:
 
 ----
-$ pki ca-cert-request-submit \
+$ pki ca-cert-issue \
     --profile caDirPinUserCert \
     --csr-file testuser.csr \
     --username testuser \
@@ -56,7 +56,7 @@ Submitted certificate request
   Certificate ID: 0x784127bb5291d998224a9426aea15c2b
 ----
 
-The certificate will be issued immediately.
+The certificate will be issued immediately and can be retrieved using `pki ca-cert-export`.
 
 = Enrollment using curl =
 
@@ -180,7 +180,7 @@ $ curl \
 }
 ----
 
-The certificate will be issued immediately.
+The certificate will be issued immediately and can be retrieved using `pki ca-cert-export`.
 
 = Retrieving Certificate =
 
