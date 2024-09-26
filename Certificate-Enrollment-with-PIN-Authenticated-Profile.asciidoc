@@ -29,7 +29,7 @@ PIN: ********
 
 The password and PIN can also be specified with `--password-file` and `--pin-file` options.
 
-The certificate will be issued immediately and stored into `testuser.crt`.
+The certificate will be stored into `testuser.crt`.
 
 **Availability:** Since PKI 11.6
 
@@ -60,7 +60,153 @@ Submitted certificate request
 
 The password and PIN can also be specified with `--password-file` and `--pin-file` options.
 
-The certificate will be issued immediately and can be retrieved using `pki ca-cert-export`.
+The certificate can be retrieved with the following command:
+
+----
+$ pki ca-cert-export <cert ID> --output-file testuser.crt
+----
+
+= Enrollment using XML =
+
+The enrollment can also be done manually using XML messages.
+
+First, link:Generating-Certificate-Request[generate] a certificate request and store it into a file (e.g. `testuser.csr`).
+
+Then retrieve the template for the XML request for the profile with the following command:
+
+----
+$ curl \
+    -k \
+    -s \
+    -H "Content-Type: application/xml" \
+    -H "Accept: application/xml" \
+    https://$HOSTNAME:8443/ca/rest/certrequests/profiles/caDirPinUserCert \
+    | xmllint --format - \
+    > request.xml
+----
+
+Insert the username of the LDAP user with the following command:
+
+----
+$ xmlstarlet edit --inplace \
+    -s "/CertEnrollmentRequest/Attributes" --type elem --name "Attribute" -v "testuser" \
+    -i "/CertEnrollmentRequest/Attributes/Attribute[not(@name)]" -t attr -n "name" -v "uid" \
+    request.xml
+----
+
+Insert the password of the LDAP user with the following command:
+
+----
+$ xmlstarlet edit --inplace \
+    -s "/CertEnrollmentRequest/Attributes" --type elem --name "Attribute" -v "Secret.123" \
+    -i "/CertEnrollmentRequest/Attributes/Attribute[not(@name)]" -t attr -n "name" -v "pwd" \
+    request.xml
+----
+
+Insert the PIN of the LDAP user with the following command:
+
+----
+$ xmlstarlet edit --inplace \
+    -s "/CertEnrollmentRequest/Attributes" --type elem --name "Attribute" -v "5yD9VI" \
+    -i "/CertEnrollmentRequest/Attributes/Attribute[not(@name)]" -t attr -n "name" -v "pin" \
+    request.xml
+----
+
+Insert the request type with the following command:
+
+----
+$ xmlstarlet edit --inplace \
+    -u "/CertEnrollmentRequest/Input/Attribute[@name='cert_request_type']/Value" \
+    -v "pkcs10" \
+    request.xml
+----
+
+Insert the CSR with the following command:
+
+----
+$ xmlstarlet edit --inplace \
+    -u "/CertEnrollmentRequest/Input/Attribute[@name='cert_request']/Value" \
+    -v "$(cat testuser.csr)" \
+    request.xml
+----
+
+The final XML request should look like the following:
+
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<CertEnrollmentRequest>
+    <Attributes>
+        <Attribute name="uid">testuser</Attribute>
+        <Attribute name="pwd">Secret.123</Attribute>
+        <Attribute name="pin">5yD9VI</Attribute>
+    </Attributes>
+    ...
+    <Input ...>
+        ...
+        <Attribute name="cert_request_type">
+            <Value>pkcs10</Value>
+            ...
+        </Attribute>
+        <Attribute name="cert_request">
+            <Value>-----BEGIN CERTIFICATE REQUEST-----
+MIIBfTCB5wIBADAaMRgwFgYKCZImiZPyLGQBARMIdGVzdHVzZXIwgZ8wDQYJKoZI
+hvcNAQEBBQADgY0AMIGJAoGBALvbVD1U6nzYh61tjjKC24mBqeKjABpEpl5CqyrT
+guX5PtHdrlOUbWOro8vNzXMWccm3IVEgJHTQyQdxenIkIGcwMXu9XlwI6zph1UaT
+oJ1CRh8z2Tn5Ncg6LvOejDJg+XtKEXEOTq0qzztBXTEe9uuKYb9AKc6iSmtfM7ZO
+nCZPAgMBAAGgJDAiBggrBgEFBQcHFzEWBBTmaclfLv+kkK5z5kTMP54dlnecUDAN
+BgkqhkiG9w0BAQQFAAOBgQBeVpuaZ1Sr1tHznU/0xSQ3OvEd3poJ0mk44KRYFdwu
+NbeZaGtvhYFwLfQH0mMOWrzvrh0a2eXWC8z51iuqvNJCHDX+rUGIYpZH8mtY3jMp
+8mlDWClrcpAdmJTj0ztFggmBd0Zvl4EqPqp0SY5YYLxwEwcKXT/g8bDdS5UM68hq
+QA==
+-----END CERTIFICATE REQUEST-----</Value>
+            ...
+        </Attribute>
+    </Input>
+</CertEnrollmentRequest>
+----
+
+Then submit the request with the following command:
+
+----
+$ curl \
+    -k \
+    -s \
+    -X POST \
+    -d @request.xml \
+    -H "Content-Type: application/xml" \
+    -H "Accept: application/xml" \
+    https://$HOSTNAME:8443/ca/rest/certrequests \
+    | xmllint --format -
+<CertRequestInfos>
+  <total>1</total>
+  <CertRequestInfo ...>
+    <requestID>0xfd5377c93db8f0ed016de1d688e27f7e</requestID>
+    <requestType>enrollment</requestType>
+    <requestStatus>complete</requestStatus>
+    ...
+    <certID>0x784127bb5291d998224a9426aea15c2b</certID>
+    ...
+    <certRequestType>pkcs10</certRequestType>
+    <operationResult>success</operationResult>
+  </CertRequestInfo>
+</CertRequestInfos>
+----
+
+The certificate can be retrieved with the following commands:
+
+----
+$ curl \
+    -k \
+    -s \
+    -H "Content-Type: application/xml" \
+    -H "Accept: application/xml" \
+    https://$HOSTNAME:8443/ca/rest/certs/<cert ID> \
+    | xmllint --format - \
+    > cert.xml
+$ xmlstarlet sel -t -v '/CertData/Encoded' cert.xml \
+    | sed 's/&#13;$//' \
+    > testuser.crt
+----
 
 = Enrollment using JSON =
 
@@ -165,7 +311,8 @@ $ curl \
     -d @request.json \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
-    https://$HOSTNAME:8443/ca/rest/certrequests | python -m json.tool
+    https://$HOSTNAME:8443/ca/rest/certrequests \
+    | python -m json.tool
 {
     "total": 1,
     "entries": [
@@ -184,20 +331,18 @@ $ curl \
 }
 ----
 
-The certificate will be issued immediately and can be retrieved using `pki ca-cert-export`.
-
-= Retrieving Certificate =
-
-Once issued, the certificate can be retrieved with the following command:
+The certificate can be retrieved with the following commands:
 
 ----
-$ pki ca-cert-export <certificate ID> --output-file testuser.crt
-----
-
-If necessary, the certificate can be imported into NSS database with the following command:
-
-----
-$ pki nss-cert-import testuser --cert testuser.crt
+$ curl \
+    -k \
+    -s \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    https://$HOSTNAME:8443/ca/rest/certs/<cert ID> \
+    | xmllint --format - \
+    > cert.json
+$ jq -j '.Encoded' cert.json | tee testuser.crt
 ----
 
 = See Also =
