@@ -221,7 +221,8 @@ $ curl \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     https://$HOSTNAME:8443/ca/rest/certrequests/profiles/caDirPinUserCert \
-    | python -m json.tool > request.json
+    | python -m json.tool \
+    > request.json
 ----
 
 Insert the username of the LDAP user with the following command:
@@ -340,7 +341,7 @@ $ curl \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     https://$HOSTNAME:8443/ca/rest/certs/<cert ID> \
-    | xmllint --format - \
+    | python -m json.tool \
     > cert.json
 $ jq -j '.Encoded' cert.json | tee testuser.crt
 ----
