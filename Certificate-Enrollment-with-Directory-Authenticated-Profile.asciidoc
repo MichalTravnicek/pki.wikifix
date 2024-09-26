@@ -140,16 +140,27 @@ QA==
 Then submit the request with the following command:
 
 ----
-$ pki ca-cert-request-submit request.xml
------------------------------
-Submitted certificate request
------------------------------
-  Request ID: 0xbd818f1a0b348e172076a9be00ad4196
-  Type: enrollment
-  Request Status: complete
-  Operation Result: success
-  Certificate ID: 0x38cd6cff97a6c6190ef3dafef763497
-  ...
+$ curl \
+    -k \
+    -s \
+    -X POST \
+    -d @request.xml \
+    -H "Content-Type: application/xml" \
+    -H "Accept: application/xml" \
+    https://$HOSTNAME:8443/ca/rest/certrequests | xmllint --format -
+<CertRequestInfos>
+  <total>1</total>
+  <CertRequestInfo ...>
+    <requestID>0xfd5377c93db8f0ed016de1d688e27f7e</requestID>
+    <requestType>enrollment</requestType>
+    <requestStatus>complete</requestStatus>
+    ...
+    <certID>0x784127bb5291d998224a9426aea15c2b</certID>
+    ...
+    <certRequestType>pkcs10</certRequestType>
+    <operationResult>success</operationResult>
+  </CertRequestInfo>
+</CertRequestInfos>
 ----
 
 The certificate will be issued immediately.
