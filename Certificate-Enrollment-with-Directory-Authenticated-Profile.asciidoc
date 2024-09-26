@@ -158,7 +158,8 @@ $ curl \
     -d @request.xml \
     -H "Content-Type: application/xml" \
     -H "Accept: application/xml" \
-    https://$HOSTNAME:8443/ca/rest/certrequests | xmllint --format -
+    https://$HOSTNAME:8443/ca/rest/certrequests \
+    | xmllint --format -
 <CertRequestInfos>
   <total>1</total>
   <CertRequestInfo ...>
@@ -285,7 +286,8 @@ $ curl \
     -d @request.json \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
-    https://$HOSTNAME:8443/ca/rest/certrequests | python -m json.tool
+    https://$HOSTNAME:8443/ca/rest/certrequests \
+    | python -m json.tool
 {
     "total": 1,
     "entries": [
@@ -313,7 +315,7 @@ $ curl \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     https://$HOSTNAME:8443/ca/rest/certs/<cert ID> \
-    | xmllint --format - \
+    | python -m json.tool \
     > cert.json
 $ jq -j '.Encoded' cert.json | tee testuser.crt
 ----
