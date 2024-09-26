@@ -27,7 +27,7 @@ Password: ********
 
 The password can also be specified with a `--password-file` option.
 
-The certificate will be issued immediately and stored into `testuser.crt`.
+The certificate will be stored into `testuser.crt`.
 
 **Availability:** Since PKI 11.6
 
@@ -50,10 +50,14 @@ Submitted certificate request
   Type: enrollment
   Request Status: complete
   Operation Result: success
-  Certificate ID: 0xc
+  Certificate ID: 0x784127bb5291d998224a9426aea15c2b
 ----
 
-The certificate will be issued immediately.
+The certificate can be retrieved with the following command:
+
+----
+$ pki ca-cert-export <cert ID> --output-file testuser.crt
+----
 
 = Enrollment using XML =
 
@@ -64,7 +68,14 @@ First, link:Generating-Certificate-Request[generate] a certificate request and s
 Then retrieve the template for the XML request for the profile with the following command:
 
 ----
-$ pki ca-cert-request-profile-show caDirUserCert --output request.xml
+$ curl \
+    -k \
+    -s \
+    -H "Content-Type: application/xml" \
+    -H "Accept: application/xml" \
+    https://$HOSTNAME:8443/ca/rest/certrequests/profiles/caDirUserCert \
+    | xmllint --format - \
+    > request.xml
 ----
 
 Insert the username of the LDAP user with the following command:
@@ -163,7 +174,21 @@ $ curl \
 </CertRequestInfos>
 ----
 
-The certificate will be issued immediately.
+The certificate can be retrieved with the following commands:
+
+----
+$ curl \
+    -k \
+    -s \
+    -H "Content-Type: application/xml" \
+    -H "Accept: application/xml" \
+    https://pki.example.com:8443/ca/rest/certs/<cert ID> \
+    | xmllint --format - \
+    > cert.xml
+$ xmlstarlet sel -t -v '/CertData/Encoded' cert.xml \
+    | sed 's/&#13;$//' \
+    > testuser.crt
+----
 
 = Enrollment using JSON =
 
@@ -180,7 +205,8 @@ $ curl \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     https://$HOSTNAME:8443/ca/rest/certrequests/profiles/caDirUserCert \
-    | python -m json.tool > request.json
+    | python -m json.tool \
+    > request.json
 ----
 
 Insert the username of the LDAP user with the following command:
@@ -278,20 +304,18 @@ $ curl \
 }
 ----
 
-The certificate will be issued immediately.
-
-= Retrieving Certificate =
-
-Once issued, the certificate can be retrieved with the following command:
+The certificate can be retrieved with the following commands:
 
 ----
-$ pki ca-cert-export <certificate ID> --output-file testuser.crt
-----
-
-If necessary, the certificate can be imported into NSS database with the following command:
-
-----
-$ pki nss-cert-import testuser --cert testuser.crt
+$ curl \
+    -k \
+    -s \
+    -H "Content-Type: application/json" \
+    -H "Accept: application/json" \
+    https://$HOSTNAME:8443/ca/rest/certs/<cert ID> \
+    | xmllint --format - \
+    > cert.json
+$ jq -j '.Encoded' cert.json | tee testuser.crt
 ----
 
 = See Also =
