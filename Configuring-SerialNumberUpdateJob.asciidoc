@@ -1,0 +1,43 @@
+= Overview =
+
+This page describes the process to configure `SerialNumberUpdateJob` in PKI 11.6.
+
+= Configuration =
+
+The configuration is stored in `/var/lib/pki/pki-tomcat/conf/ca/CS.cfg`. It is necessary to restart the CA after making configuration changes.
+
+== Enabling SerialNumberUpdateJob ==
+
+By default the job is disabled. To enable the job:
+
+----
+$ pki-server ca-config-set jobsScheduler.job.serialNumberUpdate.enabled true
+----
+
+= Trigger =
+
+== Manual Trigger ==
+
+To trigger the job manually, ensure the admin's certificate is installed on the client,
+then execute the following command:
+
+----
+$ pki -n <nickname> ca-job-start serialNumberUpdate
+----
+
+== Automatic Trigger ==
+
+To trigger job automatically using the link:Configuring-Scheduler[internal scheduler], add the following parameter, then restart the CA:
+
+----
+$ pki-server ca-config-set jobsScheduler.job.serialNumberUpdate.cron "0 * * * *"
+----
+
+In the above example the job is scheduled to run at every hour.
+
+Alternatively, the job can also be triggered using an external scheduler (e.g. `cron`).
+Ensure the admin's certificate is installed on the client, then configure the scheduler to execute the following command:
+
+----
+$ pki -n <nickname> ca-job-start serialNumberUpdate
+----
