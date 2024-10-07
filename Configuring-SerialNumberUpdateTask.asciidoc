@@ -1,0 +1,13 @@
+= Overview =
+
+By default, the `SerialNumberUpdateTask` will run every 10 minutes.
+
+= Configuration =
+
+To change the interval, specify the following parameter in the CA's `CS.cfg`:
+
+----
+ca.serialNumberUpdateInterval=<seconds>
+----
+
+If the value is `0` or negative, the task will be disabled.
