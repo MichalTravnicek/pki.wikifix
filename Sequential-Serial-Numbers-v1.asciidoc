@@ -1,0 +1,45 @@
+= Example =
+
+* range: 18 (0x12)
+* increment: 18 (0x12)
+* minimum: 9 (0x9)
+
+|===
+| Event | Current Range | Current Size | Next Range | Allocated Range | Allocated Size
+
+| Initial range
+| 1 - 18 (0x1 - 0x12)
+| 18
+| 13 (0xd)
+|
+|
+
+| Range allocation
+| 1 - 18 (0x1 - 0x12)
+| 18
+| 31 (0x1f)
+| 13 - 30 (0xd - 0x1e)
+| 18
+
+| Range switch
+| 19 - 36 (0x13 - 0x24)
+| 18
+| 31 (0x1f)
+| 13 - 30 (0xd - 0x1e)
+| 18
+
+| Range allocation
+| 19 - 36 (0x13 - 0x24)
+| 18
+| 49 (0x31)
+| 31 - 48 (0x1f - 0x30)
+| 18
+
+| Range switch
+| 49 - 66 (0x31 - 0x42)
+| 18
+| 49 (0x31)
+| 31 - 48 (0x1f - 0x30)
+| 18
+
+|==
