@@ -2,7 +2,25 @@
 
 The Sequential Serial Numbers v1 (SSNv1) is mainly described in link:Random-Certificate-Serial-Numbers-v1[Random Certificate Serial Numbers v1].
 
-= Known Issue =
+= Configuration =
+
+For request IDs, the configuration parameters use decimal numbers:
+
+* `dbs.beginRequestNumber`
+* `dbs.endRequestNumber`
+* `dbs.requestCloneTransferNumber`
+* `dbs.requestIncrement`
+* `dbs.requestLowWaterMark`
+
+For certificate serial numbers, the configuration parameters use hexadecimal numbers:
+
+* `dbs.beginSerialNumber`
+* `dbs.endSerialNumber`
+* `dbs.serialCloneTransferNumber`
+* `dbs.serialIncrement`
+* `dbs.serialLowWaterMark`
+
+= Known Issues =
 
 The serial numbers issued using SSNv1 are not contiguous. Sometimes there are gaps between the serial numbers.
 
@@ -52,4 +70,6 @@ The range progression will look like the following:
 | 31 - 48 (0x1f - 0x30)
 | 18
 
-|==
+|===
+
+Notice that the serial numbers jumps from 36 (0x24) to 49 (0x31).
