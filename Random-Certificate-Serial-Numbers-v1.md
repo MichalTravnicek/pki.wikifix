@@ -433,5 +433,4 @@ See [Configuring CA with Sequential Serial Numbers](Configuring-CA-with-Sequenti
 
 # References
 
-  - [Random Certificate Serial
-    Numbers](Random-Certificate-Serial-Numbers "wikilink")
+  - [Random Serial Numbers](Random-Serial-Numbers "wikilink")
