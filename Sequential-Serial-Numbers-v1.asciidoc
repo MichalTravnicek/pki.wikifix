@@ -1,8 +1,18 @@
-= Example =
+= Overview =
 
-* range: 18 (0x12)
+The Sequential Serial Numbers v1 (SSNv1) is mainly described in link:Random-Certificate-Serial-Numbers-v1[Random Certificate Serial Numbers v1].
+
+= Known Issue =
+
+The serial numbers issued using SSNv1 are not contiguous. Sometimes there are gaps between the serial numbers.
+
+For example, suppose a CA is configured with the following range:
+
+* size: 18 (0x12)
 * increment: 18 (0x12)
 * minimum: 9 (0x9)
+
+The range progression will look like the following:
 
 |===
 | Event | Current Range | Current Size | Next Range | Allocated Range | Allocated Size
