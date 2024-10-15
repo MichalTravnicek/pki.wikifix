@@ -37,42 +37,42 @@ For example, suppose a CA is configured with the following range:
 The range progression will look like the following:
 
 |===
-| Event | Current Range | Current Size | Next Range | Allocated Range | Allocated Size
+| Event | Current Range | Current Size | Allocated Range | Allocated Size | Next Range
 
 | Initial range
 | 1 - 18 (0x1 - 0x12)
 | 18
+|
+|
 | 13 (0xd)
-|
-|
 
 | Range allocation
 | 1 - 18 (0x1 - 0x12)
 | 18
-| 31 (0x1f)
 | 13 - 30 (0xd - 0x1e)
 | 18
+| 31 (0x1f)
 
 | Range switch
 | 19 - 36 (0x13 - 0x24)
 | 18
-| 31 (0x1f)
 | 13 - 30 (0xd - 0x1e)
 | 18
+| 31 (0x1f)
 
 | Range allocation
 | 19 - 36 (0x13 - 0x24)
 | 18
-| 49 (0x31)
 | 31 - 48 (0x1f - 0x30)
 | 18
+| 49 (0x31)
 
 | Range switch
 | 49 - 66 (0x31 - 0x42)
 | 18
-| 49 (0x31)
 | 31 - 48 (0x1f - 0x30)
 | 18
+| 49 (0x31)
 
 |===
 
