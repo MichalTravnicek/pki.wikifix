@@ -2,9 +2,9 @@
 
 The Sequential Serial Numbers v1 (SSNv1) is mainly described in link:Random-Certificate-Serial-Numbers-v1[Random Certificate Serial Numbers v1].
 
-= Configuration =
+= Current Range =
 
-For request IDs, the configuration parameters use decimal numbers:
+For request IDs, the current range is stored in `CS.cfg` as decimal numbers:
 
 * `dbs.beginRequestNumber`
 * `dbs.endRequestNumber`
@@ -12,13 +12,19 @@ For request IDs, the configuration parameters use decimal numbers:
 * `dbs.requestIncrement`
 * `dbs.requestLowWaterMark`
 
-For certificate serial numbers, the configuration parameters use hexadecimal numbers:
+For certificate serial numbers, the current range is stored in `CS.cg` as hexadecimal numbers:
 
 * `dbs.beginSerialNumber`
 * `dbs.endSerialNumber`
 * `dbs.serialCloneTransferNumber`
 * `dbs.serialIncrement`
 * `dbs.serialLowWaterMark`
+
+= Next Range =
+
+For request IDs, the next range is stored in the `nextRange` attribute in `ou=ca,ou=requests,dc=ca,dc=pki,dc=example,dc=com` as decimal.
+
+For certificate serial numbers, the next range is stored in the `nextRange` attribute in `ou=certificateRepository,ou=ca,dc=ca,dc=pki,dc=example,dc=com` as decimal too (not hexadecimal).
 
 = Known Issues =
 
@@ -77,5 +83,5 @@ There are two issues:
 The first problem is, the initial **Next Range** is incorrectly set to 13 (0xd) whereas it should have been 19 (0x13).
 This is caused by a bug in `pki-server ca-range-update` (`SubsystemRangeUpdateCLI.java`) that parses the `dbs.endSerialNumber` as a decimal instead of hexadecimal.
 
-The second problem is, the serial numbers jumps from 36 (0x24) to 49 (0x31).
+The second problem is, the serial numbers jumps from 36 (0x24) to 49 (0x31). This is caused by a bug in `Repository.checkRanges()` that parses the **Next Range** as hexadecimal instead of decimal.
 
