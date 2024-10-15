@@ -1,0 +1,33 @@
+= Overview =
+
+The Sequential Serial Numbers v2 (SSNv2) works exactly as SSNv1 with serial numbers but it has a different configuration and solves the issues of not contiguous range allocation for the certificate serials. The basic functionality is mainly described in link:Random-Certificate-Serial-Numbers-v1[Random Certificate Serial Numbers v1].
+
+= Configuration =
+
+To enable the SSNv2 in the configuration the id generator has to be `newLegacy` so the `CS.cfg` will have:
+* `dbs.cert.id.generator=newLegacy`
+* `dbs.request.id.generator=newLegacy`
+
+These can be configured during the installation with `pkispawn` using:
+* `pki_request_id_generator=newLegacy`
+* `pki_cert_id_generator=newLegacy`
+  
+For request IDs and certificate serial numbers, the current range are stored in `CS.cfg` using the same variable of SSNv1 but the value can be in decimal or hexadecimal if prefixed with `0x`:
+
+* `dbs.beginRequestNumber`
+* `dbs.endRequestNumber`
+* `dbs.requestCloneTransferNumber`
+* `dbs.requestIncrement`
+* `dbs.requestLowWaterMark`
+
+* `dbs.beginSerialNumber`
+* `dbs.endSerialNumber`
+* `dbs.serialCloneTransferNumber`
+* `dbs.serialIncrement`
+* `dbs.serialLowWaterMark`
+
+= Next Range =
+
+For request IDs, the next range is stored in the `nextRange` attribute in `ou=ca,ou=requests,dc=ca,dc=pki,dc=example,dc=com` as decimal.
+
+For certificate serial numbers, the next range is stored in the `nextRange` attribute in `ou=certificateRepository,ou=ca,dc=ca,dc=pki,dc=example,dc=com` as decimal too (not hexadecimal).
