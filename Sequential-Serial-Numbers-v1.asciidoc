@@ -26,9 +26,7 @@ For request IDs, the next range is stored in the `nextRange` attribute in `ou=ca
 
 For certificate serial numbers, the next range is stored in the `nextRange` attribute in `ou=certificateRepository,ou=ca,dc=ca,dc=pki,dc=example,dc=com` as decimal too (not hexadecimal).
 
-= Known Issues =
-
-The serial numbers issued using SSNv1 are not contiguous. Sometimes there are gaps between the serial numbers.
+= Range Progression =
 
 For example, suppose a CA is configured with the following range:
 
@@ -78,7 +76,9 @@ The range progression will look like the following:
 
 |===
 
-There are two issues:
+= Known Issues =
+
+The serial numbers issued using SSNv1 are not contiguous. Sometimes there are gaps between the serial numbers.
 
 The first problem is, the initial **Next Range** is incorrectly set to 13 (0xd) whereas it should have been 19 (0x13).
 This is caused by a bug in `pki-server ca-range-update` (`SubsystemRangeUpdateCLI.java`) that parses the `dbs.endSerialNumber` as a decimal instead of hexadecimal.
