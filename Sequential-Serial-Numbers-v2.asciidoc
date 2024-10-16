@@ -4,13 +4,13 @@ The Sequential Serial Numbers v2 (SSNv2) works exactly as SSNv1 with serial numb
 
 = Configuration =
 
-To enable the SSNv2 in the configuration the id generator has to be `newLegacy` so the `CS.cfg` will have:
-* `dbs.cert.id.generator=newLegacy`
-* `dbs.request.id.generator=newLegacy`
+To enable the SSNv2 in the configuration the id generator has to be `legacy2` so the `CS.cfg` will have:
+* `dbs.cert.id.generator=legacy2`
+* `dbs.request.id.generator=legacy2`
 
 These can be configured during the installation with `pkispawn` using:
-* `pki_request_id_generator=newLegacy`
-* `pki_cert_id_generator=newLegacy`
+* `pki_request_id_generator=legacy2`
+* `pki_cert_id_generator=legacy2`
   
 For request IDs and certificate serial numbers, the current range are stored in `CS.cfg` using the same variable of SSNv1 but the value can be in decimal or hexadecimal if prefixed with `0x`:
 
