@@ -4,25 +4,28 @@ The Sequential Serial Numbers v1 (SSNv1) is mainly described in link:Random-Cert
 
 = Installation =
 
-For request IDs:
+To enable SSNv1 for request IDs, specify the following parameters:
 
-* `pki_request_id_generator`
-* `pki_request_number_range_start`
-* `pki_request_number_range_end`
-* `pki_request_number_range_increment`
-* `pki_request_number_range_minimum`
-* `pki_request_number_range_transfer`
+* `pki_request_id_generator=legacy`
+* `pki_request_number_range_start=<decimal>`
+* `pki_request_number_range_end=<decimal>`
+* `pki_request_number_range_increment=<decimal>`
+* `pki_request_number_range_minimum=<decimal>`
+* `pki_request_number_range_transfer=<decimal>`
 
-For certificate serial numbers:
+To enable SSNv1 for for certificate serial numbers, specify the following parameters:
 
-* `pki_cert_id_generator`
-* `pki_serial_number_range_start`
-* `pki_serial_number_range_end`
-* `pki_serial_number_range_increment`
-* `pki_serial_number_range_minimum`
-* `pki_serial_number_range_transfer`
+* `pki_cert_id_generator=legacy`
+* `pki_serial_number_range_start=<hexadecimal>`
+* `pki_serial_number_range_end=<hexadecimal>`
+* `pki_serial_number_range_increment=<hexadecimal>`
+* `pki_serial_number_range_minimum=<hexadecimal>`
+* `pki_serial_number_range_transfer=<hexadecimal>`
 
-**Note:** Some of these parameters are only available in newer PKI versions.
+**Notes:**
+
+* Due to a bug, the hexadecimal numbers cannot contain `A` to `F`.
+* Some of these parameters are only available in newer PKI versions.
 
 = Current Range =
 
