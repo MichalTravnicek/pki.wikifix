@@ -6,6 +6,8 @@ WARNING: This feature is still being developed. Do not use in production.
 
 = Installation =
 
+New PKI server instances can be installed with SSNv2 enabled. To enable SSNv1 in existing instances using SSNv1 follow the migration procedure below.
+
 To enable SSNv2 for request IDs, specify the following parameters:
 
 * `pki_request_id_generator=legacy2`
@@ -26,24 +28,25 @@ To enable SSNv2 for for certificate serial numbers, specify the following parame
   
 = Configuration =
 
-To enable the SSNv2 in the configuration the id generator has to be `legacy2` so the `CS.cfg` will have:
+After installation, the request ID configuration is stored in the following parameters in `CS.cfg`:
+
+* `dbs.request.id.generator=legacy2`
+* `dbs.beginRequestNumber=<value>`
+* `dbs.endRequestNumber=<value>`
+* `dbs.requestCloneTransferNumber`=<value>
+* `dbs.requestIncrement=<value>`
+* `dbs.requestLowWaterMark=<value>`
+
+The certificate serial numbers configuration is stored in the following parameters in `CS.cfg`:
 
 * `dbs.cert.id.generator=legacy2`
-* `dbs.request.id.generator=legacy2`
+* `dbs.beginSerialNumber=<value>`
+* `dbs.endSerialNumber=<value>`
+* `dbs.serialCloneTransferNumber=<value>`
+* `dbs.serialIncrement=<value>`
+* `dbs.serialLowWaterMark=<value>`
 
-For request IDs and certificate serial numbers, the current range are stored in `CS.cfg` using the same variable of SSNv1 but the value can be in decimal or hexadecimal if prefixed with `0x`:
-
-* `dbs.beginRequestNumber`
-* `dbs.endRequestNumber`
-* `dbs.requestCloneTransferNumber`
-* `dbs.requestIncrement`
-* `dbs.requestLowWaterMark`
-
-* `dbs.beginSerialNumber`
-* `dbs.endSerialNumber`
-* `dbs.serialCloneTransferNumber`
-* `dbs.serialIncrement`
-* `dbs.serialLowWaterMark`
+These are the same parameters used in SSNv1 but the value can be in decimal or hexadecimal with `0x` prefix.
 
 = Next Range =
 
