@@ -30,21 +30,26 @@ To enable SSNv1 for for certificate serial numbers, specify the following parame
 
 = Current Range =
 
-For request IDs, the current range is stored in `CS.cfg` as decimal numbers:
+For request IDs, the current range is stored in the following parameters in `CS.cg`:
 
-* `dbs.beginRequestNumber`
-* `dbs.endRequestNumber`
-* `dbs.requestCloneTransferNumber`
-* `dbs.requestIncrement`
-* `dbs.requestLowWaterMark`
+* `dbs.beginRequestNumber=<decimal>`
+* `dbs.endRequestNumber=<decimal>`
+* `dbs.requestCloneTransferNumber=<decimal>`
+* `dbs.requestIncrement=<decimal>`
+* `dbs.requestLowWaterMark=<decimal>`
 
-For certificate serial numbers, the current range is stored in `CS.cg` as hexadecimal numbers:
+For certificate serial numbers, the current range is stored in the following parameters in `CS.cg`:
 
-* `dbs.beginSerialNumber`
-* `dbs.endSerialNumber`
-* `dbs.serialCloneTransferNumber`
-* `dbs.serialIncrement`
-* `dbs.serialLowWaterMark`
+* `dbs.beginSerialNumber=<hexadecimal>`
+* `dbs.endSerialNumber=<hexadecimal>`
+* `dbs.serialCloneTransferNumber=<hexadecimal>`
+* `dbs.serialIncrement=<hexadecimal>`
+* `dbs.serialLowWaterMark=<hexadecimal>`
+
+**Notes:**
+
+* The hexadecimal numbers should be specified without `0x` prefix.
+* Unlike the installation parameters, the hexadecimal numbers in `CS.cfg` can contain `A` to `F`.
 
 = Next Range =
 
