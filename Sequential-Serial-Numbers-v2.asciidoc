@@ -6,7 +6,9 @@ WARNING: This feature is still being developed. Do not use in production.
 
 = Installation =
 
-To enable SSNv2 for request IDs, specify the following parameters:
+New instances can be installed with SSNv2 directly.
+
+To install a new instance with SSNv2 for request IDs, specify the following parameters:
 
 * `pki_request_id_generator=legacy2`
 * `pki_request_number_range_start=<decimal>`
@@ -15,7 +17,7 @@ To enable SSNv2 for request IDs, specify the following parameters:
 * `pki_request_number_range_minimum=<decimal>`
 * `pki_request_number_range_transfer=<decimal>`
 
-To enable SSNv2 for for certificate serial numbers, specify the following parameters:
+To install a new instance with SSNv2 for certificate serial numbers, specify the following parameters:
 
 * `pki_cert_id_generator=legacy2`
 * `pki_serial_number_range_start=<hexadecimal>`
@@ -26,24 +28,71 @@ To enable SSNv2 for for certificate serial numbers, specify the following parame
   
 = Configuration =
 
-To enable the SSNv2 in the configuration the id generator has to be `legacy2` so the `CS.cfg` will have:
+For request IDs, the current range are stored in `CS.cfg`:
+
+* `dbs.request.id.generator=legacy2`
+* `dbs.beginRequestNumber=<value>`
+* `dbs.endRequestNumber=<value>`
+* `dbs.requestCloneTransferNumber=<value>`
+* `dbs.requestIncrement=<value>`
+* `dbs.requestLowWaterMark=<value>`
+
+For certificate serial numbers, the current range are stored in `CS.cfg`:
 
 * `dbs.cert.id.generator=legacy2`
-* `dbs.request.id.generator=legacy2`
+* `dbs.beginSerialNumber=<value>`
+* `dbs.endSerialNumber=<value>`
+* `dbs.serialCloneTransferNumber=<value>`
+* `dbs.serialIncrement=<value>`
+* `dbs.serialLowWaterMark=<value>`
 
-For request IDs and certificate serial numbers, the current range are stored in `CS.cfg` using the same variable of SSNv1 but the value can be in decimal or hexadecimal if prefixed with `0x`:
+The parameters are the same as in SSNv1 but the value can be in decimal or hexadecimal with `0x`
 
-* `dbs.beginRequestNumber`
-* `dbs.endRequestNumber`
-* `dbs.requestCloneTransferNumber`
-* `dbs.requestIncrement`
-* `dbs.requestLowWaterMark`
+= Allocated Range =
 
-* `dbs.beginSerialNumber`
-* `dbs.endSerialNumber`
-* `dbs.serialCloneTransferNumber`
-* `dbs.serialIncrement`
-* `dbs.serialLowWaterMark`
+For request IDs, the allocated ranges are stored as entries under `ou=requests,ou=ranges,dc=ca,dc=pki,dc=example,dc=com`, for example:
+
+```
+dn: cn=11,ou=requests,ou=ranges,dc=ca,dc=pki,dc=example,dc=com
+objectClass: top
+objectClass: pkiRange
+beginRange: 11
+endRange: 20
+cn: 11
+host: pki.example.com
+SecurePort: 8443
+
+dn: cn=21,ou=requests,ou=ranges,dc=ca,dc=pki,dc=example,dc=com
+objectClass: top
+objectClass: pkiRange
+beginRange: 21
+endRange: 30
+cn: 21
+host: pki.example.com
+SecurePort: 8443
+```
+
+For certificate serial numbers, the allocated ranges are stored as entries under `ou=certificateRepository,ou=ranges,dc=ca,dc=pki,dc=example,dc=com`.
+
+```
+dn: cn=19,ou=certificateRepository,ou=ranges,dc=ca,dc=pki,dc=example,dc=com
+objectClass: top
+objectClass: pkiRange
+beginRange: 19
+endRange: 36
+cn: 19
+host: pki.example.com
+SecurePort: 8443
+
+dn: cn=37,ou=certificateRepository,ou=ranges,dc=ca,dc=pki,dc=example,dc=com
+objectClass: top
+objectClass: pkiRange
+beginRange: 37
+endRange: 54
+cn: 37
+host: pki.example.com
+SecurePort: 8443
+```
 
 = Next Range =
 
