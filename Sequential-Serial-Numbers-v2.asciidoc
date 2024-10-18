@@ -6,8 +6,6 @@ WARNING: This feature is still being developed. Do not use in production.
 
 = Installation =
 
-New PKI server instances can be installed with SSNv2 enabled. To enable SSNv1 in existing instances using SSNv1 follow the migration procedure below.
-
 To enable SSNv2 for request IDs, specify the following parameters:
 
 * `pki_request_id_generator=legacy2`
@@ -28,25 +26,24 @@ To enable SSNv2 for for certificate serial numbers, specify the following parame
   
 = Configuration =
 
-After installation, the request ID configuration is stored in the following parameters in `CS.cfg`:
-
-* `dbs.request.id.generator=legacy2`
-* `dbs.beginRequestNumber=<value>`
-* `dbs.endRequestNumber=<value>`
-* `dbs.requestCloneTransferNumber`=<value>
-* `dbs.requestIncrement=<value>`
-* `dbs.requestLowWaterMark=<value>`
-
-The certificate serial numbers configuration is stored in the following parameters in `CS.cfg`:
+To enable the SSNv2 in the configuration the id generator has to be `legacy2` so the `CS.cfg` will have:
 
 * `dbs.cert.id.generator=legacy2`
-* `dbs.beginSerialNumber=<value>`
-* `dbs.endSerialNumber=<value>`
-* `dbs.serialCloneTransferNumber=<value>`
-* `dbs.serialIncrement=<value>`
-* `dbs.serialLowWaterMark=<value>`
+* `dbs.request.id.generator=legacy2`
 
-These are the same parameters used in SSNv1 but the value can be in decimal or hexadecimal with `0x` prefix.
+For request IDs and certificate serial numbers, the current range are stored in `CS.cfg` using the same variable of SSNv1 but the value can be in decimal or hexadecimal if prefixed with `0x`:
+
+* `dbs.beginRequestNumber`
+* `dbs.endRequestNumber`
+* `dbs.requestCloneTransferNumber`
+* `dbs.requestIncrement`
+* `dbs.requestLowWaterMark`
+
+* `dbs.beginSerialNumber`
+* `dbs.endSerialNumber`
+* `dbs.serialCloneTransferNumber`
+* `dbs.serialIncrement`
+* `dbs.serialLowWaterMark`
 
 = Next Range =
 
@@ -106,4 +103,25 @@ The range progression will look like the following:
 
 = Migrating from SSNv1 =
 
-T.B.A.
+To update a running instance from SSNv1 to SSNv2 it is possible to use the `pki-server` command `ca-range-generator-update`. The command requires the generator type to update and the new geenrator. So to update cert and request it is possible to run the commands:
+
+```
+# pki-server stop
+# pki-server ca-range-generator-update --type request legacy2
+# pki-server ca-range-generator-update --type cert legacy2
+# pki-server start --wait
+```
+
+The command will update the information in `CS.cfg` and in DS for the new generator. For the request the change is limited only to the generator name `CS.cfg` because the values are already correct.
+
+For the cert the command performs the following operations:
+
+* Update the format to hex for the following `CS.cfg` values: `dbs.beginSerialNumber`, `dbs.endSerialNumber`, `dbs.nextBeginRequestNumber`, `dbs.nextEndSerialNumber`, `dbs.serialCloneTransferNumber`, `dbs.serialIncrement` and `dbs.serialLowWaterMark`. Update the generator name in `dbs.cert.id.generator`.
+
+* If no ranges are available in DS (dn from `dbs.serialRangeDN`, default value is `ou=certificateRepository,ou=ranges,<base dn>`) update the nextRange to `dbs.endSerialNumber + 1` and store in decimal in the dn from `dbs.serialDN` (default value is `ou=certificateRepository, ou=ca, <base dn>`
+
+* If ranges have been created, search for last range and if it associated with the updating instance get the `endRange` value and update `nextRange` to `endRange + 1` in decimal.
+
+* Finally, update all the ranges associated with the instance to decimal.
+
+It is important to update all clones before creating new ranges to avoid number collisions. 
