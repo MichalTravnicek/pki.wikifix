@@ -152,12 +152,28 @@ The range progression will look like the following:
 
 = Migrating from SSNv1 =
 
-To update a running instance from SSNv1 to SSNv2 it is possible to use the `pki-server` command `ca-range-generator-update`. The command requires the generator type to update and the new geenrator. So to update cert and request it is possible to run the commands:
+First, stop all servers in the system:
 
 ```
-# pki-server stop
+# pki-server stop --wait
+```
+
+Next, install the latest PKI packages:
+
+```
+# dnf update dogtag-pki
+```
+
+To update a running instance from SSNv1 to SSNv2 it is possible to use the `pki-server` command `ca-range-generator-update`. The command takes the generator type to update to and the new generator name. So to update cert and request it is possible to run the commands:
+
+```
 # pki-server ca-range-generator-update --type request legacy2
 # pki-server ca-range-generator-update --type cert legacy2
+```
+
+Finally, restart all servers in the system:
+
+```
 # pki-server start --wait
 ```
 
