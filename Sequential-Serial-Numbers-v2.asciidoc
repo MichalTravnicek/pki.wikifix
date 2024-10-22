@@ -164,7 +164,7 @@ Next, install the latest PKI packages:
 # dnf update dogtag-pki
 ```
 
-To update a running instance from SSNv1 to SSNv2 it is possible to use the `pki-server` command `ca-range-generator-update`. The command takes the generator type to update to and the new generator name. So to update cert and request it is possible to run the commands:
+To migrate an existing CA from SSNv1 to SSNv2 it is possible to use the `pki-server` command `ca-range-generator-update`. The command takes the generator type to update to and the new generator name. So to update cert and request it is possible to run the commands:
 
 ```
 # pki-server ca-range-generator-update --type request legacy2
