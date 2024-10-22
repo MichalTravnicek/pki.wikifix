@@ -431,6 +431,6 @@ See [Configuring CA with Sequential Serial Numbers](Configuring-CA-with-Sequenti
         range when using random serial
         numbers](https://github.com/dogtagpki/pki/issues/2898)
 
-# References
+# See Also
 
   - [Random Serial Numbers](Random-Serial-Numbers "wikilink")
