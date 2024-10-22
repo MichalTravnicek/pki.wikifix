@@ -1,0 +1,73 @@
+= Overview =
+
+This proposal introduces a new mechanism to generate fully random serial numbers for certificates, keys, and requests in PKI without range management. Currently PKI supports the following mechanisms to generate serial numbers:
+
+* range-based sequential serial numbers (this was the default prior to PKI 11.5)
+* link:Random-Certificate-Serial-Numbers-v1[range-based random serial numbers] (a.k.a. RSNv1)
+
+These mechanisms rely on distributing number ranges across the replicas to avoid collisions. Based on experience these mechanisms have caused a number of issues. Also, these mechanisms may not work well in cloud environment since generally containers are short-lived compared to traditional deployments.
+
+There were earlier proposals to generate serial numbers without range management but they were never implemented:
+
+* link:Random-Certificate-Serial-Numbers-v2[hybrid random serial numbers] (a.k.a. RSNv2)
+* link:UUID-based-Random-Certificate-Serial-Numbers[UUID-based random serial numbers] (a.k.a. old RSNv3)
+
+The current proposal (i.e. new RSNv3) is similar to the old RSNv3 proposal except that it will use a full 128-bit (16 bytes) random number from PKCS #11 PRNG instead of UUID.
+
+This proposal will be implemented as a new option, so the existing range-based sequential serial numbers and range-based random serial number should continue to work.
+
+= Standard Compliance =
+
+According to link:https://tools.ietf.org/html/rfc5280[RFC 5280] section 4.1.2.2 the serial number field on X.509 certificates are allotted 160 bits (20 bytes) maximum.
+
+>  Given the uniqueness requirements above, serial numbers can be
+>  expected to contain long integers.  Certificate users MUST be able to
+>  handle serialNumber values up to 20 octets.  Conforming CAs MUST NOT
+>  use serialNumber values longer than 20 octets.
+
+Current link:https://cabforum.org/wp-content/uploads/CA-Browser-Forum-BR-1.7.4.pdf[CA/BF Baseline Requirements] section 7.1 place this at 64 bits (8 bytes) of entropy.
+
+>  CAs SHALL generate non‐sequential Certificate serial numbers greater
+>  than zero (0) containing at least 64 bits of output from a CSPRNG.
+
+Other requirements are at least 20 bits of entropy.
+
+The 128-bit random serial number in this proposal will exceed the random size most CAs currently issued with. Since CA/BF targets 64 bits of entropy and we push that to 128 bits, we likely meet their next target for doubling. Above this, since the field is limited to 160 bits, it is unlikely to have another doubling without further modifications to other RFCs. By leaving the remaining 32 bits, if there's a need to change serial number issuance in the future, we just need to ensure it is consistently over 128 bits (but still within the allotted 160 bits).
+
+= Collisions =
+
+Since the RSNv3 fully relies on random numbers, there will be a risk of collisions, but with 128 bits of entropy the risk will be so small that it's practically negligible. However, even if the collision does happen the PKI will have a mechanism to handle it.
+
+There are 2 types of collisions:
+
+* collision between a new serial number and another serial number already in the local database (either created locally or replicated from another server)
+* collision between a new serial number and another serial number created in another server that has not been replicated to the local database
+
+Most collisions will probably be type 1 since certificates are stored long term in the database. PKI should be able to handle collisions gracefully (e.g. certificate enrollment should either fail or automatically generate a new serial number).
+
+The type 2 collisions are more complicated since PKI/DS will not see the collision until the data is replicated, and by that time the certificates are already issued. PKI will need to check the DS periodically to see if there are conflicts, then either automatically revoke the conflicting certificates, or alert the CA agent to manually resolve the conflicts. Fortunately, compared to the first type there's a much shorter time between creating a certificate and replicating it into all replicas, so the probability of generating 2 certificates with identical serial numbers within the small window will be even lower, unless there's an extended replication delay.
+
+For the mathematically inclined, the probability of type 1 collisions is roughly `$num_replicas / 2^128` and type 2 collisions is `$num_replicas * $avg_rate_of_issuance * $replication_delay`. IPA caps replications at 50, so this should always be sufficiently small with 128 bits of entropy: 10^-26 given 50 replicas, 1000 certs/sec, and a year of replication delay -- about 11PB of data assuming 8k/cert.
+
+Also, not mentioned above, there's a risk of colliding with existing serial numbers from earlier schemes. Assuming the same rate of issuance and same number of replicas above, but issuing for 10 years prior, this produces a collision risk of 10^-25. However, the likelihood of anyone reaching this is low as that's ~114PB of data using above 8k/cert assumption.
+
+= Known Issues =
+
+* Some CLIs or Web UI tools in PKI may rely on sorting by serial numbers. This needs to be replaced with sorting by time.
+* link:https://pagure.io/freeipa/issue/8802[Ticket #8802]: IPA cannot handle long serial numbers.
+* NSS/JSS does not support 160-bit serial numbers possibly since its handling the serial numbers as signed numbers and does not allow negative values, so the maximum it can handle currently is 159 bits.
+
+= Migration =
+
+Assuming the known issues are addressed, it should be possible to simply switch to RSNv3 so new certificates will be issued with the new mechanism. However, it might not be safe to switch back to the old mechanisms so it will not be supported.
+
+Eventually the support for the range-based sequential/random serial numbers will be dropped from future PKI versions, so the RSNv3 mechanism will become the only option.
+
+= See Also =
+
+* link:https://www.ietf.org/rfc/rfc4122.txt[RFC 4122: A Universally Unique IDentifier (UUID) URN Namespace]
+* link:https://access.redhat.com/documentation/en-us/red_hat_directory_server/11/html/administration_guide/managing_replication-solving_common_replication_conflicts[RHDS 11: Solving Common Replication Conflicts]
+* link:https://github.com/dogtagpki/pki/blob/master/docs/installation/ca/Installing-CA-with-Random-Serial-Numbers-v3.adoc[Installing CA with Random Serial Numbers v3]
+* link:Configuring-CA-with-Random-Serial-Numbers-v3[Configuring CA with Random Serial Numbers v3]
+* link:https://github.com/dogtagpki/pki/blob/master/docs/installation/kra/Installing-KRA-with-Random-Serial-Numbers-v3.adoc[Installing KRA with Random Serial Numbers v3]
+* link:Configuring-KRA-with-Random-Serial-Numbers-v3[Configuring KRA with Random Serial Numbers v3]
