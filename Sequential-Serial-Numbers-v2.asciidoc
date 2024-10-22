@@ -134,7 +134,7 @@ The range progression will look like the following:
 
 == Overview ==
 
-Existing CA instances using SSNv1 can be migrated to SSNv2 using the `pki-server ca-id-generator-update` command. The command will take the generator type to update and the new generator name, then update the information in `CS.cfg` and in DS for the new generator.
+Existing PKI instances using SSNv1 can be migrated to SSNv2 using the `pki-server ca-id-generator-update` command. The command will take the generator type to update and the new generator name, then update the information in `CS.cfg` and in DS for the new generator.
 
 For requests the command will perform the following operations:
 
@@ -162,30 +162,30 @@ For certs the command will perform the following operations:
 
 == Migration Process ==
 
-WARNING: The migration process must be done in parallel for all CA instances. Complete each migration step for all CA instances before proceeding to the next step.
+WARNING: The migration process must be done in parallel for all PKI instances. Complete each migration step for all PKI instances before proceeding to the next step.
 
-**Step 1:** Stop all CA instances in the system. In the latest PKI version it can be done with the following command:
+**Step 1:** Stop all PKI instances in the system. In the latest PKI version it can be done with the following command:
 
 ```
 # pki-server stop --wait
 ```
 
-WARNING: At this point it's highly recommended to link:Backing-Up-PKI-Server[back up] all CA and DS instances in case it's necessary to rollback the migration.
+WARNING: At this point it's highly recommended to link:Backing-Up-PKI-Server[back up] all PKI and DS instances in case it's necessary to rollback the migration.
 
-**Step 2:** Once all CA instances are stopped, update all CA instances to have the latest PKI packages that supports SSNv2:
+**Step 2:** Once all PKI instances are stopped, update all PKI instances to have the latest PKI packages that supports SSNv2:
 
 ```
 # dnf update dogtag-pki
 ```
 
-**Step 3:** Once all CA instances have the latest PKI packages, switch to SSNv2 with the following commands:
+**Step 3:** Once all PKI instances have the latest PKI packages, switch to SSNv2 with the following commands:
 
 ```
 # pki-server ca-id-generator-update --type request legacy2
 # pki-server ca-id-generator-update --type cert legacy2
 ```
 
-**Step 4:** Once all CA instances have switched to SSNv2, restart all CA instances in the system. In the latest PKI version it can be done with the following command:
+**Step 4:** Once all PKI instances have switched to SSNv2, restart all PKI instances in the system. In the latest PKI version it can be done with the following command:
 
 ```
 # pki-server start --wait
