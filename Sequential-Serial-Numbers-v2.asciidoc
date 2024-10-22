@@ -154,11 +154,11 @@ For certs the command will perform the following operations:
 ** `dbs.serialIncrement`
 ** `dbs.serialLowWaterMark`
 
-* If there are no ranges available under the entry specified in `dbs.serialRangeDN` (default: `ou=certificateRepository,ou=ranges,<base dn>`) update the `nextRange` to `dbs.endSerialNumber + 1` and store in decimal in the entry specified in `dbs.serialDN` (default: `ou=certificateRepository,ou=ca,<base dn>`)
+* If there are no allocated ranges available, update the `nextRange` to `dbs.endSerialNumber + 1` and store it as decimal.
 
-* If ranges have been created, search for last range and if it associated with the updating instance get the `endRange` value and update `nextRange` to `endRange + 1` in decimal.
+* If there are allocated ranges find the last range, and if the range belongs to the instance being migrated get the `endRange` value and update the `nextRange` to `endRange + 1` and store it as decimal.
 
-* Finally, update all the ranges associated with the instance to decimal.
+* Finally, update the `beginRange` and `endRange` in all ranges belonging to the instance being migrated to decimal.
 
 == Migration Process ==
 
