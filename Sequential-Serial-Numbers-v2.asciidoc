@@ -8,9 +8,7 @@ WARNING: This feature is still being developed. Do not use in production.
 
 = Installation =
 
-New instances can be installed with SSNv2 directly.
-
-To install a new instance with SSNv2 for request IDs, specify the following parameters:
+To enable SSNv2 for request IDs, specify the following parameters:
 
 * `pki_request_id_generator=legacy2`
 * `pki_request_number_range_start=<decimal>`
@@ -19,7 +17,7 @@ To install a new instance with SSNv2 for request IDs, specify the following para
 * `pki_request_number_range_minimum=<decimal>`
 * `pki_request_number_range_transfer=<decimal>`
 
-To install a new instance with SSNv2 for certificate serial numbers, specify the following parameters:
+To enable SSNv2 for certificate serial numbers, specify the following parameters:
 
 * `pki_cert_id_generator=legacy2`
 * `pki_serial_number_range_start=<hexadecimal>`
@@ -28,20 +26,18 @@ To install a new instance with SSNv2 for certificate serial numbers, specify the
 * `pki_serial_number_range_minimum=<hexadecimal>`
 * `pki_serial_number_range_transfer=<hexadecimal>`
   
-= Configuration =
+= Current Range =
 
-For request IDs, the current range are stored in `CS.cfg`:
+For request IDs, the current range is stored in the following parameters in `CS.cfg`:
 
-* `dbs.request.id.generator=legacy2`
 * `dbs.beginRequestNumber=<value>`
 * `dbs.endRequestNumber=<value>`
 * `dbs.requestCloneTransferNumber=<value>`
 * `dbs.requestIncrement=<value>`
 * `dbs.requestLowWaterMark=<value>`
 
-For certificate serial numbers, the current range are stored in `CS.cfg`:
+For certificate serial numbers, the current range is stored in the following parameters in `CS.cfg`:
 
-* `dbs.cert.id.generator=legacy2`
 * `dbs.beginSerialNumber=<value>`
 * `dbs.endSerialNumber=<value>`
 * `dbs.serialCloneTransferNumber=<value>`
@@ -63,15 +59,6 @@ endRange: 20
 cn: 11
 host: pki.example.com
 SecurePort: 8443
-
-dn: cn=21,ou=requests,ou=ranges,dc=ca,dc=pki,dc=example,dc=com
-objectClass: top
-objectClass: pkiRange
-beginRange: 21
-endRange: 30
-cn: 21
-host: pki.example.com
-SecurePort: 8443
 ```
 
 For certificate serial numbers, the allocated ranges are stored as entries under `ou=certificateRepository,ou=ranges,dc=ca,dc=pki,dc=example,dc=com`.
@@ -83,15 +70,6 @@ objectClass: pkiRange
 beginRange: 19
 endRange: 36
 cn: 19
-host: pki.example.com
-SecurePort: 8443
-
-dn: cn=37,ou=certificateRepository,ou=ranges,dc=ca,dc=pki,dc=example,dc=com
-objectClass: top
-objectClass: pkiRange
-beginRange: 37
-endRange: 54
-cn: 37
 host: pki.example.com
 SecurePort: 8443
 ```
@@ -158,11 +136,15 @@ The range progression will look like the following:
 
 Existing CA instances using SSNv1 can be migrated to SSNv2 using the `pki-server ca-id-generator-update` command. The command will take the generator type to update and the new generator name, then update the information in `CS.cfg` and in DS for the new generator.
 
-For the request the changes will be limited only to the generator name `CS.cfg` because the values are already correct.
+For requests the command will perform the following operations:
 
-For the cert the command will perform the following operations:
+* Update the `dbs.request.id.generator` to `legacy2`.
 
-* Update the format to hex for the following `CS.cfg` values:
+For certs the command will perform the following operations:
+
+* Update the `dbs.cert.id.generator` to `legacy2`.
+
+* Update the following parameters to hexedecimal:
 
 ** `dbs.beginSerialNumber`
 ** `dbs.endSerialNumber`
@@ -172,9 +154,7 @@ For the cert the command will perform the following operations:
 ** `dbs.serialIncrement`
 ** `dbs.serialLowWaterMark`
 
-* Update the generator name in `dbs.cert.id.generator` to `legacy2`.
-
-* If no ranges are available in DS (dn from `dbs.serialRangeDN`, default value is `ou=certificateRepository,ou=ranges,<base dn>`) update the nextRange to `dbs.endSerialNumber + 1` and store in decimal in the dn from `dbs.serialDN` (default value is `ou=certificateRepository, ou=ca, <base dn>`
+* If there are no ranges available under the entry specified in `dbs.serialRangeDN` (default: `ou=certificateRepository,ou=ranges,<base dn>`) update the `nextRange` to `dbs.endSerialNumber + 1` and store in decimal in the entry specified in `dbs.serialDN` (default: `ou=certificateRepository,ou=ca,<base dn>`)
 
 * If ranges have been created, search for last range and if it associated with the updating instance get the `endRange` value and update `nextRange` to `endRange + 1` in decimal.
 
