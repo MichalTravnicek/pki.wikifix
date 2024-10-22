@@ -1,6 +1,8 @@
 = Overview =
 
-The Sequential Serial Numbers v1 (SSNv1) is a mechanism to generate unique IDs across the system using distributed ranges. This mechanism is used to generate certificate serial numbers, request IDs, and key IDs in older PKI versions. The way it works is mainly described in link:Random-Certificate-Serial-Numbers-v1[Random Certificate Serial Numbers v1].
+The Sequential Serial Numbers v1 (SSNv1) is a mechanism to generate unique IDs across the system using distributed ranges. This mechanism is used to generate certificate serial numbers, request IDs, and key IDs in older PKI versions. Newer PKI versions are using link:Random-Serial-Numbers-v3[Random Serial Numbers v3] by default, but the SSNv1 is still available as an option.
+
+The way SSNv1 works is mainly described in link:Random-Certificate-Serial-Numbers-v1[Random Certificate Serial Numbers v1].
 
 = Installation =
 
@@ -161,4 +163,6 @@ The first problem is, the initial **Next Range** is incorrectly set to 13 (0xd) 
 This is caused by a bug in `pki-server ca-range-update` (`SubsystemRangeUpdateCLI.java`) that parses the `dbs.endSerialNumber` as a decimal instead of hexadecimal.
 
 The second problem is, the serial numbers jumps from 36 (0x24) to 49 (0x31). This is caused by a bug in `Repository.checkRanges()` that parses the **Next Range** as hexadecimal instead of decimal.
+
+These issues are addressed in link:Sequential-Serial-Numbers-v2[Sequential Serial Numbers v2].
 
