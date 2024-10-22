@@ -26,7 +26,7 @@ As a PKI administrator I want to fix PKI server performance issue.
 
 == Use Case 3: Upgrading PKI Database to Use Random Serial Numbers v2 ==
 
-As a PKI administrator I want to use link:Random-Certificate-Serial-Numbers-v2[Random Certificate Serial Numbers v2].
+As a PKI administrator I want to use link:Random-Certificate-Serial-Numbers-v2[Random Serial Numbers v2].
 
 Note that if the serial numbers are to be generated using replica-specific sequence numbers,
 that might require adding new LDAP schema and LDAP entries to store the sequence numbers in the database.
@@ -40,7 +40,7 @@ However, if the serial numbers are to be generated using UUID, that might not re
 
 * Install several CA replicas.
 * Issue certificates from each replica.
-* The serial numbers should be issued using link:Random-Certificate-Serial-Numbers-v1[Random Certificate Serial Numbers v1].
+* The serial numbers should be issued using link:Random-Serial-Numbers-v1[Random Serial Numbers v1].
 * Run the database upgrade.
 * Issue new certificates from each replica.
-* The serial number should be issued using link:Random-Certificate-Serial-Numbers-v2[Random Certificate Serial Numbers v2].
+* The serial number should be issued using link:Random-Certificate-Serial-Numbers-v2[Random Serial Numbers v2].
