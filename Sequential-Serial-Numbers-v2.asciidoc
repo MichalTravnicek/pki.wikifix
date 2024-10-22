@@ -182,7 +182,9 @@ For the cert the command will perform the following operations:
 
 == Migration Process ==
 
-First, stop all CA instances in the system. In the latest PKI version it can be done with the following command:
+WARNING: The migration process must be done in parallel for all CA instances. Complete each migration step for all CA instances before moving on to the next step.
+
+**Step 1:** Stop all CA instances in the system. In the latest PKI version it can be done with the following command:
 
 ```
 # pki-server stop --wait
@@ -190,20 +192,20 @@ First, stop all CA instances in the system. In the latest PKI version it can be 
 
 WARNING: At this point it's highly recommended to link:Backing-Up-PKI-Server[back up] all CA and DS instances in case it's necessary to rollback the migration.
 
-Next, be sure to install the latest PKI packages that supports SSNv2:
+**Step 2:** Once all CA instances are stopped, update all CA instances to have the latest PKI packages that supports SSNv2:
 
 ```
 # dnf update dogtag-pki
 ```
 
-To update the ID generators for certs and requests execute the following commands:
+**Step 3:** Once all CA instances have the latest PKI packages, switch to SSNv2 with the following commands:
 
 ```
 # pki-server ca-id-generator-update --type request legacy2
 # pki-server ca-id-generator-update --type cert legacy2
 ```
 
-Once all CA instances have been updated, restart all CA instances in the system. In the latest PKI version it can be done with the following command:
+**Step 4:** Once all CA instances have switched to SSNv2, restart all CA instances in the system. In the latest PKI version it can be done with the following command:
 
 ```
 # pki-server start --wait
