@@ -152,29 +152,27 @@ The range progression will look like the following:
 
 = Migrating from SSNv1 =
 
-First, stop all servers in the system:
+Existing CA instances using SSNv1 can be migrated into SSNv2 with the following process.
+
+First, stop all CA instances in the system. In the latest PKI version it can be done with the following command:
 
 ```
 # pki-server stop --wait
 ```
 
-Next, install the latest PKI packages:
+At this point it's highly recommended to create a backup of all servers in case there's a problem with the migration.
+
+Next, be sure to install the latest PKI packages that supports SSNv2:
 
 ```
 # dnf update dogtag-pki
 ```
 
-To migrate an existing CA from SSNv1 to SSNv2 it is possible to use the `pki-server` command `ca-range-generator-update`. The command takes the generator type to update to and the new generator name. So to update cert and request it is possible to run the commands:
+To migrate an existing CA from SSNv1 to SSNv2 it is possible to use `pki-server ca-id-generator-update` command. The command takes the generator type to update to and the new generator name. So to update cert and request it is possible to run the commands:
 
 ```
-# pki-server ca-range-generator-update --type request legacy2
-# pki-server ca-range-generator-update --type cert legacy2
-```
-
-Finally, restart all servers in the system:
-
-```
-# pki-server start --wait
+# pki-server ca-id-generator-update --type request legacy2
+# pki-server ca-id-generator-update --type cert legacy2
 ```
 
 The command will update the information in `CS.cfg` and in DS for the new generator. For the request the change is limited only to the generator name `CS.cfg` because the values are already correct.
@@ -189,4 +187,8 @@ For the cert the command performs the following operations:
 
 * Finally, update all the ranges associated with the instance to decimal.
 
-It is important to update all clones before creating new ranges to avoid number collisions. 
+Once all CA instances have been updated, restart all CA instances in the system. In the latest PKI version it can be done with the following command:
+
+```
+# pki-server start --wait
+```
