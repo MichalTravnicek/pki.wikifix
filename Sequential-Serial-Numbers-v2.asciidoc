@@ -181,8 +181,8 @@ WARNING: At this point it's highly recommended to link:Backing-Up-PKI-Server[bac
 **Step 3:** Once all PKI instances have the latest PKI packages, switch to SSNv2 with the following commands:
 
 ```
-# pki-server ca-id-generator-update --type request legacy2
-# pki-server ca-id-generator-update --type cert legacy2
+# pki-server ca-id-generator-update --type legacy2 request
+# pki-server ca-id-generator-update --type legacy2 cert
 ```
 
 **Step 4:** Once all PKI instances have switched to SSNv2, restart all PKI instances in the system. In the latest PKI version it can be done with the following command:
