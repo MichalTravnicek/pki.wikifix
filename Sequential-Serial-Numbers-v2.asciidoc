@@ -48,10 +48,10 @@ The parameters are the same as in SSNv1 but the value can be in decimal or hexad
 
 = Allocated Range =
 
-For request IDs, the allocated ranges are stored as entries under `ou=requests,ou=ranges,dc=ca,dc=pki,dc=example,dc=com`, for example:
+For request IDs, the allocated ranges are stored as entries under `ou=requests,ou=ranges_v2,dc=ca,dc=pki,dc=example,dc=com`, for example:
 
 ```
-dn: cn=11,ou=requests,ou=ranges,dc=ca,dc=pki,dc=example,dc=com
+dn: cn=11,ou=requests,ou=ranges_v2,dc=ca,dc=pki,dc=example,dc=com
 objectClass: top
 objectClass: pkiRange
 beginRange: 11
@@ -61,10 +61,10 @@ host: pki.example.com
 SecurePort: 8443
 ```
 
-For certificate serial numbers, the allocated ranges are stored as entries under `ou=certificateRepository,ou=ranges,dc=ca,dc=pki,dc=example,dc=com`.
+For certificate serial numbers, the allocated ranges are stored as entries under `ou=certificateRepository,ou=ranges_v2,dc=ca,dc=pki,dc=example,dc=com`.
 
 ```
-dn: cn=19,ou=certificateRepository,ou=ranges,dc=ca,dc=pki,dc=example,dc=com
+dn: cn=19,ou=certificateRepository,ou=ranges_v2,dc=ca,dc=pki,dc=example,dc=com
 objectClass: top
 objectClass: pkiRange
 beginRange: 19
