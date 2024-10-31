@@ -5,16 +5,19 @@ This page describes the REST API v2 endpoints.
 WARNING: This feature is still under development. The API might still change. Do not use it in production.
 
 = General endpoints =
-[cols="4m,1,2,1,4a"]
+[cols="4a,1a,2a,1a,2a,4a"]
 |===
-| Path | Method | Parameters | Return code | Example
+| Path | Method | Parameters | Return code | Mime | Input
 
 | `/pki/v2/info`
 | `GET`
 | None
 | 200
+| `application/json`
 |
-.Show
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
@@ -34,8 +37,11 @@ $ curl --cacert ./ca_signing.crt  https://$HOSTNAME:8443/pki/v2/info
 | `GET`
 | None
 | 200
+| `application/json`
 |
-.Show
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
