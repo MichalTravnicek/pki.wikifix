@@ -1,0 +1,60 @@
+= Overview =
+
+Existing CA instances using SSNv1 can be migrated to SSNv2 using the `pki-server ca-id-generator-update` command. The command will take the generator type to update and the new generator name, then update the information in `CS.cfg` and in DS for the new generator.
+
+For requests the command will perform the following operations:
+
+* Update the `dbs.request.id.generator` to `legacy2`.
+
+For certs the command will perform the following operations:
+
+* Update the `dbs.cert.id.generator` to `legacy2`.
+
+* Update the following parameters to hexadecimal with `0x` prefix:
+
+** `dbs.beginSerialNumber`
+** `dbs.endSerialNumber`
+** `dbs.nextBeginRequestNumber`
+** `dbs.nextEndSerialNumber`
+** `dbs.serialCloneTransferNumber`
+** `dbs.serialIncrement`
+** `dbs.serialLowWaterMark`
+
+* If there are no allocated ranges available, update the `nextRange` to `dbs.endSerialNumber + 1` and store it as decimal.
+
+* If there are allocated ranges find the last range, and if the range belongs to the instance being migrated get the `endRange` value and update the `nextRange` to `endRange + 1` and store it as decimal.
+
+* Finally, update the `beginRange` and `endRange` in all ranges belonging to the instance being migrated to decimal.
+
+= Migration Process =
+
+WARNING: The migration process must be done in parallel for all PKI instances. Complete each migration step for all PKI instances before proceeding to the next step.
+
+**Step 1:** Stop all PKI instances in the system. In the latest PKI version it can be done with the following command:
+
+```
+# pki-server stop --wait
+```
+
+WARNING: At this point it's highly recommended to link:Backing-Up-PKI-Server[back up] all PKI and DS instances in case it's necessary to rollback the migration.
+
+**Step 2:** Once all PKI instances are stopped, update all PKI instances to have the latest PKI packages that supports SSNv2. For Fedora, it can be done with the following command:
+
+```
+# dnf update dogtag-pki
+```
+
+**Step 3:** Once all PKI instances have the latest PKI packages, switch to SSNv2 with the following commands:
+
+```
+# pki-server ca-id-generator-update --type legacy2 request
+# pki-server ca-id-generator-update --type legacy2 cert
+```
+
+**Step 4:** Once all PKI instances have switched to SSNv2, restart all PKI instances in the system. In the latest PKI version it can be done with the following command:
+
+```
+# pki-server start --wait
+```
+
+WARNING: Verify that everything is working properly. If there is a problem it might be necessary to link:Restoring-PKI-Server[restore] all PKI and DS instances from the backup.
