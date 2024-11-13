@@ -8,6 +8,8 @@ For requests the command will perform the following operations:
 
 * Update the `dbs.request.id.generator` to `legacy2`.
 
+* Duplicate the `ranges` entries in DS into the `ranges_v2` sub-tree to allow the roll-back. Duplicate the `nextRange` in the new `requests` entry containing the ranges and use this new tree for future update.
+ 
 For certs the command will perform the following operations:
 
 * Update the `dbs.cert.id.generator` to `legacy2`.
@@ -22,11 +24,13 @@ For certs the command will perform the following operations:
 ** `dbs.serialIncrement`
 ** `dbs.serialLowWaterMark`
 
-* If there are no allocated ranges available, update the `nextRange` to `dbs.endSerialNumber + 1` and store it as decimal.
+* Duplicate the `ranges` entries in DS into the `ranges_v2` sub-tree to allow the roll-back. Duplicate the `nextRange` in the new `certificateRequest` entry containing the ranges and use this new tree for future update. All values in the entries are in decimal.
 
-* If there are allocated ranges find the last range, and if the range belongs to the instance being migrated get the `endRange` value and update the `nextRange` to `endRange + 1` and store it as decimal.
+* * If there are no allocated ranges available, update the `nextRange` to `dbs.endSerialNumber + 1` and store it as decimal.
 
-* Finally, update the `beginRange` and `endRange` in all ranges belonging to the instance being migrated to decimal.
+* * If there are allocated ranges find the last range, and if the range belongs to the instance being migrated get the `endRange` value and update the `nextRange` to `endRange + 1` and store it as decimal.
+
+* * Finally, update the `beginRange` and `endRange` in all ranges belonging to the instance being migrated to decimal.
 
 = Migration Process =
 
