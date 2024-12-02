@@ -56,21 +56,25 @@ curl --cacert ./ca_signing.crt   https://$HOSTNAME:8443/pki/v2/apps
 
 These endpoints are available in multiple subsystem application.
 
-[cols="4m,1,2,1,2,4a"]
+[cols="4a,1a,2a,1a,2a,2a,4a"]
 |===
-| Path | Method | Parameters | Return code | App | Example
+| Path | Method | Parameters | Return code | App | Mime | Input
 
 | `/<app>/v2/account/login`
 | `GET`
 | None
 | 200
 | ca, kra, ocsp, tks, tps
+| `application/json`
 |
-.Show
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt --cert ca_admin_cert.p12:Secret.123 --cert-type P12 -c session_cookie  https://$HOSTNAME:8443/ca/v2/account/login
+$ curl --cacert ./ca_signing.crt --cert ca_admin_cert.p12:Secret.123 \
+    --cert-type P12 -c session_cookie  https://$HOSTNAME:8443/ca/v2/account/login
 {
   "id" : "caadmin",
   "FullName" : "caadmin",
@@ -88,8 +92,11 @@ $ curl --cacert ./ca_signing.crt --cert ca_admin_cert.p12:Secret.123 --cert-type
 | None
 | 204
 | ca, kra, ocsp, tks, tps
+| _No output expected_
 |
-.Show
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
@@ -102,12 +109,16 @@ $ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/
 | start, size, filter
 | 200
 | ca, kra, ocsp, tks, tps
+| `application/json`
 |
-.Show
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie "https://$HOSTNAME:8443/ca/v2/admin/groups?size=3&filter=Admin"
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    "https://$HOSTNAME:8443/ca/v2/admin/groups?size=3&filter=Admin"
 {
   "total" : 8,
   "entries" : [ {
@@ -132,12 +143,17 @@ $ curl --cacert ./ca_signing.crt -b session_cookie "https://$HOSTNAME:8443/ca/v2
 | None
 | 201
 | ca, kra, ocsp, tks, tps
-|
-.Show
+| `application/json`
+| A json of a single group with `GroupID` and `Description`
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie --json '{"GroupID": "NewGroup", "Description":"This is a new group"}' https://$HOSTNAME:8443/ca/v2/admin/groups
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    --json '{"GroupID": "NewGroup", "Description":"This is a new group"}' \
+    https://$HOSTNAME:8443/ca/v2/admin/groups
 {
   "id" : "NewGroup",
   "GroupID" : "NewGroup",
@@ -151,8 +167,11 @@ $ curl --cacert ./ca_signing.crt -b session_cookie --json '{"GroupID": "NewGroup
 | None
 | 200
 | ca, kra, ocsp, tks, tps
+| `application/json`
 |
-.Show
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
@@ -170,12 +189,17 @@ $ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/
 | None
 | 200
 | ca, kra, ocsp, tks, tps
-|
-.Show
+| `application/json`
+| A group json with only the information to update 
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie --json '{"Description":"This is the new group"}' https://$HOSTNAME:8443/ca/v2/admin/groups/newGroup
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    --json '{"Description":"This is the new group"}' \
+    -X PATCH https://$HOSTNAME:8443/ca/v2/admin/groups/newGroup
 {
   "id" : "NewGroup",
   "GroupID" : "NewGroup",
@@ -190,11 +214,15 @@ $ curl --cacert ./ca_signing.crt -b session_cookie --json '{"Description":"This 
 | 204
 | ca, kra, ocsp, tks, tps
 |
-.Show
+|
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie -X DELETE https://$HOSTNAME:8443/ca/v2/admin/groups/newGroup
+$ curl --cacert ./ca_signing.crt -b session_cookie 
+    -X DELETE https://$HOSTNAME:8443/ca/v2/admin/groups/newGroup
 ----
 ====
 
@@ -203,12 +231,16 @@ $ curl --cacert ./ca_signing.crt -b session_cookie -X DELETE https://$HOSTNAME:8
 | start, size, filter
 | 200
 | ca, kra, ocsp, tks, tps
+| `application/json`
 |
-.Show
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/admin/groups/Administrators/members
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    https://$HOSTNAME:8443/ca/v2/admin/groups/Administrators/members
 {
   "total" : 1,
   "entries" : [ {
@@ -224,12 +256,17 @@ $ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/
 | None
 | 201
 | ca, kra, ocsp, tks, tps
-|
-.Show
+| `application/json`
+| A json with `id` of the new member
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie --json '{"id": "caadmin"}' https://$HOSTNAME:8443/ca/v2/admin/groups/NewGroup/members
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    --json '{"id": "caadmin"}' \
+    https://$HOSTNAME:8443/ca/v2/admin/groups/NewGroup/members
 {
   "id" : "caadmin",
   "groupID" : "NewGroup"
@@ -242,12 +279,16 @@ $ curl --cacert ./ca_signing.crt -b session_cookie --json '{"id": "caadmin"}' ht
 | None
 | 200
 | ca, kra, ocsp, tks, tps
+| `application/json`
 |
-.Show
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/admin/groups/NewGroup/members/caadmin
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    https://$HOSTNAME:8443/ca/v2/admin/groups/NewGroup/members/caadmin
 {
   "id" : "caadmin",
   "groupID" : "NewGroup"
@@ -261,11 +302,15 @@ $ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/
 | 204
 | ca, kra, ocsp, tks, tps
 |
-.Show
+|
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie -X DELETE https://$HOSTNAME:8443/ca/v2/admin/groups/NewGroup/members/caadmin
+$ curl --cacert ./ca_signing.crt -b session_cookie 
+    -X DELETE https://$HOSTNAME:8443/ca/v2/admin/groups/NewGroup/members/caadmin
 ----
 ====
 
@@ -274,8 +319,11 @@ $ curl --cacert ./ca_signing.crt -b session_cookie -X DELETE https://$HOSTNAME:8
 | start, size, filter
 | 200
 | ca, kra, ocsp, tks, tps
+| `application/json`
 |
-.Show
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
@@ -296,12 +344,17 @@ $ curl --cacert ./ca_signing.crt -b session_cookie "https://$HOSTNAME:8443/ca/v2
 | None
 | 201
 | ca, kra, ocsp, tks, tps
-|
-.Show
+| `application/json`
+| A json for the user with *`UserID`*, *`FullName`*, `Email`, `password`, `phone`, `type` and `state`
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie --json '{"UserID": "newUser", "FullName":"New User"}' https://$HOSTNAME:8443/ca/v2/admin/users
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+  --json '{"UserID": "newUser", "FullName":"New User"}' \
+  https://$HOSTNAME:8443/ca/v2/admin/users
 {
   "id" : "newUser",
   "UserID" : "newUser",
@@ -315,12 +368,16 @@ $ curl --cacert ./ca_signing.crt -b session_cookie --json '{"UserID": "newUser",
 | None
 | 200
 | ca, kra, ocsp, tks, tps
+| `application/json`
 |
-.Show
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/admin/users/newUser
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+  https://$HOSTNAME:8443/ca/v2/admin/users/newUser
 {
   "id" : "newUser",
   "UserID" : "newUser",
@@ -334,12 +391,17 @@ $ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/
 | None
 | 200
 | ca, kra, ocsp, tks, tps
-|
-.Show
+| `application/json`
+| A json with user information to update
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie --json '{"FullName":"The New User"}' -X PATCH https://$HOSTNAME:8443/ca/v2/admin/users/newUser
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    --json '{"FullName":"The New User"}' \
+    -X PATCH https://$HOSTNAME:8443/ca/v2/admin/users/newUser
 {
   "id" : "newUser",
   "UserID" : "newUser",
@@ -355,11 +417,15 @@ $ curl --cacert ./ca_signing.crt -b session_cookie --json '{"FullName":"The New 
 | 204
 | ca, kra, ocsp, tks, tps
 |
-.Show
+|
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie -X DELETE https://$HOSTNAME:8443/ca/v2/admin/users/newUser
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    -X DELETE https://$HOSTNAME:8443/ca/v2/admin/users/newUser
 ----
 ====
 
@@ -368,36 +434,16 @@ $ curl --cacert ./ca_signing.crt -b session_cookie -X DELETE https://$HOSTNAME:8
 | size, start
 | 200
 | ca, kra, ocsp, tks, tps
+| `application/json`
 |
-.Show
-[%collapsible]
-====
-----
-$ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/admin/users/newUser/certs
-{
-  "total" : 1,
-  "entries" : [ {
-    "Version" : 2,
-    "SerialNumber" : "0xa53c5f8e01bab930295a1c56134e2173",
-    "IssuerDN" : "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE",
-    "SubjectDN" : "UID=newUser",
-    "id" : "2;219636095195869852359558645775241978227;CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE;UID=newUser"
-  } ]
-}
-----
-====
 
-| `/<app>/v2/admin/users/{id}/certs`
-| `GET`
-| size, start
-| 200
-| ca, kra, ocsp, tks, tps
-|
-.Show
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/admin/users/newUser/certs
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    https://$HOSTNAME:8443/ca/v2/admin/users/newUser/certs
 {
   "total" : 1,
   "entries" : [ {
@@ -416,12 +462,17 @@ $ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/
 | None
 | 201
 | ca, kra, ocsp, tks, tps
-|
-.Show
+| `application/json`
+| Json with certificate in pem format inside `Encoded` field
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie --json '{"Encoded":"-----BEGIN CERTIFICATE-----\nMIIEATCCAmmgAwIBAgIRAKU8X44BurkwKVocVhNOIXMwDQYJKoZIhvcNAQELBQAwSDEQMA4GA1UE\r\nCgwHRVhBTVBMRTETMBEGA1UECwwKcGtpLXRvbWNhdDEfMB0GA1UEAwwWQ0EgU2lnbmluZyBDZXJ0\r\naWZpY2F0ZTAeFw0yNDEwMzAwOTQwNDBaFw0yNTA0MjgwOTQwNDBaMBkxFzAVBgoJkiaJk/IsZAEB\r\nDAduZXdVc2VyMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvnk0Am3aRZevdPqLtDh4\r\nGkukZ89SrCBYqz/yWyIDdEnTHtJUdyJwbwgLkKz9GsE3ZwA1qLgQ8C8eOmUS8DNGm7+YTjwPeC+H\r\nnXxahsivqDeuyrc6nzbayCj4BWk+XMyqi8zPi84EXQ5eC3+qCx5ZEgyW8anjtjSX/09yLFxWRCoh\r\nHq7KR3Cp6LJlO+71bH/FBFfo4v+mA5WwjqdZ+GM9a7NlqyvrmGcUB+2q7LmuCjKCqGYRciIXsy6p\r\nYLhUnxfbtwxLZxmGzejawrciqtj40U3NmdkkDJ+niyD7C75w5TfhmZwmDSpHs76AmgPELBpSkiyE\r\nwdyyaiL53OjMQ5uD/wIDAQABo4GUMIGRMB8GA1UdIwQYMBaAFKd99i1O4mgUWWajjK3k83bEAOEl\r\nMD8GCCsGAQUFBwEBBDMwMTAvBggrBgEFBQcwAYYjaHR0cDovL3BraS5leGFtcGxlLmNvbTo4MDgw\r\nL2NhL29jc3AwDgYDVR0PAQH/BAQDAgXgMB0GA1UdJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcDBDAN\r\nBgkqhkiG9w0BAQsFAAOCAYEAAQHZeYhrTYFofmGlOorwszMdmnSITwDjQjfu8K1Sh5geJOjrYos7\r\nPIa3uCYTneN/e/f/s9fTZoPrEycQL3rHjgjuQrAakQ48w8K0LKmVUmaVcwS+DCtcgHrBM965YVuP\r\nGw0vxGL+AhJDfH49rbX/2LAqcUMkA/Vc2oDQzb9Es6h20fEpaBVv5ehAbWWU6EOkBLN1/12VKY2e\r\nQFSTbdmPLnGHzcaX7Nmgl+u8jVzuysdTYpgHCQ7tonfE7NNQTHQt8p63fBDaDMUwBlfIDh3Omkef\r\nAofXpvF7Y1X7sy7wfeSqSXYPDcY4A3d+r7Y3qfyuqYc9/Xz+XzhTvEQfjd/gFiZjB23u2et1AhGD\r\n6dmQIhUWOW+OyDx3EdB+OAPFpgTK+VdaUr76zzEFXaZCGnkUhskQujg9495WCs+eQLWznTy3Zuz+\r\nssx5jgbLN46RjBcKlVyGSEtuC6uRwuwGbtQcp7kBGNeHsHBZeQ5fzUdls4B+RZHZWP3OSqpdEJKq\r\n8/gh\r\n-----END CERTIFICATE-----\n"}' https://$HOSTNAME:8443/ca/v2/admin/users/newUser/certs
+$ curl --cacert ./ca_signing.crt -b session_cookie 
+    --json '{"Encoded":"-----BEGIN CERTIFICATE-----\nMIIEATCCAmmgAwIBAgIRAKU8X44BurkwKVocVhNOIXMwDQYJKoZIhvcNAQELBQAwSDEQMA4GA1UE\r\nCgwHRVhBTVBMRTETMBEGA1UECwwKcGtpLXRvbWNhdDEfMB0GA1UEAwwWQ0EgU2lnbmluZyBDZXJ0\r\naWZpY2F0ZTAeFw0yNDEwMzAwOTQwNDBaFw0yNTA0MjgwOTQwNDBaMBkxFzAVBgoJkiaJk/IsZAEB\r\nDAduZXdVc2VyMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvnk0Am3aRZevdPqLtDh4\r\nGkukZ89SrCBYqz/yWyIDdEnTHtJUdyJwbwgLkKz9GsE3ZwA1qLgQ8C8eOmUS8DNGm7+YTjwPeC+H\r\nnXxahsivqDeuyrc6nzbayCj4BWk+XMyqi8zPi84EXQ5eC3+qCx5ZEgyW8anjtjSX/09yLFxWRCoh\r\nHq7KR3Cp6LJlO+71bH/FBFfo4v+mA5WwjqdZ+GM9a7NlqyvrmGcUB+2q7LmuCjKCqGYRciIXsy6p\r\nYLhUnxfbtwxLZxmGzejawrciqtj40U3NmdkkDJ+niyD7C75w5TfhmZwmDSpHs76AmgPELBpSkiyE\r\nwdyyaiL53OjMQ5uD/wIDAQABo4GUMIGRMB8GA1UdIwQYMBaAFKd99i1O4mgUWWajjK3k83bEAOEl\r\nMD8GCCsGAQUFBwEBBDMwMTAvBggrBgEFBQcwAYYjaHR0cDovL3BraS5leGFtcGxlLmNvbTo4MDgw\r\nL2NhL29jc3AwDgYDVR0PAQH/BAQDAgXgMB0GA1UdJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcDBDAN\r\nBgkqhkiG9w0BAQsFAAOCAYEAAQHZeYhrTYFofmGlOorwszMdmnSITwDjQjfu8K1Sh5geJOjrYos7\r\nPIa3uCYTneN/e/f/s9fTZoPrEycQL3rHjgjuQrAakQ48w8K0LKmVUmaVcwS+DCtcgHrBM965YVuP\r\nGw0vxGL+AhJDfH49rbX/2LAqcUMkA/Vc2oDQzb9Es6h20fEpaBVv5ehAbWWU6EOkBLN1/12VKY2e\r\nQFSTbdmPLnGHzcaX7Nmgl+u8jVzuysdTYpgHCQ7tonfE7NNQTHQt8p63fBDaDMUwBlfIDh3Omkef\r\nAofXpvF7Y1X7sy7wfeSqSXYPDcY4A3d+r7Y3qfyuqYc9/Xz+XzhTvEQfjd/gFiZjB23u2et1AhGD\r\n6dmQIhUWOW+OyDx3EdB+OAPFpgTK+VdaUr76zzEFXaZCGnkUhskQujg9495WCs+eQLWznTy3Zuz+\r\nssx5jgbLN46RjBcKlVyGSEtuC6uRwuwGbtQcp7kBGNeHsHBZeQ5fzUdls4B+RZHZWP3OSqpdEJKq\r\n8/gh\r\n-----END CERTIFICATE-----\n"}' \
+   https://$HOSTNAME:8443/ca/v2/admin/users/newUser/certs
 {
   "Version" : 2,
   "SerialNumber" : "0xa53c5f8e01bab930295a1c56134e2173",
@@ -438,12 +489,16 @@ $ curl --cacert ./ca_signing.crt -b session_cookie --json '{"Encoded":"-----BEGI
 | None
 | 200
 | ca, kra, ocsp, tks, tps
+| `application/json`
 |
-.Show
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/admin/users/newUser/certs/2%3B219636095195869852359558645775241978227%3BCN%3DCA%20Signing%20Certificate%2COU%3Dpki-tomcat%2CO%3DEXAMPLE%3BUID%3DnewUser
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    https://$HOSTNAME:8443/ca/v2/admin/users/newUser/certs/2%3B219636095195869852359558645775241978227%3BCN%3DCA%20Signing%20Certificate%2COU%3Dpki-tomcat%2CO%3DEXAMPLE%3BUID%3DnewUser
 {
   "Version" : 2,
   "SerialNumber" : "0xa53c5f8e01bab930295a1c56134e2173",
@@ -462,25 +517,33 @@ $ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/
 | 204
 | ca, kra, ocsp, tks, tps
 |
-.Show
+|
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie -X DELETE https://$HOSTNAME:8443/ca/v2/admin/users/newUser/certs/2%3B219636095195869852359558645775241978227%3BCN%3DCA%20Signing%20Certificate%2COU%3Dpki-tomcat%2CO%3DEXAMPLE%3BUID%3DnewUser
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    -X DELETE https://$HOSTNAME:8443/ca/v2/admin/users/newUser/certs/2%3B219636095195869852359558645775241978227%3BCN%3DCA%20Signing%20Certificate%2COU%3Dpki-tomcat%2CO%3DEXAMPLE%3BUID%3DnewUser
 ----
 ====
 
-| `/<app>/v2/admin/users/{id}//membership`
+| `/<app>/v2/admin/users/{id}/membership`
 | `GET`
 | size, start, filter
 | 200
 | ca, kra, ocsp, tks, tps
+| `application/json`
 |
-.Show
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/admin/users/newUser/membership
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    https://$HOSTNAME:8443/ca/v2/admin/users/newUser/membership
 {
   "total" : 1,
   "entries" : [ {
@@ -491,17 +554,22 @@ $ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/
 ----
 ====
 
-| `/<app>/v2/admin/users/{id}//membership`
+| `/<app>/v2/admin/users/{id}/membership`
 | `POST`
 | None
 | 201
 | ca, kra, ocsp, tks, tps
-|
-.Show
+| in `application/x-www-form-urlencoded`, out `application/json`
+| The group name to add the user
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie --data 'Auditors' https://$HOSTNAME:8443/ca/v2/admin/users/newUser/membership
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    --data 'Auditors' \
+    https://$HOSTNAME:8443/ca/v2/admin/users/newUser/membership
 {
   "id" : "Auditors",
   "userID" : "newUser"
@@ -509,17 +577,21 @@ $ curl --cacert ./ca_signing.crt -b session_cookie --data 'Auditors' https://$HO
 ----
 ====
 
-| `/<app>/v2/admin/users/{userId}//membership/{groupId}`
+| `/<app>/v2/admin/users/{userId}/membership/{groupId}`
 | `DELETE`
 | None
 | 204
 | ca, kra, ocsp, tks, tps
 |
-.Show
+|
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie -X DELETE https://$HOSTNAME:8443/ca/v2/admin/users/newUser/membership/Auditors
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    -X DELETE https://$HOSTNAME:8443/ca/v2/admin/users/newUser/membership/Auditors
 ----
 ====
 
@@ -528,12 +600,16 @@ $ curl --cacert ./ca_signing.crt -b session_cookie -X DELETE https://$HOSTNAME:8
 | None
 | 200
 | ca, kra, ocsp, tks, tps
+| `application/json`
 |
-.Show
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/audit
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    https://$HOSTNAME:8443/ca/v2/audit
 {
   "bufferSize" : 512,
   "Status" : "Enabled",
@@ -658,12 +734,17 @@ $ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/
 | None
 | 200
 | ca, kra, ocsp, tks, tps
-|
-.Show
+| `application/json`
+| A json with same format returned by `GET` operation. The list in `Events` has to match but avalues can be different
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie --json @audit.json -X PATCH https://$HOSTNAME:8443/ca/v2/audit
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    --json @audit.json -X PATCH \
+    https://$HOSTNAME:8443/ca/v2/audit
 {
   "bufferSize" : 512,
   "Status" : "Enabled",
@@ -786,12 +867,16 @@ $ curl --cacert ./ca_signing.crt -b session_cookie --json @audit.json -X PATCH h
 | action (enable/disable)
 | 200
 | ca, kra, ocsp, tks, tps
-|
-.Show
+| `application/json`
+| _No input expected_
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie -X POST "https://$HOSTNAME:8443/ca/v2/audit?action=enable"
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    -X POST "https://$HOSTNAME:8443/ca/v2/audit?action=enable"
 {
   "bufferSize" : 512,
   "Status" : "Enabled",
@@ -914,12 +999,16 @@ $ curl --cacert ./ca_signing.crt -b session_cookie -X POST "https://$HOSTNAME:84
 | None
 | 200
 | ca, kra, ocsp, tks, tps
+| `application/json`
 |
-.Show
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/audit/files
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    https://$HOSTNAME:8443/ca/v2/audit/files
 {
   "total" : 1,
   "entries" : [ {
@@ -935,12 +1024,16 @@ $ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/
 | None
 | 200
 | ca, kra, ocsp, tks, tps
+| `application/octet-stream`
 |
-.Show
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/audit/files/ca_audit
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    https://$HOSTNAME:8443/ca/v2/audit/files/ca_audit
 0.main - [29/Oct/2024:11:09:28 UTC] [14] [6] [AuditEvent=CERT_SIGNING_INFO][SubjectID=$System$][Outcome=Success][SKI=A7:7D:F6:2D:4E:E2:68:14:59:66:A3:8C:AD:E4:F3:76:C4:00:E1:25] certificate signing info
 0.main - [29/Oct/2024:11:09:28 UTC] [14] [6] [AuditEvent=CRL_SIGNING_INFO][SubjectID=$System$][Outcome=Success][SKI=A7:7D:F6:2D:4E:E2:68:14:59:66:A3:8C:AD:E4:F3:76:C4:00:E1:25] CRL signing info
 0.main - [29/Oct/2024:11:09:28 UTC] [14] [6] [AuditEvent=OCSP_SIGNING_INFO][SubjectID=$System$][Outcome=Success][SKI=AB:AF:55:C8:C0:97:C8:B6:AA:47:0D:D0:66:C6:15:E1:B1:EF:EF:77] OCSP signing info
@@ -965,11 +1058,15 @@ $ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/
 | 200
 | ca
 |
-.Show
+|
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt https://$HOSTNAME:8443/ca/v2/config/features
+$ curl --cacert ./ca_signing.crt \
+    https://$HOSTNAME:8443/ca/v2/config/features
 [{"id":"authority","description":"Lightweight CAs","version":"1.0","enabled":true}]
 ----
 ====
@@ -979,8 +1076,11 @@ $ curl --cacert ./ca_signing.crt https://$HOSTNAME:8443/ca/v2/config/features
 | None
 | 200
 | ca
+| `application/json`
 |
-.Show
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
@@ -999,12 +1099,16 @@ $ curl --cacert ./ca_signing.crt https://$HOSTNAME:8443/ca/v2/config/features/au
 | None
 | 200
 | ca, kra, ocsp, tks, tps
+| `application/json`
 |
-.Show
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl -v --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/jobs
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    https://$HOSTNAME:8443/ca/v2/jobs
 {
   "entries" : [ {
     "id" : "certRenewalNotifier",
@@ -1050,12 +1154,16 @@ $ curl -v --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/
 | None
 | 200
 | ca, kra, ocsp, tks, tps
+| `application/json`
 |
-.Show
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl -v --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/jobs/serialNumberUpdate
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    https://$HOSTNAME:8443/ca/v2/jobs/serialNumberUpdate
 {
   "id" : "serialNumberUpdate",
   "enabled" : false,
@@ -1070,12 +1178,16 @@ $ curl -v --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/
 | None
 | 200
 | ca, kra, ocsp, tks, tps
-|
-.Show
+| _No output_
+| _No input expected_
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl -v --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/jobs/serialNumberUpdate/start
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    https://$HOSTNAME:8443/ca/v2/jobs/serialNumberUpdate/start
 ----
 ====
 
@@ -1084,12 +1196,16 @@ $ curl -v --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/
 | None
 | 200
 | ca, kra, ocsp, tks, tps
+| `application/json`
 |
-.Show
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl -v --cacert ./ca_signing.crt https://$HOSTNAME:8443/ca/v2/securityDomain/domainInfo
+$ curl --cacert ./ca_signing.crt \
+    https://$HOSTNAME:8443/ca/v2/securityDomain/domainInfo
 {
   "subsystemArray" : [ {
     "hosts" : {
@@ -1161,12 +1277,16 @@ $ curl -v --cacert ./ca_signing.crt https://$HOSTNAME:8443/ca/v2/securityDomain/
 | None
 | 200
 | ca, kra, ocsp, tks, tps
+| `application/json`
 |
-.Show
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl -v --cacert ./ca_signing.crt https://$HOSTNAME:8443/ca/v2/securityDomain/hosts
+$ curl --cacert ./ca_signing.crt \
+    https://$HOSTNAME:8443/ca/v2/securityDomain/hosts
 [{"id":"CA pki.example.com 8443","Hostname":"pki.example.com","Port":"8080","SecurePort":"8443","SecureEEClientAuthPort":"8443","SecureAgentPort":"8443","SecureAdminPort":"8443","Clone":"FALSE","SubsystemName":"CA pki.example.com 8443","DomainManager":"TRUE"}]
 ----
 ====
@@ -1176,12 +1296,17 @@ $ curl -v --cacert ./ca_signing.crt https://$HOSTNAME:8443/ca/v2/securityDomain/
 | None
 | 204
 | ca, kra, ocsp, tks, tps
-|
-.Show
+| `application/json`
+| Security domain host json with `Hostname`, `Port`, `SecurePort`, `SecureEEClientAuthPort`, `SecureAgentPort`, `SecureAdminPort`, `Clone`, `SubsystemName` and `DomainManager`
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl -v --cacert ./ca_signing.crt -b session_cookie --json '{"id":"CA pki2.example.com 8443","Hostname":"pki2.example.com","Port":"8080","SecurePort":"8443","SecureEEClientAuthPort":"8443","SecureAgentPort":"8443","SecureAdminPort":"8443","Clone":"TRUE","SubsystemName":"CA pki2.example.com 8443","DomainManager":"FALSE"}' -X PUT https://$HOSTNAME:8443/ca/v2/securityDomain/hosts
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    --json '{"id":"CA pki2.example.com 8443","Hostname":"pki2.example.com","Port":"8080","SecurePort":"8443","SecureEEClientAuthPort":"8443","SecureAgentPort":"8443","SecureAdminPort":"8443","Clone":"TRUE","SubsystemName":"CA pki2.example.com 8443","DomainManager":"FALSE"}' \
+    -X PUT https://$HOSTNAME:8443/ca/v2/securityDomain/hosts
 ----
 ====
 
@@ -1190,12 +1315,16 @@ $ curl -v --cacert ./ca_signing.crt -b session_cookie --json '{"id":"CA pki2.exa
 | None
 | 200
 | ca, kra, ocsp, tks, tps
+| `application/json`
 |
-.Show
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl -v --cacert ./ca_signing.crt https://$HOSTNAME:8443/ca/v2/securityDomain/hosts/CA%20pki.example.com%208443
+$ curl --cacert ./ca_signing.crt \
+    https://$HOSTNAME:8443/ca/v2/securityDomain/hosts/CA%20pki.example.com%208443
 {
   "id" : "CA pki.example.com 8443",
   "Hostname" : "pki.example.com",
@@ -1217,11 +1346,15 @@ $ curl -v --cacert ./ca_signing.crt https://$HOSTNAME:8443/ca/v2/securityDomain/
 | 204
 | ca, kra, ocsp, tks, tps
 |
-.Show
+|
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl -v --cacert ./ca_signing.crt -b session_cookie -X DELETE https://$HOSTNAME:8443/ca/v2/securityDomain/hosts/CA%20pki.example.com%208443
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    -X DELETE https://$HOSTNAME:8443/ca/v2/securityDomain/hosts/CA%20pki.example.com%208443
 ----
 ====
 
@@ -1230,12 +1363,16 @@ $ curl -v --cacert ./ca_signing.crt -b session_cookie -X DELETE https://$HOSTNAM
 | hostname, subsystem
 | 200
 | ca, kra, ocsp, tks, tps
+| `application/json`
 |
-.Show
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl -v --cacert ./ca_signing.crt -b session_cookie "https://$HOSTNAME:8443/ca/v2/securityDomain/installToken?hostname=pki.example.com&subsystem=CA"
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    "https://$HOSTNAME:8443/ca/v2/securityDomain/installToken?hostname=pki.example.com&subsystem=CA"
 {
   "token" : "4984326538499940852"
 }
@@ -1247,12 +1384,16 @@ $ curl -v --cacert ./ca_signing.crt -b session_cookie "https://$HOSTNAME:8443/ca
 | start, size, filter
 | 200
 | ca, kra, ocsp, tks, tps
+| `application/json`
 |
-.Show
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl -v --cacert ./ca_signing.crt -b session_cookie "https://$HOSTNAME:8443/ca/v2/selftests?start=2"
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    "https://$HOSTNAME:8443/ca/v2/selftests?start=2"
 {
   "total" : 3,
   "entries" : [ {
@@ -1271,12 +1412,16 @@ $ curl -v --cacert ./ca_signing.crt -b session_cookie "https://$HOSTNAME:8443/ca
 | action (run)
 | 204
 | ca, kra, ocsp, tks, tps
-|
-.Show
+| _No output_
+| _No input expected_
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl -v --cacert ./ca_signing.crt -b session_cookie "https://$HOSTNAME:8443/ca/v2/selftests?action=run"
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    -X POST "https://$HOSTNAME:8443/ca/v2/selftests?action=run"
 ----
 ====
 
@@ -1285,12 +1430,16 @@ $ curl -v --cacert ./ca_signing.crt -b session_cookie "https://$HOSTNAME:8443/ca
 | None
 | 200
 | ca, kra, ocsp, tks, tps
+| `application/json`
 |
-.Show
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl -v --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/selftests/CAValidity
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    https://$HOSTNAME:8443/ca/v2/selftests/CAValidity
 {
   "id" : "CAValidity",
   "enabledAtStartup" : false,
@@ -1305,12 +1454,16 @@ $ curl -v --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/
 | None
 | 200
 | ca, kra, ocsp, tks, tps
-|
-.Show
+| `application/json`
+| _No input expected_
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl -v --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/selftests/run
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    -X POST https://$HOSTNAME:8443/ca/v2/selftests/run
 {
   "entries" : [ {
     "id" : "CAPresence",
@@ -1331,12 +1484,16 @@ $ curl -v --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/
 | None
 | 200
 | ca, kra, ocsp, tks, tps
-|
-.Show
+| `application/json`
+| _No input expected_
+
+7+|    
+.Example
 [%collapsible]
 ====
 ----
-$ curl -v --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/selftests/CAPresence/run
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    -X POST https://$HOSTNAME:8443/ca/v2/selftests/CAPresence/run
 {
   "id" : "CAPresence",
   "status" : "PASSED"
@@ -1350,22 +1507,24 @@ $ curl -v --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/
 
 = CA endpoints =
 
-* link:CA-REST-API-v2[CA REST API v2]
-
-[cols="6m,1,2,1,4a"]
+[cols="6a,1a,2a,1a,2a,4a"]
 |===
-| Path | Method | Parameters | Return code | Example
+| Path | Method | Parameters | Return code | Mime | Input
 
 | `/ca/v2/admin/kraconnector`
 | `GET`
 | None
 | 200
+| `application/json`
 |
-.Show
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/admin/kraconnector
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    https://$HOSTNAME:8443/ca/v2/admin/kraconnector
 {
   "host" : "pki.example.com",
   "port" : "8443",
@@ -1383,12 +1542,16 @@ $ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/
 | `POST`
 | None
 | 204
-|
-.Show
+| `application/json`
+| KRA connector configuration in json with `host`, `port`, `transportCert` (the base64), `transportCertNickname`, `subsystemCert`, `uri`, `timeout`, `local` and `enable`
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie --json '{"host":"pki.example.com","port":"8443","transportCert":"MIIEKTCCApGgAwIBAgIRAI9q+nOG/djvxsNAbtHm2MgwDQYJKoZIhvcNAQELBQAwSDEQMA4GA1UECgwHRVhBTVBMRTETMBEGA1UECwwKcGtpLXRvbWNhdDEfMB0GA1UEAwwWQ0EgU2lnbmluZyBDZXJ0aWZpY2F0ZTAeFw0yNDEwMzAxNzI1MDJaFw0yNjEwMjAxNzI1MDJaMEsxEDAOBgNVBAoMB0VYQU1QTEUxEzARBgNVBAsMCnBraS10b21jYXQxIjAgBgNVBAMMGURSTSBUcmFuc3BvcnQgQ2VydGlmaWNhdGUwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC+NYqOpevPL45O6MPKBKgP9Fl19LZXnxMDFI5k3bejAMqMBPFajE2hXS7CCQ1Z4CS6P+efMuPWV+HCrVkGr7IArVSOxfZGXbol254Cm8h/LeLffZ1tzLoYX0R/5AWpTd04/9atyUrqS10Yas70VCxuGrhXvikRP9M5keuy1REk1KrqjEbcEiT57dy4/aehilZQMh2Zw1v1lldm2TwlLCUJiJagFgkaQ+oK7TM6QZTkPnwgHBECJ5cY1b/EnEo8FNVqtrzTCGORkRS7aRZuf0mV0CYvbTU449Ep3mgft/f5l3z7ftEq1xN4JTUx5QTB19fRhvKRkR4Id9EIDVg+ilUTAgMBAAGjgYowgYcwHwYDVR0jBBgwFoAUdJFbHV/epjcRTQrq3lG5CnCSoQkwPwYIKwYBBQUHAQEEMzAxMC8GCCsGAQUFBzABhiNodHRwOi8vcGtpLmV4YW1wbGUuY29tOjgwODAvY2Evb2NzcDAOBgNVHQ8BAf8EBAMCBPAwEwYDVR0lBAwwCgYIKwYBBQUHAwIwDQYJKoZIhvcNAQELBQADggGBAHMZAn6bUWm+pGg7V2Trr1VtKUx5lis5ePKYzpiHGIo58N785aehJ0MjEe8zBNnL6pz8YRPbZuPReYd/Gf3PSzN0WNOOYh0LP3ApJZPXTbVAo7nwHIjS6n38S6ogZ94eVOwEM7j4+Fg08bekXXYR/oCqUeKNFg+prTS5jLP9bvaNiLN78fS5uERH3PxhhOMNzaS7oc53ci7cVvBek80JGJM8SgS5r4LjtbzTtEwzSMFRopKds62+cvEi8XGNI2p2nKJFRV7g5rA1mGo2fJB7733AxVinOajtiGNW3DsF4ZXUrcpW+dUsbCQzXew8kkVJ7Ze3GaLM63g5JgXH8SIsRdezdkmVnan3Kw0qKUJmUJJTHUnSnW5KaAbogfvP3JJZcrg8T/Bq8GLS22qDvazeyrQtBgr4kJrDnmp8eIHdwDXi3n2tkIBUSXo5+DgJtz2CjklOaeQ91eAtcuzczDFAaYTTbRCtnIDms2qox8R4zlBjdmy1w+TX93lh+pTzIj63AQ==","uri":"/kra/agent/kra/connector","timeout":"30","local":"false","enable":"true"}' https://$HOSTNAME:8443/ca/v2/admin/kraconnector/add
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    --json '{"host":"pki.example.com","port":"8443","transportCert":"MIIEKTCCApGgAwIBAgIRAI9q+nOG/djvxsNAbtHm2MgwDQYJKoZIhvcNAQELBQAwSDEQMA4GA1UECgwHRVhBTVBMRTETMBEGA1UECwwKcGtpLXRvbWNhdDEfMB0GA1UEAwwWQ0EgU2lnbmluZyBDZXJ0aWZpY2F0ZTAeFw0yNDEwMzAxNzI1MDJaFw0yNjEwMjAxNzI1MDJaMEsxEDAOBgNVBAoMB0VYQU1QTEUxEzARBgNVBAsMCnBraS10b21jYXQxIjAgBgNVBAMMGURSTSBUcmFuc3BvcnQgQ2VydGlmaWNhdGUwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC+NYqOpevPL45O6MPKBKgP9Fl19LZXnxMDFI5k3bejAMqMBPFajE2hXS7CCQ1Z4CS6P+efMuPWV+HCrVkGr7IArVSOxfZGXbol254Cm8h/LeLffZ1tzLoYX0R/5AWpTd04/9atyUrqS10Yas70VCxuGrhXvikRP9M5keuy1REk1KrqjEbcEiT57dy4/aehilZQMh2Zw1v1lldm2TwlLCUJiJagFgkaQ+oK7TM6QZTkPnwgHBECJ5cY1b/EnEo8FNVqtrzTCGORkRS7aRZuf0mV0CYvbTU449Ep3mgft/f5l3z7ftEq1xN4JTUx5QTB19fRhvKRkR4Id9EIDVg+ilUTAgMBAAGjgYowgYcwHwYDVR0jBBgwFoAUdJFbHV/epjcRTQrq3lG5CnCSoQkwPwYIKwYBBQUHAQEEMzAxMC8GCCsGAQUFBzABhiNodHRwOi8vcGtpLmV4YW1wbGUuY29tOjgwODAvY2Evb2NzcDAOBgNVHQ8BAf8EBAMCBPAwEwYDVR0lBAwwCgYIKwYBBQUHAwIwDQYJKoZIhvcNAQELBQADggGBAHMZAn6bUWm+pGg7V2Trr1VtKUx5lis5ePKYzpiHGIo58N785aehJ0MjEe8zBNnL6pz8YRPbZuPReYd/Gf3PSzN0WNOOYh0LP3ApJZPXTbVAo7nwHIjS6n38S6ogZ94eVOwEM7j4+Fg08bekXXYR/oCqUeKNFg+prTS5jLP9bvaNiLN78fS5uERH3PxhhOMNzaS7oc53ci7cVvBek80JGJM8SgS5r4LjtbzTtEwzSMFRopKds62+cvEi8XGNI2p2nKJFRV7g5rA1mGo2fJB7733AxVinOajtiGNW3DsF4ZXUrcpW+dUsbCQzXew8kkVJ7Ze3GaLM63g5JgXH8SIsRdezdkmVnan3Kw0qKUJmUJJTHUnSnW5KaAbogfvP3JJZcrg8T/Bq8GLS22qDvazeyrQtBgr4kJrDnmp8eIHdwDXi3n2tkIBUSXo5+DgJtz2CjklOaeQ91eAtcuzczDFAaYTTbRCtnIDms2qox8R4zlBjdmy1w+TX93lh+pTzIj63AQ==","uri":"/kra/agent/kra/connector","timeout":"30","local":"false","enable":"true"}' https://$HOSTNAME:8443/ca/v2/admin/kraconnector/add
 ----
 ====
 
@@ -1396,12 +1559,16 @@ $ curl --cacert ./ca_signing.crt -b session_cookie --json '{"host":"pki.example.
 | `POST`
 | host, port
 | 204
-|
-.Show
+| _No output_
+| _No input expected_
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie -X POST  "https://$HOSTNAME:8443/ca/v2/admin/kraconnector/addHost?host=pki2.example.com&port=8443"
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    -X POST "https://$HOSTNAME:8443/ca/v2/admin/kraconnector/addHost?host=pki2.example.com&port=8443"
 ----
 ====
 
@@ -1409,12 +1576,16 @@ $ curl --cacert ./ca_signing.crt -b session_cookie -X POST  "https://$HOSTNAME:8
 | `POST`
 | host, port
 | 204
-|
-.Show
+| _No output_
+| _No input expected_
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie -X POST  "https://$HOSTNAME:8443/ca/v2/admin/kraconnector/remove?host=pki.example.com&port=8443"
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    -X POST  "https://$HOSTNAME:8443/ca/v2/admin/kraconnector/remove?host=pki.example.com&port=8443"
 ----
 ====
 
@@ -1422,12 +1593,16 @@ $ curl --cacert ./ca_signing.crt -b session_cookie -X POST  "https://$HOSTNAME:8
 | `GET`
 | pageSize, start, maxTime
 | 200
+| `application/json`
 |
-.Show
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie "https://$HOSTNAME:8443/ca/v2/agent/certrequests?pageSize=2"
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    "https://$HOSTNAME:8443/ca/v2/agent/certrequests?pageSize=2"
 {
   "total" : 7,
   "entries" : [ {
@@ -1457,12 +1632,16 @@ $ curl --cacert ./ca_signing.crt -b session_cookie "https://$HOSTNAME:8443/ca/v2
 | `GET`
 | None
 | 200
+| `application/json`
 |
-.Show
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/agent/certrequests/0x5f2533c00bb8934584decbf1aa9ab987
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    https://$HOSTNAME:8443/ca/v2/agent/certrequests/0x5f2533c00bb8934584decbf1aa9ab987
 {
   "nonce" : "-8579840105031817822",
   "requestId" : "0x5f2533c00bb8934584decbf1aa9ab987",
@@ -1840,12 +2019,16 @@ $ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/
 | `POST`
 | None
 | 204
-|
-.Show
+| _No output_
+| Full cert request json obtained from `GET` operation
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie --json '{"nonce":"698006587460251198","requestId":"0x563c6ef28a2aa590fb5df963043be30e","requestType":"enrollment","requestStatus":"pending","requestOwner":"","requestCreationTime":"Wed Oct 30 11:09:30 UTC 2024","requestModificationTime":"Wed Oct 30 11:09:30 UTC 2024","requestNotes":"","profileApprovedBy":"admin","profileSetId":"userCertSet","profileIsVisible":"false","profileName":"Manual User Dual-Use Certificate Enrollment","profileDescription":"This certificate profile is for enrolling user certificates.","profileRemoteHost":"172.18.0.3","profileRemoteAddr":"172.18.0.3","ProfileID":"caUserCert","Renewal":false,"Input":[{"ClassID":"KeyGenInput","Name":"Key Generation","ConfigAttribute":[],"Attribute":[{"name":"cert_request_type","Value":"pkcs10"},{"name":"cert_request","Value":"-----BEGIN CERTIFICATE REQUEST-----\nMIICXjCCAUYCAQAwGTEXMBUGCgmSJomT8ixkAQEMB25ld1VzZXIwggEiMA0GCSqGSIb3DQEBAQUA\r\nA4IBDwAwggEKAoIBAQCfuroXU/H8AxyI3pBKF7mYRoP+yL0Qucqg9fvnJdY7M/E3OIHg+2l5f2UX\r\nL+Q9ESDZ7EMGxmuORPvqwwNuHSKaW/kfurcdTFlQjVuoXwUwy86D/veAp317tDZZmcjU6DgWrx8M\r\nA5c46Ck8KOa5NOetPjpbCufTLaKmPDM6+Rsei+aY5FMksHh6W+a1djuz1yN0COc60/+pzR4MCzMZ\r\n1N8TYKmtfprectaK9Jj0ckkRZ9zAuAwxdNnfSkNIgu8btBX7+/9IqSi+s/TUTo8jDxXWZkEu+Pn+\r\nCVpuYFd2lvij7gCJ2fKuDy5yyh1HFJFFWqQZ+V+snylBeAwHgk3V9dJvAgMBAAGgADANBgkqhkiG\r\n9w0BAQsFAAOCAQEAfYpmNiENJOVycl9DODw3UEmLDEZl5vDplUaK4E47ITz6rbB/vSQzXB/KDDuU\r\nLq/aqfPhhXFDYaQ3BLlgrxYcuojiDMEkEwi6lU1OxPpEWcCrCSMx0NzsQMA3XSWziMwCc0kyodlQ\r\nRYOEDMWfWNplBA/6kdEb5Vce/UrbOdbquWgcIopYyJ9QdLJJbqvFN2JUwpibd7pJSyglWK/WHk8o\r\nov1jQIkYmSlznQwLQyeliBMMX4pFN3BAgEuo4hFlYeP5r1ig3xsdXmKbZgtGo1FEK7OBHAbfmMs0\r\nNdp2mLo5hvNSTTYl4aATsR9SfljuRtjhZtqPfsonzDAjO+wj5dOC7g==\r\n-----END CERTIFICATE REQUEST-----"}]},{"ClassID":"SubjectNameInput","Name":"Subject Name","ConfigAttribute":[],"Attribute":[{"name":"sn_uid","Value":"newUser"}]},{"ClassID":"SubmitterInfoInput","Name":"Requestor Information","ConfigAttribute":[],"Attribute":[]}],"Output":[],"ProfilePolicySet":[{"policies":[{"id":"1","def":{"name":"Subject Name Default","text":"This default populates a User-Supplied Certificate Subject Name to the request.","attributes":[{"name":"name","Value":"UID=newUser","Descriptor":{"Syntax":"string","Description":"Subject Name"}}],"params":[]},"constraint":{"name":"Subject Name Constraint","text":"This constraint accepts the subject name that matches UID=.*","classId":"SubjectNameConstraint","constraints":[{"name":"pattern","descriptor":{"Syntax":"string","Description":"Subject Name Pattern"},"value":"UID=.*"}]}},{"id":"10","def":{"name":"No Default","text":"No Default","attributes":[],"params":[]},"constraint":{"name":"Renewal Grace Period Constraint","text":"This constraint rejects the validity that is not between 30 days before and 30 days after original cert expiration date days.","classId":"RenewGracePeriodConstraint","constraints":[{"name":"renewal.graceBefore","descriptor":{"Syntax":"integer","Description":"Renewal Grace Period Before","DefaultValue":"30"},"value":"30"},{"name":"renewal.graceAfter","descriptor":{"Syntax":"integer","Description":"Renewal Grace Period After","DefaultValue":"30"},"value":"30"}]}},{"id":"2","def":{"name":"Validity Default","text":"This default populates a Certificate Validity to the request. The default values are Range=180 in days","attributes":[{"name":"notBefore","Value":"2024-10-30 11:09:30","Descriptor":{"Syntax":"string","Description":"Not Before"}},{"name":"notAfter","Value":"2025-04-28 11:09:30","Descriptor":{"Syntax":"string","Description":"Not After"}}],"params":[]},"constraint":{"name":"Validity Constraint","text":"This constraint rejects the validity that is not between 365 days.","classId":"ValidityConstraint","constraints":[{"name":"range","descriptor":{"Syntax":"integer","Description":"Validity Range","DefaultValue":"365"},"value":"365"},{"name":"rangeUnit","descriptor":{"Syntax":"string","Description":"Validity Range Unit: year, month, day (default), hour, minute","DefaultValue":"day"},"value":""},{"name":"notBeforeGracePeriod","descriptor":{"Syntax":"integer","Description":"Grace period for Not Before being set in the future (in seconds).","DefaultValue":"0"},"value":""},{"name":"notBeforeCheck","descriptor":{"Syntax":"boolean","Description":"Check Not Before against current time","DefaultValue":"false"},"value":"false"},{"name":"notAfterCheck","descriptor":{"Syntax":"boolean","Description":"Check Not After against Not Before","DefaultValue":"false"},"value":"false"}]}},{"id":"3","def":{"name":"Key Default","text":"This default populates a User-Supplied Certificate Key to the request.","attributes":[{"name":"TYPE","Value":"RSA - 1.2.840.113549.1.1.1","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Key Type"}},{"name":"LEN","Value":"2048","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Key Length"}},{"name":"KEY","Value":"30:82:01:0A:02:82:01:01:00:9F:BA:BA:17:53:F1:FC:\\n03:1C:88:DE:90:4A:17:B9:98:46:83:FE:C8:BD:10:B9:\\nCA:A0:F5:FB:E7:25:D6:3B:33:F1:37:38:81:E0:FB:69:\\n79:7F:65:17:2F:E4:3D:11:20:D9:EC:43:06:C6:6B:8E:\\n44:FB:EA:C3:03:6E:1D:22:9A:5B:F9:1F:BA:B7:1D:4C:\\n59:50:8D:5B:A8:5F:05:30:CB:CE:83:FE:F7:80:A7:7D:\\n7B:B4:36:59:99:C8:D4:E8:38:16:AF:1F:0C:03:97:38:\\nE8:29:3C:28:E6:B9:34:E7:AD:3E:3A:5B:0A:E7:D3:2D:\\nA2:A6:3C:33:3A:F9:1B:1E:8B:E6:98:E4:53:24:B0:78:\\n7A:5B:E6:B5:76:3B:B3:D7:23:74:08:E7:3A:D3:FF:A9:\\nCD:1E:0C:0B:33:19:D4:DF:13:60:A9:AD:7E:9A:DE:72:\\nD6:8A:F4:98:F4:72:49:11:67:DC:C0:B8:0C:31:74:D9:\\nDF:4A:43:48:82:EF:1B:B4:15:FB:FB:FF:48:A9:28:BE:\\nB3:F4:D4:4E:8F:23:0F:15:D6:66:41:2E:F8:F9:FE:09:\\n5A:6E:60:57:76:96:F8:A3:EE:00:89:D9:F2:AE:0F:2E:\\n72:CA:1D:47:14:91:45:5A:A4:19:F9:5F:AC:9F:29:41:\\n78:0C:07:82:4D:D5:F5:D2:6F:02:03:01:00:01\\n","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Key"}}],"params":[]},"constraint":{"name":"Key Constraint","text":"This constraint accepts the key only if Key Type=RSA, Key Parameters =1024,2048,3072,4096","classId":"KeyConstraint","constraints":[{"name":"keyType","descriptor":{"Syntax":"choice","Constraint":"-,RSA,EC","Description":"Key Type","DefaultValue":"RSA"},"value":"RSA"},{"name":"keyParameters","descriptor":{"Syntax":"string","Description":"Key Lengths or Curves. For EC use comma separated list of curves, otherise use list of key sizes. Ex: 1024,2048,4096,8192 or: nistp256,nistp384,nistp521,sect163k1,nistk163 for EC.","DefaultValue":""},"value":"1024,2048,3072,4096"}]}},{"id":"4","def":{"name":"Authority Key Identifier Default","text":"This default populates an Authority Key Identifier Extension (2.5.29.35) to the request.","attributes":[{"name":"critical","Value":"false","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Criticality"}},{"name":"keyid","Value":"A7:7D:F6:2D:4E:E2:68:14:59:66:A3:8C:AD:E4:F3:76:\\nC4:00:E1:25\\n","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Key ID"}}],"params":[]},"constraint":{"name":"No Constraint","text":"No Constraint","classId":"NoConstraint","constraints":[]}},{"id":"5","def":{"name":"AIA Extension Default","text":"This default populates a Authority Info Access Extension (1.3.6.1.5.5.7.1.1) to the request. The default values are Criticality=false, Record #0{Method:1.3.6.1.5.5.7.48.1,Location Type:URIName,Location:,Enable:true}","attributes":[{"name":"authInfoAccessCritical","Value":"false","Descriptor":{"Syntax":"boolean","Description":"Criticality","DefaultValue":"false"}},{"name":"authInfoAccessGeneralNames","Value":"Record #0\r\nMethod:1.3.6.1.5.5.7.48.1\r\nLocation Type:URIName\r\nLocation:http://pki.example.com:8080/ca/ocsp\r\nEnable:true\r\n\r\n","Descriptor":{"Syntax":"string_list","Description":"General Names"}}],"params":[]},"constraint":{"name":"No Constraint","text":"No Constraint","classId":"NoConstraint","constraints":[]}},{"id":"6","def":{"name":"Key Usage Default","text":"This default populates a Key Usage Extension (2.5.29.15) to the request. The default values are Criticality=true, Digital Signature=true, Non-Repudiation=true, Key Encipherment=true, Data Encipherment=false, Key Agreement=false, Key Certificate Sign=false, Key CRL Sign=false, Encipher Only=false, Decipher Only=false","attributes":[{"name":"keyUsageCritical","Value":"true","Descriptor":{"Syntax":"boolean","Description":"Criticality","DefaultValue":"false"}},{"name":"keyUsageDigitalSignature","Value":"true","Descriptor":{"Syntax":"boolean","Description":"Digital Signature","DefaultValue":"false"}},{"name":"keyUsageNonRepudiation","Value":"true","Descriptor":{"Syntax":"boolean","Description":"Non-Repudiation","DefaultValue":"false"}},{"name":"keyUsageKeyEncipherment","Value":"true","Descriptor":{"Syntax":"boolean","Description":"Key Encipherment","DefaultValue":"false"}},{"name":"keyUsageDataEncipherment","Value":"false","Descriptor":{"Syntax":"boolean","Description":"Data Encipherment","DefaultValue":"false"}},{"name":"keyUsageKeyAgreement","Value":"false","Descriptor":{"Syntax":"boolean","Description":"Key Agreement","DefaultValue":"false"}},{"name":"keyUsageKeyCertSign","Value":"false","Descriptor":{"Syntax":"boolean","Description":"Key CertSign","DefaultValue":"false"}},{"name":"keyUsageCrlSign","Value":"false","Descriptor":{"Syntax":"boolean","Description":"CRL Sign","DefaultValue":"false"}},{"name":"keyUsageEncipherOnly","Value":"false","Descriptor":{"Syntax":"boolean","Description":"Encipher Only","DefaultValue":"false"}},{"name":"keyUsageDecipherOnly","Value":"false","Descriptor":{"Syntax":"boolean","Description":"Decipher Only","DefaultValue":"false"}}],"params":[]},"constraint":{"name":"Key Usage Extension Constraint","text":"This constraint accepts the Key Usage extension, if present, only when Criticality=true, Digital Signature=true, Non-Repudiation=true, Key Encipherment=true, Data Encipherment=false, Key Agreement=false, Key Certificate Sign=false, Key CRL Sign=false, Encipher Only=false, Decipher Only=false","classId":"KeyUsageExtConstraint","constraints":[{"name":"keyUsageCritical","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Criticality","DefaultValue":"-"},"value":"true"},{"name":"keyUsageDigitalSignature","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Digital Signature","DefaultValue":"-"},"value":"true"},{"name":"keyUsageNonRepudiation","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Non-Repudiation","DefaultValue":"-"},"value":"true"},{"name":"keyUsageKeyEncipherment","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Key Encipherment","DefaultValue":"-"},"value":"true"},{"name":"keyUsageDataEncipherment","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Data Encipherment","DefaultValue":"-"},"value":"false"},{"name":"keyUsageKeyAgreement","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Key Agreement","DefaultValue":"-"},"value":"false"},{"name":"keyUsageKeyCertSign","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Key CertSign","DefaultValue":"-"},"value":"false"},{"name":"keyUsageCrlSign","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"CRL Sign","DefaultValue":"-"},"value":"false"},{"name":"keyUsageEncipherOnly","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Encipher Only","DefaultValue":"-"},"value":"false"},{"name":"keyUsageDecipherOnly","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Decipher Only","DefaultValue":"-"},"value":"false"}]}},{"id":"7","def":{"name":"Extended Key Usage Extension Default","text":"This default populates an Extended Key Usage Extension () to the request. The default values are Criticality=false, OIDs=1.3.6.1.5.5.7.3.2,1.3.6.1.5.5.7.3.4","attributes":[{"name":"exKeyUsageCritical","Value":"false","Descriptor":{"Syntax":"boolean","Description":"Criticality","DefaultValue":"false"}},{"name":"exKeyUsageOIDs","Value":"1.3.6.1.5.5.7.3.2,1.3.6.1.5.5.7.3.4","Descriptor":{"Syntax":"string_list","Description":"Comma-Separated list of Object Identifiers"}}],"params":[]},"constraint":{"name":"No Constraint","text":"No Constraint","classId":"NoConstraint","constraints":[]}},{"id":"8","def":{"name":"Subject Alt Name Constraint","text":"This default populates a Subject Alternative Name Extension (2.5.29.17) to the request. The default values are Criticality=false, Record #0{Pattern:$request.requestor_email$,Pattern Type:RFC822Name,Enable:true}","attributes":[{"name":"subjAltNameExtCritical","Descriptor":{"Syntax":"boolean","Description":"Criticality","DefaultValue":"false"}},{"name":"subjAltNames","Descriptor":{"Syntax":"string_list","Description":"General Names"}}],"params":[]},"constraint":{"name":"No Constraint","text":"No Constraint","classId":"NoConstraint","constraints":[]}},{"id":"9","def":{"name":"Signing Alg","text":"This default populates the Certificate Signing Algorithm. The default values are Algorithm=SHA256withRSA","attributes":[{"name":"signingAlg","Value":"SHA256withRSA","Descriptor":{"Syntax":"choice","Constraint":"SHA256withRSA,SHA384withRSA,SHA512withRSA,SHA1withRSA,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS","Description":"Signing Algorithm"}}],"params":[]},"constraint":{"name":"No Constraint","text":"This constraint accepts only the Signing Algorithms of SHA256withRSA,SHA512withRSA,SHA256withEC,SHA384withRSA,SHA384withEC,SHA512withEC,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS","classId":"SigningAlgConstraint","constraints":[{"name":"signingAlgsAllowed","descriptor":{"Syntax":"string","Description":"Allowed Signing Algorithms","DefaultValue":"SHA256withRSA,SHA384withRSA,SHA512withRSA,SHA1withRSA,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS,SHA256withEC,SHA384withEC,SHA512withEC,SHA1withEC"},"value":"SHA256withRSA,SHA512withRSA,SHA256withEC,SHA384withRSA,SHA384withEC,SHA512withEC,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS"}]}}]}],"Attributes":{"Attribute":[]}}' https://$HOSTNAME:8443/ca/v2/agent/certrequests/0x563c6ef28a2aa590fb5df963043be30e/approve
+$ curl --cacert ./ca_signing.crt -b session_cookie --json '{"nonce":"698006587460251198","requestId":"0x563c6ef28a2aa590fb5df963043be30e","requestType":"enrollment","requestStatus":"pending","requestOwner":"","requestCreationTime":"Wed Oct 30 11:09:30 UTC 2024","requestModificationTime":"Wed Oct 30 11:09:30 UTC 2024","requestNotes":"","profileApprovedBy":"admin","profileSetId":"userCertSet","profileIsVisible":"false","profileName":"Manual User Dual-Use Certificate Enrollment","profileDescription":"This certificate profile is for enrolling user certificates.","profileRemoteHost":"172.18.0.3","profileRemoteAddr":"172.18.0.3","ProfileID":"caUserCert","Renewal":false,"Input":[{"ClassID":"KeyGenInput","Name":"Key Generation","ConfigAttribute":[],"Attribute":[{"name":"cert_request_type","Value":"pkcs10"},{"name":"cert_request","Value":"-----BEGIN CERTIFICATE REQUEST-----\nMIICXjCCAUYCAQAwGTEXMBUGCgmSJomT8ixkAQEMB25ld1VzZXIwggEiMA0GCSqGSIb3DQEBAQUA\r\nA4IBDwAwggEKAoIBAQCfuroXU/H8AxyI3pBKF7mYRoP+yL0Qucqg9fvnJdY7M/E3OIHg+2l5f2UX\r\nL+Q9ESDZ7EMGxmuORPvqwwNuHSKaW/kfurcdTFlQjVuoXwUwy86D/veAp317tDZZmcjU6DgWrx8M\r\nA5c46Ck8KOa5NOetPjpbCufTLaKmPDM6+Rsei+aY5FMksHh6W+a1djuz1yN0COc60/+pzR4MCzMZ\r\n1N8TYKmtfprectaK9Jj0ckkRZ9zAuAwxdNnfSkNIgu8btBX7+/9IqSi+s/TUTo8jDxXWZkEu+Pn+\r\nCVpuYFd2lvij7gCJ2fKuDy5yyh1HFJFFWqQZ+V+snylBeAwHgk3V9dJvAgMBAAGgADANBgkqhkiG\r\n9w0BAQsFAAOCAQEAfYpmNiENJOVycl9DODw3UEmLDEZl5vDplUaK4E47ITz6rbB/vSQzXB/KDDuU\r\nLq/aqfPhhXFDYaQ3BLlgrxYcuojiDMEkEwi6lU1OxPpEWcCrCSMx0NzsQMA3XSWziMwCc0kyodlQ\r\nRYOEDMWfWNplBA/6kdEb5Vce/UrbOdbquWgcIopYyJ9QdLJJbqvFN2JUwpibd7pJSyglWK/WHk8o\r\nov1jQIkYmSlznQwLQyeliBMMX4pFN3BAgEuo4hFlYeP5r1ig3xsdXmKbZgtGo1FEK7OBHAbfmMs0\r\nNdp2mLo5hvNSTTYl4aATsR9SfljuRtjhZtqPfsonzDAjO+wj5dOC7g==\r\n-----END CERTIFICATE REQUEST-----"}]},{"ClassID":"SubjectNameInput","Name":"Subject Name","ConfigAttribute":[],"Attribute":[{"name":"sn_uid","Value":"newUser"}]},{"ClassID":"SubmitterInfoInput","Name":"Requestor Information","ConfigAttribute":[],"Attribute":[]}],"Output":[],"ProfilePolicySet":[{"policies":[{"id":"1","def":{"name":"Subject Name Default","text":"This default populates a User-Supplied Certificate Subject Name to the request.","attributes":[{"name":"name","Value":"UID=newUser","Descriptor":{"Syntax":"string","Description":"Subject Name"}}],"params":[]},"constraint":{"name":"Subject Name Constraint","text":"This constraint accepts the subject name that matches UID=.*","classId":"SubjectNameConstraint","constraints":[{"name":"pattern","descriptor":{"Syntax":"string","Description":"Subject Name Pattern"},"value":"UID=.*"}]}},{"id":"10","def":{"name":"No Default","text":"No Default","attributes":[],"params":[]},"constraint":{"name":"Renewal Grace Period Constraint","text":"This constraint rejects the validity that is not between 30 days before and 30 days after original cert expiration date days.","classId":"RenewGracePeriodConstraint","constraints":[{"name":"renewal.graceBefore","descriptor":{"Syntax":"integer","Description":"Renewal Grace Period Before","DefaultValue":"30"},"value":"30"},{"name":"renewal.graceAfter","descriptor":{"Syntax":"integer","Description":"Renewal Grace Period After","DefaultValue":"30"},"value":"30"}]}},{"id":"2","def":{"name":"Validity Default","text":"This default populates a Certificate Validity to the request. The default values are Range=180 in days","attributes":[{"name":"notBefore","Value":"2024-10-30 11:09:30","Descriptor":{"Syntax":"string","Description":"Not Before"}},{"name":"notAfter","Value":"2025-04-28 11:09:30","Descriptor":{"Syntax":"string","Description":"Not After"}}],"params":[]},"constraint":{"name":"Validity Constraint","text":"This constraint rejects the validity that is not between 365 days.","classId":"ValidityConstraint","constraints":[{"name":"range","descriptor":{"Syntax":"integer","Description":"Validity Range","DefaultValue":"365"},"value":"365"},{"name":"rangeUnit","descriptor":{"Syntax":"string","Description":"Validity Range Unit: year, month, day (default), hour, minute","DefaultValue":"day"},"value":""},{"name":"notBeforeGracePeriod","descriptor":{"Syntax":"integer","Description":"Grace period for Not Before being set in the future (in seconds).","DefaultValue":"0"},"value":""},{"name":"notBeforeCheck","descriptor":{"Syntax":"boolean","Description":"Check Not Before against current time","DefaultValue":"false"},"value":"false"},{"name":"notAfterCheck","descriptor":{"Syntax":"boolean","Description":"Check Not After against Not Before","DefaultValue":"false"},"value":"false"}]}},{"id":"3","def":{"name":"Key Default","text":"This default populates a User-Supplied Certificate Key to the request.","attributes":[{"name":"TYPE","Value":"RSA - 1.2.840.113549.1.1.1","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Key Type"}},{"name":"LEN","Value":"2048","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Key Length"}},{"name":"KEY","Value":"30:82:01:0A:02:82:01:01:00:9F:BA:BA:17:53:F1:FC:\\n03:1C:88:DE:90:4A:17:B9:98:46:83:FE:C8:BD:10:B9:\\nCA:A0:F5:FB:E7:25:D6:3B:33:F1:37:38:81:E0:FB:69:\\n79:7F:65:17:2F:E4:3D:11:20:D9:EC:43:06:C6:6B:8E:\\n44:FB:EA:C3:03:6E:1D:22:9A:5B:F9:1F:BA:B7:1D:4C:\\n59:50:8D:5B:A8:5F:05:30:CB:CE:83:FE:F7:80:A7:7D:\\n7B:B4:36:59:99:C8:D4:E8:38:16:AF:1F:0C:03:97:38:\\nE8:29:3C:28:E6:B9:34:E7:AD:3E:3A:5B:0A:E7:D3:2D:\\nA2:A6:3C:33:3A:F9:1B:1E:8B:E6:98:E4:53:24:B0:78:\\n7A:5B:E6:B5:76:3B:B3:D7:23:74:08:E7:3A:D3:FF:A9:\\nCD:1E:0C:0B:33:19:D4:DF:13:60:A9:AD:7E:9A:DE:72:\\nD6:8A:F4:98:F4:72:49:11:67:DC:C0:B8:0C:31:74:D9:\\nDF:4A:43:48:82:EF:1B:B4:15:FB:FB:FF:48:A9:28:BE:\\nB3:F4:D4:4E:8F:23:0F:15:D6:66:41:2E:F8:F9:FE:09:\\n5A:6E:60:57:76:96:F8:A3:EE:00:89:D9:F2:AE:0F:2E:\\n72:CA:1D:47:14:91:45:5A:A4:19:F9:5F:AC:9F:29:41:\\n78:0C:07:82:4D:D5:F5:D2:6F:02:03:01:00:01\\n","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Key"}}],"params":[]},"constraint":{"name":"Key Constraint","text":"This constraint accepts the key only if Key Type=RSA, Key Parameters =1024,2048,3072,4096","classId":"KeyConstraint","constraints":[{"name":"keyType","descriptor":{"Syntax":"choice","Constraint":"-,RSA,EC","Description":"Key Type","DefaultValue":"RSA"},"value":"RSA"},{"name":"keyParameters","descriptor":{"Syntax":"string","Description":"Key Lengths or Curves. For EC use comma separated list of curves, otherise use list of key sizes. Ex: 1024,2048,4096,8192 or: nistp256,nistp384,nistp521,sect163k1,nistk163 for EC.","DefaultValue":""},"value":"1024,2048,3072,4096"}]}},{"id":"4","def":{"name":"Authority Key Identifier Default","text":"This default populates an Authority Key Identifier Extension (2.5.29.35) to the request.","attributes":[{"name":"critical","Value":"false","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Criticality"}},{"name":"keyid","Value":"A7:7D:F6:2D:4E:E2:68:14:59:66:A3:8C:AD:E4:F3:76:\\nC4:00:E1:25\\n","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Key ID"}}],"params":[]},"constraint":{"name":"No Constraint","text":"No Constraint","classId":"NoConstraint","constraints":[]}},{"id":"5","def":{"name":"AIA Extension Default","text":"This default populates a Authority Info Access Extension (1.3.6.1.5.5.7.1.1) to the request. The default values are Criticality=false, Record #0{Method:1.3.6.1.5.5.7.48.1,Location Type:URIName,Location:,Enable:true}","attributes":[{"name":"authInfoAccessCritical","Value":"false","Descriptor":{"Syntax":"boolean","Description":"Criticality","DefaultValue":"false"}},{"name":"authInfoAccessGeneralNames","Value":"Record #0\r\nMethod:1.3.6.1.5.5.7.48.1\r\nLocation Type:URIName\r\nLocation:http://pki.example.com:8080/ca/ocsp\r\nEnable:true\r\n\r\n","Descriptor":{"Syntax":"string_list","Description":"General Names"}}],"params":[]},"constraint":{"name":"No Constraint","text":"No Constraint","classId":"NoConstraint","constraints":[]}},{"id":"6","def":{"name":"Key Usage Default","text":"This default populates a Key Usage Extension (2.5.29.15) to the request. The default values are Criticality=true, Digital Signature=true, Non-Repudiation=true, Key Encipherment=true, Data Encipherment=false, Key Agreement=false, Key Certificate Sign=false, Key CRL Sign=false, Encipher Only=false, Decipher Only=false","attributes":[{"name":"keyUsageCritical","Value":"true","Descriptor":{"Syntax":"boolean","Description":"Criticality","DefaultValue":"false"}},{"name":"keyUsageDigitalSignature","Value":"true","Descriptor":{"Syntax":"boolean","Description":"Digital Signature","DefaultValue":"false"}},{"name":"keyUsageNonRepudiation","Value":"true","Descriptor":{"Syntax":"boolean","Description":"Non-Repudiation","DefaultValue":"false"}},{"name":"keyUsageKeyEncipherment","Value":"true","Descriptor":{"Syntax":"boolean","Description":"Key Encipherment","DefaultValue":"false"}},{"name":"keyUsageDataEncipherment","Value":"false","Descriptor":{"Syntax":"boolean","Description":"Data Encipherment","DefaultValue":"false"}},{"name":"keyUsageKeyAgreement","Value":"false","Descriptor":{"Syntax":"boolean","Description":"Key Agreement","DefaultValue":"false"}},{"name":"keyUsageKeyCertSign","Value":"false","Descriptor":{"Syntax":"boolean","Description":"Key CertSign","DefaultValue":"false"}},{"name":"keyUsageCrlSign","Value":"false","Descriptor":{"Syntax":"boolean","Description":"CRL Sign","DefaultValue":"false"}},{"name":"keyUsageEncipherOnly","Value":"false","Descriptor":{"Syntax":"boolean","Description":"Encipher Only","DefaultValue":"false"}},{"name":"keyUsageDecipherOnly","Value":"false","Descriptor":{"Syntax":"boolean","Description":"Decipher Only","DefaultValue":"false"}}],"params":[]},"constraint":{"name":"Key Usage Extension Constraint","text":"This constraint accepts the Key Usage extension, if present, only when Criticality=true, Digital Signature=true, Non-Repudiation=true, Key Encipherment=true, Data Encipherment=false, Key Agreement=false, Key Certificate Sign=false, Key CRL Sign=false, Encipher Only=false, Decipher Only=false","classId":"KeyUsageExtConstraint","constraints":[{"name":"keyUsageCritical","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Criticality","DefaultValue":"-"},"value":"true"},{"name":"keyUsageDigitalSignature","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Digital Signature","DefaultValue":"-"},"value":"true"},{"name":"keyUsageNonRepudiation","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Non-Repudiation","DefaultValue":"-"},"value":"true"},{"name":"keyUsageKeyEncipherment","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Key Encipherment","DefaultValue":"-"},"value":"true"},{"name":"keyUsageDataEncipherment","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Data Encipherment","DefaultValue":"-"},"value":"false"},{"name":"keyUsageKeyAgreement","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Key Agreement","DefaultValue":"-"},"value":"false"},{"name":"keyUsageKeyCertSign","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Key CertSign","DefaultValue":"-"},"value":"false"},{"name":"keyUsageCrlSign","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"CRL Sign","DefaultValue":"-"},"value":"false"},{"name":"keyUsageEncipherOnly","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Encipher Only","DefaultValue":"-"},"value":"false"},{"name":"keyUsageDecipherOnly","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Decipher Only","DefaultValue":"-"},"value":"false"}]}},{"id":"7","def":{"name":"Extended Key Usage Extension Default","text":"This default populates an Extended Key Usage Extension () to the request. The default values are Criticality=false, OIDs=1.3.6.1.5.5.7.3.2,1.3.6.1.5.5.7.3.4","attributes":[{"name":"exKeyUsageCritical","Value":"false","Descriptor":{"Syntax":"boolean","Description":"Criticality","DefaultValue":"false"}},{"name":"exKeyUsageOIDs","Value":"1.3.6.1.5.5.7.3.2,1.3.6.1.5.5.7.3.4","Descriptor":{"Syntax":"string_list","Description":"Comma-Separated list of Object Identifiers"}}],"params":[]},"constraint":{"name":"No Constraint","text":"No Constraint","classId":"NoConstraint","constraints":[]}},{"id":"8","def":{"name":"Subject Alt Name Constraint","text":"This default populates a Subject Alternative Name Extension (2.5.29.17) to the request. The default values are Criticality=false, Record #0{Pattern:$request.requestor_email$,Pattern Type:RFC822Name,Enable:true}","attributes":[{"name":"subjAltNameExtCritical","Descriptor":{"Syntax":"boolean","Description":"Criticality","DefaultValue":"false"}},{"name":"subjAltNames","Descriptor":{"Syntax":"string_list","Description":"General Names"}}],"params":[]},"constraint":{"name":"No Constraint","text":"No Constraint","classId":"NoConstraint","constraints":[]}},{"id":"9","def":{"name":"Signing Alg","text":"This default populates the Certificate Signing Algorithm. The default values are Algorithm=SHA256withRSA","attributes":[{"name":"signingAlg","Value":"SHA256withRSA","Descriptor":{"Syntax":"choice","Constraint":"SHA256withRSA,SHA384withRSA,SHA512withRSA,SHA1withRSA,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS","Description":"Signing Algorithm"}}],"params":[]},"constraint":{"name":"No Constraint","text":"This constraint accepts only the Signing Algorithms of SHA256withRSA,SHA512withRSA,SHA256withEC,SHA384withRSA,SHA384withEC,SHA512withEC,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS","classId":"SigningAlgConstraint","constraints":[{"name":"signingAlgsAllowed","descriptor":{"Syntax":"string","Description":"Allowed Signing Algorithms","DefaultValue":"SHA256withRSA,SHA384withRSA,SHA512withRSA,SHA1withRSA,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS,SHA256withEC,SHA384withEC,SHA512withEC,SHA1withEC"},"value":"SHA256withRSA,SHA512withRSA,SHA256withEC,SHA384withRSA,SHA384withEC,SHA512withEC,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS"}]}}]}],"Attributes":{"Attribute":[]}}' \
+    https://$HOSTNAME:8443/ca/v2/agent/certrequests/0x563c6ef28a2aa590fb5df963043be30e/approve
 ----
 ====
 
@@ -1853,12 +2036,16 @@ $ curl --cacert ./ca_signing.crt -b session_cookie --json '{"nonce":"69800658746
 | `GET`
 | None
 | 200
+| `application/json`
 |
-.Show
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/agent/certs/0x55092f4611ad2ede6c4064045d64bdee
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    https://$HOSTNAME:8443/ca/v2/agent/certs/0x55092f4611ad2ede6c4064045d64bdee
 {
   "id" : "0x55092f4611ad2ede6c4064045d64bdee",
   "IssuerDN" : "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE",
@@ -1877,12 +2064,17 @@ $ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/
 | `POST`
 | None
 | 200
-|
-.Show
+| `application/json`
+| Revoke requst json with `Rason`, `InvalidityDate`, `Comments`, `Encoded` and `Nonce`
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie --json '{"Reason":"Certificate_Hold","Nonce":7581228038945153660}' https://$HOSTNAME:8443/ca/v2/agent/certs/0x55092f4611ad2ede6c4064045d64bdee/revoke
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    --json '{"Reason":"Certificate_Hold","Nonce":7581228038945153660}' \
+    https://$HOSTNAME:8443/ca/v2/agent/certs/0x55092f4611ad2ede6c4064045d64bdee/revoke
 {
   "requestID" : "0x887ffed7ad4c0ee94a07700c48895f03",
   "requestType" : "revocation",
@@ -1899,12 +2091,17 @@ $ curl --cacert ./ca_signing.crt -b session_cookie --json '{"Reason":"Certificat
 | `POST`
 | None
 | 200
-|
-.Show
+| `application/json`
+| Revoke requst json with `Rason`, `InvalidityDate`, `Comments`, `Encoded` and `Nonce`
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie --json '{"Reason":"Certificate_Hold","Nonce":5052187310204086075}' https://$HOSTNAME:8443/ca/v2/agent/certs/0x86614664f6379c1c2d0a39d1e47d3fd0/revoke-ca
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    --json '{"Reason":"Certificate_Hold","Nonce":5052187310204086075}' \
+    https://$HOSTNAME:8443/ca/v2/agent/certs/0x86614664f6379c1c2d0a39d1e47d3fd0/revoke-ca
 {
   "requestID" : "0xb28c9fe27d90a97b9ec85d7ad1b32992",
   "requestType" : "revocation",
@@ -1913,7 +2110,6 @@ $ curl --cacert ./ca_signing.crt -b session_cookie --json '{"Reason":"Certificat
   "modificationTime" : 1730300625000,
   "certId" : "0x86614664f6379c1c2d0a39d1e47d3fd0",
   "operationResult" : "success"
-* Connection #0 to host pki.example.com left intact
 }
 ----
 ====
@@ -1922,12 +2118,16 @@ $ curl --cacert ./ca_signing.crt -b session_cookie --json '{"Reason":"Certificat
 | `POST`
 | None
 | 200
-|
-.Show
+| `application/json`
+| _No input expected_
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/agent/certs/0x55092f4611ad2ede6c4064045d64bdee/unrevoke
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    -X POST https://$HOSTNAME:8443/ca/v2/agent/certs/0x55092f4611ad2ede6c4064045d64bdee/unrevoke
 {
   "requestID" : "0xdca57cea1f51ed123dc85dd889a595eb",
   "requestType" : "unrevocation",
@@ -1943,12 +2143,16 @@ $ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/
 | `GET`
 | id, parentID, dn, issuerDN
 | 200
+| `application/json`
 |
-.Show
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie "https://$HOSTNAME:8443/ca/v2/authorities?issuerDN=CN%3DCA%20Signing%20Certificate%2COU%3Dpki-tomcat%2CO%3DEXAMPLE"
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    "https://$HOSTNAME:8443/ca/v2/authorities?issuerDN=CN%3DCA%20Signing%20Certificate%2COU%3Dpki-tomcat%2CO%3DEXAMPLE"
 {"isHostAuthority":true,"id":"9f75deb6-53b1-48cc-9028-9c899f9526b4","issuerDN":"CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE","serial":178621631998145652837496363178029563856,"dn":"CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE","enabled":true,"description":"Host authority","ready":true}]
 ----
 ====
@@ -1957,12 +2161,17 @@ $ curl --cacert ./ca_signing.crt -b session_cookie "https://$HOSTNAME:8443/ca/v2
 | `POST`
 | None
 | 201
-|
-.Show
+| `application/json`
+| Authority json with `parentID`, `dn`, `enabled` and `description`
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie --json '{"parentID":"9f75deb6-53b1-48cc-9028-9c899f9526b4","dn":"CN=NEW CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE","enabled":true}' "https://$HOSTNAME:8443/ca/v2/authorities
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    --json '{"parentID":"9f75deb6-53b1-48cc-9028-9c899f9526b4","dn":"CN=NEW CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE","enabled":true}' \
+    "https://$HOSTNAME:8443/ca/v2/authorities
 {
   "isHostAuthority" : false,
   "id" : "622f0a8b-a6cf-41ed-a7b7-99e7b1444c0f",
@@ -1980,12 +2189,16 @@ $ curl --cacert ./ca_signing.crt -b session_cookie --json '{"parentID":"9f75deb6
 | `GET`
 | None
 | 200
+| `application/json`
 |
-.Show
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/authorities/622f0a8b-a6cf-41ed-a7b7-99e7b1444c0f
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    https://$HOSTNAME:8443/ca/v2/authorities/622f0a8b-a6cf-41ed-a7b7-99e7b1444c0f
 {
   "isHostAuthority" : false,
   "id" : "622f0a8b-a6cf-41ed-a7b7-99e7b1444c0f",
@@ -2003,12 +2216,17 @@ $ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/
 | `PUT`
 | None
 | 200
-|
-.Show
+| `application/json`
+| Authority json with `parentID`, `dn`, `enabled` and `description`
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie -json '{"parentID":"9f75deb6-53b1-48cc-9028-9c899f9526b4","dn":"CN=NEW CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE","enabled":false}' -X PUT https://$HOSTNAME:8443/ca/v2/authorities/622f0a8b-a6cf-41ed-a7b7-99e7b1444c0f
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+  --json '{"parentID":"9f75deb6-53b1-48cc-9028-9c899f9526b4","dn":"CN=NEW CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE","enabled":false}' \
+  -X PUT https://$HOSTNAME:8443/ca/v2/authorities/622f0a8b-a6cf-41ed-a7b7-99e7b1444c0f
 {
   "isHostAuthority" : false,
   "id" : "622f0a8b-a6cf-41ed-a7b7-99e7b1444c0f",
@@ -2027,11 +2245,15 @@ $ curl --cacert ./ca_signing.crt -b session_cookie -json '{"parentID":"9f75deb6-
 | None
 | 204
 |
-.Show
+|
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie -X DELETE https://$HOSTNAME:8443/ca/v2/authorities/622f0a8b-a6cf-41ed-a7b7-99e7b1444c0f
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+  -X DELETE https://$HOSTNAME:8443/ca/v2/authorities/622f0a8b-a6cf-41ed-a7b7-99e7b1444c0f
 ----
 ====
 
@@ -2039,12 +2261,17 @@ $ curl --cacert ./ca_signing.crt -b session_cookie -X DELETE https://$HOSTNAME:8
 | `GET`
 | None
 | 200
+| `application/x-pem-file` or `application/pkix-cert`
 |
-.Show
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie -H 'Accpet;' -H 'Accept: papplication/x-pem-file' --output newCert.pem  https://$HOSTNAME:8443/ca/v2/authorities/622f0a8b-a6cf-41ed-a7b7-99e7b1444c0f/cert
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    -H 'Accpet;' -H 'Accept: application/x-pem-file' --output newCert.pem \
+    https://$HOSTNAME:8443/ca/v2/authorities/622f0a8b-a6cf-41ed-a7b7-99e7b1444c0f/cert
 ----
 ====
 
@@ -2052,12 +2279,17 @@ $ curl --cacert ./ca_signing.crt -b session_cookie -H 'Accpet;' -H 'Accept: papp
 | `GET`
 | None
 | 200
+| `application/x-pem-file` or `application/pkcs7-mime`
 |
-.Show
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie -H 'Accpet;' -H 'Accept: papplication/x-pem-file' --output newChain.pem  https://$HOSTNAME:8443/ca/v2/authorities/622f0a8b-a6cf-41ed-a7b7-99e7b1444c0f/chain
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    -H 'Accpet;' -H 'Accept: papplication/x-pem-file' --output newChain.pem  \
+    https://$HOSTNAME:8443/ca/v2/authorities/622f0a8b-a6cf-41ed-a7b7-99e7b1444c0f/chain
 ----
 ====
 
@@ -2065,12 +2297,16 @@ $ curl --cacert ./ca_signing.crt -b session_cookie -H 'Accpet;' -H 'Accept: papp
 | `POST`
 | None
 | 200
-|
-.Show
+| `application/json`
+| _No input expected_
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/authorities/622f0a8b-a6cf-41ed-a7b7-99e7b1444c0f/enable
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    -X POST https://$HOSTNAME:8443/ca/v2/authorities/622f0a8b-a6cf-41ed-a7b7-99e7b1444c0f/enable
 {
   "isHostAuthority" : false,
   "id" : "622f0a8b-a6cf-41ed-a7b7-99e7b1444c0f",
@@ -2088,12 +2324,16 @@ $ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/
 | `POST`
 | None
 | 200
-|
-.Show
+| `application/json`
+| _No input expected_
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/authorities/622f0a8b-a6cf-41ed-a7b7-99e7b1444c0f/disable
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    -X POST https://$HOSTNAME:8443/ca/v2/authorities/622f0a8b-a6cf-41ed-a7b7-99e7b1444c0f/disable
 {
   "isHostAuthority" : false,
   "id" : "622f0a8b-a6cf-41ed-a7b7-99e7b1444c0f",
@@ -2108,37 +2348,19 @@ $ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/
 ====
 
 | `/ca/v2/authorities/{id}/renew`
-| `GET`
+| `POST`
 | None
 | 204
 |
-.Show
-[%collapsible]
-====
-----
-$ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/authorities/622f0a8b-a6cf-41ed-a7b7-99e7b1444c0f/renew
-----
-====
+| _No input expected_
 
-| `/ca/v2/config/cert/signing`
-| `GET`
-| None
-| 200
-|
-.Show
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt https://$HOSTNAME:8443/ca/v2/config/cert/signing
-{
-  "id" : "0x86614664f6379c1c2d0a39d1e47d3fd0",
-  "IssuerDN" : "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE",
-  "SubjectDN" : "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE",
-  "Encoded" : "-----BEGIN CERTIFICATE-----\nMIIEfjCCAuagAwIBAgIRAIZhRmT2N5wcLQo50eR9P9AwDQYJKoZIhvcNAQELBQAwSDEQMA4GA1UE\r\nCgwHRVhBTVBMRTETMBEGA1UECwwKcGtpLXRvbWNhdDEfMB0GA1UEAwwWQ0EgU2lnbmluZyBDZXJ0\r\naWZpY2F0ZTAeFw0yNDEwMjkxMTA4MDBaFw00NDEwMjkxMTA4MDBaMEgxEDAOBgNVBAoMB0VYQU1Q\r\nTEUxEzARBgNVBAsMCnBraS10b21jYXQxHzAdBgNVBAMMFkNBIFNpZ25pbmcgQ2VydGlmaWNhdGUw\r\nggGiMA0GCSqGSIb3DQEBAQUAA4IBjwAwggGKAoIBgQDKH05xPGs7ulmpbZ06rDk0hLZR3UU5O+bB\r\n9cWW2LDMoVGoLmiDMkeMdYr2uWOttGwym+JcixebybVig2b2zeYCVvzeT+LvQmelJUOU5Jua4b6u\r\nb+CzeEquITvGwz8kejGRZw2waZ4+tnvwFIRlU2+XqBtiu4Q1AaeIX2Biov+RvDZGWZQgA0mxcraV\r\nyUPOkrpo4h252UDzIPQU2YJzD6LmQO0kktYQf+UwoBHiCaVl/Je62ftFn5J2qEO8y8+MyZ3L7F14\r\nimxJHW8jPPii4t8MuT99tcQ7sDuAOFHEsB7zzkrubHSxUVfPG7ACdBSxUR4DnV5uRpdZjL+KDs/H\r\nGEVXCkVEnDEVItboZISDiBIU1przM+hWdZg5kc2jwgOhnNkuiLFDo82c+QsnfMDchAv8yHPRYz7F\r\nbnTdmFzhp9k9mipdo6zSHbSoncT5pPNPt8M0w6KpqB3uNQyk6M38D6jkHjb2bzPqPza+om2cOrS7\r\ne/R8vgh5Xkms5vO2ybYbupMCAwEAAaNjMGEwHQYDVR0OBBYEFKd99i1O4mgUWWajjK3k83bEAOEl\r\nMB8GA1UdIwQYMBaAFKd99i1O4mgUWWajjK3k83bEAOElMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0P\r\nAQH/BAQDAgHGMA0GCSqGSIb3DQEBCwUAA4IBgQCoGIsHFIhqotLoAfeoEQrhqz23rClFNOSb/GzR\r\nMZhuXlIsmhhGYtCHA+Fyy0PaQMMgxoL2WgT2ZfCfuCUkcBsX/5XUFBXBXvc8LrTDTqSW9KdWPLsz\r\nUOeHgvre6VG7lh0hPz90b7MZ8enlrVKgjNIKTdQcarIFXnS9oso1453DTU3f20+xP4IkYRNa9H4J\r\ni0s/7PAddvQ1ynY4Wy65B2E5jJaYbUPakt/AalGuhgg7ji8BbGoYGhzf/l3USRfgm9i10AtrYUza\r\njAkKvcn1jBz2U9aro8tfakhFEMY6qOT7TvA/LLtJ7s5434DiOczt8AaVVQCYAYwqTQ/TyszEnOiE\r\niIAcPUWKK0B01D8wK5/9lZEL5vfuF/ykf99xn7XFX15P/jRb9gHj1Buj6LEN5CqVIgPu1vIrwIaB\r\n78BSqTrNpOMiucHe/vuv3nB1DcyqSoSLWbd1Gn5Xcs486sBAZP0I2IwxDAZJbYdqfkDzPJRiFFre\r\nsg/zc6Oekw5oJ3QCwrU=\r\n-----END CERTIFICATE-----\n",
-  "PKCS7CertChain" : "MIIErQYJKoZIhvcNAQcCoIIEnjCCBJoCAQExADALBgkqhkiG9w0BBwGgggSCMIIEfjCCAuagAwIBAgIRAIZhRmT2N5wcLQo50eR9P9AwDQYJKoZIhvcNAQELBQAwSDEQMA4GA1UECgwHRVhBTVBMRTETMBEGA1UECwwKcGtpLXRvbWNhdDEfMB0GA1UEAwwWQ0EgU2lnbmluZyBDZXJ0aWZpY2F0ZTAeFw0yNDEwMjkxMTA4MDBaFw00NDEwMjkxMTA4MDBaMEgxEDAOBgNVBAoMB0VYQU1QTEUxEzARBgNVBAsMCnBraS10b21jYXQxHzAdBgNVBAMMFkNBIFNpZ25pbmcgQ2VydGlmaWNhdGUwggGiMA0GCSqGSIb3DQEBAQUAA4IBjwAwggGKAoIBgQDKH05xPGs7ulmpbZ06rDk0hLZR3UU5O+bB9cWW2LDMoVGoLmiDMkeMdYr2uWOttGwym+JcixebybVig2b2zeYCVvzeT+LvQmelJUOU5Jua4b6ub+CzeEquITvGwz8kejGRZw2waZ4+tnvwFIRlU2+XqBtiu4Q1AaeIX2Biov+RvDZGWZQgA0mxcraVyUPOkrpo4h252UDzIPQU2YJzD6LmQO0kktYQf+UwoBHiCaVl/Je62ftFn5J2qEO8y8+MyZ3L7F14imxJHW8jPPii4t8MuT99tcQ7sDuAOFHEsB7zzkrubHSxUVfPG7ACdBSxUR4DnV5uRpdZjL+KDs/HGEVXCkVEnDEVItboZISDiBIU1przM+hWdZg5kc2jwgOhnNkuiLFDo82c+QsnfMDchAv8yHPRYz7FbnTdmFzhp9k9mipdo6zSHbSoncT5pPNPt8M0w6KpqB3uNQyk6M38D6jkHjb2bzPqPza+om2cOrS7e/R8vgh5Xkms5vO2ybYbupMCAwEAAaNjMGEwHQYDVR0OBBYEFKd99i1O4mgUWWajjK3k83bEAOElMB8GA1UdIwQYMBaAFKd99i1O4mgUWWajjK3k83bEAOElMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQDAgHGMA0GCSqGSIb3DQEBCwUAA4IBgQCoGIsHFIhqotLoAfeoEQrhqz23rClFNOSb/GzRMZhuXlIsmhhGYtCHA+Fyy0PaQMMgxoL2WgT2ZfCfuCUkcBsX/5XUFBXBXvc8LrTDTqSW9KdWPLszUOeHgvre6VG7lh0hPz90b7MZ8enlrVKgjNIKTdQcarIFXnS9oso1453DTU3f20+xP4IkYRNa9H4Ji0s/7PAddvQ1ynY4Wy65B2E5jJaYbUPakt/AalGuhgg7ji8BbGoYGhzf/l3USRfgm9i10AtrYUzajAkKvcn1jBz2U9aro8tfakhFEMY6qOT7TvA/LLtJ7s5434DiOczt8AaVVQCYAYwqTQ/TyszEnOiEiIAcPUWKK0B01D8wK5/9lZEL5vfuF/ykf99xn7XFX15P/jRb9gHj1Buj6LEN5CqVIgPu1vIrwIaB78BSqTrNpOMiucHe/vuv3nB1DcyqSoSLWbd1Gn5Xcs486sBAZP0I2IwxDAZJbYdqfkDzPJRiFFresg/zc6Oekw5oJ3QCwrUxAA==",
-  "NotBefore" : "Tue Oct 29 11:08:00 UTC 2024",
-  "NotAfter" : "Sat Oct 29 11:08:00 UTC 2044"
-}
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+  https://$HOSTNAME:8443/ca/v2/authorities/622f0a8b-a6cf-41ed-a7b7-99e7b1444c0f/renew
 ----
 ====
 
@@ -2146,12 +2368,17 @@ $ curl --cacert ./ca_signing.crt https://$HOSTNAME:8443/ca/v2/config/cert/signin
 | `POST`
 | None
 | 200
-|
-.Show
+| `application/json`
+| Cert enroll request in json with `ProfileID`, `ServerSideKeygenP12Passwd`, `Renewal`, `SerialNumber`, `RemoteHost`, `RemoteAddress`, `Input` (a list as difined by the profile), `Output` (a list as difined by the profile) and `Attributes`
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt --json '{"ProfileID":"caUserCert","Renewal":false,"RemoteHost":"","RemoteAddress":"","Input":[{"id":"i1","ClassID":"keyGenInputImpl","Name":"Key Generation","ConfigAttribute":[],"Attribute":[{"name":"cert_request_type","Value":"pkcs10","Descriptor":{"Syntax":"keygen_request_type","Description":"Key Generation Request Type"}},{"name":"cert_request","Value":"-----BEGIN CERTIFICATE REQUEST-----\nMIICXjCCAUYCAQAwGTEXMBUGCgmSJomT8ixkAQEMB25ld1VzZXIwggEiMA0GCSqGSIb3DQEBAQUA\r\nA4IBDwAwggEKAoIBAQDeu/zJSSDYzXcJsH7lZe8fKPV0CIWNAD0g5FpOdcqvcZMwXQsnVqCNdfby\r\nSwX6sGzKEHCXyYxaXHuLMpMJ5pHK1BzRCfjQAkPzWbCN5beg7L/l7Gi+52h0z9R/zTZkG355ja3r\r\nkyd9d0tah5XbPWsdp0BVtPOIK4t0d6F+WkEkC0pyCejtkqoBSf9F1CTHw3iOxhgKMxV+ebC/TM2l\r\n9AvnzAfF91Sf5KAd8hTAhHurgBkqxuzL16ERBbM0DFfie8RCiTVBvvS/6UmfEVH3dMHIuE5flXB+\r\nhMCrj8g7GfWIaA6WzwfkZrNgCjYoVHPivMg+akhMbQg6m0goB3zA/D/zAgMBAAGgADANBgkqhkiG\r\n9w0BAQsFAAOCAQEALi3+agIXworiPVF1qyAr3wLjffzu6RIDiLS9cVHHnnAj1AjEnKFDpwTYeuBk\r\nXaRzgyCHyCLyKSSN337PBUEnxOxNWNIJDCC8gpMcfCCnspos7N9M8dnROD60EUDVdUtfdE+g5JfG\r\nkwlQz3lbktFuQwznf3EUYPPvyMLSG1RITVJyEJ3tH0PZ5GFlDwi5Gw7DTzl7nAWwXZ5LeCa9b6d8\r\nwCbPAAHA2OCYck1PyLrFlAnmF5udsY4AY7b5YK5iIqysWikXYqexk/oE707XJhX+btDYx0W4qI8j\r\nhc50ZHgtobGXAgqNQvL2WOtmEJY2Fwpl+ejuGi6bamzTkXqh/Vi+XQ==\r\n-----END CERTIFICATE REQUEST-----\n","Descriptor":{"Syntax":"keygen_request","Description":"Key Generation Request"}}]},{"id":"i2","ClassID":"subjectNameInputImpl","Name":"Subject Name","ConfigAttribute":[],"Attribute":[{"name":"sn_uid","Value":"newUser","Descriptor":{"Syntax":"string","Description":"UID"}},{"name":"sn_e","Value":"","Descriptor":{"Syntax":"string","Description":"Email"}},{"name":"sn_cn","Value":"","Descriptor":{"Syntax":"string","Description":"Common Name"}},{"name":"sn_ou3","Value":"","Descriptor":{"Syntax":"string","Description":"Organizational Unit 3"}},{"name":"sn_ou2","Value":"","Descriptor":{"Syntax":"string","Description":"Organizational Unit 2"}},{"name":"sn_ou1","Value":"","Descriptor":{"Syntax":"string","Description":"Organizational Unit 1"}},{"name":"sn_ou","Value":"","Descriptor":{"Syntax":"string","Description":"Organizational Unit"}},{"name":"sn_o","Value":"","Descriptor":{"Syntax":"string","Description":"Organization"}},{"name":"sn_c","Value":"","Descriptor":{"Syntax":"string","Description":"Country"}}]},{"id":"i3","ClassID":"submitterInfoInputImpl","Name":"Requestor Information","ConfigAttribute":[],"Attribute":[{"name":"requestor_name","Value":"","Descriptor":{"Syntax":"string","Description":"Requestor Name"}},{"name":"requestor_email","Value":"","Descriptor":{"Syntax":"string","Description":"Requestor Email"}},{"name":"requestor_phone","Value":"","Descriptor":{"Syntax":"string","Description":"Requestor Phone"}}]}],"Output":[],"Attributes":{"Attribute":[]}}' https://$HOSTNAME:8443/ca/v2/certrequests
+$ curl --cacert ./ca_signing.crt \
+    --json '{"ProfileID":"caUserCert","Renewal":false,"RemoteHost":"","RemoteAddress":"","Input":[{"id":"i1","ClassID":"keyGenInputImpl","Name":"Key Generation","ConfigAttribute":[],"Attribute":[{"name":"cert_request_type","Value":"pkcs10","Descriptor":{"Syntax":"keygen_request_type","Description":"Key Generation Request Type"}},{"name":"cert_request","Value":"-----BEGIN CERTIFICATE REQUEST-----\nMIICXjCCAUYCAQAwGTEXMBUGCgmSJomT8ixkAQEMB25ld1VzZXIwggEiMA0GCSqGSIb3DQEBAQUA\r\nA4IBDwAwggEKAoIBAQDeu/zJSSDYzXcJsH7lZe8fKPV0CIWNAD0g5FpOdcqvcZMwXQsnVqCNdfby\r\nSwX6sGzKEHCXyYxaXHuLMpMJ5pHK1BzRCfjQAkPzWbCN5beg7L/l7Gi+52h0z9R/zTZkG355ja3r\r\nkyd9d0tah5XbPWsdp0BVtPOIK4t0d6F+WkEkC0pyCejtkqoBSf9F1CTHw3iOxhgKMxV+ebC/TM2l\r\n9AvnzAfF91Sf5KAd8hTAhHurgBkqxuzL16ERBbM0DFfie8RCiTVBvvS/6UmfEVH3dMHIuE5flXB+\r\nhMCrj8g7GfWIaA6WzwfkZrNgCjYoVHPivMg+akhMbQg6m0goB3zA/D/zAgMBAAGgADANBgkqhkiG\r\n9w0BAQsFAAOCAQEALi3+agIXworiPVF1qyAr3wLjffzu6RIDiLS9cVHHnnAj1AjEnKFDpwTYeuBk\r\nXaRzgyCHyCLyKSSN337PBUEnxOxNWNIJDCC8gpMcfCCnspos7N9M8dnROD60EUDVdUtfdE+g5JfG\r\nkwlQz3lbktFuQwznf3EUYPPvyMLSG1RITVJyEJ3tH0PZ5GFlDwi5Gw7DTzl7nAWwXZ5LeCa9b6d8\r\nwCbPAAHA2OCYck1PyLrFlAnmF5udsY4AY7b5YK5iIqysWikXYqexk/oE707XJhX+btDYx0W4qI8j\r\nhc50ZHgtobGXAgqNQvL2WOtmEJY2Fwpl+ejuGi6bamzTkXqh/Vi+XQ==\r\n-----END CERTIFICATE REQUEST-----\n","Descriptor":{"Syntax":"keygen_request","Description":"Key Generation Request"}}]},{"id":"i2","ClassID":"subjectNameInputImpl","Name":"Subject Name","ConfigAttribute":[],"Attribute":[{"name":"sn_uid","Value":"newUser","Descriptor":{"Syntax":"string","Description":"UID"}},{"name":"sn_e","Value":"","Descriptor":{"Syntax":"string","Description":"Email"}},{"name":"sn_cn","Value":"","Descriptor":{"Syntax":"string","Description":"Common Name"}},{"name":"sn_ou3","Value":"","Descriptor":{"Syntax":"string","Description":"Organizational Unit 3"}},{"name":"sn_ou2","Value":"","Descriptor":{"Syntax":"string","Description":"Organizational Unit 2"}},{"name":"sn_ou1","Value":"","Descriptor":{"Syntax":"string","Description":"Organizational Unit 1"}},{"name":"sn_ou","Value":"","Descriptor":{"Syntax":"string","Description":"Organizational Unit"}},{"name":"sn_o","Value":"","Descriptor":{"Syntax":"string","Description":"Organization"}},{"name":"sn_c","Value":"","Descriptor":{"Syntax":"string","Description":"Country"}}]},{"id":"i3","ClassID":"submitterInfoInputImpl","Name":"Requestor Information","ConfigAttribute":[],"Attribute":[{"name":"requestor_name","Value":"","Descriptor":{"Syntax":"string","Description":"Requestor Name"}},{"name":"requestor_email","Value":"","Descriptor":{"Syntax":"string","Description":"Requestor Email"}},{"name":"requestor_phone","Value":"","Descriptor":{"Syntax":"string","Description":"Requestor Phone"}}]}],"Output":[],"Attributes":{"Attribute":[]}}' \
+    https://$HOSTNAME:8443/ca/v2/certrequests
 {
   "total" : 1,
   "entries" : [ {
@@ -2171,12 +2398,16 @@ $ curl --cacert ./ca_signing.crt --json '{"ProfileID":"caUserCert","Renewal":fal
 | `GET`
 | None
 | 200
+| `application/json`
 |
-.Show
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt https://$HOSTNAME:8443/ca/v2/certrequests/0xd3e6013b9ae406efe9b8d45029faee9a
+$ curl --cacert ./ca_signing.crt \
+    https://$HOSTNAME:8443/ca/v2/certrequests/0xd3e6013b9ae406efe9b8d45029faee9a
 {
   "requestID" : "0xd3e6013b9ae406efe9b8d45029faee9a",
   "requestType" : "enrollment",
@@ -2193,12 +2424,16 @@ $ curl --cacert ./ca_signing.crt https://$HOSTNAME:8443/ca/v2/certrequests/0xd3e
 | `GET`
 | size, start
 | 200
+| `application/json`
 |
-.Show
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt "https://$HOSTNAME:8443/ca/v2/certrequests/profiles?size=2&start=4"
+$ curl --cacert ./ca_signing.crt \
+    "https://$HOSTNAME:8443/ca/v2/certrequests/profiles?size=2&start=4"
 {
   "total" : 26,
   "entries" : [ {
@@ -2224,12 +2459,16 @@ $ curl --cacert ./ca_signing.crt "https://$HOSTNAME:8443/ca/v2/certrequests/prof
 | `GET`
 | None
 | 200
+| `application/json`
 |
-.Show
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt https://$HOSTNAME:8443/ca/v2/certrequests/profiles/caUserCert
+$ curl --cacert ./ca_signing.crt \
+    https://$HOSTNAME:8443/ca/v2/certrequests/profiles/caUserCert
 {
   "ProfileID" : "caUserCert",
   "Renewal" : false,
@@ -2364,12 +2603,16 @@ $ curl --cacert ./ca_signing.crt https://$HOSTNAME:8443/ca/v2/certrequests/profi
 | `GET`
 | size, start, maxTime
 | 200
+| `application/json`
 |
-.Show
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt "https://$HOSTNAME:8443/ca/v2/certs?size=2&start=4"
+$ curl --cacert ./ca_signing.crt \
+    "https://$HOSTNAME:8443/ca/v2/certs?size=2&start=4"
 {
   "entries" : [ {
     "id" : "0xc99ff8f6549f903d8df28a4e5f5105f3",
@@ -2406,12 +2649,16 @@ $ curl --cacert ./ca_signing.crt "https://$HOSTNAME:8443/ca/v2/certs?size=2&star
 | `GET`
 | None
 | 200
+| `application/json`
 |
-.Show
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt https://$HOSTNAME:8443/ca/v2/certs/0x6d5c045d3443ced273ab8d7955835db1
+$ curl --cacert ./ca_signing.crt \
+    https://$HOSTNAME:8443/ca/v2/certs/0x6d5c045d3443ced273ab8d7955835db1
 {
   "id" : "0x6d5c045d3443ced273ab8d7955835db1",
   "IssuerDN" : "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE",
@@ -2429,12 +2676,17 @@ $ curl --cacert ./ca_signing.crt https://$HOSTNAME:8443/ca/v2/certs/0x6d5c045d34
 | `POST`
 | size, start
 | 200
-|
-.Show
+| `application/json`
+|  Search request json with `issuerDN`, `serialNumberRangeInUse`, `serialTo`, `serialFrom`, `subjectInUse`, `eMail`, `commonName`, `userID`, `orgUnit`, `org`, `locality`, `state`, `country`, `matchExactly`, `status`, `revokedBy`, `revokedOnFrom`, `revokedOnTo`, `revocationReason`, `issuedBy`, `issuedOnFrom`, `issuedOnTo`, `validNotBeforeFrom`, `validNotBeforeTo`, `validNotAfterFrom`, `validNotAfterTo`, `validityOperation`, `validityCount`, `validityUnit`, `certTypeSubEmailCA`, `certTypeSubSSLCA`, `certTypeSecureEmail`, `certTypeSSLClient`, `certTypeSSLServer`, `revokedByInUse`, `revokedOnInUse`, `revocationReasonInUse`, `issuedByInUse`, `issuedOnInUse`, `validNotBeforeInUse`, `validNotAfterInUse`, `validityLengthInUse` and `certTypeInUse`
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt --json '{"commonName": "PKI Administrator", "subjectInUse": true}' https://$HOSTNAME:8443/ca/v2/certs/0x6d5c045d3443ced273ab8d7955835db1
+$ curl --cacert ./ca_signing.crt \
+    --json '{"commonName": "PKI Administrator", "subjectInUse": true}' \
+    https://$HOSTNAME:8443/ca/v2/certs/0x6d5c045d3443ced273ab8d7955835db1
 {
   "entries" : [ {
     "id" : "0x6d5c045d3443ced273ab8d7955835db1",
@@ -2454,16 +2706,46 @@ $ curl --cacert ./ca_signing.crt --json '{"commonName": "PKI Administrator", "su
 ----
 ====
 
+| `/ca/v2/config/cert/signing`
+| `GET`
+| None
+| 200
+| `application/json`
+|
+
+6+|
+.Example
+[%collapsible]
+====
+----
+$ curl --cacert ./ca_signing.crt \
+    https://$HOSTNAME:8443/ca/v2/config/cert/signing
+{
+  "id" : "0x86614664f6379c1c2d0a39d1e47d3fd0",
+  "IssuerDN" : "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE",
+  "SubjectDN" : "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE",
+  "Encoded" : "-----BEGIN CERTIFICATE-----\nMIIEfjCCAuagAwIBAgIRAIZhRmT2N5wcLQo50eR9P9AwDQYJKoZIhvcNAQELBQAwSDEQMA4GA1UE\r\nCgwHRVhBTVBMRTETMBEGA1UECwwKcGtpLXRvbWNhdDEfMB0GA1UEAwwWQ0EgU2lnbmluZyBDZXJ0\r\naWZpY2F0ZTAeFw0yNDEwMjkxMTA4MDBaFw00NDEwMjkxMTA4MDBaMEgxEDAOBgNVBAoMB0VYQU1Q\r\nTEUxEzARBgNVBAsMCnBraS10b21jYXQxHzAdBgNVBAMMFkNBIFNpZ25pbmcgQ2VydGlmaWNhdGUw\r\nggGiMA0GCSqGSIb3DQEBAQUAA4IBjwAwggGKAoIBgQDKH05xPGs7ulmpbZ06rDk0hLZR3UU5O+bB\r\n9cWW2LDMoVGoLmiDMkeMdYr2uWOttGwym+JcixebybVig2b2zeYCVvzeT+LvQmelJUOU5Jua4b6u\r\nb+CzeEquITvGwz8kejGRZw2waZ4+tnvwFIRlU2+XqBtiu4Q1AaeIX2Biov+RvDZGWZQgA0mxcraV\r\nyUPOkrpo4h252UDzIPQU2YJzD6LmQO0kktYQf+UwoBHiCaVl/Je62ftFn5J2qEO8y8+MyZ3L7F14\r\nimxJHW8jPPii4t8MuT99tcQ7sDuAOFHEsB7zzkrubHSxUVfPG7ACdBSxUR4DnV5uRpdZjL+KDs/H\r\nGEVXCkVEnDEVItboZISDiBIU1przM+hWdZg5kc2jwgOhnNkuiLFDo82c+QsnfMDchAv8yHPRYz7F\r\nbnTdmFzhp9k9mipdo6zSHbSoncT5pPNPt8M0w6KpqB3uNQyk6M38D6jkHjb2bzPqPza+om2cOrS7\r\ne/R8vgh5Xkms5vO2ybYbupMCAwEAAaNjMGEwHQYDVR0OBBYEFKd99i1O4mgUWWajjK3k83bEAOEl\r\nMB8GA1UdIwQYMBaAFKd99i1O4mgUWWajjK3k83bEAOElMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0P\r\nAQH/BAQDAgHGMA0GCSqGSIb3DQEBCwUAA4IBgQCoGIsHFIhqotLoAfeoEQrhqz23rClFNOSb/GzR\r\nMZhuXlIsmhhGYtCHA+Fyy0PaQMMgxoL2WgT2ZfCfuCUkcBsX/5XUFBXBXvc8LrTDTqSW9KdWPLsz\r\nUOeHgvre6VG7lh0hPz90b7MZ8enlrVKgjNIKTdQcarIFXnS9oso1453DTU3f20+xP4IkYRNa9H4J\r\ni0s/7PAddvQ1ynY4Wy65B2E5jJaYbUPakt/AalGuhgg7ji8BbGoYGhzf/l3USRfgm9i10AtrYUza\r\njAkKvcn1jBz2U9aro8tfakhFEMY6qOT7TvA/LLtJ7s5434DiOczt8AaVVQCYAYwqTQ/TyszEnOiE\r\niIAcPUWKK0B01D8wK5/9lZEL5vfuF/ykf99xn7XFX15P/jRb9gHj1Buj6LEN5CqVIgPu1vIrwIaB\r\n78BSqTrNpOMiucHe/vuv3nB1DcyqSoSLWbd1Gn5Xcs486sBAZP0I2IwxDAZJbYdqfkDzPJRiFFre\r\nsg/zc6Oekw5oJ3QCwrU=\r\n-----END CERTIFICATE-----\n",
+  "PKCS7CertChain" : "MIIErQYJKoZIhvcNAQcCoIIEnjCCBJoCAQExADALBgkqhkiG9w0BBwGgggSCMIIEfjCCAuagAwIBAgIRAIZhRmT2N5wcLQo50eR9P9AwDQYJKoZIhvcNAQELBQAwSDEQMA4GA1UECgwHRVhBTVBMRTETMBEGA1UECwwKcGtpLXRvbWNhdDEfMB0GA1UEAwwWQ0EgU2lnbmluZyBDZXJ0aWZpY2F0ZTAeFw0yNDEwMjkxMTA4MDBaFw00NDEwMjkxMTA4MDBaMEgxEDAOBgNVBAoMB0VYQU1QTEUxEzARBgNVBAsMCnBraS10b21jYXQxHzAdBgNVBAMMFkNBIFNpZ25pbmcgQ2VydGlmaWNhdGUwggGiMA0GCSqGSIb3DQEBAQUAA4IBjwAwggGKAoIBgQDKH05xPGs7ulmpbZ06rDk0hLZR3UU5O+bB9cWW2LDMoVGoLmiDMkeMdYr2uWOttGwym+JcixebybVig2b2zeYCVvzeT+LvQmelJUOU5Jua4b6ub+CzeEquITvGwz8kejGRZw2waZ4+tnvwFIRlU2+XqBtiu4Q1AaeIX2Biov+RvDZGWZQgA0mxcraVyUPOkrpo4h252UDzIPQU2YJzD6LmQO0kktYQf+UwoBHiCaVl/Je62ftFn5J2qEO8y8+MyZ3L7F14imxJHW8jPPii4t8MuT99tcQ7sDuAOFHEsB7zzkrubHSxUVfPG7ACdBSxUR4DnV5uRpdZjL+KDs/HGEVXCkVEnDEVItboZISDiBIU1przM+hWdZg5kc2jwgOhnNkuiLFDo82c+QsnfMDchAv8yHPRYz7FbnTdmFzhp9k9mipdo6zSHbSoncT5pPNPt8M0w6KpqB3uNQyk6M38D6jkHjb2bzPqPza+om2cOrS7e/R8vgh5Xkms5vO2ybYbupMCAwEAAaNjMGEwHQYDVR0OBBYEFKd99i1O4mgUWWajjK3k83bEAOElMB8GA1UdIwQYMBaAFKd99i1O4mgUWWajjK3k83bEAOElMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQDAgHGMA0GCSqGSIb3DQEBCwUAA4IBgQCoGIsHFIhqotLoAfeoEQrhqz23rClFNOSb/GzRMZhuXlIsmhhGYtCHA+Fyy0PaQMMgxoL2WgT2ZfCfuCUkcBsX/5XUFBXBXvc8LrTDTqSW9KdWPLszUOeHgvre6VG7lh0hPz90b7MZ8enlrVKgjNIKTdQcarIFXnS9oso1453DTU3f20+xP4IkYRNa9H4Ji0s/7PAddvQ1ynY4Wy65B2E5jJaYbUPakt/AalGuhgg7ji8BbGoYGhzf/l3USRfgm9i10AtrYUzajAkKvcn1jBz2U9aro8tfakhFEMY6qOT7TvA/LLtJ7s5434DiOczt8AaVVQCYAYwqTQ/TyszEnOiEiIAcPUWKK0B01D8wK5/9lZEL5vfuF/ykf99xn7XFX15P/jRb9gHj1Buj6LEN5CqVIgPu1vIrwIaB78BSqTrNpOMiucHe/vuv3nB1DcyqSoSLWbd1Gn5Xcs486sBAZP0I2IwxDAZJbYdqfkDzPJRiFFresg/zc6Oekw5oJ3QCwrUxAA==",
+  "NotBefore" : "Tue Oct 29 11:08:00 UTC 2024",
+  "NotAfter" : "Sat Oct 29 11:08:00 UTC 2044"
+}
+----
+====
+
 | `/ca/v2/config/cert/transport`
 | `GET`
 | None
 | 200
+| `application/json`
 |
-.Show
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt https://$HOSTNAME:8443/ca/v2/config/cert/transport
+$ curl --cacert ./ca_signing.crt \
+    https://$HOSTNAME:8443/ca/v2/config/cert/transport
 {
   "id" : "0x8f6afa7386fdd8efc6c3406ed1e6d8c8",
   "IssuerDN" : "CN=CA Signing Certificate,OU=pki-tomcat,O=EXAMPLE",
@@ -2480,12 +2762,16 @@ $ curl --cacert ./ca_signing.crt https://$HOSTNAME:8443/ca/v2/config/cert/transp
 | `GET`
 | None
 | 200
+| `application/json`
 |
-.Show
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/info
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    https://$HOSTNAME:8443/ca/v2/info
 {
   "Attributes" : {
     "Attribute" : [ ]
@@ -2498,25 +2784,31 @@ $ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/
 | `POST`
 | None
 | 200
-|
+| `application/json`
+| Certiricate setup request with `pin`, `tag` and `systemCert`
 
 | `/ca/v2/installer/createCerttID`
 | `POST`
 | None
 | 200
-|
+| `application/json`
+| Certiricate setup request with `pin`, `tag` and `systemCert`
 
 
 | `/ca/v2/profiles`
 | `GET`
 | size, start, visible, enable, enableBy
 | 200
+| `application/json`
 |
-.Show
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie "https://$HOSTNAME:8443/ca/v2/profiles?size=2&visible=true&enable=true&enableBy=admin"
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    "https://$HOSTNAME:8443/ca/v2/profiles?size=2&visible=true&enable=true&enableBy=admin"
 {
   "total" : 25,
   "entries" : [ {
@@ -2544,12 +2836,17 @@ $ curl --cacert ./ca_signing.crt -b session_cookie "https://$HOSTNAME:8443/ca/v2
 | `POST`
 | None
 | 201
-|
-.Show
+| `application/json`
+| Profile in json format
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie --json '{"id":"test","classId":"caEnrollImpl","name":"Manual User Dual-Use Certificate Enrollment","description":"This certificate profile is for enrolling user certificates.","enabled":true,"visible":false,"enabledBy":"admin","authzAcl":"","renewal":false,"inputs":[{"id":"i1","ClassID":"keyGenInputImpl","Name":"Key Generation","ConfigAttribute":[],"Attribute":[{"name":"cert_request_type","Descriptor":{"Syntax":"keygen_request_type","Description":"Key Generation Request Type"}},{"name":"cert_request","Descriptor":{"Syntax":"keygen_request","Description":"Key Generation Request"}}]},{"id":"i2","ClassID":"subjectNameInputImpl","Name":"Subject Name","ConfigAttribute":[],"Attribute":[{"name":"sn_uid","Descriptor":{"Syntax":"string","Description":"UID"}},{"name":"sn_e","Descriptor":{"Syntax":"string","Description":"Email"}},{"name":"sn_cn","Descriptor":{"Syntax":"string","Description":"Common Name"}},{"name":"sn_ou3","Descriptor":{"Syntax":"string","Description":"Organizational Unit 3"}},{"name":"sn_ou2","Descriptor":{"Syntax":"string","Description":"Organizational Unit 2"}},{"name":"sn_ou1","Descriptor":{"Syntax":"string","Description":"Organizational Unit 1"}},{"name":"sn_ou","Descriptor":{"Syntax":"string","Description":"Organizational Unit"}},{"name":"sn_o","Descriptor":{"Syntax":"string","Description":"Organization"}},{"name":"sn_c","Descriptor":{"Syntax":"string","Description":"Country"}}]},{"id":"i3","ClassID":"submitterInfoInputImpl","Name":"Requestor Information","ConfigAttribute":[],"Attribute":[{"name":"requestor_name","Descriptor":{"Syntax":"string","Description":"Requestor Name"}},{"name":"requestor_email","Descriptor":{"Syntax":"string","Description":"Requestor Email"}},{"name":"requestor_phone","Descriptor":{"Syntax":"string","Description":"Requestor Phone"}}]}],"outputs":[{"id":"o1","name":"Certificate Output","classId":"certOutputImpl","attributes":[{"name":"pretty_cert","Descriptor":{"Syntax":"pretty_print","Description":"Certificate Pretty Print"}},{"name":"b64_cert","Descriptor":{"Syntax":"pretty_print","Description":"Certificate Base-64 Encoded"}}]}],"policySets":{"userCertSet":[{"id":"1","def":{"name":"Subject Name Default","classId":"userSubjectNameDefaultImpl","text":"This default populates a User-Supplied Certificate Subject Name to the request.","attributes":[{"name":"name","Descriptor":{"Syntax":"string","Description":"Subject Name"}}],"params":[{"name":"useSysEncoding","value":""}]},"constraint":{"name":"Subject Name Constraint","text":"This constraint accepts the subject name that matches UID=.*","classId":"subjectNameConstraintImpl","constraints":[{"name":"pattern","descriptor":{"Syntax":"string","Description":"Subject Name Pattern"},"value":"UID=.*"}]}},{"id":"10","def":{"name":"No Default","classId":"noDefaultImpl","text":"No Default","attributes":[],"params":[]},"constraint":{"name":"Renewal Grace Period Constraint","text":"This constraint rejects the validity that is not between 30 days before and 30 days after original cert expiration date days.","classId":"renewGracePeriodConstraintImpl","constraints":[{"name":"renewal.graceBefore","descriptor":{"Syntax":"integer","Description":"Renewal Grace Period Before","DefaultValue":"30"},"value":"30"},{"name":"renewal.graceAfter","descriptor":{"Syntax":"integer","Description":"Renewal Grace Period After","DefaultValue":"30"},"value":"30"}]}},{"id":"2","def":{"name":"Validity Default","classId":"validityDefaultImpl","text":"This default populates a Certificate Validity to the request. The default values are Range=180 in days","attributes":[{"name":"notBefore","Descriptor":{"Syntax":"string","Description":"Not Before"}},{"name":"notAfter","Descriptor":{"Syntax":"string","Description":"Not After"}}],"params":[{"name":"range","value":"180"},{"name":"rangeUnit","value":""},{"name":"startTime","value":"0"}]},"constraint":{"name":"Validity Constraint","text":"This constraint rejects the validity that is not between 365 days.","classId":"validityConstraintImpl","constraints":[{"name":"range","descriptor":{"Syntax":"integer","Description":"Validity Range","DefaultValue":"365"},"value":"365"},{"name":"rangeUnit","descriptor":{"Syntax":"string","Description":"Validity Range Unit: year, month, day (default), hour, minute","DefaultValue":"day"},"value":""},{"name":"notBeforeGracePeriod","descriptor":{"Syntax":"integer","Description":"Grace period for Not Before being set in the future (in seconds).","DefaultValue":"0"},"value":""},{"name":"notBeforeCheck","descriptor":{"Syntax":"boolean","Description":"Check Not Before against current time","DefaultValue":"false"},"value":"false"},{"name":"notAfterCheck","descriptor":{"Syntax":"boolean","Description":"Check Not After against Not Before","DefaultValue":"false"},"value":"false"}]}},{"id":"3","def":{"name":"Key Default","classId":"userKeyDefaultImpl","text":"This default populates a User-Supplied Certificate Key to the request.","attributes":[{"name":"TYPE","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Key Type"}},{"name":"LEN","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Key Length"}},{"name":"KEY","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Key"}}],"params":[]},"constraint":{"name":"Key Constraint","text":"This constraint accepts the key only if Key Type=RSA, Key Parameters =1024,2048,3072,4096","classId":"keyConstraintImpl","constraints":[{"name":"keyType","descriptor":{"Syntax":"choice","Constraint":"-,RSA,EC","Description":"Key Type","DefaultValue":"RSA"},"value":"RSA"},{"name":"keyParameters","descriptor":{"Syntax":"string","Description":"Key Lengths or Curves. For EC use comma separated list of curves, otherise use list of key sizes. Ex: 1024,2048,4096,8192 or: nistp256,nistp384,nistp521,sect163k1,nistk163 for EC.","DefaultValue":""},"value":"1024,2048,3072,4096"}]}},{"id":"4","def":{"name":"Authority Key Identifier Default","classId":"authorityKeyIdentifierExtDefaultImpl","text":"This default populates an Authority Key Identifier Extension (2.5.29.35) to the request.","attributes":[{"name":"critical","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Criticality"}},{"name":"keyid","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Key ID"}}],"params":[]},"constraint":{"name":"No Constraint","text":"No Constraint","classId":"noConstraintImpl","constraints":[]}},{"id":"5","def":{"name":"AIA Extension Default","classId":"authInfoAccessExtDefaultImpl","text":"This default populates a Authority Info Access Extension (1.3.6.1.5.5.7.1.1) to the request. The default values are Criticality=false, Record #0{Method:1.3.6.1.5.5.7.48.1,Location Type:URIName,Location:,Enable:true}","attributes":[{"name":"authInfoAccessCritical","Descriptor":{"Syntax":"boolean","Description":"Criticality","DefaultValue":"false"}},{"name":"authInfoAccessGeneralNames","Descriptor":{"Syntax":"string_list","Description":"General Names"}}],"params":[{"name":"authInfoAccessCritical","value":"false"},{"name":"authInfoAccessNumADs","value":"1"},{"name":"authInfoAccessADMethod_0","value":"1.3.6.1.5.5.7.48.1"},{"name":"authInfoAccessADLocationType_0","value":"URIName"},{"name":"authInfoAccessADLocation_0","value":""},{"name":"authInfoAccessADEnable_0","value":"true"}]},"constraint":{"name":"No Constraint","text":"No Constraint","classId":"noConstraintImpl","constraints":[]}},{"id":"6","def":{"name":"Key Usage Default","classId":"keyUsageExtDefaultImpl","text":"This default populates a Key Usage Extension (2.5.29.15) to the request. The default values are Criticality=true, Digital Signature=true, Non-Repudiation=true, Key Encipherment=true, Data Encipherment=false, Key Agreement=false, Key Certificate Sign=false, Key CRL Sign=false, Encipher Only=false, Decipher Only=false","attributes":[{"name":"keyUsageCritical","Descriptor":{"Syntax":"boolean","Description":"Criticality","DefaultValue":"false"}},{"name":"keyUsageDigitalSignature","Descriptor":{"Syntax":"boolean","Description":"Digital Signature","DefaultValue":"false"}},{"name":"keyUsageNonRepudiation","Descriptor":{"Syntax":"boolean","Description":"Non-Repudiation","DefaultValue":"false"}},{"name":"keyUsageKeyEncipherment","Descriptor":{"Syntax":"boolean","Description":"Key Encipherment","DefaultValue":"false"}},{"name":"keyUsageDataEncipherment","Descriptor":{"Syntax":"boolean","Description":"Data Encipherment","DefaultValue":"false"}},{"name":"keyUsageKeyAgreement","Descriptor":{"Syntax":"boolean","Description":"Key Agreement","DefaultValue":"false"}},{"name":"keyUsageKeyCertSign","Descriptor":{"Syntax":"boolean","Description":"Key CertSign","DefaultValue":"false"}},{"name":"keyUsageCrlSign","Descriptor":{"Syntax":"boolean","Description":"CRL Sign","DefaultValue":"false"}},{"name":"keyUsageEncipherOnly","Descriptor":{"Syntax":"boolean","Description":"Encipher Only","DefaultValue":"false"}},{"name":"keyUsageDecipherOnly","Descriptor":{"Syntax":"boolean","Description":"Decipher Only","DefaultValue":"false"}}],"params":[{"name":"keyUsageCritical","value":"true"},{"name":"keyUsageDigitalSignature","value":"true"},{"name":"keyUsageNonRepudiation","value":"true"},{"name":"keyUsageKeyEncipherment","value":"true"},{"name":"keyUsageDataEncipherment","value":"false"},{"name":"keyUsageKeyAgreement","value":"false"},{"name":"keyUsageKeyCertSign","value":"false"},{"name":"keyUsageCrlSign","value":"false"},{"name":"keyUsageEncipherOnly","value":"false"},{"name":"keyUsageDecipherOnly","value":"false"}]},"constraint":{"name":"Key Usage Extension Constraint","text":"This constraint accepts the Key Usage extension, if present, only when Criticality=true, Digital Signature=true, Non-Repudiation=true, Key Encipherment=true, Data Encipherment=false, Key Agreement=false, Key Certificate Sign=false, Key CRL Sign=false, Encipher Only=false, Decipher Only=false","classId":"keyUsageExtConstraintImpl","constraints":[{"name":"keyUsageCritical","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Criticality","DefaultValue":"-"},"value":"true"},{"name":"keyUsageDigitalSignature","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Digital Signature","DefaultValue":"-"},"value":"true"},{"name":"keyUsageNonRepudiation","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Non-Repudiation","DefaultValue":"-"},"value":"true"},{"name":"keyUsageKeyEncipherment","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Key Encipherment","DefaultValue":"-"},"value":"true"},{"name":"keyUsageDataEncipherment","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Data Encipherment","DefaultValue":"-"},"value":"false"},{"name":"keyUsageKeyAgreement","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Key Agreement","DefaultValue":"-"},"value":"false"},{"name":"keyUsageKeyCertSign","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Key CertSign","DefaultValue":"-"},"value":"false"},{"name":"keyUsageCrlSign","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"CRL Sign","DefaultValue":"-"},"value":"false"},{"name":"keyUsageEncipherOnly","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Encipher Only","DefaultValue":"-"},"value":"false"},{"name":"keyUsageDecipherOnly","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Decipher Only","DefaultValue":"-"},"value":"false"}]}},{"id":"7","def":{"name":"Extended Key Usage Extension Default","classId":"extendedKeyUsageExtDefaultImpl","text":"This default populates an Extended Key Usage Extension () to the request. The default values are Criticality=false, OIDs=1.3.6.1.5.5.7.3.2,1.3.6.1.5.5.7.3.4","attributes":[{"name":"exKeyUsageCritical","Descriptor":{"Syntax":"boolean","Description":"Criticality","DefaultValue":"false"}},{"name":"exKeyUsageOIDs","Descriptor":{"Syntax":"string_list","Description":"Comma-Separated list of Object Identifiers"}}],"params":[{"name":"exKeyUsageCritical","value":"false"},{"name":"exKeyUsageOIDs","value":"1.3.6.1.5.5.7.3.2,1.3.6.1.5.5.7.3.4"}]},"constraint":{"name":"No Constraint","text":"No Constraint","classId":"noConstraintImpl","constraints":[]}},{"id":"8","def":{"name":"Subject Alt Name Constraint","classId":"subjectAltNameExtDefaultImpl","text":"This default populates a Subject Alternative Name Extension (2.5.29.17) to the request. The default values are Criticality=false, Record #0{Pattern:$request.requestor_email$,Pattern Type:RFC822Name,Enable:true}","attributes":[{"name":"subjAltNameExtCritical","Descriptor":{"Syntax":"boolean","Description":"Criticality","DefaultValue":"false"}},{"name":"subjAltNames","Descriptor":{"Syntax":"string_list","Description":"General Names"}}],"params":[{"name":"subjAltNameExtCritical","value":"false"},{"name":"subjAltNameNumGNs","value":"1"},{"name":"subjAltExtType_0","value":"RFC822Name"},{"name":"subjAltExtPattern_0","value":"$request.requestor_email$"},{"name":"subjAltExtGNEnable_0","value":"true"}]},"constraint":{"name":"No Constraint","text":"No Constraint","classId":"noConstraintImpl","constraints":[]}},{"id":"9","def":{"name":"Signing Alg","classId":"signingAlgDefaultImpl","text":"This default populates the Certificate Signing Algorithm. The default values are Algorithm=SHA256withRSA","attributes":[{"name":"signingAlg","Descriptor":{"Syntax":"choice","Constraint":"SHA256withRSA,SHA384withRSA,SHA512withRSA,SHA1withRSA,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS","Description":"Signing Algorithm"}}],"params":[{"name":"signingAlg","value":"-"}]},"constraint":{"name":"No Constraint","text":"This constraint accepts only the Signing Algorithms of SHA256withRSA,SHA512withRSA,SHA256withEC,SHA384withRSA,SHA384withEC,SHA512withEC,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS","classId":"signingAlgConstraintImpl","constraints":[{"name":"signingAlgsAllowed","descriptor":{"Syntax":"string","Description":"Allowed Signing Algorithms","DefaultValue":"SHA256withRSA,SHA384withRSA,SHA512withRSA,SHA1withRSA,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS,SHA256withEC,SHA384withEC,SHA512withEC,SHA1withEC"},"value":"SHA256withRSA,SHA512withRSA,SHA256withEC,SHA384withRSA,SHA384withEC,SHA512withEC,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS"}]}}]},"xmloutput":false}' https://$HOSTNAME:8443/ca/v2/profiles
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    --json '{"id":"test","classId":"caEnrollImpl","name":"Manual User Dual-Use Certificate Enrollment","description":"This certificate profile is for enrolling user certificates.","enabled":true,"visible":false,"enabledBy":"admin","authzAcl":"","renewal":false,"inputs":[{"id":"i1","ClassID":"keyGenInputImpl","Name":"Key Generation","ConfigAttribute":[],"Attribute":[{"name":"cert_request_type","Descriptor":{"Syntax":"keygen_request_type","Description":"Key Generation Request Type"}},{"name":"cert_request","Descriptor":{"Syntax":"keygen_request","Description":"Key Generation Request"}}]},{"id":"i2","ClassID":"subjectNameInputImpl","Name":"Subject Name","ConfigAttribute":[],"Attribute":[{"name":"sn_uid","Descriptor":{"Syntax":"string","Description":"UID"}},{"name":"sn_e","Descriptor":{"Syntax":"string","Description":"Email"}},{"name":"sn_cn","Descriptor":{"Syntax":"string","Description":"Common Name"}},{"name":"sn_ou3","Descriptor":{"Syntax":"string","Description":"Organizational Unit 3"}},{"name":"sn_ou2","Descriptor":{"Syntax":"string","Description":"Organizational Unit 2"}},{"name":"sn_ou1","Descriptor":{"Syntax":"string","Description":"Organizational Unit 1"}},{"name":"sn_ou","Descriptor":{"Syntax":"string","Description":"Organizational Unit"}},{"name":"sn_o","Descriptor":{"Syntax":"string","Description":"Organization"}},{"name":"sn_c","Descriptor":{"Syntax":"string","Description":"Country"}}]},{"id":"i3","ClassID":"submitterInfoInputImpl","Name":"Requestor Information","ConfigAttribute":[],"Attribute":[{"name":"requestor_name","Descriptor":{"Syntax":"string","Description":"Requestor Name"}},{"name":"requestor_email","Descriptor":{"Syntax":"string","Description":"Requestor Email"}},{"name":"requestor_phone","Descriptor":{"Syntax":"string","Description":"Requestor Phone"}}]}],"outputs":[{"id":"o1","name":"Certificate Output","classId":"certOutputImpl","attributes":[{"name":"pretty_cert","Descriptor":{"Syntax":"pretty_print","Description":"Certificate Pretty Print"}},{"name":"b64_cert","Descriptor":{"Syntax":"pretty_print","Description":"Certificate Base-64 Encoded"}}]}],"policySets":{"userCertSet":[{"id":"1","def":{"name":"Subject Name Default","classId":"userSubjectNameDefaultImpl","text":"This default populates a User-Supplied Certificate Subject Name to the request.","attributes":[{"name":"name","Descriptor":{"Syntax":"string","Description":"Subject Name"}}],"params":[{"name":"useSysEncoding","value":""}]},"constraint":{"name":"Subject Name Constraint","text":"This constraint accepts the subject name that matches UID=.*","classId":"subjectNameConstraintImpl","constraints":[{"name":"pattern","descriptor":{"Syntax":"string","Description":"Subject Name Pattern"},"value":"UID=.*"}]}},{"id":"10","def":{"name":"No Default","classId":"noDefaultImpl","text":"No Default","attributes":[],"params":[]},"constraint":{"name":"Renewal Grace Period Constraint","text":"This constraint rejects the validity that is not between 30 days before and 30 days after original cert expiration date days.","classId":"renewGracePeriodConstraintImpl","constraints":[{"name":"renewal.graceBefore","descriptor":{"Syntax":"integer","Description":"Renewal Grace Period Before","DefaultValue":"30"},"value":"30"},{"name":"renewal.graceAfter","descriptor":{"Syntax":"integer","Description":"Renewal Grace Period After","DefaultValue":"30"},"value":"30"}]}},{"id":"2","def":{"name":"Validity Default","classId":"validityDefaultImpl","text":"This default populates a Certificate Validity to the request. The default values are Range=180 in days","attributes":[{"name":"notBefore","Descriptor":{"Syntax":"string","Description":"Not Before"}},{"name":"notAfter","Descriptor":{"Syntax":"string","Description":"Not After"}}],"params":[{"name":"range","value":"180"},{"name":"rangeUnit","value":""},{"name":"startTime","value":"0"}]},"constraint":{"name":"Validity Constraint","text":"This constraint rejects the validity that is not between 365 days.","classId":"validityConstraintImpl","constraints":[{"name":"range","descriptor":{"Syntax":"integer","Description":"Validity Range","DefaultValue":"365"},"value":"365"},{"name":"rangeUnit","descriptor":{"Syntax":"string","Description":"Validity Range Unit: year, month, day (default), hour, minute","DefaultValue":"day"},"value":""},{"name":"notBeforeGracePeriod","descriptor":{"Syntax":"integer","Description":"Grace period for Not Before being set in the future (in seconds).","DefaultValue":"0"},"value":""},{"name":"notBeforeCheck","descriptor":{"Syntax":"boolean","Description":"Check Not Before against current time","DefaultValue":"false"},"value":"false"},{"name":"notAfterCheck","descriptor":{"Syntax":"boolean","Description":"Check Not After against Not Before","DefaultValue":"false"},"value":"false"}]}},{"id":"3","def":{"name":"Key Default","classId":"userKeyDefaultImpl","text":"This default populates a User-Supplied Certificate Key to the request.","attributes":[{"name":"TYPE","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Key Type"}},{"name":"LEN","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Key Length"}},{"name":"KEY","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Key"}}],"params":[]},"constraint":{"name":"Key Constraint","text":"This constraint accepts the key only if Key Type=RSA, Key Parameters =1024,2048,3072,4096","classId":"keyConstraintImpl","constraints":[{"name":"keyType","descriptor":{"Syntax":"choice","Constraint":"-,RSA,EC","Description":"Key Type","DefaultValue":"RSA"},"value":"RSA"},{"name":"keyParameters","descriptor":{"Syntax":"string","Description":"Key Lengths or Curves. For EC use comma separated list of curves, otherise use list of key sizes. Ex: 1024,2048,4096,8192 or: nistp256,nistp384,nistp521,sect163k1,nistk163 for EC.","DefaultValue":""},"value":"1024,2048,3072,4096"}]}},{"id":"4","def":{"name":"Authority Key Identifier Default","classId":"authorityKeyIdentifierExtDefaultImpl","text":"This default populates an Authority Key Identifier Extension (2.5.29.35) to the request.","attributes":[{"name":"critical","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Criticality"}},{"name":"keyid","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Key ID"}}],"params":[]},"constraint":{"name":"No Constraint","text":"No Constraint","classId":"noConstraintImpl","constraints":[]}},{"id":"5","def":{"name":"AIA Extension Default","classId":"authInfoAccessExtDefaultImpl","text":"This default populates a Authority Info Access Extension (1.3.6.1.5.5.7.1.1) to the request. The default values are Criticality=false, Record #0{Method:1.3.6.1.5.5.7.48.1,Location Type:URIName,Location:,Enable:true}","attributes":[{"name":"authInfoAccessCritical","Descriptor":{"Syntax":"boolean","Description":"Criticality","DefaultValue":"false"}},{"name":"authInfoAccessGeneralNames","Descriptor":{"Syntax":"string_list","Description":"General Names"}}],"params":[{"name":"authInfoAccessCritical","value":"false"},{"name":"authInfoAccessNumADs","value":"1"},{"name":"authInfoAccessADMethod_0","value":"1.3.6.1.5.5.7.48.1"},{"name":"authInfoAccessADLocationType_0","value":"URIName"},{"name":"authInfoAccessADLocation_0","value":""},{"name":"authInfoAccessADEnable_0","value":"true"}]},"constraint":{"name":"No Constraint","text":"No Constraint","classId":"noConstraintImpl","constraints":[]}},{"id":"6","def":{"name":"Key Usage Default","classId":"keyUsageExtDefaultImpl","text":"This default populates a Key Usage Extension (2.5.29.15) to the request. The default values are Criticality=true, Digital Signature=true, Non-Repudiation=true, Key Encipherment=true, Data Encipherment=false, Key Agreement=false, Key Certificate Sign=false, Key CRL Sign=false, Encipher Only=false, Decipher Only=false","attributes":[{"name":"keyUsageCritical","Descriptor":{"Syntax":"boolean","Description":"Criticality","DefaultValue":"false"}},{"name":"keyUsageDigitalSignature","Descriptor":{"Syntax":"boolean","Description":"Digital Signature","DefaultValue":"false"}},{"name":"keyUsageNonRepudiation","Descriptor":{"Syntax":"boolean","Description":"Non-Repudiation","DefaultValue":"false"}},{"name":"keyUsageKeyEncipherment","Descriptor":{"Syntax":"boolean","Description":"Key Encipherment","DefaultValue":"false"}},{"name":"keyUsageDataEncipherment","Descriptor":{"Syntax":"boolean","Description":"Data Encipherment","DefaultValue":"false"}},{"name":"keyUsageKeyAgreement","Descriptor":{"Syntax":"boolean","Description":"Key Agreement","DefaultValue":"false"}},{"name":"keyUsageKeyCertSign","Descriptor":{"Syntax":"boolean","Description":"Key CertSign","DefaultValue":"false"}},{"name":"keyUsageCrlSign","Descriptor":{"Syntax":"boolean","Description":"CRL Sign","DefaultValue":"false"}},{"name":"keyUsageEncipherOnly","Descriptor":{"Syntax":"boolean","Description":"Encipher Only","DefaultValue":"false"}},{"name":"keyUsageDecipherOnly","Descriptor":{"Syntax":"boolean","Description":"Decipher Only","DefaultValue":"false"}}],"params":[{"name":"keyUsageCritical","value":"true"},{"name":"keyUsageDigitalSignature","value":"true"},{"name":"keyUsageNonRepudiation","value":"true"},{"name":"keyUsageKeyEncipherment","value":"true"},{"name":"keyUsageDataEncipherment","value":"false"},{"name":"keyUsageKeyAgreement","value":"false"},{"name":"keyUsageKeyCertSign","value":"false"},{"name":"keyUsageCrlSign","value":"false"},{"name":"keyUsageEncipherOnly","value":"false"},{"name":"keyUsageDecipherOnly","value":"false"}]},"constraint":{"name":"Key Usage Extension Constraint","text":"This constraint accepts the Key Usage extension, if present, only when Criticality=true, Digital Signature=true, Non-Repudiation=true, Key Encipherment=true, Data Encipherment=false, Key Agreement=false, Key Certificate Sign=false, Key CRL Sign=false, Encipher Only=false, Decipher Only=false","classId":"keyUsageExtConstraintImpl","constraints":[{"name":"keyUsageCritical","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Criticality","DefaultValue":"-"},"value":"true"},{"name":"keyUsageDigitalSignature","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Digital Signature","DefaultValue":"-"},"value":"true"},{"name":"keyUsageNonRepudiation","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Non-Repudiation","DefaultValue":"-"},"value":"true"},{"name":"keyUsageKeyEncipherment","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Key Encipherment","DefaultValue":"-"},"value":"true"},{"name":"keyUsageDataEncipherment","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Data Encipherment","DefaultValue":"-"},"value":"false"},{"name":"keyUsageKeyAgreement","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Key Agreement","DefaultValue":"-"},"value":"false"},{"name":"keyUsageKeyCertSign","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Key CertSign","DefaultValue":"-"},"value":"false"},{"name":"keyUsageCrlSign","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"CRL Sign","DefaultValue":"-"},"value":"false"},{"name":"keyUsageEncipherOnly","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Encipher Only","DefaultValue":"-"},"value":"false"},{"name":"keyUsageDecipherOnly","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Decipher Only","DefaultValue":"-"},"value":"false"}]}},{"id":"7","def":{"name":"Extended Key Usage Extension Default","classId":"extendedKeyUsageExtDefaultImpl","text":"This default populates an Extended Key Usage Extension () to the request. The default values are Criticality=false, OIDs=1.3.6.1.5.5.7.3.2,1.3.6.1.5.5.7.3.4","attributes":[{"name":"exKeyUsageCritical","Descriptor":{"Syntax":"boolean","Description":"Criticality","DefaultValue":"false"}},{"name":"exKeyUsageOIDs","Descriptor":{"Syntax":"string_list","Description":"Comma-Separated list of Object Identifiers"}}],"params":[{"name":"exKeyUsageCritical","value":"false"},{"name":"exKeyUsageOIDs","value":"1.3.6.1.5.5.7.3.2,1.3.6.1.5.5.7.3.4"}]},"constraint":{"name":"No Constraint","text":"No Constraint","classId":"noConstraintImpl","constraints":[]}},{"id":"8","def":{"name":"Subject Alt Name Constraint","classId":"subjectAltNameExtDefaultImpl","text":"This default populates a Subject Alternative Name Extension (2.5.29.17) to the request. The default values are Criticality=false, Record #0{Pattern:$request.requestor_email$,Pattern Type:RFC822Name,Enable:true}","attributes":[{"name":"subjAltNameExtCritical","Descriptor":{"Syntax":"boolean","Description":"Criticality","DefaultValue":"false"}},{"name":"subjAltNames","Descriptor":{"Syntax":"string_list","Description":"General Names"}}],"params":[{"name":"subjAltNameExtCritical","value":"false"},{"name":"subjAltNameNumGNs","value":"1"},{"name":"subjAltExtType_0","value":"RFC822Name"},{"name":"subjAltExtPattern_0","value":"$request.requestor_email$"},{"name":"subjAltExtGNEnable_0","value":"true"}]},"constraint":{"name":"No Constraint","text":"No Constraint","classId":"noConstraintImpl","constraints":[]}},{"id":"9","def":{"name":"Signing Alg","classId":"signingAlgDefaultImpl","text":"This default populates the Certificate Signing Algorithm. The default values are Algorithm=SHA256withRSA","attributes":[{"name":"signingAlg","Descriptor":{"Syntax":"choice","Constraint":"SHA256withRSA,SHA384withRSA,SHA512withRSA,SHA1withRSA,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS","Description":"Signing Algorithm"}}],"params":[{"name":"signingAlg","value":"-"}]},"constraint":{"name":"No Constraint","text":"This constraint accepts only the Signing Algorithms of SHA256withRSA,SHA512withRSA,SHA256withEC,SHA384withRSA,SHA384withEC,SHA512withEC,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS","classId":"signingAlgConstraintImpl","constraints":[{"name":"signingAlgsAllowed","descriptor":{"Syntax":"string","Description":"Allowed Signing Algorithms","DefaultValue":"SHA256withRSA,SHA384withRSA,SHA512withRSA,SHA1withRSA,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS,SHA256withEC,SHA384withEC,SHA512withEC,SHA1withEC"},"value":"SHA256withRSA,SHA512withRSA,SHA256withEC,SHA384withRSA,SHA384withEC,SHA512withEC,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS"}]}}]},"xmloutput":false}' \
+    https://$HOSTNAME:8443/ca/v2/profiles
 {
   "id" : "test",
   "classId" : "caEnrollImpl",
@@ -3273,12 +3570,16 @@ $ curl --cacert ./ca_signing.crt -b session_cookie --json '{"id":"test","classId
 | `GET`
 | None
 | 200
+| `application/json`
 |
-.Show
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/profiles/caUserCert
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    https://$HOSTNAME:8443/ca/v2/profiles/caUserCert
 {
   "id" : "caUserCert",
   "classId" : "caEnrollImpl",
@@ -4004,11 +4305,15 @@ $ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/
 | action (enable/disable)
 | 204
 |
-.Show
+| _No input exptected_
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie -X POST "https://$HOSTNAME:8443/ca/v2/profiles/caUserCert?action=disable"
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    -X POST "https://$HOSTNAME:8443/ca/v2/profiles/caUserCert?action=disable"
 ----
 ====
 
@@ -4016,12 +4321,17 @@ $ curl --cacert ./ca_signing.crt -b session_cookie -X POST "https://$HOSTNAME:84
 | `PUT`
 | None
 | 200
-|
-.Show
+| `application/json`
+| Profile in json foramt 
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie --json '{"id":"test","classId":"caEnrollImpl","name":"Manual User Dual-Use Certificate Enrollment","description":"This certificate profile is for enrolling user certificates.","enabled":true,"visible":true,"enabledBy":"admin","authzAcl":"","renewal":false,"inputs":[{"id":"i1","ClassID":"keyGenInputImpl","Name":"Key Generation","ConfigAttribute":[],"Attribute":[{"name":"cert_request_type","Descriptor":{"Syntax":"keygen_request_type","Description":"Key Generation Request Type"}},{"name":"cert_request","Descriptor":{"Syntax":"keygen_request","Description":"Key Generation Request"}}]},{"id":"i2","ClassID":"subjectNameInputImpl","Name":"Subject Name","ConfigAttribute":[],"Attribute":[{"name":"sn_uid","Descriptor":{"Syntax":"string","Description":"UID"}},{"name":"sn_e","Descriptor":{"Syntax":"string","Description":"Email"}},{"name":"sn_cn","Descriptor":{"Syntax":"string","Description":"Common Name"}},{"name":"sn_ou3","Descriptor":{"Syntax":"string","Description":"Organizational Unit 3"}},{"name":"sn_ou2","Descriptor":{"Syntax":"string","Description":"Organizational Unit 2"}},{"name":"sn_ou1","Descriptor":{"Syntax":"string","Description":"Organizational Unit 1"}},{"name":"sn_ou","Descriptor":{"Syntax":"string","Description":"Organizational Unit"}},{"name":"sn_o","Descriptor":{"Syntax":"string","Description":"Organization"}},{"name":"sn_c","Descriptor":{"Syntax":"string","Description":"Country"}}]},{"id":"i3","ClassID":"submitterInfoInputImpl","Name":"Requestor Information","ConfigAttribute":[],"Attribute":[{"name":"requestor_name","Descriptor":{"Syntax":"string","Description":"Requestor Name"}},{"name":"requestor_email","Descriptor":{"Syntax":"string","Description":"Requestor Email"}},{"name":"requestor_phone","Descriptor":{"Syntax":"string","Description":"Requestor Phone"}}]}],"outputs":[{"id":"o1","name":"Certificate Output","classId":"certOutputImpl","attributes":[{"name":"pretty_cert","Descriptor":{"Syntax":"pretty_print","Description":"Certificate Pretty Print"}},{"name":"b64_cert","Descriptor":{"Syntax":"pretty_print","Description":"Certificate Base-64 Encoded"}}]}],"policySets":{"userCertSet":[{"id":"1","def":{"name":"Subject Name Default","classId":"userSubjectNameDefaultImpl","text":"This default populates a User-Supplied Certificate Subject Name to the request.","attributes":[{"name":"name","Descriptor":{"Syntax":"string","Description":"Subject Name"}}],"params":[{"name":"useSysEncoding","value":""}]},"constraint":{"name":"Subject Name Constraint","text":"This constraint accepts the subject name that matches UID=.*","classId":"subjectNameConstraintImpl","constraints":[{"name":"pattern","descriptor":{"Syntax":"string","Description":"Subject Name Pattern"},"value":"UID=.*"}]}},{"id":"10","def":{"name":"No Default","classId":"noDefaultImpl","text":"No Default","attributes":[],"params":[]},"constraint":{"name":"Renewal Grace Period Constraint","text":"This constraint rejects the validity that is not between 30 days before and 30 days after original cert expiration date days.","classId":"renewGracePeriodConstraintImpl","constraints":[{"name":"renewal.graceBefore","descriptor":{"Syntax":"integer","Description":"Renewal Grace Period Before","DefaultValue":"30"},"value":"30"},{"name":"renewal.graceAfter","descriptor":{"Syntax":"integer","Description":"Renewal Grace Period After","DefaultValue":"30"},"value":"30"}]}},{"id":"2","def":{"name":"Validity Default","classId":"validityDefaultImpl","text":"This default populates a Certificate Validity to the request. The default values are Range=180 in days","attributes":[{"name":"notBefore","Descriptor":{"Syntax":"string","Description":"Not Before"}},{"name":"notAfter","Descriptor":{"Syntax":"string","Description":"Not After"}}],"params":[{"name":"range","value":"180"},{"name":"rangeUnit","value":""},{"name":"startTime","value":"0"}]},"constraint":{"name":"Validity Constraint","text":"This constraint rejects the validity that is not between 365 days.","classId":"validityConstraintImpl","constraints":[{"name":"range","descriptor":{"Syntax":"integer","Description":"Validity Range","DefaultValue":"365"},"value":"365"},{"name":"rangeUnit","descriptor":{"Syntax":"string","Description":"Validity Range Unit: year, month, day (default), hour, minute","DefaultValue":"day"},"value":""},{"name":"notBeforeGracePeriod","descriptor":{"Syntax":"integer","Description":"Grace period for Not Before being set in the future (in seconds).","DefaultValue":"0"},"value":""},{"name":"notBeforeCheck","descriptor":{"Syntax":"boolean","Description":"Check Not Before against current time","DefaultValue":"false"},"value":"false"},{"name":"notAfterCheck","descriptor":{"Syntax":"boolean","Description":"Check Not After against Not Before","DefaultValue":"false"},"value":"false"}]}},{"id":"3","def":{"name":"Key Default","classId":"userKeyDefaultImpl","text":"This default populates a User-Supplied Certificate Key to the request.","attributes":[{"name":"TYPE","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Key Type"}},{"name":"LEN","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Key Length"}},{"name":"KEY","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Key"}}],"params":[]},"constraint":{"name":"Key Constraint","text":"This constraint accepts the key only if Key Type=RSA, Key Parameters =1024,2048,3072,4096","classId":"keyConstraintImpl","constraints":[{"name":"keyType","descriptor":{"Syntax":"choice","Constraint":"-,RSA,EC","Description":"Key Type","DefaultValue":"RSA"},"value":"RSA"},{"name":"keyParameters","descriptor":{"Syntax":"string","Description":"Key Lengths or Curves. For EC use comma separated list of curves, otherise use list of key sizes. Ex: 1024,2048,4096,8192 or: nistp256,nistp384,nistp521,sect163k1,nistk163 for EC.","DefaultValue":""},"value":"1024,2048,3072,4096"}]}},{"id":"4","def":{"name":"Authority Key Identifier Default","classId":"authorityKeyIdentifierExtDefaultImpl","text":"This default populates an Authority Key Identifier Extension (2.5.29.35) to the request.","attributes":[{"name":"critical","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Criticality"}},{"name":"keyid","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Key ID"}}],"params":[]},"constraint":{"name":"No Constraint","text":"No Constraint","classId":"noConstraintImpl","constraints":[]}},{"id":"5","def":{"name":"AIA Extension Default","classId":"authInfoAccessExtDefaultImpl","text":"This default populates a Authority Info Access Extension (1.3.6.1.5.5.7.1.1) to the request. The default values are Criticality=false, Record #0{Method:1.3.6.1.5.5.7.48.1,Location Type:URIName,Location:,Enable:true}","attributes":[{"name":"authInfoAccessCritical","Descriptor":{"Syntax":"boolean","Description":"Criticality","DefaultValue":"false"}},{"name":"authInfoAccessGeneralNames","Descriptor":{"Syntax":"string_list","Description":"General Names"}}],"params":[{"name":"authInfoAccessCritical","value":"false"},{"name":"authInfoAccessNumADs","value":"1"},{"name":"authInfoAccessADMethod_0","value":"1.3.6.1.5.5.7.48.1"},{"name":"authInfoAccessADLocationType_0","value":"URIName"},{"name":"authInfoAccessADLocation_0","value":""},{"name":"authInfoAccessADEnable_0","value":"true"}]},"constraint":{"name":"No Constraint","text":"No Constraint","classId":"noConstraintImpl","constraints":[]}},{"id":"6","def":{"name":"Key Usage Default","classId":"keyUsageExtDefaultImpl","text":"This default populates a Key Usage Extension (2.5.29.15) to the request. The default values are Criticality=true, Digital Signature=true, Non-Repudiation=true, Key Encipherment=true, Data Encipherment=false, Key Agreement=false, Key Certificate Sign=false, Key CRL Sign=false, Encipher Only=false, Decipher Only=false","attributes":[{"name":"keyUsageCritical","Descriptor":{"Syntax":"boolean","Description":"Criticality","DefaultValue":"false"}},{"name":"keyUsageDigitalSignature","Descriptor":{"Syntax":"boolean","Description":"Digital Signature","DefaultValue":"false"}},{"name":"keyUsageNonRepudiation","Descriptor":{"Syntax":"boolean","Description":"Non-Repudiation","DefaultValue":"false"}},{"name":"keyUsageKeyEncipherment","Descriptor":{"Syntax":"boolean","Description":"Key Encipherment","DefaultValue":"false"}},{"name":"keyUsageDataEncipherment","Descriptor":{"Syntax":"boolean","Description":"Data Encipherment","DefaultValue":"false"}},{"name":"keyUsageKeyAgreement","Descriptor":{"Syntax":"boolean","Description":"Key Agreement","DefaultValue":"false"}},{"name":"keyUsageKeyCertSign","Descriptor":{"Syntax":"boolean","Description":"Key CertSign","DefaultValue":"false"}},{"name":"keyUsageCrlSign","Descriptor":{"Syntax":"boolean","Description":"CRL Sign","DefaultValue":"false"}},{"name":"keyUsageEncipherOnly","Descriptor":{"Syntax":"boolean","Description":"Encipher Only","DefaultValue":"false"}},{"name":"keyUsageDecipherOnly","Descriptor":{"Syntax":"boolean","Description":"Decipher Only","DefaultValue":"false"}}],"params":[{"name":"keyUsageCritical","value":"true"},{"name":"keyUsageDigitalSignature","value":"true"},{"name":"keyUsageNonRepudiation","value":"true"},{"name":"keyUsageKeyEncipherment","value":"true"},{"name":"keyUsageDataEncipherment","value":"false"},{"name":"keyUsageKeyAgreement","value":"false"},{"name":"keyUsageKeyCertSign","value":"false"},{"name":"keyUsageCrlSign","value":"false"},{"name":"keyUsageEncipherOnly","value":"false"},{"name":"keyUsageDecipherOnly","value":"false"}]},"constraint":{"name":"Key Usage Extension Constraint","text":"This constraint accepts the Key Usage extension, if present, only when Criticality=true, Digital Signature=true, Non-Repudiation=true, Key Encipherment=true, Data Encipherment=false, Key Agreement=false, Key Certificate Sign=false, Key CRL Sign=false, Encipher Only=false, Decipher Only=false","classId":"keyUsageExtConstraintImpl","constraints":[{"name":"keyUsageCritical","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Criticality","DefaultValue":"-"},"value":"true"},{"name":"keyUsageDigitalSignature","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Digital Signature","DefaultValue":"-"},"value":"true"},{"name":"keyUsageNonRepudiation","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Non-Repudiation","DefaultValue":"-"},"value":"true"},{"name":"keyUsageKeyEncipherment","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Key Encipherment","DefaultValue":"-"},"value":"true"},{"name":"keyUsageDataEncipherment","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Data Encipherment","DefaultValue":"-"},"value":"false"},{"name":"keyUsageKeyAgreement","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Key Agreement","DefaultValue":"-"},"value":"false"},{"name":"keyUsageKeyCertSign","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Key CertSign","DefaultValue":"-"},"value":"false"},{"name":"keyUsageCrlSign","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"CRL Sign","DefaultValue":"-"},"value":"false"},{"name":"keyUsageEncipherOnly","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Encipher Only","DefaultValue":"-"},"value":"false"},{"name":"keyUsageDecipherOnly","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Decipher Only","DefaultValue":"-"},"value":"false"}]}},{"id":"7","def":{"name":"Extended Key Usage Extension Default","classId":"extendedKeyUsageExtDefaultImpl","text":"This default populates an Extended Key Usage Extension () to the request. The default values are Criticality=false, OIDs=1.3.6.1.5.5.7.3.2,1.3.6.1.5.5.7.3.4","attributes":[{"name":"exKeyUsageCritical","Descriptor":{"Syntax":"boolean","Description":"Criticality","DefaultValue":"false"}},{"name":"exKeyUsageOIDs","Descriptor":{"Syntax":"string_list","Description":"Comma-Separated list of Object Identifiers"}}],"params":[{"name":"exKeyUsageCritical","value":"false"},{"name":"exKeyUsageOIDs","value":"1.3.6.1.5.5.7.3.2,1.3.6.1.5.5.7.3.4"}]},"constraint":{"name":"No Constraint","text":"No Constraint","classId":"noConstraintImpl","constraints":[]}},{"id":"8","def":{"name":"Subject Alt Name Constraint","classId":"subjectAltNameExtDefaultImpl","text":"This default populates a Subject Alternative Name Extension (2.5.29.17) to the request. The default values are Criticality=false, Record #0{Pattern:$request.requestor_email$,Pattern Type:RFC822Name,Enable:true}","attributes":[{"name":"subjAltNameExtCritical","Descriptor":{"Syntax":"boolean","Description":"Criticality","DefaultValue":"false"}},{"name":"subjAltNames","Descriptor":{"Syntax":"string_list","Description":"General Names"}}],"params":[{"name":"subjAltNameExtCritical","value":"false"},{"name":"subjAltNameNumGNs","value":"1"},{"name":"subjAltExtType_0","value":"RFC822Name"},{"name":"subjAltExtPattern_0","value":"$request.requestor_email$"},{"name":"subjAltExtGNEnable_0","value":"true"}]},"constraint":{"name":"No Constraint","text":"No Constraint","classId":"noConstraintImpl","constraints":[]}},{"id":"9","def":{"name":"Signing Alg","classId":"signingAlgDefaultImpl","text":"This default populates the Certificate Signing Algorithm. The default values are Algorithm=SHA256withRSA","attributes":[{"name":"signingAlg","Descriptor":{"Syntax":"choice","Constraint":"SHA256withRSA,SHA384withRSA,SHA512withRSA,SHA1withRSA,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS","Description":"Signing Algorithm"}}],"params":[{"name":"signingAlg","value":"-"}]},"constraint":{"name":"No Constraint","text":"This constraint accepts only the Signing Algorithms of SHA256withRSA,SHA512withRSA,SHA256withEC,SHA384withRSA,SHA384withEC,SHA512withEC,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS","classId":"signingAlgConstraintImpl","constraints":[{"name":"signingAlgsAllowed","descriptor":{"Syntax":"string","Description":"Allowed Signing Algorithms","DefaultValue":"SHA256withRSA,SHA384withRSA,SHA512withRSA,SHA1withRSA,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS,SHA256withEC,SHA384withEC,SHA512withEC,SHA1withEC"},"value":"SHA256withRSA,SHA512withRSA,SHA256withEC,SHA384withRSA,SHA384withEC,SHA512withEC,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS"}]}}]},"xmloutput":false}' -X Put https://$HOSTNAME:8443/ca/v2/profiles/test
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    --json '{"id":"test","classId":"caEnrollImpl","name":"Manual User Dual-Use Certificate Enrollment","description":"This certificate profile is for enrolling user certificates.","enabled":true,"visible":true,"enabledBy":"admin","authzAcl":"","renewal":false,"inputs":[{"id":"i1","ClassID":"keyGenInputImpl","Name":"Key Generation","ConfigAttribute":[],"Attribute":[{"name":"cert_request_type","Descriptor":{"Syntax":"keygen_request_type","Description":"Key Generation Request Type"}},{"name":"cert_request","Descriptor":{"Syntax":"keygen_request","Description":"Key Generation Request"}}]},{"id":"i2","ClassID":"subjectNameInputImpl","Name":"Subject Name","ConfigAttribute":[],"Attribute":[{"name":"sn_uid","Descriptor":{"Syntax":"string","Description":"UID"}},{"name":"sn_e","Descriptor":{"Syntax":"string","Description":"Email"}},{"name":"sn_cn","Descriptor":{"Syntax":"string","Description":"Common Name"}},{"name":"sn_ou3","Descriptor":{"Syntax":"string","Description":"Organizational Unit 3"}},{"name":"sn_ou2","Descriptor":{"Syntax":"string","Description":"Organizational Unit 2"}},{"name":"sn_ou1","Descriptor":{"Syntax":"string","Description":"Organizational Unit 1"}},{"name":"sn_ou","Descriptor":{"Syntax":"string","Description":"Organizational Unit"}},{"name":"sn_o","Descriptor":{"Syntax":"string","Description":"Organization"}},{"name":"sn_c","Descriptor":{"Syntax":"string","Description":"Country"}}]},{"id":"i3","ClassID":"submitterInfoInputImpl","Name":"Requestor Information","ConfigAttribute":[],"Attribute":[{"name":"requestor_name","Descriptor":{"Syntax":"string","Description":"Requestor Name"}},{"name":"requestor_email","Descriptor":{"Syntax":"string","Description":"Requestor Email"}},{"name":"requestor_phone","Descriptor":{"Syntax":"string","Description":"Requestor Phone"}}]}],"outputs":[{"id":"o1","name":"Certificate Output","classId":"certOutputImpl","attributes":[{"name":"pretty_cert","Descriptor":{"Syntax":"pretty_print","Description":"Certificate Pretty Print"}},{"name":"b64_cert","Descriptor":{"Syntax":"pretty_print","Description":"Certificate Base-64 Encoded"}}]}],"policySets":{"userCertSet":[{"id":"1","def":{"name":"Subject Name Default","classId":"userSubjectNameDefaultImpl","text":"This default populates a User-Supplied Certificate Subject Name to the request.","attributes":[{"name":"name","Descriptor":{"Syntax":"string","Description":"Subject Name"}}],"params":[{"name":"useSysEncoding","value":""}]},"constraint":{"name":"Subject Name Constraint","text":"This constraint accepts the subject name that matches UID=.*","classId":"subjectNameConstraintImpl","constraints":[{"name":"pattern","descriptor":{"Syntax":"string","Description":"Subject Name Pattern"},"value":"UID=.*"}]}},{"id":"10","def":{"name":"No Default","classId":"noDefaultImpl","text":"No Default","attributes":[],"params":[]},"constraint":{"name":"Renewal Grace Period Constraint","text":"This constraint rejects the validity that is not between 30 days before and 30 days after original cert expiration date days.","classId":"renewGracePeriodConstraintImpl","constraints":[{"name":"renewal.graceBefore","descriptor":{"Syntax":"integer","Description":"Renewal Grace Period Before","DefaultValue":"30"},"value":"30"},{"name":"renewal.graceAfter","descriptor":{"Syntax":"integer","Description":"Renewal Grace Period After","DefaultValue":"30"},"value":"30"}]}},{"id":"2","def":{"name":"Validity Default","classId":"validityDefaultImpl","text":"This default populates a Certificate Validity to the request. The default values are Range=180 in days","attributes":[{"name":"notBefore","Descriptor":{"Syntax":"string","Description":"Not Before"}},{"name":"notAfter","Descriptor":{"Syntax":"string","Description":"Not After"}}],"params":[{"name":"range","value":"180"},{"name":"rangeUnit","value":""},{"name":"startTime","value":"0"}]},"constraint":{"name":"Validity Constraint","text":"This constraint rejects the validity that is not between 365 days.","classId":"validityConstraintImpl","constraints":[{"name":"range","descriptor":{"Syntax":"integer","Description":"Validity Range","DefaultValue":"365"},"value":"365"},{"name":"rangeUnit","descriptor":{"Syntax":"string","Description":"Validity Range Unit: year, month, day (default), hour, minute","DefaultValue":"day"},"value":""},{"name":"notBeforeGracePeriod","descriptor":{"Syntax":"integer","Description":"Grace period for Not Before being set in the future (in seconds).","DefaultValue":"0"},"value":""},{"name":"notBeforeCheck","descriptor":{"Syntax":"boolean","Description":"Check Not Before against current time","DefaultValue":"false"},"value":"false"},{"name":"notAfterCheck","descriptor":{"Syntax":"boolean","Description":"Check Not After against Not Before","DefaultValue":"false"},"value":"false"}]}},{"id":"3","def":{"name":"Key Default","classId":"userKeyDefaultImpl","text":"This default populates a User-Supplied Certificate Key to the request.","attributes":[{"name":"TYPE","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Key Type"}},{"name":"LEN","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Key Length"}},{"name":"KEY","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Key"}}],"params":[]},"constraint":{"name":"Key Constraint","text":"This constraint accepts the key only if Key Type=RSA, Key Parameters =1024,2048,3072,4096","classId":"keyConstraintImpl","constraints":[{"name":"keyType","descriptor":{"Syntax":"choice","Constraint":"-,RSA,EC","Description":"Key Type","DefaultValue":"RSA"},"value":"RSA"},{"name":"keyParameters","descriptor":{"Syntax":"string","Description":"Key Lengths or Curves. For EC use comma separated list of curves, otherise use list of key sizes. Ex: 1024,2048,4096,8192 or: nistp256,nistp384,nistp521,sect163k1,nistk163 for EC.","DefaultValue":""},"value":"1024,2048,3072,4096"}]}},{"id":"4","def":{"name":"Authority Key Identifier Default","classId":"authorityKeyIdentifierExtDefaultImpl","text":"This default populates an Authority Key Identifier Extension (2.5.29.35) to the request.","attributes":[{"name":"critical","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Criticality"}},{"name":"keyid","Descriptor":{"Syntax":"string","Constraint":"readonly","Description":"Key ID"}}],"params":[]},"constraint":{"name":"No Constraint","text":"No Constraint","classId":"noConstraintImpl","constraints":[]}},{"id":"5","def":{"name":"AIA Extension Default","classId":"authInfoAccessExtDefaultImpl","text":"This default populates a Authority Info Access Extension (1.3.6.1.5.5.7.1.1) to the request. The default values are Criticality=false, Record #0{Method:1.3.6.1.5.5.7.48.1,Location Type:URIName,Location:,Enable:true}","attributes":[{"name":"authInfoAccessCritical","Descriptor":{"Syntax":"boolean","Description":"Criticality","DefaultValue":"false"}},{"name":"authInfoAccessGeneralNames","Descriptor":{"Syntax":"string_list","Description":"General Names"}}],"params":[{"name":"authInfoAccessCritical","value":"false"},{"name":"authInfoAccessNumADs","value":"1"},{"name":"authInfoAccessADMethod_0","value":"1.3.6.1.5.5.7.48.1"},{"name":"authInfoAccessADLocationType_0","value":"URIName"},{"name":"authInfoAccessADLocation_0","value":""},{"name":"authInfoAccessADEnable_0","value":"true"}]},"constraint":{"name":"No Constraint","text":"No Constraint","classId":"noConstraintImpl","constraints":[]}},{"id":"6","def":{"name":"Key Usage Default","classId":"keyUsageExtDefaultImpl","text":"This default populates a Key Usage Extension (2.5.29.15) to the request. The default values are Criticality=true, Digital Signature=true, Non-Repudiation=true, Key Encipherment=true, Data Encipherment=false, Key Agreement=false, Key Certificate Sign=false, Key CRL Sign=false, Encipher Only=false, Decipher Only=false","attributes":[{"name":"keyUsageCritical","Descriptor":{"Syntax":"boolean","Description":"Criticality","DefaultValue":"false"}},{"name":"keyUsageDigitalSignature","Descriptor":{"Syntax":"boolean","Description":"Digital Signature","DefaultValue":"false"}},{"name":"keyUsageNonRepudiation","Descriptor":{"Syntax":"boolean","Description":"Non-Repudiation","DefaultValue":"false"}},{"name":"keyUsageKeyEncipherment","Descriptor":{"Syntax":"boolean","Description":"Key Encipherment","DefaultValue":"false"}},{"name":"keyUsageDataEncipherment","Descriptor":{"Syntax":"boolean","Description":"Data Encipherment","DefaultValue":"false"}},{"name":"keyUsageKeyAgreement","Descriptor":{"Syntax":"boolean","Description":"Key Agreement","DefaultValue":"false"}},{"name":"keyUsageKeyCertSign","Descriptor":{"Syntax":"boolean","Description":"Key CertSign","DefaultValue":"false"}},{"name":"keyUsageCrlSign","Descriptor":{"Syntax":"boolean","Description":"CRL Sign","DefaultValue":"false"}},{"name":"keyUsageEncipherOnly","Descriptor":{"Syntax":"boolean","Description":"Encipher Only","DefaultValue":"false"}},{"name":"keyUsageDecipherOnly","Descriptor":{"Syntax":"boolean","Description":"Decipher Only","DefaultValue":"false"}}],"params":[{"name":"keyUsageCritical","value":"true"},{"name":"keyUsageDigitalSignature","value":"true"},{"name":"keyUsageNonRepudiation","value":"true"},{"name":"keyUsageKeyEncipherment","value":"true"},{"name":"keyUsageDataEncipherment","value":"false"},{"name":"keyUsageKeyAgreement","value":"false"},{"name":"keyUsageKeyCertSign","value":"false"},{"name":"keyUsageCrlSign","value":"false"},{"name":"keyUsageEncipherOnly","value":"false"},{"name":"keyUsageDecipherOnly","value":"false"}]},"constraint":{"name":"Key Usage Extension Constraint","text":"This constraint accepts the Key Usage extension, if present, only when Criticality=true, Digital Signature=true, Non-Repudiation=true, Key Encipherment=true, Data Encipherment=false, Key Agreement=false, Key Certificate Sign=false, Key CRL Sign=false, Encipher Only=false, Decipher Only=false","classId":"keyUsageExtConstraintImpl","constraints":[{"name":"keyUsageCritical","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Criticality","DefaultValue":"-"},"value":"true"},{"name":"keyUsageDigitalSignature","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Digital Signature","DefaultValue":"-"},"value":"true"},{"name":"keyUsageNonRepudiation","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Non-Repudiation","DefaultValue":"-"},"value":"true"},{"name":"keyUsageKeyEncipherment","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Key Encipherment","DefaultValue":"-"},"value":"true"},{"name":"keyUsageDataEncipherment","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Data Encipherment","DefaultValue":"-"},"value":"false"},{"name":"keyUsageKeyAgreement","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Key Agreement","DefaultValue":"-"},"value":"false"},{"name":"keyUsageKeyCertSign","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Key CertSign","DefaultValue":"-"},"value":"false"},{"name":"keyUsageCrlSign","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"CRL Sign","DefaultValue":"-"},"value":"false"},{"name":"keyUsageEncipherOnly","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Encipher Only","DefaultValue":"-"},"value":"false"},{"name":"keyUsageDecipherOnly","descriptor":{"Syntax":"choice","Constraint":"true,false,-","Description":"Decipher Only","DefaultValue":"-"},"value":"false"}]}},{"id":"7","def":{"name":"Extended Key Usage Extension Default","classId":"extendedKeyUsageExtDefaultImpl","text":"This default populates an Extended Key Usage Extension () to the request. The default values are Criticality=false, OIDs=1.3.6.1.5.5.7.3.2,1.3.6.1.5.5.7.3.4","attributes":[{"name":"exKeyUsageCritical","Descriptor":{"Syntax":"boolean","Description":"Criticality","DefaultValue":"false"}},{"name":"exKeyUsageOIDs","Descriptor":{"Syntax":"string_list","Description":"Comma-Separated list of Object Identifiers"}}],"params":[{"name":"exKeyUsageCritical","value":"false"},{"name":"exKeyUsageOIDs","value":"1.3.6.1.5.5.7.3.2,1.3.6.1.5.5.7.3.4"}]},"constraint":{"name":"No Constraint","text":"No Constraint","classId":"noConstraintImpl","constraints":[]}},{"id":"8","def":{"name":"Subject Alt Name Constraint","classId":"subjectAltNameExtDefaultImpl","text":"This default populates a Subject Alternative Name Extension (2.5.29.17) to the request. The default values are Criticality=false, Record #0{Pattern:$request.requestor_email$,Pattern Type:RFC822Name,Enable:true}","attributes":[{"name":"subjAltNameExtCritical","Descriptor":{"Syntax":"boolean","Description":"Criticality","DefaultValue":"false"}},{"name":"subjAltNames","Descriptor":{"Syntax":"string_list","Description":"General Names"}}],"params":[{"name":"subjAltNameExtCritical","value":"false"},{"name":"subjAltNameNumGNs","value":"1"},{"name":"subjAltExtType_0","value":"RFC822Name"},{"name":"subjAltExtPattern_0","value":"$request.requestor_email$"},{"name":"subjAltExtGNEnable_0","value":"true"}]},"constraint":{"name":"No Constraint","text":"No Constraint","classId":"noConstraintImpl","constraints":[]}},{"id":"9","def":{"name":"Signing Alg","classId":"signingAlgDefaultImpl","text":"This default populates the Certificate Signing Algorithm. The default values are Algorithm=SHA256withRSA","attributes":[{"name":"signingAlg","Descriptor":{"Syntax":"choice","Constraint":"SHA256withRSA,SHA384withRSA,SHA512withRSA,SHA1withRSA,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS","Description":"Signing Algorithm"}}],"params":[{"name":"signingAlg","value":"-"}]},"constraint":{"name":"No Constraint","text":"This constraint accepts only the Signing Algorithms of SHA256withRSA,SHA512withRSA,SHA256withEC,SHA384withRSA,SHA384withEC,SHA512withEC,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS","classId":"signingAlgConstraintImpl","constraints":[{"name":"signingAlgsAllowed","descriptor":{"Syntax":"string","Description":"Allowed Signing Algorithms","DefaultValue":"SHA256withRSA,SHA384withRSA,SHA512withRSA,SHA1withRSA,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS,SHA256withEC,SHA384withEC,SHA512withEC,SHA1withEC"},"value":"SHA256withRSA,SHA512withRSA,SHA256withEC,SHA384withRSA,SHA384withEC,SHA512withEC,SHA256withRSA/PSS,SHA384withRSA/PSS,SHA512withRSA/PSS"}]}}]},"xmloutput":false}' \
+    -X Put https://$HOSTNAME:8443/ca/v2/profiles/test
 {
   "id" : "test",
   "classId" : "caEnrollImpl",
@@ -4746,7 +5056,10 @@ $ curl --cacert ./ca_signing.crt -b session_cookie --json '{"id":"test","classId
 | action (enable/disable)
 | 204
 |
-.Show
+|
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
@@ -4758,12 +5071,16 @@ $ curl --cacert ./ca_signing.crt -b session_cookie -X DELETE https://$HOSTNAME:8
 | `POST`
 | None
 | 201
-|
-.Show
+| `application/octet-stream`
+| Profile file in the original `key=<value>` format
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie --data-binary @- https://$HOSTNAME:8443/ca/v2/profiles/raw << EOF
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    --data-binary @- https://$HOSTNAME:8443/ca/v2/profiles/raw << EOF
 auth.class_id=
 classId=caEnrollImpl
 desc=This certificate profile is for enrolling user certificates.
@@ -4979,12 +5296,16 @@ visible=false
 | `GET`
 | None
 | 200
+| `application/octet-stream`
 |
-.Show
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie https://$HOSTNAME:8443/ca/v2/profiles/caUserCert
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    https://$HOSTNAME:8443/ca/v2/profiles/caUserCert
 auth.class_id=
 classId=caEnrollImpl
 desc=This certificate profile is for enrolling user certificates.
@@ -5095,12 +5416,16 @@ visible=false
 | `PUT`
 | None
 | 200
-|
-.Show
+| `application/octet-stream`
+| Profile file in the original `key=<value>` format
+
+6+|
+.Example
 [%collapsible]
 ====
 ----
-$ curl --cacert ./ca_signing.crt -b session_cookie --data-binary @- -X PUT https://$HOSTNAME:8443/ca/v2/profiles/test/raw << EOF
+$ curl --cacert ./ca_signing.crt -b session_cookie \
+    --data-binary @- -X PUT https://$HOSTNAME:8443/ca/v2/profiles/test/raw << EOF
 auth.class_id=
 classId=caEnrollImpl
 desc=This certificate profile is for enrolling user certificates.
@@ -5310,11 +5635,14 @@ policyset.userCertSet.6.default.params.keyUsageDataEncipherment=false
 ====
 |===
 
+
+NOTE: endpoints requiring authentication can be accessed providing the session cookie retrieved in the login api (`/<app>/v2/account/login`) or the user credentials (user/password or certificates).
+
+
 = TPS endpoints =
 
 * link:TPS-REST-API-v2[TPS REST API v2]
 
-NOTE: endpoints requiring authentication can be accessed providing the session cookie retrieved in the login api (`/<app>/v2/account/login`) or the user credentials (user/password or certificates).
 
 = See Also =
 
