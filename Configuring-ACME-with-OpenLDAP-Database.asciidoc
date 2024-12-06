@@ -1,10 +1,8 @@
-# Configuring ACME with OpenLDAP Database
-
-## Overview
+= Overview =
 
 This document describes the process to configure ACME responder to use an OpenLDAP database.
 
-## Initializing OpenLDAP Database
+= Initializing OpenLDAP Database =
 
 First, add the ACME OpenLDAP schema by importing
 link:https://github.com/dogtagpki/pki/blob/master/base/acme/database/openldap/schema.ldif[/usr/share/pki/acme/database/openldap/schema.ldif] with the following command:
@@ -25,7 +23,7 @@ $ ldapadd -H ldap://$HOSTNAME -x -D "cn=Manager,dc=example,dc=com" -w Secret.123
     -f /usr/share/pki/acme/database/openldap/create.ldif
 ----
 
-## Configuring ACME Database
+= Configuring ACME Database =
 
 A sample database configuration is available at
 link:https://github.com/dogtagpki/pki/blob/master/base/acme/database/openldap/database.conf[/usr/share/pki/acme/database/openldap/database.conf].
