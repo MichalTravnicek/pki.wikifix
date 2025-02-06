@@ -1,0 +1,45 @@
+= Overview =
+
+This document describes the process to install an ACME responder on a PKI server that already has a CA subsystem using `pkispawn` command.
+
+= Setting Up ACME Database =
+
+----
+$ ldapmodify \
+    -H ldap://ds.example.com:3389 \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f /usr/share/pki/acme/database/ds/schema.ldif
+$ ldapadd \
+    -H ldap://ds.example.com:3389 \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f /usr/share/pki/acme/database/ds/create.ldif
+----
+
+= Setting Up ACME Realm =
+
+----
+$ ldapadd \
+    -H ldap://ds.example.com:3389 \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f /usr/share/pki/acme/realm/ds/create.ldif
+----
+
+= Installing ACME Responder =
+
+----
+$ pkispawn \
+    -f /usr/share/pki/server/examples/installation/acme.cfg \
+    -s ACME \
+    -D acme_database_url=ldap://ds.example.com:3389 \
+    -D acme_issuer_url=https://pki.example.com:8443 \
+    -D acme_realm_url=ldap://ds.example.com:3389 \
+    -v
+----
+
+= See Also =
+
+* https://github.com/dogtagpki/pki/blob/master/base/server/examples/installation/acme.cfg[/usr/share/pki/server/examples/installation/acme.cfg]
+* link:https://github.com/dogtagpki/pki/blob/master/.github/workflows/acme-basic-test.yml[Basic ACME Test]
