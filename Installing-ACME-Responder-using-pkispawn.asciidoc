@@ -4,12 +4,19 @@ This document describes the process to install an ACME responder on a PKI server
 
 = Setting Up ACME Database =
 
+To import the DS schema for ACME database:
+
 ----
 $ ldapmodify \
     -H ldap://ds.example.com:3389 \
     -D "cn=Directory Manager" \
     -w Secret.123 \
     -f /usr/share/pki/acme/database/ds/schema.ldif
+----
+
+To create the DS subtrees for ACME database:
+
+----
 $ ldapadd \
     -H ldap://ds.example.com:3389 \
     -D "cn=Directory Manager" \
@@ -18,6 +25,8 @@ $ ldapadd \
 ----
 
 = Setting Up ACME Realm =
+
+To create the DS subtrees for ACME realm:
 
 ----
 $ ldapadd \
