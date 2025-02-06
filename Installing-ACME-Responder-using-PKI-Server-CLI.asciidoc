@@ -214,7 +214,7 @@ It is not necessary to restart PKI server.
 To verify that the ACME responder is running, execute the following command:
 
 ----
-$ curl -s -k https://$HOSTNAME:8443/acme/directory | python -m json.tool
+$ curl -s -k https://pki.example.com:8443/acme/directory | python -m json.tool
 {
     "meta": {
         "caaIdentities": [
@@ -224,16 +224,16 @@ $ curl -s -k https://$HOSTNAME:8443/acme/directory | python -m json.tool
         "termsOfService": "https://www.example.com/acme/tos.pdf",
         "website": "https://www.example.com"
     },
-    "newAccount": "https://<hostname>:8443/acme/new-account",
-    "newNonce": "https://<hostname>:8443/acme/new-nonce",
-    "newOrder": "https://<hostname>:8443/acme/new-order",
-    "revokeCert": "https://<hostname>:8443/acme/revoke-cert"
+    "newAccount": "https://pki.example.com:8443/acme/new-account",
+    "newNonce": "https://pki.example.com:8443/acme/new-nonce",
+    "newOrder": "https://pki.example.com:8443/acme/new-order",
+    "revokeCert": "https://pki.example.com:8443/acme/revoke-cert"
 }
 ----
 
 = Undeploying ACME Responder =
 
-To undeploy the ACME responder, execute the following command:
+To undeploy the ACME responder execute the following command:
 
 ----
 $ pki-server acme-undeploy
@@ -248,7 +248,7 @@ To restart the ACME responder, execute `pki-server acme-deploy` again.
 
 = Removing ACME Responder =
 
-To remove the ACME responder completely from the server, execute the following command:
+To remove the ACME responder execute the following command:
 
 ----
 $ pki-server acme-remove
