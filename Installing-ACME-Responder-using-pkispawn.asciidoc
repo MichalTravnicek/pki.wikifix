@@ -13,7 +13,7 @@ This document assumes that the following DS service is available to use as ACME 
 
 It also assumes that the following CA service is available to use as ACME issuer:
 
-* URL: `ldap://ds.example.com:3389`
+* URL: `ldap://pki.example.com:3389`
 * Username: `caadmin`
 * Password: `Secret.123`
 
@@ -27,6 +27,16 @@ $ ldapmodify \
     -D "cn=Directory Manager" \
     -w Secret.123 \
     -f /usr/share/pki/acme/database/ds/schema.ldif
+----
+
+To create the DS indexes for ACME database:
+
+----
+$ ldapadd \
+    -H ldap://ds.example.com:3389 \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f /usr/share/pki/acme/database/ds/index.ldif
 ----
 
 To create the DS subtrees for ACME database:
