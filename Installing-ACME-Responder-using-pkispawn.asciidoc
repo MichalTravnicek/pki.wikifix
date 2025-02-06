@@ -7,9 +7,9 @@ This document describes the process to install an ACME responder on a PKI server
 This document assumes that the following DS service is available to use as ACME database and ACME realm:
 
 * URL: `ldap://ds.example.com:3389`
-* Base DN: `dc=acme,dc=pki,dc=example,dc=com`
 * Bind DN: `cn=Directory Manager`
 * Bind password: `Secret.123`
+* Base DN: `dc=acme,dc=pki,dc=example,dc=com`
 
 It also assumes that the following CA service is available to use as ACME issuer:
 
@@ -78,7 +78,7 @@ $ pkispawn \
 To verify that the ACME responder is running, execute the following command:
 
 ----
-$ curl -s -k https://$HOSTNAME:8443/acme/directory | python -m json.tool
+$ curl -s -k https://pki.example.com:8443/acme/directory | python -m json.tool
 {
     "meta": {
         "caaIdentities": [
@@ -88,10 +88,10 @@ $ curl -s -k https://$HOSTNAME:8443/acme/directory | python -m json.tool
         "termsOfService": "https://www.example.com/acme/tos.pdf",
         "website": "https://www.example.com"
     },
-    "newAccount": "https://<hostname>:8443/acme/new-account",
-    "newNonce": "https://<hostname>:8443/acme/new-nonce",
-    "newOrder": "https://<hostname>:8443/acme/new-order",
-    "revokeCert": "https://<hostname>:8443/acme/revoke-cert"
+    "newAccount": "https://pki.example.com:8443/acme/new-account",
+    "newNonce": "https://pki.example.com:8443/acme/new-nonce",
+    "newOrder": "https://pki.example.com:8443/acme/new-order",
+    "revokeCert": "https://pki.example.com:8443/acme/revoke-cert"
 }
 ----
 
