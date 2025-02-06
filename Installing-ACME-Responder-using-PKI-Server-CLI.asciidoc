@@ -21,17 +21,41 @@ It also assumes that the following CA service is available to use as ACME issuer
 
 To create ACME responder in a PKI server instance, execute the following command:
 
-```
+----
 $ pki-server acme-create
-```
+----
 
 The command will create the initial configuration files in `/var/lib/pki/pki-tomcat/conf/acme` folder.
+
+= Setting Up ACME Metadata =
+
+----
+$ pki-server acme-metadata-mod
+The current value is displayed in the square brackets.
+To keep the current value, simply press Enter.
+To change the current value, enter the new value.
+To remove the current value, enter a blank space.
+
+Enter the location of the terms of service.
+  Terms of Service [https://www.example.com/acme/tos.pdf]:
+
+Enter the location of the website.
+  Website [https://www.example.com]:
+
+Enter the CAA identities.
+  CAA Identities [example.com]:
+
+Enter true/false whether an external account is required.
+  External Account Required [false]:
+----
+
+See also link:Configuring-ACME-Metadata[Configuring ACME Metadata].
 
 = Configuring ACME Responder =
 
 To configure the ACME responder, see the following documents:
 
-* link:Configuring-ACME-Metadata[Configuring ACME Metadata]
+
 * link:Configuring-ACME-Database[Configuring ACME Database]
 * link:Configuring-ACME-Issuer[Configuring ACME Issuer]
 * link:Configuring-ACME-Realm[Configuring ACME Realm]
@@ -40,18 +64,20 @@ To configure the ACME responder, see the following documents:
 
 Once everything is ready, deploy the ACME responder with the following command:
 
-```
+----
 $ pki-server acme-deploy
-```
+----
 
 The command will create a deployment descriptor at `/var/lib/pki/pki-tomcat/conf/Catalina/localhost/acme.xml`.
 
 The server will start the ACME responder automatically in a few seconds.
 It is not necessary to restart PKI server.
 
+= Verifying ACME Responder =
+
 To verify that the ACME responder is running, execute the following command:
 
-```
+----
 $ curl -s -k https://$HOSTNAME:8443/acme/directory | python -m json.tool
 {
     "meta": {
@@ -67,15 +93,15 @@ $ curl -s -k https://$HOSTNAME:8443/acme/directory | python -m json.tool
     "newOrder": "https://<hostname>:8443/acme/new-order",
     "revokeCert": "https://<hostname>:8443/acme/revoke-cert"
 }
-```
+----
 
 = Undeploying ACME Responder =
 
 To undeploy the ACME responder, execute the following command:
 
-```
+----
 $ pki-server acme-undeploy
-```
+----
 
 The command will remove the deployment descriptor at `/var/lib/pki/pki-tomcat/conf/Catalina/localhost/acme.xml`.
 
@@ -88,9 +114,9 @@ To restart the ACME responder, execute `pki-server acme-deploy` again.
 
 To remove the ACME responder completely from the server, execute the following command:
 
-```
+----
 $ pki-server acme-remove
-```
+----
 
 = See Also =
 
