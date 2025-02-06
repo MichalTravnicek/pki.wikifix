@@ -7,9 +7,9 @@ This document describes the process to install an ACME responder on a PKI server
 This document assumes that the following DS service is available to use as ACME database and ACME realm:
 
 * URL: `ldap://ds.example.com:3389`
-* Base DN: `dc=acme,dc=pki,dc=example,dc=com`
 * Bind DN: `cn=Directory Manager`
 * Bind password: `Secret.123`
+* Base DN: `dc=acme,dc=pki,dc=example,dc=com`
 
 It also assumes that the following CA service is available to use as ACME issuer:
 
@@ -28,6 +28,8 @@ $ pki-server acme-create
 The command will create the initial configuration files in `/var/lib/pki/pki-tomcat/conf/acme` folder.
 
 = Setting Up ACME Metadata =
+
+To configure ACME metadata:
 
 ----
 $ pki-server acme-metadata-mod
@@ -51,12 +53,72 @@ Enter true/false whether an external account is required.
 
 See also link:Configuring-ACME-Metadata[Configuring ACME Metadata].
 
+= Setting Up ACME Database =
+
+To import the DS schema for ACME database:
+
+----
+$ ldapmodify \
+    -H ldap://ds.example.com:3389 \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f /usr/share/pki/acme/database/ds/schema.ldif
+----
+
+To create the DS indexes for ACME database:
+
+----
+$ ldapadd \
+    -H ldap://ds.example.com:3389 \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f /usr/share/pki/acme/database/ds/index.ldif
+----
+
+To create the DS subtrees for ACME database:
+
+----
+$ ldapadd \
+    -H ldap://ds.example.com:3389 \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
+    -f /usr/share/pki/acme/database/ds/create.ldif
+----
+
+To configure ACME database:
+
+----
+$ pki-server acme-database-mod
+The current value is displayed in the square brackets.
+To keep the current value, simply press Enter.
+To change the current value, enter the new value.
+To remove the current value, enter a blank space.
+
+Enter the type of the database. Available types: ds, in-memory, ldap, openldap, postgresql.
+  Database Type: ds
+
+Enter the location of the LDAP server (e.g. ldap://localhost.localdomain:389).
+  Server URL [ldap://localhost.localdomain:389]: ldap://ds.example.com:3389
+
+Enter the authentication type. Available types: BasicAuth, SslClientAuth.
+  Authentication Type [BasicAuth]:
+
+Enter the bind DN.
+  Bind DN [cn=Directory Manager]:
+
+Enter the bind password.
+  Bind Password [********]: Secret.123
+
+Enter the base DN for the ACME subtree.
+  Base DN [dc=acme,dc=pki,dc=example,dc=com]:
+----
+
+See also link:Configuring-ACME-Database[Configuring ACME Database].
+
 = Configuring ACME Responder =
 
 To configure the ACME responder, see the following documents:
 
-
-* link:Configuring-ACME-Database[Configuring ACME Database]
 * link:Configuring-ACME-Issuer[Configuring ACME Issuer]
 * link:Configuring-ACME-Realm[Configuring ACME Realm]
 
