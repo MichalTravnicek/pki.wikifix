@@ -12,7 +12,10 @@ This example uses `dc=acme,dc=pki,dc=example,dc=com` as the base DN.
 Import the file with the following command:
 
 ----
-$ ldapadd -H ldap://$HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 \
+$ ldapadd \
+    -H ldap://$HOSTNAME \
+    -x -D "cn=Directory Manager" \
+    -w Secret.123 \
     -f /usr/share/pki/acme/realm/ds/create.ldif
 ----
 
@@ -23,7 +26,8 @@ To use the DS realm, copy the sample `realm.conf` into the `/var/lib/pki/pki-tom
 or execute the following command to customize some of the parameters:
 
 ----
-$ pki-server acme-realm-mod --type ds \
+$ pki-server acme-realm-mod \
+    --type ds \
     -DbindPassword=Secret.123
 ----
 
