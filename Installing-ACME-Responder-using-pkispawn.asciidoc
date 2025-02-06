@@ -73,6 +73,28 @@ $ pkispawn \
     -v
 ----
 
+= Verifying ACME Responder =
+
+To verify that the ACME responder is running, execute the following command:
+
+----
+$ curl -s -k https://$HOSTNAME:8443/acme/directory | python -m json.tool
+{
+    "meta": {
+        "caaIdentities": [
+            "example.com"
+        ],
+        "externalAccountRequired": false,
+        "termsOfService": "https://www.example.com/acme/tos.pdf",
+        "website": "https://www.example.com"
+    },
+    "newAccount": "https://<hostname>:8443/acme/new-account",
+    "newNonce": "https://<hostname>:8443/acme/new-nonce",
+    "newOrder": "https://<hostname>:8443/acme/new-order",
+    "revokeCert": "https://<hostname>:8443/acme/revoke-cert"
+}
+----
+
 = See Also =
 
 * link:https://github.com/dogtagpki/pki/blob/master/base/acme/database/ds/schema.ldif[/usr/share/pki/acme/database/ds/schema.ldif]
