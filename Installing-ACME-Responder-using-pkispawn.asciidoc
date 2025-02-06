@@ -2,6 +2,8 @@
 
 This document describes the process to install an ACME responder on a PKI server that already has a CA subsystem using `pkispawn` command.
 
+In general `pkispawn` provides a simpler way compared to link:Installing-ACME-Responder-using-PKI-Server-ACME-CLI/[`pki-server acme`] for installing ACME responder.
+
 = Prerequisites =
 
 This document assumes that the following DS service is available to use as ACME database and ACME realm:
@@ -73,6 +75,8 @@ $ pkispawn \
     -D acme_realm_url=ldap://ds.example.com:3389
 ----
 
+See also link:Configuring-ACME-Responder[Configuring ACME Responder].
+
 = Verifying ACME Responder =
 
 To verify that the ACME responder is running, execute the following command:
@@ -105,10 +109,7 @@ $ pkidestroy -s ACME
 
 = See Also =
 
-* link:https://github.com/dogtagpki/pki/blob/master/base/acme/database/ds/schema.ldif[/usr/share/pki/acme/database/ds/schema.ldif]
-* link:https://github.com/dogtagpki/pki/blob/master/base/acme/database/ds/index.ldif[/usr/share/pki/acme/database/ds/index.ldif]
-* link:https://github.com/dogtagpki/pki/blob/master/base/acme/database/ds/indextask.ldif[/usr/share/pki/acme/database/ds/indextask.ldif]
-* link:https://github.com/dogtagpki/pki/blob/master/base/acme/database/ds/create.ldif[/usr/share/pki/acme/database/ds/create.ldif]
-* link:https://github.com/dogtagpki/pki/blob/master/base/acme/realm/ds/create.ldif[/usr/share/pki/acme/realm/ds/create.ldif]
-* link:https://github.com/dogtagpki/pki/blob/master/base/server/examples/installation/acme.cfg[/usr/share/pki/server/examples/installation/acme.cfg]
-* link:https://github.com/dogtagpki/pki/blob/master/.github/workflows/acme-basic-test.yml[Basic ACME Test]
+* link:Configuring-ACME-Responder[Configuring ACME Responder]
+* link:https://github.com/dogtagpki/pki/blob/master/docs/admin/acme/Managing_PKI_ACME_Responder.md[Managing PKI ACME Responder]
+* link:https://github.com/dogtagpki/pki/blob/master/docs/user/acme/Using_PKI_ACME_Responder.md[Using PKI ACME Responder]
+
