@@ -62,14 +62,15 @@ $ ldapadd \
 
 = Installing ACME Responder =
 
+To create and deploy ACME responder in PKI server execute the following command:
+
 ----
 $ pkispawn \
     -f /usr/share/pki/server/examples/installation/acme.cfg \
     -s ACME \
     -D acme_database_url=ldap://ds.example.com:3389 \
     -D acme_issuer_url=https://pki.example.com:8443 \
-    -D acme_realm_url=ldap://ds.example.com:3389 \
-    -v
+    -D acme_realm_url=ldap://ds.example.com:3389
 ----
 
 = Verifying ACME Responder =
