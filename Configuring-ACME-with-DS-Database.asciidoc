@@ -10,7 +10,11 @@ First, add the ACME DS schema by importing
 link:https://github.com/dogtagpki/pki/blob/master/base/acme/database/ds/schema.ldif[/usr/share/pki/acme/database/ds/schema.ldif] with the following command:
 
 ----
-$ ldapmodify -H ldap://$HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 \
+$ ldapmodify \
+    -H ldap://$HOSTNAME \
+    -x \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
     -f /usr/share/pki/acme/database/ds/schema.ldif
 ----
 
@@ -18,7 +22,11 @@ Next, create the ACME DS indexes by importing
 link:https://github.com/dogtagpki/pki/blob/master/base/acme/database/ds/index.ldif[/usr/share/pki/acme/database/ds/index.ldif] with the following command:
 
 ----
-$ ldapadd -H ldap://$HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 \
+$ ldapadd \
+    -H ldap://$HOSTNAME \
+    -x \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
     -f /usr/share/pki/acme/database/ds/index.ldif
 ----
 
@@ -28,14 +36,22 @@ If necessary, the database can be reindexed by importing
 link:https://github.com/dogtagpki/pki/blob/master/base/acme/database/ds/indextask.ldif[/usr/share/pki/acme/database/ds/indextask.ldif] with the following command:
 
 ----
-$ ldapadd -H ldap://$HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 \
+$ ldapadd \
+    -H ldap://$HOSTNAME \
+    -x \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
     -f /usr/share/pki/acme/database/ds/indextask.ldif
 ----
 
 The progress of the reindex task can be monitored with the following command:
 
 ----
-$ ldapsearch -H ldap://$HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 \
+$ ldapsearch \
+    -H ldap://$HOSTNAME \
+    -x \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
     -b "cn=acme,cn=index,cn=tasks,cn=config"
 ----
 
@@ -43,7 +59,11 @@ Once the indexes are ready, create the ACME subtree by importing
 link:https://github.com/dogtagpki/pki/blob/master/base/acme/database/ds/create.ldif[/usr/share/pki/acme/database/ds/create.ldif] with the following command:
 
 ----
-$ ldapadd -H ldap://$HOSTNAME -x -D "cn=Directory Manager" -w Secret.123 \
+$ ldapadd \
+    -H ldap://$HOSTNAME \
+    -x \
+    -D "cn=Directory Manager" \
+    -w Secret.123 \
     -f /usr/share/pki/acme/database/ds/create.ldif
 ----
 
