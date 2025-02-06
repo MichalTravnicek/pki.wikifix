@@ -95,6 +95,14 @@ $ curl -s -k https://pki.example.com:8443/acme/directory | python -m json.tool
 }
 ----
 
+= Removing ACME Responder =
+
+To undeploy and remove the ACME responder execute the following command:
+
+----
+$ pkidestroy -s ACME
+----
+
 = See Also =
 
 * link:https://github.com/dogtagpki/pki/blob/master/base/acme/database/ds/schema.ldif[/usr/share/pki/acme/database/ds/schema.ldif]
