@@ -2,6 +2,21 @@
 
 This document describes the process to install an ACME responder on a PKI server that already has a CA subsystem using `pkispawn` command.
 
+= Prerequisites =
+
+This document assumes that the following DS service can used as ACME database and ACME realm:
+
+* URL: `ldap://ds.example.com:3389`
+* Base DN: `dc=acme,dc=pki,dc=example,dc=com`
+* Bind DN: `cn=Directory Manager`
+* Bind password: `Secret.123`
+
+It also assumes that the following CA service can used as ACME issuer:
+
+* URL: `ldap://ds.example.com:3389`
+* Username: `caadmin`
+* Password: `Secret.123`
+
 = Setting Up ACME Database =
 
 To import the DS schema for ACME database:
