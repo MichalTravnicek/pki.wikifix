@@ -1,16 +1,20 @@
 = Overview =
 
-Each PKI subsystem provides a logging service using link:https://docs.oracle.com/en/java/javase/11/docs/api/java.logging/java/util/logging/package-summary.html[java.util.logging] (JUL) framework. The logging service which can be used to troubleshoot issues in the subsystem (e.g. database access, certificate issuance, key archival).
+Each PKI subsystem provides a logging service using link:https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/package-summary.html[java.util.logging] (JUL) framework. The logging service which can be used to troubleshoot issues in the subsystem (e.g. database access, certificate issuance, key archival).
 
-For older versions see:
+JUL supports the following link:https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/Level.html[logging levels]:
 
-* link:https://www.dogtagpki.org/wiki/PKI_10.6_Subsystem_Debug_Log[PKI 10.6 Subsystem Debug Log]
-* link:https://www.dogtagpki.org/wiki/PKI_10.5_Subsystem_Debug_Log[PKI 10.5 Subsystem Debug Log]
-* link:https://www.dogtagpki.org/wiki/PKI_10.3_Subsystem_Debug_Log[PKI 10.3 Subsystem Debug Log]
+* `SEVERE` (highest value)
+* `WARNING`
+* `INFO`
+* `CONFIG`
+* `FINE`
+* `FINER`
+* `FINEST` (lowest value) 
 
-= Configuration =
+= Default Subsystem Logging Configuration =
 
-The logging configuration is located at:
+The default subsystem logging configuration is stored in:
 
 * link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/webapps/ca/WEB-INF/classes/logging.properties[/usr/share/pki/ca/webapps/ca/WEB-INF/classes/logging.properties]
 * link:https://github.com/dogtagpki/pki/blob/master/base/kra/shared/webapps/kra/WEB-INF/classes/logging.properties[/usr/share/pki/kra/webapps/kra/WEB-INF/classes/logging.properties]
@@ -19,7 +23,9 @@ The logging configuration is located at:
 * link:https://github.com/dogtagpki/pki/blob/master/base/tps/shared/webapps/tps/WEB-INF/classes/logging.properties[/usr/share/pki/tps/webapps/tps/WEB-INF/classes/logging.properties]
 * link:https://github.com/dogtagpki/pki/blob/master/base/acme/webapps/acme/WEB-INF/classes/logging.properties[/usr/share/pki/acme/webapps/acme/WEB-INF/classes/logging.properties]
 
-The logging levels for PKI classes are overridden by the `debug.level` parameter in:
+= Configuring Subsystem Debug Level using CS.cfg =
+
+The debug level for PKI classes can be configured using the `debug.level` parameter in:
 
 * link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/ca/conf/CS.cfg]
 * link:https://github.com/dogtagpki/pki/blob/master/base/kra/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/kra/conf/CS.cfg]
@@ -69,7 +75,7 @@ The `debug.level` is mapped into JUL log level as follows:
 
 The subsystem will store the messages in `/var/lib/pki/pki-tomcat/logs/<subsystem>/debug.YYYY-MM-DD.log` which will be rotated daily and purged after 7 days.
 
-= Displaying Current Debug Level =
+== Displaying Current Debug Level ==
 
 To show the current debug level in subsystems other than ACME, execute the following command:
 
@@ -80,7 +86,7 @@ $ pki-server ca-config-show debug.level
 
 For ACME, see the `*.level` properties in `/usr/share/pki/acme/webapps/acme/WEB-INF/classes/logging.properties`.
 
-= Changing Debug Level =
+== Changing Debug Level ==
 
 To change the debug level (e.g. to log `FINE` messages or higher) in subsystems other than ACME, execute the following command:
 
@@ -91,3 +97,25 @@ $ pki-server ca-config-set debug.level 5
 For ACME, change the `*.level` properties in `/usr/share/pki/acme/webapps/acme/WEB-INF/classes/logging.properties`.
 
 Then restart the server.
+
+= Configuring Subsystem Debug Level using logging.properties =
+
+Since PKI 11.7 the subsystem debug level can be configured by creating `/var/lib/pki/<instance>/conf/<subsystem>/logging.properties`, for example:
+
+----
+org.jboss.resteasy.level = INFO
+----
+
+Ensure the file is readable by `pkiuser`:
+
+----
+$ chown pkiuser:pkiuser /var/lib/pki/pki-tomcat/conf/ca/logging.properties
+----
+
+Then restart the server. The log messages should appear in `/var/lib/pki/<instance>/logs/<subsystem>/debug.YYYY-MM-DD.log`.
+
+= See Also =
+
+* link:https://www.dogtagpki.org/wiki/PKI_10.6_Subsystem_Debug_Log[PKI 10.6 Subsystem Debug Log]
+* link:https://www.dogtagpki.org/wiki/PKI_10.5_Subsystem_Debug_Log[PKI 10.5 Subsystem Debug Log]
+* link:https://www.dogtagpki.org/wiki/PKI_10.3_Subsystem_Debug_Log[PKI 10.3 Subsystem Debug Log]
