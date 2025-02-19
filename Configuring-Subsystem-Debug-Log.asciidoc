@@ -1,8 +1,8 @@
 = Overview =
 
-Each PKI subsystem provides a logging service using link:https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/package-summary.html[java.util.logging] (JUL) framework. The logging service which can be used to troubleshoot issues in the subsystem (e.g. database access, certificate issuance, key archival).
+Each PKI subsystem generates debug logs that can be used to troubleshoot issues in the subsystem (e.g. database access, certificate issuance, key archival).
 
-JUL supports the following link:https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/Level.html[logging levels]:
+The logging system is implemented using link:https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/package-summary.html[java.util.logging] (JUL) which can be configured using `logging.properties` and supports the following link:https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/Level.html[logging levels]:
 
 * `SEVERE` (highest value)
 * `WARNING`
@@ -12,7 +12,7 @@ JUL supports the following link:https://docs.oracle.com/en/java/javase/17/docs/a
 * `FINER`
 * `FINEST` (lowest value) 
 
-= Default Subsystem Logging Configuration =
+= Default Logging Configuration =
 
 The default subsystem logging configuration is stored in:
 
@@ -24,9 +24,31 @@ The default subsystem logging configuration is stored in:
 * link:https://github.com/dogtagpki/pki/blob/master/base/acme/webapps/acme/WEB-INF/classes/logging.properties[/usr/share/pki/acme/webapps/acme/WEB-INF/classes/logging.properties]
 * link:https://github.com/dogtagpki/pki/blob/master/base/est/webapps/est/WEB-INF/classes/logging.properties[/usr/share/pki/est/webapps/est/WEB-INF/classes/logging.properties]
 
-= Configuring Subsystem Debug Level using CS.cfg =
+The subsystem will store the messages in `/var/lib/pki/pki-tomcat/logs/<subsystem>/debug.YYYY-MM-DD.log` which will be rotated daily and purged after 7 days.
 
-The debug level for PKI classes can be configured using the `debug.level` parameter in:
+Note: These files are owned by RPM packages. Any changes to them will be overwritten when the RPM packages are upgraded.
+
+= Configuring Debug Level using logging.properties =
+
+Since PKI 11.7 the subsystem debug level can be configured by creating a new `/var/lib/pki/<instance>/conf/<subsystem>/logging.properties`. This is different from the default `logging.properties` above.
+
+For example:
+
+----
+org.jboss.resteasy.level = INFO
+----
+
+Ensure the file is owned by `pkiuser`:
+
+----
+$ chown pkiuser:pkiuser /var/lib/pki/pki-tomcat/conf/ca/logging.properties
+----
+
+Then restart the server.
+
+= Configuring Debug Level using CS.cfg =
+
+For CA, KRA, OCSP, TKS, and TPS subsystems the debug level can be configured using the `debug.level` parameter in `CS.cfg`:
 
 * link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/ca/conf/CS.cfg]
 * link:https://github.com/dogtagpki/pki/blob/master/base/kra/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/kra/conf/CS.cfg]
@@ -34,21 +56,15 @@ The debug level for PKI classes can be configured using the `debug.level` parame
 * link:https://github.com/dogtagpki/pki/blob/master/base/tks/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/tks/conf/CS.cfg]
 * link:https://github.com/dogtagpki/pki/blob/master/base/tps/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/tps/conf/CS.cfg]
 
-Note: There is no `CS.cfg` for ACME, so the logging level has to be configured in `logging.properties`. This will be addressed in the future.
+Note: There is no `CS.cfg` for ACME and EST subsystems. Create a custom `logging.properties` on PKI 11.7 or later, or modify the default `logging.properties` on older versions.
 
-By default the subsystem will log `INFO` messages or higher:
+By default the `debug.level` parameter is configured as follows:
 
 ----
-# in logging.properties
-org.dogtagpki.level = INFO
-com.netscape.level = INFO
-netscape.level = INFO
-
-# in CS.cfg
 debug.level=10
 ----
 
-The `debug.level` is mapped into JUL log level as follows:
+The parameter is mapped into JUL log level as follows:
 
 |===
 | PKI Log Level | SLF4J Log Level | JUL Log Level
@@ -74,7 +90,7 @@ The `debug.level` is mapped into JUL log level as follows:
 | SEVERE
 |===
 
-The subsystem will store the messages in `/var/lib/pki/pki-tomcat/logs/<subsystem>/debug.YYYY-MM-DD.log` which will be rotated daily and purged after 7 days.
+So by default the subsystem will log `INFO` messages or higher.
 
 == Displaying Current Debug Level ==
 
@@ -85,8 +101,6 @@ $ pki-server ca-config-show debug.level
 10
 ----
 
-For ACME, see the `*.level` properties in `/usr/share/pki/acme/webapps/acme/WEB-INF/classes/logging.properties`.
-
 == Changing Debug Level ==
 
 To change the debug level (e.g. to log `FINE` messages or higher) in subsystems other than ACME, execute the following command:
@@ -95,25 +109,7 @@ To change the debug level (e.g. to log `FINE` messages or higher) in subsystems 
 $ pki-server ca-config-set debug.level 5
 ----
 
-For ACME, change the `*.level` properties in `/usr/share/pki/acme/webapps/acme/WEB-INF/classes/logging.properties`.
-
 Then restart the server.
-
-= Configuring Subsystem Debug Level using logging.properties =
-
-Since PKI 11.7 the subsystem debug level can be configured by creating `/var/lib/pki/<instance>/conf/<subsystem>/logging.properties`, for example:
-
-----
-org.jboss.resteasy.level = INFO
-----
-
-Ensure the file is readable by `pkiuser`:
-
-----
-$ chown pkiuser:pkiuser /var/lib/pki/pki-tomcat/conf/ca/logging.properties
-----
-
-Then restart the server. The log messages should appear in `/var/lib/pki/<instance>/logs/<subsystem>/debug.YYYY-MM-DD.log`.
 
 = See Also =
 
