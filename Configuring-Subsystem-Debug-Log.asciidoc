@@ -1,6 +1,6 @@
 = Overview =
 
-Each PKI subsystem generates debug logs that can be used to troubleshoot issues in the subsystem (e.g. database access, certificate issuance, key archival).
+Each PKI subsystem can be configured to generate debug log for troubleshooting issues in the subsystem (e.g. database access, certificate issuance, key archival).
 
 The logging system is implemented using link:https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/package-summary.html[java.util.logging] (JUL) which can be configured using `logging.properties` and supports the following link:https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/Level.html[logging levels]:
 
@@ -24,15 +24,15 @@ The default subsystem logging configuration is stored in:
 * link:https://github.com/dogtagpki/pki/blob/master/base/acme/webapps/acme/WEB-INF/classes/logging.properties[/usr/share/pki/acme/webapps/acme/WEB-INF/classes/logging.properties]
 * link:https://github.com/dogtagpki/pki/blob/master/base/est/webapps/est/WEB-INF/classes/logging.properties[/usr/share/pki/est/webapps/est/WEB-INF/classes/logging.properties]
 
-The subsystem will store the messages in `/var/lib/pki/pki-tomcat/logs/<subsystem>/debug.YYYY-MM-DD.log` which will be rotated daily and purged after 7 days.
+By default the debug log will be stored in `/var/lib/pki/pki-tomcat/logs/<subsystem>/debug.YYYY-MM-DD.log` which will be rotated daily and purged after 7 days.
 
 Note: These files can be modified temporarily, but the changes will be overwritten when the RPM packages are updated.
 
 = Configuring Debug Level using logging.properties =
 
-Since PKI 11.7 the subsystem debug level can be configured by creating a new `/var/lib/pki/<instance>/conf/<subsystem>/logging.properties`. This is different from the default `logging.properties` above.
+Since PKI 11.7 the subsystem debug level can be configured in `/var/lib/pki/<instance>/conf/<subsystem>/logging.properties` which will override the default debug level.
 
-For example:
+For example, to troubleshoot RESTEasy issues create a `/var/lib/pki/pki-tomcat/conf/ca/logging.properties` with the following content:
 
 ----
 org.jboss.resteasy.level = INFO
@@ -56,7 +56,11 @@ For CA, KRA, OCSP, TKS, and TPS subsystems the debug level can be configured usi
 * link:https://github.com/dogtagpki/pki/blob/master/base/tks/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/tks/conf/CS.cfg]
 * link:https://github.com/dogtagpki/pki/blob/master/base/tps/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/tps/conf/CS.cfg]
 
-Note: There is no `CS.cfg` for ACME and EST subsystems. Instead, create a custom `logging.properties` on PKI 11.7 or later or temporarily modify the default `logging.properties` on older PKI versions.
+Notes:
+
+* The `debug.level` parameter is only used to configure logging level in JSS, LDAP SDK, and PKI libraries.
+* ACME and EST subsystems do not have a `CS.cfg`.
+* To troubleshoot ACME, EST, or third-party libraries, create a custom `logging.properties` in PKI 11.7 or later as described above, or temporarily modify the default `logging.properties` in older PKI versions.
 
 By default the `debug.level` parameter is configured as follows:
 
