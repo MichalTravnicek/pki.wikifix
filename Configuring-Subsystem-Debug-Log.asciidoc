@@ -26,7 +26,7 @@ The default subsystem logging configuration is stored in:
 
 The subsystem will store the messages in `/var/lib/pki/pki-tomcat/logs/<subsystem>/debug.YYYY-MM-DD.log` which will be rotated daily and purged after 7 days.
 
-Note: These files are owned by RPM packages. Any changes to them will be overwritten when the RPM packages are upgraded.
+Note: These files can be modified temporarily, but the changes will be overwritten when the RPM packages are updated.
 
 = Configuring Debug Level using logging.properties =
 
@@ -56,7 +56,7 @@ For CA, KRA, OCSP, TKS, and TPS subsystems the debug level can be configured usi
 * link:https://github.com/dogtagpki/pki/blob/master/base/tks/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/tks/conf/CS.cfg]
 * link:https://github.com/dogtagpki/pki/blob/master/base/tps/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/tps/conf/CS.cfg]
 
-Note: There is no `CS.cfg` for ACME and EST subsystems. Create a custom `logging.properties` on PKI 11.7 or later, or modify the default `logging.properties` on older versions.
+Note: There is no `CS.cfg` for ACME and EST subsystems. Instead, create a custom `logging.properties` on PKI 11.7 or later or temporarily modify the default `logging.properties` on older PKI versions.
 
 By default the `debug.level` parameter is configured as follows:
 
