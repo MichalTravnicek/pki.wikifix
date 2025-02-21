@@ -1,0 +1,68 @@
+= JSS =
+
+https://github.com/dogtagpki/jss/blob/master/.github/workflows/publish.yml
+
+----
+on:
+  push:
+    branches:
+      - master
+...
+      - name: Publish jss-dist image
+        run: |
+          docker tag jss-dist ${{ vars.REGISTRY }}/$NAMESPACE/jss-dist:latest
+          docker push ${{ vars.REGISTRY }}/$NAMESPACE/jss-dist:latest
+----
+
+= LDAP SDK =
+
+https://github.com/dogtagpki/ldap-sdk/blob/master/.github/workflows/publish.yml
+
+----
+on:
+  push:
+    branches:
+      - master
+...
+      - name: Publish LDAP SDK image
+        run: |
+          docker load --input ldapjdk-images.tar
+          docker tag ldapjdk-dist ${{ vars.REGISTRY }}/$NAMESPACE/ldapjdk-dist:latest
+          docker push ${{ vars.REGISTRY }}/$NAMESPACE/ldapjdk-dist:latest
+----
+
+= PKI =
+
+https://github.com/dogtagpki/pki/blob/master/.github/workflows/publish.yml
+
+----
+on:
+  push:
+    branches:
+      - master
+...
+      - name: Publish pki-dist image
+        run: |
+          docker tag pki-dist ${{ vars.REGISTRY }}/$NAMESPACE/pki-dist:latest
+          docker push ${{ vars.REGISTRY }}/$NAMESPACE/pki-dist:latest
+
+      - name: Publish pki-server image
+        run: |
+          docker tag pki-server ${{ vars.REGISTRY }}/$NAMESPACE/pki-server:latest
+          docker push ${{ vars.REGISTRY }}/$NAMESPACE/pki-server:latest
+
+      - name: Publish pki-ca image
+        run: |
+          docker tag pki-ca ${{ vars.REGISTRY }}/$NAMESPACE/pki-ca:latest
+          docker push ${{ vars.REGISTRY }}/$NAMESPACE/pki-ca:latest
+
+      - name: Publish pki-kra image
+        run: |
+          docker tag pki-kra ${{ vars.REGISTRY }}/$NAMESPACE/pki-kra:latest
+          docker push ${{ vars.REGISTRY }}/$NAMESPACE/pki-kra:latest
+
+      - name: Publish pki-ocsp image
+        run: |
+          docker tag pki-ocsp ${{ vars.REGISTRY }}/$NAMESPACE/pki-ocsp:latest
+          docker push ${{ vars.REGISTRY }}/$NAMESPACE/pki-ocsp:latest
+----
