@@ -1,9 +1,15 @@
 == Overview ==
 
-Each project has a GitHub job that will automatically publish Maven artifacts and container images.
+Each project has a GitHub job that will automatically publish Maven artifacts to the link:https://github.com/dogtagpki/repo/tree/maven[Maven repository] and container images to link:https://quay.io/organization/dogtagpki[Quay.io].
 
 In the `master` branch the images will be published with `latest` tag.
 In other branches (e.g. `v5.6`) the publishing job needs to be configured to publish with a tag matching the branch name (e.g. `5.6`).
+
+== GitHub Secrets ==
+
+* `REGISTRY_NAMESPACE`: Quay.io namespace (default: GitHub username)
+* `REGISTRY_USERNAME`: Quay.io username
+* `REGISTRY_PASSWORD`: Quay.io password
 
 == JSS ==
 
