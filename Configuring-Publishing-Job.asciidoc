@@ -1,4 +1,11 @@
-= JSS =
+== Overview ==
+
+Each project has a GitHub job that will automatically publish Maven artifacts and container images.
+
+In the `master` branch the images will be published with `latest` tag.
+In other branches (e.g. `v5.6`) the publishing job needs to be configured to publish with a tag matching the branch name (e.g. `5.6`).
+
+== JSS ==
 
 https://github.com/dogtagpki/jss/blob/master/.github/workflows/publish.yml
 
@@ -14,7 +21,7 @@ on:
           docker push ${{ vars.REGISTRY }}/$NAMESPACE/jss-dist:latest
 ----
 
-= LDAP SDK =
+== LDAP SDK ==
 
 https://github.com/dogtagpki/ldap-sdk/blob/master/.github/workflows/publish.yml
 
@@ -31,7 +38,7 @@ on:
           docker push ${{ vars.REGISTRY }}/$NAMESPACE/ldapjdk-dist:latest
 ----
 
-= PKI =
+== PKI ==
 
 https://github.com/dogtagpki/pki/blob/master/.github/workflows/publish.yml
 
@@ -65,4 +72,16 @@ on:
         run: |
           docker tag pki-ocsp ${{ vars.REGISTRY }}/$NAMESPACE/pki-ocsp:latest
           docker push ${{ vars.REGISTRY }}/$NAMESPACE/pki-ocsp:latest
+----
+
+https://github.com/dogtagpki/pki/blob/master/.github/workflows/acme-tests.yml
+
+----
+  publish:
+    if: github.event_name == 'push' && github.ref_name == 'master'
+...
+      - name: Publish pki-acme image
+        run: |
+          docker tag pki-acme ${{ vars.REGISTRY }}/$NAMESPACE/pki-acme:latest
+          docker push ${{ vars.REGISTRY }}/$NAMESPACE/pki-acme:latest
 ----
