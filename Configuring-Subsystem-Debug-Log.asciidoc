@@ -1,6 +1,7 @@
 = Overview =
 
 Each PKI subsystem can be configured to generate debug log for troubleshooting issues in the subsystem (e.g. database access, certificate issuance, key archival).
+The debug log can be configured during installation (see link:Two-Step-Installation[Two-Step Installation]) or after installation.
 
 The logging system is implemented using link:https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/package-summary.html[java.util.logging] (JUL) which can be configured using `logging.properties` and supports the following link:https://docs.oracle.com/en/java/javase/17/docs/api/java.logging/java/util/logging/Level.html[logging levels]:
 
@@ -48,13 +49,13 @@ Then restart the server.
 
 = Configuring Debug Level using CS.cfg =
 
-For CA, KRA, OCSP, TKS, and TPS subsystems the debug level can be configured using the `debug.level` parameter in `CS.cfg`:
+For CA, KRA, OCSP, TKS, and TPS subsystems the debug level can be configured using the `debug.level` parameter in `/var/lib/pki/<instance>/conf/<subsystem>/CS.cfg`:
 
-* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/ca/conf/CS.cfg]
-* link:https://github.com/dogtagpki/pki/blob/master/base/kra/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/kra/conf/CS.cfg]
-* link:https://github.com/dogtagpki/pki/blob/master/base/ocsp/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/ocsp/conf/CS.cfg]
-* link:https://github.com/dogtagpki/pki/blob/master/base/tks/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/tks/conf/CS.cfg]
-* link:https://github.com/dogtagpki/pki/blob/master/base/tps/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/tps/conf/CS.cfg]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ca/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/conf/ca/CS.cfg]
+* link:https://github.com/dogtagpki/pki/blob/master/base/kra/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/conf/kra/CS.cfg]
+* link:https://github.com/dogtagpki/pki/blob/master/base/ocsp/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/conf/ocsp/CS.cfg]
+* link:https://github.com/dogtagpki/pki/blob/master/base/tks/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/conf/tks/CS.cfg]
+* link:https://github.com/dogtagpki/pki/blob/master/base/tps/shared/conf/CS.cfg[/var/lib/pki/pki-tomcat/conf/tps/CS.cfg]
 
 Notes:
 
@@ -117,6 +118,7 @@ Then restart the server.
 
 = See Also =
 
+* link:https://www.dogtagpki.org/wiki/PKI_Server_Logging[PKI Server Logging]
 * link:https://www.dogtagpki.org/wiki/PKI_10.6_Subsystem_Debug_Log[PKI 10.6 Subsystem Debug Log]
 * link:https://www.dogtagpki.org/wiki/PKI_10.5_Subsystem_Debug_Log[PKI 10.5 Subsystem Debug Log]
 * link:https://www.dogtagpki.org/wiki/PKI_10.3_Subsystem_Debug_Log[PKI 10.3 Subsystem Debug Log]
