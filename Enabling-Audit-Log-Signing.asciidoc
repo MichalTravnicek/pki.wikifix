@@ -1,0 +1,80 @@
+== Overview ==
+
+By default PKI subsystems are installed with audit log enabled (i.e. `log.instance.SignedAudit.enable=true`) but log signing disabled (i.e. `log.instance.SignedAudit.logSigning=false`).
+
+To enable log signing follow the steps below.
+
+== Generating Audit Signing Certificate ==
+
+Prior to PKI 11.7 the audit signing certificate is created automatically during installation.
+Since PKI 11.7 the certificate is no longer created automatically, so it needs to be created manually after installation.
+
+To configure the nickname for audit signing certificate:
+
+----
+$ pki-server <subsystem>-config-set <subsystem>.audit_signing.nickname <nickname>
+$ pki-server <subsystem>-config-set <subsystem>.cert.audit_signing.nickname <nickname>
+----
+
+To generate the CSR:
+
+----
+$ pki-server cert-request \
+    --subject "CN=Audit Signing Certificate" \
+    --ext /usr/share/pki/server/certs/audit_signing.conf \
+    <subsystem>_audit_signing
+----
+
+To issue the certificate:
+
+----
+$ pki \
+    -n caadmin \
+    ca-cert-issue \
+    --profile caAuditSigningCert \
+    --csr-file /var/lib/pki/pki-tomcat/conf/certs/<subsystem>_audit_signing.csr \
+    --output-file /var/lib/pki/pki-tomcat/conf/certs/<subsystem>_audit_signing.crt
+----
+
+To import the certificate:
+
+----
+$ pki-server cert-import <subsystem>_audit_signing
+----
+
+== Enabling Log Signing ==
+
+=== Enabling Log Signing via CLI ===
+
+To enable signed audit via `pki-server` CLI, execute the following command:
+
+----
+$ pki-server ca-audit-config-mod \
+    --logSigning true \
+    --signingCert <nickname>
+----
+
+=== Enabling Log Signing via TPS UI ===
+
+To enable signed audit via TPS UI, go to **System** -> **Audit Logging**. Disable logging first, click **Edit**, change the **Signed Logging** to true, then reenable the Logging.
+
+=== Enabling Log Signing Manually ===
+
+The signed audit can be configured with the following parameters in `/var/lib/pki/pki-tomcat/conf/<subsystem>/CS.cfg`:
+
+----
+<subsystem>.audit_signing.nickname=<nickname>
+<subsystem>.cert.audit_signing.nickname=<nickname>
+log.instance.SignedAudit.logSigning=true
+log.instance.SignedAudit.signedAuditCertNickname=<nickname>
+----
+
+== Restarting PKI Server ==
+
+The server needs to be restarted after changing the configuration:
+
+----
+$ pki-server restart
+----
+
+
