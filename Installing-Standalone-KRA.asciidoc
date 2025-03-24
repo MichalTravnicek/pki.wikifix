@@ -4,7 +4,7 @@ This page describes the process to install a standalone KRA in PKI 10.5 or later
 
 * link:PKI-10.4-Installing-Standalone-KRA[PKI 10.4 Installing Standalone KRA]
 
-This page describes the process to install a standalone KRA. In link:https://github.com/dogtagpki/pki/blob/master/docs/installation/kra/Installing_KRA.md[normal KRA installation] the CSRs are submitted automatically to the issuing CA and the certificates are issued and imported automatically as well. In this scenario, however, the KRA uses a manual 2-step process to generate the CSRs and to import the certificates. This mechanism provides the flexibility to use non-PKI CA to issue the certificates.
+This page describes the process to install a standalone KRA. In link:https://github.com/dogtagpki/pki/blob/master/docs/installation/kra/installing-kra.adoc[normal KRA installation] the CSRs are submitted automatically to the issuing CA and the certificates are issued and imported automatically as well. In this scenario, however, the KRA uses a manual 2-step process to generate the CSRs and to import the certificates. This mechanism provides the flexibility to use non-PKI CA to issue the certificates.
 
 Unlike the normal KRA installation, it will not join the CA's security domain and no KRA connector will be configured in the CA for key archival.
 
@@ -14,7 +14,7 @@ The installation process consists multiple steps:
 * Issuing the certificates
 * Completing installation with the certificates
 
-See also link:https://github.com/dogtagpki/pki/blob/master/docs/installation/kra/Installing_KRA_with_External_Certificates.md[Installing KRA with External Certificates].
+See also link:https://github.com/dogtagpki/pki/blob/master/docs/installation/kra/installing-kra-with-external-certificates.adoc[Installing KRA with External Certificates].
 
 = Generating Certificate Requests =
 
@@ -148,4 +148,4 @@ Number of entries returned 2
 * link:Certificate-Profiles[Certificate Profiles]
 * link:https://github.com/dogtagpki/pki/issues/2424[Ticket #2424 - Certificate validity delay]
 * link:Installing-Standalone-OCSP[Installing Standalone OCSP]
-* link:https://github.com/dogtagpki/pki/blob/master/docs/installation/kra/Installing_KRA_with_External_Certificates.md[Installing KRA with External Certificates]
+* link:https://github.com/dogtagpki/pki/blob/master/docs/installation/kra/installing-kra-with-external-certificates.adoc[Installing KRA with External Certificates]
